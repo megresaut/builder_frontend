@@ -99,6 +99,7 @@ export default function PropertyDetail() {
             propertyAddress={propertyAddress}
             propertyType={propertyType}
             propertyUnits={propertyUnits}
+            propertyId={property.id}
           />
         );
 
@@ -180,6 +181,7 @@ export default function PropertyDetail() {
             propertyAddress={propertyAddress}
             propertyType={propertyType}
             propertyUnits={propertyUnits}
+            propertyId={property.id}
           />
         );
     }

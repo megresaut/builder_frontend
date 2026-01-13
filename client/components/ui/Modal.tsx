@@ -3,7 +3,7 @@ import { DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import styles from "./Modal.module.css";
 
-type ModalSize = "xs" | "sm" | "md" | "lg" | "xl";
+export type ModalSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 const MODAL_WIDTHS: Record<ModalSize, number> = {
   xs: 360,

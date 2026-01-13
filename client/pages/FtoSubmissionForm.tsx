@@ -14,6 +14,7 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import {
   DateField,
   SelectField,
+  ComboboxField,
   NumberField,
   CurrencyField,
   TextAreaField,
@@ -116,6 +117,13 @@ interface Property {
   
     manager_names: string[];
   }
+
+interface Unit {
+  id: number;
+  unit_name: string;
+  address_1: string | null;
+  owners: { name: string }[];
+}
   
 interface FTO {
 id: number;
@@ -191,7 +199,11 @@ interface ApiSubmission {
 }
 
 interface GetSubmissionResponse {
-  submission: ApiSubmission;
+  submission: ApiSubmission & {
+    property_id?: number;
+    unit_id?: number | null;
+    status?: string;
+  };
   attachments: ApiAttachment[];
 }
 
@@ -257,11 +269,16 @@ export default function FtoSubmissionForm() {
   const { submissionId } = useParams();
   const submissionIdNum = submissionId ? Number(submissionId) : null;  
   const isViewingExistingSubmission = submissionIdNum != null;
+  
+  // Extract FTO name from location state (passed from submissions table)
+  const ftoNameFromState = (location.state as any)?.task as string | undefined;
   const [properties, setProperties] = useState<Property[]>([]);
   const [propertiesLoading, setPropertiesLoading] = useState(false);
   const [propertiesError, setPropertiesError] = useState<string | null>(null);
   const [ftosByProperty, setFtosByProperty] = useState<Record<string, FTO[]>>({});
   const [ftosLoading, setFtosLoading] = useState(false);
+  const [unitsByProperty, setUnitsByProperty] = useState<Record<string, Unit[]>>({});
+  const [unitsLoading, setUnitsLoading] = useState<Record<string, boolean>>({});
 
   const [apiSubmission, setApiSubmission] = useState<GetSubmissionResponse | null>(null);
   const [submissionLoading, setSubmissionLoading] = useState(false);
@@ -271,7 +288,10 @@ export default function FtoSubmissionForm() {
 
   const didApplyPrefillRef = useRef(false);
 
-  const isApproved = (location.state as any)?.isApproved ?? false;
+  // Determine if submission is approved - check both location state and API response
+  const [isApproved, setIsApproved] = useState(
+    (location.state as any)?.isApproved ?? false
+  );
 
   const getTodayDate = () => {
     const today = new Date();
@@ -456,6 +476,11 @@ export default function FtoSubmissionForm() {
   
         if (!isMounted) return;
         setApiSubmission(data);
+        
+        // Update isApproved based on submission status
+        if (data?.submission?.status === "approved") {
+          setIsApproved(true);
+        }
       } catch (err) {
         console.error(err);
         if (isMounted) {
@@ -481,6 +506,12 @@ export default function FtoSubmissionForm() {
   
     const { submission } = apiSubmission;
     const attachments = normalizeAttachments(apiSubmission.attachments);
+    
+    // Get property_id, unit_id, and fto_id from submission level (FTO level)
+    const submissionPropertyId = submission.property_id;
+    const submissionUnitId = submission.unit_id;
+    const submissionFtoId = submission.fto_id;
+    
     // ✅ 1. Pull from the REAL backend fields
     const rawHours = safeArray<ApiHourLine>(
       (submission as any).HoursJSON
@@ -493,21 +524,30 @@ export default function FtoSubmissionForm() {
     // ----------------------------
     // HOURS → HourEntry[]
     // ----------------------------
-    const hours: HourEntry[] = rawHours.map((h, idx) => ({
-      id: `hour-${idx}`,
-      isExpanded: true,
-  
-      date: h.date_of_work?.split("T")[0] ?? null,
-      propertyId: h.property_id ? String(h.property_id) : null,
-      unitId: h.unit ?? null,
-      taskId: h.task_id ? String(h.task_id) : null,
-  
-      hours: h.hours_decimal,
-      emergencyRate: h.emergency ? "yes" : "no",
-      nonBillableHours: h.no_charge ? "yes" : "no",
-  
-      note: h.note ?? "",
-    }));
+    const hours: HourEntry[] = rawHours.map((h, idx) => {
+      const entryPropertyId = h.property_id ? String(h.property_id) : (submissionPropertyId ? String(submissionPropertyId) : null);
+      // Use submission-level unit_id if this entry matches the submission property and doesn't have a unit
+      const entryUnitId = h.unit ?? (submissionUnitId && entryPropertyId === String(submissionPropertyId) ? String(submissionUnitId) : null);
+      // For viewing submissions, always use submission-level fto_id to ensure consistency
+      // If hour has a task_id, prefer it, but fall back to submission fto_id
+      const entryTaskId = h.task_id ? String(h.task_id) : (submissionFtoId ? String(submissionFtoId) : null);
+      
+      return {
+        id: `hour-${idx}`,
+        isExpanded: true,
+    
+        date: h.date_of_work?.split("T")[0] ?? null,
+        propertyId: entryPropertyId,
+        unitId: entryUnitId, // Will be mapped to ID later if it's a name
+        taskId: entryTaskId,
+    
+        hours: h.hours_decimal,
+        emergencyRate: h.emergency ? "yes" : "no",
+        nonBillableHours: h.no_charge ? "yes" : "no",
+    
+        note: h.note ?? "",
+      };
+    });
   
     // ----------------------------
     // EXPENSES → ExpenseEntry[]
@@ -516,14 +556,20 @@ export default function FtoSubmissionForm() {
       const filesForMaterial = attachments.filter(
         (a) => a.material_index === m.material_index
       );
+      const entryPropertyId = m.property_id ? String(m.property_id) : (submissionPropertyId ? String(submissionPropertyId) : "");
+      // Use submission-level unit_id if this entry matches the submission property and doesn't have a unit
+      const entryUnitId = m.unit ?? (submissionUnitId && entryPropertyId === String(submissionPropertyId) ? String(submissionUnitId) : null);
+      // Use submission-level fto_id if material doesn't have a task_id, otherwise use material's task_id
+      const entryTaskId = m.task_id ? String(m.task_id) : (submissionFtoId ? String(submissionFtoId) : null);
+      
       return {
         id: `expense-${idx}`,
         isExpanded: true,
   
         date: m.date_of_work?.split("T")[0] ?? null,
-        propertyId: String(m.property_id),
-        unitId: m.unit ?? null,
-        taskId: m.task_id ? String(m.task_id) : null,
+        propertyId: entryPropertyId,
+        unitId: entryUnitId, // Will be mapped to ID later if it's a name
+        taskId: entryTaskId,
   
         amount: m.amount_cents / 100,
         chargeType: "client-expense",
@@ -544,20 +590,117 @@ export default function FtoSubmissionForm() {
   
     setHourEntries(hours.length ? hours : []);
     setExpenseEntries(expenses.length ? expenses : []);
+    
+    // Load units for the submission-level property if it exists
+    if (submissionPropertyId) {
+      loadUnitsForProperty(String(submissionPropertyId));
+      loadFtosForProperty(String(submissionPropertyId));
+    }
   }, [apiSubmission]);
+
+  // Map unit names to IDs and set unit_id from submission after units are loaded
+  useEffect(() => {
+    if (!apiSubmission) return;
+    
+    const { submission } = apiSubmission;
+    const submissionPropertyId = submission.property_id;
+    const submissionUnitId = submission.unit_id;
+    
+    // Wait for units to be loaded
+    const propertyIds = new Set<string>();
+    const hours = safeArray<ApiHourLine>(
+      (submission as any).HoursJSON
+    );
+    const materials = decodeBase64JSON<ApiExpenseLine>(
+      (submission as any).MaterialsJSON
+    );
+    
+    // Add submission-level property_id
+    if (submissionPropertyId) {
+      propertyIds.add(String(submissionPropertyId));
+    }
+    
+    for (const h of hours) {
+      if (h.property_id) propertyIds.add(String(h.property_id));
+    }
+    for (const m of materials) {
+      if (m.property_id) propertyIds.add(String(m.property_id));
+    }
+    
+    // Check if all units are loaded
+    const allUnitsLoaded = Array.from(propertyIds).every(
+      (pid) => unitsByProperty[pid] !== undefined
+    );
+    
+    if (!allUnitsLoaded) return;
+    
+    // Helper to find unit ID by name
+    const findUnitIdByName = (propertyId: string | null, unitName: string | null): string | null => {
+      if (!propertyId || !unitName) return null;
+      const units = unitsByProperty[propertyId] || [];
+      const unit = units.find((u) => u.unit_name === unitName);
+      return unit ? String(unit.id) : null;
+    };
+    
+    // Update hour entries with unit IDs
+    setHourEntries((prev) =>
+      prev.map((entry, idx) => {
+        // If this is the first entry and we have submission-level unit_id, use it
+        if (idx === 0 && submissionUnitId && entry.propertyId === String(submissionPropertyId)) {
+          return { ...entry, unitId: String(submissionUnitId) };
+        }
+        
+        // If unitId looks like a name (not a number), try to map it
+        if (entry.unitId && entry.propertyId && isNaN(Number(entry.unitId))) {
+          const mappedId = findUnitIdByName(entry.propertyId, entry.unitId);
+          if (mappedId) {
+            return { ...entry, unitId: mappedId };
+          }
+        }
+        return entry;
+      })
+    );
+    
+    // Update expense entries with unit IDs
+    setExpenseEntries((prev) =>
+      prev.map((entry, idx) => {
+        // If this is the first entry and we have submission-level unit_id, use it
+        if (idx === 0 && submissionUnitId && entry.propertyId === String(submissionPropertyId)) {
+          return { ...entry, unitId: String(submissionUnitId) };
+        }
+        
+        // If unitId looks like a name (not a number), try to map it
+        if (entry.unitId && entry.propertyId && isNaN(Number(entry.unitId))) {
+          const mappedId = findUnitIdByName(entry.propertyId, entry.unitId);
+          if (mappedId) {
+            return { ...entry, unitId: mappedId };
+          }
+        }
+        return entry;
+      })
+    );
+  }, [apiSubmission, unitsByProperty]);
   
 
   useEffect(() => {
     if (!apiSubmission) return;
   
+    const { submission } = apiSubmission;
+    const submissionPropertyId = submission.property_id;
+    
     const propertyIds = new Set<string>();
   
+    // Add submission-level property_id
+    if (submissionPropertyId) {
+      propertyIds.add(String(submissionPropertyId));
+    }
+  
     const hours = safeArray<ApiHourLine>(
-      (apiSubmission.submission as any).HoursJSON
+      (submission as any).HoursJSON
     );
     
     const materials = decodeBase64JSON<ApiExpenseLine>(
-      (apiSubmission.submission as any).MaterialsJSON
+      (submission as any).MaterialsJSON
     );
     
   
@@ -571,10 +714,87 @@ export default function FtoSubmissionForm() {
   
     propertyIds.forEach((pid) => {
       loadFtosForProperty(pid);
+      loadUnitsForProperty(pid);
     });
   }, [apiSubmission]);
   
   
+  // Match FTO name from location state or FTO ID from submission to loaded FTOs and set taskId
+  useEffect(() => {
+    if (!isViewingExistingSubmission) return;
+    
+    // Priority: Use FTO name from location state if available, otherwise use submission fto_id
+    let ftoIdToUse: string | null = null;
+    let propertyIdToUse: string | null = null;
+    
+    if (ftoNameFromState && apiSubmission) {
+      // Find FTO by name from location state
+      const submissionPropertyId = apiSubmission.submission.property_id;
+      if (submissionPropertyId) {
+        const propertyIdStr = String(submissionPropertyId);
+        const ftos = ftosByProperty[propertyIdStr];
+        if (ftos) {
+          const matchedFto = ftos.find((f) => f.name === ftoNameFromState);
+          if (matchedFto) {
+            ftoIdToUse = String(matchedFto.id);
+            propertyIdToUse = propertyIdStr;
+          }
+        }
+      }
+    } else if (apiSubmission) {
+      // Fallback to using submission fto_id
+      const { submission } = apiSubmission;
+      const submissionFtoId = submission.fto_id;
+      const submissionPropertyId = submission.property_id;
+      
+      if (submissionFtoId && submissionPropertyId) {
+        ftoIdToUse = String(submissionFtoId);
+        propertyIdToUse = String(submissionPropertyId);
+      }
+    }
+    
+    if (!ftoIdToUse || !propertyIdToUse) return;
+    
+    // Wait for FTOs to be loaded for this property
+    const ftos = ftosByProperty[propertyIdToUse];
+    if (!ftos || ftos.length === 0) return;
+    
+    // Check if the FTO ID exists in the loaded FTOs
+    const ftoExists = ftos.some((f) => String(f.id) === ftoIdToUse);
+    if (!ftoExists) {
+      console.warn(`FTO ${ftoIdToUse} not found in loaded FTOs for property ${propertyIdToUse}`, {
+        loadedFtoIds: ftos.map(f => String(f.id)),
+        lookingFor: ftoIdToUse,
+        propertyId: propertyIdToUse
+      });
+      return;
+    }
+    
+    // Update hour entries that match the submission property
+    setHourEntries((prev) =>
+      prev.map((entry) => {
+        if (entry.propertyId === propertyIdToUse) {
+          if (entry.taskId !== ftoIdToUse) {
+            return { ...entry, taskId: ftoIdToUse };
+          }
+        }
+        return entry;
+      })
+    );
+    
+    // Update expense entries that match the submission property
+    setExpenseEntries((prev) =>
+      prev.map((entry) => {
+        if (entry.propertyId === propertyIdToUse) {
+          if (entry.taskId !== ftoIdToUse) {
+            return { ...entry, taskId: ftoIdToUse };
+          }
+        }
+        return entry;
+      })
+    );
+  }, [apiSubmission, ftosByProperty, isViewingExistingSubmission, ftoNameFromState]);
+
   useEffect(() => {
     if (!submissionIdNum) return;
     if (hourEntries.length === 0 || expenseEntries.length === 0) return;
@@ -614,6 +834,31 @@ export default function FtoSubmissionForm() {
       console.error("Failed to load FTOs", err);
     } finally {
       setFtosLoading(false);
+    }
+  };
+
+  const loadUnitsForProperty = async (propertyId: string) => {
+    if (unitsByProperty[propertyId]) return; // cached
+  
+    try {
+      setUnitsLoading((prev) => ({ ...prev, [propertyId]: true }));
+  
+      const data: Unit[] = await fetchJSON(
+        `/properties/${propertyId}/units`
+      );
+  
+      setUnitsByProperty((prev) => ({
+        ...prev,
+        [propertyId]: data || [],
+      }));
+    } catch (err) {
+      console.error("Failed to load units", err);
+      setUnitsByProperty((prev) => ({
+        ...prev,
+        [propertyId]: [],
+      }));
+    } finally {
+      setUnitsLoading((prev) => ({ ...prev, [propertyId]: false }));
     }
   };
   
@@ -693,10 +938,47 @@ export default function FtoSubmissionForm() {
     setExpenseEntries((prev) => prev.filter((entry) => entry.id !== id));
   };
 
+  // Extract sort key for unit names (numeric vs alphabetic)
+  function extractUnitSortKey(unitName: string): number | string {
+    // Try to parse numeric unit names (e.g. "1", "10", "12A" → 12)
+    const match = unitName.match(/^(\d+)/);
+    if (match) {
+      return Number(match[1]);
+    }
+    return unitName;
+  }
+
   const getPropertyUnits = (propertyId: string | null) => {
     if (!propertyId) return [];
-    const property = PROPERTIES.find((p) => p.id === propertyId);
-    return property?.units || [];
+    const units = unitsByProperty[propertyId] || [];
+    
+    // Sort units: numeric first, then alphabetic
+    return [...units].sort((a, b) => {
+      const aKey = extractUnitSortKey(a.unit_name);
+      const bKey = extractUnitSortKey(b.unit_name);
+
+      // numeric vs numeric
+      if (typeof aKey === "number" && typeof bKey === "number") {
+        return aKey - bKey;
+      }
+
+      // numeric always comes before non-numeric
+      if (typeof aKey === "number") return -1;
+      if (typeof bKey === "number") return 1;
+
+      // fallback string compare
+      return String(aKey).localeCompare(String(bKey));
+    });
+  };
+
+  const getUnitOptions = (propertyId: string | null) => {
+    const units = getPropertyUnits(propertyId);
+    return units.map((u) => ({
+      value: String(u.id),
+      label: u.unit_name
+        ? `${u.unit_name}${u.address_1 ? ` — ${u.address_1}` : ""}`
+        : `Unit #${u.id}`,
+    }));
   };
 
   const vendorOptions = VENDORS.map((vendor) => ({
@@ -791,15 +1073,70 @@ export default function FtoSubmissionForm() {
 
 
   const submitDailyWork = async () => {
+    // Check if submission is approved - cannot edit approved submissions
+    if (isApproved) {
+      alert("You can no longer update approved submissions.");
+      return;
+    }
+
     const techId = userId; // TODO: replace with auth user
   
+    // Helper to convert unitId string to number or null
+    const getUnitIdAsNumber = (unitId: string | null): number | null => {
+      if (!unitId) return null;
+      const num = Number(unitId);
+      return isNaN(num) ? null : num;
+    };
+
+    // Check if we're editing an existing submission
+    if (isViewingExistingSubmission && submissionIdNum) {
+      // PATCH endpoint - format data as hours_json and materials_json
+      const formatDate = (dateStr: string | null): string => {
+        if (!dateStr) return new Date().toISOString().split("T")[0];
+        // If already in YYYY-MM-DD format, return as-is
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+        // Otherwise, extract date part from ISO string
+        return dateStr.split("T")[0];
+      };
+
+      const hours_json = hourEntries.map((h, idx) => ({
+        date_of_work: formatDate(h.date),
+        hours_decimal: Number(h.hours) || 0,
+        note: h.note ?? "",
+        no_charge: h.nonBillableHours === "yes",
+        emergency: h.emergencyRate === "yes",
+        hour_index: idx,
+        unit_id: getUnitIdAsNumber(h.unitId),
+      }));
+
+      const materials_json = expenseEntries.map((e, idx) => ({
+        date_of_work: formatDate(e.date),
+        vendor_name: e.vendorId ?? null,
+        note: e.note ?? "",
+        is_avm_expense: e.chargeType === "avm-expense",
+        amount_cents: Math.round((Number(e.amount) || 0) * 100),
+        material_index: idx,
+        unit_id: getUnitIdAsNumber(e.unitId),
+      }));
+
+      await fetchJSON(`/maintenance/submissions/${submissionIdNum}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          hours_json,
+          materials_json,
+        }),
+      });
+      return;
+    }
+
+    // POST endpoint - create new submission
     const hours = hourEntries.map((h) => ({
       fto_id: Number(h.taskId), // taskId === FTO id (by design)
     
       date_of_work: new Date(h.date!).toISOString(),
     
       property_id: h.propertyId ? Number(h.propertyId) : null,
-      unit: h.unitId ?? null,
+      unit_id: getUnitIdAsNumber(h.unitId),
       task_id: Number(h.taskId), // optional but fine to include
     
       hours_decimal: Number(h.hours),
@@ -815,7 +1152,7 @@ export default function FtoSubmissionForm() {
       fto_id: Number(e.taskId),
       date_of_work: new Date(e.date!).toISOString(),
       property_id: Number(e.propertyId),
-      unit: e.unitId ?? "",
+      unit_id: getUnitIdAsNumber(e.unitId),
       amount: Number(e.amount),
       is_avm_expense: false,
       note: e.note,
@@ -985,7 +1322,7 @@ export default function FtoSubmissionForm() {
                         {/* Property and Unit Row */}
                         <div className="flex flex-col lg:flex-row gap-3">
                           <div className="flex-1">
-                            <SelectField
+                            <ComboboxField
                                     label="Property"
                                     required
                                     error={hourErrors[entry.id]?.propertyId}
@@ -995,30 +1332,29 @@ export default function FtoSubmissionForm() {
                                     }))}
                                     value={entry.propertyId || ""}
                                     onChange={(value) => {
-                                        if (isApproved) return;
+                                        if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                         updateHourEntry(entry.id, "propertyId", value);
-                                        updateHourEntry(entry.id, "taskId", null); // ✅ FIX: updateHourEntry(entry.id, "taskId", null);
-                                        loadFtosForProperty(value as string);
+                                        updateHourEntry(entry.id, "unitId", null); // Clear unit when property changes
+                                        updateHourEntry(entry.id, "taskId", null);
+                                        if (value) {
+                                          loadFtosForProperty(value as string);
+                                          loadUnitsForProperty(value as string);
+                                        }
                                     }}
                                     placeholder={
                                         propertiesLoading ? "Loading properties..." : "Select Property"
                                     }
-                                    disabled={propertiesLoading || isApproved}
+                                    disabled={propertiesLoading || isApproved || (isViewingExistingSubmission && !isApproved)}
                                 />
                           </div>
                           <div className="flex-1">
                             <SelectField
                               label="Unit"
                               error={hourErrors[entry.id]?.unitId}
-                              options={getPropertyUnits(entry.propertyId).map(
-                                (u) => ({
-                                  value: u.id,
-                                  label: u.name,
-                                }),
-                              )}
+                              options={getUnitOptions(entry.propertyId)}
                               value={entry.unitId || ""}
                               onChange={(value) => {
-                                if (isApproved) return;
+                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                 setHourErrors((prev) => {
                                   const newErrors = { ...prev };
                                   if (newErrors[entry.id]) {
@@ -1028,8 +1364,14 @@ export default function FtoSubmissionForm() {
                                 });
                                 updateHourEntry(entry.id, "unitId", value);
                               }}
-                              placeholder="Select Unit"
-                              disabled={!entry.propertyId || isApproved}
+                              placeholder={
+                                !entry.propertyId
+                                  ? "Select property first"
+                                  : unitsLoading[entry.propertyId ?? ""]
+                                  ? "Loading units…"
+                                  : "Select Unit"
+                              }
+                              disabled={!entry.propertyId || unitsLoading[entry.propertyId ?? ""] || isApproved || (isViewingExistingSubmission && !isApproved)}
                             />
                           </div>
                         </div>
@@ -1042,16 +1384,43 @@ export default function FtoSubmissionForm() {
                                 value: String(fto.id),
                                 label: fto.name,
                             }))}
-                            value={
-                              ftosByProperty[entry.propertyId ?? ""]?.some(
-                                (f) => String(f.id) === String(entry.taskId)
-                              )
-                                ? entry.taskId
-                                : ""
-                            }
+                            value={(() => {
+                              // Priority: Use FTO name from location state if available, otherwise use entry.taskId or submission fto_id
+                              let taskIdToCheck = entry.taskId;
+                              
+                              if (isViewingExistingSubmission) {
+                                // First try to match by FTO name from location state
+                                if (ftoNameFromState && entry.propertyId) {
+                                  const ftos = ftosByProperty[entry.propertyId] ?? [];
+                                  const matchedFto = ftos.find((f) => f.name === ftoNameFromState);
+                                  if (matchedFto) {
+                                    taskIdToCheck = String(matchedFto.id);
+                                  }
+                                }
+                                
+                                // Fallback to submission fto_id if name didn't match
+                                if (!taskIdToCheck && apiSubmission) {
+                                  const submissionFtoId = apiSubmission.submission.fto_id;
+                                  const submissionPropertyId = apiSubmission.submission.property_id;
+                                  if (submissionFtoId && submissionPropertyId && 
+                                      String(entry.propertyId) === String(submissionPropertyId)) {
+                                    taskIdToCheck = String(submissionFtoId);
+                                  }
+                                }
+                              }
+                              
+                              if (!taskIdToCheck || !entry.propertyId) {
+                                return "";
+                              }
+                              
+                              const ftos = ftosByProperty[entry.propertyId] ?? [];
+                              const ftoExists = ftos.some((f) => String(f.id) === String(taskIdToCheck));
+                              
+                              return ftoExists ? String(taskIdToCheck) : "";
+                            })()}
                             
                             onChange={(value) => {
-                                if (isApproved) return;
+                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                 updateHourEntry(entry.id, "taskId", value);
                             }}
                             placeholder={
@@ -1061,7 +1430,7 @@ export default function FtoSubmissionForm() {
                                     ? "Select Property First"
                                     : "Select Task"
                             }
-                            disabled={!entry.propertyId || ftosLoading || isApproved}
+                            disabled={!entry.propertyId || ftosLoading || isApproved || (isViewingExistingSubmission && !isApproved)}
                         />
 
 
@@ -1276,7 +1645,7 @@ export default function FtoSubmissionForm() {
                         {/* Property and Unit Row */}
                         <div className="flex flex-col lg:flex-row gap-3">
                           <div className="flex-1">
-                            <SelectField
+                            <ComboboxField
                                 label="Property"
                                 required
                                 error={expenseErrors[entry.id]?.propertyId}
@@ -1286,30 +1655,29 @@ export default function FtoSubmissionForm() {
                                 }))}
                                 value={entry.propertyId || ""}
                                 onChange={(value) => {
-                                    if (isApproved) return;
+                                    if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                     updateExpenseEntry(entry.id, "propertyId", value);
+                                    updateExpenseEntry(entry.id, "unitId", null); // Clear unit when property changes
                                     updateExpenseEntry(entry.id, "taskId", null);
-                                    loadFtosForProperty(value as string);
+                                    if (value) {
+                                      loadFtosForProperty(value as string);
+                                      loadUnitsForProperty(value as string);
+                                    }
                                 }}
                                 placeholder={
                                     propertiesLoading ? "Loading properties..." : "Select Property"
                                 }
-                                disabled={propertiesLoading || isApproved}
+                                disabled={propertiesLoading || isApproved || (isViewingExistingSubmission && !isApproved)}
                             />
                           </div>
                           <div className="flex-1">
                             <SelectField
                               label="Unit"
                               error={expenseErrors[entry.id]?.unitId}
-                              options={getPropertyUnits(entry.propertyId).map(
-                                (u) => ({
-                                  value: u.id,
-                                  label: u.name,
-                                }),
-                              )}
+                              options={getUnitOptions(entry.propertyId)}
                               value={entry.unitId || ""}
                               onChange={(value) => {
-                                if (isApproved) return;
+                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                 setExpenseErrors((prev) => {
                                   const newErrors = { ...prev };
                                   if (newErrors[entry.id]) {
@@ -1319,8 +1687,14 @@ export default function FtoSubmissionForm() {
                                 });
                                 updateExpenseEntry(entry.id, "unitId", value);
                               }}
-                              placeholder="Select Unit"
-                              disabled={!entry.propertyId || isApproved}
+                              placeholder={
+                                !entry.propertyId
+                                  ? "Select property first"
+                                  : unitsLoading[entry.propertyId ?? ""]
+                                  ? "Loading units…"
+                                  : "Select Unit"
+                              }
+                              disabled={!entry.propertyId || unitsLoading[entry.propertyId ?? ""] || isApproved || (isViewingExistingSubmission && !isApproved)}
                             />
                           </div>
                         </div>
@@ -1333,15 +1707,42 @@ export default function FtoSubmissionForm() {
                               value: String(fto.id),
                               label: fto.name,
                             }))}
-                            value={
-                              ftosByProperty[entry.propertyId ?? ""]?.some(
-                                (f) => String(f.id) === String(entry.taskId)
-                              )
-                                ? entry.taskId
-                                : ""
-                            }
+                            value={(() => {
+                              // Priority: Use FTO name from location state if available, otherwise use entry.taskId or submission fto_id
+                              let taskIdToCheck = entry.taskId;
+                              
+                              if (isViewingExistingSubmission) {
+                                // First try to match by FTO name from location state
+                                if (ftoNameFromState && entry.propertyId) {
+                                  const ftos = ftosByProperty[entry.propertyId] ?? [];
+                                  const matchedFto = ftos.find((f) => f.name === ftoNameFromState);
+                                  if (matchedFto) {
+                                    taskIdToCheck = String(matchedFto.id);
+                                  }
+                                }
+                                
+                                // Fallback to submission fto_id if name didn't match
+                                if (!taskIdToCheck && apiSubmission) {
+                                  const submissionFtoId = apiSubmission.submission.fto_id;
+                                  const submissionPropertyId = apiSubmission.submission.property_id;
+                                  if (submissionFtoId && submissionPropertyId && 
+                                      String(entry.propertyId) === String(submissionPropertyId)) {
+                                    taskIdToCheck = String(submissionFtoId);
+                                  }
+                                }
+                              }
+                              
+                              if (!taskIdToCheck || !entry.propertyId) {
+                                return "";
+                              }
+                              
+                              const ftos = ftosByProperty[entry.propertyId] ?? [];
+                              const ftoExists = ftos.some((f) => String(f.id) === String(taskIdToCheck));
+                              
+                              return ftoExists ? String(taskIdToCheck) : "";
+                            })()}
                             onChange={(value) => {
-                                if (isApproved) return;
+                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                 updateExpenseEntry(entry.id, "taskId", value);
                             }}
                             placeholder={
@@ -1351,7 +1752,7 @@ export default function FtoSubmissionForm() {
                                     ? "Select Property First"
                                     : "Select Task"
                             }
-                            disabled={!entry.propertyId || ftosLoading || isApproved}
+                            disabled={!entry.propertyId || ftosLoading || isApproved || (isViewingExistingSubmission && !isApproved)}
                         />
 
                         <CurrencyField
@@ -1498,8 +1899,8 @@ export default function FtoSubmissionForm() {
                           }
 
                           onViewFile={(file) => {
-                            console.log(file.file.size, file.file.type);
                             if (file.file) {
+                              // Newly uploaded file (not yet saved to backend)
                               const url = URL.createObjectURL(file.file);
                             
                               setPdfViewer({
@@ -1511,7 +1912,36 @@ export default function FtoSubmissionForm() {
                               return;
                             }
                             
-                            if (file.storage_path) {
+                            // Backend-stored file - use attachment ID to fetch
+                            const attachmentId = file.id ? parseInt(file.id, 10) : null;
+                            if (attachmentId && !isNaN(attachmentId)) {
+                              (async () => {
+                                try {
+                                  const res = await fetch(
+                                    `/api/maintenance/attachments/${attachmentId}`,
+                                    { credentials: "include" }
+                                  );                                
+                            
+                                  if (!res.ok) {
+                                    alert("Failed to load attachment");
+                                    return;
+                                  }
+                            
+                                  const blob = await res.blob();
+                                  const url = URL.createObjectURL(blob);
+                            
+                                  setPdfViewer({
+                                    isOpen: true,
+                                    url,
+                                    title: file.name,
+                                  });
+                                } catch (error) {
+                                  console.error("Error loading attachment:", error);
+                                  alert("Failed to load attachment");
+                                }
+                              })();
+                            } else if (file.storage_path) {
+                              // Fallback to old endpoint if attachment ID is not available
                               (async () => {
                                 const res = await fetch(
                                   `/api/files?key=${encodeURIComponent(
@@ -1526,12 +1956,7 @@ export default function FtoSubmissionForm() {
                                 }
                             
                                 const blob = await res.blob();
-                            
-                                const fileObj = new File([blob], file.name, {
-                                  type: "application/pdf",
-                                });
-                            
-                                const url = URL.createObjectURL(fileObj);
+                                const url = URL.createObjectURL(blob);
                             
                                 setPdfViewer({
                                   isOpen: true,

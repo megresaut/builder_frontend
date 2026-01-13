@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import PageHeader from "@/components/PageHeader";
 import AddPropertyModal from "@/components/AddPropertyModal";
+import AddFileModal from "@/components/AddFileModal";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import {
   DropdownMenu,
@@ -17,22 +18,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  NotesTemplate,
+  FilesTemplate,
+} from "@/components/templates";
+import { fetchJSON } from "@/api/fetchJSON";
+import { useParams } from "react-router-dom";
 
-interface PropertyDetailsProps {
-  propertyAddress: string;
-  propertyLocation?: string;
-  propertyType?: string;
-  rentalOwner?: string;
-  propertyManager?: string;
-  propertyImage?: string;
-}
+import type { RecentNote } from "@/hooks/usePropertyDetailsState";
+import AddNoteModal from "./AddNoteModal";
 
-type RecentNote = {
+
+
+type PropertyData = {
+  id: number;
+  name: string;
+  buildium_property_id: string;
+  property_type: string;
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  units_count: number;
+  management_fee_cents?: number;
+  hourly_rate_cents?: number;
+  emergency_hourly_rate_cents?: number;
+  active: boolean;
+  created_at: string;
+  manager_names: string[];
+  owners?: { name: string }[];
+};
+
+type BackendNote = {
   id: number;
   text: string;
-  type: string;
-  date: string;
   author: string;
+  type: string;
+  created_at: string;
 };
 
 type RecentFile = {
@@ -45,16 +68,112 @@ type RecentFile = {
   type: string;
   icon: string;
   url?: string;
+  description?: string;
 };
 
+type BackendFile = {
+  id: number;
+  name: string;
+  type: string;
+  category: string;
+  description: string;
+  author: string;
+  url: string;
+  created_at: string;
+};
+
+
+// Helper to derive file icon from type
+const getFileIcon = (fileType: string): string => {
+  const lowerType = fileType.toLowerCase();
+  
+  if (lowerType === "pdf") {
+    return "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
+  }
+  
+  if (["doc", "docx"].includes(lowerType)) {
+    return "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+  }
+  
+  // Default icon
+  return "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+};
+
+// Helper to format cents to display string
+const formatCentsToMonthly = (cents?: number): string => {
+  if (!cents) return "$0.00 / month";
+  const dollars = (cents / 100).toFixed(2);
+  return `$${dollars} / month`;
+};
+
+const formatCentsToHourly = (cents?: number): string => {
+  if (!cents) return "$0 / hour";
+  const dollars = Math.round(cents / 100);
+  return `$${dollars} / hour`;
+};
+
+// Helper to format backend date to display format
+const formatDate = (isoDate: string): string => {
+  const date = new Date(isoDate);
+  return date.toLocaleString(undefined, {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
+// Transform backend note to UI note
+const transformNote = (backendNote: BackendNote): RecentNote => ({
+  id: backendNote.id,
+  text: backendNote.text,
+  type: backendNote.type,
+  date: formatDate(backendNote.created_at),
+  author: backendNote.author,
+});
+
+// Transform backend file to UI file
+const transformFile = (backendFile: BackendFile): RecentFile => ({
+  id: backendFile.id,
+  name: backendFile.name,
+  category: backendFile.category,
+  date: formatDate(backendFile.created_at),
+  author: backendFile.author,
+  type: backendFile.type,
+  icon: getFileIcon(backendFile.type),
+  url: backendFile.url,
+  description: backendFile.description,
+});
+
+interface PropertyDetailsProps {
+  propertyId: number;
+}
+
+const parseMoneyString = (val: string): number => {
+  const num = parseFloat(val.replace(/[^0-9.]/g, ""));
+  return isNaN(num) ? 0 : num;
+};
+
+
+
 export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
-  propertyAddress,
-  propertyLocation = "Westport, CT, 28282",
-  propertyType = "Concierge",
-  rentalOwner = "Eunice Bae",
-  propertyManager = "Jake Delardi",
-  propertyImage = "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b1dce1b4ec8292553f371f2747d334a444b1a4aa?placeholderIfAbsent=true",
+  propertyId,
 }) => {
+
+  // Property data state
+  const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Notes state
+  const [recentNotes, setRecentNotes] = useState<RecentNote[]>([]);
+  const [notesLoading, setNotesLoading] = useState(true);
+  
+  // Files state
+  const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
+  const [filesLoading, setFilesLoading] = useState(true);
+
+  // Modal states
   const [showMoreCustomFields, setShowMoreCustomFields] = useState(false);
   const [showMoreRates, setShowMoreRates] = useState(false);
   const [showPhotoUploadModal, setShowPhotoUploadModal] = useState(false);
@@ -67,6 +186,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [showViewNoteModal, setShowViewNoteModal] = useState(false);
   const [showViewFileModal, setShowViewFileModal] = useState(false);
 
+  // Draft states
   const [noteDraft, setNoteDraft] = useState("");
   const [viewNoteDraft, setViewNoteDraft] = useState("");
   const [fileDraft, setFileDraft] = useState<File | null>(null);
@@ -75,83 +195,152 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [fileCategoryDraft, setFileCategoryDraft] = useState("Uncategorized");
   const [managementAgreementDate, setManagementAgreementDate] = useState("");
   const [inspectionFrequency, setInspectionFrequency] = useState("Monthly");
-  const [monthlyRate, setMonthlyRate] = useState("$700.00 / month");
-  const [defaultRate, setDefaultRate] = useState("$60 / hour");
-  const [emergencyRate, setEmergencyRate] = useState("$50 / hour");
+  
+  // Editable rates state
+  const [monthlyRate, setMonthlyRate] = useState("$0.00 / month");
+  const [defaultRate, setDefaultRate] = useState("$0 / hour");
+  const [emergencyRate, setEmergencyRate] = useState("$0 / hour");
+  const isValidPropertyId = Number.isFinite(propertyId) && propertyId > 0;
 
-  const [recentNotes, setRecentNotes] = useState<RecentNote[]>([
-    {
-      id: 1,
-      text: "Southern Conn Gas #05-00011476-6574",
-      type: "RENTAL",
-      date: "6/17/2024 10:32 AM",
-      author: "Johan Gonazlez",
-    },
-    {
-      id: 2,
-      text: "Eversource #51124508037",
-      type: "RENTAL",
-      date: "6/17/2024 10:31 AM",
-      author: "Johan Gonazlez",
-    },
-    {
-      id: 3,
-      text: "Ashley Bae (Daughter): (626) 340-7616",
-      type: "RENTAL",
-      date: "6/12/2024 2:31 PM",
-      author: "Carteg Hughes",
-    },
-    {
-      id: 4,
-      text: "Called Optimum and got the address moved from connors lane to 1544 wazee street denver, co. 80202",
-      type: "RENTAL",
-      date: "8/4/2021 10:47 AM",
-      author: "Heather Seabrook",
-    },
-    {
-      id: 5,
-      text: "Optimum\nAcct#07808-628921-02\n203-293-4709\nPin: 2258",
-      type: "RENTAL",
-      date: "3/16/2020 1:59 PM",
-      author: "Mario Sciarretta",
-    },
-  ]);
+  // Fetch property data
+  useEffect(() => {
+    if (!isValidPropertyId) return;
+  
+    const fetchPropertyData = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchJSON(`/properties/${propertyId}`);
+        setPropertyData(data);
+  
+        setMonthlyRate(formatCentsToMonthly(data.management_fee_cents));
+        setDefaultRate(formatCentsToHourly(data.hourly_rate_cents));
+        setEmergencyRate(formatCentsToHourly(data.emergency_hourly_rate_cents));
+      } catch (error) {
+        console.error("Failed to fetch property data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchPropertyData();
+  }, [propertyId, isValidPropertyId]);
+  
 
-  const [recentFiles, setRecentFiles] = useState<RecentFile[]>([
-    {
-      id: 1,
-      name: "1 Connors Lane - Maintenance Log.docx",
-      category: "Uncategorized",
-      date: "6/3/2025 2:06 PM",
-      author: "Julia LoSchiavo",
-      type: "docx",
-      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true",
-    },
-    {
-      id: 2,
-      name: "1 Connors Lane Westport, CT 06883 Manage...",
-      subtitle: "Management Agreement",
-      category: "Uncategorized",
-      date: "6/19/2024 3:55 PM",
-      author: "Carter Hughes",
-      type: "pdf",
-      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
-    },
-    {
-      id: 3,
-      name: "1 Connors Lane- Management Contract",
-      category: "Uncategorized",
-      date: "1/7/2020 2:14 PM",
-      author: "Mario Sciarretta",
-      type: "pdf",
-      icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
-    },
-  ]);
+  // Fetch notes
+  useEffect(() => {
+    if (!isValidPropertyId) return;
+  
+    const fetchNotes = async () => {
+      try {
+        setNotesLoading(true);
+        const notes = await fetchJSON(`/properties/notes/${propertyId}/notes`);
+        setRecentNotes(Array.isArray(notes) ? notes.map(transformNote) : []);
+      } catch (error) {
+        console.error("Failed to fetch notes:", error);
+      } finally {
+        setNotesLoading(false);
+      }
+    };
+  
+    fetchNotes();
+  }, [propertyId, isValidPropertyId]);
+  
 
-  const handleDeleteNote = (id: number) => {
-    setRecentNotes((prev) => prev.filter((note) => note.id !== id));
-    setSelectedNote(null);
-    setShowViewNoteModal(false);
+  // Fetch files
+  useEffect(() => {
+    if (!isValidPropertyId) return;
+  
+    const fetchFiles = async () => {
+      try {
+        setFilesLoading(true);
+        const files = await fetchJSON(
+          `/properties/files/${propertyId}/files`
+        );
+        setRecentFiles(Array.isArray(files) ? files.map(transformFile) : []);
+      } catch (error) {
+        console.error("Failed to fetch files:", error);
+      } finally {
+        setFilesLoading(false);
+      }
+    };
+  
+    fetchFiles();
+  }, [propertyId, isValidPropertyId]);
+  
+
+  const handleSaveRates = async () => {
+    if (!isValidPropertyId) return;
+  
+    const payload = {
+      management_fee: parseMoneyString(monthlyRate),
+      hourly_rate: parseMoneyString(defaultRate),
+      emergency_hourly_rate: parseMoneyString(emergencyRate),
+    };
+  
+    try {
+      const updatedRates = await fetchJSON(
+        `/properties/patch-rates/${propertyId}/rates`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        }
+      );
+  
+      // Update local property data (source of truth)
+      setPropertyData((prev) =>
+        prev
+          ? {
+              ...prev,
+              management_fee_cents: updatedRates.management_fee_cents,
+              hourly_rate_cents: updatedRates.hourly_rate_cents,
+              emergency_hourly_rate_cents:
+                updatedRates.emergency_hourly_rate_cents,
+            }
+          : prev
+      );
+  
+      // Update display strings
+      setMonthlyRate(formatCentsToMonthly(updatedRates.management_fee_cents));
+      setDefaultRate(formatCentsToHourly(updatedRates.hourly_rate_cents));
+      setEmergencyRate(
+        formatCentsToHourly(updatedRates.emergency_hourly_rate_cents)
+      );
+  
+      setShowEditRatesModal(false);
+    } catch (error) {
+      console.error("Failed to update rates:", error);
+    }
+  };
+  
+
+  // Derived display values
+  const propertyAddress = propertyData?.address_line1 || "";
+  const propertyLocation = propertyData
+    ? `${propertyData.city}, ${propertyData.state}, ${propertyData.postal_code}`
+    : "";
+  const propertyType = propertyData?.property_type || "";
+  const ownerNames = propertyData?.owners?.map(owner => owner.name) || [];
+  const rentalOwner = ownerNames.length > 0 ? ownerNames.join(", ") : "----";
+  const propertyManager = propertyData?.manager_names?.[0] || "";
+  const propertyImage =
+    "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b1dce1b4ec8292553f371f2747d334a444b1a4aa?placeholderIfAbsent=true";
+
+  const closeAddNote = () => {
+    setNoteDraft("");
+    setShowAddNoteModal(false);
+  };
+
+  const handleDeleteNote = async (id: number) => {
+    try {
+      await fetchJSON(`/properties/notes/${propertyId}/notes/${id}`, {
+        method: "DELETE",
+      });
+      setRecentNotes((prev) => prev.filter((note) => note.id !== id));
+      setSelectedNote(null);
+      setShowViewNoteModal(false);
+    } catch (error) {
+      console.error("Failed to delete note:", error);
+    }
   };
 
   const revokeBlobUrl = (url?: string) => {
@@ -165,14 +354,21 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     }
   };
 
-  const handleDeleteFile = (id: number) => {
-    setRecentFiles((prev) => {
-      const fileToDelete = prev.find((f) => f.id === id);
-      revokeBlobUrl(fileToDelete?.url);
-      return prev.filter((file) => file.id !== id);
-    });
-    setSelectedFile(null);
-    setShowViewFileModal(false);
+  const handleDeleteFile = async (id: number) => {
+    try {
+      await fetchJSON(`/properties/${propertyId}/files/${id}`, {
+        method: "DELETE",
+      });
+      setRecentFiles((prev) => {
+        const fileToDelete = prev.find((f) => f.id === id);
+        revokeBlobUrl(fileToDelete?.url);
+        return prev.filter((file) => file.id !== id);
+      });
+      setSelectedFile(null);
+      setShowViewFileModal(false);
+    } catch (error) {
+      console.error("Failed to delete file:", error);
+    }
   };
 
   const openViewMaps = () => {
@@ -180,106 +376,149 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     window.open(mapsUrl, "_blank");
   };
 
-  const ActionMenu = ({
-    onView,
-    onDelete,
-  }: {
-    onView: () => void;
-    onDelete: () => void;
-  }) => {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-            aria-label="Actions"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="1" />
-              <circle cx="19" cy="12" r="1" />
-              <circle cx="5" cy="12" r="1" />
-            </svg>
-          </button>
-        </DropdownMenuTrigger>
-
-        <DropdownMenuContent
-          align="end"
-          className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 w-[145px] rounded-lg"
-          style={{ border: "0.5px solid #DADADA" }}
-        >
-          <DropdownMenuItem
-            onSelect={onView}
-            className="w-full cursor-pointer focus:bg-transparent"
-          >
-            <div className="flex justify-between items-center w-full">
-              <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]">
-                View
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="3"
-                  stroke="#525252"
-                  strokeWidth="1.5"
-                />
-              </svg>
-            </div>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            onSelect={onDelete}
-            className="w-full cursor-pointer focus:bg-transparent"
-          >
-            <div className="flex justify-between items-center w-full">
-              <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px]">
-                Delete
-              </span>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                  stroke="#982740"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
+  const openAddNote = () => {
+    setNoteDraft("");
+    setShowAddNoteModal(true);
   };
 
+  const openViewNote = (note: RecentNote) => {
+    setSelectedNote(note);
+    setViewNoteDraft(note.text);
+    setShowViewNoteModal(true);
+  };
+
+  const closeViewNote = () => {
+    setShowViewNoteModal(false);
+    setSelectedNote(null);
+    setViewNoteDraft("");
+  };
+
+  const handleAddNote = async (noteText: string) => {
+    try {
+      const newNote = await fetchJSON(`/properties/post-notes/${propertyId}/notes`, {
+        method: "POST",
+        body: JSON.stringify({ text: noteText }),
+      });
+      
+      setRecentNotes((prev) => [...prev, transformNote(newNote)]);
+      setShowAddNoteModal(false);
+    } catch (error) {
+      console.error("Failed to add note:", error);
+    }
+  };
+
+  const handleUpdateNote = async () => {
+    if (!selectedNote) return;
+    
+    const nextText = viewNoteDraft.trim();
+    if (!nextText) return;
+
+    try {
+      const updatedNote = await fetchJSON(
+        `/properties/${propertyId}/notes/${selectedNote.id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ text: nextText }),
+        }
+      );
+      
+      setRecentNotes((prev) =>
+        prev.map((n) =>
+          n.id === selectedNote.id ? transformNote(updatedNote) : n
+        )
+      );
+      closeViewNote();
+    } catch (error) {
+      console.error("Failed to update note:", error);
+    }
+  };
+
+  const handleAddFile = async (
+    uploadedFiles: any[],
+    category: string,
+    description: string
+  ) => {
+    // -----------------------------
+    // EDIT MODE
+    // -----------------------------
+    if (selectedFile) {
+      try {
+        const updatedFile = await fetchJSON(
+          `/properties/post-files/${propertyId}/files/${selectedFile.id}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify({
+              category,
+              description,
+            }),
+          }
+        );
+  
+        setRecentFiles((prev) =>
+          prev.map((f) =>
+            f.id === selectedFile.id ? transformFile(updatedFile) : f
+          )
+        );
+      } catch (error) {
+        console.error("Failed to update file:", error);
+      }
+    } else {
+      // -----------------------------
+      // ADD MODE
+      // -----------------------------
+      const uploaded = uploadedFiles[0];
+      const rawFile: File | undefined = uploaded?.file;
+  
+      if (!rawFile) {
+        console.error("No file provided");
+        return;
+      }
+  
+      // TEMP preview URL (safe to stringify)
+      const blobUrl = URL.createObjectURL(rawFile);
+  
+      try {
+        const newFile = await fetchJSON(
+          `/properties/post-files/${propertyId}/files`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              name: rawFile.name,
+              type: rawFile.name.split(".").pop() || "file",
+              category,
+              description,
+              object_key: blobUrl, // placeholder until real upload
+              author: "System",
+            }),
+          }
+        );
+  
+        setRecentFiles((prev) => [...prev, transformFile(newFile)]);
+      } catch (error) {
+        console.error("Failed to add file:", error);
+      }
+    }
+  
+    setSelectedFile(null);
+    setShowAddFileModal(false);
+  };
+  
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-gray-500">Loading property details...</div>
+      </div>
+    );
+  }
+  
+  if (!propertyData && !loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-red-500">Failed to load property details</div>
+      </div>
+    );
+  }
   return (
     <div className="flex justify-center font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]">
       <div className="flex flex-col w-full min-w-[240px]">
@@ -296,14 +535,16 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             />
 
             <div className="flex mt-3 w-full items-start gap-4 flex-wrap">
-              <img
-                loading="lazy"
-                srcSet={`${propertyImage}&width=100 100w, ${propertyImage}&width=200 200w, ${propertyImage}&width=400 400w`}
-                src={propertyImage}
-                className="rounded-lg min-w-[240px] w-[251px] aspect-[1.57] object-cover"
-                alt="Property"
-              />
-              <div className="flex min-w-[240px] min-h-[160px] flex-col justify-center flex-1">
+              <div className="flex flex-col items-start">
+                <img
+                  loading="lazy"
+                  srcSet={`${propertyImage}&width=100 100w, ${propertyImage}&width=200 200w, ${propertyImage}&width=400 400w`}
+                  src={propertyImage}
+                  className="rounded-lg min-w-[240px] w-[251px] aspect-[1.57] object-cover"
+                  alt="Property"
+                />
+              </div>
+              <div className="flex min-w-[240px] min-h-[160px] flex-col flex-1">
                 <div className="flex flex-col w-full max-w-[423px]">
                   <div className="text-[#71717A] text-xs leading-[1.33]">
                     ADDRESS
@@ -326,37 +567,48 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   </button>
                 </div>
 
-                <div className="flex mt-5 w-full items-start gap-14 flex-1">
-                  <div className="flex flex-col">
-                    <div className="text-[#71717A] text-xs leading-[1.33]">
-                      RENTAL OWNERS
+                <div className="flex mt-5 w-full flex-col gap-3">
+                  {/* Owners + Managers row */}
+                  <div className="flex w-full items-start gap-14">
+                    <div className="flex flex-col">
+                      <div className="text-[#71717A] text-xs leading-[1.33]">
+                        RENTAL OWNERS
+                      </div>
+                      <div className="flex flex-col self-start mt-1 gap-1 text-base text-[#303030] leading-[1.13]">
+                        {ownerNames.length > 0 ? (
+                          ownerNames.map((name, index) => (
+                            <div key={index}>{name}</div>
+                          ))
+                        ) : (
+                          <div>----</div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex self-start mt-1 items-end gap-2 text-base text-[#303030] leading-[1.13]">
-                      <div>{rentalOwner}</div>
-                    </div>
-                  </div>
-                  <div className="flex min-h-[98px] flex-col">
-                    <div className="text-[#71717A] text-xs leading-[1.33]">
-                      PROPERTY MANAGERS
-                    </div>
-                    <div className="text-[#303030] text-base leading-[1.13] mt-1">
-                      {propertyManager}
-                    </div>
-                  </div>
-                </div>
 
-                <button
-                  onClick={() => setShowPhotoUploadModal(true)}
-                  className="rounded-lg self-start flex mt-5 items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-                >
-                  <img
-                    loading="lazy"
-                    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d427594bd49179e577cb5955600fc9901bcd3437?placeholderIfAbsent=true"
-                    className="w-[14px] h-[14px]"
-                    alt=""
-                  />
-                  <span>Upload Photo</span>
-                </button>
+                    <div className="flex flex-col">
+                      <div className="text-[#71717A] text-xs leading-[1.33]">
+                        PROPERTY MANAGERS
+                      </div>
+                      <div className="text-[#303030] text-base leading-[1.13] mt-1">
+                        {propertyManager}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Upload Photo row */}
+                  <button
+                    onClick={() => setShowPhotoUploadModal(true)}
+                    className="flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
+                  >
+                    <img
+                      loading="lazy"
+                      src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d427594bd49179e577cb5955600fc9901bcd3437?placeholderIfAbsent=true"
+                      className="w-[14px] h-[14px]"
+                      alt=""
+                    />
+                    <span>Upload Photo</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -365,92 +617,12 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           <img
             loading="lazy"
             src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/993a5d1a37af0ace04ef2b831d3364f722125c87?placeholderIfAbsent=true"
-            className="w-full mt-5"
-            alt=""
-          />
-
-          {/* Separator */}
-          <img
-            loading="lazy"
-            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/993a5d1a37af0ace04ef2b831d3364f722125c87?placeholderIfAbsent=true"
-            className="w-full mt-5"
+            className="w-full mt-3"
             alt=""
           />
 
           {/* Custom Fields and Rates Section */}
           <div className="flex mt-5 w-full items-start gap-5 font-medium flex-wrap">
-            <div className="flex min-w-[240px] flex-col flex-1">
-              <div className="flex w-full items-center justify-between gap-4 flex-wrap">
-                <div className="text-[#303030] text-xl leading-[1.1]">
-                  Custom Fields
-                </div>
-                <button
-                  onClick={() => setShowEditCustomFieldsModal(true)}
-                  className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-                >
-                  <img
-                    loading="lazy"
-                    src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/f92d3adcec91cdb58440abba9eb347ee0521346c?placeholderIfAbsent=true"
-                    className="w-3 h-3"
-                    alt=""
-                  />
-                  <span>Edit</span>
-                </button>
-              </div>
-
-              <div className="flex mt-3 w-full flex-col">
-                <div className="flex flex-col w-full">
-                  <div className="text-[#303030] text-base leading-[1.38]">
-                    Agreement
-                  </div>
-                  <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
-                    <div className="flex flex-col">
-                      <div>MANAGEMENT AGREEMENT DATE</div>
-                      <div>
-                        {managementAgreementDate
-                          ? new Date(
-                              managementAgreementDate,
-                            ).toLocaleDateString()
-                          : "-"}
-                      </div>
-                    </div>
-                    <div className="flex flex-col">
-                      <div>INSPECTION FREQUENCY</div>
-                      <div>{inspectionFrequency}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex mt-5 w-full flex-col">
-                  <div className="text-[#303030] text-base leading-[1.38]">
-                    Vendor Agreement
-                  </div>
-                  <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
-                    <div className="flex flex-col">
-                      <div>HVAC START</div>
-                      <div>-</div>
-                    </div>
-                    <div className="flex flex-col">
-                      <div>HVAC END</div>
-                      <div>-</div>
-                    </div>
-                    <div className="flex flex-col">
-                      <div>LANDSCAPING START</div>
-                      <div>-</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() =>
-                      setShowMoreCustomFields(!showMoreCustomFields)
-                    }
-                    className="text-[#2463EB] text-sm leading-[1.4] tracking-[-0.28px] mt-3 text-left"
-                  >
-                    {showMoreCustomFields ? "Show less" : "Show more"}
-                  </button>
-                </div>
-              </div>
-            </div>
-
             <div className="flex min-w-[240px] flex-col flex-1">
               <div className="flex w-full items-center justify-between gap-4 flex-wrap whitespace-nowrap">
                 <div className="text-[#303030] text-xl leading-[1.1]">
@@ -517,169 +689,31 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           />
 
           {/* Recent Notes Section */}
-          <div className="flex mt-5 w-full flex-col">
-            <div className="flex w-full items-center justify-between gap-4 font-medium flex-wrap">
-              <div className="text-[#303030] text-xl leading-[1.1]">
-                Recent Notes
-              </div>
-              <button
-                onClick={() => setShowAddNoteModal(true)}
-                className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-              >
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/eb2ef5646108571624ccf8540dc9922047c9c587?placeholderIfAbsent=true"
-                  className="w-3 h-3"
-                  alt=""
-                />
-                <span>Add</span>
-              </button>
-            </div>
-
-            {recentNotes.length === 0 ? (
-              <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
-                <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                  You don't have any notes for this property right now.{" "}
-                  <button
-                    onClick={() => setShowAddNoteModal(true)}
-                    className="font-medium text-[#2463EB] hover:underline"
-                  >
-                    Add your first note
-                  </button>
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-lg border border-[#DADADA] flex mt-3 w-full flex-col text-sm text-[#303030] font-normal">
-                {recentNotes.map((note, index) => (
-                  <div
-                    key={note.id}
-                    className={`flex w-full px-3 py-2 items-center justify-between gap-4 flex-wrap ${
-                      index !== recentNotes.length - 1
-                        ? "border-b border-[#DADADA]"
-                        : ""
-                    }`}
-                  >
-                    <div
-                      className="leading-[18px] w-[232px]"
-                      style={{ whiteSpace: "pre-line" }}
-                    >
-                      {note.text}
-                    </div>
-                    <div className="flex min-w-[240px] items-center gap-8 leading-[1.29]">
-                      <div className="w-[135px]">{note.date}</div>
-                      <div className="w-[118px]">{note.author}</div>
-                      <ActionMenu
-                        onView={() => {
-                          setSelectedNote(note);
-                          setViewNoteDraft(note.text);
-                          setShowViewNoteModal(true);
-                        }}
-                        onDelete={() => handleDeleteNote(note.id)}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Separator */}
-          <img
-            loading="lazy"
-            src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/993a5d1a37af0ace04ef2b831d3364f722125c87?placeholderIfAbsent=true"
-            className="w-full mt-5"
-            alt=""
+          <NotesTemplate
+            notes={recentNotes}
+            onAdd={openAddNote}
+            onEdit={openViewNote}
+            onDelete={handleDeleteNote}
+            isLast={false}
+            emptyMessage="You don't have any notes for this property right now."
           />
 
           {/* Recent Files Section */}
-          <div className="flex mt-5 w-full flex-col">
-            <div className="flex w-full items-center justify-between gap-4 font-medium flex-wrap">
-              <div className="text-[#303030] text-xl leading-[1.1]">
-                Recent Files
-              </div>
-              <button
-                onClick={() => setShowAddFileModal(true)}
-                className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
-              >
-                <img
-                  loading="lazy"
-                  src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/eb2ef5646108571624ccf8540dc9922047c9c587?placeholderIfAbsent=true"
-                  className="w-3 h-3"
-                  alt=""
-                />
-                <span>Add</span>
-              </button>
-            </div>
-
-            {recentFiles.length === 0 ? (
-              <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
-                <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                  You don't have any files for this property right now.{" "}
-                  <button
-                    onClick={() => setShowAddFileModal(true)}
-                    className="font-medium text-[#2463EB] hover:underline"
-                  >
-                    Add your first file
-                  </button>
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-lg border border-[#DADADA] flex mt-3 w-full flex-col text-[#303030]">
-                {recentFiles.map((file, index) => (
-                  <div
-                    key={file.id}
-                    className={`flex w-full px-3 py-2 items-center justify-between gap-4 flex-wrap ${
-                      index !== recentFiles.length - 1
-                        ? "border-b border-[#DADADA]"
-                        : ""
-                    }`}
-                  >
-                    <div className="flex min-w-[240px] items-center gap-2 w-[301px]">
-                      <img
-                        loading="lazy"
-                        src={file.icon}
-                        className="w-9 h-9"
-                        alt="File icon"
-                      />
-                      {file.subtitle ? (
-                        <div className="flex min-w-[240px] flex-col flex-1">
-                          <div className="text-sm font-medium leading-[1.29]">
-                            {file.name}
-                          </div>
-                          <div className="text-xs font-normal">
-                            {file.subtitle}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-sm font-medium leading-[1.29]">
-                          {file.name}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex min-w-[240px] items-center gap-8 font-normal">
-                      <div className="text-sm leading-[1.29]">
-                        {file.category}
-                      </div>
-                      <div className="flex flex-col w-[135px]">
-                        <div className="text-sm leading-[1.29]">
-                          {file.date}
-                        </div>
-                        <div className="text-xs">by {file.author}</div>
-                      </div>
-                      <ActionMenu
-                        onView={() => {
-                          setSelectedFile(file);
-                          setShowViewFileModal(true);
-                        }}
-                        onDelete={() => handleDeleteFile(file.id)}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <FilesTemplate
+            files={recentFiles}
+            onAdd={() => setShowAddFileModal(true)}
+            onEdit={(file) => {
+              setSelectedFile(file);
+              setShowAddFileModal(true);
+            }}
+            onDelete={(fileId) => handleDeleteFile(fileId)}
+            onView={(file) => {
+              setSelectedFile(file);
+              setShowViewFileModal(true);
+            }}
+            isLast={true}
+            emptyMessage="You don't have any files for this property right now."
+          />
 
           {/* View Note Modal */}
           {showViewNoteModal &&
@@ -687,10 +721,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             createPortal(
               <div
                 className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
-                onClick={() => {
-                  setShowViewNoteModal(false);
-                  setSelectedNote(null);
-                }}
+                onClick={closeViewNote}
               >
                 <div
                   className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
@@ -701,10 +732,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       Note Details
                     </div>
                     <button
-                      onClick={() => {
-                        setShowViewNoteModal(false);
-                        setSelectedNote(null);
-                      }}
+                      onClick={closeViewNote}
                       className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
                     >
                       <svg
@@ -748,10 +776,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   </div>
                   <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
                     <button
-                      onClick={() => {
-                        setShowViewNoteModal(false);
-                        setSelectedNote(null);
-                      }}
+                      onClick={closeViewNote}
                       className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <span className="text-[#303030] font-normal text-base capitalize">
@@ -759,25 +784,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       </span>
                     </button>
                     <button
-                      onClick={() => {
-                        const nextText = viewNoteDraft.trim();
-                        if (!nextText) return;
-
-                        setRecentNotes((prev) =>
-                          prev.map((n) =>
-                            n.id === selectedNote.id
-                              ? {
-                                  ...n,
-                                  text: nextText,
-                                  date: new Date().toLocaleString(),
-                                }
-                              : n,
-                          ),
-                        );
-
-                        setShowViewNoteModal(false);
-                        setSelectedNote(null);
-                      }}
+                      onClick={handleUpdateNote}
                       disabled={!viewNoteDraft.trim()}
                       className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -983,114 +990,21 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               address: propertyAddress,
               location: propertyLocation,
               type: propertyType,
-              buildingId: "624090",
-              status: "inactive",
-              managers: [
-                {
-                  id: "pm",
-                  name: propertyManager,
-                  initials: propertyManager
-                    .split(" ")
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((p) => p[0]?.toUpperCase())
-                    .join(""),
-                },
-              ],
+              buildingId: propertyData.buildium_property_id,
+              status: propertyData.active ? "active" : "inactive",
+              managers: propertyData.manager_names.map((name, idx) => ({
+                id: `pm-${idx}`,
+                name,
+                initials: name
+                  .split(" ")
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((p) => p[0]?.toUpperCase())
+                  .join(""),
+              })),
               rentalOwner,
             }}
           />
-
-          {/* Legacy Edit Property Modal */}
-          {false &&
-            createPortal(
-              <div
-                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
-                onClick={() => setShowEditPropertyModal(false)}
-              >
-                <div
-                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-                    <div className="text-[#303030] font-medium text-lg">
-                      Edit Property
-                    </div>
-                    <button
-                      onClick={() => setShowEditPropertyModal(false)}
-                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M18 6L6 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6 6L18 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="px-6 py-5 grid gap-5">
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        Address
-                      </label>
-                      <input
-                        type="text"
-                        defaultValue={propertyAddress}
-                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        Location
-                      </label>
-                      <input
-                        type="text"
-                        defaultValue={propertyLocation}
-                        className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
-                      />
-                    </div>
-                  </div>
-                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setShowEditPropertyModal(false)}
-                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="text-[#303030] font-normal text-base capitalize">
-                        Cancel
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        alert("Property updated!");
-                        setShowEditPropertyModal(false);
-                      }}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
-                    >
-                      <span className="text-white font-medium text-base">
-                        Save
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>,
-              document.body,
-            )}
 
           {/* Edit Custom Fields Modal */}
           {showEditCustomFieldsModal &&
@@ -1302,20 +1216,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       </span>
                     </button>
                     <button
-                      onClick={() => {
-                        const formatMonthly = (val: string) => {
-                          const num = parseFloat(val) || 0;
-                          return `$${num.toFixed(2)} / month`;
-                        };
-                        const formatHourly = (val: string) => {
-                          const num = parseFloat(val) || 0;
-                          return `$${num} / hour`;
-                        };
-                        setMonthlyRate(formatMonthly(monthlyRate));
-                        setDefaultRate(formatHourly(defaultRate));
-                        setEmergencyRate(formatHourly(emergencyRate));
-                        setShowEditRatesModal(false);
-                      }}
+                      onClick={handleSaveRates}
                       className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
                     >
                       <span className="text-white font-medium text-base">
@@ -1329,268 +1230,42 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             )}
 
           {/* Add Note Modal */}
-          {showAddNoteModal &&
-            createPortal(
-              <div
-                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
-                onClick={() => setShowAddNoteModal(false)}
-              >
-                <div
-                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-                    <div className="text-[#303030] font-medium text-lg">
-                      Add Note
-                    </div>
-                    <button
-                      onClick={() => setShowAddNoteModal(false)}
-                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M18 6L6 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6 6L18 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="px-6 py-5 grid gap-5">
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        Note
-                      </label>
-                      <Textarea
-                        value={noteDraft}
-                        onChange={(e) => setNoteDraft(e.target.value)}
-                        placeholder="Enter your note here..."
-                        className="min-h-[140px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
-                      />
-                    </div>
-                  </div>
-                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setShowAddNoteModal(false)}
-                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="text-[#303030] font-normal text-base capitalize">
-                        Cancel
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        const text = noteDraft.trim();
-                        if (!text) return;
-
-                        const now = new Date();
-                        const date = now.toLocaleString(undefined, {
-                          month: "numeric",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        });
-
-                        setRecentNotes((prev) => {
-                          const nextId = prev.length
-                            ? Math.max(...prev.map((n) => n.id)) + 1
-                            : 1;
-                          return [
-                            ...prev,
-                            {
-                              id: nextId,
-                              text,
-                              type: "RENTAL",
-                              date,
-                              author: propertyManager,
-                            },
-                          ];
-                        });
-
-                        setNoteDraft("");
-                        setShowAddNoteModal(false);
-                      }}
-                      disabled={!noteDraft.trim()}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="text-white font-medium text-base">
-                        Add
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>,
-              document.body,
-            )}
+          <AddNoteModal
+            open={showAddNoteModal}
+            onOpenChange={(open) => {
+              if (!open) setShowAddNoteModal(false);
+            }}
+            isEditMode={false}
+            initialText=""
+            onSubmit={handleAddNote}
+          />
 
           {/* Add File Modal */}
-          {showAddFileModal &&
-            createPortal(
-              <div
-                className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
-                onClick={() => setShowAddFileModal(false)}
-              >
-                <div
-                  className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5]">
-                    <div className="text-[#303030] font-medium text-lg">
-                      Add File
-                    </div>
-                    <button
-                      onClick={() => setShowAddFileModal(false)}
-                      className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M18 6L6 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6 6L18 18"
-                          stroke="#525252"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="px-6 py-5 grid gap-5">
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        File
-                      </label>
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        onChange={(e) =>
-                          setFileDraft(e.target.files?.[0] ?? null)
-                        }
-                        className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium text-[#303030]">
-                        Category
-                      </label>
-                      <Select
-                        value={fileCategoryDraft}
-                        onValueChange={setFileCategoryDraft}
-                      >
-                        <SelectTrigger className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-[#303030] focus:ring-2 focus:ring-[#013764]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border border-[#DADADA] rounded-lg">
-                          <SelectItem value="Uncategorized">
-                            Uncategorized
-                          </SelectItem>
-                          <SelectItem value="Insurance">Insurance</SelectItem>
-                          <SelectItem value="Compliance">Compliance</SelectItem>
-                          <SelectItem value="Owner Docs">Owner Docs</SelectItem>
-                          <SelectItem value="Lease Docs">Lease Docs</SelectItem>
-                          <SelectItem value="Maintenance">
-                            Maintenance
-                          </SelectItem>
-                          <SelectItem value="Inspection">Inspection</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setShowAddFileModal(false)}
-                      className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="text-[#303030] font-normal text-base capitalize">
-                        Cancel
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!fileDraft) return;
-
-                        const now = new Date();
-                        const date = now.toLocaleString(undefined, {
-                          month: "numeric",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        });
-
-                        const fileName = fileDraft.name;
-                        const ext =
-                          fileName.split(".").pop()?.toLowerCase() || "";
-                        const url = URL.createObjectURL(fileDraft);
-                        const docIcon =
-                          "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
-                        const pdfIcon =
-                          "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
-                        const icon =
-                          ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
-
-                        setRecentFiles((prev) => {
-                          const nextId = prev.length
-                            ? Math.max(...prev.map((f) => f.id)) + 1
-                            : 1;
-                          return [
-                            ...prev,
-                            {
-                              id: nextId,
-                              name: fileName,
-                              category: fileCategoryDraft,
-                              date,
-                              author: propertyManager,
-                              type: ext || "file",
-                              icon,
-                              url,
-                            },
-                          ];
-                        });
-
-                        setFileDraft(null);
-                        setFileCategoryDraft("Uncategorized");
-                        setShowAddFileModal(false);
-                      }}
-                      disabled={!fileDraft}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="text-white font-medium text-base">
-                        Add
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>,
-              document.body,
-            )}
+          <AddFileModal
+            open={showAddFileModal}
+            onOpenChange={(open) => {
+              setShowAddFileModal(open);
+              if (!open) setSelectedFile(null);
+            }}
+            isEditMode={!!selectedFile}
+            initialFiles={
+              selectedFile
+                ? [
+                    {
+                      id: String(selectedFile.id),
+                      name: selectedFile.name,
+                      size: 0,
+                      type: selectedFile.type,
+                      url: selectedFile.url,
+                    },
+                  ]
+                : []
+            }
+            initialCategory={selectedFile?.category || ""}
+            initialDescription={selectedFile?.description || ""}
+            acceptedFormats=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+            onSubmit={handleAddFile}
+          />
         </div>
       </div>
     </div>

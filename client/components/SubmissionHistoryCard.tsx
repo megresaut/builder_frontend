@@ -19,6 +19,7 @@ interface SubmissionHistoryCardProps {
   status: "pending" | "approved" | "rejected";
   priority: "low" | "normal" | "high";
   onViewTask?: () => void;
+  onViewSummary?: () => void;
 }
 
 export default function SubmissionHistoryCard({
@@ -32,6 +33,7 @@ export default function SubmissionHistoryCard({
   status,
   priority,
   onViewTask,
+  onViewSummary,
 }: SubmissionHistoryCardProps) {
   const navigate = useNavigate();
 
@@ -77,23 +79,23 @@ export default function SubmissionHistoryCard({
   const handleViewClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (onViewTask) {
+    // If onViewSummary is provided, use it (for navigating to submission form)
+    // Otherwise, fall back to onViewTask (for opening task modal)
+    if (onViewSummary) {
+      onViewSummary();
+    } else if (onViewTask) {
       onViewTask();
-    } else if (status === "pending" || status === "rejected") {
+    } else {
+      // Default: navigate to submission form
+      const canEdit = status === "pending" || status === "rejected";
       navigate(`/fto/submission/${id}`, {
         state: {
-          isApproved: false,
-          canEdit: true,
+          isApproved: status === "approved",
+          canEdit,
           property,
           unit,
           task: name,
           description,
-        },
-      });
-    } else {
-      navigate(`/fto/submission/${id}`, {
-        state: {
-          isApproved: status === "approved",
         },
       });
     }
