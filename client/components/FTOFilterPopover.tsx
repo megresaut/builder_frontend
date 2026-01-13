@@ -35,10 +35,8 @@ export default function FTOFilterPopover({
   isOpen,
   onOpenChange,
   appliedFilters,
-  pendingFilters,
   activeCategory,
   onCategoryChange,
-  onPendingFilterUpdate,
   onApply,
   onReset,
 }: FTOFilterPopoverProps) {
