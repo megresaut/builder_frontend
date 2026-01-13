@@ -20,26 +20,6 @@ interface FTOFilterPopoverProps {
   onReset: () => void;
 }
 
-const FIELD_TEAM_MANAGERS = [
-  { value: "1", label: "Christopher Harris" },
-  { value: "2", label: "Cassandra Smith" },
-  { value: "3", label: "David Chen" },
-  { value: "4", label: "Emma Rodriguez" },
-  { value: "5", label: "James Wilson" },
-];
-
-const FTO_STATUS_OPTIONS = [
-  { value: "pending-approval", label: "New" },
-  { value: "dispatched", label: "Dispatched" },
-  { value: "approved", label: "Completed" },
-];
-
-const TIMESHEET_STATUS_OPTIONS = [
-  { value: "awaiting-submission", label: "Awaiting Submission" },
-  { value: "submitted", label: "Submitted" },
-  { value: "approved", label: "Approved" },
-];
-
 const FILTER_CATEGORIES: FilterCategory[] = [
   "date",
   "field-team",
@@ -55,11 +35,6 @@ const CATEGORY_LABELS: Record<FilterCategory, string> = {
   status: "Status",
   financials: "Financials",
 };
-
-const propertyOptions = PROPERTIES.map((p) => ({
-  value: p.id,
-  label: p.name,
-}));
 
 export default function FTOFilterPopover({
   isOpen,
