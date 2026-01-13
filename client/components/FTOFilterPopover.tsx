@@ -153,7 +153,7 @@ export default function FTOFilterPopover({
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto px-6 py-3 space-y-3">
               {activeCategory === "date" && (
                 <DateRangePanel
                   pendingFilters={pendingFilters}
