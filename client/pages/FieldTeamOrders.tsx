@@ -13,6 +13,7 @@ import { PROPERTIES } from "@/data/fto/properties";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import {
   EditIcon,
   DeleteIcon,
