@@ -315,7 +315,13 @@ export default function ApproveFTOPage() {
 
     // Navigate to referrer path, with fallback to field team orders
     const targetPath = state.referrerPath || "/field-team-orders";
-    navigate(targetPath, { replace: true });
+    navigate(targetPath, {
+      replace: true,
+      state: {
+        ftoAction: 'approved',
+        ftoId: ftoId
+      }
+    });
   };
 
   const handleReject = () => {
@@ -323,7 +329,13 @@ export default function ApproveFTOPage() {
 
     // Navigate to referrer path, with fallback to field team orders
     const targetPath = state.referrerPath || "/field-team-orders";
-    navigate(targetPath, { replace: true });
+    navigate(targetPath, {
+      replace: true,
+      state: {
+        ftoAction: 'rejected',
+        ftoId: ftoId
+      }
+    });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
