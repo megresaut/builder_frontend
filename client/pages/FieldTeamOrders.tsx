@@ -914,8 +914,10 @@ export default function FieldTeamOrders() {
         isOpen={showFilterPopover}
         onOpenChange={setShowFilterPopover}
         appliedFilters={appliedFilters}
+        pendingFilters={pendingFilters}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
+        onPendingFilterUpdate={updatePendingFilter}
         onApply={applyFilters}
         onReset={resetFilters}
       />
