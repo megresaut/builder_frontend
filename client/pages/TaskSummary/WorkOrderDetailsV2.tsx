@@ -82,6 +82,7 @@ export default function WorkOrderDetailsV2({
   onWorkOrderUpdate,
   isUpdateWorkOrderModalOpen = false,
   onUpdateWorkOrderModalOpenChange,
+  onBillAdded,
 }: WorkOrderDetailsV2Props) {
   const navigate = useNavigate();
   const { taskId } = useParams<{ taskId: string }>();
