@@ -106,6 +106,7 @@ interface MultiSelectFieldContentProps {
   removeItem: (itemId: string) => void;
   options: MultiSelectOption[];
   toggleItem: (item: MultiSelectOption) => void;
+  isOpen?: boolean;
 }
 
 const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
