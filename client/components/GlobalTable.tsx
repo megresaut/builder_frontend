@@ -83,6 +83,7 @@ export default function GlobalTable({
   searchValue = "",
   onFilterClick,
   showFilterButton = true,
+  filterCount = 0,
 }: GlobalTableProps) {
   const { handleSortClick, getSortIndicator, getSortedData } = sortingHook;
   const {
