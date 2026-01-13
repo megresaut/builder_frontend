@@ -323,7 +323,7 @@ export default function ApproveFTOPage() {
 
     // Navigate to referrer path, with fallback to field team orders
     const targetPath = state.referrerPath || "/field-team-orders";
-    navigate(targetPath, { replace: true })
+    navigate(targetPath, { replace: true });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
