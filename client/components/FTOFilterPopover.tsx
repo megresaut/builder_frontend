@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { FilterCategory } from "@/hooks/useFieldTeamOrdersFilterState";
+import {
+  AppliedFilters,
+  PendingFilters,
+  FilterCategory,
+} from "@/hooks/useFieldTeamOrdersFilterState";
 
 interface FTOFilterPopoverProps {
   isOpen: boolean;
