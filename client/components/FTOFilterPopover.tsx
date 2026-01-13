@@ -110,6 +110,7 @@ export default function FTOFilterPopover({
 
   const handlePopoverLeave = () => {
     setShowLeftPanel(false);
+    onOpenChange(false);
   };
 
   if (!isOpen) return null;
