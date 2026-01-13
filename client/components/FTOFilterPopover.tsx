@@ -191,7 +191,7 @@ export default function FTOFilterPopover({
         </div>
 
         {/* Right Panel - Category Menu (Always Visible) */}
-        <div className="w-64 bg-[#FAFAFA] flex flex-col overflow-hidden">
+        <div className="w-64 bg-[#FAFAFA] flex flex-col overflow-hidden flex-shrink-0">
           <div className="px-4 py-3 border-b border-[#E5E7EB] flex-shrink-0">
             <h3 className="text-sm font-semibold text-[#303030]">Filter by</h3>
           </div>
