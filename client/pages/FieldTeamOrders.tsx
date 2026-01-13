@@ -447,36 +447,77 @@ export default function FieldTeamOrders() {
         member.name.toLowerCase().includes(searchLower)
       );
 
-    // Manager filter
-    const matchesManager =
-      !selectedManagerId ||
-      order.fieldTeam.some((member) => {
-        const mockUsers: Record<number, { id: number; name: string }> = {
-          1: { id: 1, name: "Christopher Harris" },
-          2: { id: 2, name: "Cassandra Smith" },
-          3: { id: 3, name: "David Chen" },
-          4: { id: 4, name: "Emma Rodriguez" },
-          5: { id: 5, name: "James Wilson" },
-        };
-        const user = Object.values(mockUsers).find(
-          (u) => u.name === member.name
-        );
-        return user && selectedManagerId === String(user.id);
-      });
-
     // Date range filter
     let matchesDateRange = true;
-    if (dateRangeStart || dateRangeEnd) {
+    if (appliedFilters.dateRangeStart || appliedFilters.dateRangeEnd) {
       const orderDate = new Date(order.dueDate);
-      if (dateRangeStart && orderDate < dateRangeStart) {
+      if (appliedFilters.dateRangeStart && orderDate < appliedFilters.dateRangeStart) {
         matchesDateRange = false;
       }
-      if (dateRangeEnd && orderDate > dateRangeEnd) {
+      if (appliedFilters.dateRangeEnd && orderDate > appliedFilters.dateRangeEnd) {
         matchesDateRange = false;
       }
     }
 
-    return matchesSearch && matchesManager && matchesDateRange;
+    // Field Manager filter
+    const mockUsers: Record<number, { id: number; name: string }> = {
+      1: { id: 1, name: "Christopher Harris" },
+      2: { id: 2, name: "Cassandra Smith" },
+      3: { id: 3, name: "David Chen" },
+      4: { id: 4, name: "Emma Rodriguez" },
+      5: { id: 5, name: "James Wilson" },
+    };
+
+    const matchesFieldManager =
+      !appliedFilters.fieldManager ||
+      order.fieldTeam.some((member) => {
+        const user = Object.values(mockUsers).find((u) => u.name === member.name);
+        return user && appliedFilters.fieldManager === String(user.id);
+      });
+
+    // Properties filter
+    const matchesProperties =
+      appliedFilters.properties.length === 0 ||
+      appliedFilters.properties.some(
+        (propId) => order.property.toLowerCase().includes(propId.toLowerCase())
+      );
+
+    // Unit filter
+    const matchesUnit =
+      !appliedFilters.unit ||
+      (order.unit?.toLowerCase().includes(appliedFilters.unit.toLowerCase()) ?? false);
+
+    // FTO Name filter
+    const matchesFTOName =
+      !appliedFilters.ftoName ||
+      order.description.toLowerCase().includes(appliedFilters.ftoName.toLowerCase());
+
+    // FTO Status filter
+    const matchesFTOStatus =
+      appliedFilters.ftoStatus.length === 0 ||
+      appliedFilters.ftoStatus.includes(order.status);
+
+    // Timesheet Status filter
+    const matchesTimesheetStatus =
+      appliedFilters.timesheetStatus.length === 0 ||
+      appliedFilters.timesheetStatus.includes(order.timesheetStatus);
+
+    // Amount range filter
+    const matchesAmountRange =
+      (appliedFilters.minAmount === null || order.amount >= appliedFilters.minAmount) &&
+      (appliedFilters.maxAmount === null || order.amount <= appliedFilters.maxAmount);
+
+    return (
+      matchesSearch &&
+      matchesDateRange &&
+      matchesFieldManager &&
+      matchesProperties &&
+      matchesUnit &&
+      matchesFTOName &&
+      matchesFTOStatus &&
+      matchesTimesheetStatus &&
+      matchesAmountRange
+    );
   });
 
   const { handleSortClick, getSortIndicator, getSortedData } =
