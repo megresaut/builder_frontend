@@ -557,14 +557,17 @@ export default function WorkOrderDetailsV2({
               {
                 label: "Collaborators",
                 mode: "rows",
-                people: currentCollaborators.map((collaborator) => ({
-                  id: collaborator.id,
-                  name: collaborator.name || collaborator.label,
-                  initials: collaborator.initials,
-                  roleLabel: collaborator.title || "Property manager",
-                  email: collaborator.email || "",
-                  phone: collaborator.phone || "",
-                })),
+                people: currentCollaborators.map((collaborator) => {
+                  const name = collaborator.name || collaborator.label || "Unknown";
+                  return {
+                    id: collaborator.id,
+                    name,
+                    initials: collaborator.initials || (name ? name.split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase() : "?"),
+                    roleLabel: collaborator.title || "Property manager",
+                    email: collaborator.email || "",
+                    phone: collaborator.phone || "",
+                  };
+                }),
                 showRoleLabel: true,
                 showPhone: true,
                 showDivider: true,
