@@ -85,6 +85,7 @@ export default function SummaryTab({
   currentProperty,
   currentUnit,
   createdTimestamp,
+  lastUpdatedTimestamp,
   workOrders,
   fieldTeamOrders,
   notes,
