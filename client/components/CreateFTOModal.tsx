@@ -201,6 +201,21 @@ export default function CreateFTOModal({
       return;
     }
 
+    // Build the field team assignees array for the callback
+    const selectedAssignees = fieldTeamMemberIds.map((id) => {
+      const assignee = MOCK_ASSIGNEES.find((a) => a.id === id);
+      return {
+        id,
+        name: assignee?.name || "",
+        label: assignee?.name || "",
+      };
+    });
+
+    // Get the selected property name
+    const selectedProperty = MOCK_PROPERTIES.find(
+      (p) => p.id === selectedPropertyId
+    );
+
     const payload = {
       name: ftoName,
       description,
@@ -208,9 +223,14 @@ export default function CreateFTOModal({
       status,
       due_date: formatISODate(dueDate!),
       property_id: selectedPropertyId,
+      property: selectedProperty?.name || "",
+      unit: "", // Not set in create form, but expected by parent
+      ftoName,
+      dueDate,
       task_id: selectedTaskId || undefined,
       field_team_member_ids: fieldTeamMemberIds,
       pm_assignee_ids: pmAssigneeIds,
+      selectedAssignees, // Add selectedAssignees for parent callback
     };
 
     console.log("[API] POST /field-team-orders", payload);
