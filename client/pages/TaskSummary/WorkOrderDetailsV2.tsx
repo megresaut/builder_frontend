@@ -376,35 +376,33 @@ export default function WorkOrderDetailsV2({
               />
 
               <div className="flex flex-col items-start gap-6 flex-1 min-w-0">
-                <div className="flex items-start gap-4 w-full">
-                  <div className="flex flex-col items-start gap-4 flex-1 min-w-0">
-                    <div className="flex justify-start items-start gap-2 w-full">
-                      <h2 className="text-[#303030] text-[22px] font-semibold leading-[30px] flex-1">
-                        {workOrder.task} - #{workOrder.id}
-                      </h2>
-                      <button
-                        onClick={() => onUpdateWorkOrderModalOpenChange?.(true)}
-                        className="flex justify-center items-center gap-1 rounded-lg hover:opacity-80 transition-opacity flex-shrink-0 ml-auto whitespace-nowrap mt-1"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M14.4714 1.52855C13.4747 0.531824 11.8587 0.531823 10.862 1.52855L10.0876 2.3029C9.82359 2.56691 9.69158 2.69892 9.64212 2.85114C9.59862 2.98503 9.59862 3.12926 9.64212 3.26316C9.69158 3.41538 9.82359 3.54739 10.0876 3.8114L12.1886 5.91238C12.4526 6.17639 12.5846 6.30839 12.7368 6.35785C12.8707 6.40136 13.0149 6.40136 13.1488 6.35785C13.3011 6.30839 13.4331 6.17639 13.6971 5.91238L14.4714 5.13803C15.4682 4.1413 15.4682 2.52528 14.4714 1.52855Z" fill="#2463EB"/>
-                          <path d="M11.2458 8.36368C11.5098 8.09967 11.6418 7.96766 11.6912 7.81544C11.7348 7.68155 11.7348 7.53732 11.6912 7.40342C11.6418 7.2512 11.5098 7.1192 11.2458 6.85519L9.14479 4.7542C8.88078 4.49019 8.74877 4.35819 8.59655 4.30873C8.46266 4.26522 8.31843 4.26522 8.18453 4.30873C8.03231 4.35818 7.90031 4.49019 7.6363 4.7542L2.02449 10.366C1.86096 10.5292 1.71671 10.6732 1.60388 10.8444C1.50467 10.9948 1.42626 11.158 1.37075 11.3294C1.30763 11.5244 1.28528 11.727 1.25994 11.9567L1.00408 14.2597C0.981717 14.461 1.05206 14.6615 1.19527 14.8047C1.33847 14.9479 1.53901 15.0182 1.74029 14.9959L4.04329 14.74C4.27297 14.7147 4.47557 14.6923 4.67056 14.6292C4.84201 14.5737 5.00516 14.4953 5.1556 14.3961C5.32672 14.2832 5.47074 14.139 5.634 13.9755L11.2458 8.36368Z" fill="#2463EB"/>
-                        </svg>
-                        <span className="text-[#2463eb] text-base font-medium leading-[140%] tracking-[-0.32px] capitalize">Edit</span>
-                      </button>
-                    </div>
-                    <div className="flex flex-col items-start gap-2 w-full">
-                      <div className="text-[#717179] text-sm font-medium leading-4">
-                        Created by Julia LoSchiavo for
-                      </div>
-                      <div className="text-[#2463eb] text-sm font-bold leading-4">
-                        (C) {workOrder.property} {workOrder.unit && `- ${workOrder.unit}`}
-                      </div>
-                    </div>
+                <div className="flex flex-col items-start gap-4 w-full">
+                  <div className="flex justify-between items-start gap-2 w-full">
+                    <h2 className="text-[#303030] text-[22px] font-semibold leading-[30px] flex-1">
+                      {workOrder.task} - #{workOrder.id}
+                    </h2>
+                    <button
+                      onClick={() => onUpdateWorkOrderModalOpenChange?.(true)}
+                      className="flex justify-center items-center gap-1 rounded-lg hover:opacity-80 transition-opacity flex-shrink-0 whitespace-nowrap mt-1"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14.4714 1.52855C13.4747 0.531824 11.8587 0.531823 10.862 1.52855L10.0876 2.3029C9.82359 2.56691 9.69158 2.69892 9.64212 2.85114C9.59862 2.98503 9.59862 3.12926 9.64212 3.26316C9.69158 3.41538 9.82359 3.54739 10.0876 3.8114L12.1886 5.91238C12.4526 6.17639 12.5846 6.30839 12.7368 6.35785C12.8707 6.40136 13.0149 6.40136 13.1488 6.35785C13.3011 6.30839 13.4331 6.17639 13.6971 5.91238L14.4714 5.13803C15.4682 4.1413 15.4682 2.52528 14.4714 1.52855Z" fill="#2463EB"/>
+                        <path d="M11.2458 8.36368C11.5098 8.09967 11.6418 7.96766 11.6912 7.81544C11.7348 7.68155 11.7348 7.53732 11.6912 7.40342C11.6418 7.2512 11.5098 7.1192 11.2458 6.85519L9.14479 4.7542C8.88078 4.49019 8.74877 4.35819 8.59655 4.30873C8.46266 4.26522 8.31843 4.26522 8.18453 4.30873C8.03231 4.35818 7.90031 4.49019 7.6363 4.7542L2.02449 10.366C1.86096 10.5292 1.71671 10.6732 1.60388 10.8444C1.50467 10.9948 1.42626 11.158 1.37075 11.3294C1.30763 11.5244 1.28528 11.727 1.25994 11.9567L1.00408 14.2597C0.981717 14.461 1.05206 14.6615 1.19527 14.8047C1.33847 14.9479 1.53901 15.0182 1.74029 14.9959L4.04329 14.74C4.27297 14.7147 4.47557 14.6923 4.67056 14.6292C4.84201 14.5737 5.00516 14.4953 5.1556 14.3961C5.32672 14.2832 5.47074 14.139 5.634 13.9755L11.2458 8.36368Z" fill="#2463EB"/>
+                      </svg>
+                      <span className="text-[#2463eb] text-base font-medium leading-[140%] tracking-[-0.32px] capitalize">Edit</span>
+                    </button>
                   </div>
-                  <div className="flex items-center gap-1 text-sm font-normal leading-[140%] tracking-[-0.28px] capitalize flex-shrink-0 whitespace-nowrap">
-                    <span className="text-[#717179]">Created</span>
-                    <span className="text-[#717179]">11/12/2025 9:22 PM</span>
+                  <div className="flex flex-col items-start gap-2 w-full">
+                    <div className="text-[#717179] text-sm font-medium leading-4">
+                      Created by Julia LoSchiavo for
+                    </div>
+                    <div className="text-[#2463eb] text-sm font-bold leading-4">
+                      (C) {workOrder.property} {workOrder.unit && `- ${workOrder.unit}`}
+                    </div>
+                    <div className="flex items-center gap-1 text-sm font-normal leading-[140%] tracking-[-0.28px] capitalize">
+                      <span className="text-[#717179]">Created</span>
+                      <span className="text-[#717179]">11/12/2025 9:22 PM</span>
+                    </div>
                   </div>
                 </div>
 
