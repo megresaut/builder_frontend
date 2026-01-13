@@ -9,6 +9,7 @@ import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import { useFieldTeamOrdersFilterState } from "@/hooks/useFieldTeamOrdersFilterState";
+import { PROPERTIES } from "@/data/fto/properties";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
