@@ -360,7 +360,7 @@ export default function WorkOrderDetailsV2({
           </div>
 
           <div className="flex-1 flex justify-end text-xs text-[#717179] font-medium pb-1">
-            Last Updated <span className="text-[#303030] font-bold ml-1">11/12/2025 9:22 PM</span>
+            Last Updated <span className="text-[#303030] font-bold ml-1">{lastUpdated}</span>
           </div>
         </div>
       </SectionCard>
