@@ -366,13 +366,13 @@ export default function WorkOrderDetailsV2({
           <SectionCard variant="white" padding="none">
             <div className="flex flex-col md:flex-row items-start gap-4 w-full p-5">
               <img
-                src="https://api.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F8f2f256086b940029bc4894372e519c1?format=webp&width=502"
+                src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
                 alt="Property"
                 onError={(e) => {
                   const img = e.target as HTMLImageElement;
-                  img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='251' height='191'%3E%3Crect fill='%23e5e5e5' width='251' height='191'/%3E%3Ctext x='50%25' y='50%25' font-family='Geist,sans-serif' font-size='16' fill='%23999' text-anchor='middle' dominant-baseline='middle'%3EProperty Image%3C/text%3E%3C/svg%3E";
+                  img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='251' height='400'%3E%3Crect fill='%23e5e5e5' width='251' height='400'/%3E%3Ctext x='50%25' y='50%25' font-family='Geist,sans-serif' font-size='16' fill='%23999' text-anchor='middle' dominant-baseline='middle'%3EProperty Image%3C/text%3E%3C/svg%3E";
                 }}
-                className="w-full md:w-[251px] h-[191px] rounded-lg object-cover flex-shrink-0 bg-[#f0f0f0]"
+                className="w-full md:w-[251px] h-auto rounded-lg object-cover flex-shrink-0 bg-[#f0f0f0]"
               />
 
               <div className="flex flex-col items-start gap-6 flex-1 min-w-0">
