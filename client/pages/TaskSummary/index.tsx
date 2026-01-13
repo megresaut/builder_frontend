@@ -149,9 +149,12 @@ export default function TaskSummary() {
   */
   useEffect(() => {
     if (!tab && taskId) {
-      navigate(`/tasks/${taskId}/summary`, { replace: true });
+      navigate(`/tasks/${taskId}/summary`, {
+        replace: true,
+        state: navigationState // Preserve the navigation state when redirecting
+      });
     }
-  }, [tab, taskId, navigate]);
+  }, [tab, taskId, navigate, navigationState]);
 
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
