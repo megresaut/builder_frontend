@@ -43,6 +43,7 @@ interface WorkOrderDetailsV2Props {
   onWorkOrderUpdate?: (updatedWorkOrder: WorkOrder) => void;
   isUpdateWorkOrderModalOpen?: boolean;
   onUpdateWorkOrderModalOpenChange?: (open: boolean) => void;
+  onBillAdded?: (bill: any) => void;
 }
 
 const vendorMasterData: Record<string, { email: string; phone: string; id: number }> = {
