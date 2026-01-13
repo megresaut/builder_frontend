@@ -1195,6 +1195,7 @@ export default function TaskSummary() {
               currentProperty={currentProperty}
               currentUnit={currentUnit}
               createdTimestamp={createdTimestamp}
+              lastUpdatedTimestamp={lastUpdatedTimestamp}
               workOrders={workOrders}
               fieldTeamOrders={fieldTeamOrders}
               notes={notes}
