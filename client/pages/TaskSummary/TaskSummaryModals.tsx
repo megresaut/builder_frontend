@@ -497,21 +497,25 @@ export default function TaskSummaryModals({
                 });
                 break;
               case "assignees": {
-                const newAssignees = taskData.newAssignees || taskData.assignees || [];
-                if (newAssignees.length > 0) {
+                // Calculate newly added assignees (ones not in currentAssignees)
+                const currentIds = new Set(currentAssignees.map((a: any) => a.id));
+                const newlyAddedAssignees = (taskData.assignees || []).filter((a: any) => !currentIds.has(a.id));
+                if (newlyAddedAssignees.length > 0) {
                   displayFields.push({
                     label: "Assignees",
-                    value: <PersonAvatars people={newAssignees} type="assignee" fallback="None" />,
+                    value: <PersonAvatars people={newlyAddedAssignees} type="assignee" fallback="None" />,
                   } as any);
                 }
                 break;
               }
               case "collaborators": {
-                const newCollaborators = taskData.newCollaborators || taskData.collaborators || [];
-                if (newCollaborators.length > 0) {
+                // Calculate newly added collaborators (ones not in currentCollaborators)
+                const currentIds = new Set(currentCollaborators.map((c: any) => c.id));
+                const newlyAddedCollaborators = (taskData.collaborators || []).filter((c: any) => !currentIds.has(c.id));
+                if (newlyAddedCollaborators.length > 0) {
                   displayFields.push({
                     label: "Collaborators",
-                    value: <PersonAvatars people={newCollaborators} type="collaborator" />,
+                    value: <PersonAvatars people={newlyAddedCollaborators} type="collaborator" />,
                   } as any);
                 }
                 break;
