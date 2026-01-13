@@ -153,16 +153,12 @@ export default function HoursSummaryDrawer({
       }}
       onClose={onClose}
       title="Hours Summary"
-      subtitle="Calculated from timesheet entries submitted by field managers"
       width={384}
       footer={
-        <button
-          onClick={onClose}
-          className="text-xs font-medium transition-colors hover:opacity-80"
-          style={{ color: "#2463eb" }}
-        >
-          Close
-        </button>
+        <DrawerButtons
+          onCancel={onClose}
+          cancelLabel="Close"
+        />
       }
     >
       {/* Scope Controls Section */}
