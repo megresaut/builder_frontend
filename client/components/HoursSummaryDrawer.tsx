@@ -529,21 +529,19 @@ export default function HoursSummaryDrawer({
           </div>
         </div>
 
-        {/* Footer - Clear Filters Button */}
-        {orders.length > 0 && (
-          <div
-            className="flex-shrink-0 border-t px-6 py-4"
-            style={{ borderColor: "var(--color-border-light)" }}
+        {/* Footer - Close Button */}
+        <div
+          className="flex-shrink-0 border-t px-6 py-4"
+          style={{ borderColor: "var(--color-border-light)" }}
+        >
+          <button
+            onClick={onClose}
+            className="text-xs font-medium transition-colors hover:opacity-80"
+            style={{ color: "#2463eb" }}
           >
-            <button
-              onClick={onClose}
-              className="text-xs font-medium transition-colors hover:opacity-80"
-              style={{ color: "#2463eb" }}
-            >
-              Close
-            </button>
-          </div>
-        )}
+            Close
+          </button>
+        </div>
       </div>
     </>
   );
