@@ -125,7 +125,7 @@ export default function FTOFilterPopover({
       {/* Popover */}
       <div
         ref={popoverRef}
-        className="fixed z-50 rounded-lg border border-[#E5E7EB] bg-white shadow-lg flex overflow-hidden"
+        className="fixed z-50 rounded-lg border border-[#E5E7EB] bg-white shadow-lg flex overflow-hidden justify-end"
         style={{
           width: showLeftPanel ? "642px" : "258px",
           height: "auto",
@@ -137,10 +137,11 @@ export default function FTOFilterPopover({
       >
         {/* Left Panel - Filter Controls (Slides In/Reveals) */}
         <div
-          className="w-96 flex flex-col overflow-hidden border-r border-[#E5E7EB] transition-opacity duration-200"
+          className="flex-shrink-0 flex flex-col overflow-hidden border-r border-[#E5E7EB] transition-all duration-200"
           style={{
-            display: showLeftPanel ? "flex" : "none",
+            width: showLeftPanel ? "384px" : "0px",
             opacity: showLeftPanel ? 1 : 0,
+            overflow: "hidden",
           }}
         >
           {/* Header */}
