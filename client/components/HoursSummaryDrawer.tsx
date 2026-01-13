@@ -26,12 +26,18 @@ interface HoursSummaryDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   orders: FieldTeamOrder[];
+  selectedManager?: string;
+  dateRangeStart?: Date | null;
+  dateRangeEnd?: Date | null;
 }
 
 export default function HoursSummaryDrawer({
   isOpen,
   onClose,
   orders,
+  selectedManager,
+  dateRangeStart,
+  dateRangeEnd,
 }: HoursSummaryDrawerProps) {
   const [expandedSections, setExpandedSections] = useState<{
     [key: string]: boolean;
@@ -110,7 +116,7 @@ export default function HoursSummaryDrawer({
       <div className="fixed right-0 top-0 h-screen w-96 bg-white shadow-lg z-50 overflow-y-auto transition-transform duration-200">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-[#E5E7EB] px-6 py-6 z-10">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[#303030]">
               Hours Summary
             </h2>
@@ -135,8 +141,12 @@ export default function HoursSummaryDrawer({
               </svg>
             </button>
           </div>
-          <p className="text-sm text-[#A1A1A9]">
-            Based on filtered Field Team Orders
+          <p className="text-sm text-[#525252] leading-relaxed">
+            Hours are calculated from timesheet entries submitted by
+            {selectedManager ? " the selected field manager" : " field managers"}
+            {dateRangeStart || dateRangeEnd
+              ? " for Field Team Orders whose due dates fall within the selected range."
+              : "."}
           </p>
         </div>
 

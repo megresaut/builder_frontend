@@ -840,6 +840,9 @@ export default function FieldTeamOrders() {
         isOpen={showHoursSummary}
         onClose={() => setShowHoursSummary(false)}
         orders={filteredOrders}
+        selectedManager={selectedManagerId}
+        dateRangeStart={dateRangeStart}
+        dateRangeEnd={dateRangeEnd}
       />
 
       <FTOFilterPopover
