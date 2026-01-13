@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
-import { EditIcon, NoteIcon, PaperclipIcon, FlagIcon, CalendarIcon } from "@/components/icons";
+import { EditIcon, NoteIcon, PaperclipIcon, FlagIcon, CalendarIcon, ApproveIcon } from "@/components/icons";
 import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "../WorkOrders";
