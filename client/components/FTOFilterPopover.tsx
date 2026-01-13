@@ -363,7 +363,7 @@ function StatusPanel({
   }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <MultiSelectField
         label="FTO Status"
         value={ftoStatusOptions.filter((s) =>
