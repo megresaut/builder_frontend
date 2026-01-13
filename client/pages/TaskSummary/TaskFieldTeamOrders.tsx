@@ -519,8 +519,14 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
 
   const handleApproveOrder = useCallback(
     (order: FieldTeamOrder) => {
+      // Ensure referrerPath includes the full task context path (e.g., /tasks/11/fieldteam)
+      const referrerPath = location.pathname.includes('/fieldteam')
+        ? location.pathname
+        : `${location.pathname}/fieldteam`;
+
       navigate(`/fto/approve/${order.id}`, {
         state: {
+          ftoId: order.id,
           ftoName: order.description,
           property: order.property,
           unit: order.unit ?? "",
@@ -528,7 +534,7 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
             order.fieldTeamAssignee ?? order.fieldTeam?.[0]?.name ?? "",
           task: order.task ?? "",
           description: order.description,
-          referrerPath: location.pathname,
+          referrerPath: referrerPath,
         },
       });
     },
