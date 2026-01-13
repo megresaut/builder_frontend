@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
@@ -388,6 +388,7 @@ interface TaskFieldTeamOrdersProps {
 export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFieldTeamOrdersProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { taskId } = useParams<{ taskId: string }>();
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
@@ -519,10 +520,11 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
 
   const handleApproveOrder = useCallback(
     (order: FieldTeamOrder) => {
-      // Ensure referrerPath includes the full task context path (e.g., /tasks/11/fieldteam)
-      const referrerPath = location.pathname.includes('/fieldteam')
-        ? location.pathname
-        : `${location.pathname}/fieldteam`;
+      // Ensure referrerPath includes the full task context path
+      // We explicitly construct the path using the taskId from params to avoid issues with current location.pathname
+      const referrerPath = taskId
+        ? `/tasks/${taskId}/fieldteam`
+        : (location.pathname.includes('/fieldteam') ? location.pathname : `${location.pathname}/fieldteam`);
 
       navigate(`/fto/approve/${order.id}`, {
         state: {
@@ -538,7 +540,7 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
         },
       });
     },
-    [navigate, location.pathname]
+    [navigate, location.pathname, taskId]
   );
 
   return (
