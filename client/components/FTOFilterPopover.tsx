@@ -76,7 +76,7 @@ export default function FTOFilterPopover({
   onReset,
 }: FTOFilterPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [position, setPosition] = useState({ top: 0, right: 0 });
   const [showLeftPanel, setShowLeftPanel] = useState(false);
 
   // Anchor the popover to the filter button
@@ -88,9 +88,10 @@ export default function FTOFilterPopover({
     ) as HTMLElement;
     if (filterButton) {
       const rect = filterButton.getBoundingClientRect();
+      const right = window.innerWidth - rect.right;
       setPosition({
         top: rect.bottom + 8,
-        left: Math.max(20, rect.right - 280),
+        right: Math.max(20, right),
       });
     }
   }, [isOpen]);
@@ -126,68 +127,67 @@ export default function FTOFilterPopover({
         ref={popoverRef}
         className="fixed z-50 rounded-lg border border-[#E5E7EB] bg-white shadow-lg flex overflow-hidden"
         style={{
-          width: showLeftPanel ? "700px" : "280px",
+          width: showLeftPanel ? "642px" : "258px",
           height: "auto",
           top: `${position.top}px`,
-          left: `${position.left}px`,
-          transition: "width 0.3s ease-out",
+          right: `${position.right}px`,
+          transition: "width 0.2s ease-out",
         }}
         onMouseLeave={handlePopoverLeave}
       >
-        {/* Left Panel - Filter Controls (Slides In) */}
-        {showLeftPanel && (
-          <div
-            className="w-96 flex flex-col overflow-hidden border-r border-[#E5E7EB]"
-            style={{
-              animation: "slideInRight 0.3s ease-out",
-            }}
-          >
-            {/* Header */}
-            <div className="px-6 py-3 border-b border-[#E5E7EB] flex-shrink-0">
-              <h3 className="text-sm font-semibold text-[#303030]">
-                {CATEGORY_LABELS[activeCategory]}
-              </h3>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-3 space-y-3">
-              {activeCategory === "date" && (
-                <DateRangePanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "field-team" && (
-                <FieldTeamPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "job-details" && (
-                <JobDetailsPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "status" && (
-                <StatusPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "financials" && (
-                <FinancialsPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-            </div>
+        {/* Left Panel - Filter Controls (Slides In/Reveals) */}
+        <div
+          className="w-96 flex flex-col overflow-hidden border-r border-[#E5E7EB] transition-opacity duration-200"
+          style={{
+            display: showLeftPanel ? "flex" : "none",
+            opacity: showLeftPanel ? 1 : 0,
+          }}
+        >
+          {/* Header */}
+          <div className="px-6 py-3 border-b border-[#E5E7EB] flex-shrink-0">
+            <h3 className="text-sm font-semibold text-[#303030]">
+              {CATEGORY_LABELS[activeCategory]}
+            </h3>
           </div>
-        )}
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto px-6 py-3 space-y-3">
+            {activeCategory === "date" && (
+              <DateRangePanel
+                pendingFilters={pendingFilters}
+                onUpdate={onPendingFilterUpdate}
+              />
+            )}
+
+            {activeCategory === "field-team" && (
+              <FieldTeamPanel
+                pendingFilters={pendingFilters}
+                onUpdate={onPendingFilterUpdate}
+              />
+            )}
+
+            {activeCategory === "job-details" && (
+              <JobDetailsPanel
+                pendingFilters={pendingFilters}
+                onUpdate={onPendingFilterUpdate}
+              />
+            )}
+
+            {activeCategory === "status" && (
+              <StatusPanel
+                pendingFilters={pendingFilters}
+                onUpdate={onPendingFilterUpdate}
+              />
+            )}
+
+            {activeCategory === "financials" && (
+              <FinancialsPanel
+                pendingFilters={pendingFilters}
+                onUpdate={onPendingFilterUpdate}
+              />
+            )}
+          </div>
+        </div>
 
         {/* Right Panel - Category Menu (Always Visible) */}
         <div className="w-64 bg-[#FAFAFA] flex flex-col overflow-hidden">
@@ -196,7 +196,7 @@ export default function FTOFilterPopover({
           </div>
 
           {/* Category Menu */}
-          <nav className="flex-1 overflow-y-auto py-1 px-2 space-y-1">
+          <nav className="overflow-y-auto py-1 px-2 space-y-1">
             {FILTER_CATEGORIES.map((category) => (
               <button
                 key={category}
@@ -216,7 +216,7 @@ export default function FTOFilterPopover({
           </nav>
 
           {/* Footer - Apply & Reset Buttons */}
-          <div className="flex-shrink-0 px-2 py-1.5 border-t border-[#E5E7EB] flex gap-2">
+          <div className="flex-shrink-0 px-2 py-1.5 border-t border-[#E5E7EB] flex gap-2 mt-auto">
             <button
               onClick={() => {
                 onReset();
