@@ -76,7 +76,7 @@ export default function AllTasks() {
     "collaborators",
   ]);
 
-  // Hide unit and collaborators by default
+  // Hide collaborators by default
   useEffect(() => {
     setVisibleColumns(
       new Set([
@@ -84,6 +84,7 @@ export default function AllTasks() {
         "status",
         "title",
         "property",
+        "unit",
         "due",
         "updated",
         "age",
