@@ -78,11 +78,11 @@ export const DataSectionTemplate: React.FC<DataSectionTemplateProps> = ({
             )}
             <div className={subsection.title ? "self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]" : "self-start flex items-start gap-14 text-xs text-[#71717A] leading-[1.33]"}>
               {subsection.fields.map((field, fieldIdx) => (
-                <div key={fieldIdx} className="flex flex-col">
+                <div key={fieldIdx} className="flex flex-col max-w-[220px]">
                   <div className="font-medium">{field.label}</div>
-                  <div className="mt-1 flex items-center gap-1">
-                    {field.icon && <span>{field.icon}</span>}
-                    <span className="text-[#303030]">
+                  <div className="mt-1 flex items-center gap-1 min-w-0">
+                    {field.icon && <span className="flex-shrink-0">{field.icon}</span>}
+                    <span className="text-[#303030] whitespace-nowrap overflow-hidden text-ellipsis block" title={typeof field.value === 'string' ? field.value : undefined}>
                       {field.value || "-"}
                     </span>
                   </div>
