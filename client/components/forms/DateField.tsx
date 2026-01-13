@@ -82,20 +82,31 @@ const DateField: React.FC<DateFieldProps> = ({
   readOnly = false,
 }) => {
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+  // console.log("value:", value);
 
   // Convert value to Date object for DatePicker
   const dateValue = React.useMemo(() => {
     if (!value) return null;
-    if (value instanceof Date) return value;
+  
+    // If parent already gave us a Date, pass it straight through
+    if (value instanceof Date) {
+      return value;
+    }
+  
+    // If ISO string (YYYY-MM-DD), convert ONCE and keep stable
     if (typeof value === "string") {
-      // Parse ISO string (YYYY-MM-DD) to Date
       const [year, month, day] = value.split("-").map(Number);
       if (year && month && day) {
-        return new Date(year, month - 1, day);
+        const d = new Date(year, month - 1, day);
+        d.setHours(0, 0, 0, 0); // 🔑 normalize
+        return d;
       }
     }
+  
     return null;
   }, [value]);
+
+  // console.log("dateValue:", dateValue);
 
   // Validate date range (1900-2040)
   const validateDateRange = (date: Date | null): boolean => {

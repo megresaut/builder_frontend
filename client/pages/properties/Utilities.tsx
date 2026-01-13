@@ -752,6 +752,24 @@ const mappedBills = filteredBills.map((b: any) => {
   };
 });
 
+// Helper function to find bill ID by matching last bill amount
+const findBillIdByAmount = (lastBillAmountCents: number | null | undefined): number | null => {
+  if (!lastBillAmountCents) return null;
+  
+  // Find all bills with matching amount
+  const matchingBills = filteredBills.filter((b: any) => b.amount_cents === lastBillAmountCents);
+  
+  if (matchingBills.length === 0) return null;
+  
+  // If multiple matches, pick the most recent one (by statement_date)
+  const sortedBills = matchingBills.sort((a: any, b: any) => {
+    const dateA = a.statement_date ? new Date(a.statement_date).getTime() : 0;
+    const dateB = b.statement_date ? new Date(b.statement_date).getTime() : 0;
+    return dateB - dateA; // Most recent first
+  });
+  
+  return sortedBills[0].id;
+};
 
 const [accountLastImport, setAccountLastImport] = useState<Record<number, string>>({});
 
@@ -1657,7 +1675,20 @@ useEffect(() => {
                     setOpenMenuId={setOpenUtilityMenuId}
 
                     onView={() => {
-                      navigate(`/utilities/accounts/${account.id}`);
+                      // Find the raw account data to get last_bill_amount_cents
+                      const rawAccount = safeAccounts.find((ua: any) => ua.id === account.id);
+                      if (!rawAccount) return;
+                      
+                      // Find matching bill ID by amount
+                      const billId = findBillIdByAmount(rawAccount.last_bill_amount_cents);
+                      
+                      if (billId) {
+                        // Use the same link format as the bills table
+                        window.open(`${API_BASE}/utilities/pdf/bills/${billId}`, "_blank");
+                      } else {
+                        // Fallback to the old link if no match found
+                        navigate(`/utilities/accounts/${account.id}`);
+                      }
                     }}
 
                     onEdit={() => {

@@ -24,6 +24,7 @@ import {
   EditIcon,
   UserIcon,
   EyeIcon,
+  PlusIcon,
 } from "@/components/icons";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
@@ -31,10 +32,13 @@ import { useAuth } from "@/auth/useAuth";
 interface FieldTeamOrder {
   id: number;
   name: string;
-  dueDate: string;
+  dueDate: string; // Formatted for display
+  due_date: string; // ISO format for API/modal
   description: string;
   property: string;
+  property_id: number;
   unit: string;
+  unit_id?: number | null;
   priority: "low" | "normal" | "high";
   createdBy: string;
   formSubmissionStatus: string;
@@ -42,6 +46,7 @@ interface FieldTeamOrder {
   pmAssigneeIds?: number[];
   pmAssigneeNames?: string[];
   fieldTeamMemberIds: number[];
+  task_id?: number;
 }
 
 interface SubmissionRecord {
@@ -54,20 +59,25 @@ interface SubmissionRecord {
   createdBy: string;
   status: "pending" | "approved" | "rejected";
   priority: "low" | "normal" | "high";
+  fto_id?: number; // FTO ID to match with FTO data
 
   pmAssigneeIds?: number[];
+  pmAssigneeNames?: string[]; // May be populated from property managers lookup
 }
 // Mock API response types
 interface APIFieldTeamOrder {
   id: number;
   name: string;
   description: string;
+  property_id: number;
   property_name: string;
-  unit?: string;
+  unit_id?: number | null;
+  unit_name?: string;
   priority: "low" | "normal" | "high";
   due_date: string;
   form_submission_status: string;
   created_by?: string;
+  task_id?: number;
 }
 
 interface FetchFTOsParams {
@@ -91,14 +101,18 @@ const transformAPIData = (apiData: any[]): FieldTeamOrder[] => {
     name: fto.name,
     description: fto.description,
     property: fto.property_name,
-    unit: "N/A",
+    property_id: fto.property_id,
+    unit: fto.unit_name ?? "N/A",
+    unit_id: fto.unit_id ?? null,
     priority: fto.priority,
     dueDate: new Date(fto.due_date).toLocaleDateString(),
+    due_date: fto.due_date, // Preserve original ISO format
 
     // 👇 NEW
     pmAssigneeIds: fto.pm_assignee_ids ?? [],
     pmAssigneeNames: fto.pm_assignee_names ?? [],
     fieldTeamMemberIds: fto.field_team_member_ids ?? [],
+    task_id: fto.task_id,
 
     createdBy: "", // no longer used for PM display
     formSubmissionStatus: fto.form_submission_status,
@@ -121,6 +135,7 @@ const transformSubmissionAPIData = (apiData: any[]): SubmissionRecord[] => {
 
     // 👇 PM data (plural)
     pmAssigneeIds: s.PMAssigneeIDs ?? [],
+    fto_id: s.FTOID ?? s.fto_id, // FTO ID to match with FTO data
   }));
 };
 
@@ -132,8 +147,10 @@ export default function FtoHome() {
   );
   const isFetchingRef = useRef(false);
   const [allOrders, setAllOrders] = useState<FieldTeamOrder[]>([]);
+  const [allFTOs, setAllFTOs] = useState<any[]>([]); // Store all FTOs for matching with submissions
   const [submissions, setSubmissions] = useState<SubmissionRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [propertyManagers, setPropertyManagers] = useState<Map<number, string>>(new Map()); // ID -> name mapping
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [isViewFTOModalOpen, setIsViewFTOModalOpen] = useState(false);
@@ -141,17 +158,23 @@ export default function FtoHome() {
 
   const [showFTOModal, setShowFTOModal] = useState(false);
   const [editingFTO, setEditingFTO] = useState<ViewTaskData | null>(null);
+  const [isViewingSubmission, setIsViewingSubmission] = useState(false);
 
 
   type ViewTaskData = {
+    id?: number;
     name: string;
     description: string;
     dueDate?: string;
+    due_date?: string; // ISO format for modal
     dateOfWork?: string;
-    priority?: string;
-    status?: string;
-    property?: string;
-    unit?: string;
+    priority?: "low" | "normal" | "high";
+    status?: "new" | "dispatched" | "completed" | "cancelled";
+    property_id?: number;
+    property_name?: string;
+    unit_id?: number | null;
+    unit_name?: string;
+    task_id?: number;
     field_team_member_ids: number[];
     pm_assignee_ids: number[];
   };
@@ -175,30 +198,68 @@ export default function FtoHome() {
 
   const openViewTaskModal = (row: FieldTeamOrder | SubmissionRecord) => {
     const isSubmission = "dateOfWork" in row;
+    
+    // For open orders (FieldTeamOrder), we have all the data needed
+    if (!isSubmission) {
+      const order = row as FieldTeamOrder;
+      
+      const viewData: ViewTaskData = {
+        id: order.id,
+        field_team_member_ids: order.fieldTeamMemberIds ?? [],
+        pm_assignee_ids: order.pmAssigneeIds ?? [],
+        name: order.name,
+        description: order.description,
+        property_id: order.property_id,
+        property_name: order.property,
+        unit_id: order.unit_id ?? null,
+        unit_name: order.unit !== "N/A" ? order.unit : undefined,
+        task_id: order.task_id,
+        priority: order.priority as "low" | "normal" | "high",
+        status: toFtoStatus(order.approvalStatus) as "new" | "dispatched" | "completed" | "cancelled",
+        due_date: order.due_date, // ISO format for modal
+      };
 
-    const viewData: ViewTaskData = {
-      field_team_member_ids: (row as FieldTeamOrder).fieldTeamMemberIds,
-      pm_assignee_ids: (row as FieldTeamOrder).pmAssigneeIds,
-      name: row.name,
-      description: row.description,
-      property: row.property,
-      unit: row.unit,
-      priority: row.priority,
-      ...(isSubmission
-        ? {
-            dateOfWork: (row as SubmissionRecord).dateOfWork,
-            status: toFtoStatus((row as SubmissionRecord).status),
-          }
-        : {
-            dueDate: (row as FieldTeamOrder).dueDate,
-            status: toFtoStatus((row as FieldTeamOrder).approvalStatus),
-          }),
-    };
+      setEditingFTO(viewData);
+      setIsViewingSubmission(false);
+      setShowFTOModal(true);
+    } else {
+      // For submissions, match the FTO from the stored allFTOs array
+      const submission = row as SubmissionRecord;
+      
+      if (!submission.fto_id) {
+        console.warn("Cannot open view modal for submission - missing fto_id");
+        return;
+      }
 
-    // setViewingFTO(viewData);
-    // setIsViewFTOModalOpen(true);
-    setEditingFTO(viewData);
-    setShowFTOModal(true);
+      // Find the matching FTO from allFTOs
+      const matchedFTO = allFTOs.find((fto: any) => fto.id === submission.fto_id);
+      
+      if (!matchedFTO) {
+        console.warn(`Cannot find FTO with id ${submission.fto_id} in fetched FTOs`);
+        alert("Failed to load task information - FTO not found");
+        return;
+      }
+
+      const viewData: ViewTaskData = {
+        id: matchedFTO.id,
+        field_team_member_ids: matchedFTO.field_team_member_ids ?? [],
+        pm_assignee_ids: matchedFTO.pm_assignee_ids ?? [],
+        name: matchedFTO.name,
+        description: matchedFTO.description ?? "",
+        property_id: matchedFTO.property_id,
+        property_name: matchedFTO.property_name ?? "",
+        unit_id: matchedFTO.unit_id ?? null,
+        unit_name: matchedFTO.unit_name ?? undefined,
+        task_id: matchedFTO.task_id ?? undefined,
+        priority: matchedFTO.priority as "low" | "normal" | "high",
+        status: matchedFTO.status as "new" | "dispatched" | "completed" | "cancelled",
+        due_date: matchedFTO.due_date, // ISO format for modal
+      };
+
+      setEditingFTO(viewData);
+      setIsViewingSubmission(true); // Mark as viewing submission (read-only)
+      setShowFTOModal(true);
+    }
   };
 
   const tabs = [
@@ -280,6 +341,24 @@ export default function FtoHome() {
 
   const { userId } = useAuth();
 
+  // Fetch property managers once on mount
+  useEffect(() => {
+    const fetchPropertyManagers = async () => {
+      try {
+        const data = await fetchJSON("/users/property-managers");
+        const pmMap = new Map<number, string>();
+        data.forEach((pm: any) => {
+          pmMap.set(Number(pm.id), pm.name || pm.email || `PM ${pm.id}`);
+        });
+        setPropertyManagers(pmMap);
+      } catch (err) {
+        console.error("Failed to fetch property managers:", err);
+      }
+    };
+
+    fetchPropertyManagers();
+  }, []);
+
   useEffect(() => {
     const fetchAll = async () => {
       if (!userId) return;
@@ -289,11 +368,15 @@ export default function FtoHome() {
       setLoading(true);
   
       try {
-        // 1️⃣ Fetch OPEN FTOs FIRST
+        // 1️⃣ Fetch ALL FTOs FIRST (store all for matching with submissions)
         const ftoResponse = await fetchJSON(
           `/maintenance/ftos?field_team_member_id=${userId}`,
         );
   
+        // Store all FTOs for matching with submissions
+        setAllFTOs(ftoResponse);
+  
+        // Filter to only open/non-submitted FTOs for display
         const openFTOs = ftoResponse.filter(
           (fto: any) => fto.form_submission_status === "none",
         );
@@ -323,6 +406,29 @@ export default function FtoHome() {
   
     fetchAll();
   }, [userId]);
+
+  // Update submissions with PM names when property managers are loaded
+  useEffect(() => {
+    if (propertyManagers.size === 0) return;
+
+    setSubmissions((prev) =>
+      prev.map((submission) => {
+        if (submission.pmAssigneeNames && submission.pmAssigneeNames.length > 0) {
+          return submission; // Already has names
+        }
+        
+        // Map IDs to names
+        const names = submission.pmAssigneeIds
+          ?.map((id) => propertyManagers.get(id))
+          .filter((name): name is string => !!name) || [];
+        
+        return {
+          ...submission,
+          pmAssigneeNames: names.length > 0 ? names : undefined,
+        };
+      })
+    );
+  }, [propertyManagers]);
   
 
   
@@ -543,6 +649,23 @@ export default function FtoHome() {
                 setActiveTab(tabId as "open" | "submissionHistory")
               }
             />
+            {activeTab === "open" && (
+              <BlueButton
+                icon={
+                  <PlusIcon
+                    width={16}
+                    height={16}
+                    className="brightness-0 invert"
+                  />
+                }
+                onClick={() => {
+                  setEditingFTO(null);
+                  setShowFTOModal(true);
+                }}
+              >
+                Create FTO
+              </BlueButton>
+            )}
           </div>
 
           <div className="flex flex-col gap-3">
@@ -589,7 +712,21 @@ export default function FtoHome() {
                   createdBy={submission.createdBy}
                   status={submission.status}
                   priority={submission.priority}
-                  onViewTask={() => openViewTaskModal(submission)}
+                  onViewSummary={() => {
+                    const canEdit =
+                      submission.status === "pending" ||
+                      submission.status === "rejected";
+                    navigate(`/fto/submission/${submission.id}`, {
+                      state: {
+                        isApproved: submission.status === "approved",
+                        canEdit,
+                        property: submission.property,
+                        unit: submission.unit,
+                        task: submission.name,
+                        description: submission.description,
+                      },
+                    });
+                  }}
                 />
               ))
             )}
@@ -600,9 +737,13 @@ export default function FtoHome() {
           open={showFTOModal}
           onOpenChange={(open) => {
             setShowFTOModal(open);
-            if (!open) setEditingFTO(null);
+            if (!open) {
+              setEditingFTO(null);
+              setIsViewingSubmission(false);
+            }
           }}
-          editingFTO={editingFTO}
+          editingFTO={editingFTO as any}
+          readOnly={isViewingSubmission}
         />
 
       </PageTemplate>
@@ -652,18 +793,35 @@ export default function FtoHome() {
           }
           rightContent={
             activeTab === "open" && (
-              <BlueButton
-                icon={
-                  <ApproveIcon
-                    width={16}
-                    height={16}
-                    className="brightness-0 invert"
-                  />
-                }
-                onClick={() => navigate("/fto/submission")}
-              >
-                Submit
-              </BlueButton>
+              <div className="flex items-center gap-3">
+                <BlueButton
+                  icon={
+                    <PlusIcon
+                      width={16}
+                      height={16}
+                      className="brightness-0 invert"
+                    />
+                  }
+                  onClick={() => {
+                    setEditingFTO(null);
+                    setShowFTOModal(true);
+                  }}
+                >
+                  Create FTO
+                </BlueButton>
+                <BlueButton
+                  icon={
+                    <ApproveIcon
+                      width={16}
+                      height={16}
+                      className="brightness-0 invert"
+                    />
+                  }
+                  onClick={() => navigate("/fto/submission")}
+                >
+                  Submit
+                </BlueButton>
+              </div>
             )
           }
         />
@@ -730,16 +888,29 @@ export default function FtoHome() {
                 case "createdBy": {
                   const record = row as FieldTeamOrder | SubmissionRecord;
                 
-                  if (!record.pmAssigneeIds?.length) {
+                  // Get PM names - prefer names array, fallback to matching IDs
+                  let pmNames: string[] = [];
+                  
+                  if (record.pmAssigneeNames && record.pmAssigneeNames.length > 0) {
+                    // Use names if available (from API or lookup)
+                    pmNames = record.pmAssigneeNames;
+                  } else if (record.pmAssigneeIds && record.pmAssigneeIds.length > 0) {
+                    // Match IDs to names from property managers map
+                    pmNames = record.pmAssigneeIds
+                      .map((id) => propertyManagers.get(id))
+                      .filter((name): name is string => !!name);
+                  }
+                
+                  if (!pmNames.length) {
                     return <span className="text-gray-400 text-sm">—</span>;
                   }
                 
                   return (
                     <div className="flex items-center gap-1">
-                      {record.pmAssigneeIds.map((id, idx) => (
+                      {pmNames.map((name, idx) => (
                         <PropertyManagerAvatarCombined
                           key={idx}
-                          name={`PM ${id}`} // placeholder until names are added
+                          name={name}
                           isCreator={false}
                         />
                       ))}
@@ -908,7 +1079,27 @@ export default function FtoHome() {
             },
           ]}
           onRowClick={(row) => {
-            openViewTaskModal(row as FieldTeamOrder | SubmissionRecord);
+            const isSubmission = "dateOfWork" in row;
+            if (isSubmission) {
+              // For submissions, navigate to submission form
+              const submission = row as SubmissionRecord;
+              const canEdit =
+                submission.status === "pending" ||
+                submission.status === "rejected";
+              navigate(`/fto/submission/${submission.id}`, {
+                state: {
+                  isApproved: submission.status === "approved",
+                  canEdit,
+                  property: submission.property,
+                  unit: submission.unit,
+                  task: submission.name,
+                  description: submission.description,
+                },
+              });
+            } else {
+              // For open orders, open task modal
+              openViewTaskModal(row as FieldTeamOrder | SubmissionRecord);
+            }
           }}
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
@@ -932,9 +1123,13 @@ export default function FtoHome() {
           open={showFTOModal}
           onOpenChange={(open) => {
             setShowFTOModal(open);
-            if (!open) setEditingFTO(null);
+            if (!open) {
+              setEditingFTO(null);
+              setIsViewingSubmission(false);
+            }
           }}
-          editingFTO={editingFTO}
+          editingFTO={editingFTO as any}
+          readOnly={isViewingSubmission}
         />
 
       </div>

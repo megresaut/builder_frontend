@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ModalTemplate,
   ModalButtons,
@@ -15,6 +15,14 @@ import {
 
 import type { MultiSelectOption } from "@/components/forms";
 import { fetchJSON } from "@/api/fetchJSON";
+
+interface SimpleUnit {
+  id: number;
+  unit_name: string;
+  address_1: string | null;
+  owners: { name: string }[];
+}
+
 
 // Mock data types (shaped like real API data)
 interface SimpleProperty {
@@ -43,15 +51,19 @@ interface EditingFTO {
   status: "new" | "dispatched" | "completed" | "cancelled";
   due_date: string;
   property_id: number;
+  property_name?: string;
+  unit_id?: number | null;
   task_id?: number;
   field_team_member_ids: number[];
   pm_assignee_ids: number[];
+  unit_name?: string;
 }
 
 interface CreateFTOModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingFTO?: EditingFTO | null;
+  readOnly?: boolean; // If true, all fields are read-only (for viewing submissions)
 }
 
 
@@ -60,8 +72,13 @@ export default function CreateFTOModal({
   open,
   onOpenChange,
   editingFTO,
+  readOnly = false,
 }: CreateFTOModalProps) {
   // Form state - using IDs instead of objects
+  // console.log( "editingFTO:", editingFTO )
+
+  
+  const hasHydratedRef = useRef(false);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
     null
   );
@@ -80,6 +97,10 @@ export default function CreateFTOModal({
   const [pmAssignees, setPmAssignees] = useState<Assignee[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [optionsError, setOptionsError] = useState<string | null>(null);
+  const [units, setUnits] = useState<SimpleUnit[]>([]);
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
+  const [unitsLoading, setUnitsLoading] = useState(false);
+  const [editingUnitLabel, setEditingUnitLabel] = useState<string>("");
 
   useEffect(() => {
     if (!open) return;
@@ -117,7 +138,7 @@ export default function CreateFTOModal({
 
   // Reset form when modal closes
   useEffect(() => {
-    if (!open) {
+    if (!open && !editingFTO) {
       setSelectedPropertyId(null);
       setSelectedTaskId(null);
       setFtoName("");
@@ -129,25 +150,50 @@ export default function CreateFTOModal({
       setDescription("");
       setErrors({});
     }
-  }, [open]);
+  }, [open, editingFTO]);
+  
 
   // Hydrate form from editingFTO when provided
   useEffect(() => {
-    if (editingFTO && open) {
-      setFtoName(editingFTO.name);
-      setDescription(editingFTO.description);
-      setPriority(editingFTO.priority);
-      setStatus(editingFTO.status);
-      setSelectedTaskId(editingFTO.task_id || null);
-      setPmAssigneeIds(editingFTO.pm_assignee_ids);
-      setFieldTeamMemberIds(editingFTO.field_team_member_ids);
+    if (!open || !editingFTO) return;
+    if (hasHydratedRef.current) return; // 🔒 BLOCK re-hydration
+  
+    hasHydratedRef.current = true;
+  
+    setEditingUnitLabel(editingFTO.unit_name ?? "N/A");
+    setFtoName(editingFTO.name);
+    setDescription(editingFTO.description);
+    setPriority(editingFTO.priority);
+    setStatus(editingFTO.status);
+  
+    setSelectedPropertyId(editingFTO.property_id);
+    setSelectedUnitId(editingFTO.unit_id ?? null);
+  
+    setSelectedTaskId(editingFTO.task_id || null);
+    setPmAssigneeIds(editingFTO.pm_assignee_ids);
+    setFieldTeamMemberIds(editingFTO.field_team_member_ids);
 
-      // Parse ISO date string
-      if (editingFTO.due_date) {
-        setDueDate(new Date(editingFTO.due_date));
-      }
+    if (editingFTO?.due_date) {
+      const [year, month, day] = editingFTO.due_date
+        .split("T")[0]
+        .split("-")
+        .map(Number);
+    
+      const date = new Date(year, month - 1, day);
+      date.setHours(0, 0, 0, 0);
+    
+      setDueDate(date); // ✅ Date object only
     }
-  }, [editingFTO, open]);
+    
+    
+  }, [open, editingFTO]);
+  
+
+  useEffect(() => {
+    if (!open) {
+      hasHydratedRef.current = false;
+    }
+  }, [open]);
 
   // Status auto-logic: sync with field team members
   useEffect(() => {
@@ -189,6 +235,8 @@ export default function CreateFTOModal({
       .catch(() => {});
   }, [open]);
 
+  
+
   const propertyOptions = properties.map((p) => ({
     value: String(p.id),
     label:
@@ -197,6 +245,39 @@ export default function CreateFTOModal({
       `Property #${p.id}`,
   }));
   
+  function extractUnitSortKey(unitName: string): number | string {
+    // Try to parse numeric unit names (e.g. "1", "10", "12A" → 12)
+    const match = unitName.match(/^(\d+)/);
+    if (match) {
+      return Number(match[1]);
+    }
+    return unitName;
+  }
+  
+  const unitOptions = [...units]
+  .sort((a, b) => {
+    const aKey = extractUnitSortKey(a.unit_name);
+    const bKey = extractUnitSortKey(b.unit_name);
+
+    // numeric vs numeric
+    if (typeof aKey === "number" && typeof bKey === "number") {
+      return aKey - bKey;
+    }
+
+    // numeric always comes before non-numeric
+    if (typeof aKey === "number") return -1;
+    if (typeof bKey === "number") return 1;
+
+    // fallback string compare
+    return String(aKey).localeCompare(String(bKey));
+  })
+  .map((u) => ({
+    value: String(u.id),
+    label: u.unit_name
+      ? `${u.unit_name}${u.address_1 ? ` — ${u.address_1}` : ""}`
+      : `Unit #${u.id}`,
+  }));
+
   const assigneeOptions: MultiSelectOption[] = availableAssignees.map((u) => ({
     id: String(u.id),
     label: u.name,
@@ -258,6 +339,7 @@ export default function CreateFTOModal({
       due_date: dueDate!.toISOString(),
       property_id: selectedPropertyId!,
       task_id: selectedTaskId || undefined,
+      unit_id: selectedUnitId || undefined,
       field_team_member_ids: fieldTeamMemberIds,
       pm_assignee_ids: pmAssigneeIds,
     };
@@ -286,31 +368,105 @@ export default function CreateFTOModal({
   // Determine if in edit mode
   const isEditing = !!editingFTO;
 
+
   
+  useEffect(() => {
+    if (!open || !selectedPropertyId) return;
+    let cancelled = false;
+  
+    async function loadUnits() {
+      try {
+        setUnitsLoading(true);
+  
+        const data = await fetchJSON(
+          `/properties/${selectedPropertyId}/units`
+        );
+  
+        if (!cancelled) {
+          setUnits(data || []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load units:", err);
+          setUnits([]);
+        }
+      } finally {
+        if (!cancelled) setUnitsLoading(false);
+      }
+    }
+  
+    loadUnits();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, selectedPropertyId, isEditing]);
+
   const propertyLabel = isEditing
-  ? (editingFTO as any)?.property || ""
+  ? editingFTO?.property_name || ""
   : (() => {
       const p = properties.find((p) => p.id === selectedPropertyId);
       if (!p) return "";
       return [p.address_line1, p.city, p.state].filter(Boolean).join(", ");
     })();
 
+
+  const unitDisplayLabel = isEditing
+  ? editingUnitLabel || "N/A"
+  : "";
+  
+  // useEffect(() => {
+  //   if (!open || !editingFTO?.property_id) return;
+
+  //   let cancelled = false;
+
+  //   async function loadUnitsForEdit() {
+  //     try {
+  //       setUnitsLoading(true);
+  //       const data = await fetchJSON(
+  //         `/properties/${editingFTO.property_id}/units`
+  //       );
+
+  //       if (!cancelled) {
+  //         setUnits(data || []);
+  //       }
+  //     } finally {
+  //       if (!cancelled) setUnitsLoading(false);
+  //     }
+  //   }
+
+  //   loadUnitsForEdit();
+
+  //   return () => {
+  //     cancelled = true;
+  //   };
+  // }, [open, editingFTO]);
+
+
   
   return (
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title={isEditing ? "Edit Field Team Order" : "Create Field Team Order"}
+      title={readOnly ? "View Field Team Order" : isEditing ? "Edit Field Team Order" : "Create Field Team Order"}
       size="md"
       footer={
-        <ModalButtons
-          onCancel={() => onOpenChange(false)}
-          onConfirm={handleSubmit}
-          cancelLabel="Cancel"
-          confirmLabel={
-            isEditing ? "Update Field Team Order" : "Create Field Team Order"
-          }
-        />
+        readOnly ? (
+          <ModalButtons
+            onCancel={() => onOpenChange(false)}
+            onConfirm={() => onOpenChange(false)}
+            cancelLabel="Close"
+            confirmLabel={undefined}
+          />
+        ) : (
+          <ModalButtons
+            onCancel={() => onOpenChange(false)}
+            onConfirm={handleSubmit}
+            cancelLabel="Cancel"
+            confirmLabel={
+              isEditing ? "Update Field Team Order" : "Create Field Team Order"
+            }
+          />
+        )
       }
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -340,25 +496,41 @@ export default function CreateFTOModal({
                   const id = value ? Number(value) : null;
                   setSelectedPropertyId(id);
                   setSelectedTaskId(null);
+                  setSelectedUnitId(null);
                 }}
                 error={errors.property}
                 placeholder="Select Property"
                 options={propertyOptions}
+                disabled={readOnly}
               />
             )}
           </div>
-          {/* <div>
-            <SelectField
-              label="Task"
-              value={String(selectedTaskId || "")}
-              onChange={(value) => {
-                setSelectedTaskId(value ? Number(value) : null);
-              }}
-              placeholder="Task"
-              options={taskOptions}
-              disabled={isEditing || !selectedPropertyId}
-            />
-          </div> */}
+          <div>
+            {isEditing ? (
+              <TextField
+                label="Unit"
+                value={unitDisplayLabel}
+                disabled
+              />
+            ) : (
+              <SelectField
+                label="Unit"
+                value={String(selectedUnitId || "")}
+                onChange={(value) => {
+                  setSelectedUnitId(value ? Number(value) : null);
+                }}
+                placeholder={
+                  !selectedPropertyId
+                    ? "Select property first"
+                    : unitsLoading
+                    ? "Loading units…"
+                    : "Select Unit"
+                }
+                options={unitOptions}
+                disabled={!selectedPropertyId || unitsLoading || readOnly}
+              />
+            )}
+          </div>
         </div>
 
         {/* Row 2: FTO Name | Priority */}
@@ -371,6 +543,7 @@ export default function CreateFTOModal({
               onChange={(e) => setFtoName(e.target.value)}
               error={errors.ftoName}
               placeholder="Type FTO Name"
+              disabled={readOnly}
             />
           </FieldRowItem>
           <FieldRowItem>
@@ -385,6 +558,7 @@ export default function CreateFTOModal({
                 { value: "normal", label: "Normal" },
                 { value: "high", label: "High" },
               ]}
+              disabled={readOnly}
             />
           </FieldRowItem>
         </FieldRow>
@@ -396,9 +570,10 @@ export default function CreateFTOModal({
               label="Due Date"
               required
               value={dueDate}
-              onChange={setDueDate}
+              onChange={(date) => setDueDate(date as Date)}
               error={errors.dueDate}
               placeholder="mm/dd/yyyy"
+              disabled={readOnly}
             />
           </FieldRowItem>
           <FieldRowItem>
@@ -411,6 +586,7 @@ export default function CreateFTOModal({
               placeholder="Select PMs"
               options={pmAssigneeOptions}
               required={false}
+              disabled={readOnly}
             />
           </FieldRowItem>
         </FieldRow>
@@ -427,6 +603,7 @@ export default function CreateFTOModal({
               placeholder="Select"
               options={assigneeOptions}
               required={false}
+              disabled={readOnly}
             />
           </FieldRowItem>
           <FieldRowItem>
@@ -442,6 +619,7 @@ export default function CreateFTOModal({
                 { value: "completed", label: "Completed" },
                 { value: "cancelled", label: "Cancelled" },
               ]}
+              disabled={readOnly}
             />
           </FieldRowItem>
         </FieldRow>
@@ -455,6 +633,7 @@ export default function CreateFTOModal({
           error={errors.description}
           placeholder="Insert Description Here"
           rows={6}
+          disabled={readOnly}
         />
       </div>
     </ModalTemplate>

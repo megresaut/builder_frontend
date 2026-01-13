@@ -6,6 +6,7 @@ interface OverviewProps {
   propertyType: string;
   propertyUnits: number;
   propertyLocation?: string;
+  propertyId: number;
 }
 
 export const Overview: React.FC<OverviewProps> = ({
@@ -13,6 +14,7 @@ export const Overview: React.FC<OverviewProps> = ({
   propertyType,
   propertyUnits,
   propertyLocation,
+  propertyId,
 }) => {
   return (
     <div className="flex flex-col gap-6">
@@ -22,6 +24,7 @@ export const Overview: React.FC<OverviewProps> = ({
         propertyType={propertyType}
         rentalOwner="Eunice Bae"
         propertyManager="Jake Delardi"
+        propertyId={propertyId}
       />
     </div>
   );

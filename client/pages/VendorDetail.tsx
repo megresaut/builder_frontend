@@ -1,46 +1,67 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
+import { useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import VendorActionsModal from "@/components/VendorActionsModal";
-import { FormShowcaseModal } from "@/components/FormShowcaseModal";
+import AddVendorModal from "@/components/AddVendorModal";
+import AddNoteModal from "@/components/AddNoteModal";
+import AddFileModal from "@/components/AddFileModal";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
+import { EmailIcon, EditIcon } from "@/components/icons";
+import { TextField, SelectField } from "@/components/forms";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Modal } from "@/components/ui/Modal";
-import { ModalTemplate } from "@/components/ui/ModalTemplate";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+  SectionRowTemplate,
+  SectionGroupCardTemplate,
+  SectionActionTemplate,
+  EmptyStateTemplate,
+  RecordListTemplate,
+  RecordRowTemplate,
+  KeyValueGrid,
+  NotesTemplate,
+  FilesTemplate,
+  DataSectionTemplate,
+  type KeyValueCell,
+  type Subsection,
+} from "@/components/templates";
 
-interface Vendor {
+// ============================================================================
+// Type Definitions (local to this component)
+// ============================================================================
+
+interface VendorDetail {
   id: number;
   name: string;
   category: string;
-  email?: string;
-  phone?: string;
+  email: string;
+  phone: string;
   address?: string;
   website?: string;
-  servicesProvided?: string;
+  servicesProvided?: string | string[];
 }
 
-interface Note {
+interface VendorNote {
   id: number;
   text: string;
-  date: string;
   author: string;
+  date: string;
+}
+
+interface VendorFile {
+  id: number;
+  name: string;
+  url?: string;
+  uploadedAt?: string;
+  type?: string;
+  category?: string;
+  description?: string;
 }
 
 interface VendorInsurance {
@@ -50,119 +71,710 @@ interface VendorInsurance {
   expirationDate: string;
 }
 
-interface CustomField {
+interface VendorCustomField {
   id: number;
   name: string;
   value: string;
 }
 
-interface VendorFile {
-  id: number;
-  name: string;
-  url?: string;
-  uploadedAt: string;
+// ============================================================================
+// Mock Data Storage (persists during session)
+// ============================================================================
+
+const MOCK_VENDOR_DETAILS: Record<number, VendorDetail> = {
+  1: {
+    id: 1,
+    name: "David Smith",
+    category: "HVAC",
+    email: "david.smith@example.com",
+    phone: "724.705.2990",
+    address: "123 Main St, Pittsburgh, PA 15213",
+    website: "https://davidsmithservices.com",
+    servicesProvided: ["HVAC", "Plumbing", "Maintenance"],
+  },
+};
+
+let mockNotesStorage: Record<number, VendorNote[]> = {
+  1: [
+    {
+      id: 1,
+      text: "Reliable vendor, quick turnaround on HVAC repairs",
+      author: "John Doe",
+      date: "2025-01-08 2:30 PM",
+    },
+    {
+      id: 2,
+      text: "Completed plumbing inspection last week",
+      author: "Jane Smith",
+      date: "2025-01-05 10:15 AM",
+    },
+  ],
+};
+
+let mockFilesStorage: Record<number, VendorFile[]> = {};
+
+let mockInsuranceStorage: Record<number, VendorInsurance[]> = {
+  1: [
+    {
+      id: 1,
+      provider: "State Farm",
+      policyNumber: "SF-123456789",
+      expirationDate: "12/31/2025",
+    },
+    {
+      id: 2,
+      provider: "Allstate",
+      policyNumber: "AS-987654321",
+      expirationDate: "06/30/2026",
+    },
+  ],
+};
+
+let mockCustomFieldsStorage: Record<number, VendorCustomField[]> = {
+  1: [
+    {
+      id: 1,
+      name: "License Number",
+      value: "LIC-2024-001",
+    },
+    {
+      id: 2,
+      name: "Certification",
+      value: "EPA Certified",
+    },
+  ],
+};
+
+// ============================================================================
+// Mock API Functions (can be replaced with real fetch calls)
+// ============================================================================
+
+/**
+ * Mock API: Fetch vendor detail by ID
+ * Real API would be: GET /vendors/{vendor_id}
+ */
+async function mockFetchVendorDetail(vendorId: number): Promise<VendorDetail | null> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  const detail = MOCK_VENDOR_DETAILS[vendorId];
+  if (!detail) {
+    // Create default detail for any vendor ID
+    return {
+      id: vendorId,
+      name: `Vendor ${vendorId}`,
+      category: "General Services",
+      email: `vendor${vendorId}@example.com`,
+      phone: "(555) 000-0000",
+      address: undefined,
+      website: undefined,
+      servicesProvided: ["General Services"],
+    };
+  }
+  return detail;
 }
 
-const MOCK_VENDORS: Vendor[] = [
-  {
-    id: 1,
-    name: "Dolce Heating & Plumbing",
-    category: "Uncategorized",
-    email: "staff@avappraisalmgmt.com",
-    phone: undefined,
-    address: undefined,
-    website: undefined,
-    servicesProvided: undefined,
-  },
-];
+/**
+ * Mock API: Fetch all notes for a vendor
+ * Real API would be: GET /vendors/notes/{vendor_id}
+ */
+async function mockFetchVendorNotes(vendorId: number): Promise<VendorNote[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
 
-const MOCK_NOTES: Note[] = [
-  {
-    id: 1,
-    text: "Southern Conn Gas #05-00011476-6574",
-    date: "6/17/2024 10:32 AM",
-    author: "Johan Gonazlez",
-  },
-  {
-    id: 2,
-    text: "Eversource #51124508037",
-    date: "6/17/2024 10:31 AM",
-    author: "Johan Gonazlez",
-  },
-  {
-    id: 3,
-    text: "Ashley Bae (Daughter): (626) 340-7616",
-    date: "6/12/2024 2:31 PM",
-    author: "Carteg Hughes",
-  },
-  {
-    id: 4,
-    text: "Called Optimum and got the address moved from connors lane to 1544 wazee street denver, co. 80202",
-    date: "8/4/2021 10:47 AM",
-    author: "Heather Seabrook",
-  },
-  {
-    id: 5,
-    text: "Optimum\nAcct#07808-628921-02\n203-293-4709\nPin: 2258",
-    date: "3/16/2020 1:59 PM",
-    author: "Mario Sciarretta",
-  },
-];
+  // Initialize notes for vendor if not exist
+  if (!mockNotesStorage[vendorId]) {
+    mockNotesStorage[vendorId] = [];
+  }
 
-const nextId = (items: { id: number }[]) =>
-  items.length ? Math.max(...items.map((i) => i.id)) + 1 : 1;
+  // Return notes sorted by date (newest first)
+  return [...mockNotesStorage[vendorId]].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateB - dateA;
+  });
+}
+
+/**
+ * Mock API: Create a new note for a vendor
+ * Real API would be: POST /vendors/notes/{vendor_id}
+ */
+async function mockCreateVendorNote(
+  vendorId: number,
+  text: string,
+): Promise<VendorNote> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockNotesStorage[vendorId]) {
+    mockNotesStorage[vendorId] = [];
+  }
+
+  const newNote: VendorNote = {
+    id: Date.now(),
+    text,
+    author: "Current User",
+    date: new Date().toLocaleString(undefined, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: undefined,
+    }),
+  };
+
+  mockNotesStorage[vendorId].push(newNote);
+  return newNote;
+}
+
+/**
+ * Mock API: Update an existing note
+ * Real API would be: PATCH /vendors/notes/{note_id}
+ */
+async function mockUpdateVendorNote(
+  vendorId: number,
+  noteId: number,
+  text: string,
+): Promise<VendorNote | null> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockNotesStorage[vendorId]) return null;
+
+  const note = mockNotesStorage[vendorId].find((n) => n.id === noteId);
+  if (note) {
+    note.text = text;
+    note.date = new Date().toLocaleString(undefined, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+  return note || null;
+}
+
+/**
+ * Mock API: Delete a note
+ * Real API would be: DELETE /vendors/notes/{note_id}
+ */
+async function mockDeleteVendorNote(
+  vendorId: number,
+  noteId: number,
+): Promise<boolean> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockNotesStorage[vendorId]) return false;
+
+  const idx = mockNotesStorage[vendorId].findIndex((n) => n.id === noteId);
+  if (idx >= 0) {
+    mockNotesStorage[vendorId].splice(idx, 1);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Mock API: Fetch all files for a vendor
+ * Real API would be: GET /vendors/files/{vendor_id}
+ */
+async function mockFetchVendorFiles(vendorId: number): Promise<VendorFile[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  // Initialize files for vendor if not exist
+  if (!mockFilesStorage[vendorId]) {
+    mockFilesStorage[vendorId] = [];
+  }
+
+  return [...mockFilesStorage[vendorId]];
+}
+
+/**
+ * Mock API: Upload a file for a vendor
+ * Real API would be: POST /vendors/files/{vendor_id}
+ */
+async function mockUploadVendorFile(
+  vendorId: number,
+  file: File,
+  category?: string,
+  description?: string,
+  fileName?: string,
+): Promise<VendorFile> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockFilesStorage[vendorId]) {
+    mockFilesStorage[vendorId] = [];
+  }
+
+  const url = URL.createObjectURL(file);
+  const newFile: VendorFile = {
+    id: Date.now(),
+    name: fileName || file.name,
+    url,
+    uploadedAt: new Date().toLocaleString(),
+    type: file.type,
+    category,
+    description,
+  };
+
+  mockFilesStorage[vendorId].push(newFile);
+  return newFile;
+}
+
+/**
+ * Mock API: Update file metadata
+ * Real API would be: PATCH /vendors/files/{file_id}
+ */
+async function mockUpdateVendorFile(
+  vendorId: number,
+  fileId: number,
+  updates: Partial<Pick<VendorFile, "name" | "category" | "description">>,
+): Promise<void> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockFilesStorage[vendorId]) return;
+
+  const file = mockFilesStorage[vendorId].find((f) => f.id === fileId);
+  if (file) {
+    if (updates.name !== undefined) file.name = updates.name;
+    if (updates.category !== undefined) file.category = updates.category;
+    if (updates.description !== undefined) file.description = updates.description;
+  }
+}
+
+/**
+ * Mock API: Delete a file
+ * Real API would be: DELETE /vendors/files/{file_id}
+ */
+async function mockDeleteVendorFile(
+  vendorId: number,
+  fileId: number,
+): Promise<void> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockFilesStorage[vendorId]) return;
+
+  const file = mockFilesStorage[vendorId].find((f) => f.id === fileId);
+  if (file && file.url) {
+    try {
+      URL.revokeObjectURL(file.url);
+    } catch {
+      // ignore
+    }
+  }
+
+  const idx = mockFilesStorage[vendorId].findIndex((f) => f.id === fileId);
+  if (idx >= 0) {
+    mockFilesStorage[vendorId].splice(idx, 1);
+  }
+}
+
+/**
+ * Mock API: Fetch all insurance for a vendor
+ * Real API would be: GET /vendors/insurance/{vendor_id}
+ */
+async function mockFetchVendorInsurance(
+  vendorId: number,
+): Promise<VendorInsurance[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockInsuranceStorage[vendorId]) {
+    mockInsuranceStorage[vendorId] = [];
+  }
+
+  return [...mockInsuranceStorage[vendorId]];
+}
+
+/**
+ * Mock API: Add insurance for a vendor
+ * Real API would be: POST /vendors/insurance/{vendor_id}
+ */
+async function mockAddVendorInsurance(
+  vendorId: number,
+  provider: string,
+  policyNumber: string,
+  expirationDate: string,
+): Promise<VendorInsurance> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockInsuranceStorage[vendorId]) {
+    mockInsuranceStorage[vendorId] = [];
+  }
+
+  const newInsurance: VendorInsurance = {
+    id: Date.now(),
+    provider,
+    policyNumber,
+    expirationDate,
+  };
+
+  mockInsuranceStorage[vendorId].push(newInsurance);
+  return newInsurance;
+}
+
+/**
+ * Mock API: Delete insurance
+ * Real API would be: DELETE /vendors/insurance/{insurance_id}
+ */
+async function mockDeleteVendorInsurance(
+  vendorId: number,
+  insuranceId: number,
+): Promise<void> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockInsuranceStorage[vendorId]) return;
+
+  const idx = mockInsuranceStorage[vendorId].findIndex((i) => i.id === insuranceId);
+  if (idx >= 0) {
+    mockInsuranceStorage[vendorId].splice(idx, 1);
+  }
+}
+
+/**
+ * Mock API: Fetch all custom fields for a vendor
+ * Real API would be: GET /vendors/custom-fields/{vendor_id}
+ */
+async function mockFetchVendorCustomFields(
+  vendorId: number,
+): Promise<VendorCustomField[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockCustomFieldsStorage[vendorId]) {
+    mockCustomFieldsStorage[vendorId] = [];
+  }
+
+  return [...mockCustomFieldsStorage[vendorId]];
+}
+
+/**
+ * Mock API: Add custom field for a vendor
+ * Real API would be: POST /vendors/custom-fields/{vendor_id}
+ */
+async function mockAddVendorCustomField(
+  vendorId: number,
+  name: string,
+  value: string,
+): Promise<VendorCustomField> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockCustomFieldsStorage[vendorId]) {
+    mockCustomFieldsStorage[vendorId] = [];
+  }
+
+  const newField: VendorCustomField = {
+    id: Date.now(),
+    name,
+    value,
+  };
+
+  mockCustomFieldsStorage[vendorId].push(newField);
+  return newField;
+}
+
+/**
+ * Mock API: Delete custom field
+ * Real API would be: DELETE /vendors/custom-fields/{field_id}
+ */
+async function mockDeleteVendorCustomField(
+  vendorId: number,
+  fieldId: number,
+): Promise<void> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (!mockCustomFieldsStorage[vendorId]) return;
+
+  const idx = mockCustomFieldsStorage[vendorId].findIndex((f) => f.id === fieldId);
+  if (idx >= 0) {
+    mockCustomFieldsStorage[vendorId].splice(idx, 1);
+  }
+}
 
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
+  const id = Number(vendorId);
 
-  const vendorFromRoute = useMemo(() => {
-    const id = Number(vendorId);
-    return MOCK_VENDORS.find((v) => v.id === id) || MOCK_VENDORS[0];
-  }, [vendorId]);
+  const location = useLocation();
+  const routeVendor = (location.state as any)?.vendor ?? null;
 
-  const [vendor, setVendor] = useState<Vendor>(vendorFromRoute);
-  const [isInactive, setIsInactive] = useState(false);
+  // Mock data state for vendor detail
+  const [vendor, setVendor] = useState<VendorDetail | null>(() => {
+    if (!routeVendor) return null;
+  
+    return {
+      id: routeVendor.id,
+      name: routeVendor.name,
+      category: routeVendor.category ?? "Uncategorized",
+      email: routeVendor.primary_email ?? "",
+      phone: routeVendor.phone ?? "",
+      address: undefined,
+      website: routeVendor.domain ?? undefined,
+      servicesProvided: routeVendor.category
+        ? [routeVendor.category]
+        : [],
+    };
+  });
+  
 
+  // Mock data state for notes
+  const [notes, setNotes] = useState<VendorNote[]>([]);
+
+  // Mock data state for files
+  const [mockFiles, setMockFiles] = useState<VendorFile[]>([]);
+
+
+  // Load mock notes on mount
   useEffect(() => {
-    setVendor(vendorFromRoute);
-    setIsInactive(false);
-  }, [vendorFromRoute]);
+    (async () => {
+      try {
+        const fetchedNotes = await mockFetchVendorNotes(id);
+        setNotes(fetchedNotes);
+      } catch (err) {
+        console.error("Failed to load notes");
+      }
+    })();
+  }, [id]);
 
-  const [notes, setNotes] = useState<Note[]>(() => [...MOCK_NOTES]);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  // Load mock files on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const fetchedFiles = await mockFetchVendorFiles(id);
+        setMockFiles(fetchedFiles);
+      } catch (err) {
+        console.error("Failed to load files");
+      }
+    })();
+  }, [id]);
 
+  // Mock note operations
+  const addNote = useCallback(async (text: string) => {
+    try {
+      const newNote = await mockCreateVendorNote(id, text);
+      setNotes((prev) => [newNote as VendorNote, ...prev]);
+    } catch (err) {
+      console.error("Failed to add note");
+    }
+  }, [id]);
+
+  const removeNote = useCallback(async (noteId: number) => {
+    try {
+      await mockDeleteVendorNote(id, noteId);
+      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+    } catch (err) {
+      console.error("Failed to delete note");
+    }
+  }, [id]);
+
+  const editNote = useCallback(async (noteId: number, text: string) => {
+    try {
+      const updated = await mockUpdateVendorNote(id, noteId, text);
+      if (updated) {
+        setNotes((prev) =>
+          prev.map((n) =>
+            n.id === noteId
+              ? {
+                  ...n,
+                  text: updated.text,
+                  date: updated.date,
+                }
+              : n,
+          ),
+        );
+      }
+    } catch (err) {
+      console.error("Failed to edit note");
+    }
+  }, [id]);
+
+  // Mock file operations
+  const uploadFile = useCallback(
+    async (
+      file: File,
+      category?: string,
+      description?: string,
+      fileName?: string,
+    ) => {
+      try {
+        const newFile = await mockUploadVendorFile(
+          id,
+          file,
+          category,
+          description,
+          fileName,
+        );
+        setMockFiles((prev) => [...prev, newFile]);
+      } catch (err) {
+        console.error("Failed to upload file");
+      }
+    },
+    [id],
+  );
+
+  const updateFile = useCallback(
+    async (fileId: number, updates: Partial<Pick<VendorFile, "name" | "category" | "description">>) => {
+      try {
+        await mockUpdateVendorFile(id, fileId, updates);
+        setMockFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileId
+              ? {
+                  ...f,
+                  ...updates,
+                }
+              : f,
+          ),
+        );
+      } catch (err) {
+        console.error("Failed to update file");
+      }
+    },
+    [id],
+  );
+
+  const deleteFile = useCallback(async (fileId: number) => {
+    try {
+      await mockDeleteVendorFile(id, fileId);
+      setMockFiles((prev) => prev.filter((f) => f.id !== fileId));
+    } catch (err) {
+      console.error("Failed to delete file");
+    }
+  }, [id]);
+
+  // Mock data state for insurance
+  const [insurance, setInsurance] = useState<VendorInsurance[]>([]);
+
+  // Mock data state for custom fields
+  const [fields, setFields] = useState<VendorCustomField[]>([]);
+
+  // Load mock insurance on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const fetchedInsurance = await mockFetchVendorInsurance(id);
+        setInsurance(fetchedInsurance);
+      } catch (err) {
+        console.error("Failed to load insurance");
+      }
+    })();
+  }, [id]);
+
+  // Load mock custom fields on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const fetchedFields = await mockFetchVendorCustomFields(id);
+        setFields(fetchedFields);
+      } catch (err) {
+        console.error("Failed to load custom fields");
+      }
+    })();
+  }, [id]);
+
+  // Mock insurance operations
+  const addInsurance = useCallback(
+    async (provider: string, policyNumber: string, expirationDate: string) => {
+      try {
+        const newInsurance = await mockAddVendorInsurance(
+          id,
+          provider,
+          policyNumber,
+          expirationDate,
+        );
+        setInsurance((prev) => [...prev, newInsurance]);
+      } catch (err) {
+        console.error("Failed to add insurance");
+      }
+    },
+    [id],
+  );
+
+  const removeInsurance = useCallback(async (insuranceId: number) => {
+    try {
+      await mockDeleteVendorInsurance(id, insuranceId);
+      setInsurance((prev) => prev.filter((i) => i.id !== insuranceId));
+    } catch (err) {
+      console.error("Failed to delete insurance");
+    }
+  }, [id]);
+
+  // Mock custom field operations
+  const addField = useCallback(
+    async (name: string, value: string) => {
+      try {
+        const newField = await mockAddVendorCustomField(id, name, value);
+        setFields((prev) => [...prev, newField]);
+      } catch (err) {
+        console.error("Failed to add custom field");
+      }
+    },
+    [id],
+  );
+
+  const removeField = useCallback(async (fieldId: number) => {
+    try {
+      await mockDeleteVendorCustomField(id, fieldId);
+      setFields((prev) => prev.filter((f) => f.id !== fieldId));
+    } catch (err) {
+      console.error("Failed to delete custom field");
+    }
+  }, [id]);
+
+  // Local state for UI
+  const [isInactive, setIsInactive] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<VendorNote | null>(null);
   const [isAddEditNoteOpen, setIsAddEditNoteOpen] = useState(false);
-  const [noteDraft, setNoteDraft] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
-
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
 
-  const [vendorInsurances, setVendorInsurances] = useState<VendorInsurance[]>(
-    [],
-  );
   const [isAddInsuranceOpen, setIsAddInsuranceOpen] = useState(false);
   const [insuranceProvider, setInsuranceProvider] = useState("");
   const [insurancePolicyNumber, setInsurancePolicyNumber] = useState("");
   const [insuranceExpirationDate, setInsuranceExpirationDate] = useState("");
 
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [isAddCustomFieldOpen, setIsAddCustomFieldOpen] = useState(false);
   const [customFieldName, setCustomFieldName] = useState("");
   const [customFieldValue, setCustomFieldValue] = useState("");
 
-  const [files, setFiles] = useState<VendorFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<VendorFile | null>(null);
   const [isViewFileOpen, setIsViewFileOpen] = useState(false);
-
   const [isAddFileOpen, setIsAddFileOpen] = useState(false);
-  const [fileDraft, setFileDraft] = useState<File | null>(null);
+  const [isEditingFile, setIsEditingFile] = useState(false);
 
   const [isEditVendorOpen, setIsEditVendorOpen] = useState(false);
-  const [vendorDraft, setVendorDraft] = useState<Vendor>(vendorFromRoute);
+  const [vendorDraft, setVendorDraft] = useState<VendorDetail | null>(null);
 
   const [isInactivateConfirmOpen, setIsInactivateConfirmOpen] = useState(false);
   const [isVendorActionsOpen, setIsVendorActionsOpen] = useState(false);
-  const [isFormShowcaseOpen, setIsFormShowcaseOpen] = useState(false);
+
+  // Sync vendorDraft with vendor when vendor data loads
+  useEffect(() => {
+    if (vendor) {
+      setVendorDraft(vendor);
+    }
+  }, [vendor]);
+
+  // Update mockFiles after successful upload (for non-editing flow)
+  useEffect(() => {
+    setMockFiles((prev) => {
+      if (mockFiles.length !== prev.length) {
+        return mockFiles;
+      }
+      return prev;
+    });
+  }, []);
 
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
@@ -172,86 +784,41 @@ export default function VendorDetail() {
 
   const openAddNote = () => {
     setEditingNoteId(null);
-    setNoteDraft("");
     setIsAddEditNoteOpen(true);
   };
 
-  const openEditNote = (note: Note) => {
+  const openEditNote = (note: VendorNote) => {
     setEditingNoteId(note.id);
-    setNoteDraft(note.text);
     setIsAddEditNoteOpen(true);
   };
 
-  const saveNote = () => {
-    const text = noteDraft.trim();
-    if (!text) return;
+  const saveNote = async (text: string) => {
+    const trimmedText = text.trim();
+    if (!trimmedText) return;
 
-    const now = new Date().toLocaleString();
-
-    setNotes((prev) => {
-      if (editingNoteId === null) {
-        const newNote: Note = {
-          id: nextId(prev),
-          text,
-          date: now,
-          author: "Current User",
-        };
-        return [newNote, ...prev];
-      }
-
-      return prev.map((n) =>
-        n.id === editingNoteId
-          ? {
-              ...n,
-              text,
-              date: now,
-            }
-          : n,
-      );
-    });
+    if (editingNoteId === null) {
+      await addNote(trimmedText);
+    } else {
+      await editNote(editingNoteId, trimmedText);
+    }
 
     setIsAddEditNoteOpen(false);
     setEditingNoteId(null);
-    setNoteDraft("");
   };
 
   const openEditVendor = () => {
-    setVendorDraft(vendor);
-    setIsEditVendorOpen(true);
+    if (vendorDraft) {
+      setIsEditVendorOpen(true);
+    }
   };
 
-  const saveVendor = () => {
-    const trimmedName = vendorDraft.name.trim();
-    if (!trimmedName) return;
-
-    setVendor({
-      ...vendorDraft,
-      name: trimmedName,
-      category: vendorDraft.category.trim() || "Uncategorized",
-      email: vendorDraft.email?.trim() || undefined,
-      phone: vendorDraft.phone?.trim() || undefined,
-      address: vendorDraft.address?.trim() || undefined,
-      website: vendorDraft.website?.trim() || undefined,
-      servicesProvided: vendorDraft.servicesProvided?.trim() || undefined,
-    });
-    setIsEditVendorOpen(false);
-  };
-
-  const addInsurance = () => {
+  const handleAddInsurance = async () => {
     const provider = insuranceProvider.trim();
     const policyNumber = insurancePolicyNumber.trim();
     const expirationDate = insuranceExpirationDate.trim();
     if (!provider || !policyNumber || !expirationDate) return;
 
-    setVendorInsurances((prev) => [
-      ...prev,
-      {
-        id: nextId(prev),
-        provider,
-        policyNumber,
-        expirationDate,
-      },
-    ]);
+    await addInsurance(provider, policyNumber, expirationDate);
 
     setInsuranceProvider("");
     setInsurancePolicyNumber("");
@@ -259,57 +826,51 @@ export default function VendorDetail() {
     setIsAddInsuranceOpen(false);
   };
 
-  const revokeBlobUrl = (url?: string) => {
-    if (!url) return;
-    if (url.startsWith("blob:")) {
-      try {
-        URL.revokeObjectURL(url);
-      } catch {
-        // ignore
+  const handleAddFile = async (
+    files: UploadedFile[],
+    category: string,
+    description: string,
+  ) => {
+    if (files.length === 0) {
+      return;
+    }
+
+    const fileObj = files[0];
+
+    if (isEditingFile && selectedFile) {
+      // Update existing file
+      const updates: Partial<
+        Pick<VendorFile, "name" | "category" | "description">
+      > = {
+        name: fileObj.name,
+      };
+      if (category) updates.category = category;
+      if (description) updates.description = description;
+
+      await updateFile(selectedFile.id, updates);
+    } else {
+      // Create new file
+      if (fileObj?.file) {
+        await uploadFile(
+          fileObj.file,
+          category || undefined,
+          description || undefined,
+          fileObj.name,
+        );
       }
     }
-  };
 
-  const addFile = () => {
-    if (!fileDraft) return;
-
-    const now = new Date().toLocaleString();
-    const fileName = fileDraft.name;
-    const ext = fileName.split(".").pop()?.toLowerCase() || "";
-    const docIcon =
-      "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
-    const pdfIcon =
-      "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
-    const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
-    const url = URL.createObjectURL(fileDraft);
-
-    setFiles((prev) => [
-      ...prev,
-      {
-        id: nextId(prev),
-        name: fileName,
-        url,
-        uploadedAt: now,
-      },
-    ]);
-
-    setFileDraft(null);
+    setIsEditingFile(false);
+    setSelectedFile(null);
     setIsAddFileOpen(false);
   };
 
-  const addCustomField = () => {
+  const handleAddCustomField = async () => {
     const name = customFieldName.trim();
     const value = customFieldValue.trim();
     if (!name || !value) return;
 
-    setCustomFields((prev) => [
-      ...prev,
-      {
-        id: nextId(prev),
-        name,
-        value,
-      },
-    ]);
+    await addField(name, value);
 
     setCustomFieldName("");
     setCustomFieldValue("");
@@ -320,12 +881,23 @@ export default function VendorDetail() {
     // reserved for future tab switching
   };
 
+  if (!vendor) {
+    return (
+      <PageTemplate>
+        <div className="flex items-center justify-center h-96">
+          Vendor not found
+        </div>
+      </PageTemplate>
+    );
+  }
+  
+
   return (
     <>
       <PageTemplate>
         <div className="flex flex-col gap-6 w-fit min-w-full">
           <PageHeader
-            title={vendor.name}
+            title={(vendorDraft || vendor).name}
             subtitle={
               <div className="flex items-center gap-3">
                 <div className="text-[#717179] font-medium text-base leading-4">
@@ -341,8 +913,7 @@ export default function VendorDetail() {
                   <circle cx="2" cy="2" r="2" fill="#717179" />
                 </svg>
                 <span className="text-[#717179] font-medium text-base leading-4">
-                  {" "}
-                  {vendor.category}
+                  {(vendorDraft || vendor).category}
                 </span>
                 <svg
                   width="4"
@@ -381,502 +952,156 @@ export default function VendorDetail() {
 
           <div className="flex items-start gap-6">
             <div className="flex-1 min-w-[240px] w-full">
-              <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-4 flex flex-col">
-                <div className="flex flex-col font-medium">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                      Vendor Information
-                    </h2>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setIsFormShowcaseOpen(true)}
-                        className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                        title="View field components showcase"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 14 14"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M11.2 1H2.8C1.81 1 1.009 1.81 1.009 2.8L1 12.2C1 13.19 1.81 14 2.8 14H11.2C12.19 14 13 13.19 13 12.2V2.8C13 1.81 12.19 1 11.2 1ZM11.2 12.2H2.8V2.8H11.2V12.2ZM3.5 5.25H8.75V6.75H3.5V5.25ZM3.5 7.75H10.5V9.25H3.5V7.75Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span>Showcase</span>
-                      </button>
-                      <button
-                        onClick={openEditVendor}
-                        className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 14 14"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M10.7145 2.68607C11.1052 2.29537 11.7383 2.29537 12.129 2.68607L11.9749 2.84016C12.3656 3.23085 12.3656 3.86402 11.9749 4.25472L5.6117 10.6179C5.46262 10.767 5.28452 10.8795 5.08646 10.9445L2.03645 11.7978C1.74626 11.8816 1.44259 11.7399 1.35879 11.4497L0.505513 8.39971C0.440448 8.20165 0.552982 8.02355 0.701865 7.87467L7.06503 1.51149C7.45572 1.1208 8.08889 1.1208 8.47958 1.51149L10.7145 2.68607Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span>Edit</span>
-                      </button>
-                    </div>
-                  </div>
+              <SectionGroupCardTemplate>
+                {/* Vendor Information Section */}
+                <DataSectionTemplate
+                  title="Vendor Information"
+                  subsections={[
+                    {
+                      title: "",
+                      fields: [
+                        {
+                          label: "EMAIL",
+                          value: (vendorDraft || vendor).email,
+                          icon: (vendorDraft || vendor).email ? (
+                            <EmailIcon width={14} height={14} />
+                          ) : undefined,
+                        },
+                        {
+                          label: "PHONE",
+                          value: (vendorDraft || vendor).phone,
+                        },
+                        {
+                          label: "ADDRESS",
+                          value: (vendorDraft || vendor).address,
+                        },
+                        {
+                          label: "WEBSITE",
+                          value: (vendorDraft || vendor).website,
+                        },
+                        {
+                          label: "SERVICES PROVIDED",
+                          value: (vendorDraft || vendor).servicesProvided,
+                        },
+                      ],
+                    },
+                  ]}
+                  onEdit={openEditVendor}
+                  isLast={false}
+                />
 
-                  <div className="mt-3 flex flex-col whitespace-nowrap">
-                    <div className="flex items-start gap-10 flex-wrap">
-                      <div className="flex flex-col w-[220px]">
-                        <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
-                          EMAIL
-                        </div>
-                        {vendor.email ? (
-                          <div className="mt-1 flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] rounded-lg">
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 14 14"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M11.6673 11.667H2.33398C1.59961 11.667 1.00065 11.068 1.00065 10.3337V3.66699C1.00065 2.93262 1.59961 2.33366 2.33398 2.33366H11.6673C12.4017 2.33366 13.0007 2.93262 13.0007 3.66699V10.3337C13.0007 11.068 12.4017 11.667 11.6673 11.667Z"
-                                stroke="#2463EB"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M1.33398 3.33301L7.00065 7.66634L12.6673 3.33301"
-                                stroke="#2463EB"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <span>{vendor.email}</span>
-                          </div>
-                        ) : (
-                          <div className="mt-1 text-[#303030] text-sm font-medium leading-[1.29]">
-                            --
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col">
-                        <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
-                          PHONE
-                        </div>
-                        <div className="mt-1 text-[#303030] text-sm font-medium leading-[1.29]">
-                          {vendor.phone || "--"}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col">
-                        <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
-                          ADDRESS
-                        </div>
-                        <div className="mt-1 text-[#303030] text-sm font-medium leading-[1.29]">
-                          {vendor.address || "--"}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col">
-                        <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
-                          WEBSITE
-                        </div>
-                        <div className="mt-1 text-[#303030] text-sm font-medium leading-[1.29]">
-                          {vendor.website || "--"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex flex-col">
-                    <div className="flex items-start gap-10">
-                      <div className="flex flex-col">
-                        <div className="text-[#71717A] text-xs font-medium leading-[1.33]">
-                          SERVICES PROVIDED
-                        </div>
-                        <div className="mt-1 text-[#303030] text-sm font-medium leading-[1.29]">
-                          {vendor.servicesProvided || "--"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className="mt-5 w-full h-px"
-                  style={{ aspectRatio: "1000", objectFit: "contain" }}
-                >
-                  <svg
-                    width="100%"
-                    height="1"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <line
-                      x1="0"
-                      y1="0"
-                      x2="100%"
-                      y2="0"
-                      stroke="#E5E5E5"
-                      strokeWidth="1"
-                    />
-                  </svg>
-                </div>
-
-                <div className="mt-5 flex flex-col font-medium">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                {/* Vendor Insurance Section */}
+                <SectionRowTemplate isLast={false}>
+                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
                       Vendor Insurance
                     </h2>
-                    <button
+                    <SectionActionTemplate
+                      label="Add"
                       onClick={() => setIsAddInsuranceOpen(true)}
-                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Add</span>
-                    </button>
+                    />
                   </div>
 
-                  {vendorInsurances.length === 0 ? (
-                    <p className="mt-3 text-[#303030] text-sm font-medium leading-[1.29]">
-                      No vendor insurance information on file.
-                    </p>
+                  {insurance.length === 0 ? (
+                    <EmptyStateTemplate message="No vendor insurance information on file." />
                   ) : (
-                    <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
-                      {vendorInsurances.map((ins) => (
-                        <div
+                    <RecordListTemplate>
+                      {insurance.map((ins, idx) => (
+                        <RecordRowTemplate
                           key={ins.id}
-                          className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
-                        >
-                          <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
-                            {ins.provider}
-                          </div>
-                          <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[220px]">
-                            {ins.policyNumber}
-                          </div>
-                          <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[180px]">
-                            Expires: {ins.expirationDate}
-                          </div>
-                        </div>
+                          isLast={idx === insurance.length - 1}
+                          leftSlot={
+                            <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
+                              <div>{ins.provider}</div>
+                              <div className="text-[#71717A] text-xs mt-1">
+                                Policy: {ins.policyNumber} • Expires:{" "}
+                                {ins.expirationDate}
+                              </div>
+                            </div>
+                          }
+                        />
                       ))}
-                    </div>
+                    </RecordListTemplate>
                   )}
-                </div>
+                </SectionRowTemplate>
 
-                <div className="mt-5 w-full h-px">
-                  <svg
-                    width="100%"
-                    height="1"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <line
-                      x1="0"
-                      y1="0"
-                      x2="100%"
-                      y2="0"
-                      stroke="#E5E5E5"
-                      strokeWidth="1"
-                    />
-                  </svg>
-                </div>
-
-                <div className="mt-5 flex flex-col font-medium">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                {/* Custom Fields Section */}
+                <SectionRowTemplate isLast={false}>
+                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
                       Custom Fields
                     </h2>
-                    <button
+                    <SectionActionTemplate
+                      label="Add"
                       onClick={() => setIsAddCustomFieldOpen(true)}
-                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Add</span>
-                    </button>
+                    />
                   </div>
 
-                  {customFields.length === 0 ? (
-                    <div className="mt-3 flex items-center justify-center min-h-[56px] w-full border border-[#DADADA] rounded-lg">
-                      <p className="flex-1 text-[#303030] text-sm font-normal leading-[1.29] text-center px-3">
-                        There are no custom fields created to track additional
-                        information in this location. Contact your administrator
-                        to add custom fields.
-                      </p>
-                    </div>
+                  {fields.length === 0 ? (
+                    <EmptyStateTemplate message="There are no custom fields created to track additional information in this location. Contact your administrator to add custom fields." />
                   ) : (
-                    <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
-                      {customFields.map((field) => (
-                        <div
+                    <RecordListTemplate>
+                      {fields.map((field, idx) => (
+                        <RecordRowTemplate
                           key={field.id}
-                          className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
-                        >
-                          <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[220px]">
-                            {field.name}
-                          </div>
-                          <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
-                            {field.value}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-5 w-full h-px">
-                  <svg
-                    width="100%"
-                    height="1"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <line
-                      x1="0"
-                      y1="0"
-                      x2="100%"
-                      y2="0"
-                      stroke="#E5E5E5"
-                      strokeWidth="1"
-                    />
-                  </svg>
-                </div>
-
-                <div className="mt-5 flex flex-col">
-                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                      Recent Notes
-                    </h2>
-                    <button
-                      onClick={openAddNote}
-                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Add</span>
-                    </button>
-                  </div>
-
-                  {notes.length === 0 ? (
-                    <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
-                      <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                        You don't have any notes for this vendor right now.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={openAddNote}
-                        className="text-[#2463EB] text-sm font-medium hover:underline"
-                      >
-                        Add your first note
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
-                      {notes.map((note) => (
-                        <div
-                          key={note.id}
-                          className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
-                        >
-                          <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29] whitespace-pre-line">
-                            {note.text}
-                          </div>
-                          <div className="flex items-center gap-8 min-w-[240px]">
-                            <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[153px]">
-                              {note.date}
+                          isLast={idx === fields.length - 1}
+                          leftSlot={
+                            <div className="flex gap-6 flex-1">
+                              <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[220px]">
+                                <div className="font-medium">{field.name}</div>
+                                <div className="text-[#71717A] text-xs mt-1">
+                                  {field.value}
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[118px]">
-                              {note.author}
-                            </div>
-
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button
-                                  type="button"
-                                  onMouseDown={(e) => e.stopPropagation()}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-                                  aria-label="Actions"
-                                >
-                                  <svg
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <circle cx="12" cy="12" r="1" />
-                                    <circle cx="19" cy="12" r="1" />
-                                    <circle cx="5" cy="12" r="1" />
-                                  </svg>
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                align="end"
-                                className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 w-[120px] rounded-lg"
-                                style={{ border: "0.5px solid #DADADA" }}
-                              >
-                                <DropdownMenuItem
-                                  onSelect={() => {
-                                    setSelectedNote(note);
-                                    setIsViewNoteOpen(true);
-                                  }}
-                                  className="w-full cursor-pointer text-left text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#303030]"
-                                >
-                                  View
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onSelect={() => {
-                                    setNotes((prev) =>
-                                      prev.filter((n) => n.id !== note.id),
-                                    );
-                                  }}
-                                  className="w-full cursor-pointer text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#982740]"
-                                >
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </div>
+                          }
+                        />
                       ))}
-                    </div>
+                    </RecordListTemplate>
                   )}
-                </div>
+                </SectionRowTemplate>
 
-                <div className="mt-5 w-full h-px">
-                  <svg
-                    width="100%"
-                    height="1"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <line
-                      x1="0"
-                      y1="0"
-                      x2="100%"
-                      y2="0"
-                      stroke="#E5E5E5"
-                      strokeWidth="1"
-                    />
-                  </svg>
-                </div>
+                {/* Recent Notes Section */}
+                <NotesTemplate
+                  notes={notes}
+                  onAdd={openAddNote}
+                  onEdit={(note) => {
+                    setSelectedNote(note);
+                    setIsViewNoteOpen(true);
+                  }}
+                  onDelete={removeNote}
+                  isLast={false}
+                  emptyMessage="You don't have any notes for this vendor right now."
+                />
 
-                <div className="mt-5 flex flex-col">
-                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                      Recent Files
-                    </h2>
-                    <button
-                      onClick={() => setIsAddFileOpen(true)}
-                      className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Add</span>
-                    </button>
-                  </div>
-
-                  {files.length === 0 ? (
-                    <div className="mt-3 flex items-center gap-1 w-full px-3 py-1.5 bg-[#F9F9F9] border border-[#DADADA] rounded">
-                      <p className="text-[#303030] text-sm font-normal leading-[1.29]">
-                        You don't have any files for this vendor right now.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setIsAddFileOpen(true)}
-                        className="text-[#2463EB] text-sm font-medium hover:underline"
-                      >
-                        Add your first file
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="mt-3 border border-[#DADADA] rounded-lg overflow-hidden">
-                      {files.map((file) => (
-                        <div
-                          key={file.id}
-                          className="flex items-center justify-between gap-6 px-3 py-2 border-b border-[#DADADA] last:border-b-0"
-                        >
-                          {file.url ? (
-                            <a
-                              href={file.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="flex-1 text-[#2463EB] text-sm font-medium leading-[1.29] hover:underline"
-                            >
-                              {file.name}
-                            </a>
-                          ) : (
-                            <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
-                              {file.name}
-                            </div>
-                          )}
-                          <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[200px]">
-                            {file.uploadedAt}
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                type="button"
-                                onMouseDown={(e) => e.stopPropagation()}
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-                                aria-label="Actions"
-                              >
-                                <svg
-                                  width="18"
-                                  height="18"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <circle cx="12" cy="12" r="1" />
-                                  <circle cx="19" cy="12" r="1" />
-                                  <circle cx="5" cy="12" r="1" />
-                                </svg>
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="z-[99999] bg-white flex flex-col justify-center items-start gap-4 p-4 w-[120px] rounded-lg"
-                              style={{ border: "0.5px solid #DADADA" }}
-                            >
-                              <DropdownMenuItem
-                                onSelect={() => {
-                                  setSelectedFile(file);
-                                  setIsViewFileOpen(true);
-                                }}
-                                className="w-full text-left text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#303030]"
-                              >
-                                View
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onSelect={() => {
-                                  setFiles((prev) => {
-                                    revokeBlobUrl(file.url);
-                                    return prev.filter((f) => f.id !== file.id);
-                                  });
-                                }}
-                                className="w-full text-left text-[#982740] font-normal text-base leading-[140%] tracking-[-0.32px] focus:bg-transparent focus:text-[#982740]"
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+                {/* Recent Files Section */}
+                <FilesTemplate
+                  files={mockFiles}
+                  onAdd={() => {
+                    setIsEditingFile(false);
+                    setSelectedFile(null);
+                    setIsAddFileOpen(true);
+                  }}
+                  onEdit={(file) => {
+                    setSelectedFile(file);
+                    setIsEditingFile(true);
+                    setIsAddFileOpen(true);
+                  }}
+                  onDelete={deleteFile}
+                  onView={(file) => {
+                    setSelectedFile(file);
+                    setIsViewFileOpen(true);
+                  }}
+                  isLast={true}
+                  emptyMessage="You don't have any files for this vendor right now."
+                />
+              </SectionGroupCardTemplate>
             </div>
           </div>
         </div>
       </PageTemplate>
 
+      {/* File Preview Modal */}
       <PdfViewerModal
         open={isViewFileOpen}
         onOpenChange={(open) => {
@@ -887,96 +1112,63 @@ export default function VendorDetail() {
         url={selectedFile?.url}
       />
 
-      <Dialog
+      {/* Add/Edit Note Modal */}
+      <AddNoteModal
         open={isAddEditNoteOpen}
         onOpenChange={(open) => {
           setIsAddEditNoteOpen(open);
           if (!open) {
             setEditingNoteId(null);
-            setNoteDraft("");
           }
         }}
-      >
-        <DialogContent className="max-w-[520px] p-6 gap-0">
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-            {editingNoteId === null ? "Add Note" : "Edit Note"}
-          </DialogTitle>
+        initialText={editingNoteId !== null ? selectedNote?.text || "" : ""}
+        isEditMode={editingNoteId !== null}
+        onSubmit={saveNote}
+      />
 
-          <Textarea
-            value={noteDraft}
-            onChange={(e) => setNoteDraft(e.target.value)}
-            placeholder="Enter your note here..."
-            className="min-h-[140px] rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%] resize-none"
-          />
-
-          <DialogFooter className="mt-4 gap-3">
-            <button
-              onClick={() => setIsAddEditNoteOpen(false)}
-              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={saveNote}
-              disabled={!noteDraft.trim()}
-              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Save Note
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
+      {/* View Note Dialog */}
+      <ModalTemplate
         open={isViewNoteOpen}
         onOpenChange={(open) => {
           setIsViewNoteOpen(open);
           if (!open) setSelectedNote(null);
         }}
+        title="Note Details"
+        size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => setIsViewNoteOpen(false)}
+            onConfirm={() => {
+              if (selectedNote) {
+                openEditNote(selectedNote);
+                setIsViewNoteOpen(false);
+              }
+            }}
+            cancelLabel="Close"
+            confirmLabel="Edit"
+          />
+        }
       >
-        <DialogContent className="max-w-[520px] p-6 gap-0">
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-            Note Details
-          </DialogTitle>
-
-          {selectedNote ? (
-            <div>
-              <div className="text-[#303030] whitespace-pre-line mb-4 p-3 bg-gray-50 rounded-lg">
+        {selectedNote ? (
+          <FormLayout>
+            <FormSection showDivider={false}>
+              <div className="text-[#303030] whitespace-pre-line p-3 bg-gray-50 rounded-lg">
                 {selectedNote.text}
               </div>
-              <div className="text-sm text-[#71717A] mb-2">
+              <div className="text-sm text-[#71717A]">
                 <span className="font-medium">Author:</span>{" "}
                 {selectedNote.author}
               </div>
               <div className="text-sm text-[#71717A]">
                 <span className="font-medium">Date:</span> {selectedNote.date}
               </div>
+            </FormSection>
+          </FormLayout>
+        ) : null}
+      </ModalTemplate>
 
-              <DialogFooter className="mt-6 gap-3">
-                <button
-                  onClick={() => setIsViewNoteOpen(false)}
-                  className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    const noteToEdit = selectedNote;
-                    setIsViewNoteOpen(false);
-                    setSelectedNote(null);
-                    openEditNote(noteToEdit);
-                  }}
-                  className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors"
-                >
-                  Edit
-                </button>
-              </DialogFooter>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
+      {/* Add Insurance Dialog */}
+      <ModalTemplate
         open={isAddInsuranceOpen}
         onOpenChange={(open) => {
           setIsAddInsuranceOpen(open);
@@ -986,73 +1178,55 @@ export default function VendorDetail() {
             setInsuranceExpirationDate("");
           }
         }}
+        title="Add Vendor Insurance"
+        size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => {
+              setInsuranceProvider("");
+              setInsurancePolicyNumber("");
+              setInsuranceExpirationDate("");
+              setIsAddInsuranceOpen(false);
+            }}
+            onConfirm={handleAddInsurance}
+            cancelLabel="Cancel"
+            confirmLabel="Save"
+            confirmDisabled={
+              insuranceProvider.trim().length === 0 ||
+              insurancePolicyNumber.trim().length === 0 ||
+              insuranceExpirationDate.trim().length === 0
+            }
+          />
+        }
       >
-        <DialogContent className="max-w-[520px] p-6 gap-0">
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-            Add Vendor Insurance
-          </DialogTitle>
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <TextField
+              label="Provider"
+              value={insuranceProvider}
+              onChange={(e) => setInsuranceProvider(e.target.value)}
+              placeholder="Insurance provider"
+            />
 
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Provider
-              </label>
-              <Input
-                value={insuranceProvider}
-                onChange={(e) => setInsuranceProvider(e.target.value)}
-                placeholder="Insurance provider"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-              />
-            </div>
+            <TextField
+              label="Policy Number"
+              value={insurancePolicyNumber}
+              onChange={(e) => setInsurancePolicyNumber(e.target.value)}
+              placeholder="Policy number"
+            />
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Policy Number
-              </label>
-              <Input
-                value={insurancePolicyNumber}
-                onChange={(e) => setInsurancePolicyNumber(e.target.value)}
-                placeholder="Policy number"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-              />
-            </div>
+            <TextField
+              label="Expiration Date"
+              value={insuranceExpirationDate}
+              onChange={(e) => setInsuranceExpirationDate(e.target.value)}
+              placeholder="mm/dd/yyyy"
+            />
+          </FormSection>
+        </FormLayout>
+      </ModalTemplate>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Expiration Date
-              </label>
-              <Input
-                value={insuranceExpirationDate}
-                onChange={(e) => setInsuranceExpirationDate(e.target.value)}
-                placeholder="MM/DD/YYYY"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="mt-6 gap-3">
-            <button
-              onClick={() => setIsAddInsuranceOpen(false)}
-              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={addInsurance}
-              disabled={
-                !insuranceProvider.trim() ||
-                !insurancePolicyNumber.trim() ||
-                !insuranceExpirationDate.trim()
-              }
-              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Save
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
+      {/* Add Custom Field Dialog */}
+      <ModalTemplate
         open={isAddCustomFieldOpen}
         onOpenChange={(open) => {
           setIsAddCustomFieldOpen(open);
@@ -1061,279 +1235,113 @@ export default function VendorDetail() {
             setCustomFieldValue("");
           }
         }}
+        title="Add Custom Field"
+        size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => {
+              setCustomFieldName("");
+              setCustomFieldValue("");
+              setIsAddCustomFieldOpen(false);
+            }}
+            onConfirm={handleAddCustomField}
+            cancelLabel="Cancel"
+            confirmLabel="Save"
+            confirmDisabled={
+              customFieldName.trim().length === 0 ||
+              customFieldValue.trim().length === 0
+            }
+          />
+        }
       >
-        <DialogContent className="max-w-[520px] p-6 gap-0">
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-            Add Custom Field
-          </DialogTitle>
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <TextField
+              label="Field Name"
+              value={customFieldName}
+              onChange={(e) => setCustomFieldName(e.target.value)}
+              placeholder="Field name"
+            />
 
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Field Name
-              </label>
-              <Input
-                value={customFieldName}
-                onChange={(e) => setCustomFieldName(e.target.value)}
-                placeholder="Field name"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-              />
-            </div>
+            <TextField
+              label="Value"
+              value={customFieldValue}
+              onChange={(e) => setCustomFieldValue(e.target.value)}
+              placeholder="Value"
+            />
+          </FormSection>
+        </FormLayout>
+      </ModalTemplate>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Value
-              </label>
-              <Input
-                value={customFieldValue}
-                onChange={(e) => setCustomFieldValue(e.target.value)}
-                placeholder="Value"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9]"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="mt-6 gap-3">
-            <button
-              onClick={() => setIsAddCustomFieldOpen(false)}
-              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={addCustomField}
-              disabled={!customFieldName.trim() || !customFieldValue.trim()}
-              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Save
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
+      {/* Add/Edit File Modal */}
+      <AddFileModal
         open={isAddFileOpen}
         onOpenChange={(open) => {
           setIsAddFileOpen(open);
           if (!open) {
-            setFileDraft(null);
+            setIsEditingFile(false);
+            setSelectedFile(null);
           }
         }}
-      >
-        <DialogContent className="max-w-[520px] p-6 gap-0">
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-            Add File
-          </DialogTitle>
+        initialFiles={
+          isEditingFile && selectedFile
+            ? [
+                {
+                  id: String(selectedFile.id),
+                  name: selectedFile.name,
+                  size: 0,
+                  type: selectedFile.type || "",
+                  url: selectedFile.url,
+                },
+              ]
+            : []
+        }
+        initialCategory={
+          isEditingFile && selectedFile ? selectedFile.category || "" : ""
+        }
+        initialDescription={
+          isEditingFile && selectedFile ? selectedFile.description || "" : ""
+        }
+        isEditMode={isEditingFile}
+        onSubmit={handleAddFile}
+      />
 
-          <div className="px-6 py-5 grid gap-5">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#303030]">File</label>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => setFileDraft(e.target.files?.[0] ?? null)}
-                className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
-              />
-            </div>
-          </div>
+      {/* Edit Vendor Dialog */}
+      <AddVendorModal
+        open={isEditVendorOpen}
+        onOpenChange={setIsEditVendorOpen}
+        edit={true}
+        initialVendor={vendorDraft || undefined}
+        onEditVendor={(updatedVendor) => {
+          if (vendor) {
+            const updatedVendorData = {
+              ...vendor,
+              name: updatedVendor.name,
+              email: updatedVendor.email,
+              phone: updatedVendor.phone,
+              website: updatedVendor.website,
+              servicesProvided: updatedVendor.servicesProvided,
+            };
+            // Update main vendor data for display
+            // In a real app, this would call an API to persist changes
+            setVendorDraft(updatedVendorData);
+          }
+          setIsEditVendorOpen(false);
+        }}
+      />
 
-          <DialogFooter className="mt-6 gap-3">
-            <button
-              onClick={() => {
-                setIsAddFileOpen(false);
-                setFileDraft(null);
-              }}
-              className="px-4 py-2 border border-[#DADADA] rounded-lg text-[#303030] font-medium hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={addFile}
-              disabled={!fileDraft}
-              className="px-4 py-2 bg-[#013764] text-white rounded-lg font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Add
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isEditVendorOpen} onOpenChange={setIsEditVendorOpen}>
-        <DialogContent className="max-w-[694px] p-8 gap-0">
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px] mb-4">
-            Edit Vendor
-          </DialogTitle>
-
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Vendor Name <span className="text-red-600">*</span>
-                </label>
-                <Input
-                  value={vendorDraft.name}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                  placeholder="Input Vendor Name"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Category
-                </label>
-                <Input
-                  value={vendorDraft.category}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      category: e.target.value,
-                    }))
-                  }
-                  placeholder="Category"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Primary Email
-                </label>
-                <Input
-                  type="email"
-                  value={vendorDraft.email || ""}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                  placeholder="Input Vendor Email"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Phone
-                </label>
-                <Input
-                  value={vendorDraft.phone || ""}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      phone: e.target.value,
-                    }))
-                  }
-                  placeholder="Input Vendor Phone"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Address
-                </label>
-                <Input
-                  value={vendorDraft.address || ""}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      address: e.target.value,
-                    }))
-                  }
-                  placeholder="Address"
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-                <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                  Website
-                </label>
-                <Input
-                  value={vendorDraft.website || ""}
-                  onChange={(e) =>
-                    setVendorDraft((prev) => ({
-                      ...prev,
-                      website: e.target.value,
-                    }))
-                  }
-                  placeholder="https://..."
-                  className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-[#303030] font-medium text-sm leading-[20px]">
-                Services Provided
-              </label>
-              <Input
-                value={vendorDraft.servicesProvided || ""}
-                onChange={(e) =>
-                  setVendorDraft((prev) => ({
-                    ...prev,
-                    servicesProvided: e.target.value,
-                  }))
-                }
-                placeholder="Services provided"
-                className="h-10 rounded-lg border-[#E5E5E5] bg-[#F7F7F7] placeholder:text-[#A1A1A9] text-base font-normal tracking-[-0.32px] leading-[140%]"
-              />
-            </div>
-
-            <button
-              onClick={saveVendor}
-              disabled={!vendorDraft.name.trim()}
-              className="flex h-9 w-full items-center justify-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="text-white font-medium text-base">
-                Save Vendor
-              </span>
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <ModalTemplate
+      {/* Inactivate Confirmation Dialog */}
+      <ConfirmDialog
         open={isInactivateConfirmOpen}
         onOpenChange={setIsInactivateConfirmOpen}
         title={isInactive ? "Activate Vendor" : "Inactivate Vendor"}
-        size="sm"
-        footer={
-          <div className="flex gap-2.5 w-full justify-end">
-            <button
-              onClick={() => setIsInactivateConfirmOpen(false)}
-              className="grey-button"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirmInactivate}
-              className="flex h-9 items-center gap-2 px-3 py-2 rounded-lg border border-white bg-[#013764] hover:bg-[#003a73] transition-colors text-white font-medium text-base whitespace-nowrap"
-              style={{ boxShadow: "0px 0px 0px 1px rgba(0, 45, 90, 1)" }}
-            >
-              Confirm
-            </button>
-          </div>
-        }
-      >
-        <p style={{ fontSize: "14px", color: "rgba(48, 48, 48, 1)" }}>
-          {isInactive
+        message={
+          isInactive
             ? "Activating will make this vendor available for new work orders and tasks."
-            : "Inactivating will prevent this vendor from being used for new work orders and tasks."}
-        </p>
-      </ModalTemplate>
-
-      <FormShowcaseModal
-        open={isFormShowcaseOpen}
-        onOpenChange={setIsFormShowcaseOpen}
+            : "Inactivating will prevent this vendor from being used for new work orders and tasks."
+        }
+        confirmLabel={isInactive ? "Activate" : "Inactivate"}
+        onConfirm={handleConfirmInactivate}
       />
 
       <VendorActionsModal

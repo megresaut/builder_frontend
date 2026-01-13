@@ -29,8 +29,10 @@ interface FieldTeamOrder {
   id: number;
   taskId: number;
   property: string;
+  property_id: number;
   description: string;
   dueDate: string;
+  due_date: string;
   priority: "low" | "normal" | "high";
   fieldTeam: Array<{
     id: number;
@@ -41,6 +43,7 @@ interface FieldTeamOrder {
   
   field_team_member_ids: number[];
   status: "dispatched" | "approved" | "pending-approval";
+  originalStatus: string; // Original API status for modal
   timesheetStatus:
     | "awaiting-submission"
     | "submitted"
@@ -74,6 +77,8 @@ interface APIFTOResponse {
   total_amount: number;
   created_at: string;
   updated_at?: string;
+  unit_id?: number;
+  unit_name?: string;
 }
 const normalizeFTOStatus = (status: string) => {
   if (status === "completed") return "approved";
@@ -372,6 +377,7 @@ const transformAPIToFieldTeamOrder = (
       day: "numeric",
     });
 
+    const due_date = fto.due_date;
     const timesheetStatus =
     fto.approval_status === "rejected"
       ? "rejected"
@@ -387,8 +393,10 @@ const transformAPIToFieldTeamOrder = (
       taskId: fto.task_id || fto.id,
       name: fto.name,
       property: fto.property_name,
+      property_id: fto.property_id,
       description: fto.description,
-      dueDate,
+      dueDate,              // formatted for table
+      due_date: fto.due_date, // ✅ KEEP RAW DATE
       priority: (fto.priority.toLowerCase() as "low" | "normal" | "high") || "normal",
       fieldTeam: fto.field_team_member_ids.map((id) => {
         const user = usersById[id];
@@ -403,9 +411,10 @@ const transformAPIToFieldTeamOrder = (
         | "dispatched"
         | "approved"
         | "pending-approval",
+      originalStatus: fto.status, // Keep original for modal
       timesheetStatus,
       amount: fto.total_amount,
-      unit: "Unit",
+      unit: fto.unit_name ?? "N/A",
       field_team_member_ids: fto.field_team_member_ids ?? [],
     };
   });
@@ -596,7 +605,7 @@ export default function FieldTeamOrders() {
 
 
   const openEditFTO = useCallback((order: FieldTeamOrder) => {
-    console.log("🟦 Editing FTO payload sent to modal:", order);
+    
     setEditingFTOId(order.id);
     setShowFTOModal(true);
   }, []);
@@ -811,7 +820,35 @@ export default function FieldTeamOrders() {
           setShowFTOModal(open);
           if (!open) setEditingFTOId(null);
         }}
-        editingFTO={editingFTOId ? orders.find((o) => o.id === editingFTOId) : null}
+        editingFTO={
+          editingFTOId
+            ? (() => {
+                const order = orders.find((o) => o.id === editingFTOId);
+                if (!order) return null;
+
+                return {
+                  id: order.id,
+
+                  // core editable fields
+                  name: order.name,
+                  description: order.description,
+                  priority: order.priority,
+                  status: order.originalStatus as "new" | "dispatched" | "completed" | "cancelled",
+                  due_date: order.due_date,
+
+                  // relational IDs (what selects actually need)
+                  property_id: order.property_id,
+                  task_id: order.taskId,
+                  field_team_member_ids: order.field_team_member_ids,
+                  pm_assignee_ids: order.pm_assignee_ids,
+
+                  // optional display helpers
+                  property_name: order.property,
+                  unit_name: order.unit ?? null,
+                };
+              })()
+            : null
+        }
       />
       <ColumnFilterModal
         isOpen={showColumnModal}

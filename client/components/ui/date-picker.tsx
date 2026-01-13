@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Dropdown } from "./dropdown";
@@ -29,6 +29,15 @@ export const DatePicker = ({
   );
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(value || new Date());
+  
+  // Sync inputValue when value prop changes (for controlled component behavior)
+  useEffect(() => {
+    const newInputValue = value ? format(value, "MM/dd/yyyy") : "";
+    setInputValue(newInputValue);
+    if (value) {
+      setCalendarMonth(value);
+    }
+  }, [value]);
 
   // Format input as user types (mm/dd/yyyy)
   const formatDateInput = (input: string): string => {

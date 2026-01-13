@@ -13,6 +13,17 @@ import { fetchJSON } from "@/api/fetchJSON";
 interface AddVendorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+
+  edit?: boolean;
+  initialVendor?: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    website?: string;
+    servicesProvided?: string | string[];
+  };
+
   onAddVendor?: (vendor: {
     id: number;
     name: string;
@@ -21,12 +32,24 @@ interface AddVendorModalProps {
     servicesProvided: string[];
     notes: string;
   }) => void;
+
+  onEditVendor?: (vendor: {
+    name: string;
+    email: string;
+    phone: string;
+    website?: string;
+    servicesProvided: string[];
+  }) => void;
 }
+
 
 export default function AddVendorModal({
   open,
   onOpenChange,
   onAddVendor,
+  edit,
+  initialVendor,
+  onEditVendor,
 }: AddVendorModalProps) {
   const [vendorName, setVendorName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,15 +74,32 @@ export default function AddVendorModal({
   ];
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+  
+    if (edit && initialVendor) {
+      setVendorName(initialVendor.name || "");
+      setEmail(initialVendor.email || "");
+      setPhone(initialVendor.phone || "");
+      setServicesProvided(
+        Array.isArray(initialVendor.servicesProvided)
+          ? initialVendor.servicesProvided
+          : initialVendor.servicesProvided
+          ? [initialVendor.servicesProvided]
+          : [],
+      );
+      setNotes("");
+    } else {
+      // Add mode
       setVendorName("");
       setEmail("");
       setPhone("");
       setServicesProvided([]);
       setNotes("");
-      setErrors({});
     }
-  }, [open]);
+  
+    setErrors({});
+  }, [open, edit, initialVendor]);
+  
 
   const validateForm = (): boolean => {
     const newErrors: { vendorName?: string } = {};
@@ -73,46 +113,47 @@ export default function AddVendorModal({
   const handleSubmit = async () => {
     if (!validateForm()) return;
   
-    // servicesProvided[] -> "HVAC, Plumbing"
+    if (edit && initialVendor && onEditVendor) {
+      onEditVendor({
+        name: vendorName,
+        email,
+        phone,
+        website: initialVendor.website,
+        servicesProvided,
+      });
+  
+      onOpenChange(false);
+      return;
+    }
+  
+    // CREATE MODE (unchanged)
     const category = servicesProvided.join(", ");
   
-    try {
-      // ✅ 1) Capture backend response
-      const res = await fetchJSON("/vendors/create", {
-        method: "POST",
-        body: JSON.stringify({
-          name: vendorName,
-          primary_email: email || "",
-          phone: phone || "",
-          notes: notes || "",
-          category,
-          requires_1099: true,
-          has_insurance: true,
-        }),
-      });
-  
-      // ✅ 2) Notify parent with CREATED vendor info
-      onAddVendor?.({
-        id: res.id,
+    const res = await fetchJSON("/vendors/create", {
+      method: "POST",
+      body: JSON.stringify({
         name: vendorName,
-        email: email || "",
+        primary_email: email || "",
         phone: phone || "",
-        servicesProvided: servicesProvided,
         notes: notes || "",
-      });
+        category,
+        requires_1099: true,
+        has_insurance: true,
+      }),
+    });
   
-      // ✅ 3) Reset + close modal
-      setVendorName("");
-      setEmail("");
-      setPhone("");
-      setServicesProvided([]);
-      setNotes("");
-      onOpenChange(false);
-    } catch (err) {
-      console.error("Failed to create vendor:", err);
-      // later: toast / inline error
-    }
+    onAddVendor?.({
+      id: res.id,
+      name: vendorName,
+      email,
+      phone,
+      servicesProvided,
+      notes,
+    });
+  
+    onOpenChange(false);
   };
+  
   
   
 

@@ -82,14 +82,8 @@ export default function FtoOrderCard({
   const handleSubmitClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    navigate(`/fto/submission/${id}`, {
-      state: {
-        property,
-        unit,
-        task: name,
-        description,
-      },
-    });
+    // Navigate to empty new submission page (same as overall submit button)
+    navigate("/fto/submission");
   };
 
   return (
