@@ -332,22 +332,46 @@ function StatusPanel({
   pendingFilters: PendingFilters;
   onUpdate: <K extends keyof PendingFilters>(key: K, value: PendingFilters[K]) => void;
 }) {
+  const ftoStatusOptions = FTO_STATUS_OPTIONS.map((s) => ({
+    id: s.value,
+    label: s.label,
+  }));
+
+  const timesheetStatusOptions = TIMESHEET_STATUS_OPTIONS.map((s) => ({
+    id: s.value,
+    label: s.label,
+  }));
+
   return (
     <div className="space-y-4">
       <MultiSelectField
         label="FTO Status"
-        values={pendingFilters.ftoStatus}
-        onChange={(values) => onUpdate("ftoStatus", values)}
+        value={ftoStatusOptions.filter((s) =>
+          pendingFilters.ftoStatus.includes(s.id)
+        )}
+        onChange={(selected) =>
+          onUpdate(
+            "ftoStatus",
+            selected.map((s) => s.id)
+          )
+        }
         placeholder="Select status..."
-        options={FTO_STATUS_OPTIONS}
+        options={ftoStatusOptions}
       />
 
       <MultiSelectField
         label="Timesheet Status"
-        values={pendingFilters.timesheetStatus}
-        onChange={(values) => onUpdate("timesheetStatus", values)}
+        value={timesheetStatusOptions.filter((s) =>
+          pendingFilters.timesheetStatus.includes(s.id)
+        )}
+        onChange={(selected) =>
+          onUpdate(
+            "timesheetStatus",
+            selected.map((s) => s.id)
+          )
+        }
         placeholder="Select timesheet status..."
-        options={TIMESHEET_STATUS_OPTIONS}
+        options={timesheetStatusOptions}
       />
     </div>
   );
