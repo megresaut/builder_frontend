@@ -1289,7 +1289,39 @@ export default function TaskSummary() {
           )}
 
           {/* Field Team Orders tab content */}
-          {uiState.activeTab === "fieldteam" && <TaskFieldTeamOrders orders={fieldTeamOrders} onOrdersChange={setFieldTeamOrders} />}
+          {uiState.activeTab === "fieldteam" && (
+            <TaskFieldTeamOrders
+              orders={fieldTeamOrders}
+              onOrdersChange={(newOrders) => {
+                // Check for timesheet status changes and create updates
+                newOrders.forEach((newOrder, idx) => {
+                  const oldOrder = fieldTeamOrders[idx];
+                  if (oldOrder && oldOrder.timesheetStatus !== newOrder.timesheetStatus) {
+                    if (newOrder.timesheetStatus === "submitted") {
+                      setUpdates(prev => [{
+                        id: prev.length + 1,
+                        author: "System",
+                        authorType: "assignee",
+                        action: `timesheet for field team order #${newOrder.id} was submitted`,
+                        timestamp: new Date().toLocaleString(),
+                        icon: <EditIcon width={16} height={16} />,
+                      }, ...prev]);
+                    } else if (newOrder.timesheetStatus === "approved") {
+                      setUpdates(prev => [{
+                        id: prev.length + 1,
+                        author: "System",
+                        authorType: "assignee",
+                        action: `timesheet for field team order #${newOrder.id} was approved`,
+                        timestamp: new Date().toLocaleString(),
+                        icon: <ApproveIcon width={16} height={16} />,
+                      }, ...prev]);
+                    }
+                  }
+                });
+                setFieldTeamOrders(newOrders);
+              }}
+            />
+          )}
         </div>
       </div>
 
