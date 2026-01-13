@@ -2,6 +2,7 @@ import React, { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import PersonAvatars from "@/components/PersonAvatars";
+import { EditIcon } from "@/components/icons";
 
 export interface Person {
   id: string | number;
