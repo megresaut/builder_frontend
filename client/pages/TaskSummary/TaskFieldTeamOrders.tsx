@@ -387,6 +387,7 @@ interface TaskFieldTeamOrdersProps {
 
 export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFieldTeamOrdersProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
