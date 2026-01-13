@@ -32,9 +32,9 @@ const FIELD_TEAM_MANAGERS = [
 ];
 
 const FTO_STATUS_OPTIONS = [
-  { value: "new", label: "New" },
+  { value: "pending-approval", label: "New" },
   { value: "dispatched", label: "Dispatched" },
-  { value: "completed", label: "Completed" },
+  { value: "approved", label: "Completed" },
 ];
 
 const TIMESHEET_STATUS_OPTIONS = [
