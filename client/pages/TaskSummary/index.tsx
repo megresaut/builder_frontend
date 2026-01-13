@@ -732,12 +732,18 @@ export default function TaskSummary() {
   };
 
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
-    // Always preserve the selected work order ID in the URL across all tabs
-    // This allows the work order details view to be restored when switching back to workorders tab
-    if (uiState.selectedWorkOrderId) {
-      navigate(`/tasks/${taskId}/${newTab}/${uiState.selectedWorkOrderId}`, { replace: false });
+    // Navigate to the new tab and preserve the selected work order ID in state
+    // The URL will only include workOrderId when on the workorders tab
+    if (newTab === "workorders" && uiState.selectedWorkOrderId) {
+      navigate(`/tasks/${taskId}/${newTab}/${uiState.selectedWorkOrderId}`, {
+        replace: false,
+        state: { preservedWorkOrderId: uiState.selectedWorkOrderId }
+      });
     } else {
-      navigate(`/tasks/${taskId}/${newTab}`, { replace: false });
+      navigate(`/tasks/${taskId}/${newTab}`, {
+        replace: false,
+        state: { preservedWorkOrderId: uiState.selectedWorkOrderId }
+      });
     }
   };
 
