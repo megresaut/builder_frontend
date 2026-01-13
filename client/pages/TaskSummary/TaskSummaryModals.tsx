@@ -88,6 +88,7 @@ export default function TaskSummaryModals({
   onCurrentDueDateChange,
   onCurrentAssigneesChange,
   onCurrentCollaboratorsChange,
+  onLastUpdatedChange,
   syncFileNameAcrossStates,
   getAttachmentData,
   handleStartRenamingAttachment,
