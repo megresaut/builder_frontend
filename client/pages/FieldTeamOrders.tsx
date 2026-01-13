@@ -394,6 +394,7 @@ export default function FieldTeamOrders() {
   const [editingOrder, setEditingOrder] = useState<FieldTeamOrder | null>(null);
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
+  const [showHoursSummary, setShowHoursSummary] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -549,15 +550,24 @@ export default function FieldTeamOrders() {
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        <PageHeader
-          title="All Field Team Orders"
-          subtitle="All your field team orders, in one place"
-          action={{
-            label: "Create FTO",
-            onClick: () => setShowFTOModal(true),
-            icon: <PlusIcon width={20} height={20} />,
-          }}
-        />
+        <div className="flex items-center justify-between">
+          <PageHeader
+            title="All Field Team Orders"
+            subtitle="All your field team orders, in one place"
+            action={{
+              label: "Create FTO",
+              onClick: () => setShowFTOModal(true),
+              icon: <PlusIcon width={20} height={20} />,
+            }}
+          />
+          <button
+            onClick={() => setShowHoursSummary(true)}
+            className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-sm font-medium text-[#303030]"
+          >
+            <span>📊</span>
+            <span>Hours Summary</span>
+          </button>
+        </div>
 
         <div className="flex flex-col gap-6">
           {loading ? (
@@ -786,6 +796,12 @@ export default function FieldTeamOrders() {
         onToggleColumn={toggleColumnVisibility}
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
+      />
+
+      <HoursSummaryDrawer
+        isOpen={showHoursSummary}
+        onClose={() => setShowHoursSummary(false)}
+        orders={filteredOrders}
       />
     </PageTemplate>
   );
