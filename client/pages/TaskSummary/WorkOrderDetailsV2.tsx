@@ -364,7 +364,7 @@ export default function WorkOrderDetailsV2({
         <div className="flex flex-col flex-1 gap-6 min-w-0">
           {/* Main Overview Card */}
           <SectionCard variant="white" padding="none">
-            <div className="flex flex-col md:flex-row items-start gap-4 w-full p-5">
+            <div className="flex flex-col md:flex-row items-stretch gap-4 w-full p-5">
               <img
                 src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
                 alt="Property"
