@@ -128,10 +128,10 @@ export default function FTOFilterPopover({
         className="fixed z-50 rounded-lg border border-[#E5E7EB] bg-white shadow-lg flex overflow-hidden justify-end"
         style={{
           width: showLeftPanel ? "642px" : "258px",
-          height: "auto",
+          height: "360px",
           top: `${position.top}px`,
           right: `${position.right}px`,
-          transition: "width 0.2s ease-out, height 0.2s ease-out",
+          transition: "width 0.2s ease-out",
         }}
         onMouseLeave={handlePopoverLeave}
       >
@@ -140,10 +140,9 @@ export default function FTOFilterPopover({
           className="flex-shrink-0 flex flex-col overflow-hidden border-r border-[#E5E7EB] transition-all duration-200"
           style={{
             width: showLeftPanel ? "384px" : "0px",
-            height: showLeftPanel ? "auto" : "0px",
+            height: "100%",
             opacity: showLeftPanel ? 1 : 0,
             overflow: "hidden",
-            minHeight: showLeftPanel ? "320px" : "0px",
           }}
         >
           {/* Header */}
