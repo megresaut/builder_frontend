@@ -181,7 +181,8 @@ export default function SummaryTab({
               ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
               : "Unassigned",
           }}
-          createdDate={lastUpdatedTimestamp}
+          createdDate={createdTimestamp}
+          lastUpdatedDate={lastUpdatedTimestamp}
           stats={[
             { label: "TOTAL EXPENSE", value: `$${totalExpense}` },
             { label: "WORK ORDERS", value: workOrders.length.toString() },

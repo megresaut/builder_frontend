@@ -23,6 +23,7 @@ interface TaskOverviewCardProps {
     title?: string;
   };
   createdDate?: string;
+  lastUpdatedDate?: string;
   onEdit?: () => void;
   variant?: "default" | "gray";
 }
@@ -42,6 +43,7 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   stats,
   createdBy,
   createdDate,
+  lastUpdatedDate,
   onEdit,
   variant = "default",
 }) => {
@@ -66,9 +68,9 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
       }
     >
       {/* Last Updated Info */}
-      {createdDate && (
+      {lastUpdatedDate && (
         <div className="text-sm text-[#717179] font-medium">
-          Last Updated <span className="text-[#303030] font-bold">{createdDate}</span>
+          Last Updated <span className="text-[#303030] font-bold">{lastUpdatedDate}</span>
         </div>
       )}
 
