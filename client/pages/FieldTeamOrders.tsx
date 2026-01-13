@@ -912,19 +912,10 @@ export default function FieldTeamOrders() {
 
       <FTOFilterPopover
         isOpen={showFilterPopover}
-        onOpenChange={(open) => {
-          if (open) {
-            openFilterPopover();
-          } else {
-            closeFilterPopover();
-          }
-          setShowFilterPopover(open);
-        }}
+        onOpenChange={setShowFilterPopover}
         appliedFilters={appliedFilters}
-        pendingFilters={pendingFilters}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
-        onPendingFilterUpdate={updatePendingFilter}
         onApply={applyFilters}
         onReset={resetFilters}
       />
