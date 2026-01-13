@@ -5,14 +5,21 @@ interface DrawerTemplateProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  subtitle?: string;
   hideCloseButton?: boolean;
   onClose?: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  showDivider?: boolean;
   width?: number;
   contentRef?: React.RefObject<HTMLDivElement>;
+}
+
+interface DrawerButtonsProps {
+  onCancel?: () => void;
+  onConfirm?: () => void;
+  cancelLabel?: string;
+  confirmLabel?: string;
+  confirmDisabled?: boolean;
+  cancelDisabled?: boolean;
 }
 
 interface DrawerSubheaderProps {
