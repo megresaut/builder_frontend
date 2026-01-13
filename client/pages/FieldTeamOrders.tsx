@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import HoursSummaryDrawer from "@/components/HoursSummaryDrawer";
 import PageHeader from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
@@ -39,6 +40,7 @@ interface FieldTeamOrder {
     | "rejected"
     | "approved";
   amount: number;
+  hours?: number;
   unit?: string;
   fieldTeamAssignee?: string;
   task?: string;
@@ -368,6 +370,7 @@ const transformAPIToFieldTeamOrder = (
       status: (fto.status as "dispatched" | "approved" | "pending-approval") || "pending-approval",
       timesheetStatus,
       amount: fto.total_amount,
+      hours: fto.hours_decimal,
       unit: "Unit",
     };
   });
