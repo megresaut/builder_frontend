@@ -130,11 +130,13 @@ export default function TaskSummary() {
       uiDispatch({ type: "SET_ACTIVE_TAB", payload: tabValue });
     }
 
-    const urlId = workOrderId ? parseInt(workOrderId) : null;
+    // Use URL workOrderId if available (on workorders tab with a selection)
+    // Otherwise use preserved ID from location state (when returning from other tabs)
+    const urlId = workOrderId ? parseInt(workOrderId) : (navigationState?.preservedWorkOrderId || null);
     if (urlId !== uiState.selectedWorkOrderId) {
       uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: urlId });
     }
-  }, [tab, workOrderId, uiDispatch]);
+  }, [tab, workOrderId, navigationState?.preservedWorkOrderId, uiDispatch]);
 
   // Sync state to URL when tab changes (from user clicking tab button)
   // This happens when handleTabChange calls navigate, then this ensures state is synced
