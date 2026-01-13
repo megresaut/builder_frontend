@@ -312,7 +312,7 @@ function JobDetailsPanel({
   }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <MultiSelectField
         label="Property"
         value={propertyMultiSelectOptions.filter((p) =>
