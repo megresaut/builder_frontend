@@ -188,6 +188,7 @@ export default function WorkOrderDetailsV2({
     if (formData.status !== undefined) setStatus(formData.status);
     if (formData.priority !== undefined) setPriority(formData.priority);
     if (formData.dueDate !== undefined) setDueDate(formData.dueDate);
+    setLastUpdated(new Date().toLocaleString());
 
     // Build updated notes and files arrays
     let updatedNotes = notes;
