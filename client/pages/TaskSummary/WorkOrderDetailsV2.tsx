@@ -408,22 +408,32 @@ export default function WorkOrderDetailsV2({
                   </div>
                 </div>
 
-                <div className="flex justify-between items-end w-full">
-                  <div className="flex flex-col items-start gap-3 flex-1">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[#717179] text-sm font-semibold leading-4">Invoice Number:</span>
-                      <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.invoiceNumber || ""}</span>
+                <div className="flex items-start w-full">
+                  <div className="flex flex-col items-start gap-6 flex-1">
+                    <div className="flex flex-col items-start gap-3 w-full">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[#717179] text-sm font-semibold leading-4">Invoice Number:</span>
+                        <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.invoiceNumber || ""}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[#717179] text-sm font-semibold leading-4">Vendor:</span>
+                        <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.vendorName || "Unassigned"}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[#717179] text-sm font-semibold leading-4">Vendor:</span>
-                      <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.vendorName || "Unassigned"}</span>
+
+                    {/* Description Section */}
+                    <div className="w-full">
+                      <div className="text-[#717179] text-sm font-semibold leading-4 mb-2">Description:</div>
+                      <div className="text-[#303030] text-sm font-normal leading-5 whitespace-pre-wrap">
+                        {workOrder.description || notes[0]?.text || "No description provided"}
+                      </div>
                     </div>
                   </div>
                   <a
                     href={`https://www.google.com/maps/search/${encodeURIComponent(workOrder.property)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-10 px-4 justify-center items-center gap-2 rounded-lg border border-[#dadada] bg-[#f9f9f9] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:opacity-80 transition-opacity"
+                    className="flex h-10 px-4 justify-center items-center gap-2 rounded-lg border border-[#dadada] bg-[#f9f9f9] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:opacity-80 transition-opacity flex-shrink-0 ml-auto"
                   >
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M3.8329 1.36272C3.9427 1.35374 3.9976 1.34926 4.06229 1.35661C4.24453 1.37733 4.43386 1.49138 4.53736 1.6428C4.57411 1.69656 4.59996 1.75688 4.65167 1.87754L7.15032 7.70773L2.12495 10.4803C1.86466 10.624 1.73451 10.6958 1.62803 10.6831C1.53513 10.6721 1.45113 10.6225 1.39658 10.5465C1.33405 10.4594 1.33404 10.3107 1.33402 10.0135C1.3339 8.39977 1.33412 6.78607 1.33412 5.17238C1.33411 4.63574 1.3341 4.19283 1.36358 3.83204C1.3942 3.4573 1.45991 3.11284 1.62477 2.78928C1.88043 2.28751 2.28838 1.87956 2.79014 1.6239C3.1137 1.45904 3.45817 1.39333 3.8329 1.36272Z" fill="#2463EB"/>
@@ -432,14 +442,6 @@ export default function WorkOrderDetailsV2({
                     </svg>
                     <span className="text-[#2463eb] text-sm font-medium leading-[140%] tracking-[-0.28px] capitalize">View Maps</span>
                   </a>
-                </div>
-
-                {/* Description Section */}
-                <div className="w-full mt-4 pt-4 border-t border-[#e5e5e5]">
-                  <div className="text-[#717179] text-sm font-semibold leading-4 mb-2">Description:</div>
-                  <div className="text-[#303030] text-sm font-normal leading-5 whitespace-pre-wrap">
-                    {workOrder.description || notes[0]?.text || "No description provided"}
-                  </div>
                 </div>
               </div>
             </div>
