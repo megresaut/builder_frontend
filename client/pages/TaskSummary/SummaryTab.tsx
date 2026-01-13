@@ -250,15 +250,18 @@ export default function SummaryTab({
               {
                 label: "Assigned to",
                 mode: "rows",
-                people: currentAssignees.map((assignee) => ({
-                  id: assignee.id,
-                  name: assignee.name || assignee.label,
-                  initials: assignee.initials,
-                  roleLabel: assignee.title || "Property manager",
-                  email: assignee.email,
-                  phone: assignee.phone || "",
-                  type: "staff",
-                })),
+                people: currentAssignees.map((assignee) => {
+                  const name = assignee.name || assignee.label || "Unknown";
+                  return {
+                    id: assignee.id,
+                    name,
+                    initials: assignee.initials || (name ? name.split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase() : "?"),
+                    roleLabel: assignee.title || "Property manager",
+                    email: assignee.email || "",
+                    phone: assignee.phone || "",
+                    type: "staff",
+                  };
+                }),
                 showRoleLabel: true,
                 showPhone: true,
                 showDivider: true,
