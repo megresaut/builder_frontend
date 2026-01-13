@@ -101,9 +101,10 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
           ) : actionLabel && onAction ? (
             <button
               onClick={onAction}
-              className="text-base text-[#2463eb] font-medium tracking-[-0.32px] hover:underline"
+              className="flex items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] whitespace-nowrap rounded-lg hover:opacity-80 transition-opacity"
             >
-              {actionLabel}
+              <EditIcon width={14} height={14} />
+              <span>{actionLabel}</span>
             </button>
           ) : null}
         </div>
