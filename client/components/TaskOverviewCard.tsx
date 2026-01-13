@@ -1,5 +1,5 @@
 import React, { ReactNode } from "react";
-import { Edit } from "lucide-react";
+import { EditIcon } from "@/components/icons";
 import SectionCard from "@/components/SectionCard";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
