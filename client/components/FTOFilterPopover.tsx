@@ -219,7 +219,7 @@ export default function FTOFilterPopover({
           </nav>
 
           {/* Footer - Apply & Reset Buttons */}
-          <div className="flex-shrink-0 px-2 py-1.5 border-t border-[#E5E7EB] flex gap-2">
+          <div className="flex-shrink-0 px-2 py-1.5 border-t border-[#E5E7EB] flex gap-2 mt-auto">
             <button
               onClick={() => {
                 onReset();
