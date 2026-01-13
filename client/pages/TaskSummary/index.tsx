@@ -156,6 +156,48 @@ export default function TaskSummary() {
     }
   }, [tab, taskId, navigate, navigationState]);
 
+  // Handle FTO approval/rejection return state
+  useEffect(() => {
+    if (navigationState?.ftoAction && navigationState?.ftoId) {
+      const actionFtoId = Number(navigationState.ftoId);
+
+      if (navigationState.ftoAction === 'approved') {
+        setFieldTeamOrders(prev => prev.map(o => o.id === actionFtoId ? {
+          ...o,
+          status: 'approved',
+          timesheetStatus: 'approved'
+        } : o));
+
+        setUpdates(prev => [{
+          id: prev.length + 1,
+          author: "System",
+          authorType: "assignee",
+          action: `timesheet for field team order #${actionFtoId} was approved`,
+          timestamp: new Date().toLocaleString(),
+          icon: <ApproveIcon width={16} height={16} />,
+        }, ...prev]);
+      } else if (navigationState.ftoAction === 'rejected') {
+        setFieldTeamOrders(prev => prev.map(o => o.id === actionFtoId ? {
+          ...o,
+          status: 'dispatched',
+          timesheetStatus: 'rejected'
+        } : o));
+
+        setUpdates(prev => [{
+          id: prev.length + 1,
+          author: "System",
+          authorType: "assignee",
+          action: `timesheet for field team order #${actionFtoId} was rejected`,
+          timestamp: new Date().toLocaleString(),
+          icon: <EditIcon width={16} height={16} />,
+        }, ...prev]);
+      }
+
+      // Clear the navigation state to prevent re-processing
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [navigationState, navigate, location.pathname]);
+
   // Determine if this is a new task
   const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
 
