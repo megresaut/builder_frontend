@@ -313,23 +313,17 @@ export default function ApproveFTOPage() {
       expenses: expenseRows,
     });
 
-    // Navigate to referrer path or back if not available
-    if (state.referrerPath) {
-      navigate(state.referrerPath);
-    } else {
-      navigate(-1);
-    }
+    // Navigate to referrer path, with fallback to field team orders
+    const targetPath = state.referrerPath || "/field-team-orders";
+    navigate(targetPath, { replace: true });
   };
 
   const handleReject = () => {
     console.log("FTO Rejected");
 
-    // Navigate to referrer path or back if not available
-    if (state.referrerPath) {
-      navigate(state.referrerPath);
-    } else {
-      navigate(-1);
-    }
+    // Navigate to referrer path, with fallback to field team orders
+    const targetPath = state.referrerPath || "/field-team-orders";
+    navigate(targetPath, { replace: true })
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
