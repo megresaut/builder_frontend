@@ -558,6 +558,8 @@ export default function WorkOrderDetailsV2({
                 showPhone: true,
                 showDivider: true,
                 tabIndex: 1,
+                onAction: () => onUpdateWorkOrderModalOpenChange?.(true),
+                actionLabel: "Edit",
               },
               {
                 label: "Collaborators",
@@ -575,6 +577,8 @@ export default function WorkOrderDetailsV2({
                 showDivider: true,
                 tabIndex: 1,
                 type: "collaborator",
+                onAction: () => onUpdateWorkOrderModalOpenChange?.(true),
+                actionLabel: "Edit",
               }
             ]}
           />
