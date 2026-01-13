@@ -323,12 +323,17 @@ export default function TaskSummaryModals({
           }
           if (taskData.status !== undefined) {
             onCurrentStatusChange(taskData.status);
+            onLastUpdatedChange(new Date().toLocaleString());
           }
           if (taskData.priority !== undefined) {
             onCurrentPriorityChange(taskData.priority);
+            onLastUpdatedChange(new Date().toLocaleString());
           }
           // Always update dueDate, even if it's null
           onCurrentDueDateChange(taskData.dueDate || null);
+          if (taskData.dueDate !== undefined) {
+            onLastUpdatedChange(new Date().toLocaleString());
+          }
           if (taskData.assignees !== undefined) {
             onCurrentAssigneesChange(taskData.assignees);
           }
