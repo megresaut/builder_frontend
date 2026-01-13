@@ -273,15 +273,18 @@ export default function SummaryTab({
               {
                 label: "Collaborators",
                 mode: "rows",
-                people: currentCollaborators.map((collaborator) => ({
-                  id: collaborator.id,
-                  name: collaborator.name || collaborator.label,
-                  initials: collaborator.initials,
-                  roleLabel: collaborator.title || "Property manager",
-                  email: collaborator.email,
-                  phone: collaborator.phone || "",
-                  type: "staff",
-                })),
+                people: currentCollaborators.map((collaborator) => {
+                  const name = collaborator.name || collaborator.label || "Unknown";
+                  return {
+                    id: collaborator.id,
+                    name,
+                    initials: collaborator.initials || (name ? name.split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase() : "?"),
+                    roleLabel: collaborator.title || "Property manager",
+                    email: collaborator.email || "",
+                    phone: collaborator.phone || "",
+                    type: "staff",
+                  };
+                }),
                 showRoleLabel: true,
                 showPhone: true,
                 showDivider: true,
