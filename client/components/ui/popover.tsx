@@ -145,6 +145,7 @@ interface PopoverContentProps
   syncTriggerWidth?: boolean;
   scrollable?: boolean; // Enable internal scrolling (default: true)
   maxHeight?: string | number; // Custom max height (default: 280px)
+  disableDistanceClosing?: boolean; // Disable the auto-closing logic based on mouse distance
 }
 
 const PopoverContent = React.forwardRef<
@@ -160,6 +161,7 @@ const PopoverContent = React.forwardRef<
       syncTriggerWidth = true,
       scrollable = true,
       maxHeight = "280px",
+      disableDistanceClosing = false,
       onWheelCapture,
       onTouchMoveCapture,
       ...props
@@ -181,7 +183,13 @@ const PopoverContent = React.forwardRef<
 
     // Distance-based closing (150px threshold)
     React.useEffect(() => {
-      if (!isOpen || !triggerRef.current || !localRef.current) return;
+      if (
+        !isOpen ||
+        !triggerRef.current ||
+        !localRef.current ||
+        disableDistanceClosing
+      )
+        return;
 
       const handleMouseMove = (e: MouseEvent) => {
         const content = localRef.current;
@@ -211,7 +219,7 @@ const PopoverContent = React.forwardRef<
       return () => {
         document.removeEventListener("mousemove", handleMouseMove);
       };
-    }, [isOpen, triggerRef, setOpen]);
+    }, [isOpen, triggerRef, setOpen, disableDistanceClosing]);
 
     React.useEffect(() => {
       if (!syncTriggerWidth || !triggerRef.current) return;
