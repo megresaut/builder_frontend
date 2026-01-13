@@ -32,17 +32,28 @@ interface HoursSummaryDrawerProps {
   dateRangeEnd?: Date | null;
 }
 
+const FIELD_TEAM_MANAGERS = [
+  { value: "1", label: "Christopher Harris" },
+  { value: "2", label: "Cassandra Smith" },
+  { value: "3", label: "David Chen" },
+  { value: "4", label: "Emma Rodriguez" },
+  { value: "5", label: "James Wilson" },
+];
+
 export default function HoursSummaryDrawer({
   isOpen,
   onClose,
   orders,
-  selectedManager,
-  dateRangeStart,
-  dateRangeEnd,
+  selectedManager: initialSelectedManager,
+  dateRangeStart: initialDateRangeStart,
+  dateRangeEnd: initialDateRangeEnd,
 }: HoursSummaryDrawerProps) {
   const [expandedSections, setExpandedSections] = useState<{
     [key: string]: boolean;
   }>({});
+  const [selectedManager, setSelectedManager] = useState<string>(initialSelectedManager || "");
+  const [dateRangeStart, setDateRangeStart] = useState<Date | null>(initialDateRangeStart || null);
+  const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(initialDateRangeEnd || null);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
