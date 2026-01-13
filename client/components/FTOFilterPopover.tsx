@@ -405,7 +405,7 @@ function FinancialsPanel({
   onUpdate: <K extends keyof PendingFilters>(key: K, value: PendingFilters[K]) => void;
 }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#303030]">Amount Range</label>
         <FieldRow columns={2}>
