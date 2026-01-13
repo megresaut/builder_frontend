@@ -246,9 +246,11 @@ function DateRangePanel({
   pendingFilters,
   onUpdate,
 }: {
-  pendingFilters: PendingFilters;
+  pendingFilters?: PendingFilters;
   onUpdate: <K extends keyof PendingFilters>(key: K, value: PendingFilters[K]) => void;
 }) {
+  if (!pendingFilters) return null;
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-[#303030] block">
