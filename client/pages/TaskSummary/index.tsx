@@ -760,10 +760,12 @@ export default function TaskSummary() {
 
   const handleStatusChange = (newStatus: string) => {
     setCurrentStatus(newStatus);
+    setLastUpdatedTimestamp(new Date().toLocaleString());
   };
 
   const handlePriorityChange = (newPriority: string) => {
     setCurrentPriority(newPriority);
+    setLastUpdatedTimestamp(new Date().toLocaleString());
   };
 
   const handleDueDateChange = (newDate: Date | string | null) => {
@@ -776,6 +778,7 @@ export default function TaskSummary() {
     } else {
       setCurrentDueDate(null);
     }
+    setLastUpdatedTimestamp(new Date().toLocaleString());
   };
 
   const handleStartRenamingAttachment = () => {
