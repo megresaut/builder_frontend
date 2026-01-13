@@ -648,18 +648,18 @@ export default function FieldTeamOrders() {
           />
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowHoursSummary(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-sm font-medium text-[#303030]"
-            >
-              <span>📊</span>
-              <span>Hours Summary</span>
-            </button>
-            <button
               onClick={() => setShowFTOModal(true)}
               className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors text-white font-medium text-sm"
             >
               <PlusIcon width={20} height={20} />
               <span>Create FTO</span>
+            </button>
+            <button
+              onClick={() => setShowHoursSummary(true)}
+              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+              title="Hours Summary"
+            >
+              <DotsIcon width={18} height={18} color="#303030" />
             </button>
           </div>
         </div>
