@@ -318,7 +318,10 @@ export default function WorkOrderDetailsV2({
 
       {/* Back Button */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => {
+          const { taskId } = useParams<{ taskId: string }>();
+          navigate(`/tasks/${taskId}/workorders`);
+        }}
         className="flex items-center gap-2 text-[#2463eb] font-medium text-sm hover:opacity-80 transition-opacity w-fit"
       >
         <ArrowLeft width={16} height={16} />
