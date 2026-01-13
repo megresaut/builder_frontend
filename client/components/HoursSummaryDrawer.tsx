@@ -125,6 +125,8 @@ export default function HoursSummaryDrawer({
     hours: order.hours || 0,
   }));
 
+  const hasRequiredFilters = !!selectedManager || (!!dateRangeStart && !!dateRangeEnd);
+
   return (
     <DrawerTemplate
       open={isOpen}
@@ -186,178 +188,183 @@ export default function HoursSummaryDrawer({
       </div>
 
       {/* Summary Metrics Section */}
-      {filteredOrders.length === 0 ? (
+      {!hasRequiredFilters ? (
         <DrawerSection>
           <div className="py-8 text-center" style={{ color: "var(--color-text-secondary)" }}>
-            <p className="text-sm">Select a field manager to view hours summary</p>
+            <p className="text-sm">Select a Field Manager or Date Range to view hours summary</p>
+          </div>
+        </DrawerSection>
+      ) : filteredOrders.length === 0 ? (
+        <DrawerSection>
+          <div className="py-8 text-center" style={{ color: "var(--color-text-secondary)" }}>
+            <p className="text-sm">No orders found for the selected criteria</p>
           </div>
         </DrawerSection>
       ) : (
-        <DrawerSection>
-          <DrawerSubheader>Summary</DrawerSubheader>
-          <div className="space-y-0">
-            {/* Total Hours */}
-            <div
-              className="flex items-center justify-between py-4"
-              style={{ borderBottom: "1px solid var(--color-border-light)" }}
-            >
-              <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                Total Hours
-              </span>
-              <span className="text-base font-medium" style={{ color: "var(--color-text-primary)" }}>
-                {totalHours.toFixed(1)}
-              </span>
-            </div>
-
-            {/* Approved Hours */}
-            <div
-              className="flex items-center justify-between py-4"
-              style={{ borderBottom: "1px solid var(--color-border-light)" }}
-            >
-              <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                Approved Hours
-              </span>
-              <span className="text-base font-medium" style={{ color: "#059669" }}>
-                {approvedHours.toFixed(1)}
-              </span>
-            </div>
-
-            {/* Submitted Hours */}
-            <div
-              className="flex items-center justify-between py-4"
-              style={{ borderBottom: "1px solid var(--color-border-light)" }}
-            >
-              <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                Submitted Hours
-              </span>
-              <span className="text-base font-medium" style={{ color: "#2463eb" }}>
-                {submittedHours.toFixed(1)}
-              </span>
-            </div>
-
-            {/* Pending Hours */}
-            <div className="flex items-center justify-between py-4">
-              <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                Pending Hours
-              </span>
-              <span className="text-base font-medium" style={{ color: "#d97706" }}>
-                {pendingHours.toFixed(1)}
-              </span>
-            </div>
-          </div>
-        </DrawerSection>
-      )}
-
-      {/* Breakdown Section */}
-      {filteredOrders.length > 0 && (
-        <DrawerSection>
-          <DrawerSubheader>Breakdown</DrawerSubheader>
-          <div className="space-y-2">
-            {/* Hours by Property */}
-            <div
-              className="border rounded-lg overflow-hidden"
-              style={{
-                borderColor: "var(--color-border-light)",
-              }}
-            >
-              <button
-                onClick={() => toggleSection("byProperty")}
-                className="w-full flex items-center justify-between px-4 py-3 hover:opacity-80 transition-opacity"
-                style={{ backgroundColor: "var(--color-bg-subtle)" }}
+        <>
+          <DrawerSection>
+            <DrawerSubheader>Summary</DrawerSubheader>
+            <div className="space-y-0">
+              {/* Total Hours */}
+              <div
+                className="flex items-center justify-between py-4"
+                style={{ borderBottom: "1px solid var(--color-border-light)" }}
               >
-                <span className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
-                  Hours by Property
+                <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  Total Hours
                 </span>
-                <ChevronDownIcon
-                  width={16}
-                  height={16}
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    transform: expandedSections["byProperty"]
-                      ? "rotate(180deg)"
-                      : "rotate(0deg)",
-                    transition: "transform 200ms ease-out",
-                  }}
-                />
-              </button>
-              {expandedSections["byProperty"] && (
-                <div
-                  className="px-4 py-3 space-y-2"
-                  style={{
-                    borderTop: "1px solid var(--color-border-light)",
-                    backgroundColor: "white",
-                  }}
-                >
-                  {hoursByProperty.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs">
-                      <span style={{ color: "var(--color-text-secondary)" }}>
-                        {item.property}
-                      </span>
-                      <span className="font-medium" style={{ color: "var(--color-text-primary)" }}>
-                        {item.hours.toFixed(1)}h
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                <span className="text-base font-medium" style={{ color: "var(--color-text-primary)" }}>
+                  {totalHours.toFixed(1)}
+                </span>
+              </div>
 
-            {/* Hours by FTO */}
-            <div
-              className="border rounded-lg overflow-hidden"
-              style={{
-                borderColor: "var(--color-border-light)",
-              }}
-            >
-              <button
-                onClick={() => toggleSection("byFTO")}
-                className="w-full flex items-center justify-between px-4 py-3 hover:opacity-80 transition-opacity"
-                style={{ backgroundColor: "var(--color-bg-subtle)" }}
+              {/* Approved Hours */}
+              <div
+                className="flex items-center justify-between py-4"
+                style={{ borderBottom: "1px solid var(--color-border-light)" }}
               >
-                <span className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
-                  Hours by FTO
+                <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  Approved Hours
                 </span>
-                <ChevronDownIcon
-                  width={16}
-                  height={16}
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    transform: expandedSections["byFTO"]
-                      ? "rotate(180deg)"
-                      : "rotate(0deg)",
-                    transition: "transform 200ms ease-out",
-                  }}
-                />
-              </button>
-              {expandedSections["byFTO"] && (
-                <div
-                  className="px-4 py-3 space-y-2 max-h-48 overflow-y-auto"
-                  style={{
-                    borderTop: "1px solid var(--color-border-light)",
-                    backgroundColor: "white",
-                  }}
-                >
-                  {hoursByFTO.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs">
-                      <span
-                        className="truncate"
-                        style={{ color: "var(--color-text-secondary)" }}
-                      >
-                        {item.description}
-                      </span>
-                      <span
-                        className="font-medium flex-shrink-0 ml-2"
-                        style={{ color: "var(--color-text-primary)" }}
-                      >
-                        {item.hours.toFixed(1)}h
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+                <span className="text-base font-medium" style={{ color: "#059669" }}>
+                  {approvedHours.toFixed(1)}
+                </span>
+              </div>
+
+              {/* Submitted Hours */}
+              <div
+                className="flex items-center justify-between py-4"
+                style={{ borderBottom: "1px solid var(--color-border-light)" }}
+              >
+                <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  Submitted Hours
+                </span>
+                <span className="text-base font-medium" style={{ color: "#2463eb" }}>
+                  {submittedHours.toFixed(1)}
+                </span>
+              </div>
+
+              {/* Pending Hours */}
+              <div className="flex items-center justify-between py-4">
+                <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  Pending Hours
+                </span>
+                <span className="text-base font-medium" style={{ color: "#d97706" }}>
+                  {pendingHours.toFixed(1)}
+                </span>
+              </div>
             </div>
-          </div>
-        </DrawerSection>
+          </DrawerSection>
+
+          <DrawerSection>
+            <DrawerSubheader>Breakdown</DrawerSubheader>
+            <div className="space-y-2">
+              {/* Hours by Property */}
+              <div
+                className="border rounded-lg overflow-hidden"
+                style={{
+                  borderColor: "var(--color-border-light)",
+                }}
+              >
+                <button
+                  onClick={() => toggleSection("byProperty")}
+                  className="w-full flex items-center justify-between px-4 py-3 hover:opacity-80 transition-opacity"
+                  style={{ backgroundColor: "var(--color-bg-subtle)" }}
+                >
+                  <span className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                    Hours by Property
+                  </span>
+                  <ChevronDownIcon
+                    width={16}
+                    height={16}
+                    style={{
+                      color: "var(--color-text-secondary)",
+                      transform: expandedSections["byProperty"]
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
+                      transition: "transform 200ms ease-out",
+                    }}
+                  />
+                </button>
+                {expandedSections["byProperty"] && (
+                  <div
+                    className="px-4 py-3 space-y-2"
+                    style={{
+                      borderTop: "1px solid var(--color-border-light)",
+                      backgroundColor: "white",
+                    }}
+                  >
+                    {hoursByProperty.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-xs">
+                        <span style={{ color: "var(--color-text-secondary)" }}>
+                          {item.property}
+                        </span>
+                        <span className="font-medium" style={{ color: "var(--color-text-primary)" }}>
+                          {item.hours.toFixed(1)}h
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Hours by FTO */}
+              <div
+                className="border rounded-lg overflow-hidden"
+                style={{
+                  borderColor: "var(--color-border-light)",
+                }}
+              >
+                <button
+                  onClick={() => toggleSection("byFTO")}
+                  className="w-full flex items-center justify-between px-4 py-3 hover:opacity-80 transition-opacity"
+                  style={{ backgroundColor: "var(--color-bg-subtle)" }}
+                >
+                  <span className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                    Hours by FTO
+                  </span>
+                  <ChevronDownIcon
+                    width={16}
+                    height={16}
+                    style={{
+                      color: "var(--color-text-secondary)",
+                      transform: expandedSections["byFTO"]
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
+                      transition: "transform 200ms ease-out",
+                    }}
+                  />
+                </button>
+                {expandedSections["byFTO"] && (
+                  <div
+                    className="px-4 py-3 space-y-2 max-h-48 overflow-y-auto"
+                    style={{
+                      borderTop: "1px solid var(--color-border-light)",
+                      backgroundColor: "white",
+                    }}
+                  >
+                    {hoursByFTO.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-xs">
+                        <span
+                          className="truncate"
+                          style={{ color: "var(--color-text-secondary)" }}
+                        >
+                          {item.description}
+                        </span>
+                        <span
+                          className="font-medium flex-shrink-0 ml-2"
+                          style={{ color: "var(--color-text-primary)" }}
+                        >
+                          {item.hours.toFixed(1)}h
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </DrawerSection>
+        </>
       )}
     </DrawerTemplate>
   );
