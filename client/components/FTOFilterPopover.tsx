@@ -1,5 +1,3 @@
-import { useRef, useState } from "react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { MultiSelectField } from "@/components/forms";
 import { DateField } from "@/components/forms";
 import { FieldRow, FieldRowItem } from "@/components/ui/field-row";
@@ -14,7 +12,6 @@ interface FTOFilterPopoverProps {
   onDateRangeStartChange: (date: Date | null) => void;
   dateRangeEnd: Date | null;
   onDateRangeEndChange: (date: Date | null) => void;
-  triggerRef?: React.RefObject<HTMLButtonElement>;
 }
 
 // Mock field team managers for dropdown
@@ -35,11 +32,7 @@ export default function FTOFilterPopover({
   onDateRangeStartChange,
   dateRangeEnd,
   onDateRangeEndChange,
-  triggerRef,
 }: FTOFilterPopoverProps) {
-  const internalTriggerRef = useRef<HTMLButtonElement>(null);
-  const actualTriggerRef = triggerRef || internalTriggerRef;
-
   const selectedManagerOptions = FIELD_TEAM_MANAGERS.filter((m) =>
     selectedManagers.includes(m.id)
   );
@@ -53,15 +46,23 @@ export default function FTOFilterPopover({
   const hasActiveFilters =
     selectedManagers.length > 0 || dateRangeStart || dateRangeEnd;
 
+  if (!isOpen) return null;
+
   return (
-    <Popover open={isOpen} onOpenChange={onOpenChange}>
-      <PopoverTrigger ref={actualTriggerRef} asChild>
-        <div />
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-80 p-0 rounded-lg border border-[#E5E7EB] bg-white shadow-lg"
-        sideOffset={4}
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 z-40"
+        onClick={() => onOpenChange(false)}
+      />
+
+      {/* Popover Content */}
+      <div
+        className="fixed z-50 rounded-lg border border-[#E5E7EB] bg-white shadow-lg w-80"
+        style={{
+          top: "120px",
+          right: "32px",
+        }}
       >
         <div className="flex flex-col">
           {/* Header */}
@@ -124,7 +125,7 @@ export default function FTOFilterPopover({
             </div>
           )}
         </div>
-      </PopoverContent>
-    </Popover>
+      </div>
+    </>
   );
 }
