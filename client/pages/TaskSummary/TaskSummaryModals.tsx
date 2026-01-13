@@ -47,6 +47,7 @@ interface TaskSummaryModalsProps {
   onCurrentDueDateChange: (dueDate: Date | null) => void;
   onCurrentAssigneesChange: (assignees: any[]) => void;
   onCurrentCollaboratorsChange: (collaborators: any[]) => void;
+  onLastUpdatedChange: (timestamp: string) => void;
   syncFileNameAcrossStates: (fileId: string | number, newName: string) => void;
   getAttachmentData: (file: any, index?: number) => any;
   handleStartRenamingAttachment: () => void;
