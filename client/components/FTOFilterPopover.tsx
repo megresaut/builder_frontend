@@ -1,12 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { SelectField, MultiSelectField, DateField, TextField } from "@/components/forms";
-import { FieldRow, FieldRowItem } from "@/components/ui/field-row";
-import {
-  AppliedFilters,
-  PendingFilters,
-  FilterCategory,
-} from "@/hooks/useFieldTeamOrdersFilterState";
-import { PROPERTIES } from "@/data/fto/properties";
+import { FilterCategory } from "@/hooks/useFieldTeamOrdersFilterState";
 
 interface FTOFilterPopoverProps {
   isOpen: boolean;
