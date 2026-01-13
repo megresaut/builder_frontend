@@ -657,15 +657,29 @@ export default function FieldTeamOrders() {
               <PlusIcon width={20} height={20} />
               <span>Create FTO</span>
             </button>
-            <button
-              ref={hoursSummaryButtonRef}
-              onClick={() => setShowHoursSummaryPopover(!showHoursSummaryPopover)}
-              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-              title="Hours Summary"
-              style={{ transform: "rotate(90deg)" }}
-            >
-              <DotsIcon width={18} height={18} color="#303030" />
-            </button>
+            <Popover open={showHoursSummaryPopover} onOpenChange={setShowHoursSummaryPopover}>
+              <PopoverTrigger asChild>
+                <button
+                  ref={hoursSummaryButtonRef}
+                  className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                  title="Hours Summary"
+                  style={{ transform: "rotate(90deg)" }}
+                >
+                  <DotsIcon width={18} height={18} color="#303030" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-48 p-0">
+                <button
+                  onClick={() => {
+                    setShowHoursSummary(true);
+                    setShowHoursSummaryPopover(false);
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors text-sm font-medium text-[#303030]"
+                >
+                  Hours Summary
+                </button>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
