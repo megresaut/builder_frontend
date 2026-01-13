@@ -668,13 +668,19 @@ export default function FieldTeamOrders() {
                   <DotsIcon width={18} height={18} color="#303030" />
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-48 p-0">
+              <PopoverContent
+                align="end"
+                side="bottom"
+                sideOffset={4}
+                className="w-auto p-0 min-w-0"
+                style={{ maxWidth: "none" }}
+              >
                 <button
                   onClick={() => {
                     setShowHoursSummary(true);
                     setShowHoursSummaryPopover(false);
                   }}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors text-sm font-medium text-[#303030]"
+                  className="block px-4 py-3 hover:bg-gray-50 transition-colors text-sm font-medium text-[#303030] whitespace-nowrap"
                 >
                   Hours Summary
                 </button>
