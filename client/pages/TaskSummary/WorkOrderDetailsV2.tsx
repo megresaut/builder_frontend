@@ -504,7 +504,12 @@ export default function WorkOrderDetailsV2({
           <BillsCard
             bills={bills}
             workOrderId={workOrder.id}
-            onBillSelected={(bill) => setBills([...bills, bill])}
+            onBillSelected={(bill) => {
+              setBills([...bills, bill]);
+              if (onBillAdded) {
+                onBillAdded(bill);
+              }
+            }}
           />
 
           {/* Assignees Card */}
