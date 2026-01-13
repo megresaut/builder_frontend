@@ -40,6 +40,7 @@ interface SummaryTabProps {
   currentProperty: string;
   currentUnit: string;
   createdTimestamp: string;
+  lastUpdatedTimestamp: string;
   workOrders: any[];
   fieldTeamOrders: any[];
   notes: Note[];
