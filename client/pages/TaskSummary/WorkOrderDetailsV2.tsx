@@ -220,10 +220,14 @@ export default function WorkOrderDetailsV2({
 
     // Update parent work orders list
     let dueDateValue: string | Date | null = workOrder.dueDate;
-    if (formData.dueDate) {
-      dueDateValue = formData.dueDate instanceof Date
-        ? formData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        : String(formData.dueDate);
+    if (formData.dueDate !== undefined) {
+      if (formData.dueDate) {
+        dueDateValue = formData.dueDate instanceof Date
+          ? formData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : String(formData.dueDate);
+      } else {
+        dueDateValue = null;
+      }
     }
 
     const updatedWorkOrder: WorkOrder = {

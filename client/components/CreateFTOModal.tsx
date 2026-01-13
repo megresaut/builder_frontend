@@ -129,7 +129,8 @@ export default function CreateFTOModal({
     } else if (fieldTeamMemberIds.length === 0 && status === "dispatched") {
       setStatus("new");
     }
-  }, [fieldTeamMemberIds, status]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldTeamMemberIds]);
 
   // Get available tasks for selected property
   const availableTasks = selectedPropertyId
