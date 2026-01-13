@@ -41,8 +41,7 @@ interface DrawerFieldProps {
  * DrawerTemplate Component
  *
  * Provides a standardized drawer structure with:
- * - Header (title + optional subtitle + close button)
- * - Optional divider
+ * - Header (title + close button)
  * - Scrollable content area
  * - Optional footer with actions
  *
