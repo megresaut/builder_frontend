@@ -171,7 +171,7 @@ export default function HoursSummaryDrawer({
           className="flex-shrink-0 border-b px-6 py-5"
           style={{ borderColor: "var(--color-border-light)" }}
         >
-          <div className="flex items-start justify-between gap-4 mb-3">
+          <div className="flex items-start justify-between gap-4 mb-4">
             <h2
               className="text-base font-semibold leading-tight"
               style={{ color: "var(--color-text-primary)" }}
@@ -200,6 +200,35 @@ export default function HoursSummaryDrawer({
               </svg>
             </button>
           </div>
+
+          {/* Filter Controls */}
+          <div className="space-y-3 mb-4">
+            <SelectField
+              label="Field Manager"
+              value={selectedManager}
+              onChange={(value) => setSelectedManager(value as string)}
+              placeholder="All managers"
+              options={FIELD_TEAM_MANAGERS}
+              compact={true}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <DateField
+                label="From"
+                value={dateRangeStart}
+                onChange={setDateRangeStart}
+                placeholder="mm/dd/yyyy"
+                compact={true}
+              />
+              <DateField
+                label="To"
+                value={dateRangeEnd}
+                onChange={setDateRangeEnd}
+                placeholder="mm/dd/yyyy"
+                compact={true}
+              />
+            </div>
+          </div>
+
           <p
             className="text-xs leading-relaxed"
             style={{ color: "var(--color-text-secondary)" }}
