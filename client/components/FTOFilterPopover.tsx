@@ -418,39 +418,38 @@ function FinancialsPanel({
 
   return (
     <div className="space-y-3">
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-[#303030]">Amount Range</label>
-        <FieldRow columns={2}>
-          <FieldRowItem>
-            <input
-              type="number"
-              placeholder="Min"
-              value={pendingFilters.minAmount ?? ""}
-              onChange={(e) =>
-                onUpdate(
-                  "minAmount",
-                  e.target.value ? parseFloat(e.target.value) : null
-                )
-              }
-              className="w-full px-3 py-2 rounded border border-[#D1D5DB] text-sm focus:outline-none focus:ring-2 focus:ring-[#2463eb]"
-            />
-          </FieldRowItem>
-          <FieldRowItem>
-            <input
-              type="number"
-              placeholder="Max"
-              value={pendingFilters.maxAmount ?? ""}
-              onChange={(e) =>
-                onUpdate(
-                  "maxAmount",
-                  e.target.value ? parseFloat(e.target.value) : null
-                )
-              }
-              className="w-full px-3 py-2 rounded border border-[#D1D5DB] text-sm focus:outline-none focus:ring-2 focus:ring-[#2463eb]"
-            />
-          </FieldRowItem>
-        </FieldRow>
-      </div>
+      <FieldRow columns={2}>
+        <FieldRowItem>
+          <NumberField
+            label="Min Amount"
+            placeholder="Min"
+            value={pendingFilters.minAmount ?? ""}
+            onChange={(e) =>
+              onUpdate(
+                "minAmount",
+                e.target.value ? parseFloat(e.target.value) : null
+              )
+            }
+            step="0.01"
+            min="0"
+          />
+        </FieldRowItem>
+        <FieldRowItem>
+          <NumberField
+            label="Max Amount"
+            placeholder="Max"
+            value={pendingFilters.maxAmount ?? ""}
+            onChange={(e) =>
+              onUpdate(
+                "maxAmount",
+                e.target.value ? parseFloat(e.target.value) : null
+              )
+            }
+            step="0.01"
+            min="0"
+          />
+        </FieldRowItem>
+      </FieldRow>
     </div>
   );
 }
