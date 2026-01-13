@@ -408,38 +408,23 @@ export default function WorkOrderDetailsV2({
                   </div>
                 </div>
 
-                <div className="flex items-start w-full">
-                  <div className="flex flex-col items-start gap-4 flex-1">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[#717179] text-sm font-semibold leading-4">Invoice Number:</span>
-                      <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.invoiceNumber || ""}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[#717179] text-sm font-semibold leading-4">Vendor:</span>
-                      <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.vendorName || "Unassigned"}</span>
-                    </div>
+                <div className="flex flex-col items-start gap-4 w-full">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#717179] text-sm font-semibold leading-4">Invoice Number:</span>
+                    <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.invoiceNumber || ""}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#717179] text-sm font-semibold leading-4">Vendor:</span>
+                    <span className="text-[#717179] text-sm font-medium leading-4">{workOrder.vendorName || "Unassigned"}</span>
+                  </div>
 
-                    {/* Description Section */}
-                    <div className="w-full">
-                      <div className="text-[#717179] text-sm font-semibold leading-4 mb-2">Description:</div>
-                      <div className="text-[#303030] text-sm font-normal leading-5 whitespace-pre-wrap">
-                        {workOrder.description || notes[0]?.text || "No description provided"}
-                      </div>
+                  {/* Description Section */}
+                  <div className="w-full">
+                    <div className="text-[#717179] text-sm font-semibold leading-4 mb-2">Description:</div>
+                    <div className="text-[#303030] text-sm font-normal leading-5 whitespace-pre-wrap">
+                      {workOrder.description || notes[0]?.text || "No description provided"}
                     </div>
                   </div>
-                  <a
-                    href={`https://www.google.com/maps/search/${encodeURIComponent(workOrder.property)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-10 px-4 justify-center items-center gap-2 rounded-lg border border-[#dadada] bg-[#f9f9f9] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:opacity-80 transition-opacity flex-shrink-0 ml-auto"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3.8329 1.36272C3.9427 1.35374 3.9976 1.34926 4.06229 1.35661C4.24453 1.37733 4.43386 1.49138 4.53736 1.6428C4.57411 1.69656 4.59996 1.75688 4.65167 1.87754L7.15032 7.70773L2.12495 10.4803C1.86466 10.624 1.73451 10.6958 1.62803 10.6831C1.53513 10.6721 1.45113 10.6225 1.39658 10.5465C1.33405 10.4594 1.33404 10.3107 1.33402 10.0135C1.3339 8.39977 1.33412 6.78607 1.33412 5.17238C1.33411 4.63574 1.3341 4.19283 1.36358 3.83204C1.3942 3.4573 1.45991 3.11284 1.62477 2.78928C1.88043 2.28751 2.28838 1.87956 2.79014 1.6239C3.1137 1.45904 3.45817 1.39333 3.8329 1.36272Z" fill="#2463EB"/>
-                      <path d="M2.02907 12.0561C1.8052 12.1796 1.69326 12.2413 1.60539 12.3641C1.54294 12.4513 1.48401 12.6266 1.48107 12.7338C1.47692 12.8847 1.51061 12.9606 1.57798 13.1123C1.59262 13.1453 1.60819 13.178 1.62477 13.2106C1.88043 13.7123 2.28838 14.1203 2.79014 14.3759C3.1137 14.5408 3.45817 14.6065 3.8329 14.6371C4.19369 14.6666 4.6366 14.6666 5.17324 14.6666H9.32387C9.59393 14.6666 9.72896 14.6666 9.81338 14.6097C9.88717 14.56 9.93804 14.4829 9.95465 14.3955C9.97365 14.2955 9.92046 14.1714 9.81408 13.9232L7.67815 8.93932L2.02907 12.0561Z" fill="#2463EB"/>
-                      <path d="M12.1687 14.6371C12.059 14.6461 12.0042 14.6506 11.9396 14.6432C11.7572 14.6225 11.5678 14.5084 11.4643 14.3569C11.4276 14.3032 11.4018 14.2429 11.3501 14.1224L6.18764 2.07668C6.08126 1.82845 6.02807 1.70434 6.04707 1.60435C6.06368 1.51694 6.11454 1.43981 6.18834 1.39011C6.27276 1.33325 6.40779 1.33325 6.67785 1.33325H10.8283C11.365 1.33324 11.8079 1.33324 12.1687 1.36272C12.5434 1.39333 12.8879 1.45904 13.2114 1.6239C13.7132 1.87956 14.1211 2.28751 14.3768 2.78928C14.5417 3.11284 14.6074 3.4573 14.638 3.83204C14.6675 4.19283 14.6675 4.63573 14.6674 5.17237V10.8275C14.6675 11.3641 14.6675 11.807 14.638 12.1678C14.6074 12.5425 14.5417 12.887 14.3768 13.2106C14.1211 13.7123 13.7132 14.1203 13.2114 14.3759C12.8879 14.5408 12.5434 14.6065 12.1687 14.6371Z" fill="#2463EB"/>
-                    </svg>
-                    <span className="text-[#2463eb] text-sm font-medium leading-[140%] tracking-[-0.28px] capitalize">View Maps</span>
-                  </a>
                 </div>
               </div>
             </div>
