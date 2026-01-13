@@ -49,6 +49,7 @@ interface GlobalTableProps {
   searchValue?: string;
   onFilterClick?: () => void | undefined;
   showFilterButton?: boolean;
+  filterCount?: number;
 }
 
 export default function GlobalTable({
