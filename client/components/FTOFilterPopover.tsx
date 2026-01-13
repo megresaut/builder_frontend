@@ -217,7 +217,7 @@ export default function FTOFilterPopover({
           </nav>
 
           {/* Footer - Apply & Reset Buttons */}
-          <div className="flex-shrink-0 px-2 py-3 border-t border-[#E5E7EB] flex gap-2">
+          <div className="flex-shrink-0 px-2 py-2 border-t border-[#E5E7EB] flex gap-2">
             <button
               onClick={() => {
                 onReset();
@@ -238,62 +238,6 @@ export default function FTOFilterPopover({
             </button>
           </div>
         </div>
-
-        {/* Right Panel - Category Controls (Slides In on Hover) */}
-        {showRightPanel && (
-          <div
-            className="flex-1 flex flex-col overflow-hidden"
-            onMouseLeave={() => setShowRightPanel(false)}
-            style={{
-              animation: "slideInRight 0.3s ease-out",
-            }}
-          >
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-[#E5E7EB] flex-shrink-0">
-              <h3 className="text-sm font-semibold text-[#303030]">
-                {CATEGORY_LABELS[activeCategory]}
-              </h3>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-              {activeCategory === "date" && (
-                <DateRangePanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "field-team" && (
-                <FieldTeamPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "job-details" && (
-                <JobDetailsPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "status" && (
-                <StatusPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "financials" && (
-                <FinancialsPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
