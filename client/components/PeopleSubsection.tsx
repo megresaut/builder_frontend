@@ -155,7 +155,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                         "bg-transparent border-0 cursor-pointer p-0"
                       )}
                     >
-                      {person.name}
+                      {person.name || "Unknown"}
                     </button>
                   ) : (
                     <div
@@ -164,7 +164,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                         type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]"
                       )}
                     >
-                      {person.name}
+                      {person.name || "Unknown"}
                     </div>
                   )}
                   {(showRoleLabel && person.roleLabel) ||
