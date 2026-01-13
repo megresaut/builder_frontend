@@ -481,6 +481,12 @@ export default function Header({
     const metadata = tabMetadata[selectedTab];
     const currentRoute = `${location.pathname}${location.search}`;
 
+    // Prevent updating generic tabs with specific item routes if those items should be in their own tabs
+    // This prevents duplicate tabs when navigating from a list view to a detail view that opens in a new tab
+    if (currentPageInfo.id.startsWith("task-") && selectedTab !== currentPageInfo.id) {
+      return;
+    }
+
     // Only update if the route actually changed
     if (metadata?.route === currentRoute) return;
 
