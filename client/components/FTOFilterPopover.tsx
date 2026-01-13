@@ -77,7 +77,6 @@ export default function FTOFilterPopover({
 }: FTOFilterPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
-  const [showRightPanel, setShowRightPanel] = useState(false);
 
   // Anchor the popover to the filter button
   useEffect(() => {
@@ -88,11 +87,9 @@ export default function FTOFilterPopover({
     ) as HTMLElement;
     if (filterButton) {
       const rect = filterButton.getBoundingClientRect();
-      // Position the popover so it extends to the left when expanded
-      const baseLeft = rect.right - 280; // Base position for left panel
       setPosition({
         top: rect.bottom + 8,
-        left: Math.max(20, baseLeft - 400), // Leave 20px margin from left edge when expanded
+        left: rect.right - 280,
       });
     }
   }, [isOpen]);
@@ -108,11 +105,6 @@ export default function FTOFilterPopover({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onOpenChange]);
-
-  // Handle hover off the entire popover
-  const handlePopoverLeave = () => {
-    setShowRightPanel(false);
-  };
 
   if (!isOpen) return null;
 
