@@ -1290,6 +1290,7 @@ export default function TaskSummary() {
         onCurrentDueDateChange={setCurrentDueDate}
         onCurrentAssigneesChange={setCurrentAssignees}
         onCurrentCollaboratorsChange={setCurrentCollaborators}
+        onLastUpdatedChange={setLastUpdatedTimestamp}
         syncFileNameAcrossStates={syncFileNameAcrossStates}
         getAttachmentData={getAttachmentData}
         handleStartRenamingAttachment={handleStartRenamingAttachment}
