@@ -108,25 +108,42 @@ export default function HoursSummaryDrawer({
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+        className="fixed inset-0 z-40 bg-black/10 transition-opacity duration-200"
         onClick={onClose}
+        style={{
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? "auto" : "none",
+        }}
       />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 h-screen w-96 bg-white shadow-lg z-50 overflow-y-auto transition-transform duration-200">
+      <div
+        className="fixed top-0 right-0 h-screen w-96 bg-white shadow-xl z-50 overflow-hidden flex flex-col"
+        style={{
+          borderLeft: "1px solid var(--color-border-light)",
+          animation: isOpen ? "slideInRight 0.3s ease-out" : "slideOutRight 0.3s ease-in",
+        }}
+      >
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-[#E5E7EB] px-6 py-6 z-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-[#303030]">
+        <div
+          className="flex-shrink-0 border-b px-6 py-5"
+          style={{ borderColor: "var(--color-border-light)" }}
+        >
+          <div className="flex items-start justify-between gap-4 mb-3">
+            <h2
+              className="text-base font-semibold leading-tight"
+              style={{ color: "var(--color-text-primary)" }}
+            >
               Hours Summary
             </h2>
             <button
               onClick={onClose}
-              className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
+              className="flex-shrink-0 p-1 rounded hover:bg-gray-100 transition-colors"
+              style={{ color: "var(--color-text-muted)" }}
             >
               <svg
-                width="20"
-                height="20"
+                width="18"
+                height="18"
                 viewBox="0 0 20 20"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -141,7 +158,10 @@ export default function HoursSummaryDrawer({
               </svg>
             </button>
           </div>
-          <p className="text-sm text-[#525252] leading-relaxed">
+          <p
+            className="text-xs leading-relaxed"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
             Hours are calculated from timesheet entries submitted by
             {selectedManager ? " the selected field manager" : " field managers"}
             {dateRangeStart || dateRangeEnd
@@ -151,86 +171,152 @@ export default function HoursSummaryDrawer({
         </div>
 
         {/* Content */}
-        <div className="px-6 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 py-5">
           {/* Key Metrics */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b border-[#F0F0F0]">
-              <span className="text-sm font-medium text-[#525252]">
+          <div className="space-y-0 mb-6">
+            <div
+              className="flex items-center justify-between py-4"
+              style={{ borderBottom: "1px solid var(--color-border-light)" }}
+            >
+              <span
+                className="text-sm"
+                style={{
+                  color: "var(--color-text-secondary)",
+                  fontWeight: 400,
+                }}
+              >
                 Total Hours
               </span>
-              <span className="text-lg font-semibold text-[#303030]">
+              <span
+                className="text-base font-semibold"
+                style={{ color: "var(--color-text-primary)" }}
+              >
                 {totalHours.toFixed(1)}
               </span>
             </div>
 
-            <div className="flex items-center justify-between py-3 border-b border-[#F0F0F0]">
-              <span className="text-sm font-medium text-[#525252]">
+            <div
+              className="flex items-center justify-between py-4"
+              style={{ borderBottom: "1px solid var(--color-border-light)" }}
+            >
+              <span
+                className="text-sm"
+                style={{
+                  color: "var(--color-text-secondary)",
+                  fontWeight: 400,
+                }}
+              >
                 Approved Hours
               </span>
-              <span className="text-lg font-semibold text-[#059669]">
+              <span className="text-base font-semibold text-green-600">
                 {approvedHours.toFixed(1)}
               </span>
             </div>
 
-            <div className="flex items-center justify-between py-3 border-b border-[#F0F0F0]">
-              <span className="text-sm font-medium text-[#525252]">
+            <div
+              className="flex items-center justify-between py-4"
+              style={{ borderBottom: "1px solid var(--color-border-light)" }}
+            >
+              <span
+                className="text-sm"
+                style={{
+                  color: "var(--color-text-secondary)",
+                  fontWeight: 400,
+                }}
+              >
                 Submitted Hours
               </span>
-              <span className="text-lg font-semibold text-[#2463eb]">
+              <span className="text-base font-semibold text-blue-600">
                 {submittedHours.toFixed(1)}
               </span>
             </div>
 
-            <div className="flex items-center justify-between py-3">
+            <div className="flex items-center justify-between py-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-[#525252]">
+                <span
+                  className="text-sm"
+                  style={{
+                    color: "var(--color-text-secondary)",
+                    fontWeight: 400,
+                  }}
+                >
                   Pending Hours
                 </span>
                 <div
-                  className="w-4 h-4 rounded-full bg-[#717179] cursor-help flex items-center justify-center"
+                  className="w-4 h-4 rounded-full flex items-center justify-center cursor-help"
+                  style={{ backgroundColor: "var(--color-text-muted)" }}
                   title="Submitted but not yet approved"
                 >
                   <span className="text-xs text-white font-bold">?</span>
                 </div>
               </div>
-              <span className="text-lg font-semibold text-[#D97706]">
+              <span className="text-base font-semibold text-amber-600">
                 {pendingHours.toFixed(1)}
               </span>
             </div>
           </div>
 
           {/* Expandable Sections */}
-          <div className="space-y-3 mt-8 pt-6 border-t border-[#F0F0F0]">
+          <div
+            className="space-y-2 pt-4"
+            style={{ borderTop: "1px solid var(--color-border-light)" }}
+          >
             {/* Hours by Property */}
-            <div className="border border-[#E5E7EB] rounded-lg overflow-hidden">
+            <div
+              className="border rounded-md overflow-hidden"
+              style={{
+                borderColor: "var(--color-border-light)",
+                backgroundColor: "var(--color-bg-subtle)",
+              }}
+            >
               <button
                 onClick={() => toggleSection("byProperty")}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#F9F9F9] transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 hover:opacity-80 transition-opacity"
               >
-                <span className="text-sm font-medium text-[#303030]">
+                <span
+                  className="text-sm"
+                  style={{
+                    color: "var(--color-text-primary)",
+                    fontWeight: 500,
+                  }}
+                >
                   Hours by Property
                 </span>
                 <ChevronDownIcon
                   width={16}
                   height={16}
-                  color="#525252"
                   style={{
+                    color: "var(--color-text-secondary)",
                     transform: expandedSections["byProperty"]
                       ? "rotate(180deg)"
                       : "rotate(0deg)",
-                    transition: "transform 200ms",
+                    transition: "transform 200ms ease-out",
                   }}
                 />
               </button>
               {expandedSections["byProperty"] && (
-                <div className="px-4 py-3 bg-[#F9F9F9] border-t border-[#E5E7EB] space-y-2">
+                <div
+                  className="px-4 py-3 space-y-2"
+                  style={{
+                    borderTop: "1px solid var(--color-border-light)",
+                    backgroundColor: "white",
+                  }}
+                >
                   {hoursByProperty.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between text-sm"
+                      className="flex items-center justify-between text-xs"
+                      style={{
+                        animation: "slideDown 200ms ease-out",
+                      }}
                     >
-                      <span className="text-[#525252]">{item.property}</span>
-                      <span className="font-medium text-[#303030]">
+                      <span style={{ color: "var(--color-text-secondary)" }}>
+                        {item.property}
+                      </span>
+                      <span
+                        className="font-medium"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
                         {item.hours.toFixed(1)}h
                       </span>
                     </div>
@@ -240,37 +326,64 @@ export default function HoursSummaryDrawer({
             </div>
 
             {/* Hours by FTO */}
-            <div className="border border-[#E5E7EB] rounded-lg overflow-hidden">
+            <div
+              className="border rounded-md overflow-hidden"
+              style={{
+                borderColor: "var(--color-border-light)",
+                backgroundColor: "var(--color-bg-subtle)",
+              }}
+            >
               <button
                 onClick={() => toggleSection("byFTO")}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#F9F9F9] transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 hover:opacity-80 transition-opacity"
               >
-                <span className="text-sm font-medium text-[#303030]">
+                <span
+                  className="text-sm"
+                  style={{
+                    color: "var(--color-text-primary)",
+                    fontWeight: 500,
+                  }}
+                >
                   Hours by FTO
                 </span>
                 <ChevronDownIcon
                   width={16}
                   height={16}
-                  color="#525252"
                   style={{
+                    color: "var(--color-text-secondary)",
                     transform: expandedSections["byFTO"]
                       ? "rotate(180deg)"
                       : "rotate(0deg)",
-                    transition: "transform 200ms",
+                    transition: "transform 200ms ease-out",
                   }}
                 />
               </button>
               {expandedSections["byFTO"] && (
-                <div className="px-4 py-3 bg-[#F9F9F9] border-t border-[#E5E7EB] space-y-2 max-h-64 overflow-y-auto">
+                <div
+                  className="px-4 py-3 space-y-2 max-h-48 overflow-y-auto"
+                  style={{
+                    borderTop: "1px solid var(--color-border-light)",
+                    backgroundColor: "white",
+                  }}
+                >
                   {hoursByFTO.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between text-sm"
+                      className="flex items-center justify-between text-xs"
+                      style={{
+                        animation: "slideDown 200ms ease-out",
+                      }}
                     >
-                      <span className="text-[#525252] truncate">
+                      <span
+                        className="truncate"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
                         {item.description}
                       </span>
-                      <span className="font-medium text-[#303030] flex-shrink-0 ml-2">
+                      <span
+                        className="font-medium flex-shrink-0 ml-2"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
                         {item.hours.toFixed(1)}h
                       </span>
                     </div>
@@ -280,37 +393,61 @@ export default function HoursSummaryDrawer({
             </div>
 
             {/* Hours by Status */}
-            <div className="border border-[#E5E7EB] rounded-lg overflow-hidden">
+            <div
+              className="border rounded-md overflow-hidden"
+              style={{
+                borderColor: "var(--color-border-light)",
+                backgroundColor: "var(--color-bg-subtle)",
+              }}
+            >
               <button
                 onClick={() => toggleSection("byStatus")}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#F9F9F9] transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 hover:opacity-80 transition-opacity"
               >
-                <span className="text-sm font-medium text-[#303030]">
+                <span
+                  className="text-sm"
+                  style={{
+                    color: "var(--color-text-primary)",
+                    fontWeight: 500,
+                  }}
+                >
                   Hours by Status
                 </span>
                 <ChevronDownIcon
                   width={16}
                   height={16}
-                  color="#525252"
                   style={{
+                    color: "var(--color-text-secondary)",
                     transform: expandedSections["byStatus"]
                       ? "rotate(180deg)"
                       : "rotate(0deg)",
-                    transition: "transform 200ms",
+                    transition: "transform 200ms ease-out",
                   }}
                 />
               </button>
               {expandedSections["byStatus"] && (
-                <div className="px-4 py-3 bg-[#F9F9F9] border-t border-[#E5E7EB] space-y-2">
+                <div
+                  className="px-4 py-3 space-y-2"
+                  style={{
+                    borderTop: "1px solid var(--color-border-light)",
+                    backgroundColor: "white",
+                  }}
+                >
                   {hoursByStatus.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between text-sm"
+                      className="flex items-center justify-between text-xs"
+                      style={{
+                        animation: "slideDown 200ms ease-out",
+                      }}
                     >
-                      <span className="text-[#525252]">
+                      <span style={{ color: "var(--color-text-secondary)" }}>
                         {item.status} ({item.count})
                       </span>
-                      <span className="font-medium text-[#303030]">
+                      <span
+                        className="font-medium"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
                         {item.hours.toFixed(1)}h
                       </span>
                     </div>
@@ -320,6 +457,22 @@ export default function HoursSummaryDrawer({
             </div>
           </div>
         </div>
+
+        {/* Footer - Clear Filters Button */}
+        {orders.length > 0 && (
+          <div
+            className="flex-shrink-0 border-t px-6 py-4"
+            style={{ borderColor: "var(--color-border-light)" }}
+          >
+            <button
+              onClick={onClose}
+              className="text-xs font-medium transition-colors hover:opacity-80"
+              style={{ color: "#2463eb" }}
+            >
+              Close
+            </button>
+          </div>
+        )}
       </div>
     </>
   );
