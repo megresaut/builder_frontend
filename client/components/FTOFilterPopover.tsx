@@ -116,119 +116,60 @@ export default function FTOFilterPopover({
         onClick={() => onOpenChange(false)}
       />
 
-      {/* Popover - Two Panel Layout with Right Panel on Left Side */}
+      {/* Popover - Category Menu Only */}
       <div
         ref={popoverRef}
-        className="fixed z-50 rounded-lg border border-[#E5E7EB] bg-white shadow-lg flex overflow-hidden"
+        className="fixed z-50 rounded-lg border border-[#E5E7EB] bg-white shadow-lg"
         style={{
-          width: showRightPanel ? "700px" : "280px",
-          height: "600px",
+          width: "280px",
           top: `${position.top}px`,
           left: `${position.left}px`,
-          transition: "width 0.3s ease-out",
         }}
-        onMouseLeave={handlePopoverLeave}
       >
-        {/* Right Panel - Category Controls (Slides In from Left) */}
-        {showRightPanel && (
-          <div
-            className="w-96 flex flex-col overflow-hidden border-r border-[#E5E7EB]"
-            style={{
-              animation: "slideInRight 0.3s ease-out",
+        {/* Header */}
+        <div className="px-4 py-3 border-b border-[#E5E7EB]">
+          <h3 className="text-sm font-semibold text-[#303030]">Filter by</h3>
+        </div>
+
+        {/* Category Menu */}
+        <nav className="flex flex-col py-1 px-2 max-h-64 overflow-y-auto">
+          {FILTER_CATEGORIES.map((category) => (
+            <button
+              key={category}
+              onClick={() => {
+                onCategoryChange(category);
+              }}
+              className={`w-full text-left px-3 py-2 rounded text-sm transition-all ${
+                activeCategory === category
+                  ? "bg-white text-[#2463eb] font-medium border border-[#2463eb]"
+                  : "text-[#525252] hover:bg-white"
+              }`}
+            >
+              {CATEGORY_LABELS[category]}
+            </button>
+          ))}
+        </nav>
+
+        {/* Footer - Apply & Reset Buttons */}
+        <div className="px-2 py-1.5 border-t border-[#E5E7EB] flex gap-2">
+          <button
+            onClick={() => {
+              onReset();
+              onOpenChange(false);
             }}
+            className="flex-1 px-3 py-1.5 rounded-lg border border-[#DADADA] bg-white text-xs font-medium text-[#303030] hover:bg-gray-50 transition-colors"
           >
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-[#E5E7EB] flex-shrink-0">
-              <h3 className="text-sm font-semibold text-[#303030]">
-                {CATEGORY_LABELS[activeCategory]}
-              </h3>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-3 space-y-3">
-              {activeCategory === "date" && (
-                <DateRangePanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "field-team" && (
-                <FieldTeamPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "job-details" && (
-                <JobDetailsPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "status" && (
-                <StatusPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-
-              {activeCategory === "financials" && (
-                <FinancialsPanel
-                  pendingFilters={pendingFilters}
-                  onUpdate={onPendingFilterUpdate}
-                />
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Left Panel - Category Menu (Always Visible) */}
-        <div className="w-64 border-l border-[#E5E7EB] bg-[#FAFAFA] flex flex-col overflow-hidden">
-          <div className="px-4 py-4 border-b border-[#E5E7EB] flex-shrink-0">
-            <h3 className="text-sm font-semibold text-[#303030]">Filter by</h3>
-          </div>
-          <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-1">
-            {FILTER_CATEGORIES.map((category) => (
-              <button
-                key={category}
-                onMouseEnter={() => {
-                  onCategoryChange(category);
-                  setShowRightPanel(true);
-                }}
-                className={`w-full text-left px-3 py-2 rounded text-sm transition-all ${
-                  activeCategory === category
-                    ? "bg-white text-[#2463eb] font-medium border border-[#2463eb]"
-                    : "text-[#525252] hover:bg-white"
-                }`}
-              >
-                {CATEGORY_LABELS[category]}
-              </button>
-            ))}
-          </nav>
-
-          {/* Footer - Apply & Reset Buttons */}
-          <div className="flex-shrink-0 px-2 py-2 border-t border-[#E5E7EB] flex gap-2">
-            <button
-              onClick={() => {
-                onReset();
-                onOpenChange(false);
-              }}
-              className="flex-1 px-3 py-1.5 rounded-lg border border-[#DADADA] bg-white text-xs font-medium text-[#303030] hover:bg-gray-50 transition-colors"
-            >
-              Reset
-            </button>
-            <button
-              onClick={() => {
-                onApply();
-                onOpenChange(false);
-              }}
-              className="flex-1 px-3 py-1.5 rounded-lg border border-white transition-colors bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] text-white font-medium text-xs leading-normal"
-            >
-              Apply
-            </button>
-          </div>
+            Reset
+          </button>
+          <button
+            onClick={() => {
+              onApply();
+              onOpenChange(false);
+            }}
+            className="flex-1 px-3 py-1.5 rounded-lg border border-white transition-colors bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] text-white font-medium text-xs leading-normal"
+          >
+            Apply
+          </button>
         </div>
       </div>
     </>
