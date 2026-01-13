@@ -9,13 +9,8 @@ interface FTOFilterPopoverProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   appliedFilters: AppliedFilters;
-  pendingFilters: PendingFilters;
   activeCategory: FilterCategory;
   onCategoryChange: (category: FilterCategory) => void;
-  onPendingFilterUpdate: <K extends keyof PendingFilters>(
-    key: K,
-    value: PendingFilters[K]
-  ) => void;
   onApply: () => void;
   onReset: () => void;
 }
