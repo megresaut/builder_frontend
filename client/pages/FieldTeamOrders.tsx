@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import HoursSummaryDrawer from "@/components/HoursSummaryDrawer";
+import FTOFilterPopover from "@/components/FTOFilterPopover";
 import PageHeader from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
@@ -395,6 +396,10 @@ export default function FieldTeamOrders() {
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
   const [showHoursSummary, setShowHoursSummary] = useState(false);
+  const [showFilterPopover, setShowFilterPopover] = useState(false);
+  const [selectedManagerIds, setSelectedManagerIds] = useState<string[]>([]);
+  const [dateRangeStart, setDateRangeStart] = useState<Date | null>(null);
+  const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -418,8 +423,9 @@ export default function FieldTeamOrders() {
   }, []);
 
   const filteredOrders = orders.filter((order) => {
+    // Search filter
     const searchLower = searchValue.toLowerCase();
-    return (
+    const matchesSearch =
       order.property.toLowerCase().includes(searchLower) ||
       order.description.toLowerCase().includes(searchLower) ||
       order.dueDate.toLowerCase().includes(searchLower) ||
@@ -427,8 +433,41 @@ export default function FieldTeamOrders() {
       order.priority.toLowerCase().includes(searchLower) ||
       order.fieldTeam.some((member) =>
         member.name.toLowerCase().includes(searchLower)
-      )
-    );
+      );
+
+    // Manager filter
+    const matchesManager =
+      selectedManagerIds.length === 0 ||
+      order.fieldTeam.some((member) => {
+        const memberIdMatch = selectedManagerIds.some((selectedId) => {
+          const mockUsers: Record<number, { id: number; name: string }> = {
+            1: { id: 1, name: "Christopher Harris" },
+            2: { id: 2, name: "Cassandra Smith" },
+            3: { id: 3, name: "David Chen" },
+            4: { id: 4, name: "Emma Rodriguez" },
+            5: { id: 5, name: "James Wilson" },
+          };
+          const user = Object.values(mockUsers).find(
+            (u) => u.name === member.name
+          );
+          return user && selectedId === String(user.id);
+        });
+        return memberIdMatch;
+      });
+
+    // Date range filter
+    let matchesDateRange = true;
+    if (dateRangeStart || dateRangeEnd) {
+      const orderDate = new Date(order.dueDate);
+      if (dateRangeStart && orderDate < dateRangeStart) {
+        matchesDateRange = false;
+      }
+      if (dateRangeEnd && orderDate > dateRangeEnd) {
+        matchesDateRange = false;
+      }
+    }
+
+    return matchesSearch && matchesManager && matchesDateRange;
   });
 
   const { handleSortClick, getSortIndicator, getSortedData } =
@@ -582,6 +621,8 @@ export default function FieldTeamOrders() {
               showSearchBar={true}
               searchValue={searchValue}
               onSearchChange={setSearchValue}
+              onFilterClick={() => setShowFilterPopover(true)}
+              showFilterButton={true}
               renderCell={(order, columnKey) => {
                 if (columnKey === "priority") {
                   return (
@@ -802,6 +843,17 @@ export default function FieldTeamOrders() {
         isOpen={showHoursSummary}
         onClose={() => setShowHoursSummary(false)}
         orders={filteredOrders}
+      />
+
+      <FTOFilterPopover
+        isOpen={showFilterPopover}
+        onOpenChange={setShowFilterPopover}
+        selectedManagers={selectedManagerIds}
+        onManagersChange={setSelectedManagerIds}
+        dateRangeStart={dateRangeStart}
+        onDateRangeStartChange={setDateRangeStart}
+        dateRangeEnd={dateRangeEnd}
+        onDateRangeEndChange={setDateRangeEnd}
       />
     </PageTemplate>
   );
