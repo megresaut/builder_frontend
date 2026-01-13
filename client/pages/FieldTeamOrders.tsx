@@ -399,6 +399,8 @@ export default function FieldTeamOrders() {
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
   const [showHoursSummary, setShowHoursSummary] = useState(false);
   const [showFilterPopover, setShowFilterPopover] = useState(false);
+  const [showHoursSummaryPopover, setShowHoursSummaryPopover] = useState(false);
+  const hoursSummaryButtonRef = useRef<HTMLButtonElement>(null);
 
   const {
     appliedFilters,
