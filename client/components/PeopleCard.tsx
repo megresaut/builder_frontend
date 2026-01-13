@@ -17,6 +17,8 @@ export interface PeopleSubsectionProps {
   showSecondaryMetaColumn?: boolean;
   tabIndex?: number | number[];
   type?: "assignee" | "collaborator";
+  activeTab?: number;
+  hideHeaderOnTab?: number | number[];
 }
 
 interface PeopleCardProps {
