@@ -312,12 +312,24 @@ export default function ApproveFTOPage() {
       hours: hourRows,
       expenses: expenseRows,
     });
-    navigate(-1);
+
+    // Navigate to referrer path or back if not available
+    if (state.referrerPath) {
+      navigate(state.referrerPath);
+    } else {
+      navigate(-1);
+    }
   };
 
   const handleReject = () => {
     console.log("FTO Rejected");
-    navigate(-1);
+
+    // Navigate to referrer path or back if not available
+    if (state.referrerPath) {
+      navigate(state.referrerPath);
+    } else {
+      navigate(-1);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
