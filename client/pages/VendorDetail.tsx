@@ -942,7 +942,7 @@ export default function VendorDetail() {
                 </button>
               </div>
             }
-            action={{
+            actionButton={{
               label: isInactive ? "Activate Vendor" : "Inactivate Vendor",
               onClick: () => setIsInactivateConfirmOpen(true),
             }}
