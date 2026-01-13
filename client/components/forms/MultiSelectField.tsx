@@ -87,6 +87,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
           removeItem={removeItem}
           options={options}
           toggleItem={toggleItem}
+          isOpen={open}
         />
       </Popover>
     </FieldShell>
