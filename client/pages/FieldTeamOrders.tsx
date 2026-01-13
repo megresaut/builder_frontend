@@ -672,7 +672,8 @@ export default function FieldTeamOrders() {
               <PopoverContent
                 align="end"
                 side="bottom"
-                sideOffset={4}
+                sideOffset={8}
+                syncTriggerWidth={false}
                 className="ra-actions-dropdown p-0 w-auto"
                 style={{ width: "165px" }}
               >
