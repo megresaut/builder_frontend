@@ -166,6 +166,7 @@ export default function WorkOrderDetailsV2({
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [viewingFileName, setViewingFileName] = useState<string>("");
+  const [lastUpdated, setLastUpdated] = useState<string>(() => new Date().toLocaleString());
 
   const handleDismissNotification = (id: number) => {
     setNotifications(notifications.filter((n) => n.id !== id));
