@@ -208,6 +208,7 @@ export default function GlobalTable({
             )}
             {showFilterButton && (
               <button
+                data-testid="filter-button"
                 onClick={() => onFilterClick?.()}
                 className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                 style={{
@@ -220,6 +221,7 @@ export default function GlobalTable({
                   style={{ color: "var(--color-text-primary)" }}
                 >
                   Filter
+                  {filterCount > 0 && <span className="ml-1">({filterCount})</span>}
                 </span>
                 <ChevronDown className="w-4 h-4" />
               </button>
