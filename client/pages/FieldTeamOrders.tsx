@@ -478,9 +478,10 @@ export default function FieldTeamOrders() {
     // Properties filter
     const matchesProperties =
       appliedFilters.properties.length === 0 ||
-      appliedFilters.properties.some(
-        (propId) => order.property.toLowerCase().includes(propId.toLowerCase())
-      );
+      appliedFilters.properties.some((propId) => {
+        const prop = PROPERTIES.find((p) => p.id === propId);
+        return prop && prop.name === order.property;
+      });
 
     // Unit filter
     const matchesUnit =
