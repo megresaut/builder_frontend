@@ -286,14 +286,26 @@ function JobDetailsPanel({
   pendingFilters: PendingFilters;
   onUpdate: <K extends keyof PendingFilters>(key: K, value: PendingFilters[K]) => void;
 }) {
+  const propertyMultiSelectOptions = propertyOptions.map((p) => ({
+    id: p.value,
+    label: p.label,
+  }));
+
   return (
     <div className="space-y-4">
       <MultiSelectField
         label="Property"
-        values={pendingFilters.properties}
-        onChange={(values) => onUpdate("properties", values)}
+        value={propertyMultiSelectOptions.filter((p) =>
+          pendingFilters.properties.includes(p.id)
+        )}
+        onChange={(selected) =>
+          onUpdate(
+            "properties",
+            selected.map((s) => s.id)
+          )
+        }
         placeholder="Select properties..."
-        options={propertyOptions}
+        options={propertyMultiSelectOptions}
       />
 
       <TextField
