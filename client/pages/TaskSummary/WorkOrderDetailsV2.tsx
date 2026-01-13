@@ -184,9 +184,9 @@ export default function WorkOrderDetailsV2({
     files?: UploadedFile[];
   }) => {
     // Update local state
-    if (formData.status) setStatus(formData.status);
-    if (formData.priority) setPriority(formData.priority);
-    if (formData.dueDate) setDueDate(formData.dueDate);
+    if (formData.status !== undefined) setStatus(formData.status);
+    if (formData.priority !== undefined) setPriority(formData.priority);
+    if (formData.dueDate !== undefined) setDueDate(formData.dueDate);
 
     // Build updated notes and files arrays
     let updatedNotes = notes;
