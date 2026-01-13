@@ -663,26 +663,35 @@ export default function FieldTeamOrders() {
                   ref={hoursSummaryButtonRef}
                   className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                   title="Hours Summary"
-                  style={{ transform: "rotate(90deg)" }}
                 >
-                  <DotsIcon width={18} height={18} color="#303030" />
+                  <div style={{ transform: "rotate(90deg)" }} className="flex items-center justify-center">
+                    <DotsIcon width={18} height={18} color="#303030" />
+                  </div>
                 </button>
               </PopoverTrigger>
               <PopoverContent
                 align="end"
                 side="bottom"
                 sideOffset={4}
-                className="w-auto p-0 min-w-0"
-                style={{ maxWidth: "none" }}
+                className="ra-actions-dropdown p-0 w-auto"
+                style={{ width: "165px" }}
               >
                 <button
                   onClick={() => {
                     setShowHoursSummary(true);
                     setShowHoursSummaryPopover(false);
                   }}
-                  className="block px-4 py-3 hover:bg-gray-50 transition-colors text-sm font-medium text-[#303030] whitespace-nowrap"
+                  className="ra-action-item flex justify-between items-center w-full gap-3 px-4 py-2 transition-colors first:rounded-t-md last:rounded-b-md text-left"
                 >
-                  Hours Summary
+                  <span
+                    className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize flex-1"
+                    style={{
+                      fontFamily:
+                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    }}
+                  >
+                    Hours Summary
+                  </span>
                 </button>
               </PopoverContent>
             </Popover>
