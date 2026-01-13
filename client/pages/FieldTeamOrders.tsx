@@ -398,9 +398,20 @@ export default function FieldTeamOrders() {
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
   const [showHoursSummary, setShowHoursSummary] = useState(false);
   const [showFilterPopover, setShowFilterPopover] = useState(false);
-  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
-  const [dateRangeStart, setDateRangeStart] = useState<Date | null>(null);
-  const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(null);
+
+  const {
+    appliedFilters,
+    pendingFilters,
+    activeCategory,
+    setActiveCategory,
+    openFilterPopover,
+    closeFilterPopover,
+    applyFilters,
+    resetFilters,
+    updatePendingFilter,
+    hasActiveFilters,
+    activeFilterCount,
+  } = useFieldTeamOrdersFilterState();
 
   useEffect(() => {
     const fetchOrders = async () => {
