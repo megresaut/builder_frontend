@@ -53,6 +53,7 @@ interface ApproveFTOPageProps {
   description?: string;
   dueDate?: string;
   priority?: string;
+  referrerPath?: string;
 }
 
 const mockVendors = ["Elite HVAC", "ABC Plumbing", "Green Lawn Services"];
