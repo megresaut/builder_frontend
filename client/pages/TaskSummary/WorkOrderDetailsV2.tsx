@@ -291,6 +291,7 @@ export default function WorkOrderDetailsV2({
   // Synchronize local field state with parent workOrder updates
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus);
+    setLastUpdated(new Date().toLocaleString());
     if (onWorkOrderUpdate) {
       onWorkOrderUpdate({ ...workOrder, status: newStatus, notes, files });
     }
@@ -298,6 +299,7 @@ export default function WorkOrderDetailsV2({
 
   const handlePriorityChange = (newPriority: string) => {
     setPriority(newPriority);
+    setLastUpdated(new Date().toLocaleString());
     if (onWorkOrderUpdate) {
       onWorkOrderUpdate({ ...workOrder, priority: newPriority, notes, files });
     }
@@ -305,6 +307,7 @@ export default function WorkOrderDetailsV2({
 
   const handleDueDateChange = (newDate: Date | string | null) => {
     setDueDate(newDate);
+    setLastUpdated(new Date().toLocaleString());
     if (onWorkOrderUpdate) {
       let dateValue: string | null = null;
       if (newDate) {
