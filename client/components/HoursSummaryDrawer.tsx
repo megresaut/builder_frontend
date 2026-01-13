@@ -94,18 +94,18 @@ export default function HoursSummaryDrawer({
 
   // Calculate metrics
   const totalHours = filteredOrders.reduce((sum, order) => sum + (order.hours || 0), 0);
-  const approvedHours = orders
+  const approvedHours = filteredOrders
     .filter((o) => o.timesheetStatus === "approved")
     .reduce((sum, order) => sum + (order.hours || 0), 0);
-  const submittedHours = orders
+  const submittedHours = filteredOrders
     .filter((o) => o.timesheetStatus === "submitted")
     .reduce((sum, order) => sum + (order.hours || 0), 0);
-  const pendingHours = orders
+  const pendingHours = filteredOrders
     .filter((o) => o.timesheetStatus === "awaiting-submission")
     .reduce((sum, order) => sum + (order.hours || 0), 0);
 
   // Calculate hours by property
-  const hoursByProperty = orders.reduce(
+  const hoursByProperty = filteredOrders.reduce(
     (acc, order) => {
       const existing = acc.find((p) => p.property === order.property);
       if (existing) {
@@ -119,7 +119,7 @@ export default function HoursSummaryDrawer({
   );
 
   // Calculate hours by FTO
-  const hoursByFTO = orders.map((order) => ({
+  const hoursByFTO = filteredOrders.map((order) => ({
     description: order.description,
     hours: order.hours || 0,
   }));
@@ -129,18 +129,18 @@ export default function HoursSummaryDrawer({
     {
       status: "Awaiting Submission",
       hours: pendingHours,
-      count: orders.filter((o) => o.timesheetStatus === "awaiting-submission")
+      count: filteredOrders.filter((o) => o.timesheetStatus === "awaiting-submission")
         .length,
     },
     {
       status: "Submitted",
       hours: submittedHours,
-      count: orders.filter((o) => o.timesheetStatus === "submitted").length,
+      count: filteredOrders.filter((o) => o.timesheetStatus === "submitted").length,
     },
     {
       status: "Approved",
       hours: approvedHours,
-      count: orders.filter((o) => o.timesheetStatus === "approved").length,
+      count: filteredOrders.filter((o) => o.timesheetStatus === "approved").length,
     },
   ];
 
