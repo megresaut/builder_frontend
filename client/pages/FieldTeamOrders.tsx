@@ -397,7 +397,7 @@ export default function FieldTeamOrders() {
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
   const [showHoursSummary, setShowHoursSummary] = useState(false);
   const [showFilterPopover, setShowFilterPopover] = useState(false);
-  const [selectedManagerIds, setSelectedManagerIds] = useState<string[]>([]);
+  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
   const [dateRangeStart, setDateRangeStart] = useState<Date | null>(null);
   const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(null);
 
@@ -437,22 +437,19 @@ export default function FieldTeamOrders() {
 
     // Manager filter
     const matchesManager =
-      selectedManagerIds.length === 0 ||
+      !selectedManagerId ||
       order.fieldTeam.some((member) => {
-        const memberIdMatch = selectedManagerIds.some((selectedId) => {
-          const mockUsers: Record<number, { id: number; name: string }> = {
-            1: { id: 1, name: "Christopher Harris" },
-            2: { id: 2, name: "Cassandra Smith" },
-            3: { id: 3, name: "David Chen" },
-            4: { id: 4, name: "Emma Rodriguez" },
-            5: { id: 5, name: "James Wilson" },
-          };
-          const user = Object.values(mockUsers).find(
-            (u) => u.name === member.name
-          );
-          return user && selectedId === String(user.id);
-        });
-        return memberIdMatch;
+        const mockUsers: Record<number, { id: number; name: string }> = {
+          1: { id: 1, name: "Christopher Harris" },
+          2: { id: 2, name: "Cassandra Smith" },
+          3: { id: 3, name: "David Chen" },
+          4: { id: 4, name: "Emma Rodriguez" },
+          5: { id: 5, name: "James Wilson" },
+        };
+        const user = Object.values(mockUsers).find(
+          (u) => u.name === member.name
+        );
+        return user && selectedManagerId === String(user.id);
       });
 
     // Date range filter
@@ -848,8 +845,8 @@ export default function FieldTeamOrders() {
       <FTOFilterPopover
         isOpen={showFilterPopover}
         onOpenChange={setShowFilterPopover}
-        selectedManagers={selectedManagerIds}
-        onManagersChange={setSelectedManagerIds}
+        selectedManager={selectedManagerId}
+        onManagerChange={setSelectedManagerId}
         dateRangeStart={dateRangeStart}
         onDateRangeStartChange={setDateRangeStart}
         dateRangeEnd={dateRangeEnd}
