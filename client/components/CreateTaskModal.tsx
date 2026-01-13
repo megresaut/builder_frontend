@@ -130,16 +130,16 @@ export default function CreateTaskModal({
     const collaboratorsChanged =
       selectedCollaborators.length !== initialState.collaborators.length ||
       !selectedCollaborators.every((c) =>
-        initialState.collaborators.some((ic) => ic.id === c.id)
+        initialState.collaborators.some((ic) => ic.id === c.id),
       );
 
     return (
       status !== initialState.status ||
       priority !== initialState.priority ||
-      (dueDate?.toString() !== initialState.dueDate?.toString()) ||
+      dueDate?.toString() !== initialState.dueDate?.toString() ||
       selectedAssignees.length !== initialState.assignees.length ||
       !selectedAssignees.every((a) =>
-        initialState.assignees.some((ia) => ia.id === a.id)
+        initialState.assignees.some((ia) => ia.id === a.id),
       ) ||
       collaboratorsChanged ||
       message !== initialState.message ||
@@ -148,7 +148,20 @@ export default function CreateTaskModal({
       category !== initialState.category ||
       fileUpload.files.length > 0
     );
-  }, [variant, initialState, status, priority, dueDate, selectedAssignees, selectedCollaborators, message, property, unit, category, fileUpload.files.length]);
+  }, [
+    variant,
+    initialState,
+    status,
+    priority,
+    dueDate,
+    selectedAssignees,
+    selectedCollaborators,
+    message,
+    property,
+    unit,
+    category,
+    fileUpload.files.length,
+  ]);
 
   // Generate update message based on changes
   const generateUpdateMessage = useCallback((): string => {
@@ -162,9 +175,7 @@ export default function CreateTaskModal({
           in_progress: "In Progress",
           completed: "Completed",
         };
-        changes.push(
-          `updated status to ${statusLabels[status] || status}`
-        );
+        changes.push(`updated status to ${statusLabels[status] || status}`);
         hasFieldChanges = true;
       }
 
@@ -176,25 +187,27 @@ export default function CreateTaskModal({
       }
 
       if (dueDate?.toString() !== initialState.dueDate?.toString()) {
-        const dateStr = dueDate
-          ? dueDate.toLocaleDateString()
-          : "no due date";
+        const dateStr = dueDate ? dueDate.toLocaleDateString() : "no due date";
         changes.push(`updated due date to ${dateStr}`);
         hasFieldChanges = true;
       }
 
-      if (selectedAssignees.length !== initialState.assignees.length ||
-          !selectedAssignees.every((a) =>
-            initialState.assignees.some((ia) => ia.id === a.id)
-          )) {
+      if (
+        selectedAssignees.length !== initialState.assignees.length ||
+        !selectedAssignees.every((a) =>
+          initialState.assignees.some((ia) => ia.id === a.id),
+        )
+      ) {
         changes.push("updated assignees");
         hasFieldChanges = true;
       }
 
-      if (selectedCollaborators.length !== initialState.collaborators.length ||
-          !selectedCollaborators.every((c) =>
-            initialState.collaborators.some((ic) => ic.id === c.id)
-          )) {
+      if (
+        selectedCollaborators.length !== initialState.collaborators.length ||
+        !selectedCollaborators.every((c) =>
+          initialState.collaborators.some((ic) => ic.id === c.id),
+        )
+      ) {
         changes.push("updated collaborators");
         hasFieldChanges = true;
       }
@@ -209,13 +222,15 @@ export default function CreateTaskModal({
       changes.push(
         `added ${fileUpload.files.length} attachment${
           fileUpload.files.length !== 1 ? "s" : ""
-        }`
+        }`,
       );
     }
 
     // If only files were uploaded with no other changes or message
     if (hasFiles && changes.length === 1 && !message && !hasFieldChanges) {
-      return fileUpload.files.length === 1 ? "uploaded a file" : `uploaded ${fileUpload.files.length} files`;
+      return fileUpload.files.length === 1
+        ? "uploaded a file"
+        : `uploaded ${fileUpload.files.length} files`;
     }
 
     if (changes.length === 0) {
@@ -223,7 +238,16 @@ export default function CreateTaskModal({
     }
 
     return changes.join(", ");
-  }, [initialState, status, priority, dueDate, selectedAssignees, selectedCollaborators, message, fileUpload.files.length]);
+  }, [
+    initialState,
+    status,
+    priority,
+    dueDate,
+    selectedAssignees,
+    selectedCollaborators,
+    message,
+    fileUpload.files.length,
+  ]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: {
@@ -257,13 +281,22 @@ export default function CreateTaskModal({
       if (variant === "withMessageAndAttachments" && initialState) {
         if (status !== initialState.status) changedFields.push("status");
         if (priority !== initialState.priority) changedFields.push("priority");
-        if (dueDate?.toString() !== initialState.dueDate?.toString()) changedFields.push("dueDate");
-        if (selectedAssignees.length !== initialState.assignees.length ||
-            !selectedAssignees.every((a) => initialState.assignees.some((ia) => ia.id === a.id))) {
+        if (dueDate?.toString() !== initialState.dueDate?.toString())
+          changedFields.push("dueDate");
+        if (
+          selectedAssignees.length !== initialState.assignees.length ||
+          !selectedAssignees.every((a) =>
+            initialState.assignees.some((ia) => ia.id === a.id),
+          )
+        ) {
           changedFields.push("assignees");
         }
-        if (selectedCollaborators.length !== initialState.collaborators.length ||
-            !selectedCollaborators.every((c) => initialState.collaborators.some((ic) => ic.id === c.id))) {
+        if (
+          selectedCollaborators.length !== initialState.collaborators.length ||
+          !selectedCollaborators.every((c) =>
+            initialState.collaborators.some((ic) => ic.id === c.id),
+          )
+        ) {
           changedFields.push("collaborators");
         }
       }
@@ -292,7 +325,26 @@ export default function CreateTaskModal({
       // Close the modal - state reset is handled by the useEffect [open]
       onOpenChange(false);
     }
-  }, [validateForm, variant, initialState, status, priority, dueDate, selectedAssignees, selectedCollaborators, title, description, property, unit, category, message, fileUpload.files, generateUpdateMessage, onTaskCreated, onOpenChange]);
+  }, [
+    validateForm,
+    variant,
+    initialState,
+    status,
+    priority,
+    dueDate,
+    selectedAssignees,
+    selectedCollaborators,
+    title,
+    description,
+    property,
+    unit,
+    category,
+    message,
+    fileUpload.files,
+    generateUpdateMessage,
+    onTaskCreated,
+    onOpenChange,
+  ]);
 
   const handleCancel = useCallback(() => {
     onOpenChange(false);
@@ -352,7 +404,10 @@ export default function CreateTaskModal({
 
         let dateValue: Date | null = null;
         if (editData.dueDate) {
-          dateValue = editData.dueDate instanceof Date ? editData.dueDate : new Date(editData.dueDate);
+          dateValue =
+            editData.dueDate instanceof Date
+              ? editData.dueDate
+              : new Date(editData.dueDate);
         } else if (editData.due && editData.due !== "No Due Date") {
           dateValue = new Date(editData.due);
         }
@@ -361,7 +416,7 @@ export default function CreateTaskModal({
         const statusMap: { [key: string]: string } = {
           "Not Started": "not_started",
           "In Progress": "in_progress",
-          "Completed": "completed",
+          Completed: "completed",
         };
         // Handle both formatted and lowercase status values
         const statusValue = editData.status || "not_started";
@@ -374,7 +429,7 @@ export default function CreateTaskModal({
               id: String(a.id),
               label: a.name,
               initials: a.initials,
-            }))
+            })),
           );
         }
         if (editData.collaborators && editData.collaborators.length > 0) {
@@ -383,7 +438,7 @@ export default function CreateTaskModal({
               id: String(c.id),
               label: c.name,
               initials: c.initials,
-            }))
+            })),
           );
         }
       }
@@ -396,14 +451,17 @@ export default function CreateTaskModal({
           const statusMap: { [key: string]: string } = {
             "Not Started": "not_started",
             "In Progress": "in_progress",
-            "Completed": "completed",
+            Completed: "completed",
           };
           normalizedStatus = statusMap[editData.status] || editData.status;
         }
 
         let baselineDueDate: Date | null = null;
         if (editData?.dueDate) {
-          baselineDueDate = editData.dueDate instanceof Date ? editData.dueDate : new Date(editData.dueDate);
+          baselineDueDate =
+            editData.dueDate instanceof Date
+              ? editData.dueDate
+              : new Date(editData.dueDate);
         } else if (editData?.due && editData.due !== "No Due Date") {
           baselineDueDate = new Date(editData.due);
         }
@@ -412,16 +470,18 @@ export default function CreateTaskModal({
           status: normalizedStatus,
           priority: editData ? editData.priority.toLowerCase() : "normal",
           dueDate: baselineDueDate,
-          assignees: editData?.assignees?.map((a) => ({
-            id: String(a.id),
-            label: a.name,
-            initials: a.initials,
-          })) || [],
-          collaborators: editData?.collaborators?.map((c) => ({
-            id: String(c.id),
-            label: c.name,
-            initials: c.initials,
-          })) || [],
+          assignees:
+            editData?.assignees?.map((a) => ({
+              id: String(a.id),
+              label: a.name,
+              initials: a.initials,
+            })) || [],
+          collaborators:
+            editData?.collaborators?.map((c) => ({
+              id: String(c.id),
+              label: c.name,
+              initials: c.initials,
+            })) || [],
           message: "",
           property: editData?.property || "",
           unit: editData?.unit || "",
@@ -431,22 +491,35 @@ export default function CreateTaskModal({
     }
   }, [open, variant, editData]);
 
-
   return (
     <>
       <ModalTemplate
         open={open}
         onOpenChange={onOpenChange}
         onClose={handleCancel}
-        title={variant === "withMessageAndAttachments" ? "Update task" : (editData ? "Edit Task" : "Create Task")}
+        title={
+          variant === "withMessageAndAttachments"
+            ? "Update task"
+            : editData
+              ? "Edit Task"
+              : "Create Task"
+        }
         size={variant === "withMessageAndAttachments" ? "md" : "lg"}
         footer={
           <ModalButtons
             onCancel={handleCancel}
             onConfirm={handleSubmit}
             cancelLabel="Cancel"
-            confirmLabel={variant === "withMessageAndAttachments" ? "Save Update" : (editData ? "Update Task" : "Create Task")}
-            confirmDisabled={variant === "withMessageAndAttachments" && !hasChanges()}
+            confirmLabel={
+              variant === "withMessageAndAttachments"
+                ? "Save Update"
+                : editData
+                  ? "Update Task"
+                  : "Create Task"
+            }
+            confirmDisabled={
+              variant === "withMessageAndAttachments" && !hasChanges()
+            }
           />
         }
       >
@@ -455,111 +528,111 @@ export default function CreateTaskModal({
             <FormSection title="Task Details" showDivider={true}>
               {/* Task Name - Full Width, First Field */}
               <TextField
-              label="Task Name"
-              required
-              value={title}
-              onChange={(e) => {
-                const newValue = e.target.value.slice(0, 125);
-                setTitle(newValue);
-                if (errors.title && newValue.trim()) {
-                  setErrors((prev) => ({ ...prev, title: false }));
-                  setErrorMessages((prev) => ({ ...prev, title: undefined }));
-                }
-              }}
-              error={errorMessages.title}
-              placeholder="Type Task Name"
-              maxLength={125}
-            />
-
-            {/* Description - Full Width */}
-            <TextAreaField
-              label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Insert Description Here"
-            />
-
-            {/* Property + Unit - 2 Columns */}
-            <FormFieldRow columns={2}>
-              <SelectField
-                label="Property"
-                value={property}
-                onChange={(value) => {
-                  setProperty(value);
-                  // Clear unit when property changes
-                  if (value !== property) {
-                    setUnit("");
+                label="Task Name"
+                required
+                value={title}
+                onChange={(e) => {
+                  const newValue = e.target.value.slice(0, 125);
+                  setTitle(newValue);
+                  if (errors.title && newValue.trim()) {
+                    setErrors((prev) => ({ ...prev, title: false }));
+                    setErrorMessages((prev) => ({ ...prev, title: undefined }));
                   }
                 }}
-                placeholder="Select Property"
-                options={[
-                  { value: "property1", label: "22 Indian Chase Dr" },
-                  { value: "property2", label: "Property 2" },
-                ]}
+                error={errorMessages.title}
+                placeholder="Type Task Name"
+                maxLength={125}
               />
+
+              {/* Description - Full Width */}
+              <TextAreaField
+                label="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Insert Description Here"
+              />
+
+              {/* Property + Unit - 2 Columns */}
+              <FormFieldRow columns={2}>
+                <SelectField
+                  label="Property"
+                  value={property}
+                  onChange={(value) => {
+                    setProperty(value);
+                    // Clear unit when property changes
+                    if (value !== property) {
+                      setUnit("");
+                    }
+                  }}
+                  placeholder="Select Property"
+                  options={[
+                    { value: "property1", label: "22 Indian Chase Dr" },
+                    { value: "property2", label: "Property 2" },
+                  ]}
+                />
+                <SelectField
+                  label="Unit"
+                  value={unit}
+                  onChange={setUnit}
+                  placeholder="Select Unit If Applicable"
+                  disabled={!property}
+                  options={
+                    property
+                      ? [
+                          { value: "unit1", label: "Unit 1" },
+                          { value: "unit2", label: "Unit 2" },
+                        ]
+                      : []
+                  }
+                />
+              </FormFieldRow>
+
+              {/* Category - Full Width */}
               <SelectField
-                label="Unit"
-                value={unit}
-                onChange={setUnit}
-                placeholder="Select Unit If Applicable"
-                disabled={!property}
-                options={
-                  property
-                    ? [
-                        { value: "unit1", label: "Unit 1" },
-                        { value: "unit2", label: "Unit 2" },
-                      ]
-                    : []
-                }
+                label="Category"
+                value={category}
+                onChange={setCategory}
+                placeholder="Select Category"
+                options={TASK_CATEGORIES}
               />
-            </FormFieldRow>
 
-            {/* Category - Full Width */}
-            <SelectField
-              label="Category"
-              value={category}
-              onChange={setCategory}
-              placeholder="Select Category"
-              options={TASK_CATEGORIES}
-            />
+              {/* Priority + Due Date + Status - 3 Columns */}
+              <FormFieldRow columns={3}>
+                <PrioritySelectField
+                  label="Priority"
+                  value={priority}
+                  onChange={setPriority}
+                  placeholder="Select Priority"
+                />
+                <DateField
+                  label="Due Date"
+                  value={dueDate}
+                  onChange={setDueDate}
+                  placeholder="mm/dd/yyyy"
+                  returnFormat="Date"
+                />
+                <StatusSelectField
+                  label="Status"
+                  value={status}
+                  onChange={setStatus}
+                  placeholder="Select Status"
+                />
+              </FormFieldRow>
 
-            {/* Priority + Due Date + Status - 3 Columns */}
-            <FormFieldRow columns={3}>
-              <PrioritySelectField
-                label="Priority"
-                value={priority}
-                onChange={setPriority}
-                placeholder="Select Priority"
+              {/* Attachments - Full Width */}
+              <FileUploadField
+                label="Attachments"
+                files={fileUpload.files}
+                onFilesAdded={fileUpload.addFiles}
+                onFileRemoved={fileUpload.removeFile}
+                onViewFile={fileUpload.viewFile}
+                onFileRenamed={fileUpload.renameFile}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
+                maxFiles={10}
+                maxSize={10 * 1024 * 1024}
+                placeholder="Drag and drop files here, or click to browse"
               />
-              <DateField
-                label="Due Date"
-                value={dueDate}
-                onChange={setDueDate}
-                placeholder="mm/dd/yyyy"
-                returnFormat="Date"
-              />
-              <StatusSelectField
-                label="Status"
-                value={status}
-                onChange={setStatus}
-                placeholder="Select Status"
-              />
-            </FormFieldRow>
-
-            {/* Attachments - Full Width */}
-            <FileUploadField
-              label="Attachments"
-              files={fileUpload.files}
-              onFilesAdded={fileUpload.addFiles}
-              onFileRemoved={fileUpload.removeFile}
-              onViewFile={fileUpload.viewFile}
-              onFileRenamed={fileUpload.renameFile}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
-              maxFiles={10}
-              maxSize={10 * 1024 * 1024}
-              placeholder="Drag and drop files here, or click to browse"
-            />
-          </FormSection>
+            </FormSection>
           )}
 
           {variant === "withMessageAndAttachments" && (
@@ -662,7 +735,9 @@ export default function CreateTaskModal({
         }}
         title={fileUpload.selectedFileForView?.name || "File Preview"}
         url={fileUpload.selectedFileForView?.url}
-        onRenameClick={() => fileUpload.startRenaming(fileUpload.selectedFileForView!)}
+        onRenameClick={() =>
+          fileUpload.startRenaming(fileUpload.selectedFileForView!)
+        }
         isRenaming={fileUpload.isRenamingFile}
         renamingFileName={fileUpload.renamingFileName}
         onRenamingFileNameChange={fileUpload.updateRenamingFileName}

@@ -43,8 +43,10 @@ export default function AllTasks() {
     false,
   );
 
-  const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(tasksList, "allTasks");
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    tasksList,
+    "allTasks",
+  );
   const {
     columnOrder,
     visibleColumns,
@@ -76,16 +78,18 @@ export default function AllTasks() {
 
   // Hide unit and collaborators by default
   useEffect(() => {
-    setVisibleColumns(new Set([
-      "priority",
-      "status",
-      "title",
-      "property",
-      "due",
-      "updated",
-      "age",
-      "assignees",
-    ]));
+    setVisibleColumns(
+      new Set([
+        "priority",
+        "status",
+        "title",
+        "property",
+        "due",
+        "updated",
+        "age",
+        "assignees",
+      ]),
+    );
   }, []);
 
   const columns = [
@@ -141,9 +145,25 @@ export default function AllTasks() {
       key: "unit",
       label: "Unit",
       icon: (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2 6H14M2 10H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M5.5 2V14M10.5 2V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M2 6H14M2 10H14"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M5.5 2V14M10.5 2V14"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
         </svg>
       ),
     },
@@ -174,20 +194,14 @@ export default function AllTasks() {
     },
   ];
 
-  const handleDeleteTask = useCallback(
-    (task: Task) => {
-      setTasksList((prev) => prev.filter((t) => t.id !== task.id));
-    },
-    []
-  );
+  const handleDeleteTask = useCallback((task: Task) => {
+    setTasksList((prev) => prev.filter((t) => t.id !== task.id));
+  }, []);
 
-  const handleEditTask = useCallback(
-    (task: Task) => {
-      setEditingTask(task);
-      setIsCreateTaskModalOpen(true);
-    },
-    []
-  );
+  const handleEditTask = useCallback((task: Task) => {
+    setEditingTask(task);
+    setIsCreateTaskModalOpen(true);
+  }, []);
 
   const memoizedEditData = useMemo(() => {
     if (!editingTask) return undefined;
@@ -201,7 +215,16 @@ export default function AllTasks() {
       assignees: editingTask.assignees,
       collaborators: editingTask.collaborators,
     };
-  }, [editingTask?.id, editingTask?.title, editingTask?.property, editingTask?.priority, editingTask?.status, editingTask?.due, editingTask?.assignees, editingTask?.collaborators]);
+  }, [
+    editingTask?.id,
+    editingTask?.title,
+    editingTask?.property,
+    editingTask?.priority,
+    editingTask?.status,
+    editingTask?.due,
+    editingTask?.assignees,
+    editingTask?.collaborators,
+  ]);
 
   const handleTaskCreated = useCallback(
     (taskData: {
@@ -264,11 +287,11 @@ export default function AllTasks() {
       setTimeout(() => {
         navigate(`/tasks/${newTaskId}`, {
           state: { task: newTask, taskData: { ...taskData, ...newTask } },
-          replace: true
+          replace: true,
         });
       }, 0);
     },
-    [tasksList, navigate]
+    [tasksList, navigate],
   );
 
   const actions = [
@@ -304,7 +327,7 @@ export default function AllTasks() {
           rowKey="id"
           onRowClick={(task) => {
             navigate(`/tasks/${task.id}/summary`, {
-              state: { task, taskData: task }
+              state: { task, taskData: task },
             });
           }}
           renderCell={(task, columnKey) => {
@@ -320,7 +343,7 @@ export default function AllTasks() {
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/tasks/${task.id}/summary`, {
-                      state: { task, taskData: task }
+                      state: { task, taskData: task },
                     });
                   }}
                   className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors truncate"
@@ -340,11 +363,14 @@ export default function AllTasks() {
               };
 
               const propLabel = propertyLabels[task.property] || task.property;
-              const unitLabel = task.unit ? (unitLabels[task.unit] || task.unit) : "";
+              const unitLabel = task.unit
+                ? unitLabels[task.unit] || task.unit
+                : "";
 
               return (
                 <span className="text-gray-900 font-normal text-sm truncate">
-                  {propLabel}{unitLabel ? ` - ${unitLabel}` : ""}
+                  {propLabel}
+                  {unitLabel ? ` - ${unitLabel}` : ""}
                 </span>
               );
             }

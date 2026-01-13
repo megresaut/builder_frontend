@@ -152,7 +152,9 @@ let mockCustomFieldsStorage: Record<number, VendorCustomField[]> = {
  * Mock API: Fetch vendor detail by ID
  * Real API would be: GET /vendors/{vendor_id}
  */
-async function mockFetchVendorDetail(vendorId: number): Promise<VendorDetail | null> {
+async function mockFetchVendorDetail(
+  vendorId: number,
+): Promise<VendorDetail | null> {
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -343,7 +345,8 @@ async function mockUpdateVendorFile(
   if (file) {
     if (updates.name !== undefined) file.name = updates.name;
     if (updates.category !== undefined) file.category = updates.category;
-    if (updates.description !== undefined) file.description = updates.description;
+    if (updates.description !== undefined)
+      file.description = updates.description;
   }
 }
 
@@ -433,7 +436,9 @@ async function mockDeleteVendorInsurance(
 
   if (!mockInsuranceStorage[vendorId]) return;
 
-  const idx = mockInsuranceStorage[vendorId].findIndex((i) => i.id === insuranceId);
+  const idx = mockInsuranceStorage[vendorId].findIndex(
+    (i) => i.id === insuranceId,
+  );
   if (idx >= 0) {
     mockInsuranceStorage[vendorId].splice(idx, 1);
   }
@@ -495,7 +500,9 @@ async function mockDeleteVendorCustomField(
 
   if (!mockCustomFieldsStorage[vendorId]) return;
 
-  const idx = mockCustomFieldsStorage[vendorId].findIndex((f) => f.id === fieldId);
+  const idx = mockCustomFieldsStorage[vendorId].findIndex(
+    (f) => f.id === fieldId,
+  );
   if (idx >= 0) {
     mockCustomFieldsStorage[vendorId].splice(idx, 1);
   }
@@ -561,44 +568,53 @@ export default function VendorDetail() {
   }, [id]);
 
   // Mock note operations
-  const addNote = useCallback(async (text: string) => {
-    try {
-      const newNote = await mockCreateVendorNote(id, text);
-      setNotes((prev) => [newNote as VendorNote, ...prev]);
-    } catch (err) {
-      console.error("Failed to add note");
-    }
-  }, [id]);
-
-  const removeNote = useCallback(async (noteId: number) => {
-    try {
-      await mockDeleteVendorNote(id, noteId);
-      setNotes((prev) => prev.filter((n) => n.id !== noteId));
-    } catch (err) {
-      console.error("Failed to delete note");
-    }
-  }, [id]);
-
-  const editNote = useCallback(async (noteId: number, text: string) => {
-    try {
-      const updated = await mockUpdateVendorNote(id, noteId, text);
-      if (updated) {
-        setNotes((prev) =>
-          prev.map((n) =>
-            n.id === noteId
-              ? {
-                  ...n,
-                  text: updated.text,
-                  date: updated.date,
-                }
-              : n,
-          ),
-        );
+  const addNote = useCallback(
+    async (text: string) => {
+      try {
+        const newNote = await mockCreateVendorNote(id, text);
+        setNotes((prev) => [newNote as VendorNote, ...prev]);
+      } catch (err) {
+        console.error("Failed to add note");
       }
-    } catch (err) {
-      console.error("Failed to edit note");
-    }
-  }, [id]);
+    },
+    [id],
+  );
+
+  const removeNote = useCallback(
+    async (noteId: number) => {
+      try {
+        await mockDeleteVendorNote(id, noteId);
+        setNotes((prev) => prev.filter((n) => n.id !== noteId));
+      } catch (err) {
+        console.error("Failed to delete note");
+      }
+    },
+    [id],
+  );
+
+  const editNote = useCallback(
+    async (noteId: number, text: string) => {
+      try {
+        const updated = await mockUpdateVendorNote(id, noteId, text);
+        if (updated) {
+          setNotes((prev) =>
+            prev.map((n) =>
+              n.id === noteId
+                ? {
+                    ...n,
+                    text: updated.text,
+                    date: updated.date,
+                  }
+                : n,
+            ),
+          );
+        }
+      } catch (err) {
+        console.error("Failed to edit note");
+      }
+    },
+    [id],
+  );
 
   // Mock file operations
   const uploadFile = useCallback(
@@ -625,7 +641,10 @@ export default function VendorDetail() {
   );
 
   const updateFile = useCallback(
-    async (fileId: number, updates: Partial<Pick<VendorFile, "name" | "category" | "description">>) => {
+    async (
+      fileId: number,
+      updates: Partial<Pick<VendorFile, "name" | "category" | "description">>,
+    ) => {
       try {
         await mockUpdateVendorFile(id, fileId, updates);
         setMockFiles((prev) =>
@@ -645,14 +664,17 @@ export default function VendorDetail() {
     [id],
   );
 
-  const deleteFile = useCallback(async (fileId: number) => {
-    try {
-      await mockDeleteVendorFile(id, fileId);
-      setMockFiles((prev) => prev.filter((f) => f.id !== fileId));
-    } catch (err) {
-      console.error("Failed to delete file");
-    }
-  }, [id]);
+  const deleteFile = useCallback(
+    async (fileId: number) => {
+      try {
+        await mockDeleteVendorFile(id, fileId);
+        setMockFiles((prev) => prev.filter((f) => f.id !== fileId));
+      } catch (err) {
+        console.error("Failed to delete file");
+      }
+    },
+    [id],
+  );
 
   // Mock data state for insurance
   const [insurance, setInsurance] = useState<VendorInsurance[]>([]);
@@ -702,14 +724,17 @@ export default function VendorDetail() {
     [id],
   );
 
-  const removeInsurance = useCallback(async (insuranceId: number) => {
-    try {
-      await mockDeleteVendorInsurance(id, insuranceId);
-      setInsurance((prev) => prev.filter((i) => i.id !== insuranceId));
-    } catch (err) {
-      console.error("Failed to delete insurance");
-    }
-  }, [id]);
+  const removeInsurance = useCallback(
+    async (insuranceId: number) => {
+      try {
+        await mockDeleteVendorInsurance(id, insuranceId);
+        setInsurance((prev) => prev.filter((i) => i.id !== insuranceId));
+      } catch (err) {
+        console.error("Failed to delete insurance");
+      }
+    },
+    [id],
+  );
 
   // Mock custom field operations
   const addField = useCallback(
@@ -724,14 +749,17 @@ export default function VendorDetail() {
     [id],
   );
 
-  const removeField = useCallback(async (fieldId: number) => {
-    try {
-      await mockDeleteVendorCustomField(id, fieldId);
-      setFields((prev) => prev.filter((f) => f.id !== fieldId));
-    } catch (err) {
-      console.error("Failed to delete custom field");
-    }
-  }, [id]);
+  const removeField = useCallback(
+    async (fieldId: number) => {
+      try {
+        await mockDeleteVendorCustomField(id, fieldId);
+        setFields((prev) => prev.filter((f) => f.id !== fieldId));
+      } catch (err) {
+        console.error("Failed to delete custom field");
+      }
+    },
+    [id],
+  );
 
   // Local state for UI
   const [isInactive, setIsInactive] = useState(false);

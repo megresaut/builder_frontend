@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
-import {
-  ModalTemplate,
-  ModalButtons,
-} from "@/components/ui/ModalTemplate";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   FormLayout,
   FormSection,
@@ -51,7 +48,13 @@ interface CreateWorkOrderModalV2Props {
 
 // Base options for dropdowns
 const BASE_TASKS = ["Task 1", "Task 2", "Task 3", "Task 4"];
-const VENDORS = ["David Smith", "Elite HVAC", "ABC Plumbing", "Green Lawn Services", "Spark Electrical"];
+const VENDORS = [
+  "David Smith",
+  "Elite HVAC",
+  "ABC Plumbing",
+  "Green Lawn Services",
+  "Spark Electrical",
+];
 const STATUSES = ["not_started", "in_progress", "completed"];
 const PRIORITIES = ["low", "normal", "high"];
 
@@ -61,10 +64,12 @@ const buildTaskOptions = (initialTask?: string) => {
   if (initialTask && initialTask.trim()) {
     options.add(initialTask);
   }
-  return Array.from(options).sort().map(task => ({
-    value: task,
-    label: task,
-  }));
+  return Array.from(options)
+    .sort()
+    .map((task) => ({
+      value: task,
+      label: task,
+    }));
 };
 
 const buildVendorOptions = (initialVendor?: string) => {
@@ -72,17 +77,16 @@ const buildVendorOptions = (initialVendor?: string) => {
   if (initialVendor && initialVendor.trim()) {
     options.add(initialVendor);
   }
-  return Array.from(options).sort().map(vendor => ({
-    value: vendor,
-    label: vendor,
-  }));
+  return Array.from(options)
+    .sort()
+    .map((vendor) => ({
+      value: vendor,
+      label: vendor,
+    }));
 };
 
 // Fields that must be validated on submit
-const REQUIRED_FIELDS = new Set([
-  "task",
-  "workOrderName",
-]);
+const REQUIRED_FIELDS = new Set(["task", "workOrderName"]);
 
 export default function CreateWorkOrderModalV2({
   open,
@@ -157,7 +161,9 @@ export default function CreateWorkOrderModalV2({
     }
   };
 
-  const handleWorkOrderNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleWorkOrderNameChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setFormData((prev) => ({ ...prev, workOrderName: e.target.value }));
     if (errors.workOrderName) {
       setErrors((prev) => ({ ...prev, workOrderName: "" }));
@@ -225,7 +231,8 @@ export default function CreateWorkOrderModalV2({
 
   const handleConfirm = () => {
     if (validateForm()) {
-      const actionLabel = mode === "edit" ? "Work Order Updated:" : "Work Order Created:";
+      const actionLabel =
+        mode === "edit" ? "Work Order Updated:" : "Work Order Created:";
       console.log(actionLabel, formData);
 
       if (onDataUpdate) {
@@ -283,7 +290,9 @@ export default function CreateWorkOrderModalV2({
             </FormSection>
           )}
 
-          <FormSection title={!hideSubheader ? "Work Order Details" : undefined}>
+          <FormSection
+            title={!hideSubheader ? "Work Order Details" : undefined}
+          >
             <FormFieldRow columns={2}>
               <TextField
                 label="Work Order Name"

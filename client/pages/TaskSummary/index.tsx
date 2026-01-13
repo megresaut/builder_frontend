@@ -1,7 +1,14 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
-import { EditIcon, NoteIcon, PaperclipIcon, FlagIcon, CalendarIcon, ApproveIcon } from "@/components/icons";
+import {
+  EditIcon,
+  NoteIcon,
+  PaperclipIcon,
+  FlagIcon,
+  CalendarIcon,
+  ApproveIcon,
+} from "@/components/icons";
 import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "../WorkOrders";
@@ -23,7 +30,12 @@ import PersonAvatars from "@/components/PersonAvatars";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import CreateTaskModal from "@/components/CreateTaskModal";
-import { AddNoteModal, AddFileModal, EditTaskDetailsModal, LinkTaskModal } from "@/components/task";
+import {
+  AddNoteModal,
+  AddFileModal,
+  EditTaskDetailsModal,
+  LinkTaskModal,
+} from "@/components/task";
 import { StatusSelectField } from "@/components/forms/StatusSelectField";
 import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
 import { NotesTemplate } from "@/components/templates";
@@ -40,52 +52,176 @@ import RecordBillModal from "@/components/RecordBillModal";
 import { MOCK_TASKS } from "@/data/tasks";
 
 // Vendor master data with contact information
-const vendorMasterData: Record<string, { email: string; phone: string; title: string }> = {
-  "ABC Doors & Hardware": { email: "info@abcdoors.com", phone: "(555) 123-1234", title: "Vendor Company" },
-  "Elite HVAC Services": { email: "contact@elitehvac.com", phone: "(555) 234-5678", title: "Vendor Company" },
-  "Glass & Frames Inc": { email: "sales@glassframes.com", phone: "(555) 345-6789", title: "Vendor Company" },
-  "Pro Roofing Solutions": { email: "quote@proroofing.com", phone: "(555) 456-7890", title: "Vendor Company" },
-  "Dolce Plumbing & Heating LLC": { email: "service@dolceplumbing.com", phone: "(555) 567-8901", title: "Vendor Company" },
-  "Spark Electrical": { email: "jobs@sparkelectrical.com", phone: "(555) 678-9012", title: "Vendor Company" },
-  "Premium Painters Co": { email: "estimate@premiumpainters.com", phone: "(555) 789-0123", title: "Vendor Company" },
-  "Quality Flooring LLC": { email: "orders@qualityflooring.com", phone: "(555) 890-1234", title: "Vendor Company" },
-  "Green Lawn Services": { email: "schedule@greenlawn.com", phone: "(555) 901-2345", title: "Vendor Company" },
-  "Outdoor Construction Corp": { email: "bids@outdoorconstruction.com", phone: "(555) 012-3456", title: "Vendor Company" },
+const vendorMasterData: Record<
+  string,
+  { email: string; phone: string; title: string }
+> = {
+  "ABC Doors & Hardware": {
+    email: "info@abcdoors.com",
+    phone: "(555) 123-1234",
+    title: "Vendor Company",
+  },
+  "Elite HVAC Services": {
+    email: "contact@elitehvac.com",
+    phone: "(555) 234-5678",
+    title: "Vendor Company",
+  },
+  "Glass & Frames Inc": {
+    email: "sales@glassframes.com",
+    phone: "(555) 345-6789",
+    title: "Vendor Company",
+  },
+  "Pro Roofing Solutions": {
+    email: "quote@proroofing.com",
+    phone: "(555) 456-7890",
+    title: "Vendor Company",
+  },
+  "Dolce Plumbing & Heating LLC": {
+    email: "service@dolceplumbing.com",
+    phone: "(555) 567-8901",
+    title: "Vendor Company",
+  },
+  "Spark Electrical": {
+    email: "jobs@sparkelectrical.com",
+    phone: "(555) 678-9012",
+    title: "Vendor Company",
+  },
+  "Premium Painters Co": {
+    email: "estimate@premiumpainters.com",
+    phone: "(555) 789-0123",
+    title: "Vendor Company",
+  },
+  "Quality Flooring LLC": {
+    email: "orders@qualityflooring.com",
+    phone: "(555) 890-1234",
+    title: "Vendor Company",
+  },
+  "Green Lawn Services": {
+    email: "schedule@greenlawn.com",
+    phone: "(555) 901-2345",
+    title: "Vendor Company",
+  },
+  "Outdoor Construction Corp": {
+    email: "bids@outdoorconstruction.com",
+    phone: "(555) 012-3456",
+    title: "Vendor Company",
+  },
 };
 
 // Internal Team Master Data
-const internalTeamMasterData: Record<string, { email: string; phone: string; title: string }> = {
-  "Jerry Sanchez": { email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
-  "Sarah Wilson": { email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
-  "Jane Smith": { email: "jane.smith@company.com", phone: "(555) 333-3333", title: "HVAC Specialist" },
-  "Tom Davis": { email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
-  "Lisa Brown": { email: "lisa.brown@company.com", phone: "(555) 777-7777", title: "Inspector" },
-  "John Doe": { email: "john.doe@company.com", phone: "(555) 222-2222", title: "Lead Inspector" },
-  "Mike Johnson": { email: "mike.johnson@company.com", phone: "(555) 444-4444", title: "Plumber" },
-  "Julia LoSchiavo": { email: "julia.loschiavo@company.com", phone: "(555) 123-4567", title: "Project Manager" },
-  "Chris Henry": { email: "chris.henry@company.com", phone: "(555) 888-9999", title: "Coordinator" },
-  "Connor Smith": { email: "connor.smith@company.com", phone: "(555) 000-1111", title: "Technician" },
-  "Sarah Martinez": { email: "sarah.martinez@company.com", phone: "(555) 222-4444", title: "Specialist" },
+const internalTeamMasterData: Record<
+  string,
+  { email: string; phone: string; title: string }
+> = {
+  "Jerry Sanchez": {
+    email: "jerry.sanchez@company.com",
+    phone: "(555) 111-1111",
+    title: "Field Technician",
+  },
+  "Sarah Wilson": {
+    email: "sarah.wilson@company.com",
+    phone: "(555) 555-5555",
+    title: "Project Manager",
+  },
+  "Jane Smith": {
+    email: "jane.smith@company.com",
+    phone: "(555) 333-3333",
+    title: "HVAC Specialist",
+  },
+  "Tom Davis": {
+    email: "tom.davis@company.com",
+    phone: "(555) 666-6666",
+    title: "Supervisor",
+  },
+  "Lisa Brown": {
+    email: "lisa.brown@company.com",
+    phone: "(555) 777-7777",
+    title: "Inspector",
+  },
+  "John Doe": {
+    email: "john.doe@company.com",
+    phone: "(555) 222-2222",
+    title: "Lead Inspector",
+  },
+  "Mike Johnson": {
+    email: "mike.johnson@company.com",
+    phone: "(555) 444-4444",
+    title: "Plumber",
+  },
+  "Julia LoSchiavo": {
+    email: "julia.loschiavo@company.com",
+    phone: "(555) 123-4567",
+    title: "Project Manager",
+  },
+  "Chris Henry": {
+    email: "chris.henry@company.com",
+    phone: "(555) 888-9999",
+    title: "Coordinator",
+  },
+  "Connor Smith": {
+    email: "connor.smith@company.com",
+    phone: "(555) 000-1111",
+    title: "Technician",
+  },
+  "Sarah Martinez": {
+    email: "sarah.martinez@company.com",
+    phone: "(555) 222-4444",
+    title: "Specialist",
+  },
 };
 
 // Field team member master data with contact information
-const fieldTeamMasterData: Record<string, { email: string; phone: string; title: string }> = {
-  "Christopher Harris": { email: "christopher.harris@company.com", phone: "(555) 111-2222", title: "Field Lead" },
-  "Cassandra Smith": { email: "cassandra.smith@company.com", phone: "(555) 222-3333", title: "Field Technician" },
-  "David Chen": { email: "david.chen@company.com", phone: "(555) 333-4444", title: "Field Specialist" },
-  "Emma Rodriguez": { email: "emma.rodriguez@company.com", phone: "(555) 444-5555", title: "Field Technician" },
-  "James Wilson": { email: "james.wilson@company.com", phone: "(555) 555-6666", title: "Field Lead" },
+const fieldTeamMasterData: Record<
+  string,
+  { email: string; phone: string; title: string }
+> = {
+  "Christopher Harris": {
+    email: "christopher.harris@company.com",
+    phone: "(555) 111-2222",
+    title: "Field Lead",
+  },
+  "Cassandra Smith": {
+    email: "cassandra.smith@company.com",
+    phone: "(555) 222-3333",
+    title: "Field Technician",
+  },
+  "David Chen": {
+    email: "david.chen@company.com",
+    phone: "(555) 333-4444",
+    title: "Field Specialist",
+  },
+  "Emma Rodriguez": {
+    email: "emma.rodriguez@company.com",
+    phone: "(555) 444-5555",
+    title: "Field Technician",
+  },
+  "James Wilson": {
+    email: "james.wilson@company.com",
+    phone: "(555) 555-6666",
+    title: "Field Lead",
+  },
 };
 
 // Helper to hydrate person data
-const hydratePerson = (person: { id: number | string; name: string; initials?: string }) => {
+const hydratePerson = (person: {
+  id: number | string;
+  name: string;
+  initials?: string;
+}) => {
   const internal = internalTeamMasterData[person.name];
   const field = fieldTeamMasterData[person.name];
   const vendor = vendorMasterData[person.name];
   const info = internal || field || vendor;
 
   // Generate initials if missing
-  const initials = person.initials || person.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
+  const initials =
+    person.initials ||
+    person.name
+      .split(" ")
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase();
 
   return {
     ...person,
@@ -113,26 +249,30 @@ export default function TaskSummary() {
   }, [taskId]);
 
   // Use either provided task data or find it from MOCK_TASKS
-  const taskData = navigationState?.taskData || navigationState?.task || existingTask;
+  const taskData =
+    navigationState?.taskData || navigationState?.task || existingTask;
 
   // Ref for tracking blob URLs created during task initialization
   const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
 
   // Initialize UI state reducer
   const { state: uiState, dispatch: uiDispatch } = useTaskSummaryUI(
-    (tab as "summary" | "workorders" | "fieldteam") || "summary"
+    (tab as "summary" | "workorders" | "fieldteam") || "summary",
   );
 
   // Initialize activeTab and selectedWorkOrderId from URL params on mount and when URL changes
   useEffect(() => {
-    const tabValue = (tab as "summary" | "workorders" | "fieldteam") || "summary";
+    const tabValue =
+      (tab as "summary" | "workorders" | "fieldteam") || "summary";
     if (tabValue !== uiState.activeTab) {
       uiDispatch({ type: "SET_ACTIVE_TAB", payload: tabValue });
     }
 
     // Use URL workOrderId if available (on workorders tab with a selection)
     // Otherwise use preserved ID from location state (when returning from other tabs)
-    const urlId = workOrderId ? parseInt(workOrderId) : (navigationState?.preservedWorkOrderId || null);
+    const urlId = workOrderId
+      ? parseInt(workOrderId)
+      : navigationState?.preservedWorkOrderId || null;
     if (urlId !== uiState.selectedWorkOrderId) {
       uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: urlId });
     }
@@ -151,7 +291,7 @@ export default function TaskSummary() {
     if (!tab && taskId) {
       navigate(`/tasks/${taskId}/summary`, {
         replace: true,
-        state: navigationState // Preserve the navigation state when redirecting
+        state: navigationState, // Preserve the navigation state when redirecting
       });
     }
   }, [tab, taskId, navigate, navigationState]);
@@ -161,48 +301,71 @@ export default function TaskSummary() {
     if (navigationState?.ftoAction && navigationState?.ftoId) {
       const actionFtoId = Number(navigationState.ftoId);
 
-      if (navigationState.ftoAction === 'approved') {
-        setFieldTeamOrders(prev => prev.map(o => o.id === actionFtoId ? {
-          ...o,
-          status: 'approved',
-          timesheetStatus: 'approved'
-        } : o));
+      if (navigationState.ftoAction === "approved") {
+        setFieldTeamOrders((prev) =>
+          prev.map((o) =>
+            o.id === actionFtoId
+              ? {
+                  ...o,
+                  status: "approved",
+                  timesheetStatus: "approved",
+                }
+              : o,
+          ),
+        );
 
-        setUpdates(prev => [{
-          id: prev.length + 1,
-          author: "System",
-          authorType: "assignee",
-          action: `timesheet for field team order #${actionFtoId} was approved`,
-          timestamp: new Date().toLocaleString(),
-          icon: <ApproveIcon width={16} height={16} />,
-        }, ...prev]);
-      } else if (navigationState.ftoAction === 'rejected') {
-        setFieldTeamOrders(prev => prev.map(o => o.id === actionFtoId ? {
-          ...o,
-          status: 'dispatched',
-          timesheetStatus: 'rejected'
-        } : o));
+        setUpdates((prev) => [
+          {
+            id: prev.length + 1,
+            author: "System",
+            authorType: "assignee",
+            action: `timesheet for field team order #${actionFtoId} was approved`,
+            timestamp: new Date().toLocaleString(),
+            icon: <ApproveIcon width={16} height={16} />,
+          },
+          ...prev,
+        ]);
+      } else if (navigationState.ftoAction === "rejected") {
+        setFieldTeamOrders((prev) =>
+          prev.map((o) =>
+            o.id === actionFtoId
+              ? {
+                  ...o,
+                  status: "dispatched",
+                  timesheetStatus: "rejected",
+                }
+              : o,
+          ),
+        );
 
-        setUpdates(prev => [{
-          id: prev.length + 1,
-          author: "System",
-          authorType: "assignee",
-          action: `timesheet for field team order #${actionFtoId} was rejected`,
-          timestamp: new Date().toLocaleString(),
-          icon: <EditIcon width={16} height={16} />,
-        }, ...prev]);
+        setUpdates((prev) => [
+          {
+            id: prev.length + 1,
+            author: "System",
+            authorType: "assignee",
+            action: `timesheet for field team order #${actionFtoId} was rejected`,
+            timestamp: new Date().toLocaleString(),
+            icon: <EditIcon width={16} height={16} />,
+          },
+          ...prev,
+        ]);
       }
     }
   }, [navigationState?.ftoAction, navigationState?.ftoId]);
 
   // Determine if this is a new task
-  const isNewTask = !!(navigationState?.taskData || navigationState?.task || (existingTask && taskId !== "1")); // Task 1 is our "Edgerton" demo
+  const isNewTask = !!(
+    navigationState?.taskData ||
+    navigationState?.task ||
+    (existingTask && taskId !== "1")
+  ); // Task 1 is our "Edgerton" demo
 
   // Update tab metadata with actual task name and switch to task tab
   useEffect(() => {
     if (taskId && taskData?.title) {
       const tabId = `task-${taskId}`;
-      const activeTab = (tab as "summary" | "workorders" | "fieldteam") || "summary";
+      const activeTab =
+        (tab as "summary" | "workorders" | "fieldteam") || "summary";
       setTabMetadata(tabId, {
         label: taskData.title,
         route: `/tasks/${taskId}/${activeTab}`,
@@ -215,23 +378,29 @@ export default function TaskSummary() {
   // Track creation timestamp - set once and never change
   const [createdTimestamp] = useState<string>(() => {
     // Use provided creation timestamp or current time
-    return taskData?.createdAt ||
-           taskData?.updated ||
-           new Date().toLocaleString();
+    return (
+      taskData?.createdAt || taskData?.updated || new Date().toLocaleString()
+    );
   });
 
   // Track last updated timestamp - updates when task is modified
-  const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState<string>(createdTimestamp);
+  const [lastUpdatedTimestamp, setLastUpdatedTimestamp] =
+    useState<string>(createdTimestamp);
 
   // Mock state for notes, files, and updates
-  const [notes, setNotes] = useState<Note[]>(taskData?.notes || (isNewTask ? [] : [
-    {
-      id: 1,
-      text: "Initial task setup completed",
-      date: "11/12/2025 9:22 PM",
-      author: "Julia LoSchiavo",
-    },
-  ]));
+  const [notes, setNotes] = useState<Note[]>(
+    taskData?.notes ||
+      (isNewTask
+        ? []
+        : [
+            {
+              id: 1,
+              text: "Initial task setup completed",
+              date: "11/12/2025 9:22 PM",
+              author: "Julia LoSchiavo",
+            },
+          ]),
+  );
 
   const [files, setFiles] = useState<File[]>(() => {
     if (taskData?.files) {
@@ -244,15 +413,17 @@ export default function TaskSummary() {
         description: "",
       }));
     }
-    return isNewTask ? [] : [
-      {
-        id: 1,
-        name: "Lorem Ipsum.PDF",
-        uploadedAt: "11/12/2025 9:22 PM",
-        category: "",
-        url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7",
-      },
-    ];
+    return isNewTask
+      ? []
+      : [
+          {
+            id: 1,
+            name: "Lorem Ipsum.PDF",
+            uploadedAt: "11/12/2025 9:22 PM",
+            category: "",
+            url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7",
+          },
+        ];
   });
 
   const getAttachmentData = (file: any, index?: number) => {
@@ -275,7 +446,8 @@ export default function TaskSummary() {
           : false;
 
     // Ensure ID is stable and unique. Prefer file.id, fallback to name+index for initial files
-    const stableId = file.id || (index !== undefined ? `${file.name}-${index}` : file.name);
+    const stableId =
+      file.id || (index !== undefined ? `${file.name}-${index}` : file.name);
 
     return {
       name: file.name,
@@ -287,32 +459,65 @@ export default function TaskSummary() {
 
   const getInitialUpdate = () => {
     const statusMap: { [key: string]: string } = {
-      "not_started": "Not Started",
-      "in_progress": "In Progress",
-      "completed": "Completed",
+      not_started: "Not Started",
+      in_progress: "In Progress",
+      completed: "Completed",
       "Not Started": "Not Started",
       "In Progress": "In Progress",
-      "Completed": "Completed",
+      Completed: "Completed",
     };
     const priorityLabel = taskData?.priority
-      ? (typeof taskData.priority === 'string'
-          ? taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1)
-          : taskData.priority)
+      ? typeof taskData.priority === "string"
+        ? taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1)
+        : taskData.priority
       : "Normal";
-    const dueDate = taskData?.dueDate || taskData?.due
-      ? (taskData.dueDate instanceof Date
-          ? taskData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : (taskData.dueDate || taskData.due))
-      : "No due date";
+    const dueDate =
+      taskData?.dueDate || taskData?.due
+        ? taskData.dueDate instanceof Date
+          ? taskData.dueDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : taskData.dueDate || taskData.due
+        : "No due date";
     const fields = [
-      { label: "Status", value: <TaskStatusBadge status={(statusMap[taskData?.status] || taskData?.status || "Not Started") as any} /> },
-      { label: "Priority", value: <TaskPriorityBadge priority={priorityLabel as any} /> },
+      {
+        label: "Status",
+        value: (
+          <TaskStatusBadge
+            status={
+              (statusMap[taskData?.status] ||
+                taskData?.status ||
+                "Not Started") as any
+            }
+          />
+        ),
+      },
+      {
+        label: "Priority",
+        value: <TaskPriorityBadge priority={priorityLabel as any} />,
+      },
       { label: "Due Date", value: dueDate },
-      { label: "Assignees", value: <PersonAvatars people={taskData?.assignees || []} type="assignee" fallback="Unassigned" /> },
+      {
+        label: "Assignees",
+        value: (
+          <PersonAvatars
+            people={taskData?.assignees || []}
+            type="assignee"
+            fallback="Unassigned"
+          />
+        ),
+      },
     ];
 
     if (taskData?.collaborators && taskData.collaborators.length > 0) {
-      fields.push({ label: "Collaborators", value: <PersonAvatars people={taskData.collaborators} type="collaborator" /> });
+      fields.push({
+        label: "Collaborators",
+        value: (
+          <PersonAvatars people={taskData.collaborators} type="collaborator" />
+        ),
+      });
     }
 
     return {
@@ -328,23 +533,35 @@ export default function TaskSummary() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
           {fields.map((field, idx) => (
             <div key={idx}>
-              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">{field.label}</div>
-              <div className="text-sm text-[#303030] font-medium mt-0.5">{field.value}</div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                {field.label}
+              </div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">
+                {field.value}
+              </div>
             </div>
           ))}
         </div>
       ),
       ...(taskData?.description && {
-        details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
+        details: (
+          <div className="text-sm text-[#303030]">{taskData.description}</div>
+        ),
       }),
-      ...(taskData?.files && taskData.files.length > 0 && {
-        attachments: taskData.files.map((f: any, idx: number) => getAttachmentData(f, idx)),
-        onAttachmentClick: (file: any) => {
-          uiDispatch({ type: "SET_VIEWING_ATTACHMENT", payload: { id: file.id, name: file.name, url: file.url } });
-          uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
-          uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
-        },
-      }),
+      ...(taskData?.files &&
+        taskData.files.length > 0 && {
+          attachments: taskData.files.map((f: any, idx: number) =>
+            getAttachmentData(f, idx),
+          ),
+          onAttachmentClick: (file: any) => {
+            uiDispatch({
+              type: "SET_VIEWING_ATTACHMENT",
+              payload: { id: file.id, name: file.name, url: file.url },
+            });
+            uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
+            uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
+          },
+        }),
       icon: <FlagIcon width={16} height={16} />,
       isInitialCreation: true,
     };
@@ -371,31 +588,49 @@ export default function TaskSummary() {
         fieldsDisplay: (
           <div className="grid grid-cols-4 gap-6 mt-3">
             <div>
-              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Status
+              </div>
               <div className="mt-0.5">
                 <TaskStatusBadge status="Not Started" />
               </div>
             </div>
             <div>
-              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Priority
+              </div>
               <div className="mt-0.5">
                 <TaskPriorityBadge priority="Normal" />
               </div>
             </div>
             <div>
-              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
-              <div className="text-sm text-[#303030] font-medium mt-0.5">Oct 15, 2025</div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Due Date
+              </div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">
+                Oct 15, 2025
+              </div>
             </div>
             <div>
-              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Assignees
+              </div>
               <div className="mt-0.5">
-                <PersonAvatars people={[{ id: 1, name: "Julia LoSchiavo", initials: "JL" }]} type="assignee" />
+                <PersonAvatars
+                  people={[{ id: 1, name: "Julia LoSchiavo", initials: "JL" }]}
+                  type="assignee"
+                />
               </div>
             </div>
           </div>
         ),
         details: (
-          <div className="text-sm text-[#303030]">We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower.</div>
+          <div className="text-sm text-[#303030]">
+            We have been experiencing issues with the water heater. At first we
+            thought the issue was due to us just moving in and maybe the water
+            heater needed time to heat up after no tenants. It has been 3 days
+            in a row now that we lose hot water mid shower.
+          </div>
         ),
         icon: <FlagIcon width={16} height={16} />,
         isInitialCreation: true,
@@ -404,11 +639,22 @@ export default function TaskSummary() {
   };
 
   const [updates, setUpdates] = useState<any[]>(getInitialUpdates());
-  const [currentProperty, setCurrentProperty] = useState<string>(taskData?.property || "");
+  const [currentProperty, setCurrentProperty] = useState<string>(
+    taskData?.property || "",
+  );
   const [currentUnit, setCurrentUnit] = useState<string>(taskData?.unit || "");
-  const [currentTitle, setCurrentTitle] = useState<string>(taskData?.title || "Edgerton - Quote");
-  const [currentDescription, setCurrentDescription] = useState<string>(taskData?.description || (isNewTask ? "" : "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower."));
-  const [currentCategory, setCurrentCategory] = useState<string>(taskData?.category || "Uncategorized");
+  const [currentTitle, setCurrentTitle] = useState<string>(
+    taskData?.title || "Edgerton - Quote",
+  );
+  const [currentDescription, setCurrentDescription] = useState<string>(
+    taskData?.description ||
+      (isNewTask
+        ? ""
+        : "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower."),
+  );
+  const [currentCategory, setCurrentCategory] = useState<string>(
+    taskData?.category || "Uncategorized",
+  );
   const [currentStatus, setCurrentStatus] = useState<string>(() => {
     const status = taskData?.status || "not_started";
     if (status === "Completed") return "completed";
@@ -432,18 +678,24 @@ export default function TaskSummary() {
     if (taskData?.assignees && taskData.assignees.length > 0) {
       return taskData.assignees;
     }
-    return isNewTask ? [] : [hydratePerson({ id: 1, name: "Julia LoSchiavo", initials: "JL" })];
+    return isNewTask
+      ? []
+      : [hydratePerson({ id: 1, name: "Julia LoSchiavo", initials: "JL" })];
   });
-  const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(() => {
-    if (taskData?.collaborators && taskData.collaborators.length > 0) {
-      return taskData.collaborators;
-    }
-    return isNewTask ? [] : [
-      hydratePerson({ id: 2, name: "Chris Henry", initials: "CH" }),
-      hydratePerson({ id: 3, name: "Connor Smith", initials: "CS" }),
-      hydratePerson({ id: 8, name: "Sarah Martinez", initials: "SM" }),
-    ];
-  });
+  const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(
+    () => {
+      if (taskData?.collaborators && taskData.collaborators.length > 0) {
+        return taskData.collaborators;
+      }
+      return isNewTask
+        ? []
+        : [
+            hydratePerson({ id: 2, name: "Chris Henry", initials: "CH" }),
+            hydratePerson({ id: 3, name: "Connor Smith", initials: "CS" }),
+            hydratePerson({ id: 8, name: "Sarah Martinez", initials: "SM" }),
+          ];
+    },
+  );
 
   // Sync assignees and collaborators when taskData changes
   useEffect(() => {
@@ -481,237 +733,388 @@ export default function TaskSummary() {
   }
 
   // Mock work orders data - memoized to ensure hydratePerson is available
-  const mockWorkOrders: WorkOrder[] = useMemo(() => [
-    {
-      id: 1,
-      task: "Doors need to be repaired",
-      taskId: 1,
-      property: "Downtown Building",
-      unit: "Unit 101",
-      dueDate: "Oct 2, 2025",
-      updatedDate: "Oct 2, 2025",
-      age: "6 days 5 hours",
-      priority: "high",
-      status: "in_progress",
-      billStatus: "Paid",
-      billTotal: "$420",
-      assignees: [
-        hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-      ],
-      collaborators: [
-        hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-      ],
-      vendorName: "ABC Doors & Hardware",
-    },
-    {
-      id: 2,
-      task: "HVAC maintenance needed",
-      taskId: 2,
-      property: "Riverside Complex",
-      unit: "Unit 205",
-      dueDate: "Sep 29, 2025",
-      updatedDate: "Sep 29, 2025",
-      age: "6 days 5 hours",
-      priority: "low",
-      status: "in_progress",
-      billStatus: "Awaiting Invoice",
-      billTotal: "No invoice",
-      assignees: [
-        hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
-      ],
-      collaborators: [
-        hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-        hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
-      ],
-      vendorName: "Elite HVAC Services",
-    },
-    {
-      id: 3,
-      task: "Window replacement",
-      taskId: 3,
-      property: "Central Plaza",
-      unit: "Unit 312",
-      dueDate: "Sep 10, 2025",
-      updatedDate: "Sep 10, 2025",
-      age: "6 days 5 hours",
-      priority: "normal",
-      status: "completed",
-      billStatus: "Unpaid",
-      billTotal: "$95",
-      assignees: [
-        hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-      ],
-      collaborators: [],
-      vendorName: "Glass & Frames Inc",
-    },
-    {
-      id: 4,
-      task: "Roof inspection",
-      taskId: 4,
-      property: "Highland Towers",
-      unit: "Roof Level",
-      dueDate: "Sep 6, 2025",
-      updatedDate: "Sep 6, 2025",
-      age: "6 days 5 hours",
-      priority: "high",
-      status: "completed",
-      billStatus: "Unpaid",
-      billTotal: "$112",
-      assignees: [
-        hydratePerson({ id: 2, name: "John Doe", initials: "JD" }),
-      ],
-      collaborators: [
-        hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-      ],
-      vendorName: "Pro Roofing Solutions",
-    },
-    {
-      id: 5,
-      task: "Plumbing repair",
-      taskId: 5,
-      property: "Market Street Apt",
-      unit: "Unit 404",
-      dueDate: "Sep 5, 2025",
-      updatedDate: "Sep 5, 2025",
-      age: "6 days 5 hours",
-      priority: "high",
-      status: "completed",
-      billStatus: "Unpaid",
-      billTotal: "$93",
-      assignees: [
-        hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
-      ],
-      collaborators: [
-        hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-      ],
-      vendorName: "Dolce Plumbing & Heating LLC",
-    },
-    {
-      id: 6,
-      task: "Electrical work",
-      taskId: 6,
-      property: "Oak Ridge Manor",
-      unit: "Unit 501",
-      dueDate: "Sep 4, 2025",
-      updatedDate: "Sep 4, 2025",
-      age: "6 days 5 hours",
-      priority: "high",
-      status: "completed",
-      billStatus: "Unpaid",
-      billTotal: "$75",
-      assignees: [
-        hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-      ],
-      collaborators: [
-        hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
-        hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-      ],
-      vendorName: "Spark Electrical",
-    },
-    {
-      id: 7,
-      task: "Painting job",
-      taskId: 7,
-      property: "Park Avenue Building",
-      unit: "Unit 102",
-      dueDate: "Sep 4, 2025",
-      updatedDate: "Sep 4, 2025",
-      age: "6 days 5 hours",
-      priority: "high",
-      status: "completed",
-      billStatus: "Unpaid",
-      billTotal: "$101",
-      assignees: [
-        hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
-      ],
-      collaborators: [],
-      vendorName: "Premium Painters Co",
-    },
-    {
-      id: 8,
-      task: "Carpet replacement",
-      taskId: 8,
-      property: "Westside Residences",
-      unit: "Unit 203",
-      dueDate: "Sep 3, 2025",
-      updatedDate: "Sep 3, 2025",
-      age: "6 days 5 hours",
-      priority: "high",
-      status: "completed",
-      billStatus: "Unpaid",
-      billTotal: "$124",
-      assignees: [
-        hydratePerson({ id: 2, name: "John Doe", initials: "JD" }),
-      ],
-      collaborators: [
-        hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-      ],
-      vendorName: "Quality Flooring LLC",
-    },
-    {
-      id: 9,
-      task: "Landscaping work",
-      taskId: 9,
-      property: "Spring Valley Complex",
-      unit: "Common Area",
-      dueDate: "Sep 1, 2025",
-      updatedDate: "Sep 1, 2025",
-      age: "6 days 5 hours",
-      priority: "high",
-      status: "completed",
-      billStatus: "Unpaid",
-      billTotal: "$67",
-      assignees: [
-        hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
-      ],
-      collaborators: [
-        hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-        hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
-      ],
-      vendorName: "Green Lawn Services",
-    },
-    {
-      id: 10,
-      task: "Fence repair",
-      taskId: 10,
-      property: "Lakeside Gardens",
-      unit: "Unit 606",
-      dueDate: "Sep 1, 2025",
-      updatedDate: "Sep 1, 2025",
-      age: "6 days 5 hours",
-      priority: "high",
-      status: "completed",
-      billStatus: "Unpaid",
-      billTotal: "$118",
-      assignees: [
-        hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-      ],
-      collaborators: [
-        hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-      ],
-      vendorName: "Outdoor Construction Corp",
-    },
-  ], []);
+  const mockWorkOrders: WorkOrder[] = useMemo(
+    () => [
+      {
+        id: 1,
+        task: "Doors need to be repaired",
+        taskId: 1,
+        property: "Downtown Building",
+        unit: "Unit 101",
+        dueDate: "Oct 2, 2025",
+        updatedDate: "Oct 2, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "in_progress",
+        billStatus: "Paid",
+        billTotal: "$420",
+        assignees: [
+          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
+        ],
+        vendorName: "ABC Doors & Hardware",
+      },
+      {
+        id: 2,
+        task: "HVAC maintenance needed",
+        taskId: 2,
+        property: "Riverside Complex",
+        unit: "Unit 205",
+        dueDate: "Sep 29, 2025",
+        updatedDate: "Sep 29, 2025",
+        age: "6 days 5 hours",
+        priority: "low",
+        status: "in_progress",
+        billStatus: "Awaiting Invoice",
+        billTotal: "No invoice",
+        assignees: [
+          hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
+          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
+        ],
+        vendorName: "Elite HVAC Services",
+      },
+      {
+        id: 3,
+        task: "Window replacement",
+        taskId: 3,
+        property: "Central Plaza",
+        unit: "Unit 312",
+        dueDate: "Sep 10, 2025",
+        updatedDate: "Sep 10, 2025",
+        age: "6 days 5 hours",
+        priority: "normal",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$95",
+        assignees: [
+          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
+        ],
+        collaborators: [],
+        vendorName: "Glass & Frames Inc",
+      },
+      {
+        id: 4,
+        task: "Roof inspection",
+        taskId: 4,
+        property: "Highland Towers",
+        unit: "Roof Level",
+        dueDate: "Sep 6, 2025",
+        updatedDate: "Sep 6, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$112",
+        assignees: [hydratePerson({ id: 2, name: "John Doe", initials: "JD" })],
+        collaborators: [
+          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
+        ],
+        vendorName: "Pro Roofing Solutions",
+      },
+      {
+        id: 5,
+        task: "Plumbing repair",
+        taskId: 5,
+        property: "Market Street Apt",
+        unit: "Unit 404",
+        dueDate: "Sep 5, 2025",
+        updatedDate: "Sep 5, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$93",
+        assignees: [
+          hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
+        ],
+        vendorName: "Dolce Plumbing & Heating LLC",
+      },
+      {
+        id: 6,
+        task: "Electrical work",
+        taskId: 6,
+        property: "Oak Ridge Manor",
+        unit: "Unit 501",
+        dueDate: "Sep 4, 2025",
+        updatedDate: "Sep 4, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$75",
+        assignees: [
+          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
+          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
+        ],
+        vendorName: "Spark Electrical",
+      },
+      {
+        id: 7,
+        task: "Painting job",
+        taskId: 7,
+        property: "Park Avenue Building",
+        unit: "Unit 102",
+        dueDate: "Sep 4, 2025",
+        updatedDate: "Sep 4, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$101",
+        assignees: [
+          hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
+        ],
+        collaborators: [],
+        vendorName: "Premium Painters Co",
+      },
+      {
+        id: 8,
+        task: "Carpet replacement",
+        taskId: 8,
+        property: "Westside Residences",
+        unit: "Unit 203",
+        dueDate: "Sep 3, 2025",
+        updatedDate: "Sep 3, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$124",
+        assignees: [hydratePerson({ id: 2, name: "John Doe", initials: "JD" })],
+        collaborators: [
+          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
+        ],
+        vendorName: "Quality Flooring LLC",
+      },
+      {
+        id: 9,
+        task: "Landscaping work",
+        taskId: 9,
+        property: "Spring Valley Complex",
+        unit: "Common Area",
+        dueDate: "Sep 1, 2025",
+        updatedDate: "Sep 1, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$67",
+        assignees: [
+          hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
+          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
+        ],
+        vendorName: "Green Lawn Services",
+      },
+      {
+        id: 10,
+        task: "Fence repair",
+        taskId: 10,
+        property: "Lakeside Gardens",
+        unit: "Unit 606",
+        dueDate: "Sep 1, 2025",
+        updatedDate: "Sep 1, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$118",
+        assignees: [
+          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
+        ],
+        vendorName: "Outdoor Construction Corp",
+      },
+    ],
+    [],
+  );
 
   // Work orders and field team orders state
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
-  const [isUpdateWorkOrderModalOpen, setIsUpdateWorkOrderModalOpen] = useState(false);
+  const [isUpdateWorkOrderModalOpen, setIsUpdateWorkOrderModalOpen] =
+    useState(false);
 
   // Mock field team orders data - memoized to ensure hydratePerson is available
-  const mockFieldTeamOrders = useMemo(() => [
-    { id: 1, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Oct 2, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 420, unit: "Unit" },
-    { id: 2, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 29, 2025", priority: "normal", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "approved", timesheetStatus: "approved", amount: 95, unit: "Unit" },
-    { id: 3, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 10, 2025", priority: "low", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "pending-approval", timesheetStatus: "submitted", amount: 95, unit: "Unit" },
-    { id: 4, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 6, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 112, unit: "Unit" },
-    { id: 5, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 5, 2025", priority: "normal", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "approved", amount: 93, unit: "Unit" },
-    { id: 6, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 4, 2025", priority: "low", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 75, unit: "Unit" },
-    { id: 7, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 4, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "DC", name: "David Chen" }), hydratePerson({ initials: "ER", name: "Emma Rodriguez" })], status: "dispatched", timesheetStatus: "submitted", amount: 101, unit: "Unit" },
-    { id: 8, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 3, 2025", priority: "normal", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 124, unit: "Unit" },
-    { id: 9, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "low", fieldTeam: [hydratePerson({ initials: "JW", name: "James Wilson" })], status: "dispatched", timesheetStatus: "approved", amount: 67, unit: "Unit" },
-    { id: 10, taskId: 6, property: "22 Indian Chase Dr", description: "Door Repair", dueDate: "Sep 1, 2025", priority: "high", fieldTeam: [hydratePerson({ initials: "CH", name: "Christopher Harris" }), hydratePerson({ initials: "CS", name: "Cassandra Smith" })], status: "dispatched", timesheetStatus: "awaiting-submission", amount: 118, unit: "Unit" },
-  ], []);
+  const mockFieldTeamOrders = useMemo(
+    () => [
+      {
+        id: 1,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Oct 2, 2025",
+        priority: "high",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 420,
+        unit: "Unit",
+      },
+      {
+        id: 2,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 29, 2025",
+        priority: "normal",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "approved",
+        timesheetStatus: "approved",
+        amount: 95,
+        unit: "Unit",
+      },
+      {
+        id: 3,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 10, 2025",
+        priority: "low",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "pending-approval",
+        timesheetStatus: "submitted",
+        amount: 95,
+        unit: "Unit",
+      },
+      {
+        id: 4,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 6, 2025",
+        priority: "high",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 112,
+        unit: "Unit",
+      },
+      {
+        id: 5,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 5, 2025",
+        priority: "normal",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "approved",
+        amount: 93,
+        unit: "Unit",
+      },
+      {
+        id: 6,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 4, 2025",
+        priority: "low",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 75,
+        unit: "Unit",
+      },
+      {
+        id: 7,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 4, 2025",
+        priority: "high",
+        fieldTeam: [
+          hydratePerson({ initials: "DC", name: "David Chen" }),
+          hydratePerson({ initials: "ER", name: "Emma Rodriguez" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "submitted",
+        amount: 101,
+        unit: "Unit",
+      },
+      {
+        id: 8,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 3, 2025",
+        priority: "normal",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 124,
+        unit: "Unit",
+      },
+      {
+        id: 9,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 1, 2025",
+        priority: "low",
+        fieldTeam: [hydratePerson({ initials: "JW", name: "James Wilson" })],
+        status: "dispatched",
+        timesheetStatus: "approved",
+        amount: 67,
+        unit: "Unit",
+      },
+      {
+        id: 10,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 1, 2025",
+        priority: "high",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 118,
+        unit: "Unit",
+      },
+    ],
+    [],
+  );
 
-  const [fieldTeamOrders, setFieldTeamOrders] = useState<any[]>(mockFieldTeamOrders);
+  const [fieldTeamOrders, setFieldTeamOrders] =
+    useState<any[]>(mockFieldTeamOrders);
 
   useEffect(() => {
     return () => {
@@ -738,27 +1141,26 @@ export default function TaskSummary() {
 
   // Map MOCK_TASKS to LinkedTaskData for default availability, excluding current task
   const availableTasksForLinking = useMemo(() => {
-    return MOCK_TASKS
-      .filter((t) => String(t.id) !== taskId)
-      .map((task) => ({
-        id: task.id,
-        name: task.title,
-        status: task.status.toLowerCase().replace(" ", "_") as any,
-        updatedDate: task.updated,
-        updatedBy: task.assignees[0]?.name || "Unknown",
-      }));
+    return MOCK_TASKS.filter((t) => String(t.id) !== taskId).map((task) => ({
+      id: task.id,
+      name: task.title,
+      status: task.status.toLowerCase().replace(" ", "_") as any,
+      updatedDate: task.updated,
+      updatedBy: task.assignees[0]?.name || "Unknown",
+    }));
   }, [taskId]);
 
   // Helper function to sync file names across files and updates states
-  const syncFileNameAcrossStates = (fileId: string | number, newName: string) => {
+  const syncFileNameAcrossStates = (
+    fileId: string | number,
+    newName: string,
+  ) => {
     const stringId = String(fileId);
 
     // Update the main files state
     setFiles((prevFiles) =>
       prevFiles.map((f) =>
-        String(f.id) === stringId
-          ? { ...f, name: newName }
-          : f,
+        String(f.id) === stringId ? { ...f, name: newName } : f,
       ),
     );
 
@@ -767,9 +1169,7 @@ export default function TaskSummary() {
       prevUpdates.map((update) => {
         if (update.attachments && Array.isArray(update.attachments)) {
           const updatedAttachments = update.attachments.map((att: any) =>
-            String(att.id) === stringId
-              ? { ...att, name: newName }
-              : att,
+            String(att.id) === stringId ? { ...att, name: newName } : att,
           );
           return { ...update, attachments: updatedAttachments };
         }
@@ -784,12 +1184,12 @@ export default function TaskSummary() {
     if (newTab === "workorders" && uiState.selectedWorkOrderId) {
       navigate(`/tasks/${taskId}/${newTab}/${uiState.selectedWorkOrderId}`, {
         replace: false,
-        state: { preservedWorkOrderId: uiState.selectedWorkOrderId }
+        state: { preservedWorkOrderId: uiState.selectedWorkOrderId },
       });
     } else {
       navigate(`/tasks/${taskId}/${newTab}`, {
         replace: false,
-        state: { preservedWorkOrderId: uiState.selectedWorkOrderId }
+        state: { preservedWorkOrderId: uiState.selectedWorkOrderId },
       });
     }
   };
@@ -834,7 +1234,11 @@ export default function TaskSummary() {
 
   const handleSaveAttachmentFileName = () => {
     const trimmedName = uiState.renamingAttachmentName.trim();
-    if (uiState.viewingAttachment && uiState.viewingAttachment.id && trimmedName) {
+    if (
+      uiState.viewingAttachment &&
+      uiState.viewingAttachment.id &&
+      trimmedName
+    ) {
       syncFileNameAcrossStates(uiState.viewingAttachment.id, trimmedName);
 
       uiDispatch({
@@ -868,12 +1272,29 @@ export default function TaskSummary() {
   };
 
   // Map property values to rental owner information
-  const getRentalOwnerByProperty = (propertyValue: string | undefined): { id: number; name: string; initials: string; roleLabel: string; phone: string } | null => {
+  const getRentalOwnerByProperty = (
+    propertyValue: string | undefined,
+  ): {
+    id: number;
+    name: string;
+    initials: string;
+    roleLabel: string;
+    phone: string;
+  } | null => {
     if (!propertyValue || propertyValue.includes("Unassigned")) {
       return null;
     }
 
-    const rentalOwnerMap: Record<string, { id: number; name: string; initials: string; roleLabel: string; phone: string }> = {
+    const rentalOwnerMap: Record<
+      string,
+      {
+        id: number;
+        name: string;
+        initials: string;
+        roleLabel: string;
+        phone: string;
+      }
+    > = {
       property1: {
         id: 5,
         name: "Peter & Ali Jennison",
@@ -922,10 +1343,19 @@ export default function TaskSummary() {
     return unitLabels[unitValue] || "";
   };
 
-
   // Extract unique vendors from work orders
   const vendorsFromWorkOrders = useMemo(() => {
-    const uniqueVendors = new Map<string, { id: string; name: string; initials: string; email: string; phone: string; title: string }>();
+    const uniqueVendors = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        initials: string;
+        email: string;
+        phone: string;
+        title: string;
+      }
+    >();
     workOrders.forEach((wo) => {
       if (wo.vendorName && wo.vendorName.trim()) {
         if (!uniqueVendors.has(wo.vendorName)) {
@@ -952,60 +1382,84 @@ export default function TaskSummary() {
 
   // Extract unique field team members from field team orders
   const fieldTeamFromOrders = useMemo(() => {
-    const uniqueFieldTeam = new Map<string, { id: string; name: string; initials: string; email: string; phone: string; title: string }>();
+    const uniqueFieldTeam = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        initials: string;
+        email: string;
+        phone: string;
+        title: string;
+      }
+    >();
     fieldTeamOrders.forEach((order) => {
       if (order.fieldTeam && Array.isArray(order.fieldTeam)) {
-        order.fieldTeam.forEach((member: { name: string; initials: string }) => {
-          if (member.name && member.name.trim()) {
-            if (!uniqueFieldTeam.has(member.name)) {
-              const memberInfo = fieldTeamMasterData[member.name];
-              uniqueFieldTeam.set(member.name, {
-                id: `fieldteam-${uniqueFieldTeam.size + 1}`,
-                name: member.name,
-                initials: member.initials || member.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2),
-                email: memberInfo?.email || "",
-                phone: memberInfo?.phone || "",
-                title: memberInfo?.title || "Field Team Member",
-              });
+        order.fieldTeam.forEach(
+          (member: { name: string; initials: string }) => {
+            if (member.name && member.name.trim()) {
+              if (!uniqueFieldTeam.has(member.name)) {
+                const memberInfo = fieldTeamMasterData[member.name];
+                uniqueFieldTeam.set(member.name, {
+                  id: `fieldteam-${uniqueFieldTeam.size + 1}`,
+                  name: member.name,
+                  initials:
+                    member.initials ||
+                    member.name
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2),
+                  email: memberInfo?.email || "",
+                  phone: memberInfo?.phone || "",
+                  title: memberInfo?.title || "Field Team Member",
+                });
+              }
             }
-          }
-        });
+          },
+        );
       }
     });
     return Array.from(uniqueFieldTeam.values());
   }, [fieldTeamOrders]);
 
   // Memoize editData to prevent unnecessary re-initialization of the modal
-  const modalEditData = useMemo(() => ({
-    id: parseInt(taskId || "0"),
-    title: currentTitle,
-    description: currentDescription,
-    property: currentProperty,
-    unit: currentUnit,
-    priority: currentPriority,
-    status: currentStatus,
-    dueDate: currentDueDate,
-    assignees: currentAssignees,
-    collaborators: currentCollaborators,
-    category: currentCategory,
-  }), [
-    taskId,
-    currentTitle,
-    currentDescription,
-    currentProperty,
-    currentUnit,
-    currentPriority,
-    currentStatus,
-    currentDueDate,
-    currentAssignees,
-    currentCollaborators,
-    currentCategory
-  ]);
+  const modalEditData = useMemo(
+    () => ({
+      id: parseInt(taskId || "0"),
+      title: currentTitle,
+      description: currentDescription,
+      property: currentProperty,
+      unit: currentUnit,
+      priority: currentPriority,
+      status: currentStatus,
+      dueDate: currentDueDate,
+      assignees: currentAssignees,
+      collaborators: currentCollaborators,
+      category: currentCategory,
+    }),
+    [
+      taskId,
+      currentTitle,
+      currentDescription,
+      currentProperty,
+      currentUnit,
+      currentPriority,
+      currentStatus,
+      currentDueDate,
+      currentAssignees,
+      currentCollaborators,
+      currentCategory,
+    ],
+  );
 
   // Get the selected work order if workOrderId is present or set in state
   const selectedWorkOrder = useMemo(() => {
     // Prefer workOrderId from URL params (this is the source of truth)
-    const targetId = workOrderId ? parseInt(workOrderId) : uiState.selectedWorkOrderId;
+    const targetId = workOrderId
+      ? parseInt(workOrderId)
+      : uiState.selectedWorkOrderId;
     if (!targetId) return null;
 
     // First check if this is a newly created work order passed through location state
@@ -1017,7 +1471,12 @@ export default function TaskSummary() {
     // Otherwise look for it in the workOrders list
     const found = workOrders.find((wo) => wo.id === targetId);
     return found || null;
-  }, [workOrderId, uiState.selectedWorkOrderId, workOrders, navigationState?.newWorkOrder]);
+  }, [
+    workOrderId,
+    uiState.selectedWorkOrderId,
+    workOrders,
+    navigationState?.newWorkOrder,
+  ]);
 
   // Clear location state once the new work order is added to the list
   useEffect(() => {
@@ -1025,7 +1484,11 @@ export default function TaskSummary() {
       const found = workOrders.find((wo) => wo.id === selectedWorkOrder.id);
       if (found) {
         // The newly created work order is now in the list, we can clear the navigation state
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname,
+        );
       }
     }
   }, [workOrders, selectedWorkOrder, navigationState?.newWorkOrder]);
@@ -1046,14 +1509,14 @@ export default function TaskSummary() {
     return priority.toLowerCase();
   });
 
-  const [workOrderNotifications, setWorkOrderNotifications] = useState<Array<{ id: string; message: string }>>([
-    { id: "1", message: "A bill from Edgerton Inc was uploaded" },
-  ]);
+  const [workOrderNotifications, setWorkOrderNotifications] = useState<
+    Array<{ id: string; message: string }>
+  >([{ id: "1", message: "A bill from Edgerton Inc was uploaded" }]);
 
   // Helper function to safely parse bill total
   const getBillAmount = (billTotal: string): number => {
     if (!billTotal) return 0;
-    const amount = parseFloat(billTotal.replace('$', '').replace(',', ''));
+    const amount = parseFloat(billTotal.replace("$", "").replace(",", ""));
     return isNaN(amount) ? 0 : amount;
   };
 
@@ -1061,7 +1524,12 @@ export default function TaskSummary() {
     <PageTemplate>
       {/* Header Section */}
       <PageHeader
-        title={currentTitle || navigationState?.task?.title || navigationState?.taskData?.title || "Edgerton - Quote"}
+        title={
+          currentTitle ||
+          navigationState?.task?.title ||
+          navigationState?.taskData?.title ||
+          "Edgerton - Quote"
+        }
         subtitle={
           <div className="flex items-center gap-3">
             <div className="text-[#717179] font-medium text-base leading-4">
@@ -1082,7 +1550,9 @@ export default function TaskSummary() {
           </div>
         }
         action={{
-          label: uiState.selectedWorkOrderId ? "Update Work Order" : "Update task",
+          label: uiState.selectedWorkOrderId
+            ? "Update Work Order"
+            : "Update task",
           onClick: () => {
             if (uiState.selectedWorkOrderId) {
               // Trigger Update Work Order Modal
@@ -1172,38 +1642,52 @@ export default function TaskSummary() {
         {/* Main Content Area */}
         <div className="flex mt-5 w-full gap-6 flex-wrap lg:flex-nowrap">
           {/* Show TaskWorkOrders component when work orders tab is active */}
-          {uiState.activeTab === "workorders" && (
-            selectedWorkOrder ? (
+          {uiState.activeTab === "workorders" &&
+            (selectedWorkOrder ? (
               <WorkOrderDetailsV2
                 workOrder={selectedWorkOrder}
                 currentAssignees={currentAssignees}
                 currentCollaborators={currentCollaborators}
                 onBillAdded={(bill) => {
-                  setUpdates(prev => [{
-                    id: prev.length + 1,
-                    author: "System",
-                    authorType: "assignee",
-                    action: `entered bill for work order #${selectedWorkOrder.id}`,
-                    actionValue: `${bill.invoiceNumber} - ${bill.amount}`,
-                    timestamp: new Date().toLocaleString(),
-                    icon: <PaperclipIcon width={16} height={16} />,
-                  }, ...prev]);
+                  setUpdates((prev) => [
+                    {
+                      id: prev.length + 1,
+                      author: "System",
+                      authorType: "assignee",
+                      action: `entered bill for work order #${selectedWorkOrder.id}`,
+                      actionValue: `${bill.invoiceNumber} - ${bill.amount}`,
+                      timestamp: new Date().toLocaleString(),
+                      icon: <PaperclipIcon width={16} height={16} />,
+                    },
+                    ...prev,
+                  ]);
                 }}
                 onWorkOrderUpdate={(updatedWorkOrder) => {
                   // Convert dueDate back to string format when updating the list
                   const workOrderForUpdate = {
                     ...updatedWorkOrder,
-                    dueDate: updatedWorkOrder.dueDate instanceof Date
-                      ? updatedWorkOrder.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                      : updatedWorkOrder.dueDate
+                    dueDate:
+                      updatedWorkOrder.dueDate instanceof Date
+                        ? updatedWorkOrder.dueDate.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : updatedWorkOrder.dueDate,
                   };
 
                   // Find the original work order to check what changed
-                  const originalWorkOrder = workOrders.find(wo => wo.id === updatedWorkOrder.id);
+                  const originalWorkOrder = workOrders.find(
+                    (wo) => wo.id === updatedWorkOrder.id,
+                  );
                   const newUpdates: any[] = [];
 
                   // Check if status changed to completed
-                  if (originalWorkOrder && originalWorkOrder.status !== updatedWorkOrder.status && updatedWorkOrder.status === "completed") {
+                  if (
+                    originalWorkOrder &&
+                    originalWorkOrder.status !== updatedWorkOrder.status &&
+                    updatedWorkOrder.status === "completed"
+                  ) {
                     newUpdates.push({
                       id: updates.length + newUpdates.length + 1,
                       author: "System",
@@ -1215,36 +1699,54 @@ export default function TaskSummary() {
                   }
 
                   // Update work orders list
-                  const newWorkOrders = workOrders.map(wo => wo.id === updatedWorkOrder.id ? workOrderForUpdate : wo);
+                  const newWorkOrders = workOrders.map((wo) =>
+                    wo.id === updatedWorkOrder.id ? workOrderForUpdate : wo,
+                  );
                   setWorkOrders(newWorkOrders);
 
                   // Extract new notes and files to add to main task if they were added during work order update
-                  if (updatedWorkOrder.notes && updatedWorkOrder.notes.length > notes.length) {
-                    const newNotes = updatedWorkOrder.notes.filter(wn => !notes.some(n => n.id === wn.id && n.text === wn.text));
+                  if (
+                    updatedWorkOrder.notes &&
+                    updatedWorkOrder.notes.length > notes.length
+                  ) {
+                    const newNotes = updatedWorkOrder.notes.filter(
+                      (wn) =>
+                        !notes.some(
+                          (n) => n.id === wn.id && n.text === wn.text,
+                        ),
+                    );
                     if (newNotes.length > 0) {
-                      setNotes(prev => [...prev, ...newNotes]);
+                      setNotes((prev) => [...prev, ...newNotes]);
                     }
                   }
 
-                  if (updatedWorkOrder.files && updatedWorkOrder.files.length > files.length) {
-                    const newFiles = updatedWorkOrder.files.filter(wf => !files.some(f => f.id === wf.id && f.name === wf.name));
+                  if (
+                    updatedWorkOrder.files &&
+                    updatedWorkOrder.files.length > files.length
+                  ) {
+                    const newFiles = updatedWorkOrder.files.filter(
+                      (wf) =>
+                        !files.some(
+                          (f) => f.id === wf.id && f.name === wf.name,
+                        ),
+                    );
                     if (newFiles.length > 0) {
-                      setFiles(prev => [...prev, ...newFiles]);
+                      setFiles((prev) => [...prev, ...newFiles]);
                     }
                   }
 
                   // Add new updates to timeline
                   if (newUpdates.length > 0) {
-                    setUpdates(prev => [...newUpdates, ...prev]);
+                    setUpdates((prev) => [...newUpdates, ...prev]);
                   }
                 }}
                 isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
                 onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
               />
             ) : isLoadingWorkOrder ? (
-               <div className="flex flex-col items-center justify-center w-full h-[300px] bg-white rounded-lg border border-[#e5e5e5]">
-                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-               </div>
+              <div className="flex flex-col items-center justify-center w-full h-[300px] bg-white rounded-lg border border-[#e5e5e5]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
             ) : (
               <TaskWorkOrders
                 workOrders={workOrders}
@@ -1255,8 +1757,7 @@ export default function TaskSummary() {
                 taskId={taskId || "0"}
                 onWorkOrderSelect={handleWorkOrderSelect}
               />
-            )
-          )}
+            ))}
 
           {/* Show summary content when summary tab is active */}
           {uiState.activeTab === "summary" && (
@@ -1282,7 +1783,9 @@ export default function TaskSummary() {
               fieldTeamFromOrders={fieldTeamFromOrders}
               isNewTask={isNewTask}
               taskData={taskData}
-              onEditTaskDetails={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })}
+              onEditTaskDetails={() =>
+                uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })
+              }
               onAddNote={() => {
                 uiDispatch({ type: "SET_EDITING_NOTE_ID", payload: null });
                 uiDispatch({ type: "SET_VIEWING_NOTE", payload: null });
@@ -1292,7 +1795,9 @@ export default function TaskSummary() {
                 uiDispatch({ type: "SET_VIEWING_NOTE", payload: note });
                 uiDispatch({ type: "OPEN_MODAL", payload: "viewNote" });
               }}
-              onDeleteNote={(noteId) => setNotes(notes.filter((n) => n.id !== noteId))}
+              onDeleteNote={(noteId) =>
+                setNotes(notes.filter((n) => n.id !== noteId))
+              }
               onAddFile={() => {
                 uiDispatch({ type: "SET_EDITING_FILE_ID", payload: null });
                 uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
@@ -1301,10 +1806,16 @@ export default function TaskSummary() {
                 uiDispatch({ type: "SET_EDITING_FILE_ID", payload: file.id });
                 uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
               }}
-              onDeleteFile={(fileId) => setFiles(files.filter((f) => f.id !== fileId))}
+              onDeleteFile={(fileId) =>
+                setFiles(files.filter((f) => f.id !== fileId))
+              }
               onViewFile={(file) => console.log("View file", file)}
-              onLinkTasks={() => uiDispatch({ type: "OPEN_MODAL", payload: "linkTask" })}
-              onUnlinkTask={(taskId) => uiDispatch({ type: "REMOVE_LINKED_TASK", payload: taskId })}
+              onLinkTasks={() =>
+                uiDispatch({ type: "OPEN_MODAL", payload: "linkTask" })
+              }
+              onUnlinkTask={(taskId) =>
+                uiDispatch({ type: "REMOVE_LINKED_TASK", payload: taskId })
+              }
               onTaskClick={(linkedTaskId) => {
                 const tabId = `task-${linkedTaskId}`;
                 setSelectedTab(tabId);
@@ -1314,8 +1825,12 @@ export default function TaskSummary() {
                 });
                 navigate(`/tasks/${linkedTaskId}`);
               }}
-              onAddUpdate={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
-              onEditTask={() => uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })}
+              onAddUpdate={() =>
+                uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })
+              }
+              onEditTask={() =>
+                uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })
+              }
               onStatusChange={handleStatusChange}
               onPriorityChange={handlePriorityChange}
               onDueDateChange={handleDueDateChange}
@@ -1335,25 +1850,34 @@ export default function TaskSummary() {
                 // Check for timesheet status changes and create updates
                 newOrders.forEach((newOrder, idx) => {
                   const oldOrder = fieldTeamOrders[idx];
-                  if (oldOrder && oldOrder.timesheetStatus !== newOrder.timesheetStatus) {
+                  if (
+                    oldOrder &&
+                    oldOrder.timesheetStatus !== newOrder.timesheetStatus
+                  ) {
                     if (newOrder.timesheetStatus === "submitted") {
-                      setUpdates(prev => [{
-                        id: prev.length + 1,
-                        author: "System",
-                        authorType: "assignee",
-                        action: `timesheet for field team order #${newOrder.id} was submitted`,
-                        timestamp: new Date().toLocaleString(),
-                        icon: <EditIcon width={16} height={16} />,
-                      }, ...prev]);
+                      setUpdates((prev) => [
+                        {
+                          id: prev.length + 1,
+                          author: "System",
+                          authorType: "assignee",
+                          action: `timesheet for field team order #${newOrder.id} was submitted`,
+                          timestamp: new Date().toLocaleString(),
+                          icon: <EditIcon width={16} height={16} />,
+                        },
+                        ...prev,
+                      ]);
                     } else if (newOrder.timesheetStatus === "approved") {
-                      setUpdates(prev => [{
-                        id: prev.length + 1,
-                        author: "System",
-                        authorType: "assignee",
-                        action: `timesheet for field team order #${newOrder.id} was approved`,
-                        timestamp: new Date().toLocaleString(),
-                        icon: <ApproveIcon width={16} height={16} />,
-                      }, ...prev]);
+                      setUpdates((prev) => [
+                        {
+                          id: prev.length + 1,
+                          author: "System",
+                          authorType: "assignee",
+                          action: `timesheet for field team order #${newOrder.id} was approved`,
+                          timestamp: new Date().toLocaleString(),
+                          icon: <ApproveIcon width={16} height={16} />,
+                        },
+                        ...prev,
+                      ]);
                     }
                   }
                 });

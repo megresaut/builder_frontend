@@ -1,6 +1,16 @@
 import React from "react";
-import { FlagIcon, EditIcon, NoteIcon, PaperclipIcon } from "@/components/icons";
-import { AddNoteModal, AddFileModal, EditTaskDetailsModal, LinkTaskModal } from "@/components/task";
+import {
+  FlagIcon,
+  EditIcon,
+  NoteIcon,
+  PaperclipIcon,
+} from "@/components/icons";
+import {
+  AddNoteModal,
+  AddFileModal,
+  EditTaskDetailsModal,
+  LinkTaskModal,
+} from "@/components/task";
 import type { Note } from "@/components/templates";
 import type { File } from "@/components/templates";
 import type { LinkedTaskData } from "@/components/task";
@@ -134,10 +144,12 @@ export default function TaskSummaryModals({
                 {uiState.viewingNote.text}
               </div>
               <div className="text-sm text-[#71717A]">
-                <span className="font-medium">Author:</span> {uiState.viewingNote.author}
+                <span className="font-medium">Author:</span>{" "}
+                {uiState.viewingNote.author}
               </div>
               <div className="text-sm text-[#71717A]">
-                <span className="font-medium">Date:</span> {uiState.viewingNote.date}
+                <span className="font-medium">Date:</span>{" "}
+                {uiState.viewingNote.date}
               </div>
             </FormSection>
           </FormLayout>
@@ -160,7 +172,8 @@ export default function TaskSummaryModals({
               ),
             );
           } else {
-            const maxId = notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0;
+            const maxId =
+              notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0;
             const newNote: Note = {
               id: maxId + 1,
               text,
@@ -203,7 +216,8 @@ export default function TaskSummaryModals({
               ),
             );
           } else {
-            const maxId = files.length > 0 ? Math.max(...files.map((f) => f.id)) : 0;
+            const maxId =
+              files.length > 0 ? Math.max(...files.map((f) => f.id)) : 0;
             const newFiles: File[] = uploadedFiles.map((uf, idx) => ({
               id: maxId + idx + 1,
               name: uf.name,
@@ -223,7 +237,8 @@ export default function TaskSummaryModals({
                   id: editingFile.id.toString(),
                   name: editingFile.name,
                   size: 0,
-                  type: editingFile.name.split('.').pop()?.toLowerCase() || "pdf",
+                  type:
+                    editingFile.name.split(".").pop()?.toLowerCase() || "pdf",
                   url: editingFile.url,
                 },
               ]
@@ -278,7 +293,8 @@ export default function TaskSummaryModals({
       <EditTaskDetailsModal
         open={uiState.modals.editTaskDetails}
         onOpenChange={(open) => {
-          if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
+          if (!open)
+            uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
         }}
         initialData={{
           title: currentTitle,
@@ -345,62 +361,93 @@ export default function TaskSummaryModals({
 
           if (!isTaskUpdate) {
             const statusMap: { [key: string]: string } = {
-              "not_started": "Not Started",
-              "in_progress": "In Progress",
-              "completed": "Completed",
+              not_started: "Not Started",
+              in_progress: "In Progress",
+              completed: "Completed",
             };
 
-            const priorityLabel = (taskData as any).priority.charAt(0).toUpperCase() + (taskData as any).priority.slice(1);
-            const dueDate = (taskData as any).dueDate ? new Date(taskData.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date";
+            const priorityLabel =
+              (taskData as any).priority.charAt(0).toUpperCase() +
+              (taskData as any).priority.slice(1);
+            const dueDate = (taskData as any).dueDate
+              ? new Date(taskData.dueDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "No due date";
 
             const creationFields: any[] = [];
 
             if (taskData.status) {
               creationFields.push(
                 <div key="status">
-                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Status</div>
-                  <div className="text-sm text-[#303030] font-medium mt-0.5">{statusMap[(taskData as any).status] || (taskData as any).status}</div>
-                </div>
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                    Status
+                  </div>
+                  <div className="text-sm text-[#303030] font-medium mt-0.5">
+                    {statusMap[(taskData as any).status] ||
+                      (taskData as any).status}
+                  </div>
+                </div>,
               );
             }
 
             if (taskData.priority) {
               creationFields.push(
                 <div key="priority">
-                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Priority</div>
-                  <div className="text-sm text-[#303030] font-medium mt-0.5">{priorityLabel}</div>
-                </div>
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                    Priority
+                  </div>
+                  <div className="text-sm text-[#303030] font-medium mt-0.5">
+                    {priorityLabel}
+                  </div>
+                </div>,
               );
             }
 
             if (taskData.dueDate) {
               creationFields.push(
                 <div key="dueDate">
-                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Due Date</div>
-                  <div className="text-sm text-[#303030] font-medium mt-0.5">{dueDate}</div>
-                </div>
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                    Due Date
+                  </div>
+                  <div className="text-sm text-[#303030] font-medium mt-0.5">
+                    {dueDate}
+                  </div>
+                </div>,
               );
             }
 
             if (taskData.assignees && taskData.assignees.length > 0) {
               creationFields.push(
                 <div key="assignees">
-                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Assignees</div>
-                  <div className="mt-0.5">
-                    <PersonAvatars people={taskData.assignees} type="assignee" />
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                    Assignees
                   </div>
-                </div>
+                  <div className="mt-0.5">
+                    <PersonAvatars
+                      people={taskData.assignees}
+                      type="assignee"
+                    />
+                  </div>
+                </div>,
               );
             }
 
             if (taskData.collaborators && taskData.collaborators.length > 0) {
               creationFields.push(
                 <div key="collaborators">
-                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">Collaborators</div>
-                  <div className="mt-0.5">
-                    <PersonAvatars people={taskData.collaborators} type="collaborator" />
+                  <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                    Collaborators
                   </div>
-                </div>
+                  <div className="mt-0.5">
+                    <PersonAvatars
+                      people={taskData.collaborators}
+                      type="collaborator"
+                    />
+                  </div>
+                </div>,
               );
             }
 
@@ -419,29 +466,45 @@ export default function TaskSummaryModals({
             }
 
             const initialUpdate = {
-              id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
+              id:
+                Math.max(
+                  ...updates.map((u) => (typeof u.id === "number" ? u.id : 0)),
+                  0,
+                ) + 1,
               author: "Julia LoSchiavo",
               authorType: "assignee",
               action: "created this task",
               timestamp: new Date().toLocaleString(),
               ...(creationFields.length > 0 && {
                 fieldsDisplay: (
-                  <div className={`grid gap-6 mt-3 ${creationFields.length === 1 ? 'grid-cols-1' : creationFields.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                  <div
+                    className={`grid gap-6 mt-3 ${creationFields.length === 1 ? "grid-cols-1" : creationFields.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}
+                  >
                     {creationFields}
                   </div>
                 ),
               }),
               ...(taskData.description && {
-                details: <div className="text-sm text-[#303030]">{taskData.description}</div>,
+                details: (
+                  <div className="text-sm text-[#303030]">
+                    {taskData.description}
+                  </div>
+                ),
               }),
-              ...(taskData.files && taskData.files.length > 0 && {
-                attachments: taskData.files.map((f: any, idx: number) => getAttachmentData(f, idx)),
-                onAttachmentClick: (file: any) => {
-                  uiDispatch({ type: "SET_VIEWING_ATTACHMENT", payload: { id: file.id, name: file.name, url: file.url } });
-                  uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
-                  uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
-                },
-              }),
+              ...(taskData.files &&
+                taskData.files.length > 0 && {
+                  attachments: taskData.files.map((f: any, idx: number) =>
+                    getAttachmentData(f, idx),
+                  ),
+                  onAttachmentClick: (file: any) => {
+                    uiDispatch({
+                      type: "SET_VIEWING_ATTACHMENT",
+                      payload: { id: file.id, name: file.name, url: file.url },
+                    });
+                    uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
+                    uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
+                  },
+                }),
               icon: <FlagIcon width={16} height={16} />,
               isInitialCreation: true,
             };
@@ -450,13 +513,19 @@ export default function TaskSummaryModals({
             uiDispatch({ type: "CLOSE_MODAL", payload: "editTask" });
             return;
           }
-          
+
           const details: React.ReactNode[] = [];
           let updateIcon = <EditIcon width={16} height={16} />;
 
-          if ((taskData as any).messageBody && (taskData as any).files?.length > 0) {
+          if (
+            (taskData as any).messageBody &&
+            (taskData as any).files?.length > 0
+          ) {
             updateIcon = <PaperclipIcon width={16} height={16} />;
-          } else if ((taskData as any).files && (taskData as any).files.length > 0) {
+          } else if (
+            (taskData as any).files &&
+            (taskData as any).files.length > 0
+          ) {
             updateIcon = <PaperclipIcon width={16} height={16} />;
           } else if ((taskData as any).messageBody) {
             updateIcon = <NoteIcon width={16} height={16} />;
@@ -465,9 +534,9 @@ export default function TaskSummaryModals({
           }
 
           const statusMap: { [key: string]: string } = {
-            "not_started": "Not Started",
-            "in_progress": "In Progress",
-            "completed": "Completed",
+            not_started: "Not Started",
+            in_progress: "In Progress",
+            completed: "Completed",
           };
 
           const changedFieldsInfo = (taskData as any).changedFields || [];
@@ -478,19 +547,39 @@ export default function TaskSummaryModals({
               case "status":
                 displayFields.push({
                   label: "Status",
-                  value: <TaskStatusBadge status={(statusMap[taskData.status] || taskData.status) as any} />,
+                  value: (
+                    <TaskStatusBadge
+                      status={
+                        (statusMap[taskData.status] || taskData.status) as any
+                      }
+                    />
+                  ),
                 });
                 break;
               case "priority":
                 displayFields.push({
                   label: "Priority",
-                  value: <TaskPriorityBadge priority={(taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1)) as any} />,
+                  value: (
+                    <TaskPriorityBadge
+                      priority={
+                        (taskData.priority.charAt(0).toUpperCase() +
+                          taskData.priority.slice(1)) as any
+                      }
+                    />
+                  ),
                 });
                 break;
               case "dueDate":
-                const dueDateStr = taskData.dueDate instanceof Date
-                  ? taskData.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                  : (taskData.dueDate ? taskData.dueDate : "No due date");
+                const dueDateStr =
+                  taskData.dueDate instanceof Date
+                    ? taskData.dueDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : taskData.dueDate
+                      ? taskData.dueDate
+                      : "No due date";
                 displayFields.push({
                   label: "Due Date",
                   value: dueDateStr,
@@ -498,24 +587,43 @@ export default function TaskSummaryModals({
                 break;
               case "assignees": {
                 // Calculate newly added assignees (ones not in currentAssignees)
-                const currentIds = new Set(currentAssignees.map((a: any) => a.id));
-                const newlyAddedAssignees = (taskData.assignees || []).filter((a: any) => !currentIds.has(a.id));
+                const currentIds = new Set(
+                  currentAssignees.map((a: any) => a.id),
+                );
+                const newlyAddedAssignees = (taskData.assignees || []).filter(
+                  (a: any) => !currentIds.has(a.id),
+                );
                 if (newlyAddedAssignees.length > 0) {
                   displayFields.push({
                     label: "Assignees",
-                    value: <PersonAvatars people={newlyAddedAssignees} type="assignee" fallback="None" />,
+                    value: (
+                      <PersonAvatars
+                        people={newlyAddedAssignees}
+                        type="assignee"
+                        fallback="None"
+                      />
+                    ),
                   } as any);
                 }
                 break;
               }
               case "collaborators": {
                 // Calculate newly added collaborators (ones not in currentCollaborators)
-                const currentIds = new Set(currentCollaborators.map((c: any) => c.id));
-                const newlyAddedCollaborators = (taskData.collaborators || []).filter((c: any) => !currentIds.has(c.id));
+                const currentIds = new Set(
+                  currentCollaborators.map((c: any) => c.id),
+                );
+                const newlyAddedCollaborators = (
+                  taskData.collaborators || []
+                ).filter((c: any) => !currentIds.has(c.id));
                 if (newlyAddedCollaborators.length > 0) {
                   displayFields.push({
                     label: "Collaborators",
-                    value: <PersonAvatars people={newlyAddedCollaborators} type="collaborator" />,
+                    value: (
+                      <PersonAvatars
+                        people={newlyAddedCollaborators}
+                        type="collaborator"
+                      />
+                    ),
                   } as any);
                 }
                 break;
@@ -524,49 +632,69 @@ export default function TaskSummaryModals({
           });
 
           if (displayFields.length > 0) {
-            const gridColsClass = displayFields.length === 1 ? "grid-cols-1" : displayFields.length <= 2 ? "grid-cols-2" : "grid-cols-3";
+            const gridColsClass =
+              displayFields.length === 1
+                ? "grid-cols-1"
+                : displayFields.length <= 2
+                  ? "grid-cols-2"
+                  : "grid-cols-3";
 
             details.push(
               <div key="fields">
                 <div className={`grid ${gridColsClass} gap-6`}>
                   {displayFields.map((field, idx) => (
                     <div key={idx}>
-                      <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">{field.label}</div>
-                      <div className={`mt-0.5 ${typeof field.value === 'string' ? 'text-sm text-[#303030] font-medium' : ''}`}>
+                      <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                        {field.label}
+                      </div>
+                      <div
+                        className={`mt-0.5 ${typeof field.value === "string" ? "text-sm text-[#303030] font-medium" : ""}`}
+                      >
                         {field.value}
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              </div>,
             );
           }
 
           if ((taskData as any).messageBody) {
             details.push(
               <div key="message">
-                <div className="text-sm text-[#303030]">{(taskData as any).messageBody}</div>
-              </div>
+                <div className="text-sm text-[#303030]">
+                  {(taskData as any).messageBody}
+                </div>
+              </div>,
             );
           }
 
           const attachments = Array.isArray((taskData as any).files)
             ? (taskData as any).files
                 .map((file: any) => getAttachmentData(file))
-                .filter((file: any) => typeof file?.url === "string" && file.url)
+                .filter(
+                  (file: any) => typeof file?.url === "string" && file.url,
+                )
             : undefined;
 
-          if (Array.isArray((taskData as any).files) && (taskData as any).files.length > 0) {
+          if (
+            Array.isArray((taskData as any).files) &&
+            (taskData as any).files.length > 0
+          ) {
             const renamedFilesFromModal = (taskData as any).files;
 
             renamedFilesFromModal.forEach((rf: any) => {
-              const existingFile = files.find(f => String(f.id) === String(rf.id));
+              const existingFile = files.find(
+                (f) => String(f.id) === String(rf.id),
+              );
               if (existingFile && existingFile.name !== rf.name) {
                 syncFileNameAcrossStates(rf.id, rf.name);
               }
             });
 
-            const renamedFiles = new Map((taskData as any).files.map((f: any) => [String(f.id), f]));
+            const renamedFiles = new Map(
+              (taskData as any).files.map((f: any) => [String(f.id), f]),
+            );
             const existingIds = new Set(files.map((f) => String(f.id)));
 
             const updatedFiles = files.map((f) => {
@@ -593,8 +721,12 @@ export default function TaskSummaryModals({
 
           let updateAction = "updated the task";
           const hasMessage = !!(taskData as any).messageBody;
-          const hasFiles = Array.isArray((taskData as any).files) && (taskData as any).files.length > 0;
-          const hasFieldChanges = Array.isArray((taskData as any).changedFields) && (taskData as any).changedFields.length > 0;
+          const hasFiles =
+            Array.isArray((taskData as any).files) &&
+            (taskData as any).files.length > 0;
+          const hasFieldChanges =
+            Array.isArray((taskData as any).changedFields) &&
+            (taskData as any).changedFields.length > 0;
 
           if (hasFiles && !hasMessage && !hasFieldChanges) {
             updateAction = "uploaded a file";
@@ -603,16 +735,30 @@ export default function TaskSummaryModals({
           }
 
           const newUpdate = {
-            id: Math.max(...updates.map(u => typeof u.id === 'number' ? u.id : 0), 0) + 1,
+            id:
+              Math.max(
+                ...updates.map((u) => (typeof u.id === "number" ? u.id : 0)),
+                0,
+              ) + 1,
             author: "Julia LoSchiavo",
             authorType: "assignee",
             action: updateAction,
             timestamp: new Date().toLocaleString(),
-            details: details.length > 0 ? <div className="flex flex-col gap-5">{details}</div> : undefined,
+            details:
+              details.length > 0 ? (
+                <div className="flex flex-col gap-5">{details}</div>
+              ) : undefined,
             icon: updateIcon,
             attachments,
             onAttachmentClick: (file: any) => {
-              uiDispatch({ type: "SET_VIEWING_ATTACHMENT", payload: { id: String(file.id), name: file.name, url: file.url } });
+              uiDispatch({
+                type: "SET_VIEWING_ATTACHMENT",
+                payload: {
+                  id: String(file.id),
+                  name: file.name,
+                  url: file.url,
+                },
+              });
               uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
               uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
             },

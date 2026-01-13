@@ -68,8 +68,10 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
   const navigate = useNavigate();
 
   // Determine border and text color based on type
-  const borderColor = type === "collaborator" ? "border-[#10b981]" : "border-[#2463eb]";
-  const textColor = type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]";
+  const borderColor =
+    type === "collaborator" ? "border-[#10b981]" : "border-[#2463eb]";
+  const textColor =
+    type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]";
   const handleAvatarClick = (person: Person) => {
     if (person.href) {
       navigate(person.href);
@@ -84,11 +86,11 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
 
   const filteredPeople = people;
 
-  const shouldHideHeader = hideHeaderOnTab !== undefined && (
-    Array.isArray(hideHeaderOnTab)
+  const shouldHideHeader =
+    hideHeaderOnTab !== undefined &&
+    (Array.isArray(hideHeaderOnTab)
       ? hideHeaderOnTab.includes(activeTab)
-      : hideHeaderOnTab === activeTab
-  );
+      : hideHeaderOnTab === activeTab);
 
   return (
     <div className="flex flex-col w-full">
@@ -130,16 +132,24 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
               {/* Tooltip for name on hover */}
               <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-[#303030] text-white text-xs rounded opacity-0 group-hover/row:opacity-100 transition-opacity pointer-events-none z-50 whitespace-normal min-w-max">
                 <div className="font-semibold">{person.name || "Unknown"}</div>
-                {person.roleLabel && <div className="text-[#b4b4b4]">{person.roleLabel}</div>}
-                {person.email && <div className="text-[#b4b4b4]">{person.email}</div>}
-                {person.phone && <div className="text-[#b4b4b4]">{person.phone}</div>}
+                {person.roleLabel && (
+                  <div className="text-[#b4b4b4]">{person.roleLabel}</div>
+                )}
+                {person.email && (
+                  <div className="text-[#b4b4b4]">{person.email}</div>
+                )}
+                {person.phone && (
+                  <div className="text-[#b4b4b4]">{person.phone}</div>
+                )}
               </div>
 
               {/* Left: Avatar + Name/Role */}
               <div className="flex items-center gap-2.5 flex-1 min-w-[240px]">
                 <div
                   className={`flex items-center justify-center flex-shrink-0 bg-white border ${borderColor} rounded-full ${textColor} font-semibold leading-[0.8] ${
-                    density === "default" ? "w-10 h-10 text-xl" : "w-8 h-8 text-sm"
+                    density === "default"
+                      ? "w-10 h-10 text-xl"
+                      : "w-8 h-8 text-sm"
                   }`}
                   title={person.name}
                 >
@@ -151,8 +161,10 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                       onClick={() => handleNameClick(person.href)}
                       className={cn(
                         "font-medium tracking-[-0.28px] hover:underline truncate text-left",
-                        type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]",
-                        "bg-transparent border-0 cursor-pointer p-0"
+                        type === "collaborator"
+                          ? "text-[#10b981]"
+                          : "text-[#2463eb]",
+                        "bg-transparent border-0 cursor-pointer p-0",
                       )}
                     >
                       {person.name || "Unknown"}
@@ -161,7 +173,9 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                     <div
                       className={cn(
                         "font-medium tracking-[-0.28px] truncate",
-                        type === "collaborator" ? "text-[#10b981]" : "text-[#2463eb]"
+                        type === "collaborator"
+                          ? "text-[#10b981]"
+                          : "text-[#2463eb]",
                       )}
                     >
                       {person.name || "Unknown"}
@@ -173,14 +187,11 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                       {showRoleLabel && person.roleLabel && (
                         <span>{person.roleLabel}</span>
                       )}
-                      {showPhone && person.phone && (
-                        <span>{person.phone}</span>
-                      )}
+                      {showPhone && person.phone && <span>{person.phone}</span>}
                     </div>
                   ) : null}
                 </div>
               </div>
-
             </div>
           ))}
         </div>
@@ -188,7 +199,12 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
 
       {mode === "avatars" && (
         <div className="mt-3">
-          <PersonAvatars people={filteredPeople} type={type} size="lg" fallback="None" />
+          <PersonAvatars
+            people={filteredPeople}
+            type={type}
+            size="lg"
+            fallback="None"
+          />
         </div>
       )}
     </div>

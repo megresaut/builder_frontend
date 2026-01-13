@@ -141,7 +141,10 @@ export default function GlobalTable({
     return pages;
   };
 
-  const createColumnConfig = (): Record<string, { label: string; icon: ReactNode }> => {
+  const createColumnConfig = (): Record<
+    string,
+    { label: string; icon: ReactNode }
+  > => {
     const config: Record<string, { label: string; icon: ReactNode }> = {};
     columns.forEach((col) => {
       config[col.key] = {
@@ -171,14 +174,23 @@ export default function GlobalTable({
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
             {title && (
-              <h2 className="font-medium text-[22px] leading-6" style={{ color: "var(--color-text-primary)" }}>
+              <h2
+                className="font-medium text-[22px] leading-6"
+                style={{ color: "var(--color-text-primary)" }}
+              >
                 {title}
               </h2>
             )}
           </div>
           <div className="flex items-center gap-2.5">
             {showSearchBar && (
-              <div className="flex h-9 items-center gap-2 px-3 rounded-lg bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]" style={{ borderColor: "var(--color-border-default)", borderWidth: "1px" }}>
+              <div
+                className="flex h-9 items-center gap-2 px-3 rounded-lg bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]"
+                style={{
+                  borderColor: "var(--color-border-default)",
+                  borderWidth: "1px",
+                }}
+              >
                 <Search className="w-5 h-5 text-gray-600" />
                 <input
                   type="text"
@@ -196,9 +208,15 @@ export default function GlobalTable({
               <button
                 onClick={() => onFilterClick?.()}
                 className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-                style={{ borderColor: "var(--color-border-default)", borderWidth: "1px" }}
+                style={{
+                  borderColor: "var(--color-border-default)",
+                  borderWidth: "1px",
+                }}
               >
-                <span className="font-normal text-base leading-[140%] tracking-[-0.32px] capitalize" style={{ color: "var(--color-text-primary)" }}>
+                <span
+                  className="font-normal text-base leading-[140%] tracking-[-0.32px] capitalize"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
                   Filter
                 </span>
                 <ChevronDown className="w-4 h-4" />
@@ -213,58 +231,70 @@ export default function GlobalTable({
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="h-12 bg-gray-50" style={{ borderBottomColor: "var(--color-border-light)", borderBottomWidth: "1px" }}>
+            <tr
+              className="h-12 bg-gray-50"
+              style={{
+                borderBottomColor: "var(--color-border-light)",
+                borderBottomWidth: "1px",
+              }}
+            >
               {displayedColumnKeys.map((colKey) => {
-                  const colConfig = columnConfig[colKey];
-                  const sortIndicator = getSortIndicator(colKey);
-                  return (
-                    <th
-                      key={colKey}
-                      draggable
-                      onDragStart={() => handleColumnDragStart(colKey)}
-                      onDragOver={(e) => handleColumnDragOver(e, colKey)}
-                      onDragLeave={handleColumnDragLeave}
-                      onDrop={(e) => handleColumnDrop(e, colKey)}
-                      onClick={() => handleSortClick(colKey)}
-                      className="ra-table-header-cell px-3 py-3 text-left whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
-                      style={{
-                        borderRightColor: "var(--color-border-light)",
-                        borderRightWidth: "1px",
-                        opacity: draggedColumn === colKey ? 0.5 : 1,
-                        transition: "opacity 0.2s ease",
-                      }}
-                    >
-                      {dropTargetColumn === colKey && draggedColumn && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            bottom: 0,
-                            width: "2px",
-                            backgroundColor: "#3b82f6",
-                            left: dropPosition === "before" ? "0" : "auto",
-                            right: dropPosition === "after" ? "0" : "auto",
-                          }}
-                        />
+                const colConfig = columnConfig[colKey];
+                const sortIndicator = getSortIndicator(colKey);
+                return (
+                  <th
+                    key={colKey}
+                    draggable
+                    onDragStart={() => handleColumnDragStart(colKey)}
+                    onDragOver={(e) => handleColumnDragOver(e, colKey)}
+                    onDragLeave={handleColumnDragLeave}
+                    onDrop={(e) => handleColumnDrop(e, colKey)}
+                    onClick={() => handleSortClick(colKey)}
+                    className="ra-table-header-cell px-3 py-3 text-left whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors relative"
+                    style={{
+                      borderRightColor: "var(--color-border-light)",
+                      borderRightWidth: "1px",
+                      opacity: draggedColumn === colKey ? 0.5 : 1,
+                      transition: "opacity 0.2s ease",
+                    }}
+                  >
+                    {dropTargetColumn === colKey && draggedColumn && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          bottom: 0,
+                          width: "2px",
+                          backgroundColor: "#3b82f6",
+                          left: dropPosition === "before" ? "0" : "auto",
+                          right: dropPosition === "after" ? "0" : "auto",
+                        }}
+                      />
+                    )}
+                    <div className="flex items-center gap-2">
+                      {colConfig?.icon && (
+                        <div className="ra-table-header-icon">
+                          {colConfig.icon}
+                        </div>
                       )}
-                      <div className="flex items-center gap-2">
-                        {colConfig?.icon && (
-                          <div className="ra-table-header-icon">
-                            {colConfig.icon}
-                          </div>
-                        )}
-                        <span className="ra-table-header-label font-medium text-sm" style={{ color: "var(--color-text-primary)" }}>
-                          {colConfig?.label}
+                      <span
+                        className="ra-table-header-label font-medium text-sm"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
+                        {colConfig?.label}
+                      </span>
+                      {sortIndicator && (
+                        <span
+                          className="ra-table-sort-indicator text-xs font-bold ml-1"
+                          style={{ color: "var(--color-text-primary)" }}
+                        >
+                          {sortIndicator}
                         </span>
-                        {sortIndicator && (
-                          <span className="ra-table-sort-indicator text-xs font-bold ml-1" style={{ color: "var(--color-text-primary)" }}>
-                            {sortIndicator}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  );
-                })}
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
               {actions.length > 0 && (
                 <th
                   className="ra-table-actions-header sticky right-0 px-2 py-3 text-center w-20"
@@ -274,7 +304,10 @@ export default function GlobalTable({
                     backgroundColor: "white",
                   }}
                 >
-                  <span className="ra-table-actions-label font-medium text-sm" style={{ color: "var(--color-text-primary)" }}>
+                  <span
+                    className="ra-table-actions-label font-medium text-sm"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
                     Actions
                   </span>
                 </th>
@@ -305,20 +338,26 @@ export default function GlobalTable({
                     onRowClick ? "cursor-pointer" : "",
                     getRowClassName?.(row),
                   )}
-                  style={{ borderBottomColor: "var(--color-border-light)", borderBottomWidth: "1px" }}
+                  style={{
+                    borderBottomColor: "var(--color-border-light)",
+                    borderBottomWidth: "1px",
+                  }}
                 >
                   {displayedColumnKeys.map((colKey) => (
-                      <td
-                        key={colKey}
-                        className={cn(
-                          "ra-table-cell px-3 py-3 whitespace-nowrap overflow-visible",
-                          getCellClassName?.(row, colKey),
-                        )}
-                        style={{ borderRightColor: "var(--color-border-light)", borderRightWidth: "1px" }}
-                      >
-                        {renderCell(row, colKey)}
-                      </td>
-                    ))}
+                    <td
+                      key={colKey}
+                      className={cn(
+                        "ra-table-cell px-3 py-3 whitespace-nowrap overflow-visible",
+                        getCellClassName?.(row, colKey),
+                      )}
+                      style={{
+                        borderRightColor: "var(--color-border-light)",
+                        borderRightWidth: "1px",
+                      }}
+                    >
+                      {renderCell(row, colKey)}
+                    </td>
+                  ))}
                   {actions.length > 0 && (
                     <td
                       data-global-table-actions-cell="true"
@@ -353,124 +392,148 @@ export default function GlobalTable({
           className="ra-table-pagination flex justify-between items-center px-6 py-4 bg-white gap-4 relative"
           style={{ position: "relative", zIndex: 1, overflow: "visible" }}
         >
-        <div className="flex items-center gap-2">
-          <span className="ra-table-pagination-label text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
-            Showing
-          </span>
-          <PageSizeDropdown
-            itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={onItemsPerPageChange}
-            onPageChange={onPageChange}
-            totalRows={totalRows}
-          />
-          <span className="ra-table-pagination-total text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
-            of {totalRows}
-          </span>
-        </div>
-        <div
-          className="ra-table-pagination-controls flex items-center rounded-lg border bg-white overflow-hidden"
-          style={{
-            borderColor: "var(--color-border-default)",
-            borderWidth: "0.909091px",
-            boxShadow:
-              "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
-          }}
-        >
-          <button
-            disabled={currentPage === 1}
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            className={cn(
-              "ra-table-prev-button flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
-              currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
-            )}
+          <div className="flex items-center gap-2">
+            <span
+              className="ra-table-pagination-label text-sm font-medium"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              Showing
+            </span>
+            <PageSizeDropdown
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={onItemsPerPageChange}
+              onPageChange={onPageChange}
+              totalRows={totalRows}
+            />
+            <span
+              className="ra-table-pagination-total text-sm font-medium"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              of {totalRows}
+            </span>
+          </div>
+          <div
+            className="ra-table-pagination-controls flex items-center rounded-lg border bg-white overflow-hidden"
             style={{
-              borderRightWidth: "0.909091px",
-              borderRightColor: "var(--color-border-light)",
+              borderColor: "var(--color-border-default)",
+              borderWidth: "0.909091px",
+              boxShadow:
+                "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.03) 0px 1px 3px 0px",
             }}
           >
-            <ArrowBackIcon
-              width={20}
-              height={20}
-              style={{
-                color: currentPage === 1 ? "var(--color-text-muted)" : "currentColor"
-              }}
-            />
-            <div
-              className={cn(
-                "font-medium text-sm",
-                currentPage === 1 ? "opacity-50" : ""
-              )}
-              style={{
-                color: currentPage === 1 ? "var(--color-text-muted)" : "var(--color-text-primary)"
-              }}
-            >
-              Previous
-            </div>
-          </button>
-          {getPaginationNumbers().map((page, idx) => (
             <button
-              key={page === "..." ? `ellipsis-${idx}` : page}
-              disabled={page === "..."}
-              onClick={() => {
-                if (page !== "...") {
-                  onPageChange(page as number);
-                }
-              }}
+              disabled={currentPage === 1}
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
               className={cn(
-                "ra-table-pagination-page flex items-center justify-center h-10 min-w-10 transition-colors",
-                page === "..." && "opacity-50 cursor-not-allowed"
+                "ra-table-prev-button flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                currentPage === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-50",
               )}
               style={{
                 borderRightWidth: "0.909091px",
                 borderRightColor: "var(--color-border-light)",
-                backgroundColor:
-                  currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
+              }}
+            >
+              <ArrowBackIcon
+                width={20}
+                height={20}
+                style={{
+                  color:
+                    currentPage === 1
+                      ? "var(--color-text-muted)"
+                      : "currentColor",
+                }}
+              />
+              <div
+                className={cn(
+                  "font-medium text-sm",
+                  currentPage === 1 ? "opacity-50" : "",
+                )}
+                style={{
+                  color:
+                    currentPage === 1
+                      ? "var(--color-text-muted)"
+                      : "var(--color-text-primary)",
+                }}
+              >
+                Previous
+              </div>
+            </button>
+            {getPaginationNumbers().map((page, idx) => (
+              <button
+                key={page === "..." ? `ellipsis-${idx}` : page}
+                disabled={page === "..."}
+                onClick={() => {
+                  if (page !== "...") {
+                    onPageChange(page as number);
+                  }
+                }}
+                className={cn(
+                  "ra-table-pagination-page flex items-center justify-center h-10 min-w-10 transition-colors",
+                  page === "..." && "opacity-50 cursor-not-allowed",
+                )}
+                style={{
+                  borderRightWidth: "0.909091px",
+                  borderRightColor: "var(--color-border-light)",
+                  backgroundColor:
+                    currentPage === page ? "white" : "rgba(0, 0, 0, 0)",
+                }}
+              >
+                <div
+                  className="font-medium text-sm"
+                  style={{
+                    color:
+                      currentPage === page
+                        ? "var(--color-text-primary)"
+                        : "var(--color-text-muted)",
+                    fontWeight: currentPage === page ? "700" : "500",
+                  }}
+                >
+                  {page}
+                </div>
+              </button>
+            ))}
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() =>
+                onPageChange(Math.min(currentPage + 1, totalPages))
+              }
+              className={cn(
+                "ra-table-next-button flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
+                currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-50",
+              )}
+              style={{
+                backgroundColor: "rgba(0, 0, 0, 0)",
               }}
             >
               <div
                 className="font-medium text-sm"
                 style={{
-                  color: currentPage === page ? "var(--color-text-primary)" : "var(--color-text-muted)",
-                  fontWeight: currentPage === page ? "700" : "500",
+                  color:
+                    currentPage === totalPages
+                      ? "var(--color-text-muted)"
+                      : "var(--color-text-primary)",
                 }}
               >
-                {page}
+                Next
               </div>
+              <ArrowForwardIcon
+                width={20}
+                height={20}
+                style={{
+                  color:
+                    currentPage === totalPages
+                      ? "var(--color-text-muted)"
+                      : "currentColor",
+                }}
+              />
             </button>
-          ))}
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
-            className={cn(
-              "ra-table-next-button flex items-center justify-center gap-1.5 h-10 px-3 transition-colors",
-              currentPage === totalPages
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-gray-50"
-            )}
-            style={{
-              backgroundColor: "rgba(0, 0, 0, 0)",
-            }}
-          >
-            <div
-              className="font-medium text-sm"
-              style={{
-                color: currentPage === totalPages ? "var(--color-text-muted)" : "var(--color-text-primary)"
-              }}
-            >
-              Next
-            </div>
-            <ArrowForwardIcon
-              width={20}
-              height={20}
-              style={{
-                color: currentPage === totalPages ? "var(--color-text-muted)" : "currentColor"
-              }}
-            />
-          </button>
-        </div>
+          </div>
         </div>
       )}
-
     </div>
   );
 }

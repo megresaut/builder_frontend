@@ -79,23 +79,13 @@ export const NotesTemplate: React.FC<NotesTemplateProps> = ({
                   actions={[
                     {
                       label: "Edit",
-                      icon: (
-                        <EditIcon
-                          width={18}
-                          height={18}
-                          color="#303030"
-                        />
-                      ),
+                      icon: <EditIcon width={18} height={18} color="#303030" />,
                       onClick: () => onEdit(note),
                     },
                     {
                       label: "Delete",
                       icon: (
-                        <DeleteIcon
-                          width={18}
-                          height={18}
-                          color="#982740"
-                        />
+                        <DeleteIcon width={18} height={18} color="#982740" />
                       ),
                       onClick: () => onDelete(note.id),
                     },

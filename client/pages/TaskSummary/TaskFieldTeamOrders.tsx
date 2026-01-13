@@ -30,7 +30,15 @@ interface FieldTeamOrder {
   description: string;
   dueDate: string;
   priority: "low" | "normal" | "high";
-  fieldTeam: Array<{ id: number; initials: string; color: string; name: string; email: string; phone: string; title: string }>;
+  fieldTeam: Array<{
+    id: number;
+    initials: string;
+    color: string;
+    name: string;
+    email: string;
+    phone: string;
+    title: string;
+  }>;
   status: "dispatched" | "approved" | "pending-approval";
   timesheetStatus:
     | "awaiting-submission"
@@ -69,12 +77,45 @@ interface APIFTOResponse {
   updated_at?: string;
 }
 
-const mockUsers: Record<number, { id: number; name: string; email: string; phone: string; title: string }> = {
-  1: { id: 1, name: "Christopher Harris", email: "christopher.harris@company.com", phone: "(555) 111-2222", title: "Field Lead" },
-  2: { id: 2, name: "Cassandra Smith", email: "cassandra.smith@company.com", phone: "(555) 222-3333", title: "Field Technician" },
-  3: { id: 3, name: "David Chen", email: "david.chen@company.com", phone: "(555) 333-4444", title: "Field Specialist" },
-  4: { id: 4, name: "Emma Rodriguez", email: "emma.rodriguez@company.com", phone: "(555) 444-5555", title: "Field Technician" },
-  5: { id: 5, name: "James Wilson", email: "james.wilson@company.com", phone: "(555) 555-6666", title: "Field Lead" },
+const mockUsers: Record<
+  number,
+  { id: number; name: string; email: string; phone: string; title: string }
+> = {
+  1: {
+    id: 1,
+    name: "Christopher Harris",
+    email: "christopher.harris@company.com",
+    phone: "(555) 111-2222",
+    title: "Field Lead",
+  },
+  2: {
+    id: 2,
+    name: "Cassandra Smith",
+    email: "cassandra.smith@company.com",
+    phone: "(555) 222-3333",
+    title: "Field Technician",
+  },
+  3: {
+    id: 3,
+    name: "David Chen",
+    email: "david.chen@company.com",
+    phone: "(555) 333-4444",
+    title: "Field Specialist",
+  },
+  4: {
+    id: 4,
+    name: "Emma Rodriguez",
+    email: "emma.rodriguez@company.com",
+    phone: "(555) 444-5555",
+    title: "Field Technician",
+  },
+  5: {
+    id: 5,
+    name: "James Wilson",
+    email: "james.wilson@company.com",
+    phone: "(555) 555-6666",
+    title: "Field Lead",
+  },
 };
 
 const getInitials = (name: string): string => {
@@ -87,10 +128,24 @@ const getInitials = (name: string): string => {
 };
 
 const resolveFieldTeamMembers = (
-  memberIds: number[]
-): Array<{ id: number; initials: string; color: string; name: string; email: string; phone: string; title: string }> => {
+  memberIds: number[],
+): Array<{
+  id: number;
+  initials: string;
+  color: string;
+  name: string;
+  email: string;
+  phone: string;
+  title: string;
+}> => {
   return memberIds.map((id) => {
-    const user = mockUsers[id] || { id, name: "Unknown User", email: "", phone: "", title: "Field Team" };
+    const user = mockUsers[id] || {
+      id,
+      name: "Unknown User",
+      email: "",
+      phone: "",
+      title: "Field Team",
+    };
     return {
       id: user.id,
       initials: getInitials(user.name),
@@ -104,7 +159,7 @@ const resolveFieldTeamMembers = (
 };
 
 const mapFormSubmissionToTimesheetStatus = (
-  formStatus: "none" | "partial" | "complete"
+  formStatus: "none" | "partial" | "complete",
 ): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
   switch (formStatus) {
     case "none":
@@ -346,7 +401,7 @@ const mockFetchFTOs = async (params: {
 };
 
 const transformAPIToFieldTeamOrder = (
-  apiData: APIFTOResponse[]
+  apiData: APIFTOResponse[],
 ): FieldTeamOrder[] => {
   return apiData.map((fto) => {
     const dateObj = new Date(fto.due_date);
@@ -357,7 +412,7 @@ const transformAPIToFieldTeamOrder = (
     });
 
     const timesheetStatus = mapFormSubmissionToTimesheetStatus(
-      fto.form_submission_status
+      fto.form_submission_status,
     );
 
     return {
@@ -366,9 +421,12 @@ const transformAPIToFieldTeamOrder = (
       property: fto.property_name,
       description: fto.description,
       dueDate,
-      priority: (fto.priority.toLowerCase() as "low" | "normal" | "high") || "normal",
+      priority:
+        (fto.priority.toLowerCase() as "low" | "normal" | "high") || "normal",
       fieldTeam: resolveFieldTeamMembers(fto.field_team_member_ids),
-      status: (fto.status as "dispatched" | "approved" | "pending-approval") || "pending-approval",
+      status:
+        (fto.status as "dispatched" | "approved" | "pending-approval") ||
+        "pending-approval",
       timesheetStatus,
       amount: fto.total_amount,
       unit: "Unit",
@@ -385,7 +443,10 @@ interface TaskFieldTeamOrdersProps {
   onOrdersChange: (orders: FieldTeamOrder[]) => void;
 }
 
-export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFieldTeamOrdersProps) {
+export default function TaskFieldTeamOrders({
+  orders,
+  onOrdersChange,
+}: TaskFieldTeamOrdersProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { taskId } = useParams<{ taskId: string }>();
@@ -404,7 +465,6 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
 
-
   const filteredOrders = orders.filter((order) => {
     const searchLower = searchValue.toLowerCase();
     return (
@@ -414,7 +474,7 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
       order.status.toLowerCase().includes(searchLower) ||
       order.priority.toLowerCase().includes(searchLower) ||
       order.fieldTeam.some((member) =>
-        member.name.toLowerCase().includes(searchLower)
+        member.name.toLowerCase().includes(searchLower),
       )
     );
   });
@@ -507,7 +567,7 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
     (order: FieldTeamOrder) => {
       onOrdersChange(orders.filter((o) => o.id !== order.id));
     },
-    [orders, onOrdersChange]
+    [orders, onOrdersChange],
   );
 
   const handleEditOrder = useCallback(
@@ -515,7 +575,7 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
       setEditingOrder(order);
       setShowFTOModal(true);
     },
-    [setShowFTOModal]
+    [setShowFTOModal],
   );
 
   const handleApproveOrder = useCallback(
@@ -524,7 +584,9 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
       // We explicitly construct the path using the taskId from params to avoid issues with current location.pathname
       const referrerPath = taskId
         ? `/tasks/${taskId}/fieldteam`
-        : (location.pathname.includes('/fieldteam') ? location.pathname : `${location.pathname}/fieldteam`);
+        : location.pathname.includes("/fieldteam")
+          ? location.pathname
+          : `${location.pathname}/fieldteam`;
 
       navigate(`/fto/approve/${order.id}`, {
         state: {
@@ -540,7 +602,7 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
         },
       });
     },
-    [navigate, location.pathname, taskId]
+    [navigate, location.pathname, taskId],
   );
 
   return (
@@ -553,146 +615,160 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
         onActionClick={() => setShowFTOModal(true)}
       >
         {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-gray-500">Loading field team orders...</div>
-        </div>
-      ) : (
-        <GlobalTable
-          columns={columns}
-          data={filteredOrders}
-          rowKey="id"
-          showSearchBar={true}
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-          renderCell={(order, columnKey) => {
-            if (columnKey === "priority") {
-              return (
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{
-                      backgroundColor:
-                        order.priority === "low"
-                          ? "#059669"
-                          : order.priority === "normal"
-                            ? "#2463eb"
-                            : "#d97706",
-                    }}
-                  />
-                  <span className="text-gray-900 font-normal text-sm capitalize truncate">
-                    {order.priority}
+          <div className="flex items-center justify-center py-12">
+            <div className="text-gray-500">Loading field team orders...</div>
+          </div>
+        ) : (
+          <GlobalTable
+            columns={columns}
+            data={filteredOrders}
+            rowKey="id"
+            showSearchBar={true}
+            searchValue={searchValue}
+            onSearchChange={setSearchValue}
+            renderCell={(order, columnKey) => {
+              if (columnKey === "priority") {
+                return (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          order.priority === "low"
+                            ? "#059669"
+                            : order.priority === "normal"
+                              ? "#2463eb"
+                              : "#d97706",
+                      }}
+                    />
+                    <span className="text-gray-900 font-normal text-sm capitalize truncate">
+                      {order.priority}
+                    </span>
+                  </div>
+                );
+              }
+              if (columnKey === "property") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {order.property}
                   </span>
-                </div>
-              );
+                );
+              }
+              if (columnKey === "unit") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {order.unit || "-"}
+                  </span>
+                );
+              }
+              if (columnKey === "description") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {order.description}
+                  </span>
+                );
+              }
+              if (columnKey === "dueDate") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {order.dueDate}
+                  </span>
+                );
+              }
+              if (columnKey === "fieldTeam") {
+                return (
+                  <PersonAvatars
+                    people={order.fieldTeam}
+                    type="assignee"
+                    fallback="None"
+                    size="sm"
+                  />
+                );
+              }
+              if (columnKey === "status") {
+                return (
+                  <StatusBadge status={order.status} variant="fto-status" />
+                );
+              }
+              if (columnKey === "timesheetStatus") {
+                return (
+                  <StatusBadge
+                    status={order.timesheetStatus}
+                    variant="timesheet-status"
+                  />
+                );
+              }
+              if (columnKey === "amount") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    ${order.amount}
+                  </span>
+                );
+              }
+              return null;
+            }}
+            sortingHook={{
+              handleSortClick,
+              getSortIndicator,
+              getSortedData,
+            }}
+            columnManagementHook={{
+              columnOrder,
+              visibleColumns,
+              draggedColumn,
+              dropTargetColumn,
+              dropPosition,
+              columnMenuPos,
+              columnButtonRef,
+              toggleColumnVisibility,
+              handleColumnDragStart,
+              handleColumnDragOver,
+              handleColumnDragLeave,
+              handleColumnDrop,
+            }}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+            showPageSizeDropdown={showPageSizeDropdown}
+            onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+            openMenuId={openMenuId}
+            onOpenMenuIdChange={setOpenMenuId}
+            title="Field Team Orders"
+            headerActions={
+              <button
+                ref={columnButtonRef}
+                onClick={() => {
+                  setShowPageSizeDropdown(false);
+                  setOpenMenuId(null);
+                  setShowColumnModal((prev) => !prev);
+                }}
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+              >
+                <DotsIcon width={18} height={18} color="#303030" />
+              </button>
             }
-            if (columnKey === "property") {
-              return (
-                <span className="text-gray-900 font-normal text-sm truncate">
-                  {order.property}
-                </span>
-              );
-            }
-            if (columnKey === "unit") {
-              return (
-                <span className="text-gray-900 font-normal text-sm truncate">
-                  {order.unit || "-"}
-                </span>
-              );
-            }
-            if (columnKey === "description") {
-              return (
-                <span className="text-gray-900 font-normal text-sm truncate">
-                  {order.description}
-                </span>
-              );
-            }
-            if (columnKey === "dueDate") {
-              return (
-                <span className="text-gray-900 font-normal text-sm truncate">
-                  {order.dueDate}
-                </span>
-              );
-            }
-            if (columnKey === "fieldTeam") {
-              return <PersonAvatars people={order.fieldTeam} type="assignee" fallback="None" size="sm" />;
-            }
-            if (columnKey === "status") {
-              return <StatusBadge status={order.status} variant="fto-status" />;
-            }
-            if (columnKey === "timesheetStatus") {
-              return <StatusBadge status={order.timesheetStatus} variant="timesheet-status" />;
-            }
-            if (columnKey === "amount") {
-              return (
-                <span className="text-gray-900 font-normal text-sm">
-                  ${order.amount}
-                </span>
-              );
-            }
-            return null;
-          }}
-          sortingHook={{
-            handleSortClick,
-            getSortIndicator,
-            getSortedData,
-          }}
-          columnManagementHook={{
-            columnOrder,
-            visibleColumns,
-            draggedColumn,
-            dropTargetColumn,
-            dropPosition,
-            columnMenuPos,
-            columnButtonRef,
-            toggleColumnVisibility,
-            handleColumnDragStart,
-            handleColumnDragOver,
-            handleColumnDragLeave,
-            handleColumnDrop,
-          }}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          itemsPerPage={itemsPerPage}
-          onItemsPerPageChange={setItemsPerPage}
-          showPageSizeDropdown={showPageSizeDropdown}
-          onShowPageSizeDropdownChange={setShowPageSizeDropdown}
-          openMenuId={openMenuId}
-          onOpenMenuIdChange={setOpenMenuId}
-          title="Field Team Orders"
-          headerActions={
-            <button
-              ref={columnButtonRef}
-              onClick={() => {
-                setShowPageSizeDropdown(false);
-                setOpenMenuId(null);
-                setShowColumnModal((prev) => !prev);
-              }}
-              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-            >
-              <DotsIcon width={18} height={18} color="#303030" />
-            </button>
-          }
-          actions={[
-            {
-              label: "Approve",
-              icon: <ApproveIcon width={16} height={16} />,
-              onClick: handleApproveOrder,
-            },
-            {
-              label: "Edit",
-              icon: <EditIcon width={18} height={18} color="#525252" />,
-              onClick: handleEditOrder,
-            },
-            {
-              label: "Delete",
-              icon: <DeleteIcon width={18} height={18} color="#982740" />,
-              onClick: handleDeleteOrder,
-            },
-          ]}
-          onRowClick={handleEditOrder}
-          showColumnModal={showColumnModal}
-          onShowColumnModalChange={setShowColumnModal}
-        />
+            actions={[
+              {
+                label: "Approve",
+                icon: <ApproveIcon width={16} height={16} />,
+                onClick: handleApproveOrder,
+              },
+              {
+                label: "Edit",
+                icon: <EditIcon width={18} height={18} color="#525252" />,
+                onClick: handleEditOrder,
+              },
+              {
+                label: "Delete",
+                icon: <DeleteIcon width={18} height={18} color="#982740" />,
+                onClick: handleDeleteOrder,
+              },
+            ]}
+            onRowClick={handleEditOrder}
+            showColumnModal={showColumnModal}
+            onShowColumnModalChange={setShowColumnModal}
+          />
         )}
       </HeaderV1>
 
@@ -711,11 +787,12 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
                 name: editingOrder.description,
                 description: editingOrder.description,
                 priority: editingOrder.priority,
-                status: editingOrder.status === "pending-approval"
-                  ? "new"
-                  : editingOrder.status === "approved"
-                    ? "completed"
-                    : "dispatched",
+                status:
+                  editingOrder.status === "pending-approval"
+                    ? "new"
+                    : editingOrder.status === "approved"
+                      ? "completed"
+                      : "dispatched",
                 due_date: editingOrder.dueDateISO || editingOrder.dueDate,
                 property_id: editingOrder.propertyId || 1,
                 task_id: editingOrder.taskId,
@@ -725,18 +802,42 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
             : null
         }
         onFTOCreated={(ftoData) => {
-          const fieldTeamMasterData: Record<string, { email: string; phone: string; title: string }> = {
-            "Christopher Harris": { email: "christopher.harris@company.com", phone: "(555) 111-2222", title: "Field Lead" },
-            "Cassandra Smith": { email: "cassandra.smith@company.com", phone: "(555) 222-3333", title: "Field Technician" },
-            "David Chen": { email: "david.chen@company.com", phone: "(555) 333-4444", title: "Field Specialist" },
-            "Emma Rodriguez": { email: "emma.rodriguez@company.com", phone: "(555) 444-5555", title: "Field Technician" },
-            "James Wilson": { email: "james.wilson@company.com", phone: "(555) 555-6666", title: "Field Lead" },
+          const fieldTeamMasterData: Record<
+            string,
+            { email: string; phone: string; title: string }
+          > = {
+            "Christopher Harris": {
+              email: "christopher.harris@company.com",
+              phone: "(555) 111-2222",
+              title: "Field Lead",
+            },
+            "Cassandra Smith": {
+              email: "cassandra.smith@company.com",
+              phone: "(555) 222-3333",
+              title: "Field Technician",
+            },
+            "David Chen": {
+              email: "david.chen@company.com",
+              phone: "(555) 333-4444",
+              title: "Field Specialist",
+            },
+            "Emma Rodriguez": {
+              email: "emma.rodriguez@company.com",
+              phone: "(555) 444-5555",
+              title: "Field Technician",
+            },
+            "James Wilson": {
+              email: "james.wilson@company.com",
+              phone: "(555) 555-6666",
+              title: "Field Lead",
+            },
           };
 
           const newId = Math.max(...orders.map((o) => o.id), 0) + 1;
           const fieldTeamArray = ftoData.selectedAssignees.map(
             (assignee: any, idx: number) => {
-              const name = assignee.name || assignee.label || assignee.value || "";
+              const name =
+                assignee.name || assignee.label || assignee.value || "";
               const memberInfo = fieldTeamMasterData[name];
               return {
                 id: assignee.id || idx + 1,
@@ -750,7 +851,7 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
                 phone: memberInfo?.phone || "",
                 title: memberInfo?.title || "Field Team Member",
               };
-            }
+            },
           );
           const newFTO: FieldTeamOrder = {
             id: newId,

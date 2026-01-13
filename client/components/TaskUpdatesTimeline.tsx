@@ -54,7 +54,9 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const composerButtonRef = useRef<HTMLButtonElement | null>(null);
   const lastMarkerRef = useRef<HTMLDivElement | null>(null);
-  const [rail, setRail] = useState<{ top: number; height: number } | null>(null);
+  const [rail, setRail] = useState<{ top: number; height: number } | null>(
+    null,
+  );
 
   useLayoutEffect(() => {
     if (!onAddUpdate || updates.length === 0) {
@@ -76,7 +78,8 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
       const startRect = startEl.getBoundingClientRect();
       const endRect = endEl.getBoundingClientRect();
 
-      const startCenter = startRect.top - containerRect.top + startRect.height / 2;
+      const startCenter =
+        startRect.top - containerRect.top + startRect.height / 2;
       const endCenter = endRect.top - containerRect.top + endRect.height / 2;
 
       const top = Math.min(startCenter, endCenter);
@@ -99,7 +102,9 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
 
     if (typeof window !== "undefined") {
       window.addEventListener("resize", scheduleCompute);
-      cleanupFns.push(() => window.removeEventListener("resize", scheduleCompute));
+      cleanupFns.push(() =>
+        window.removeEventListener("resize", scheduleCompute),
+      );
     }
 
     if (container && "ResizeObserver" in window) {
@@ -176,10 +181,7 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
               </div>
 
               {/* Update Card - height:auto so it grows naturally */}
-              <div
-                className="flex-1 bg-white border border-[#e5e5e5] rounded-lg hover:border-[#d4d4d8] transition-colors"
-              >
-
+              <div className="flex-1 bg-white border border-[#e5e5e5] rounded-lg hover:border-[#d4d4d8] transition-colors">
                 {/* Card Content */}
                 <div className="px-4 py-3 flex flex-col gap-2">
                   {/* Header Row */}
@@ -190,7 +192,14 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                           people={[
                             {
                               name: update.author,
-                              initials: update.initials || update.author.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2),
+                              initials:
+                                update.initials ||
+                                update.author
+                                  .split(" ")
+                                  .map((n: string) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                                  .slice(0, 2),
                               email: update.authorEmail,
                               phone: update.authorPhone,
                               title: update.authorTitle,
@@ -229,9 +238,13 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
                   </div>
 
                   {/* Body (divider sits between header and everything below) */}
-                  {(update.fieldsDisplay || update.details || (update.attachments && update.attachments.length > 0)) && (
+                  {(update.fieldsDisplay ||
+                    update.details ||
+                    (update.attachments && update.attachments.length > 0)) && (
                     <div className="border-t border-[#e5e5e5] pt-2 mt-1">
-                      {update.fieldsDisplay && <div>{update.fieldsDisplay}</div>}
+                      {update.fieldsDisplay && (
+                        <div>{update.fieldsDisplay}</div>
+                      )}
 
                       {update.details && (
                         <div className={update.fieldsDisplay ? "mt-3" : ""}>
@@ -241,7 +254,13 @@ export const TaskUpdatesTimeline: React.FC<TaskUpdatesTimelineProps> = ({
 
                       {/* Attachments with Previews */}
                       {update.attachments && update.attachments.length > 0 && (
-                        <div className={(update.fieldsDisplay || update.details) ? "flex flex-col gap-2 mt-3" : "flex flex-col gap-2"}>
+                        <div
+                          className={
+                            update.fieldsDisplay || update.details
+                              ? "flex flex-col gap-2 mt-3"
+                              : "flex flex-col gap-2"
+                          }
+                        >
                           {update.attachments.map((file, idx) => (
                             <div
                               key={idx}

@@ -43,12 +43,16 @@ export const KeyValueGrid: React.FC<KeyValueGridProps> = ({ cells }) => {
                       className="mt-1 flex flex-nowrap items-center gap-1 text-[#2463EB] text-sm font-medium leading-[1.4] tracking-[-0.28px] rounded-lg hover:underline whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
                     >
                       {cell.icon && cell.icon}
-                      <span className="overflow-hidden text-ellipsis min-w-0">{cell.value}</span>
+                      <span className="overflow-hidden text-ellipsis min-w-0">
+                        {cell.value}
+                      </span>
                     </a>
                   ) : (
                     <div className="mt-1 flex flex-nowrap items-center gap-1 text-[#303030] text-sm font-medium leading-[1.29] whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
                       {cell.icon && cell.icon}
-                      <span className="overflow-hidden text-ellipsis min-w-0">{cell.value}</span>
+                      <span className="overflow-hidden text-ellipsis min-w-0">
+                        {cell.value}
+                      </span>
                     </div>
                   )
                 ) : (

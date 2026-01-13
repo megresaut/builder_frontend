@@ -60,8 +60,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
           {title}
         </h1>
-        {subtitle && (
-          typeof subtitle === 'string' ? (
+        {subtitle &&
+          (typeof subtitle === "string" ? (
             <span
               className="text-[#717179] font-medium text-base leading-4 block"
               style={{ marginTop: "4px" }}
@@ -69,11 +69,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
               {subtitle}
             </span>
           ) : (
-            <div style={{ marginTop: "4px" }}>
-              {subtitle}
-            </div>
-          )
-        )}
+            <div style={{ marginTop: "4px" }}>{subtitle}</div>
+          ))}
       </div>
 
       {/* Action Button */}

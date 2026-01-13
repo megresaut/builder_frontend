@@ -84,9 +84,7 @@ export const FilesTemplate: React.FC<FilesTemplateProps> = ({
                   </div>
                   {(file.category || file.description) && (
                     <div className="text-[#71717A] text-xs mt-2 space-y-1">
-                      {file.category && (
-                        <div>Category: {file.category}</div>
-                      )}
+                      {file.category && <div>Category: {file.category}</div>}
                       {file.description && (
                         <div>Description: {file.description}</div>
                       )}
@@ -101,23 +99,13 @@ export const FilesTemplate: React.FC<FilesTemplateProps> = ({
                   actions={[
                     {
                       label: "Edit",
-                      icon: (
-                        <EditIcon
-                          width={18}
-                          height={18}
-                          color="#303030"
-                        />
-                      ),
+                      icon: <EditIcon width={18} height={18} color="#303030" />,
                       onClick: () => onEdit(file),
                     },
                     {
                       label: "Delete",
                       icon: (
-                        <DeleteIcon
-                          width={18}
-                          height={18}
-                          color="#982740"
-                        />
+                        <DeleteIcon width={18} height={18} color="#982740" />
                       ),
                       onClick: () => onDelete(file.id),
                     },

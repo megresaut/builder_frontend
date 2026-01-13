@@ -1,7 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { EditIcon } from "@/components/icons";
-import { SectionActionTemplate, TaskDetailsBarTemplate } from "@/components/templates";
+import {
+  SectionActionTemplate,
+  TaskDetailsBarTemplate,
+} from "@/components/templates";
 import TaskOverviewCard from "@/components/TaskOverviewCard";
 import TaskLocationCard from "@/components/TaskLocationCard";
 import LinkedTasksCard from "@/components/LinkedTasksCard";
@@ -169,17 +172,39 @@ export default function SummaryTab({
         <TaskOverviewCard
           category={currentCategory || "Uncategorized"}
           description={currentDescription}
-          status={currentStatus ? (currentStatus === "not_started" ? "Not Started" : currentStatus === "in_progress" ? "In Progress" : "Completed") : "Not Started"}
-          priority={currentPriority ? currentPriority.charAt(0).toUpperCase() + currentPriority.slice(1) : "Normal"}
-          dueDate={currentDueDate ? currentDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date"}
+          status={
+            currentStatus
+              ? currentStatus === "not_started"
+                ? "Not Started"
+                : currentStatus === "in_progress"
+                  ? "In Progress"
+                  : "Completed"
+              : "Not Started"
+          }
+          priority={
+            currentPriority
+              ? currentPriority.charAt(0).toUpperCase() +
+                currentPriority.slice(1)
+              : "Normal"
+          }
+          dueDate={
+            currentDueDate
+              ? currentDueDate.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "No due date"
+          }
           createdBy={{
             name: "Julia LoSchiavo",
             email: "julia.loschiavo@company.com",
             phone: "(555) 123-4567",
             title: "Project Manager",
-            property: currentProperty && currentProperty !== "Unassigned"
-              ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
-              : "Unassigned",
+            property:
+              currentProperty && currentProperty !== "Unassigned"
+                ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
+                : "Unassigned",
           }}
           createdDate={createdTimestamp}
           lastUpdatedDate={lastUpdatedTimestamp}
@@ -221,10 +246,7 @@ export default function SummaryTab({
         />
 
         {/* Updates Timeline */}
-        <TaskUpdatesTimeline
-          updates={updates}
-          onAddUpdate={onAddUpdate}
-        />
+        <TaskUpdatesTimeline updates={updates} onAddUpdate={onAddUpdate} />
       </div>
 
       {/* Right Sidebar */}
@@ -241,7 +263,10 @@ export default function SummaryTab({
         )}
 
         {/* Assignees Card */}
-        {(currentAssignees.length > 0 || currentCollaborators.length > 0 || vendorsFromWorkOrders.length > 0 || fieldTeamFromOrders.length > 0) && (
+        {(currentAssignees.length > 0 ||
+          currentCollaborators.length > 0 ||
+          vendorsFromWorkOrders.length > 0 ||
+          fieldTeamFromOrders.length > 0) && (
           <PeopleCard
             title="Assignees"
             tabs={["Staff", "Vendors", "Field Team"]}
@@ -255,7 +280,16 @@ export default function SummaryTab({
                   return {
                     id: assignee.id,
                     name,
-                    initials: assignee.initials || (name ? name.split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase() : "?"),
+                    initials:
+                      assignee.initials ||
+                      (name
+                        ? name
+                            .split(" ")
+                            .slice(0, 2)
+                            .map((w: string) => w[0])
+                            .join("")
+                            .toUpperCase()
+                        : "?"),
                     roleLabel: assignee.title || "Property manager",
                     email: assignee.email || "",
                     phone: assignee.phone || "",
@@ -274,11 +308,21 @@ export default function SummaryTab({
                 label: "Collaborators",
                 mode: "rows",
                 people: currentCollaborators.map((collaborator) => {
-                  const name = collaborator.name || collaborator.label || "Unknown";
+                  const name =
+                    collaborator.name || collaborator.label || "Unknown";
                   return {
                     id: collaborator.id,
                     name,
-                    initials: collaborator.initials || (name ? name.split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase() : "?"),
+                    initials:
+                      collaborator.initials ||
+                      (name
+                        ? name
+                            .split(" ")
+                            .slice(0, 2)
+                            .map((w: string) => w[0])
+                            .join("")
+                            .toUpperCase()
+                        : "?"),
                     roleLabel: collaborator.title || "Property manager",
                     email: collaborator.email || "",
                     phone: collaborator.phone || "",
@@ -344,40 +388,44 @@ export default function SummaryTab({
                   label: "Created by",
                   mode: "rows",
                   people: [
-                    ...(isNewTask ? [
-                      {
-                        id: 0,
-                        name: "Julia LoSchiavo",
-                        initials: "JL",
-                        email: "julia.loschiavo@company.com",
-                        roleLabel: "Project Manager",
-                        phone: "(555) 123-4567",
-                      },
-                    ] : [
-                      {
-                        id: 4,
-                        name: "Julia LoSchiavo",
-                        initials: "JL",
-                        email: "julia.loschiavo@company.com",
-                        roleLabel: "Project Manager",
-                        phone: "(203) 927-1280",
-                      },
-                    ]),
+                    ...(isNewTask
+                      ? [
+                          {
+                            id: 0,
+                            name: "Julia LoSchiavo",
+                            initials: "JL",
+                            email: "julia.loschiavo@company.com",
+                            roleLabel: "Project Manager",
+                            phone: "(555) 123-4567",
+                          },
+                        ]
+                      : [
+                          {
+                            id: 4,
+                            name: "Julia LoSchiavo",
+                            initials: "JL",
+                            email: "julia.loschiavo@company.com",
+                            roleLabel: "Project Manager",
+                            phone: "(203) 927-1280",
+                          },
+                        ]),
                   ],
                   showRoleLabel: true,
                   showPhone: true,
                   showDivider: true,
                 },
-                ...(rentalOwner ? [
-                  {
-                    label: "Rental owners",
-                    mode: "rows",
-                    people: [rentalOwner],
-                    showRoleLabel: true,
-                    showPhone: true,
-                    showDivider: true,
-                  },
-                ] : []),
+                ...(rentalOwner
+                  ? [
+                      {
+                        label: "Rental owners",
+                        mode: "rows",
+                        people: [rentalOwner],
+                        showRoleLabel: true,
+                        showPhone: true,
+                        showDivider: true,
+                      },
+                    ]
+                  : []),
               ]}
             />
           );

@@ -50,7 +50,11 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   return (
     <SectionCard
       variant={variant}
-      title={<span className="text-[#303030] text-[22px] font-semibold leading-[1.36]">To-Do - #I 1024431</span>}
+      title={
+        <span className="text-[#303030] text-[22px] font-semibold leading-[1.36]">
+          To-Do - #I 1024431
+        </span>
+      }
       actions={
         onEdit && (
           <div className="flex items-center gap-1 text-sm text-[#717179] tracking-[-0.28px]">
@@ -70,7 +74,8 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
       {/* Last Updated Info */}
       {lastUpdatedDate && (
         <div className="text-sm text-[#717179] font-medium">
-          Last Updated <span className="text-[#303030] font-bold">{lastUpdatedDate}</span>
+          Last Updated{" "}
+          <span className="text-[#303030] font-bold">{lastUpdatedDate}</span>
         </div>
       )}
 
@@ -83,7 +88,12 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
               {
                 id: "creator",
                 name: createdBy.name,
-                initials: createdBy.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
+                initials: createdBy.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2),
                 email: createdBy.email,
                 phone: createdBy.phone,
                 title: createdBy.title,

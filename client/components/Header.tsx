@@ -483,7 +483,10 @@ export default function Header({
 
     // Prevent updating generic tabs with specific item routes if those items should be in their own tabs
     // This prevents duplicate tabs when navigating from a list view to a detail view that opens in a new tab
-    if (currentPageInfo.id.startsWith("task-") && selectedTab !== currentPageInfo.id) {
+    if (
+      currentPageInfo.id.startsWith("task-") &&
+      selectedTab !== currentPageInfo.id
+    ) {
       return;
     }
 
@@ -849,13 +852,16 @@ export default function Header({
           if (prevTabs.some((tab) => tab.id === selectedTab)) {
             return prevTabs;
           }
-          return [...prevTabs, {
-            id: selectedTab,
-            label: taskLabel,
-            icon: maintenanceIcon,
-            iconLight: maintenanceIcon,
-            iconDark: maintenanceIcon,
-          }];
+          return [
+            ...prevTabs,
+            {
+              id: selectedTab,
+              label: taskLabel,
+              icon: maintenanceIcon,
+              iconLight: maintenanceIcon,
+              iconDark: maintenanceIcon,
+            },
+          ];
         });
       } else if (selectedTab.startsWith("vendor-")) {
         const vendorId = selectedTab.replace("vendor-", "");
@@ -877,10 +883,13 @@ export default function Header({
           if (prevTabs.some((tab) => tab.id === selectedTab)) {
             return prevTabs;
           }
-          return [...prevTabs, {
-            id: selectedTab,
-            label: vendorLabel,
-          }];
+          return [
+            ...prevTabs,
+            {
+              id: selectedTab,
+              label: vendorLabel,
+            },
+          ];
         });
       }
     }

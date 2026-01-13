@@ -77,7 +77,7 @@ export default function CreateFTOModal({
 }: CreateFTOModalProps) {
   // Form state - using IDs instead of objects
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
-    null
+    null,
   );
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [ftoName, setFtoName] = useState("");
@@ -159,11 +159,11 @@ export default function CreateFTOModal({
 
   // Get selected assignees as MultiSelectOption
   const selectedPmAssignees = assigneeOptions.filter((opt) =>
-    pmAssigneeIds.includes(Number(opt.id))
+    pmAssigneeIds.includes(Number(opt.id)),
   );
 
   const selectedFieldTeamMembers = assigneeOptions.filter((opt) =>
-    fieldTeamMemberIds.includes(Number(opt.id))
+    fieldTeamMemberIds.includes(Number(opt.id)),
   );
 
   // Validation
@@ -213,7 +213,7 @@ export default function CreateFTOModal({
 
     // Get the selected property name
     const selectedProperty = MOCK_PROPERTIES.find(
-      (p) => p.id === selectedPropertyId
+      (p) => p.id === selectedPropertyId,
     );
 
     const payload = {

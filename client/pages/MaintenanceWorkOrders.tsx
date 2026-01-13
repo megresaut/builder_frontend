@@ -14,7 +14,12 @@ import { StatusBadge } from "@/components/StatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import PersonAvatars from "@/components/PersonAvatars";
-import { EditIcon, DeleteIcon, BuildingIcon, HashtagIcon } from "@/components/icons";
+import {
+  EditIcon,
+  DeleteIcon,
+  BuildingIcon,
+  HashtagIcon,
+} from "@/components/icons";
 
 interface Assignee {
   id: number;
@@ -58,10 +63,26 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Paid",
     billTotal: "$420",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500", email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        color: "bg-blue-500",
+        email: "jerry.sanchez@company.com",
+        phone: "(555) 111-1111",
+        title: "Field Technician",
+      },
     ],
     collaborators: [
-      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500", email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
+      {
+        id: 5,
+        name: "Sarah Wilson",
+        initials: "SW",
+        color: "bg-pink-500",
+        email: "sarah.wilson@company.com",
+        phone: "(555) 555-5555",
+        title: "Project Manager",
+      },
     ],
   },
   {
@@ -78,11 +99,35 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Awaiting Invoice",
     billTotal: "No invoice",
     assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500", email: "jane.smith@company.com", phone: "(555) 333-3333", title: "HVAC Specialist" },
+      {
+        id: 3,
+        name: "Jane Smith",
+        initials: "JMS",
+        color: "bg-green-500",
+        email: "jane.smith@company.com",
+        phone: "(555) 333-3333",
+        title: "HVAC Specialist",
+      },
     ],
     collaborators: [
-      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500", email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
-      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500", email: "lisa.brown@company.com", phone: "(555) 777-7777", title: "Inspector" },
+      {
+        id: 6,
+        name: "Tom Davis",
+        initials: "TD",
+        color: "bg-indigo-500",
+        email: "tom.davis@company.com",
+        phone: "(555) 666-6666",
+        title: "Supervisor",
+      },
+      {
+        id: 7,
+        name: "Lisa Brown",
+        initials: "LB",
+        color: "bg-red-500",
+        email: "lisa.brown@company.com",
+        phone: "(555) 777-7777",
+        title: "Inspector",
+      },
     ],
   },
   {
@@ -99,7 +144,15 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$95",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500", email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        color: "bg-blue-500",
+        email: "jerry.sanchez@company.com",
+        phone: "(555) 111-1111",
+        title: "Field Technician",
+      },
     ],
     collaborators: [],
   },
@@ -117,10 +170,26 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$112",
     assignees: [
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500", email: "john.doe@company.com", phone: "(555) 222-2222", title: "Lead Inspector" },
+      {
+        id: 2,
+        name: "John Doe",
+        initials: "JD",
+        color: "bg-purple-500",
+        email: "john.doe@company.com",
+        phone: "(555) 222-2222",
+        title: "Lead Inspector",
+      },
     ],
     collaborators: [
-      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500", email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
+      {
+        id: 5,
+        name: "Sarah Wilson",
+        initials: "SW",
+        color: "bg-pink-500",
+        email: "sarah.wilson@company.com",
+        phone: "(555) 555-5555",
+        title: "Project Manager",
+      },
     ],
   },
   {
@@ -137,10 +206,26 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$93",
     assignees: [
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500", email: "mike.johnson@company.com", phone: "(555) 444-4444", title: "Plumber" },
+      {
+        id: 4,
+        name: "Mike Johnson",
+        initials: "MJ",
+        color: "bg-orange-500",
+        email: "mike.johnson@company.com",
+        phone: "(555) 444-4444",
+        title: "Plumber",
+      },
     ],
     collaborators: [
-      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500", email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
+      {
+        id: 6,
+        name: "Tom Davis",
+        initials: "TD",
+        color: "bg-indigo-500",
+        email: "tom.davis@company.com",
+        phone: "(555) 666-6666",
+        title: "Supervisor",
+      },
     ],
   },
   {
@@ -157,11 +242,35 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$75",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500", email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        color: "bg-blue-500",
+        email: "jerry.sanchez@company.com",
+        phone: "(555) 111-1111",
+        title: "Field Technician",
+      },
     ],
     collaborators: [
-      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500", email: "lisa.brown@company.com", phone: "(555) 777-7777", title: "Inspector" },
-      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500", email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
+      {
+        id: 7,
+        name: "Lisa Brown",
+        initials: "LB",
+        color: "bg-red-500",
+        email: "lisa.brown@company.com",
+        phone: "(555) 777-7777",
+        title: "Inspector",
+      },
+      {
+        id: 5,
+        name: "Sarah Wilson",
+        initials: "SW",
+        color: "bg-pink-500",
+        email: "sarah.wilson@company.com",
+        phone: "(555) 555-5555",
+        title: "Project Manager",
+      },
     ],
   },
   {
@@ -178,7 +287,15 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$101",
     assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500", email: "jane.smith@company.com", phone: "(555) 333-3333", title: "HVAC Specialist" },
+      {
+        id: 3,
+        name: "Jane Smith",
+        initials: "JMS",
+        color: "bg-green-500",
+        email: "jane.smith@company.com",
+        phone: "(555) 333-3333",
+        title: "HVAC Specialist",
+      },
     ],
     collaborators: [],
   },
@@ -196,10 +313,26 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$124",
     assignees: [
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500", email: "john.doe@company.com", phone: "(555) 222-2222", title: "Lead Inspector" },
+      {
+        id: 2,
+        name: "John Doe",
+        initials: "JD",
+        color: "bg-purple-500",
+        email: "john.doe@company.com",
+        phone: "(555) 222-2222",
+        title: "Lead Inspector",
+      },
     ],
     collaborators: [
-      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500", email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
+      {
+        id: 6,
+        name: "Tom Davis",
+        initials: "TD",
+        color: "bg-indigo-500",
+        email: "tom.davis@company.com",
+        phone: "(555) 666-6666",
+        title: "Supervisor",
+      },
     ],
   },
   {
@@ -216,11 +349,35 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$67",
     assignees: [
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500", email: "mike.johnson@company.com", phone: "(555) 444-4444", title: "Plumber" },
+      {
+        id: 4,
+        name: "Mike Johnson",
+        initials: "MJ",
+        color: "bg-orange-500",
+        email: "mike.johnson@company.com",
+        phone: "(555) 444-4444",
+        title: "Plumber",
+      },
     ],
     collaborators: [
-      { id: 5, name: "Sarah Wilson", initials: "SW", color: "bg-pink-500", email: "sarah.wilson@company.com", phone: "(555) 555-5555", title: "Project Manager" },
-      { id: 7, name: "Lisa Brown", initials: "LB", color: "bg-red-500", email: "lisa.brown@company.com", phone: "(555) 777-7777", title: "Inspector" },
+      {
+        id: 5,
+        name: "Sarah Wilson",
+        initials: "SW",
+        color: "bg-pink-500",
+        email: "sarah.wilson@company.com",
+        phone: "(555) 555-5555",
+        title: "Project Manager",
+      },
+      {
+        id: 7,
+        name: "Lisa Brown",
+        initials: "LB",
+        color: "bg-red-500",
+        email: "lisa.brown@company.com",
+        phone: "(555) 777-7777",
+        title: "Inspector",
+      },
     ],
   },
   {
@@ -237,10 +394,26 @@ const mockWorkOrders: WorkOrder[] = [
     billStatus: "Unpaid",
     billTotal: "$118",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500", email: "jerry.sanchez@company.com", phone: "(555) 111-1111", title: "Field Technician" },
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        color: "bg-blue-500",
+        email: "jerry.sanchez@company.com",
+        phone: "(555) 111-1111",
+        title: "Field Technician",
+      },
     ],
     collaborators: [
-      { id: 6, name: "Tom Davis", initials: "TD", color: "bg-indigo-500", email: "tom.davis@company.com", phone: "(555) 666-6666", title: "Supervisor" },
+      {
+        id: 6,
+        name: "Tom Davis",
+        initials: "TD",
+        color: "bg-indigo-500",
+        email: "tom.davis@company.com",
+        phone: "(555) 666-6666",
+        title: "Supervisor",
+      },
     ],
   },
 ];
@@ -264,8 +437,10 @@ export default function MaintenanceWorkOrders() {
   const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] =
     usePageState("isCreateWorkOrderModalOpen", false);
 
-  const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(workOrders, "allWorkOrders");
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    workOrders,
+    "allWorkOrders",
+  );
   const {
     columnOrder,
     visibleColumns,
@@ -509,19 +684,16 @@ export default function MaintenanceWorkOrders() {
     },
   ];
 
-  const handleDeleteWorkOrder = useCallback(
-    (workOrder: WorkOrder) => {
-      setWorkOrders((prev) => prev.filter((wo) => wo.id !== workOrder.id));
-    },
-    []
-  );
+  const handleDeleteWorkOrder = useCallback((workOrder: WorkOrder) => {
+    setWorkOrders((prev) => prev.filter((wo) => wo.id !== workOrder.id));
+  }, []);
 
   const handleEditWorkOrder = useCallback(
     (workOrder: WorkOrder) => {
       setEditingWorkOrder(workOrder);
       setIsCreateWorkOrderModalOpen(true);
     },
-    [setIsCreateWorkOrderModalOpen]
+    [setIsCreateWorkOrderModalOpen],
   );
 
   return (
@@ -546,7 +718,9 @@ export default function MaintenanceWorkOrders() {
             rowKey="id"
             renderCell={(workOrder, columnKey) => {
               if (columnKey === "priority") {
-                return <TaskPriorityBadge priority={workOrder.priority as any} />;
+                return (
+                  <TaskPriorityBadge priority={workOrder.priority as any} />
+                );
               }
               if (columnKey === "task") {
                 return (
@@ -621,10 +795,24 @@ export default function MaintenanceWorkOrders() {
                 );
               }
               if (columnKey === "assignees") {
-                return <PersonAvatars people={workOrder.assignees} type="assignee" fallback="None" size="sm" />;
+                return (
+                  <PersonAvatars
+                    people={workOrder.assignees}
+                    type="assignee"
+                    fallback="None"
+                    size="sm"
+                  />
+                );
               }
               if (columnKey === "collaborators") {
-                return <PersonAvatars people={workOrder.collaborators} type="collaborator" fallback="None" size="sm" />;
+                return (
+                  <PersonAvatars
+                    people={workOrder.collaborators}
+                    type="collaborator"
+                    fallback="None"
+                    size="sm"
+                  />
+                );
               }
               return null;
             }}
@@ -667,10 +855,16 @@ export default function MaintenanceWorkOrders() {
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                 data-test="column-button"
               >
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                  <circle cx="8" cy="13" r="1.5" fill="#303030"/>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="8" cy="3" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="8" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="13" r="1.5" fill="#303030" />
                 </svg>
               </button>
             }
@@ -687,9 +881,7 @@ export default function MaintenanceWorkOrders() {
               },
             ]}
             onRowClick={(workOrder) => {
-              navigate(
-                `/tasks/${workOrder.taskId}/workorders/${workOrder.id}`,
-              );
+              navigate(`/tasks/${workOrder.taskId}/workorders/${workOrder.id}`);
             }}
             showColumnModal={showColumnModal}
             onShowColumnModalChange={setShowColumnModal}
@@ -707,23 +899,32 @@ export default function MaintenanceWorkOrders() {
           }
         }}
         onDataUpdate={(data) => {
-          const newId = workOrders.length > 0 ? Math.max(...workOrders.map(wo => wo.id)) + 1 : 1;
+          const newId =
+            workOrders.length > 0
+              ? Math.max(...workOrders.map((wo) => wo.id)) + 1
+              : 1;
 
-          const newNotes: Note[] = data.notes ? [{
-            id: 1,
-            text: data.notes,
-            date: new Date().toLocaleString(),
-            author: "Julia LoSchiavo",
-          }] : [];
+          const newNotes: Note[] = data.notes
+            ? [
+                {
+                  id: 1,
+                  text: data.notes,
+                  date: new Date().toLocaleString(),
+                  author: "Julia LoSchiavo",
+                },
+              ]
+            : [];
 
-          const newFiles: File[] = data.files ? data.files.map((uf, idx) => ({
-            id: idx + 1,
-            name: uf.name,
-            url: uf.url || "#",
-            uploadedAt: new Date().toLocaleString(),
-            category: "Work Order",
-            description: "",
-          })) : [];
+          const newFiles: File[] = data.files
+            ? data.files.map((uf, idx) => ({
+                id: idx + 1,
+                name: uf.name,
+                url: uf.url || "#",
+                uploadedAt: new Date().toLocaleString(),
+                category: "Work Order",
+                description: "",
+              }))
+            : [];
 
           const newWorkOrder = {
             id: newId,
@@ -731,10 +932,25 @@ export default function MaintenanceWorkOrders() {
             taskId: 1,
             property: "Unassigned",
             unit: "",
-            dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
-            updatedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            dueDate: data.dueDate
+              ? data.dueDate.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "No due date",
+            updatedDate: new Date().toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }),
             age: "Just now",
-            priority: data.priority === "high" ? "High" : data.priority === "low" ? "Low" : "Normal",
+            priority:
+              data.priority === "high"
+                ? "High"
+                : data.priority === "low"
+                  ? "Low"
+                  : "Normal",
             status: data.status === "completed" ? "Completed" : "In progress",
             billStatus: "Awaiting Invoice",
             billTotal: "No invoice",
@@ -746,12 +962,15 @@ export default function MaintenanceWorkOrders() {
             files: newFiles,
           };
 
-          setWorkOrders(prev => [newWorkOrder as any, ...prev]);
+          setWorkOrders((prev) => [newWorkOrder as any, ...prev]);
           setIsCreateWorkOrderModalOpen(false);
 
-          navigate(`/tasks/${newWorkOrder.taskId}/workorders/${newWorkOrder.id}`, {
-            state: { newWorkOrder }
-          });
+          navigate(
+            `/tasks/${newWorkOrder.taskId}/workorders/${newWorkOrder.id}`,
+            {
+              state: { newWorkOrder },
+            },
+          );
         }}
       />
 

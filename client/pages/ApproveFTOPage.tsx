@@ -17,8 +17,15 @@ import { DeleteIcon, EyeIcon } from "@/components/icons";
 import BlueButton from "@/components/BlueButton";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { mockFetchSubmissionsByFto, type ExpenseLine } from "@/data/fto/submissions";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  mockFetchSubmissionsByFto,
+  type ExpenseLine,
+} from "@/data/fto/submissions";
 
 interface HourRow {
   id: string;
@@ -58,7 +65,12 @@ interface ApproveFTOPageProps {
 
 const mockVendors = ["Elite HVAC", "ABC Plumbing", "Green Lawn Services"];
 const mockTasks = ["HVAC Inspection", "Plumbing Repair", "Door Lock Repair"];
-const mockAssignees = ["John Smith", "Jane Doe", "Mike Johnson", "Sarah Williams"];
+const mockAssignees = [
+  "John Smith",
+  "Jane Doe",
+  "Mike Johnson",
+  "Sarah Williams",
+];
 
 const calculateTotal = (amount: string, upcharge: string): number => {
   const amountNum = parseFloat(amount.replace(/[^0-9.-]+/g, "")) || 0;
@@ -119,7 +131,9 @@ export default function ApproveFTOPage() {
   );
   const [task, setTask] = useState(state.task || "");
   const [description, setDescription] = useState(state.description || "");
-  const [dueDate, setDueDate] = useState<Date | null>(parseDueDate(state.dueDate));
+  const [dueDate, setDueDate] = useState<Date | null>(
+    parseDueDate(state.dueDate),
+  );
   const [priority, setPriority] = useState(state.priority || "normal");
 
   // Table rows - will be populated from mock API
@@ -318,9 +332,9 @@ export default function ApproveFTOPage() {
     navigate(targetPath, {
       replace: true,
       state: {
-        ftoAction: 'approved',
-        ftoId: ftoId
-      }
+        ftoAction: "approved",
+        ftoId: ftoId,
+      },
     });
   };
 
@@ -332,9 +346,9 @@ export default function ApproveFTOPage() {
     navigate(targetPath, {
       replace: true,
       state: {
-        ftoAction: 'rejected',
-        ftoId: ftoId
-      }
+        ftoAction: "rejected",
+        ftoId: ftoId,
+      },
     });
   };
 
@@ -373,23 +387,23 @@ export default function ApproveFTOPage() {
 
   // Helper to check if a cell is required but empty
   const isHoursCellInvalid = (row: HourRow, field: keyof HourRow) => {
-    const requiredFields = ['date', 'hours', 'assignee', 'amount'];
+    const requiredFields = ["date", "hours", "assignee", "amount"];
     if (!requiredFields.includes(field)) return false;
 
     const value = row[field];
-    if (field === 'amount') {
-      return value === '$0' || !value;
+    if (field === "amount") {
+      return value === "$0" || !value;
     }
     return !(value && String(value).trim());
   };
 
   const isExpensesCellInvalid = (row: ExpenseRow, field: keyof ExpenseRow) => {
-    const requiredFields = ['date', 'vendor', 'amount'];
+    const requiredFields = ["date", "vendor", "amount"];
     if (!requiredFields.includes(field)) return false;
 
     const value = row[field];
-    if (field === 'amount') {
-      return value === '$0' || !value;
+    if (field === "amount") {
+      return value === "$0" || !value;
     }
     return !(value && String(value).trim());
   };
@@ -477,14 +491,6 @@ export default function ApproveFTOPage() {
               overflow: "hidden",
             }}
           >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              flex: 1,
-            }}
-          >
-            {/* File Upload Section */}
             <div
               style={{
                 display: "flex",
@@ -492,113 +498,86 @@ export default function ApproveFTOPage() {
                 flex: 1,
               }}
             >
-              {uploadedFiles.length === 0 ? (
-                <div
-                  className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden justify-center flex-1"
-                  style={{ padding: "16px 24px" }}
-                >
-                  <div className="self-center flex flex-col items-center">
-                    <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
-                      <div>Choose a file or drag & drop it here</div>
-                      <div className="mt-2">
-                        JPEG, PNG and PDF formats, up to 50 MB.
+              {/* File Upload Section */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  flex: 1,
+                }}
+              >
+                {uploadedFiles.length === 0 ? (
+                  <div
+                    className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden justify-center flex-1"
+                    style={{ padding: "16px 24px" }}
+                  >
+                    <div className="self-center flex flex-col items-center">
+                      <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
+                        <div>Choose a file or drag & drop it here</div>
+                        <div className="mt-2">
+                          JPEG, PNG and PDF formats, up to 50 MB.
+                        </div>
                       </div>
-                    </div>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors"
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors"
                       >
-                        <path
-                          d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span>Browse Files</span>
-                    </button>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>Browse Files</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    flex: 1,
-                    paddingTop: "24px",
-                  }}
-                >
-                  <div className="text-sm text-[#A1A1A9] mb-4">
-                    Limited to 10 files. Max file size is 20MB.
-                  </div>
-                  <div className="text-sm text-[#303030] mb-4">
-                    Drag & drop files here or{" "}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-blue-600 hover:underline"
-                    >
-                      browse
-                    </button>
-                  </div>
+                ) : (
                   <div
                     style={{
                       display: "flex",
                       flexDirection: "column",
-                      gap: "12px",
-                      marginBottom: "24px",
+                      flex: 1,
+                      paddingTop: "24px",
                     }}
                   >
-                    {uploadedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]"
+                    <div className="text-sm text-[#A1A1A9] mb-4">
+                      Limited to 10 files. Max file size is 20MB.
+                    </div>
+                    <div className="text-sm text-[#303030] mb-4">
+                      Drag & drop files here or{" "}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-blue-600 hover:underline"
                       >
-                        <div className="flex items-center gap-3 flex-1">
-                          <svg
-                            className="w-5 h-5 text-red-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm text-[#303030] truncate">
-                              {file.name}{" "}
-                              <span className="text-[#A1A1A9]">
-                                ({formatFileSize(file.size)})
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 ml-4">
-                          <button
-                            onClick={() => handleViewFile(file)}
-                            className="text-[#A1A1A9] hover:text-[#303030] transition-colors flex-shrink-0"
-                            title="View file"
-                          >
-                            <EyeIcon width={16} height={16} color="currentColor" />
-                          </button>
-                          <button
-                            onClick={() => handleRemoveFile(index)}
-                            className="text-[#A1A1A9] hover:text-[#303030] transition-colors flex-shrink-0"
-                            title="Remove file"
-                          >
+                        browse
+                      </button>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px",
+                        marginBottom: "24px",
+                      }}
+                    >
+                      {uploadedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]"
+                        >
+                          <div className="flex items-center gap-3 flex-1">
                             <svg
-                              className="w-5 h-5"
+                              className="w-5 h-5 text-red-500"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -607,33 +586,72 @@ export default function ApproveFTOPage() {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                               />
                             </svg>
-                          </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-[#303030] truncate">
+                                {file.name}{" "}
+                                <span className="text-[#A1A1A9]">
+                                  ({formatFileSize(file.size)})
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 ml-4">
+                            <button
+                              onClick={() => handleViewFile(file)}
+                              className="text-[#A1A1A9] hover:text-[#303030] transition-colors flex-shrink-0"
+                              title="View file"
+                            >
+                              <EyeIcon
+                                width={16}
+                                height={16}
+                                color="currentColor"
+                              />
+                            </button>
+                            <button
+                              onClick={() => handleRemoveFile(index)}
+                              className="text-[#A1A1A9] hover:text-[#303030] transition-colors flex-shrink-0"
+                              title="Remove file"
+                            >
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-blue-600 hover:underline text-sm font-medium text-center"
+                    >
+                      Add more files
+                    </button>
                   </div>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-blue-600 hover:underline text-sm font-medium text-center"
-                  >
-                    Add more files
-                  </button>
-                </div>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </div>
             </div>
           </div>
-        </div>
         )}
 
         {/* Right Column (scroll container) */}
@@ -647,84 +665,84 @@ export default function ApproveFTOPage() {
           }}
         >
           <div style={{ minWidth: "fit-content" }}>
-              {/* FTO Details Section */}
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {/* FTO Details Header */}
-                <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-                  <div>FTO Details</div>
-                  <div
-                    className="h-px bg-gray-200 mt-5"
-                    style={{ width: "790px" }}
+            {/* FTO Details Section */}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {/* FTO Details Header */}
+              <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
+                <div>FTO Details</div>
+                <div
+                  className="h-px bg-gray-200 mt-5"
+                  style={{ width: "790px" }}
+                />
+              </div>
+
+              {/* Form Fields */}
+              <div
+                style={{
+                  marginTop: "12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "20px",
+                  width: "600px",
+                }}
+              >
+                {/* FTO Name */}
+                <div>
+                  <TextField
+                    label="FTO Name"
+                    value={ftoName}
+                    onChange={() => {}}
+                    disabled={true}
                   />
                 </div>
 
-                {/* Form Fields */}
-                <div
-                  style={{
-                    marginTop: "12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "20px",
-                    width: "600px",
-                  }}
-                >
-                  {/* FTO Name */}
-                  <div>
+                {/* Property and Unit Row */}
+                <div className="flex gap-5">
+                  <div className="flex-1">
                     <TextField
-                      label="FTO Name"
-                      value={ftoName}
+                      label="Property"
+                      value={property}
                       onChange={() => {}}
                       disabled={true}
                     />
                   </div>
-
-                  {/* Property and Unit Row */}
-                  <div className="flex gap-5">
-                    <div className="flex-1">
-                      <TextField
-                        label="Property"
-                        value={property}
-                        onChange={() => {}}
-                        disabled={true}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <TextField
-                        label="Unit"
-                        value={unit}
-                        onChange={() => {}}
-                        disabled={true}
-                      />
-                    </div>
+                  <div className="flex-1">
+                    <TextField
+                      label="Unit"
+                      value={unit}
+                      onChange={() => {}}
+                      disabled={true}
+                    />
                   </div>
+                </div>
 
-                  {/* Priority and Due Date Row */}
-                  <div className="flex gap-5">
-                    <div className="flex-1">
-                      <SelectField
-                        label="Priority"
-                        value={priority}
-                        onChange={() => {}}
-                        disabled={true}
-                        options={[
-                          { value: "low", label: "Low" },
-                          { value: "normal", label: "Normal" },
-                          { value: "high", label: "High" },
-                        ]}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <DateField
-                        label="Due Date"
-                        value={dueDate}
-                        onChange={() => {}}
-                        disabled={true}
-                      />
-                    </div>
+                {/* Priority and Due Date Row */}
+                <div className="flex gap-5">
+                  <div className="flex-1">
+                    <SelectField
+                      label="Priority"
+                      value={priority}
+                      onChange={() => {}}
+                      disabled={true}
+                      options={[
+                        { value: "low", label: "Low" },
+                        { value: "normal", label: "Normal" },
+                        { value: "high", label: "High" },
+                      ]}
+                    />
                   </div>
+                  <div className="flex-1">
+                    <DateField
+                      label="Due Date"
+                      value={dueDate}
+                      onChange={() => {}}
+                      disabled={true}
+                    />
+                  </div>
+                </div>
 
-                  {/* Associated Task Row - Commented Out */}
-                  {/* <div className="flex gap-5">
+                {/* Associated Task Row - Commented Out */}
+                {/* <div className="flex gap-5">
                     <div className="flex-1">
                       <SelectField
                         label="Associated Task"
@@ -740,746 +758,911 @@ export default function ApproveFTOPage() {
                     </div>
                   </div> */}
 
-                  {/* Description */}
-                  <TextAreaField
-                    label="Description"
-                    value={description}
-                    onChange={() => {}}
-                    placeholder="Task description..."
-                    disabled={true}
-                    autoGrow
-                  />
-                </div>
-
-                {/* Hours Section */}
-                <div style={{ marginTop: "60px" }}>
-                  {/* Header */}
-                  <div className="flex flex-col gap-5">
-                    <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
-                      <div className="font-semibold">Hours</div>
-                      <div
-                        className="h-px bg-gray-200 mt-5"
-                        style={{ width: "790px" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Hours Table */}
-                  <div
-                    className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
-                    style={{
-                      overflowX: "auto",
-                      width: "100%",
-                    }}
-                  >
-                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
-                      {/* Table Header */}
-                      <div className="flex items-center" style={{ minWidth: "fit-content" }}>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Date <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "110px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Hours <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "180px", maxWidth: "260px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Note
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "180px", maxWidth: "240px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Assignee <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "90px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Non-Billable
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "130px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Emergency Rate
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Amount <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Upcharge
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Total
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-3 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Actions
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Table Rows */}
-                      {hourRows.map((row) => (
-                        <div key={row.id} className="flex items-start">
-                          {/* Date Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'date') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                          >
-                            <DateFieldCell
-                              value={row.date}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "date", value)
-                              }
-                            />
-                          </div>
-
-                          {/* Hours Cell - 1 decimal */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "110px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'hours') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                          >
-                            <NumberFieldCell
-                              value={row.hours}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "hours", value)
-                              }
-                              placeholder="0"
-                              decimals={1}
-                            />
-                          </div>
-
-                          {/* Note Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "180px",
-                              maxWidth: "260px",
-                              whiteSpace: "normal",
-                              overflowWrap: "anywhere",
-                              wordBreak: "break-word",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              boxShadow: "inset 0 0 0 1px transparent",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: "100%",
-                                boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'note') ? "inset 0 0 0 2px #dc2626" : "none",
-                              }}
-                            >
-                              <TextFieldCell
-                                value={row.note}
-                                onChange={(value) =>
-                                  updateHourRow(row.id, "note", value)
-                                }
-                                placeholder="Enter note"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Assignee Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "180px",
-                              maxWidth: "240px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'assignee') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                            title={row.assignee}
-                          >
-                            <SelectFieldCell
-                              value={row.assignee}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "assignee", value)
-                              }
-                              placeholder="Select assignee..."
-                              options={mockAssignees.map((a) => ({
-                                value: a,
-                                label: a,
-                              }))}
-                            />
-                          </div>
-
-                          {/* NoFee Cell - Checkbox */}
-                          <div
-                            className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "90px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                          >
-                            <Checkbox
-                              checked={row.noFee}
-                              onCheckedChange={(checked) => {
-                                updateHourRow(row.id, "noFee", checked);
-                                if (checked) {
-                                  updateHourRow(row.id, "amount", "$0");
-                                  updateHourRow(row.id, "upcharge", "$0");
-                                }
-                              }}
-                              className="w-[14px] h-[14px]"
-                            />
-                          </div>
-
-                          {/* Emergency Cell - Checkbox */}
-                          <div
-                            className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "130px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                          >
-                            <Checkbox
-                              checked={row.emergency}
-                              onCheckedChange={(checked) =>
-                                updateHourRow(row.id, "emergency", checked)
-                              }
-                              className="w-[14px] h-[14px]"
-                            />
-                          </div>
-
-                          {/* Amount Cell - Currency */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'amount') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                          >
-                            <CurrencyFieldCell
-                              value={row.amount}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "amount", value)
-                              }
-                              disabled={row.noFee}
-                              placeholder="$0"
-                            />
-                          </div>
-
-                          {/* Upcharge Cell - Currency */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            <CurrencyFieldCell
-                              value={row.upcharge}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "upcharge", value)
-                              }
-                              disabled={row.noFee}
-                              placeholder="$0"
-                            />
-                          </div>
-
-                          {/* Total Cell - Display only */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            <span className="text-[#303030] font-600 text-[13px]">
-                              $
-                              {calculateTotal(
-                                row.amount,
-                                row.upcharge,
-                              ).toFixed(2)}
-                            </span>
-                          </div>
-
-                          {/* Actions Cell */}
-                          <div className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
-                            <button
-                              onClick={() => deleteHourRow(row.id)}
-                              className="text-[#525252] hover:text-[#303030] transition-colors"
-                              title="Delete row"
-                            >
-                              <DeleteIcon
-                                width={16}
-                                height={16}
-                                color="currentColor"
-                              />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Add Hours Button */}
-                  <button
-                    onClick={addHourRow}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap mb-12"
-                  >
-                    + Add Hours
-                  </button>
-                </div>
-
-                {/* Expenses Section */}
-                <div style={{ marginTop: "60px" }}>
-                  {/* Header */}
-                  <div className="flex flex-col gap-5">
-                    <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
-                      <div className="font-semibold">Expenses</div>
-                      <div
-                        className="h-px bg-gray-200 mt-5"
-                        style={{ width: "790px" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Expenses Table */}
-                  <div
-                    className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
-                    style={{
-                      overflowX: "auto",
-                      width: "100%",
-                    }}
-                  >
-                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
-                      {/* Table Header */}
-                      <div className="flex items-center" style={{ minWidth: "fit-content" }}>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Date <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "200px", maxWidth: "280px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Vendor <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "220px", maxWidth: "340px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Receipt Note
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "180px", maxWidth: "240px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Assignee
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "160px", maxWidth: "200px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Charge Type <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Amount <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Upcharge
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Total
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-3 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Actions
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Table Rows */}
-                      {expenseRows.map((row) => (
-                        <div key={row.id} className="flex items-start">
-                          {/* Date Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'date') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                          >
-                            <DateFieldCell
-                              value={row.date}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "date", value)
-                              }
-                            />
-                          </div>
-
-                          {/* Vendor Cell - VendorFieldCell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "200px",
-                              maxWidth: "280px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'vendor') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                            title={row.vendor}
-                          >
-                            <VendorFieldCell
-                              value={row.vendor}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "vendor", value)
-                              }
-                              placeholder="Select or type vendor..."
-                              options={mockVendors.map((v) => ({
-                                value: v,
-                                label: v,
-                              }))}
-                            />
-                          </div>
-
-                          {/* Receipt Note Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "220px",
-                              maxWidth: "340px",
-                              whiteSpace: "normal",
-                              overflowWrap: "anywhere",
-                              wordBreak: "break-word",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              boxShadow: "inset 0 0 0 1px transparent",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: "100%",
-                                boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'receiptNote') ? "inset 0 0 0 2px #dc2626" : "none",
-                              }}
-                            >
-                              <TextFieldCell
-                                value={row.receiptNote}
-                                onChange={(value) =>
-                                  updateExpenseRow(row.id, "receiptNote", value)
-                                }
-                                placeholder="Enter receipt note"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Assignee Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "180px",
-                              maxWidth: "240px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                            title={row.assignee}
-                          >
-                            <SelectFieldCell
-                              value={row.assignee}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "assignee", value)
-                              }
-                              placeholder="Select assignee..."
-                              options={mockAssignees.map((a) => ({
-                                value: a,
-                                label: a,
-                              }))}
-                            />
-                          </div>
-
-                          {/* Charge Type Cell - Popover */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "160px",
-                              maxWidth: "200px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                            }}
-                          >
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button
-                                  className="flex items-center justify-between gap-2 w-full h-9 px-3 rounded-md border border-0 text-sm bg-white text-left cursor-pointer hover:bg-gray-50 transition-colors"
-                                  style={{
-                                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      color: "var(--color-text-primary, #303030)",
-                                      fontSize: "13px",
-                                      flex: 1,
-                                      textAlign: "left",
-                                      whiteSpace: "nowrap",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                    }}
-                                  >
-                                    {row.chargeType === "personal"
-                                      ? "Personal Expense"
-                                      : row.chargeType === "avm"
-                                        ? "AVM Expense"
-                                        : "Client Expense"}
-                                  </span>
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md p-0"
-                                align="start"
-                                syncTriggerWidth={false}
-                              >
-                                <div
-                                  style={{
-                                    padding: "4px 0",
-                                    overflowY: "auto",
-                                    overflowX: "hidden",
-                                    overscrollBehavior: "contain",
-                                    WebkitOverflowScrolling: "touch",
-                                  }}
-                                >
-                                  {[
-                                    { value: "personal", label: "Personal Expense" },
-                                    { value: "avm", label: "AVM Expense" },
-                                    { value: "client", label: "Client Expense" },
-                                  ].map((option) => (
-                                    <button
-                                      key={option.value}
-                                      onClick={() =>
-                                        updateExpenseRow(row.id, "chargeType", option.value as "personal" | "avm" | "client")
-                                      }
-                                      style={{
-                                        width: "100%",
-                                        padding: "8px 12px",
-                                        textAlign: "left",
-                                        backgroundColor:
-                                          row.chargeType === option.value
-                                            ? "rgba(36, 99, 235, 0.15)"
-                                            : "transparent",
-                                        color: "var(--color-text-primary, #303030)",
-                                        border: "none",
-                                        cursor: "pointer",
-                                        fontSize: "13px",
-                                        fontFamily:
-                                          "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                                        transition: "background-color 0.15s",
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                                          row.chargeType === option.value
-                                            ? "rgba(36, 99, 235, 0.15)"
-                                            : "rgba(36, 99, 235, 0.08)";
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                                          row.chargeType === option.value
-                                            ? "rgba(36, 99, 235, 0.15)"
-                                            : "transparent";
-                                      }}
-                                      type="button"
-                                    >
-                                      {option.label}
-                                    </button>
-                                  ))}
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-
-                          {/* Amount Cell - Currency */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'amount') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                          >
-                            <CurrencyFieldCell
-                              value={row.amount}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "amount", value)
-                              }
-                              placeholder="$0"
-                            />
-                          </div>
-
-                          {/* Upcharge Cell - Currency */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            <CurrencyFieldCell
-                              value={row.upcharge}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "upcharge", value)
-                              }
-                              placeholder="$0"
-                            />
-                          </div>
-
-                          {/* Total Cell - Display only */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            <span className="text-[#303030] font-600 text-[13px]">
-                              $
-                              {calculateTotal(
-                                row.amount,
-                                row.upcharge,
-                              ).toFixed(2)}
-                            </span>
-                          </div>
-
-                          {/* Actions Cell */}
-                          <div className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
-                            <button
-                              onClick={() => deleteExpenseRow(row.id)}
-                              className="text-[#525252] hover:text-[#303030] transition-colors"
-                              title="Delete row"
-                            >
-                              <DeleteIcon
-                                width={16}
-                                height={16}
-                                color="currentColor"
-                              />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Add Expenses Button */}
-                  <button
-                    onClick={addExpenseRow}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap"
-                  >
-                    + Add Expenses
-                  </button>
-                </div>
+                {/* Description */}
+                <TextAreaField
+                  label="Description"
+                  value={description}
+                  onChange={() => {}}
+                  placeholder="Task description..."
+                  disabled={true}
+                  autoGrow
+                />
               </div>
+
+              {/* Hours Section */}
+              <div style={{ marginTop: "60px" }}>
+                {/* Header */}
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
+                    <div className="font-semibold">Hours</div>
+                    <div
+                      className="h-px bg-gray-200 mt-5"
+                      style={{ width: "790px" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Hours Table */}
+                <div
+                  className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
+                  style={{
+                    overflowX: "auto",
+                    width: "100%",
+                  }}
+                >
+                  <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
+                    {/* Table Header */}
+                    <div
+                      className="flex items-center"
+                      style={{ minWidth: "fit-content" }}
+                    >
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Date <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "110px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Hours <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "180px",
+                          maxWidth: "260px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Note
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "180px",
+                          maxWidth: "240px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Assignee <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "90px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Non-Billable
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "130px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Emergency Rate
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Amount <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Upcharge
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Total
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "80px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Actions
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Table Rows */}
+                    {hourRows.map((row) => (
+                      <div key={row.id} className="flex items-start">
+                        {/* Date Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit && isHoursCellInvalid(row, "date")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <DateFieldCell
+                            value={row.date}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "date", value)
+                            }
+                          />
+                        </div>
+
+                        {/* Hours Cell - 1 decimal */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "110px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isHoursCellInvalid(row, "hours")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <NumberFieldCell
+                            value={row.hours}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "hours", value)
+                            }
+                            placeholder="0"
+                            decimals={1}
+                          />
+                        </div>
+
+                        {/* Note Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "180px",
+                            maxWidth: "260px",
+                            whiteSpace: "normal",
+                            overflowWrap: "anywhere",
+                            wordBreak: "break-word",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            boxShadow: "inset 0 0 0 1px transparent",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "100%",
+                              boxShadow:
+                                attemptedSubmit &&
+                                isHoursCellInvalid(row, "note")
+                                  ? "inset 0 0 0 2px #dc2626"
+                                  : "none",
+                            }}
+                          >
+                            <TextFieldCell
+                              value={row.note}
+                              onChange={(value) =>
+                                updateHourRow(row.id, "note", value)
+                              }
+                              placeholder="Enter note"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Assignee Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "180px",
+                            maxWidth: "240px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isHoursCellInvalid(row, "assignee")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                          title={row.assignee}
+                        >
+                          <SelectFieldCell
+                            value={row.assignee}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "assignee", value)
+                            }
+                            placeholder="Select assignee..."
+                            options={mockAssignees.map((a) => ({
+                              value: a,
+                              label: a,
+                            }))}
+                          />
+                        </div>
+
+                        {/* NoFee Cell - Checkbox */}
+                        <div
+                          className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "90px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <Checkbox
+                            checked={row.noFee}
+                            onCheckedChange={(checked) => {
+                              updateHourRow(row.id, "noFee", checked);
+                              if (checked) {
+                                updateHourRow(row.id, "amount", "$0");
+                                updateHourRow(row.id, "upcharge", "$0");
+                              }
+                            }}
+                            className="w-[14px] h-[14px]"
+                          />
+                        </div>
+
+                        {/* Emergency Cell - Checkbox */}
+                        <div
+                          className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "130px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <Checkbox
+                            checked={row.emergency}
+                            onCheckedChange={(checked) =>
+                              updateHourRow(row.id, "emergency", checked)
+                            }
+                            className="w-[14px] h-[14px]"
+                          />
+                        </div>
+
+                        {/* Amount Cell - Currency */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isHoursCellInvalid(row, "amount")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <CurrencyFieldCell
+                            value={row.amount}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "amount", value)
+                            }
+                            disabled={row.noFee}
+                            placeholder="$0"
+                          />
+                        </div>
+
+                        {/* Upcharge Cell - Currency */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <CurrencyFieldCell
+                            value={row.upcharge}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "upcharge", value)
+                            }
+                            disabled={row.noFee}
+                            placeholder="$0"
+                          />
+                        </div>
+
+                        {/* Total Cell - Display only */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <span className="text-[#303030] font-600 text-[13px]">
+                            $
+                            {calculateTotal(row.amount, row.upcharge).toFixed(
+                              2,
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Actions Cell */}
+                        <div
+                          className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "80px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <button
+                            onClick={() => deleteHourRow(row.id)}
+                            className="text-[#525252] hover:text-[#303030] transition-colors"
+                            title="Delete row"
+                          >
+                            <DeleteIcon
+                              width={16}
+                              height={16}
+                              color="currentColor"
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Add Hours Button */}
+                <button
+                  onClick={addHourRow}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap mb-12"
+                >
+                  + Add Hours
+                </button>
+              </div>
+
+              {/* Expenses Section */}
+              <div style={{ marginTop: "60px" }}>
+                {/* Header */}
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
+                    <div className="font-semibold">Expenses</div>
+                    <div
+                      className="h-px bg-gray-200 mt-5"
+                      style={{ width: "790px" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Expenses Table */}
+                <div
+                  className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
+                  style={{
+                    overflowX: "auto",
+                    width: "100%",
+                  }}
+                >
+                  <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
+                    {/* Table Header */}
+                    <div
+                      className="flex items-center"
+                      style={{ minWidth: "fit-content" }}
+                    >
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Date <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "200px",
+                          maxWidth: "280px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Vendor <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "220px",
+                          maxWidth: "340px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Receipt Note
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "180px",
+                          maxWidth: "240px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Assignee
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "160px",
+                          maxWidth: "200px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Charge Type <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Amount <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Upcharge
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Total
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "80px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Actions
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Table Rows */}
+                    {expenseRows.map((row) => (
+                      <div key={row.id} className="flex items-start">
+                        {/* Date Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isExpensesCellInvalid(row, "date")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <DateFieldCell
+                            value={row.date}
+                            onChange={(value) =>
+                              updateExpenseRow(row.id, "date", value)
+                            }
+                          />
+                        </div>
+
+                        {/* Vendor Cell - VendorFieldCell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "200px",
+                            maxWidth: "280px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isExpensesCellInvalid(row, "vendor")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                          title={row.vendor}
+                        >
+                          <VendorFieldCell
+                            value={row.vendor}
+                            onChange={(value) =>
+                              updateExpenseRow(row.id, "vendor", value)
+                            }
+                            placeholder="Select or type vendor..."
+                            options={mockVendors.map((v) => ({
+                              value: v,
+                              label: v,
+                            }))}
+                          />
+                        </div>
+
+                        {/* Receipt Note Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "220px",
+                            maxWidth: "340px",
+                            whiteSpace: "normal",
+                            overflowWrap: "anywhere",
+                            wordBreak: "break-word",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            boxShadow: "inset 0 0 0 1px transparent",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "100%",
+                              boxShadow:
+                                attemptedSubmit &&
+                                isExpensesCellInvalid(row, "receiptNote")
+                                  ? "inset 0 0 0 2px #dc2626"
+                                  : "none",
+                            }}
+                          >
+                            <TextFieldCell
+                              value={row.receiptNote}
+                              onChange={(value) =>
+                                updateExpenseRow(row.id, "receiptNote", value)
+                              }
+                              placeholder="Enter receipt note"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Assignee Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "180px",
+                            maxWidth: "240px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                          title={row.assignee}
+                        >
+                          <SelectFieldCell
+                            value={row.assignee}
+                            onChange={(value) =>
+                              updateExpenseRow(row.id, "assignee", value)
+                            }
+                            placeholder="Select assignee..."
+                            options={mockAssignees.map((a) => ({
+                              value: a,
+                              label: a,
+                            }))}
+                          />
+                        </div>
+
+                        {/* Charge Type Cell - Popover */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "160px",
+                            maxWidth: "200px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                className="flex items-center justify-between gap-2 w-full h-9 px-3 rounded-md border border-0 text-sm bg-white text-left cursor-pointer hover:bg-gray-50 transition-colors"
+                                style={{
+                                  fontFamily:
+                                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    color: "var(--color-text-primary, #303030)",
+                                    fontSize: "13px",
+                                    flex: 1,
+                                    textAlign: "left",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                  }}
+                                >
+                                  {row.chargeType === "personal"
+                                    ? "Personal Expense"
+                                    : row.chargeType === "avm"
+                                      ? "AVM Expense"
+                                      : "Client Expense"}
+                                </span>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md p-0"
+                              align="start"
+                              syncTriggerWidth={false}
+                            >
+                              <div
+                                style={{
+                                  padding: "4px 0",
+                                  overflowY: "auto",
+                                  overflowX: "hidden",
+                                  overscrollBehavior: "contain",
+                                  WebkitOverflowScrolling: "touch",
+                                }}
+                              >
+                                {[
+                                  {
+                                    value: "personal",
+                                    label: "Personal Expense",
+                                  },
+                                  { value: "avm", label: "AVM Expense" },
+                                  { value: "client", label: "Client Expense" },
+                                ].map((option) => (
+                                  <button
+                                    key={option.value}
+                                    onClick={() =>
+                                      updateExpenseRow(
+                                        row.id,
+                                        "chargeType",
+                                        option.value as
+                                          | "personal"
+                                          | "avm"
+                                          | "client",
+                                      )
+                                    }
+                                    style={{
+                                      width: "100%",
+                                      padding: "8px 12px",
+                                      textAlign: "left",
+                                      backgroundColor:
+                                        row.chargeType === option.value
+                                          ? "rgba(36, 99, 235, 0.15)"
+                                          : "transparent",
+                                      color:
+                                        "var(--color-text-primary, #303030)",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      fontSize: "13px",
+                                      fontFamily:
+                                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                                      transition: "background-color 0.15s",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      (
+                                        e.currentTarget as HTMLButtonElement
+                                      ).style.backgroundColor =
+                                        row.chargeType === option.value
+                                          ? "rgba(36, 99, 235, 0.15)"
+                                          : "rgba(36, 99, 235, 0.08)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      (
+                                        e.currentTarget as HTMLButtonElement
+                                      ).style.backgroundColor =
+                                        row.chargeType === option.value
+                                          ? "rgba(36, 99, 235, 0.15)"
+                                          : "transparent";
+                                    }}
+                                    type="button"
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        {/* Amount Cell - Currency */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isExpensesCellInvalid(row, "amount")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <CurrencyFieldCell
+                            value={row.amount}
+                            onChange={(value) =>
+                              updateExpenseRow(row.id, "amount", value)
+                            }
+                            placeholder="$0"
+                          />
+                        </div>
+
+                        {/* Upcharge Cell - Currency */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <CurrencyFieldCell
+                            value={row.upcharge}
+                            onChange={(value) =>
+                              updateExpenseRow(row.id, "upcharge", value)
+                            }
+                            placeholder="$0"
+                          />
+                        </div>
+
+                        {/* Total Cell - Display only */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <span className="text-[#303030] font-600 text-[13px]">
+                            $
+                            {calculateTotal(row.amount, row.upcharge).toFixed(
+                              2,
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Actions Cell */}
+                        <div
+                          className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "80px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <button
+                            onClick={() => deleteExpenseRow(row.id)}
+                            className="text-[#525252] hover:text-[#303030] transition-colors"
+                            title="Delete row"
+                          >
+                            <DeleteIcon
+                              width={16}
+                              height={16}
+                              color="currentColor"
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Add Expenses Button */}
+                <button
+                  onClick={addExpenseRow}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap"
+                >
+                  + Add Expenses
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1501,7 +1684,11 @@ export default function ApproveFTOPage() {
             <div>
               FTO Total:{" "}
               <span className="font-semibold">
-                ${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                $
+                {grandTotal.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
           </div>
@@ -1512,9 +1699,7 @@ export default function ApproveFTOPage() {
             >
               <span>Reject</span>
             </button>
-            <BlueButton
-              onClick={handleApprove}
-            >
+            <BlueButton onClick={handleApprove}>
               Approve Field Team Order
             </BlueButton>
           </div>

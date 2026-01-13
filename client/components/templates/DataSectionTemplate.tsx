@@ -67,22 +67,34 @@ export const DataSectionTemplate: React.FC<DataSectionTemplateProps> = ({
 
       <div className="flex mt-3 w-full flex-col">
         {subsections.map((subsection, sectionIdx) => (
-          <div
-            key={sectionIdx}
-            className={sectionIdx > 0 ? "mt-5" : ""}
-          >
+          <div key={sectionIdx} className={sectionIdx > 0 ? "mt-5" : ""}>
             {subsection.title && (
               <div className="text-[#303030] text-base leading-[1.38] font-medium">
                 {subsection.title}
               </div>
             )}
-            <div className={subsection.title ? "self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]" : "self-start flex items-start gap-14 text-xs text-[#71717A] leading-[1.33]"}>
+            <div
+              className={
+                subsection.title
+                  ? "self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]"
+                  : "self-start flex items-start gap-14 text-xs text-[#71717A] leading-[1.33]"
+              }
+            >
               {subsection.fields.map((field, fieldIdx) => (
                 <div key={fieldIdx} className="flex flex-col max-w-[220px]">
                   <div className="font-medium">{field.label}</div>
                   <div className="mt-1 flex items-center gap-1 min-w-0">
-                    {field.icon && <span className="flex-shrink-0">{field.icon}</span>}
-                    <span className="text-[#303030] whitespace-nowrap overflow-hidden text-ellipsis block" title={typeof field.value === 'string' ? field.value : undefined}>
+                    {field.icon && (
+                      <span className="flex-shrink-0">{field.icon}</span>
+                    )}
+                    <span
+                      className="text-[#303030] whitespace-nowrap overflow-hidden text-ellipsis block"
+                      title={
+                        typeof field.value === "string"
+                          ? field.value
+                          : undefined
+                      }
+                    >
                       {field.value || "-"}
                     </span>
                   </div>
