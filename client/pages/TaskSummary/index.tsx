@@ -178,6 +178,9 @@ export default function TaskSummary() {
            new Date().toLocaleString();
   });
 
+  // Track last updated timestamp - updates when task is modified
+  const [lastUpdatedTimestamp, setLastUpdatedTimestamp] = useState<string>(createdTimestamp);
+
   // Mock state for notes, files, and updates
   const [notes, setNotes] = useState<Note[]>(taskData?.notes || (isNewTask ? [] : [
     {
