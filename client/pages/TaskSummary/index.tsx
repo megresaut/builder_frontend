@@ -1139,6 +1139,17 @@ export default function TaskSummary() {
                 workOrder={selectedWorkOrder}
                 currentAssignees={currentAssignees}
                 currentCollaborators={currentCollaborators}
+                onBillAdded={(bill) => {
+                  setUpdates(prev => [{
+                    id: prev.length + 1,
+                    author: "System",
+                    authorType: "assignee",
+                    action: `entered bill for work order #${selectedWorkOrder.id}`,
+                    actionValue: `${bill.invoiceNumber} - ${bill.amount}`,
+                    timestamp: new Date().toLocaleString(),
+                    icon: <PaperclipIcon width={16} height={16} />,
+                  }, ...prev]);
+                }}
                 onWorkOrderUpdate={(updatedWorkOrder) => {
                   // Convert dueDate back to string format when updating the list
                   const workOrderForUpdate = {
