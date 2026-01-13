@@ -243,13 +243,6 @@ export default function SummaryTab({
             title="Assignees"
             tabs={["Staff", "Vendors", "Field Team"]}
             defaultTab={0}
-            headerActions={
-              <SectionActionTemplate
-                icon={<EditIcon width={14} height={14} />}
-                label="Edit"
-                onClick={onEditTask}
-              />
-            }
             subsections={[
               {
                 label: "Assigned to",
@@ -268,6 +261,8 @@ export default function SummaryTab({
                 showDivider: true,
                 tabIndex: [0],
                 type: "assignee",
+                onAction: onEditTask,
+                actionLabel: "Edit",
               },
               {
                 label: "Collaborators",
@@ -286,6 +281,8 @@ export default function SummaryTab({
                 showDivider: true,
                 tabIndex: [0],
                 type: "collaborator",
+                onAction: onEditTask,
+                actionLabel: "Edit",
               },
               {
                 label: "Vendors",
