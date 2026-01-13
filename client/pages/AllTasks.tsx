@@ -357,27 +357,28 @@ export default function AllTasks() {
                 property1: "22 Indian Chase Dr",
                 property2: "Property 2",
               };
-              const unitLabels: Record<string, string> = {
-                unit1: "Unit 1",
-                unit2: "Unit 2",
-              };
 
               const propLabel = propertyLabels[task.property] || task.property;
-              const unitLabel = task.unit
-                ? unitLabels[task.unit] || task.unit
-                : "";
 
               return (
                 <span className="text-gray-900 font-normal text-sm truncate">
                   {propLabel}
-                  {unitLabel ? ` - ${unitLabel}` : ""}
                 </span>
               );
             }
             if (columnKey === "unit") {
+              const unitLabels: Record<string, string> = {
+                unit1: "1",
+                unit2: "2",
+              };
+
+              const unitLabel = task.unit
+                ? unitLabels[task.unit] || task.unit
+                : "—";
+
               return (
                 <span className="text-gray-900 font-normal text-sm truncate">
-                  {task.unit || "—"}
+                  {unitLabel}
                 </span>
               );
             }
