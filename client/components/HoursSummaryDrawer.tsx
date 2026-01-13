@@ -257,18 +257,9 @@ export default function HoursSummaryDrawer({
 
             {/* Pending Hours */}
             <div className="flex items-center justify-between py-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                  Pending Hours
-                </span>
-                <div
-                  className="w-4 h-4 rounded-full flex items-center justify-center cursor-help"
-                  style={{ backgroundColor: "var(--color-text-muted)" }}
-                  title="Submitted but not yet approved"
-                >
-                  <span className="text-xs text-white font-bold">?</span>
-                </div>
-              </div>
+              <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                Pending Hours
+              </span>
               <span className="text-base font-medium" style={{ color: "#d97706" }}>
                 {pendingHours.toFixed(1)}
               </span>
