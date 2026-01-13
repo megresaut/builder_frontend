@@ -58,7 +58,7 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
               onClick={onEdit}
               className="flex items-center gap-1 ml-2 text-[#2463eb] hover:underline"
             >
-              <Edit className="w-4 h-4" />
+              <EditIcon width={16} height={16} />
               <span className="font-medium">Edit</span>
             </button>
           </div>
