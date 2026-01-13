@@ -528,10 +528,11 @@ export default function TaskFieldTeamOrders({ orders, onOrdersChange }: TaskFiel
             order.fieldTeamAssignee ?? order.fieldTeam?.[0]?.name ?? "",
           task: order.task ?? "",
           description: order.description,
+          referrerPath: location.pathname,
         },
       });
     },
-    [navigate]
+    [navigate, location.pathname]
   );
 
   return (
