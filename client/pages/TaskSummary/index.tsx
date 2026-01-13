@@ -1148,6 +1148,22 @@ export default function TaskSummary() {
                       : updatedWorkOrder.dueDate
                   };
 
+                  // Find the original work order to check what changed
+                  const originalWorkOrder = workOrders.find(wo => wo.id === updatedWorkOrder.id);
+                  const newUpdates: any[] = [];
+
+                  // Check if status changed to completed
+                  if (originalWorkOrder && originalWorkOrder.status !== updatedWorkOrder.status && updatedWorkOrder.status === "completed") {
+                    newUpdates.push({
+                      id: updates.length + newUpdates.length + 1,
+                      author: "System",
+                      authorType: "assignee",
+                      action: `completed work order #${updatedWorkOrder.id}`,
+                      timestamp: new Date().toLocaleString(),
+                      icon: <EditIcon width={16} height={16} />,
+                    });
+                  }
+
                   // Update work orders list
                   const newWorkOrders = workOrders.map(wo => wo.id === updatedWorkOrder.id ? workOrderForUpdate : wo);
                   setWorkOrders(newWorkOrders);
@@ -1165,6 +1181,11 @@ export default function TaskSummary() {
                     if (newFiles.length > 0) {
                       setFiles(prev => [...prev, ...newFiles]);
                     }
+                  }
+
+                  // Add new updates to timeline
+                  if (newUpdates.length > 0) {
+                    setUpdates(prev => [...newUpdates, ...prev]);
                   }
                 }}
                 isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
