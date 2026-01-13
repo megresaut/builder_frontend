@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
