@@ -400,9 +400,11 @@ function FinancialsPanel({
   pendingFilters,
   onUpdate,
 }: {
-  pendingFilters: PendingFilters;
+  pendingFilters?: PendingFilters;
   onUpdate: <K extends keyof PendingFilters>(key: K, value: PendingFilters[K]) => void;
 }) {
+  if (!pendingFilters) return null;
+
   return (
     <div className="space-y-3">
       <div className="space-y-2">
