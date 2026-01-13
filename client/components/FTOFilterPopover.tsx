@@ -284,9 +284,11 @@ function FieldTeamPanel({
   pendingFilters,
   onUpdate,
 }: {
-  pendingFilters: PendingFilters;
+  pendingFilters?: PendingFilters;
   onUpdate: <K extends keyof PendingFilters>(key: K, value: PendingFilters[K]) => void;
 }) {
+  if (!pendingFilters) return null;
+
   return (
     <div className="space-y-3">
       <SelectField
@@ -304,9 +306,11 @@ function JobDetailsPanel({
   pendingFilters,
   onUpdate,
 }: {
-  pendingFilters: PendingFilters;
+  pendingFilters?: PendingFilters;
   onUpdate: <K extends keyof PendingFilters>(key: K, value: PendingFilters[K]) => void;
 }) {
+  if (!pendingFilters) return null;
+
   const propertyMultiSelectOptions = propertyOptions.map((p) => ({
     id: p.value,
     label: p.label,
@@ -350,9 +354,11 @@ function StatusPanel({
   pendingFilters,
   onUpdate,
 }: {
-  pendingFilters: PendingFilters;
+  pendingFilters?: PendingFilters;
   onUpdate: <K extends keyof PendingFilters>(key: K, value: PendingFilters[K]) => void;
 }) {
+  if (!pendingFilters) return null;
+
   const ftoStatusOptions = FTO_STATUS_OPTIONS.map((s) => ({
     id: s.value,
     label: s.label,
