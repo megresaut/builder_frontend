@@ -105,8 +105,8 @@ export const DrawerTemplate = React.forwardRef<
           >
             <div className="flex items-start justify-between gap-4 mb-2">
               <h2
-                className="text-lg font-semibold"
-                style={{ color: "var(--color-text-primary)" }}
+                className="text-2xl font-semibold"
+                style={{ color: "var(--color-text-primary)", lineHeight: 1.08 }}
               >
                 {title}
               </h2>
