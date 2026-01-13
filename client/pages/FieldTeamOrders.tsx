@@ -674,15 +674,16 @@ export default function FieldTeamOrders() {
                 side="bottom"
                 sideOffset={8}
                 syncTriggerWidth={false}
-                className="ra-actions-dropdown p-0 w-auto bg-white"
-                style={{ width: "165px" }}
+                disableDistanceClosing={true}
+                className="ra-actions-dropdown p-0 w-auto bg-white min-w-0"
+                style={{ width: "auto" }}
               >
                 <button
                   onClick={() => {
                     setShowHoursSummary(true);
                     setShowHoursSummaryPopover(false);
                   }}
-                  className="ra-action-item flex justify-between items-center w-full gap-3 px-4 py-2 transition-colors first:rounded-t-md last:rounded-b-md text-left"
+                  className="ra-action-item flex justify-between items-center w-full gap-3 px-4 py-2 transition-colors first:rounded-t-md last:rounded-b-md text-left whitespace-nowrap"
                 >
                   <span
                     className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize flex-1"
