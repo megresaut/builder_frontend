@@ -62,8 +62,38 @@ export default function HoursSummaryDrawer({
     }));
   };
 
+  // Filter orders based on selected filters
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      // Filter by field manager
+      if (selectedManager) {
+        const matchesManager = order.fieldTeam.some((member) => {
+          const mockUsers: Record<number, { id: number; name: string }> = {
+            1: { id: 1, name: "Christopher Harris" },
+            2: { id: 2, name: "Cassandra Smith" },
+            3: { id: 3, name: "David Chen" },
+            4: { id: 4, name: "Emma Rodriguez" },
+            5: { id: 5, name: "James Wilson" },
+          };
+          const user = Object.values(mockUsers).find((u) => u.name === member.name);
+          return user && selectedManager === String(user.id);
+        });
+        if (!matchesManager) return false;
+      }
+
+      // Filter by date range
+      if (dateRangeStart || dateRangeEnd) {
+        const orderDate = new Date(order.dueDate);
+        if (dateRangeStart && orderDate < dateRangeStart) return false;
+        if (dateRangeEnd && orderDate > dateRangeEnd) return false;
+      }
+
+      return true;
+    });
+  }, [orders, selectedManager, dateRangeStart, dateRangeEnd]);
+
   // Calculate metrics
-  const totalHours = orders.reduce((sum, order) => sum + (order.hours || 0), 0);
+  const totalHours = filteredOrders.reduce((sum, order) => sum + (order.hours || 0), 0);
   const approvedHours = orders
     .filter((o) => o.timesheetStatus === "approved")
     .reduce((sum, order) => sum + (order.hours || 0), 0);
