@@ -674,7 +674,7 @@ export default function FieldTeamOrders() {
                 side="bottom"
                 sideOffset={8}
                 syncTriggerWidth={false}
-                className="ra-actions-dropdown p-0 w-auto"
+                className="ra-actions-dropdown p-0 w-auto bg-white"
                 style={{ width: "165px" }}
               >
                 <button
@@ -693,6 +693,9 @@ export default function FieldTeamOrders() {
                   >
                     Hours Summary
                   </span>
+                  <div className="flex-shrink-0">
+                    <ApproveIcon width={16} height={16} />
+                  </div>
                 </button>
               </PopoverContent>
             </Popover>
