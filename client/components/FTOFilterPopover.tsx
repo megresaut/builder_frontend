@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { SelectField, MultiSelectField, DateField, TextField } from "@/components/forms";
+import { SelectField, MultiSelectField, DateField, TextField, NumberField } from "@/components/forms";
 import { FieldRow, FieldRowItem } from "@/components/ui/field-row";
 import {
   AppliedFilters,
