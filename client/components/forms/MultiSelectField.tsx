@@ -121,6 +121,7 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
   removeItem,
   options,
   toggleItem,
+  isOpen,
 }) => {
   const popoverContext = usePopoverContext();
   const { highlightedIndex } = popoverContext;
@@ -167,8 +168,8 @@ const MultiSelectFieldContent: React.FC<MultiSelectFieldContentProps> = ({
           aria-expanded={open}
           aria-controls="multiselect-listbox"
           style={{
-            borderColor: error ? "#ef4444" : "var(--color-border-light)",
-            borderWidth: error ? "2px" : "1px",
+            borderColor: error ? "#ef4444" : isOpen ? "#000000" : "var(--color-border-light)",
+            borderWidth: error ? "2px" : isOpen ? "2px" : "1px",
             minHeight: "44px",
             height: "auto",
             borderRadius: "8px",
