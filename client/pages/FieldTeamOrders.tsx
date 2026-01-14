@@ -652,19 +652,19 @@ export default function FieldTeamOrders() {
           />
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowFTOModal(true)}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors text-white font-medium text-sm"
-            >
-              <PlusIcon width={20} height={20} />
-              <span>Create FTO</span>
-            </button>
-            <button
               ref={hoursSummaryButtonRef}
               onClick={() => setShowHoursSummary(true)}
               className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm"
             >
               <HamburgerIcon width={16} height={16} />
               <span>Hours Summary</span>
+            </button>
+            <button
+              onClick={() => setShowFTOModal(true)}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors text-white font-medium text-sm"
+            >
+              <PlusIcon width={20} height={20} />
+              <span>Create FTO</span>
             </button>
           </div>
         </div>
