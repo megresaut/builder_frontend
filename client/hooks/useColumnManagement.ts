@@ -13,8 +13,6 @@ export function useColumnManagement(defaultColumns: string[]) {
   const columnButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    let animationFrameId: number;
-
     const updateColumnMenuPos = () => {
       if (showColumnModal && columnButtonRef.current) {
         const MENU_WIDTH = 260;
@@ -35,21 +33,19 @@ export function useColumnManagement(defaultColumns: string[]) {
           left,
         });
       }
-
-      if (showColumnModal) {
-        animationFrameId = requestAnimationFrame(updateColumnMenuPos);
-      }
     };
 
     if (showColumnModal) {
       updateColumnMenuPos();
-    }
+      // Listen for scroll/resize to keep menu anchored
+      window.addEventListener('scroll', updateColumnMenuPos, true);
+      window.addEventListener('resize', updateColumnMenuPos);
 
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
+      return () => {
+        window.removeEventListener('scroll', updateColumnMenuPos, true);
+        window.removeEventListener('resize', updateColumnMenuPos);
+      };
+    }
   }, [showColumnModal]);
 
   useEffect(() => {
