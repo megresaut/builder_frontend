@@ -661,10 +661,10 @@ export default function FieldTeamOrders() {
             <button
               ref={hoursSummaryButtonRef}
               onClick={() => setShowHoursSummary(true)}
-              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-              title="Hours Summary"
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm"
             >
-              <HamburgerIcon width={16} height={16} color="#303030" />
+              <HamburgerIcon width={16} height={16} />
+              <span>Hours Summary</span>
             </button>
           </div>
         </div>
