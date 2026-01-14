@@ -150,13 +150,13 @@ export default function HoursSummaryDrawer({
           }}
         >
           <div className="space-y-4">
-            <SelectField
-              label="Field Manager"
-              value={selectedManager}
-              onChange={(value) => setSelectedManager(value as string)}
+            <IdentitySelectField
+              label="Field Managers"
+              value={selectedManagers}
+              onChange={(value) => setSelectedManagers(Array.isArray(value) ? value : [])}
               placeholder="All managers"
               options={FIELD_TEAM_MANAGERS}
-              compact={false}
+              multiple={true}
             />
             <div>
               <label className="text-sm font-medium mb-2 block" style={{ color: "var(--color-text-primary)" }}>
