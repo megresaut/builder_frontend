@@ -1343,6 +1343,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               icon: fieldTeamColumnConfig.priority.icon,
             },
             {
+              key: "property",
+              label: "Property",
+              icon: fieldTeamColumnConfig.property.icon,
+            },
+            {
+              key: "unit",
+              label: "Unit",
+              icon: fieldTeamColumnConfig.unit.icon,
+            },
+            {
               key: "description",
               label: "Description",
               icon: fieldTeamColumnConfig.description.icon,
