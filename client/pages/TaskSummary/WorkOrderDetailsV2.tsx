@@ -833,6 +833,14 @@ export default function WorkOrderDetailsV2({
         onOpenChange={setIsEstimateTotalModalOpen}
         title="Update Estimate Total"
         size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => setIsEstimateTotalModalOpen(false)}
+            onConfirm={handleSaveEstimateTotal}
+            confirmLabel="Save"
+            cancelLabel="Cancel"
+          />
+        }
       >
         <ModalField label="Estimate Total">
           <CurrencyField
@@ -848,14 +856,6 @@ export default function WorkOrderDetailsV2({
             placeholder="$0.00"
           />
         </ModalField>
-        <div style={{ marginTop: "28px" }}>
-          <ModalButtons
-            onCancel={() => setIsEstimateTotalModalOpen(false)}
-            onConfirm={handleSaveEstimateTotal}
-            confirmLabel="Save"
-            cancelLabel="Cancel"
-          />
-        </div>
       </ModalTemplate>
     </div>
   );
