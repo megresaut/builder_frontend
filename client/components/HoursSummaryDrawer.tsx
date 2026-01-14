@@ -136,6 +136,7 @@ export default function HoursSummaryDrawer({
       onClose={onClose}
       title="Hours Summary"
       width={384}
+      variant="floating"
       footer={
         <DrawerButtons
           onCancel={onClose}
