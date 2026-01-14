@@ -645,8 +645,6 @@ export default function FtoHome() {
         <CreateFTOModal
           open={isViewFTOModalOpen}
           onOpenChange={setIsViewFTOModalOpen}
-          isViewOnly={true}
-          viewData={viewingFTO ?? undefined}
         />
       </PageTemplate>
     );
@@ -947,8 +945,6 @@ export default function FtoHome() {
         <CreateFTOModal
           open={isViewFTOModalOpen}
           onOpenChange={setIsViewFTOModalOpen}
-          isViewOnly={true}
-          viewData={viewingFTO ?? undefined}
         />
       </div>
     </PageTemplate>
