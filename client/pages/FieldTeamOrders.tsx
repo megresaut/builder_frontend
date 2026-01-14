@@ -74,12 +74,12 @@ interface APIFTOResponse {
 }
 
 // Mock user database - simulates GET /users/{id}
-const mockUsers: Record<number, { id: number; name: string }> = {
-  1: { id: 1, name: "Christopher Harris" },
-  2: { id: 2, name: "Cassandra Smith" },
-  3: { id: 3, name: "David Chen" },
-  4: { id: 4, name: "Emma Rodriguez" },
-  5: { id: 5, name: "James Wilson" },
+const mockUsers: Record<number, { id: number; name: string; email?: string; phone?: string; title?: string }> = {
+  1: { id: 1, name: "Christopher Harris", email: "chris.harris@example.com", phone: "(555) 901-2345", title: "Field Lead" },
+  2: { id: 2, name: "Cassandra Smith", email: "cassandra.smith@example.com", phone: "(555) 012-3456", title: "HVAC Specialist" },
+  3: { id: 3, name: "David Chen", email: "david.chen@example.com", phone: "(555) 123-4567", title: "Electrician" },
+  4: { id: 4, name: "Emma Rodriguez", email: "emma.rodriguez@example.com", phone: "(555) 234-5678", title: "Plumber" },
+  5: { id: 5, name: "James Wilson", email: "james.wilson@example.com", phone: "(555) 345-6789", title: "General Contractor" },
 };
 
 // Helper to generate initials from name
