@@ -1254,6 +1254,18 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     {workOrder.dueDate}
                   </span>
                 );
+              case "updated":
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    {workOrder.updatedDate}
+                  </span>
+                );
+              case "age":
+                return (
+                  <span className="text-gray-900 font-normal text-sm">
+                    {workOrder.age}
+                  </span>
+                );
               case "billStatus":
                 return (
                   <div className="flex items-center gap-2">
