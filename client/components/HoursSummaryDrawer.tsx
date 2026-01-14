@@ -190,6 +190,13 @@ export default function HoursSummaryDrawer({
                 />
               </div>
             </div>
+            <button
+              onClick={handleReset}
+              className="w-full rounded-lg border border-[var(--color-border-light)] bg-white px-3 py-2 text-sm font-medium transition-colors hover:opacity-70"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              Reset Filters
+            </button>
           </div>
         </div>
       </div>
