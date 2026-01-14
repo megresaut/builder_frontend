@@ -6,20 +6,24 @@ import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
-import FTOApprovalModal from "@/components/FTOApprovalModal";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
-import type { Note, File } from "@/components/templates";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import TableToggle from "@/components/TableToggle";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import BlueButton from "@/components/BlueButton";
+import { StatusBadge } from "@/components/StatusBadge";
+import TaskStatusBadge from "@/components/TaskStatusBadge";
+import TaskPriorityBadge from "@/components/TaskPriorityBadge";
+import PersonAvatars from "@/components/PersonAvatars";
+import type { Note, File } from "@/components/templates";
 import {
   EditIcon,
   DeleteIcon,
   CalendarIcon,
   PlusIcon,
+  DotsIcon,
 } from "@/components/icons";
 
 interface Assignee {
@@ -78,6 +82,9 @@ interface FieldTeamOrder {
     | "rejected"
     | "approved";
   amount: number;
+  unit?: string;
+  fieldTeamAssignee?: string;
+  task?: string;
 }
 
 // Mock data for property-specific tables
@@ -170,20 +177,6 @@ const mockPropertyWorkOrders: WorkOrder[] = [
   },
 ];
 
-const getRandomTimesheetStatus = ():
-  | "awaiting-submission"
-  | "submitted"
-  | "rejected"
-  | "approved" => {
-  const statuses: (
-    | "awaiting-submission"
-    | "submitted"
-    | "rejected"
-    | "approved"
-  )[] = ["awaiting-submission", "submitted", "rejected", "approved"];
-  return statuses[Math.floor(Math.random() * statuses.length)];
-};
-
 const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
   {
     id: 1,
@@ -196,7 +189,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
     ],
     status: "dispatched",
-    timesheetStatus: getRandomTimesheetStatus(),
+    timesheetStatus: "awaiting-submission",
     amount: 420,
   },
   {
@@ -210,7 +203,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
       { initials: "CS", color: "bg-green-500", name: "Cassandra Smith" },
     ],
     status: "approved",
-    timesheetStatus: getRandomTimesheetStatus(),
+    timesheetStatus: "approved",
     amount: 2500,
   },
 ];
@@ -221,343 +214,6 @@ interface MaintenanceProps {
   propertyUnits: number;
 }
 
-const getFTOStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; dotColor: string }> = {
-    "pending-approval": { label: "New", dotColor: "#1E40AF" },
-    dispatched: { label: "Dispatched", dotColor: "#B45309" },
-    approved: { label: "Completed", dotColor: "#166534" },
-  };
-
-  const config = statusConfig[status] || statusConfig["pending-approval"];
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <div
-        style={{
-          width: "8px",
-          height: "8px",
-          borderRadius: "50%",
-          backgroundColor: config.dotColor,
-          flexShrink: 0,
-        }}
-      />
-      <span style={{ fontSize: "14px", color: config.dotColor }}>
-        {config.label}
-      </span>
-    </div>
-  );
-};
-
-const getTimesheetStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; dotColor: string }> = {
-    "awaiting-submission": {
-      label: "Awaiting Submission",
-      dotColor: "#3730A3",
-    },
-    submitted: { label: "Submitted", dotColor: "#991B1B" },
-    rejected: { label: "Rejected", dotColor: "#DC2626" },
-    approved: { label: "Approved", dotColor: "#065F46" },
-  };
-
-  const config = statusConfig[status] || statusConfig["awaiting-submission"];
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <div
-        style={{
-          width: "8px",
-          height: "8px",
-          borderRadius: "50%",
-          backgroundColor: config.dotColor,
-          flexShrink: 0,
-        }}
-      />
-      <span style={{ fontSize: "14px", color: config.dotColor }}>
-        {config.label}
-      </span>
-    </div>
-  );
-};
-
-const tasksColumnConfig: Record<string, { label: string; icon: React.ReactNode }> = {
-  priority: {
-    label: "Priority",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
-        className="w-3.5 h-3.5"
-        alt=""
-      />
-    ),
-  },
-  status: {
-    label: "Status",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  title: {
-    label: "Task",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/7f481edecd98b8475a23ac762feb99280a60a52a?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  due: {
-    label: "Due",
-    icon: <CalendarIcon width={16} height={16} />,
-  },
-  assignees: {
-    label: "Assignees",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-};
-
-const recurringTasksColumnConfig: Record<
-  string,
-  { label: string; icon: React.ReactNode }
-> = {
-  priority: {
-    label: "Priority",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
-        className="w-3.5 h-3.5"
-        alt=""
-      />
-    ),
-  },
-  task: {
-    label: "Task",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/7f481edecd98b8475a23ac762feb99280a60a52a?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  nextDate: {
-    label: "Next Date",
-    icon: <CalendarIcon width={16} height={16} />,
-  },
-  category: {
-    label: "Category",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9379e9379423e4e59c741289c9317aae17fbcab2?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  assignees: {
-    label: "Assignees",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  status: {
-    label: "Status",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-};
-
-const workOrdersColumnConfig: Record<
-  string,
-  { label: string; icon: React.ReactNode }
-> = {
-  priority: {
-    label: "Priority",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
-        className="w-3.5 h-3.5"
-        alt=""
-      />
-    ),
-  },
-  status: {
-    label: "Status",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  task: {
-    label: "Task",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/7f481edecd98b8475a23ac762feb99280a60a52a?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  dueDate: {
-    label: "Due Date",
-    icon: <CalendarIcon width={16} height={16} />,
-  },
-  assignees: {
-    label: "Assignees",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  billStatus: {
-    label: "Bill Status",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  billTotal: {
-    label: "Bill Total",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-};
-
-const fieldTeamColumnConfig: Record<
-  string,
-  { label: string; icon: React.ReactNode }
-> = {
-  priority: {
-    label: "Priority",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
-        className="w-3.5 h-3.5"
-        alt=""
-      />
-    ),
-  },
-  description: {
-    label: "Description",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d5d01db2db718e32f4e620e7b1fc6ea705e115b1?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  unit: {
-    label: "Unit",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/049b679c03670a4d1cf3028269ec92ee2c8cc8e3?placeholderIfAbsent=true"
-        className="w-3.5 h-3.5"
-        alt=""
-      />
-    ),
-  },
-  dueDate: {
-    label: "Due Date",
-    icon: <CalendarIcon width={16} height={16} />,
-  },
-  fieldTeam: {
-    label: "Field Team",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  status: {
-    label: "Status",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  timesheetStatus: {
-    label: "Timesheet Status",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  amount: {
-    label: "Amount",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-};
-
 export const Maintenance: React.FC<MaintenanceProps> = ({
   propertyAddress,
   propertyType,
@@ -567,10 +223,6 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [activeTab, setActiveTab] = usePageState<
     "tasks" | "recurring" | "workorders" | "fieldteam"
   >("activeTab", "recurring");
-  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
-    "openMenuId",
-    null,
-  );
 
   // State for tasks data
   const [tasksList, setTasksList] = useState<Task[]>(mockPropertyTasks);
@@ -590,6 +242,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     "status",
     "title",
     "due",
+    "updated",
+    "age",
     "assignees",
   ]);
   const recurringColumnManagement = useColumnManagement([
@@ -612,7 +266,6 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const fieldteamColumnManagement = useColumnManagement([
     "priority",
     "description",
-    "unit",
     "dueDate",
     "fieldTeam",
     "status",
@@ -621,20 +274,38 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   ]);
 
   // Sorting hooks for each table
-  const { handleSortClick: handleTasksSortClick, getSortIndicator: getTasksSortIndicator, getSortedData: getTasksSortedData } = useSortingTable(tasksList);
-  const { handleSortClick: handleRecurringSortClick, getSortIndicator: getRecurringSortIndicator, getSortedData: getRecurringSortedData } = useSortingTable(recurringTasksList);
-  const { handleSortClick: handleWorkOrdersSortClick, getSortIndicator: getWorkOrdersSortIndicator, getSortedData: getWorkOrdersSortedData } = useSortingTable(workOrdersList);
-  const { handleSortClick: handleFieldTeamSortClick, getSortIndicator: getFieldTeamSortIndicator, getSortedData: getFieldTeamSortedData } = useSortingTable(fieldTeamOrdersList);
+  const {
+    handleSortClick: handleTasksSortClick,
+    getSortIndicator: getTasksSortIndicator,
+    getSortedData: getTasksSortedData,
+  } = useSortingTable(tasksList);
+  const {
+    handleSortClick: handleRecurringSortClick,
+    getSortIndicator: getRecurringSortIndicator,
+    getSortedData: getRecurringSortedData,
+  } = useSortingTable(recurringTasksList);
+  const {
+    handleSortClick: handleWorkOrdersSortClick,
+    getSortIndicator: getWorkOrdersSortIndicator,
+    getSortedData: getWorkOrdersSortedData,
+  } = useSortingTable(workOrdersList);
+  const {
+    handleSortClick: handleFieldTeamSortClick,
+    getSortIndicator: getFieldTeamSortIndicator,
+    getSortedData: getFieldTeamSortedData,
+  } = useSortingTable(fieldTeamOrdersList);
 
-  // Pagination state for each table
+  // Pagination and UI state for each table
   const [tasksPage, setTasksPage] = usePageState<number>("tasksPage", 1);
   const [tasksItemsPerPage, setTasksItemsPerPage] = usePageState<number>(
     "tasksItemsPerPage",
     10,
   );
   const [tasksShowDropdown, setTasksShowDropdown] = useState(false);
-  const tasksDropdownRef = useRef<HTMLButtonElement>(null);
-  const [tasksDropdownPos, setTasksDropdownPos] = useState({ top: 0, left: 0 });
+  const [tasksOpenMenuId, setTasksOpenMenuId] = usePageState<number | null>(
+    "tasksOpenMenuId",
+    null,
+  );
 
   const [recurringPage, setRecurringPage] = usePageState<number>(
     "recurringPage",
@@ -643,11 +314,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [recurringItemsPerPage, setRecurringItemsPerPage] =
     usePageState<number>("recurringItemsPerPage", 10);
   const [recurringShowDropdown, setRecurringShowDropdown] = useState(false);
-  const recurringDropdownRef = useRef<HTMLButtonElement>(null);
-  const [recurringDropdownPos, setRecurringDropdownPos] = useState({
-    top: 0,
-    left: 0,
-  });
+  const [recurringOpenMenuId, setRecurringOpenMenuId] =
+    usePageState<number | null>("recurringOpenMenuId", null);
 
   const [workordersPage, setWorkordersPage] = usePageState<number>(
     "workordersPage",
@@ -656,11 +324,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [workordersItemsPerPage, setWorkordersItemsPerPage] =
     usePageState<number>("workordersItemsPerPage", 10);
   const [workordersShowDropdown, setWorkordersShowDropdown] = useState(false);
-  const workordersDropdownRef = useRef<HTMLButtonElement>(null);
-  const [workordersDropdownPos, setWorkordersDropdownPos] = useState({
-    top: 0,
-    left: 0,
-  });
+  const [workordersOpenMenuId, setWorkordersOpenMenuId] =
+    usePageState<number | null>("workordersOpenMenuId", null);
 
   const [fieldteamPage, setFieldteamPage] = usePageState<number>(
     "fieldteamPage",
@@ -669,11 +334,29 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [fieldteamItemsPerPage, setFieldteamItemsPerPage] =
     usePageState<number>("fieldteamItemsPerPage", 10);
   const [fieldteamShowDropdown, setFieldteamShowDropdown] = useState(false);
-  const fieldteamDropdownRef = useRef<HTMLButtonElement>(null);
-  const [fieldteamDropdownPos, setFieldteamDropdownPos] = useState({
-    top: 0,
-    left: 0,
-  });
+  const [fieldteamOpenMenuId, setFieldteamOpenMenuId] =
+    usePageState<number | null>("fieldteamOpenMenuId", null);
+
+  // Modal states
+  const [showCreateTaskModal, setShowCreateTaskModal] = usePageState<boolean>(
+    "showCreateTaskModal",
+    false,
+  );
+  const [showCreateRecurringTaskModal, setShowCreateRecurringTaskModal] =
+    usePageState<boolean>("showCreateRecurringTaskModal", false);
+  const [editingRecurringTask, setEditingRecurringTask] =
+    usePageState<RecurringTask | null>("editingRecurringTask", null);
+  const [showCreateWorkOrderModal, setShowCreateWorkOrderModal] =
+    usePageState<boolean>("showCreateWorkOrderModal", false);
+  const [showCreateFTOModal, setShowCreateFTOModal] = usePageState<boolean>(
+    "showCreateFTOModal",
+    false,
+  );
+  const [editFTOData, setEditFTOData] = usePageState<{
+    dueDate: string;
+    priority: string;
+    ftoStatus?: string;
+  } | null>("editFTOData", null);
 
   const tasksSortedData = getTasksSortedData();
   const tasksTotalPages = Math.max(
@@ -726,7 +409,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   }, [recurringPage, recurringTotalPages, setRecurringPage]);
 
   useEffect(() => {
-    if (workordersPage > workordersTotalPages) setWorkordersPage(workordersTotalPages);
+    if (workordersPage > workordersTotalPages)
+      setWorkordersPage(workordersTotalPages);
     if (workordersPage < 1) setWorkordersPage(1);
   }, [workordersPage, workordersTotalPages, setWorkordersPage]);
 
@@ -735,132 +419,6 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     if (fieldteamPage < 1) setFieldteamPage(1);
   }, [fieldteamPage, fieldteamTotalPages, setFieldteamPage]);
 
-  const tasksCanGoPrev = tasksPage > 1;
-  const tasksCanGoNext = tasksPage < tasksTotalPages;
-  const recurringCanGoPrev = recurringPage > 1;
-  const recurringCanGoNext = recurringPage < recurringTotalPages;
-  const workordersCanGoPrev = workordersPage > 1;
-  const workordersCanGoNext = workordersPage < workordersTotalPages;
-  const fieldteamCanGoPrev = fieldteamPage > 1;
-  const fieldteamCanGoNext = fieldteamPage < fieldteamTotalPages;
-
-  // Modal states
-  const [showApprovalModal, setShowApprovalModal] = usePageState<boolean>(
-    "showApprovalModal",
-    false,
-  );
-  const [selectedFTOId, setSelectedFTOId] = usePageState<number | null>(
-    "selectedFTOId",
-    null,
-  );
-  const [showCreateTaskModal, setShowCreateTaskModal] = usePageState<boolean>(
-    "showCreateTaskModal",
-    false,
-  );
-  const [showCreateRecurringTaskModal, setShowCreateRecurringTaskModal] =
-    usePageState<boolean>("showCreateRecurringTaskModal", false);
-  const [editingRecurringTask, setEditingRecurringTask] =
-    usePageState<RecurringTask | null>("editingRecurringTask", null);
-  const [showCreateWorkOrderModal, setShowCreateWorkOrderModal] =
-    usePageState<boolean>("showCreateWorkOrderModal", false);
-  const [showCreateFTOModal, setShowCreateFTOModal] = usePageState<boolean>(
-    "showCreateFTOModal",
-    false,
-  );
-  const [editFTOData, setEditFTOData] = usePageState<{
-    dueDate: string;
-    priority: string;
-    ftoStatus?: string;
-  } | null>("editFTOData", null);
-
-  // Update dropdown position for tasks
-  useEffect(() => {
-    let animationFrameId: number;
-    const updateDropdownPos = () => {
-      if (tasksShowDropdown && tasksDropdownRef.current) {
-        const rect = tasksDropdownRef.current.getBoundingClientRect();
-        setTasksDropdownPos({ top: rect.bottom + 8, left: rect.left });
-      }
-    };
-    updateDropdownPos();
-    if (tasksShowDropdown) {
-      animationFrameId = requestAnimationFrame(updateDropdownPos);
-      window.addEventListener("resize", updateDropdownPos);
-      window.addEventListener("scroll", updateDropdownPos);
-    }
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", updateDropdownPos);
-      window.removeEventListener("scroll", updateDropdownPos);
-    };
-  }, [tasksShowDropdown]);
-
-  // Update dropdown position for recurring
-  useEffect(() => {
-    let animationFrameId: number;
-    const updateDropdownPos = () => {
-      if (recurringShowDropdown && recurringDropdownRef.current) {
-        const rect = recurringDropdownRef.current.getBoundingClientRect();
-        setRecurringDropdownPos({ top: rect.bottom + 8, left: rect.left });
-      }
-    };
-    updateDropdownPos();
-    if (recurringShowDropdown) {
-      animationFrameId = requestAnimationFrame(updateDropdownPos);
-      window.addEventListener("resize", updateDropdownPos);
-      window.addEventListener("scroll", updateDropdownPos);
-    }
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", updateDropdownPos);
-      window.removeEventListener("scroll", updateDropdownPos);
-    };
-  }, [recurringShowDropdown]);
-
-  // Update dropdown position for workorders
-  useEffect(() => {
-    let animationFrameId: number;
-    const updateDropdownPos = () => {
-      if (workordersShowDropdown && workordersDropdownRef.current) {
-        const rect = workordersDropdownRef.current.getBoundingClientRect();
-        setWorkordersDropdownPos({ top: rect.bottom + 8, left: rect.left });
-      }
-    };
-    updateDropdownPos();
-    if (workordersShowDropdown) {
-      animationFrameId = requestAnimationFrame(updateDropdownPos);
-      window.addEventListener("resize", updateDropdownPos);
-      window.addEventListener("scroll", updateDropdownPos);
-    }
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", updateDropdownPos);
-      window.removeEventListener("scroll", updateDropdownPos);
-    };
-  }, [workordersShowDropdown]);
-
-  // Update dropdown position for fieldteam
-  useEffect(() => {
-    let animationFrameId: number;
-    const updateDropdownPos = () => {
-      if (fieldteamShowDropdown && fieldteamDropdownRef.current) {
-        const rect = fieldteamDropdownRef.current.getBoundingClientRect();
-        setFieldteamDropdownPos({ top: rect.bottom + 8, left: rect.left });
-      }
-    };
-    updateDropdownPos();
-    if (fieldteamShowDropdown) {
-      animationFrameId = requestAnimationFrame(updateDropdownPos);
-      window.addEventListener("resize", updateDropdownPos);
-      window.addEventListener("scroll", updateDropdownPos);
-    }
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", updateDropdownPos);
-      window.removeEventListener("scroll", updateDropdownPos);
-    };
-  }, [fieldteamShowDropdown]);
-
   const tabs = [
     { id: "tasks" as const, label: "Tasks" },
     { id: "recurring" as const, label: "Recurring Tasks" },
@@ -868,91 +426,342 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     { id: "fieldteam" as const, label: "Field Team Orders" },
   ];
 
-  const getPriorityBadgeColor = (priority: string) => {
-    switch (priority) {
-      case "High":
-        return "bg-[#fef3c7] text-[#d97706]";
-      case "Low":
-        return "bg-[#d1fae5] text-[#059669]";
-      case "Normal":
-        return "bg-[#dbe9fe] text-[#2463eb]";
-      default:
-        return "bg-[#dbe9fe] text-[#2463eb]";
-    }
+  const tasksColumnConfig: Record<
+    string,
+    { label: string; icon: React.ReactNode }
+  > = {
+    priority: {
+      label: "Priority",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
+          className="w-3.5 h-3.5"
+          alt=""
+        />
+      ),
+    },
+    status: {
+      label: "Status",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    title: {
+      label: "Task",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/7f481edecd98b8475a23ac762feb99280a60a52a?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    due: {
+      label: "Due",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    updated: {
+      label: "Updated",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    age: {
+      label: "Age",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2097f26d1f65ef5b2149203767c6f5d5b91df5d0?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    assignees: {
+      label: "Assignees",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
   };
 
-  const getStatusBadgeColor = (status: string) => {
-    if (status === "Completed" || status === "dispatched") {
-      return "bg-emerald-100 text-emerald-600";
-    }
-    if (status === "In Progress" || status === "In progress") {
-      return "bg-blue-100 text-blue-600";
-    }
-    if (status === "approved") {
-      return "bg-green-100 text-green-600";
-    }
-    if (status === "pending-approval") {
-      return "bg-yellow-100 text-yellow-600";
-    }
-    return "bg-gray-100 text-gray-700";
+  const recurringTasksColumnConfig: Record<
+    string,
+    { label: string; icon: React.ReactNode }
+  > = {
+    priority: {
+      label: "Priority",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
+          className="w-3.5 h-3.5"
+          alt=""
+        />
+      ),
+    },
+    task: {
+      label: "Task",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/7f481edecd98b8475a23ac762feb99280a60a52a?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    nextDate: {
+      label: "Next Date",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    category: {
+      label: "Category",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/9379e9379423e4e59c741289c9317aae17fbcab2?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    assignees: {
+      label: "Assignees",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    status: {
+      label: "Status",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
   };
 
-  const getBillStatusColor = (billStatus: string) => {
-    if (billStatus === "Paid") return "bg-green-100 text-green-600";
-    if (billStatus === "Unpaid") return "bg-red-100 text-red-600";
-    if (billStatus === "Awaiting Invoice")
-      return "bg-yellow-100 text-yellow-600";
-    return "bg-gray-100 text-gray-700";
+  const workOrdersColumnConfig: Record<
+    string,
+    { label: string; icon: React.ReactNode }
+  > = {
+    priority: {
+      label: "Priority",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
+          className="w-3.5 h-3.5"
+          alt=""
+        />
+      ),
+    },
+    status: {
+      label: "Status",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    task: {
+      label: "Task",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/7f481edecd98b8475a23ac762feb99280a60a52a?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    dueDate: {
+      label: "Due Date",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    assignees: {
+      label: "Assignees",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    billStatus: {
+      label: "Bill Status",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    billTotal: {
+      label: "Bill Total",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
   };
 
-  const handleTaskCreated = (taskData: any) => {
-    const newTaskId = Math.max(...tasksList.map((t) => t.id), 0) + 1;
-    const newTask: Task = {
-      id: newTaskId,
-      title: taskData.title,
-      property: taskData.property || "Unassigned",
-      status:
-        taskData.status === "not_started"
-          ? "Not Started"
-          : taskData.status === "in_progress"
-            ? "In Progress"
-            : "Completed",
-      priority:
-        taskData.priority.charAt(0).toUpperCase() +
-        taskData.priority.slice(1),
-      due: taskData.dueDate
-        ? taskData.dueDate.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        : "No Due Date",
-      updated: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      age: "0 Days",
-      assignees: taskData.assignees?.map((assignee: any) => ({
-        id: parseInt(assignee.id),
-        name: assignee.label,
-        initials: assignee.initials,
-      })) || [],
-      collaborators: taskData.collaborators?.map((collaborator: any) => ({
-        id: parseInt(collaborator.id),
-        name: collaborator.label,
-        initials: collaborator.initials,
-      })) || [],
-      unit: taskData.unit,
-    };
-    setTasksList((prev) => [newTask, ...prev]);
-
-    // Close the modal before navigating to avoid it being open when coming back
-    setShowCreateTaskModal(false);
-
-    // Navigate to the newly created task with its data
-    navigate(`/tasks/${newTaskId}`, { state: { task: newTask, taskData } });
+  const fieldTeamColumnConfig: Record<
+    string,
+    { label: string; icon: React.ReactNode }
+  > = {
+    priority: {
+      label: "Priority",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/19c17d4129204654414d25bb07907dbe45b6100b?placeholderIfAbsent=true"
+          className="w-3.5 h-3.5"
+          alt=""
+        />
+      ),
+    },
+    description: {
+      label: "Description",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d5d01db2db718e32f4e620e7b1fc6ea705e115b1?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    dueDate: {
+      label: "Due Date",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    fieldTeam: {
+      label: "Field Team",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    status: {
+      label: "Status",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    timesheetStatus: {
+      label: "Timesheet Status",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    amount: {
+      label: "Amount",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
   };
+
+  const handleTaskCreated = useCallback(
+    (taskData: {
+      title: string;
+      description: string;
+      property: string;
+      unit: string;
+      priority: string;
+      dueDate: Date | null;
+      status: string;
+      assignees: { id: string; label: string; initials: string }[];
+      collaborators: { id: string; label: string; initials: string }[];
+    }) => {
+      const newTaskId = Math.max(...tasksList.map((t) => t.id), 0) + 1;
+      const newTask: Task = {
+        id: newTaskId,
+        title: taskData.title,
+        status:
+          taskData.status === "not_started"
+            ? "Not Started"
+            : taskData.status === "in_progress"
+              ? "In Progress"
+              : "Completed",
+        priority:
+          taskData.priority.charAt(0).toUpperCase() +
+          taskData.priority.slice(1),
+        due: taskData.dueDate
+          ? taskData.dueDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "No Due Date",
+        updated: new Date().toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        age: "0 Days",
+        assignees: taskData.assignees.map((assignee) => ({
+          id: parseInt(assignee.id),
+          name: assignee.label,
+          initials: assignee.initials,
+        })),
+        unit: taskData.unit,
+      };
+      setTasksList((prev) => [newTask, ...prev]);
+      setShowCreateTaskModal(false);
+    },
+    [tasksList],
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -993,12 +802,29 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       {activeTab === "tasks" && (
         <GlobalTable
           columns={[
-            { key: "priority", label: "Priority", icon: tasksColumnConfig.priority.icon },
-            { key: "status", label: "Status", icon: tasksColumnConfig.status.icon },
+            {
+              key: "priority",
+              label: "Priority",
+              icon: tasksColumnConfig.priority.icon,
+            },
+            {
+              key: "status",
+              label: "Status",
+              icon: tasksColumnConfig.status.icon,
+            },
             { key: "title", label: "Task", icon: tasksColumnConfig.title.icon },
-            { key: "unit", label: "Unit", icon: fieldTeamColumnConfig.unit.icon },
             { key: "due", label: "Due", icon: tasksColumnConfig.due.icon },
-            { key: "assignees", label: "Assignees", icon: tasksColumnConfig.assignees.icon },
+            {
+              key: "updated",
+              label: "Updated",
+              icon: tasksColumnConfig.updated.icon,
+            },
+            { key: "age", label: "Age", icon: tasksColumnConfig.age.icon },
+            {
+              key: "assignees",
+              label: "Assignees",
+              icon: tasksColumnConfig.assignees.icon,
+            },
           ]}
           data={tasksList}
           rowKey="id"
@@ -1021,56 +847,20 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           renderCell={(task: Task, columnKey: string) => {
             switch (columnKey) {
               case "priority":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          task.priority === "High"
-                            ? "#D97706"
-                            : task.priority === "Low"
-                              ? "#059669"
-                              : "#2463EB",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {task.priority}
-                    </span>
-                  </div>
-                );
+                return <TaskPriorityBadge priority={task.priority as any} />;
               case "status":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          task.status === "Completed"
-                            ? "#059669"
-                            : "#2463EB",
-                      }}
-                    />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
-                      {task.status}
-                    </span>
-                  </div>
-                );
+                return <TaskStatusBadge status={task.status as any} />;
               case "title":
                 return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/tasks/${task.id}`);
+                    }}
+                    className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors truncate"
+                  >
                     {task.title}
-                  </span>
-                );
-              case "unit":
-                const unitLabels: Record<string, string> = {
-                  unit1: "Unit 1",
-                  unit2: "Unit 2",
-                };
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {task.unit ? (unitLabels[task.unit] || task.unit) : "—"}
-                  </span>
+                  </button>
                 );
               case "due":
                 return (
@@ -1078,23 +868,26 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     {task.due}
                   </span>
                 );
+              case "updated":
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {task.updated}
+                  </span>
+                );
+              case "age":
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {task.age}
+                  </span>
+                );
               case "assignees":
                 return (
-                  <div className="flex items-center gap-2">
-                    {task.assignees.map((assignee) => (
-                      <div key={assignee.id} className="relative group">
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
-                          title={assignee.name}
-                        >
-                          {assignee.initials}
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                          {assignee.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <PersonAvatars
+                    people={task.assignees}
+                    type="assignee"
+                    size="sm"
+                    fallback="—"
+                  />
                 );
               default:
                 return null;
@@ -1112,28 +905,24 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           onItemsPerPageChange={setTasksItemsPerPage}
           showPageSizeDropdown={tasksShowDropdown}
           onShowPageSizeDropdownChange={setTasksShowDropdown}
-          openMenuId={openMenuId}
-          onOpenMenuIdChange={setOpenMenuId}
+          openMenuId={tasksOpenMenuId}
+          onOpenMenuIdChange={setTasksOpenMenuId}
           title="Tasks"
-          showColumnModal={tasksColumnManagement.showColumnModal}
-          onShowColumnModalChange={tasksColumnManagement.setShowColumnModal}
           headerActions={
             <button
               ref={tasksColumnManagement.columnButtonRef}
               onClick={() => {
                 setTasksShowDropdown(false);
-                setOpenMenuId(null);
+                setTasksOpenMenuId(null);
                 tasksColumnManagement.setShowColumnModal((prev) => !prev);
               }}
               className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
             >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-              </svg>
+              <DotsIcon width={18} height={18} color="#303030" />
             </button>
           }
+          showColumnModal={tasksColumnManagement.showColumnModal}
+          onShowColumnModalChange={tasksColumnManagement.setShowColumnModal}
         />
       )}
 
@@ -1141,12 +930,36 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       {activeTab === "recurring" && (
         <GlobalTable
           columns={[
-            { key: "priority", label: "Priority", icon: recurringTasksColumnConfig.priority.icon },
-            { key: "task", label: "Task", icon: recurringTasksColumnConfig.task.icon },
-            { key: "nextDate", label: "Next Date", icon: recurringTasksColumnConfig.nextDate.icon },
-            { key: "category", label: "Category", icon: recurringTasksColumnConfig.category.icon },
-            { key: "assignees", label: "Assignees", icon: recurringTasksColumnConfig.assignees.icon },
-            { key: "status", label: "Status", icon: recurringTasksColumnConfig.status.icon },
+            {
+              key: "priority",
+              label: "Priority",
+              icon: recurringTasksColumnConfig.priority.icon,
+            },
+            {
+              key: "task",
+              label: "Task",
+              icon: recurringTasksColumnConfig.task.icon,
+            },
+            {
+              key: "nextDate",
+              label: "Next Date",
+              icon: recurringTasksColumnConfig.nextDate.icon,
+            },
+            {
+              key: "category",
+              label: "Category",
+              icon: recurringTasksColumnConfig.category.icon,
+            },
+            {
+              key: "assignees",
+              label: "Assignees",
+              icon: recurringTasksColumnConfig.assignees.icon,
+            },
+            {
+              key: "status",
+              label: "Status",
+              icon: recurringTasksColumnConfig.status.icon,
+            },
           ]}
           data={recurringTasksList}
           rowKey="id"
@@ -1163,7 +976,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               label: "Delete",
               icon: <DeleteIcon width={18} height={18} color="#982740" />,
               onClick: (task: RecurringTask) => {
-                setRecurringTasksList((prev) => prev.filter((t) => t.id !== task.id));
+                setRecurringTasksList((prev) =>
+                  prev.filter((t) => t.id !== task.id),
+                );
               },
             },
           ]}
@@ -1208,21 +1023,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 );
               case "assignees":
                 return (
-                  <div className="flex items-center gap-2">
-                    {task.assignees.map((assignee) => (
-                      <div key={assignee.id} className="relative group">
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
-                          title={assignee.name}
-                        >
-                          {assignee.initials}
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                          {assignee.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <PersonAvatars
+                    people={task.assignees}
+                    type="assignee"
+                    size="sm"
+                    fallback="—"
+                  />
                 );
               case "status":
                 return (
@@ -1255,27 +1061,25 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           onItemsPerPageChange={setRecurringItemsPerPage}
           showPageSizeDropdown={recurringShowDropdown}
           onShowPageSizeDropdownChange={setRecurringShowDropdown}
-          openMenuId={openMenuId}
-          onOpenMenuIdChange={setOpenMenuId}
+          openMenuId={recurringOpenMenuId}
+          onOpenMenuIdChange={setRecurringOpenMenuId}
           title="Recurring Tasks"
-          showColumnModal={recurringColumnManagement.showColumnModal}
-          onShowColumnModalChange={recurringColumnManagement.setShowColumnModal}
           headerActions={
             <button
               ref={recurringColumnManagement.columnButtonRef}
               onClick={() => {
                 setRecurringShowDropdown(false);
-                setOpenMenuId(null);
+                setRecurringOpenMenuId(null);
                 recurringColumnManagement.setShowColumnModal((prev) => !prev);
               }}
               className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
             >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-              </svg>
+              <DotsIcon width={18} height={18} color="#303030" />
             </button>
+          }
+          showColumnModal={recurringColumnManagement.showColumnModal}
+          onShowColumnModalChange={
+            recurringColumnManagement.setShowColumnModal
           }
         />
       )}
@@ -1284,13 +1088,41 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       {activeTab === "workorders" && (
         <GlobalTable
           columns={[
-            { key: "priority", label: "Priority", icon: workOrdersColumnConfig.priority.icon },
-            { key: "status", label: "Status", icon: workOrdersColumnConfig.status.icon },
-            { key: "task", label: "Task", icon: workOrdersColumnConfig.task.icon },
-            { key: "dueDate", label: "Due Date", icon: workOrdersColumnConfig.dueDate.icon },
-            { key: "assignees", label: "Assignees", icon: workOrdersColumnConfig.assignees.icon },
-            { key: "billStatus", label: "Bill Status", icon: workOrdersColumnConfig.billStatus.icon },
-            { key: "billTotal", label: "Bill Total", icon: workOrdersColumnConfig.billTotal.icon },
+            {
+              key: "priority",
+              label: "Priority",
+              icon: workOrdersColumnConfig.priority.icon,
+            },
+            {
+              key: "status",
+              label: "Status",
+              icon: workOrdersColumnConfig.status.icon,
+            },
+            {
+              key: "task",
+              label: "Task",
+              icon: workOrdersColumnConfig.task.icon,
+            },
+            {
+              key: "dueDate",
+              label: "Due Date",
+              icon: workOrdersColumnConfig.dueDate.icon,
+            },
+            {
+              key: "assignees",
+              label: "Assignees",
+              icon: workOrdersColumnConfig.assignees.icon,
+            },
+            {
+              key: "billStatus",
+              label: "Bill Status",
+              icon: workOrdersColumnConfig.billStatus.icon,
+            },
+            {
+              key: "billTotal",
+              label: "Bill Total",
+              icon: workOrdersColumnConfig.billTotal.icon,
+            },
           ]}
           data={workOrdersList}
           rowKey="id"
@@ -1299,14 +1131,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               label: "Edit",
               icon: <EditIcon width={18} height={18} color="#525252" />,
               onClick: (workOrder: WorkOrder) => {
-                navigate(`/tasks/${workOrder.taskId}/workorders/${workOrder.id}`);
+                setShowCreateWorkOrderModal(true);
               },
             },
             {
               label: "Delete",
               icon: <DeleteIcon width={18} height={18} color="#982740" />,
               onClick: (workOrder: WorkOrder) => {
-                setWorkOrdersList((prev) => prev.filter((wo) => wo.id !== workOrder.id));
+                setWorkOrdersList((prev) =>
+                  prev.filter((wo) => wo.id !== workOrder.id),
+                );
               },
             },
           ]}
@@ -1338,7 +1172,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                       className="w-2 h-2 rounded-full"
                       style={{
                         backgroundColor:
-                          workOrder.status === "In progress" ? "#2463eb" : "#059669",
+                          workOrder.status === "In progress"
+                            ? "#2463eb"
+                            : "#059669",
                       }}
                     />
                     <span className="text-gray-900 font-normal text-sm capitalize">
@@ -1385,21 +1221,12 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                 );
               case "assignees":
                 return (
-                  <div className="flex items-center gap-2">
-                    {workOrder.assignees.map((assignee) => (
-                      <div key={assignee.id} className="relative group">
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold cursor-pointer bg-blue-500 border border-gray-300"
-                          title={assignee.name}
-                        >
-                          {assignee.initials}
-                        </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                          {assignee.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <PersonAvatars
+                    people={workOrder.assignees}
+                    type="assignee"
+                    size="sm"
+                    fallback="—"
+                  />
                 );
               default:
                 return null;
@@ -1417,28 +1244,24 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           onItemsPerPageChange={setWorkordersItemsPerPage}
           showPageSizeDropdown={workordersShowDropdown}
           onShowPageSizeDropdownChange={setWorkordersShowDropdown}
-          openMenuId={openMenuId}
-          onOpenMenuIdChange={setOpenMenuId}
+          openMenuId={workordersOpenMenuId}
+          onOpenMenuIdChange={setWorkordersOpenMenuId}
           title="Work Orders"
-          showColumnModal={workordersColumnManagement.showColumnModal}
-          onShowColumnModalChange={workordersColumnManagement.setShowColumnModal}
           headerActions={
             <button
               ref={workordersColumnManagement.columnButtonRef}
               onClick={() => {
                 setWorkordersShowDropdown(false);
-                setOpenMenuId(null);
+                setWorkordersOpenMenuId(null);
                 workordersColumnManagement.setShowColumnModal((prev) => !prev);
               }}
               className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
             >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-              </svg>
+              <DotsIcon width={18} height={18} color="#303030" />
             </button>
           }
+          showColumnModal={workordersColumnManagement.showColumnModal}
+          onShowColumnModalChange={workordersColumnManagement.setShowColumnModal}
         />
       )}
 
@@ -1446,42 +1269,45 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       {activeTab === "fieldteam" && (
         <GlobalTable
           columns={[
-            { key: "priority", label: "Priority", icon: fieldTeamColumnConfig.priority.icon },
-            { key: "description", label: "Description", icon: fieldTeamColumnConfig.description.icon },
-            { key: "unit", label: "Unit", icon: fieldTeamColumnConfig.unit.icon },
-            { key: "dueDate", label: "Due Date", icon: fieldTeamColumnConfig.dueDate.icon },
-            { key: "fieldTeam", label: "Field Team", icon: fieldTeamColumnConfig.fieldTeam.icon },
-            { key: "status", label: "Status", icon: fieldTeamColumnConfig.status.icon },
-            { key: "timesheetStatus", label: "Timesheet Status", icon: fieldTeamColumnConfig.timesheetStatus.icon },
-            { key: "amount", label: "Amount", icon: fieldTeamColumnConfig.amount.icon },
+            {
+              key: "priority",
+              label: "Priority",
+              icon: fieldTeamColumnConfig.priority.icon,
+            },
+            {
+              key: "description",
+              label: "Description",
+              icon: fieldTeamColumnConfig.description.icon,
+            },
+            {
+              key: "dueDate",
+              label: "Due Date",
+              icon: fieldTeamColumnConfig.dueDate.icon,
+            },
+            {
+              key: "fieldTeam",
+              label: "Field Team",
+              icon: fieldTeamColumnConfig.fieldTeam.icon,
+            },
+            {
+              key: "status",
+              label: "Status",
+              icon: fieldTeamColumnConfig.status.icon,
+            },
+            {
+              key: "timesheetStatus",
+              label: "Timesheet Status",
+              icon: fieldTeamColumnConfig.timesheetStatus.icon,
+            },
+            {
+              key: "amount",
+              label: "Amount",
+              icon: fieldTeamColumnConfig.amount.icon,
+            },
           ]}
           data={fieldTeamOrdersList}
           rowKey="id"
           actions={[
-            {
-              label: "Approve",
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M2.25 8.97L6.75 13.47L15.75 4.47"
-                    stroke="#0A7F2F"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ),
-              onClick: (order: FieldTeamOrder) => {
-                setSelectedFTOId(order.id);
-                setShowApprovalModal(true);
-              },
-            },
             {
               label: "Edit",
               icon: <EditIcon width={18} height={18} color="#525252" />,
@@ -1498,7 +1324,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               label: "Delete",
               icon: <DeleteIcon width={18} height={18} color="#982740" />,
               onClick: (order: FieldTeamOrder) => {
-                setFieldTeamOrdersList((prev) => prev.filter((o) => o.id !== order.id));
+                setFieldTeamOrdersList((prev) =>
+                  prev.filter((o) => o.id !== order.id),
+                );
               },
             },
           ]}
@@ -1518,26 +1346,20 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                               : "#d97706",
                       }}
                     />
-                    <span className="text-gray-900 font-normal text-sm capitalize">
+                    <span className="text-gray-900 font-normal text-sm capitalize truncate">
                       {order.priority}
                     </span>
                   </div>
                 );
               case "description":
                 return (
-                  <span className="text-gray-900 font-normal text-sm">
+                  <span className="text-gray-900 font-normal text-sm truncate">
                     {order.description}
-                  </span>
-                );
-              case "unit":
-                return (
-                  <span className="text-gray-900 font-normal text-sm">
-                    {order.unit || "-"}
                   </span>
                 );
               case "dueDate":
                 return (
-                  <span className="text-gray-900 font-normal text-sm">
+                  <span className="text-gray-900 font-normal text-sm truncate">
                     {order.dueDate}
                   </span>
                 );
@@ -1552,7 +1374,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                         >
                           {member.initials}
                         </div>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
                           {member.name}
                         </div>
                       </div>
@@ -1560,9 +1382,14 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   </div>
                 );
               case "status":
-                return getFTOStatusBadge(order.status);
+                return <StatusBadge status={order.status} variant="fto-status" />;
               case "timesheetStatus":
-                return getTimesheetStatusBadge(order.timesheetStatus);
+                return (
+                  <StatusBadge
+                    status={order.timesheetStatus}
+                    variant="timesheet-status"
+                  />
+                );
               case "amount":
                 return (
                   <span className="text-gray-900 font-normal text-sm">
@@ -1585,206 +1412,51 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           onItemsPerPageChange={setFieldteamItemsPerPage}
           showPageSizeDropdown={fieldteamShowDropdown}
           onShowPageSizeDropdownChange={setFieldteamShowDropdown}
-          openMenuId={openMenuId}
-          onOpenMenuIdChange={setOpenMenuId}
+          openMenuId={fieldteamOpenMenuId}
+          onOpenMenuIdChange={setFieldteamOpenMenuId}
           title="Field Team Orders"
-          showColumnModal={fieldteamColumnManagement.showColumnModal}
-          onShowColumnModalChange={fieldteamColumnManagement.setShowColumnModal}
-          onRowClick={(order: FieldTeamOrder, e: React.MouseEvent) => {
-            navigate(`/tasks/${order.taskId}/fieldteam`);
-          }}
           headerActions={
             <button
               ref={fieldteamColumnManagement.columnButtonRef}
               onClick={() => {
                 setFieldteamShowDropdown(false);
-                setOpenMenuId(null);
+                setFieldteamOpenMenuId(null);
                 fieldteamColumnManagement.setShowColumnModal((prev) => !prev);
               }}
               className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
             >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="3" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="8" r="1.5" fill="#303030"/>
-                <circle cx="8" cy="13" r="1.5" fill="#303030"/>
-              </svg>
+              <DotsIcon width={18} height={18} color="#303030" />
             </button>
           }
+          showColumnModal={fieldteamColumnManagement.showColumnModal}
+          onShowColumnModalChange={fieldteamColumnManagement.setShowColumnModal}
         />
       )}
 
-      {/* FTO Approval Modal */}
-      <FTOApprovalModal
-        open={showApprovalModal}
-        onOpenChange={(open) => {
-          setShowApprovalModal(open);
-          if (!open) {
-            setSelectedFTOId(null);
-          }
-        }}
-        editingOrder={mockPropertyFieldTeamOrders.find(
-          (o) => o.id === selectedFTOId,
-        )}
-        property={
-          mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)
-            ?.property
-        }
-        fieldTeamAssignee={
-          mockPropertyFieldTeamOrders.find((o) => o.id === selectedFTOId)
-            ?.fieldTeam[0]?.name
-        }
-      />
-
-      {/* Create Task Modal */}
+      {/* Modals */}
       <CreateTaskModal
         open={showCreateTaskModal}
         onOpenChange={setShowCreateTaskModal}
         onTaskCreated={handleTaskCreated}
       />
 
-      {/* Create Recurring Task Modal */}
       <CreateRecurringTaskModal
         open={showCreateRecurringTaskModal}
-        onOpenChange={(open) => {
-          setShowCreateRecurringTaskModal(open);
-          if (!open) {
-            setEditingRecurringTask(null);
-          }
-        }}
-        editData={
-          editingRecurringTask
-            ? {
-                task: editingRecurringTask.task,
-                nextDate: editingRecurringTask.nextDate,
-                priority: editingRecurringTask.priority,
-                category: editingRecurringTask.category,
-              }
-            : undefined
-        }
+        onOpenChange={setShowCreateRecurringTaskModal}
       />
 
-      {/* Create Work Order Modal */}
       <CreateWorkOrderModalV2
         open={showCreateWorkOrderModal}
         onOpenChange={setShowCreateWorkOrderModal}
-        onDataUpdate={(data) => {
-          const newId = workOrdersList.length > 0 ? Math.max(...workOrdersList.map(wo => wo.id)) + 1 : 1;
-
-          const newNotes: Note[] = data.notes ? [{
-            id: 1,
-            text: data.notes,
-            date: new Date().toLocaleString(),
-            author: "Julia LoSchiavo",
-          }] : [];
-
-          const newFiles: File[] = data.files ? data.files.map((uf, idx) => ({
-            id: idx + 1,
-            name: uf.name,
-            url: uf.url || "#",
-            uploadedAt: new Date().toLocaleString(),
-            category: "Work Order",
-            description: "",
-          })) : [];
-
-          const newWorkOrder = {
-            id: newId,
-            task: data.workOrderName || data.task || "New Work Order",
-            taskId: 1,
-            property: propertyAddress,
-            unit: "",
-            dueDate: data.dueDate ? data.dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "No due date",
-            updatedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            age: "Just now",
-            priority: data.priority || "normal",
-            status: data.status === "completed" ? "Completed" : "In progress",
-            billStatus: "Awaiting Invoice",
-            billTotal: "No invoice",
-            assignees: [],
-            vendorName: data.vendor || "",
-            notes: newNotes,
-            files: newFiles,
-          };
-
-          setWorkOrdersList(prev => [newWorkOrder as any, ...prev]);
-          setShowCreateWorkOrderModal(false);
-
-          navigate(`/tasks/${newWorkOrder.taskId}/workorders/${newWorkOrder.id}`, {
-            state: { newWorkOrder }
-          });
-        }}
       />
 
-      {/* Create FTO Modal */}
       <CreateFTOModal
         open={showCreateFTOModal}
-        onOpenChange={(open) => {
-          setShowCreateFTOModal(open);
-          if (!open) {
-            setEditFTOData(null);
-          }
-        }}
-        editData={editFTOData || undefined}
-      />
-
-      {/* Tasks Column Filter Modal */}
-      <ColumnFilterModal
-        isOpen={tasksColumnManagement.showColumnModal}
-        position={tasksColumnManagement.columnMenuPos}
-        columns={tasksColumnManagement.columnOrder.map((key) => ({
-          key,
-          label: tasksColumnConfig[key]?.label || key,
-          icon: tasksColumnConfig[key]?.icon,
-        }))}
-        visibleColumns={tasksColumnManagement.visibleColumns}
-        onToggleColumn={tasksColumnManagement.toggleColumnVisibility}
-        onClose={() => tasksColumnManagement.setShowColumnModal(false)}
-        buttonRef={tasksColumnManagement.columnButtonRef}
-      />
-
-      {/* Recurring Tasks Column Filter Modal */}
-      <ColumnFilterModal
-        isOpen={recurringColumnManagement.showColumnModal}
-        position={recurringColumnManagement.columnMenuPos}
-        columns={recurringColumnManagement.columnOrder.map((key) => ({
-          key,
-          label: recurringTasksColumnConfig[key]?.label || key,
-          icon: recurringTasksColumnConfig[key]?.icon,
-        }))}
-        visibleColumns={recurringColumnManagement.visibleColumns}
-        onToggleColumn={recurringColumnManagement.toggleColumnVisibility}
-        onClose={() => recurringColumnManagement.setShowColumnModal(false)}
-        buttonRef={recurringColumnManagement.columnButtonRef}
-      />
-
-      {/* Work Orders Column Filter Modal */}
-      <ColumnFilterModal
-        isOpen={workordersColumnManagement.showColumnModal}
-        position={workordersColumnManagement.columnMenuPos}
-        columns={workordersColumnManagement.columnOrder.map((key) => ({
-          key,
-          label: workOrdersColumnConfig[key]?.label || key,
-          icon: workOrdersColumnConfig[key]?.icon,
-        }))}
-        visibleColumns={workordersColumnManagement.visibleColumns}
-        onToggleColumn={workordersColumnManagement.toggleColumnVisibility}
-        onClose={() => workordersColumnManagement.setShowColumnModal(false)}
-        buttonRef={workordersColumnManagement.columnButtonRef}
-      />
-
-      {/* Field Team Orders Column Filter Modal */}
-      <ColumnFilterModal
-        isOpen={fieldteamColumnManagement.showColumnModal}
-        position={fieldteamColumnManagement.columnMenuPos}
-        columns={fieldteamColumnManagement.columnOrder.map((key) => ({
-          key,
-          label: fieldTeamColumnConfig[key]?.label || key,
-          icon: fieldTeamColumnConfig[key]?.icon,
-        }))}
-        visibleColumns={fieldteamColumnManagement.visibleColumns}
-        onToggleColumn={fieldteamColumnManagement.toggleColumnVisibility}
-        onClose={() => fieldteamColumnManagement.setShowColumnModal(false)}
-        buttonRef={fieldteamColumnManagement.columnButtonRef}
+        onOpenChange={setShowCreateFTOModal}
+        editData={editFTOData}
       />
     </div>
   );
 };
+
+export default Maintenance;
