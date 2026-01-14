@@ -743,21 +743,12 @@ export default function FieldTeamOrders() {
                 }
                 if (columnKey === "fieldTeam") {
                   return (
-                    <div className="flex items-center gap-2">
-                      {order.fieldTeam.map((member, idx) => (
-                        <div key={idx} className="relative group">
-                          <div
-                            className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
-                            title={member.name}
-                          >
-                            {member.initials}
-                          </div>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                            {member.name}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <PersonAvatars
+                      people={order.fieldTeam}
+                      type="assignee"
+                      size="sm"
+                      fallback="—"
+                    />
                   );
                 }
                 if (columnKey === "status") {
