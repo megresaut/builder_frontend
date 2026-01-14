@@ -355,6 +355,7 @@ export default function SummaryTab({
                 showDivider: true,
                 tabIndex: [1],
                 type: "vendor",
+                hideHeaderOnTab: 1, // Hide header on Vendors tab
               },
               {
                 label: "",
