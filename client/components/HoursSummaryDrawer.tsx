@@ -120,7 +120,6 @@ export default function HoursSummaryDrawer({
     setSelectedManager("");
     setDateRangeStart(null);
     setDateRangeEnd(null);
-    setExpandedSections({});
   };
 
   return (
