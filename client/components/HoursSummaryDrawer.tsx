@@ -34,11 +34,11 @@ interface HoursSummaryDrawerProps {
 }
 
 const FIELD_TEAM_MANAGERS = [
-  { value: "1", label: "Christopher Harris" },
-  { value: "2", label: "Cassandra Smith" },
-  { value: "3", label: "David Chen" },
-  { value: "4", label: "Emma Rodriguez" },
-  { value: "5", label: "James Wilson" },
+  { id: "1", label: "Christopher Harris", initials: "CH", avatarColor: "bg-blue-500" },
+  { id: "2", label: "Cassandra Smith", initials: "CS", avatarColor: "bg-purple-500" },
+  { id: "3", label: "David Chen", initials: "DC", avatarColor: "bg-green-500" },
+  { id: "4", label: "Emma Rodriguez", initials: "ER", avatarColor: "bg-pink-500" },
+  { id: "5", label: "James Wilson", initials: "JW", avatarColor: "bg-orange-500" },
 ];
 
 export default function HoursSummaryDrawer({
