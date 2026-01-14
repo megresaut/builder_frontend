@@ -146,7 +146,6 @@ export default function HoursSummaryDrawer({
     >
       {/* Scope Controls Section */}
       <div>
-        <DrawerSubheader>Scope</DrawerSubheader>
         <div
           className="border rounded-lg p-4"
           style={{
