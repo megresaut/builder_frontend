@@ -167,7 +167,7 @@ const mockPropertyWorkOrders: WorkOrder[] = [
     status: "In progress",
     billStatus: "Paid",
     billTotal: "$420",
-    assignees: [{ id: 1, name: "Jerry Sanchez", initials: "JS" }],
+    assignees: [{ id: 1, name: "Jerry Sanchez", initials: "JS", email: "jerry.sanchez@example.com", phone: "(555) 789-0123", title: "Lead Technician" }],
   },
   {
     id: 2,
@@ -180,7 +180,7 @@ const mockPropertyWorkOrders: WorkOrder[] = [
     status: "In progress",
     billStatus: "Awaiting Invoice",
     billTotal: "No invoice",
-    assignees: [{ id: 2, name: "Jane Smith", initials: "JS" }],
+    assignees: [{ id: 2, name: "Jane Smith", initials: "JS", email: "jane.smith@example.com", phone: "(555) 890-1234", title: "Maintenance Tech" }],
   },
 ];
 
