@@ -48,19 +48,9 @@ export default function HoursSummaryDrawer({
   dateRangeStart: initialDateRangeStart,
   dateRangeEnd: initialDateRangeEnd,
 }: HoursSummaryDrawerProps) {
-  const [expandedSections, setExpandedSections] = useState<{
-    [key: string]: boolean;
-  }>({});
   const [selectedManager, setSelectedManager] = useState<string>(initialSelectedManager || "");
   const [dateRangeStart, setDateRangeStart] = useState<Date | null>(initialDateRangeStart || null);
   const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(initialDateRangeEnd || null);
-
-  const toggleSection = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
 
   // Filter orders based on selected filters
   const filteredOrders = useMemo(() => {
