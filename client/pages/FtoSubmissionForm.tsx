@@ -1098,7 +1098,6 @@ export default function FtoSubmissionForm() {
       <CreateFTOModal
         open={isCreateFTOModalOpen}
         onOpenChange={setIsCreateFTOModalOpen}
-        isSimple={true}
       />
     </PageTemplate>
   );
