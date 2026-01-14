@@ -564,13 +564,24 @@ export default function WorkOrderDetailsV2({
           {/* Totals Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
             <SectionCard padding="none" variant="white">
-              <div className="flex flex-col justify-center items-start gap-1 flex-1 p-4">
-                <div className="text-[#717179] font-['Geist',sans-serif] text-sm font-normal leading-5">
-                  ESTIMATE TOTAL
+              <div className="flex flex-row justify-between items-start gap-4 flex-1 p-4">
+                <div className="flex flex-col justify-center items-start gap-1 flex-1">
+                  <div className="text-[#717179] font-['Geist',sans-serif] text-sm font-normal leading-5">
+                    ESTIMATE TOTAL
+                  </div>
+                  <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
+                    ${estimateTotal.toFixed(2)}
+                  </div>
                 </div>
-                <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
-                  $0.00
-                </div>
+                <button
+                  onClick={handleOpenEstimateTotalModal}
+                  className="flex justify-center items-center gap-1 rounded-lg hover:opacity-80 transition-opacity flex-shrink-0 whitespace-nowrap mt-1"
+                >
+                  <EditIcon width={16} height={16} />
+                  <span className="text-[#2463eb] text-sm font-medium leading-[140%] tracking-[-0.32px] capitalize">
+                    Edit
+                  </span>
+                </button>
               </div>
             </SectionCard>
             <SectionCard padding="none" variant="white">
