@@ -504,12 +504,10 @@ export default function WorkOrderDetailsV2({
                     </h2>
                     <button
                       onClick={() => onUpdateWorkOrderModalOpenChange?.(true)}
-                      className="flex justify-center items-center gap-1 rounded-lg hover:opacity-80 transition-opacity flex-shrink-0 whitespace-nowrap mt-1"
+                      className="flex items-center gap-1 text-[#2463eb] hover:underline"
                     >
                       <EditIcon width={16} height={16} />
-                      <span className="text-[#2463eb] text-base font-medium leading-[140%] tracking-[-0.32px] capitalize">
-                        Edit
-                      </span>
+                      <span className="font-medium">Edit</span>
                     </button>
                   </div>
                   <div className="flex flex-col items-start gap-2 w-full">
@@ -575,12 +573,10 @@ export default function WorkOrderDetailsV2({
                 </div>
                 <button
                   onClick={handleOpenEstimateTotalModal}
-                  className="flex justify-center items-center gap-1 rounded-lg hover:opacity-80 transition-opacity flex-shrink-0 whitespace-nowrap mt-1"
+                  className="flex items-center gap-1 text-[#2463eb] hover:underline"
                 >
                   <EditIcon width={16} height={16} />
-                  <span className="text-[#2463eb] text-base font-medium leading-[140%] tracking-[-0.32px] capitalize">
-                    Edit
-                  </span>
+                  <span className="font-medium">Edit</span>
                 </button>
               </div>
             </SectionCard>
