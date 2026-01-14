@@ -88,10 +88,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           ) : (
             <button
               onClick={action!.onClick}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white transition-colors bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] text-white font-medium text-base leading-normal"
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white transition-colors bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] text-white font-medium text-sm"
             >
               {action!.icon && <div className="text-white">{action!.icon}</div>}
-              <span className="text-white font-medium text-base leading-normal">
+              <span className="text-white font-medium text-sm">
                 {action!.label}
               </span>
             </button>
