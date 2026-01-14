@@ -273,10 +273,8 @@ export const ComboboxFieldWithCustomInput: React.FC<
                         cursor: "pointer",
                         backgroundColor:
                           highlightedIndex === index
-                            ? "rgba(36, 99, 235, 0.15)"
-                            : value === option.value
-                              ? "rgba(36, 99, 235, 0.1)"
-                              : "transparent",
+                            ? "rgba(36, 99, 235, 0.08)"
+                            : "transparent",
                         color: "var(--color-text-primary)",
                         fontFamily:
                           "Geist, -apple-system, Roboto, Helvetica, sans-serif",
