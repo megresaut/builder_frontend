@@ -98,6 +98,7 @@ const mockPropertyTasks: Task[] = [
     updated: "Oct 2, 2025",
     priority: "Normal",
     assignees: [{ id: 1, name: "John Doe", initials: "JD" }],
+    collaborators: [{ id: 4, name: "Sarah Wilson", initials: "SW" }],
   },
   {
     id: 2,
@@ -107,6 +108,7 @@ const mockPropertyTasks: Task[] = [
     updated: "Sep 25, 2025",
     priority: "Low",
     assignees: [{ id: 2, name: "Jane Smith", initials: "JS" }],
+    collaborators: [],
   },
   {
     id: 3,
@@ -116,6 +118,7 @@ const mockPropertyTasks: Task[] = [
     updated: "Sep 12, 2025",
     priority: "High",
     assignees: [{ id: 3, name: "Mike Johnson", initials: "MJ" }],
+    collaborators: [{ id: 5, name: "Tom Brown", initials: "TB" }, { id: 6, name: "Lisa Davis", initials: "LD" }],
   },
 ];
 
