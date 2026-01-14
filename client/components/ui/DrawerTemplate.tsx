@@ -11,6 +11,7 @@ interface DrawerTemplateProps {
   footer?: React.ReactNode;
   width?: number;
   contentRef?: React.RefObject<HTMLDivElement>;
+  variant?: "default" | "floating";
 }
 
 interface DrawerButtonsProps {
