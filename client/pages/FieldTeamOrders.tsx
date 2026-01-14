@@ -22,7 +22,7 @@ import {
   BuildingIcon,
   NoteIcon,
   CalendarIcon,
-  DotsIcon,
+  HamburgerIcon,
   DocumentIcon,
   DollarIcon,
   UserIcon,
