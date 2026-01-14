@@ -40,6 +40,7 @@ interface Task {
   updated: string;
   priority: string;
   assignees: Assignee[];
+  collaborators?: Assignee[];
   unit?: string;
 }
 
