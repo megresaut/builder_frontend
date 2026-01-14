@@ -909,9 +909,9 @@ export default function FtoHome() {
               label: () => "View Task",
               icon: () => (
                 <EyeIcon
-                width={18}
-                height={18}
-              />
+                  width={18}
+                  height={18}
+                />
               ),
               onClick: (row) => {
                 openViewTaskModal(row as FieldTeamOrder | SubmissionRecord);
