@@ -231,7 +231,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
                   (e.currentTarget.style.backgroundColor = "transparent")
                 }
               >
-                + Add custom vendor
+                {customButtonLabel}
               </button>
             )}
 
