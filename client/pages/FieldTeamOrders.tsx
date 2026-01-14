@@ -95,13 +95,16 @@ const getInitials = (name: string): string => {
 // Helper to resolve field team members (replaces real GET /users/{id} call)
 const resolveFieldTeamMembers = (
   memberIds: number[]
-): Array<{ initials: string; color: string; name: string }> => {
+): Array<{ initials: string; color: string; name: string; email?: string; phone?: string; title?: string }> => {
   return memberIds.map((id) => {
     const user = mockUsers[id] || { id, name: "Unknown User" };
     return {
       initials: getInitials(user.name),
       color: "bg-blue-500",
       name: user.name,
+      email: user.email,
+      phone: user.phone,
+      title: user.title,
     };
   });
 };
