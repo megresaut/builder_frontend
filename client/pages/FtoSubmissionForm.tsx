@@ -570,7 +570,7 @@ export default function FtoSubmissionForm() {
                           </div>
                         </div>
 
-                        <SelectField
+                        <ComboboxFieldWithCustomInput
                           label="Task"
                           required
                           error={hourErrors[entry.id]?.taskId}
@@ -588,9 +588,8 @@ export default function FtoSubmissionForm() {
                             updateHourEntry(entry.id, "taskId", value);
                           }}
                           placeholder="Select Task"
+                          customInputPlaceholder="Enter task name"
                           disabled={!entry.propertyId || !entry.unitId || isApproved}
-                          onCreateNew={() => setIsCreateFTOModalOpen(true)}
-                          createNewLabel="Create New Task"
                         />
 
                         <NumberField
