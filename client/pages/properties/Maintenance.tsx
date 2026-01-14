@@ -841,6 +841,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               label: "Assignees",
               icon: tasksColumnConfig.assignees.icon,
             },
+            {
+              key: "collaborators",
+              label: "Collaborators",
+              icon: tasksColumnConfig.collaborators.icon,
+            },
           ]}
           data={tasksList}
           rowKey="id"
