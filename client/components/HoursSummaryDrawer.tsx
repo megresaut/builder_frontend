@@ -45,11 +45,11 @@ export default function HoursSummaryDrawer({
   isOpen,
   onClose,
   orders,
-  selectedManager: initialSelectedManager,
+  selectedManagers: initialSelectedManagers,
   dateRangeStart: initialDateRangeStart,
   dateRangeEnd: initialDateRangeEnd,
 }: HoursSummaryDrawerProps) {
-  const [selectedManager, setSelectedManager] = useState<string>(initialSelectedManager || "");
+  const [selectedManagers, setSelectedManagers] = useState<string[]>(initialSelectedManagers || []);
   const [dateRangeStart, setDateRangeStart] = useState<Date | null>(initialDateRangeStart || null);
   const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(initialDateRangeEnd || null);
 
