@@ -868,13 +868,11 @@ export default function FtoHome() {
                   <ApproveIcon
                     width={18}
                     height={18}
-                    color="var(--color-text-secondary)"
                   />
                 ) : (
                   <EyeIcon
                     width={18}
                     height={18}
-                    color="var(--color-text-secondary)"
                   />
                 ),
               onClick: (row) => {
@@ -911,10 +909,9 @@ export default function FtoHome() {
               label: () => "View Task",
               icon: () => (
                 <EyeIcon
-                  width={18}
-                  height={18}
-                  color="var(--color-text-secondary)"
-                />
+                width={18}
+                height={18}
+              />
               ),
               onClick: (row) => {
                 openViewTaskModal(row as FieldTeamOrder | SubmissionRecord);
