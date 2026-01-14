@@ -945,6 +945,7 @@ export default function FtoSubmissionForm() {
                           }}
                           placeholder="Select Vendor"
                           customInputPlaceholder="Enter vendor name"
+                          customButtonLabel="+ Add custom vendor"
                           disabled={isApproved}
                         />
 
