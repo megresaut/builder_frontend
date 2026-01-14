@@ -26,6 +26,7 @@ interface ComboboxFieldWithCustomInputProps {
   options: ComboboxOption[];
   emptyMessage?: string;
   customInputPlaceholder?: string;
+  customButtonLabel?: string;
 }
 
 /**
