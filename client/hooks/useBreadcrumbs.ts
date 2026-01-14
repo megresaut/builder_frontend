@@ -100,16 +100,16 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
 
           if (workOrderId && tab === "workorders") {
             const workOrderData: Record<string, string> = {
-              "1": "Doors Need To Be Repaired",
-              "2": "Doors Need To Be Repaired",
-              "3": "Doors Need To Be Repaired",
-              "4": "Doors Need To Be Repaired",
-              "5": "Doors Need To Be Repaired",
-              "6": "Doors Need To Be Repaired",
-              "7": "Doors Need To Be Repaired",
-              "8": "Doors Need To Be Repaired",
-              "9": "Doors Need To Be Repaired",
-              "10": "Doors Need To Be Repaired",
+              "1": "Doors need to be repaired",
+              "2": "HVAC maintenance needed",
+              "3": "Window replacement",
+              "4": "Roof inspection",
+              "5": "Plumbing repair",
+              "6": "Electrical work",
+              "7": "Painting job",
+              "8": "Carpet replacement",
+              "9": "Flooring repair",
+              "10": "Landscaping work",
             };
             items.push({
               label: workOrderData[workOrderId] || `Work Order ${workOrderId}`,
