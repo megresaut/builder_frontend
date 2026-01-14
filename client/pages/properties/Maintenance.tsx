@@ -910,6 +910,15 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     fallback="—"
                   />
                 );
+              case "collaborators":
+                return (
+                  <PersonAvatars
+                    people={task.collaborators || []}
+                    type="collaborator"
+                    size="sm"
+                    fallback="—"
+                  />
+                );
               default:
                 return null;
             }
