@@ -236,7 +236,7 @@ const PrioritySelectFieldContent: React.FC<PrioritySelectFieldContentProps> = ({
           display: "flex",
           alignItems: "center",
           gap: "8px",
-          padding: "8px 12px",
+          padding: open ? "7px 11px" : "8px 12px",
         }}
         onKeyDown={handleTriggerKeyDown}
       >
