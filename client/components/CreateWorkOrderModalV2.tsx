@@ -333,10 +333,10 @@ export default function CreateWorkOrderModalV2({
             />
 
             <TextAreaField
-              label="Notes"
+              label="Description"
               value={formData.notes}
               onChange={handleNotesChange}
-              placeholder="Notes for your work Order"
+              placeholder="Description for your Work Order"
               autoGrow
             />
 
