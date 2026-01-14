@@ -30,6 +30,9 @@ interface Assignee {
   id: number;
   name: string;
   initials: string;
+  email?: string;
+  phone?: string;
+  title?: string;
 }
 
 interface Task {
