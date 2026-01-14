@@ -44,7 +44,9 @@
 
 .input:focus {
   border-color: #000000;
-  border-width: 1px;
+  border-width: 2px;
+  padding: 0.5rem 0.75rem;
+  padding-right: 2.5rem;
 }
 
 .input:disabled {
