@@ -115,7 +115,7 @@ export default function HoursSummaryDrawer({
     hours: order.hours || 0,
   }));
 
-  const hasRequiredFilters = !!selectedManager || (!!dateRangeStart && !!dateRangeEnd);
+  const hasRequiredFilters = selectedManagers.length > 0 || (!!dateRangeStart && !!dateRangeEnd);
 
   const handleReset = () => {
     setSelectedManagers([]);
