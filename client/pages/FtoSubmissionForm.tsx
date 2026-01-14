@@ -104,8 +104,6 @@ export default function FtoSubmissionForm() {
     title: "",
   });
 
-  const [isCreateFTOModalOpen, setIsCreateFTOModalOpen] = useState(false);
-
   const [hourEntries, setHourEntries] = useState<HourEntry[]>([
     {
       id: "hour-1",
