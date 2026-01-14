@@ -72,6 +72,7 @@ export const DrawerTemplate = React.forwardRef<
       footer,
       width = 384,
       contentRef,
+      variant = "default",
     },
     ref,
   ) => {
@@ -81,6 +82,8 @@ export const DrawerTemplate = React.forwardRef<
     };
 
     if (!open) return null;
+
+    const isFloating = variant === "floating";
 
     return (
       <>
@@ -96,11 +99,15 @@ export const DrawerTemplate = React.forwardRef<
 
         {/* Drawer */}
         <div
-          className="fixed top-0 right-0 h-screen bg-white shadow-xl z-50 overflow-hidden flex flex-col"
+          className={cn(
+            "fixed bg-white shadow-xl z-50 overflow-hidden flex flex-col",
+            isFloating ? "top-3 right-3 bottom-3 rounded-2xl border" : "top-0 right-0 h-screen border-l"
+          )}
           style={{
             width: `${width}px`,
-            borderLeft: "1px solid var(--color-border-light)",
+            borderColor: "var(--color-border-light)",
             animation: open ? "slideInRight 0.3s ease-out" : "slideOutRight 0.3s ease-in",
+            height: isFloating ? "calc(100vh - 24px)" : "100vh",
           }}
         >
           {/* Header */}
