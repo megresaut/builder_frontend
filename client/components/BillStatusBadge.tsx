@@ -7,7 +7,7 @@ export const BillStatusBadge = ({
   const label = status === "Pushed" ? "Pushed" : "Push Failed";
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: dotColor, fontSize: "14px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#303030", fontSize: "14px" }}>
       <div
         style={{
           width: "8px",
