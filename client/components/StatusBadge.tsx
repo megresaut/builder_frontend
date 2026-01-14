@@ -66,7 +66,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, variant = "leg
       style={{
         display: "flex",
         alignItems: "center",
-        color: config.color,
+        color: "#303030",
         gap: "8px",
         fontSize: "14px",
         fontWeight: "400",
