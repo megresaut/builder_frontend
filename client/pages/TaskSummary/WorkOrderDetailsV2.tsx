@@ -230,6 +230,10 @@ export default function WorkOrderDetailsV2({
   const [lastUpdated, setLastUpdated] = useState<string>(() =>
     new Date().toLocaleString(),
   );
+  const [isEstimateTotalModalOpen, setIsEstimateTotalModalOpen] =
+    useState(false);
+  const [estimateTotal, setEstimateTotal] = useState<number>(0);
+  const [draftEstimateTotal, setDraftEstimateTotal] = useState<number>(0);
 
   const handleDismissNotification = (id: number) => {
     setNotifications(notifications.filter((n) => n.id !== id));
