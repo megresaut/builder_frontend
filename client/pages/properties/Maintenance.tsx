@@ -1463,6 +1463,79 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         />
       )}
 
+      {/* Column Filter Modals */}
+      <ColumnFilterModal
+        isOpen={activeTab === "tasks" && tasksColumnManagement.showColumnModal}
+        position={tasksColumnManagement.columnMenuPos}
+        columns={[
+          { key: "priority", label: "Priority", icon: tasksColumnConfig.priority.icon },
+          { key: "status", label: "Status", icon: tasksColumnConfig.status.icon },
+          { key: "title", label: "Task", icon: tasksColumnConfig.title.icon },
+          { key: "due", label: "Due", icon: tasksColumnConfig.due.icon },
+          { key: "updated", label: "Updated", icon: tasksColumnConfig.updated.icon },
+          { key: "age", label: "Age", icon: tasksColumnConfig.age.icon },
+          { key: "assignees", label: "Assignees", icon: tasksColumnConfig.assignees.icon },
+          { key: "collaborators", label: "Collaborators", icon: tasksColumnConfig.collaborators.icon },
+        ]}
+        visibleColumns={tasksColumnManagement.visibleColumns}
+        onToggleColumn={tasksColumnManagement.toggleColumnVisibility}
+        onClose={() => tasksColumnManagement.setShowColumnModal(false)}
+        buttonRef={tasksColumnManagement.columnButtonRef}
+      />
+
+      <ColumnFilterModal
+        isOpen={activeTab === "recurring" && recurringColumnManagement.showColumnModal}
+        position={recurringColumnManagement.columnMenuPos}
+        columns={[
+          { key: "priority", label: "Priority", icon: recurringTasksColumnConfig.priority.icon },
+          { key: "task", label: "Task", icon: recurringTasksColumnConfig.task.icon },
+          { key: "nextDate", label: "Next Date", icon: recurringTasksColumnConfig.nextDate.icon },
+          { key: "category", label: "Category", icon: recurringTasksColumnConfig.category.icon },
+          { key: "assignees", label: "Assignees", icon: recurringTasksColumnConfig.assignees.icon },
+          { key: "status", label: "Status", icon: recurringTasksColumnConfig.status.icon },
+        ]}
+        visibleColumns={recurringColumnManagement.visibleColumns}
+        onToggleColumn={recurringColumnManagement.toggleColumnVisibility}
+        onClose={() => recurringColumnManagement.setShowColumnModal(false)}
+        buttonRef={recurringColumnManagement.columnButtonRef}
+      />
+
+      <ColumnFilterModal
+        isOpen={activeTab === "workorders" && workordersColumnManagement.showColumnModal}
+        position={workordersColumnManagement.columnMenuPos}
+        columns={[
+          { key: "priority", label: "Priority", icon: workOrdersColumnConfig.priority.icon },
+          { key: "status", label: "Status", icon: workOrdersColumnConfig.status.icon },
+          { key: "task", label: "Task", icon: workOrdersColumnConfig.task.icon },
+          { key: "dueDate", label: "Due Date", icon: workOrdersColumnConfig.dueDate.icon },
+          { key: "assignees", label: "Assignees", icon: workOrdersColumnConfig.assignees.icon },
+          { key: "billStatus", label: "Bill Status", icon: workOrdersColumnConfig.billStatus.icon },
+          { key: "billTotal", label: "Bill Total", icon: workOrdersColumnConfig.billTotal.icon },
+        ]}
+        visibleColumns={workordersColumnManagement.visibleColumns}
+        onToggleColumn={workordersColumnManagement.toggleColumnVisibility}
+        onClose={() => workordersColumnManagement.setShowColumnModal(false)}
+        buttonRef={workordersColumnManagement.columnButtonRef}
+      />
+
+      <ColumnFilterModal
+        isOpen={activeTab === "fieldteam" && fieldteamColumnManagement.showColumnModal}
+        position={fieldteamColumnManagement.columnMenuPos}
+        columns={[
+          { key: "priority", label: "Priority", icon: fieldTeamColumnConfig.priority.icon },
+          { key: "description", label: "Description", icon: fieldTeamColumnConfig.description.icon },
+          { key: "dueDate", label: "Due Date", icon: fieldTeamColumnConfig.dueDate.icon },
+          { key: "fieldTeam", label: "Field Team", icon: fieldTeamColumnConfig.fieldTeam.icon },
+          { key: "status", label: "Status", icon: fieldTeamColumnConfig.status.icon },
+          { key: "timesheetStatus", label: "Timesheet Status", icon: fieldTeamColumnConfig.timesheetStatus.icon },
+          { key: "amount", label: "Amount", icon: fieldTeamColumnConfig.amount.icon },
+        ]}
+        visibleColumns={fieldteamColumnManagement.visibleColumns}
+        onToggleColumn={fieldteamColumnManagement.toggleColumnVisibility}
+        onClose={() => fieldteamColumnManagement.setShowColumnModal(false)}
+        buttonRef={fieldteamColumnManagement.columnButtonRef}
+      />
+
       {/* Modals */}
       <CreateTaskModal
         open={showCreateTaskModal}
