@@ -1381,18 +1381,6 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                     </span>
                   </div>
                 );
-              case "property":
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.property}
-                  </span>
-                );
-              case "unit":
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.unit || "—"}
-                  </span>
-                );
               case "description":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
