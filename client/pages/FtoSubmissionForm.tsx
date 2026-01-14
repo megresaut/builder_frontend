@@ -1089,11 +1089,6 @@ export default function FtoSubmissionForm() {
         title={pdfViewer.title}
         url={pdfViewer.url}
       />
-
-      <CreateFTOModal
-        open={isCreateFTOModalOpen}
-        onOpenChange={setIsCreateFTOModalOpen}
-      />
     </PageTemplate>
   );
 }
