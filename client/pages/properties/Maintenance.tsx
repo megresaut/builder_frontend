@@ -100,8 +100,8 @@ const mockPropertyTasks: Task[] = [
     due: "Oct 2, 2025",
     updated: "Oct 2, 2025",
     priority: "Normal",
-    assignees: [{ id: 1, name: "John Doe", initials: "JD" }],
-    collaborators: [{ id: 4, name: "Sarah Wilson", initials: "SW" }],
+    assignees: [{ id: 1, name: "John Doe", initials: "JD", email: "john.doe@example.com", phone: "(555) 123-4567", title: "Project Manager" }],
+    collaborators: [{ id: 4, name: "Sarah Wilson", initials: "SW", email: "sarah.wilson@example.com", phone: "(555) 234-5678", title: "Inspector" }],
   },
   {
     id: 2,
@@ -110,7 +110,7 @@ const mockPropertyTasks: Task[] = [
     due: "Sep 25, 2025",
     updated: "Sep 25, 2025",
     priority: "Low",
-    assignees: [{ id: 2, name: "Jane Smith", initials: "JS" }],
+    assignees: [{ id: 2, name: "Jane Smith", initials: "JS", email: "jane.smith@example.com", phone: "(555) 345-6789", title: "Maintenance Tech" }],
     collaborators: [],
   },
   {
@@ -120,8 +120,8 @@ const mockPropertyTasks: Task[] = [
     due: "Sep 12, 2025",
     updated: "Sep 12, 2025",
     priority: "High",
-    assignees: [{ id: 3, name: "Mike Johnson", initials: "MJ" }],
-    collaborators: [{ id: 5, name: "Tom Brown", initials: "TB" }, { id: 6, name: "Lisa Davis", initials: "LD" }],
+    assignees: [{ id: 3, name: "Mike Johnson", initials: "MJ", email: "mike.johnson@example.com", phone: "(555) 456-7890", title: "Senior Technician" }],
+    collaborators: [{ id: 5, name: "Tom Brown", initials: "TB", email: "tom.brown@example.com", phone: "(555) 567-8901", title: "Safety Officer" }, { id: 6, name: "Lisa Davis", initials: "LD", email: "lisa.davis@example.com", phone: "(555) 678-9012", title: "QA Inspector" }],
   },
 ];
 
