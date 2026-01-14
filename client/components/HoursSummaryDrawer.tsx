@@ -28,7 +28,7 @@ interface HoursSummaryDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   orders: FieldTeamOrder[];
-  selectedManager?: string;
+  selectedManagers?: string[];
   dateRangeStart?: Date | null;
   dateRangeEnd?: Date | null;
 }
