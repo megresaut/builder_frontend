@@ -101,13 +101,13 @@ export const DrawerTemplate = React.forwardRef<
         <div
           className={cn(
             "fixed bg-white shadow-xl z-50 overflow-hidden flex flex-col",
-            isFloating ? "top-3 right-3 bottom-3 rounded-2xl border" : "top-0 right-0 h-screen border-l"
+            isFloating ? "top-2 right-2 bottom-2 rounded-2xl border" : "top-0 right-0 h-screen border-l"
           )}
           style={{
             width: `${width}px`,
             borderColor: "var(--color-border-light)",
             animation: open ? "slideInRight 0.3s ease-out" : "slideOutRight 0.3s ease-in",
-            height: isFloating ? "calc(100vh - 24px)" : "100vh",
+            height: isFloating ? "calc(100vh - 16px)" : "100vh",
           }}
         >
           {/* Header */}
