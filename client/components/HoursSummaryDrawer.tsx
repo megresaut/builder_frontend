@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { DateField } from "@/components/forms";
-import { IdentitySelectField } from "@/components/forms/IdentitySelectField";
+import { IdentitySelectField, type IdentityOption } from "@/components/forms/IdentitySelectField";
 import { DrawerTemplate, DrawerSubheader, DrawerSection, DrawerButtons } from "@/components/ui/DrawerTemplate";
 
 interface FieldTeamOrder {
