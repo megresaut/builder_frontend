@@ -33,7 +33,7 @@ interface HoursSummaryDrawerProps {
   dateRangeEnd?: Date | null;
 }
 
-const FIELD_TEAM_MANAGERS = [
+const FIELD_TEAM_MANAGERS: IdentityOption[] = [
   { id: "1", label: "Christopher Harris", initials: "CH", avatarColor: "bg-blue-500" },
   { id: "2", label: "Cassandra Smith", initials: "CS", avatarColor: "bg-purple-500" },
   { id: "3", label: "David Chen", initials: "DC", avatarColor: "bg-green-500" },
