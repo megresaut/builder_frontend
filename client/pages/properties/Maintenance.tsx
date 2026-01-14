@@ -1159,6 +1159,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
               icon: workOrdersColumnConfig.dueDate.icon,
             },
             {
+              key: "updated",
+              label: "Updated",
+              icon: workOrdersColumnConfig.updated.icon,
+            },
+            {
+              key: "age",
+              label: "Age",
+              icon: workOrdersColumnConfig.age.icon,
+            },
+            {
               key: "assignees",
               label: "Assignees",
               icon: workOrdersColumnConfig.assignees.icon,
