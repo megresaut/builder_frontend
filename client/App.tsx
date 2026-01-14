@@ -39,6 +39,7 @@ const queryClient = new QueryClient();
 interface TabMetadata {
   label: string;
   sectionId?: string;
+  route?: string;
 }
 
 export default function App() {
