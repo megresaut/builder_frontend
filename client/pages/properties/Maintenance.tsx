@@ -245,6 +245,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     "updated",
     "age",
     "assignees",
+    "collaborators",
   ]);
   const recurringColumnManagement = useColumnManagement([
     "priority",
