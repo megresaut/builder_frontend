@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { ChevronDownIcon } from "@/components/icons";
 import { DateField, SelectField } from "@/components/forms";
 import { DrawerTemplate, DrawerSubheader, DrawerSection, DrawerButtons } from "@/components/ui/DrawerTemplate";
 
