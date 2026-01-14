@@ -202,6 +202,8 @@ export default function Header({
       return { label: "Bills", path, id: "bills" };
     } else if (path === "/field-team-orders") {
       return { label: "Field Team Orders", path, id: "field-team-orders" };
+    } else if (path.startsWith("/fto")) {
+      return { label: "Field Team Orders", path, id: "field-team-orders" };
     } else if (path === "/work-orders") {
       return { label: "Work Orders", path, id: "work-orders" };
     } else if (path === "/recurring-tasks") {
