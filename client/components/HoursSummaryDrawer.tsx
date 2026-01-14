@@ -56,8 +56,8 @@ export default function HoursSummaryDrawer({
   // Filter orders based on selected filters
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
-      // Filter by field manager
-      if (selectedManager) {
+      // Filter by field managers
+      if (selectedManagers.length > 0) {
         const matchesManager = order.fieldTeam.some((member) => {
           const mockUsers: Record<number, { id: number; name: string }> = {
             1: { id: 1, name: "Christopher Harris" },
@@ -67,7 +67,7 @@ export default function HoursSummaryDrawer({
             5: { id: 5, name: "James Wilson" },
           };
           const user = Object.values(mockUsers).find((u) => u.name === member.name);
-          return user && selectedManager === String(user.id);
+          return user && selectedManagers.includes(String(user.id));
         });
         if (!matchesManager) return false;
       }
@@ -81,7 +81,7 @@ export default function HoursSummaryDrawer({
 
       return true;
     });
-  }, [orders, selectedManager, dateRangeStart, dateRangeEnd]);
+  }, [orders, selectedManagers, dateRangeStart, dateRangeEnd]);
 
   // Calculate metrics
   const totalHours = filteredOrders.reduce((sum, order) => sum + (order.hours || 0), 0);
