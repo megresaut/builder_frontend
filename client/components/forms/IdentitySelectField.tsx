@@ -471,9 +471,7 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
                     width: "100%",
                     padding: "10px 12px",
                     textAlign: "left",
-                    backgroundColor: isSelected
-                      ? "rgba(36, 99, 235, 0.1)"
-                      : highlightedIndex === index
+                    backgroundColor: highlightedIndex === index
                         ? "rgba(36, 99, 235, 0.08)"
                         : "transparent",
                     color: "var(--color-text-primary)",
