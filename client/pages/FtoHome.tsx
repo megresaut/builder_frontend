@@ -387,7 +387,7 @@ export default function FtoHome() {
 
   // Sorting hook
   const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(displayData);
+    useSortingTable(displayData as any, "ftoHome");
 
   // Get column defaults based on active tab
   const getDefaultColumns = () => {
