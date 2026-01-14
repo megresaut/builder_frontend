@@ -504,7 +504,7 @@ export default function WorkOrderDetailsV2({
                     </h2>
                     <button
                       onClick={() => onUpdateWorkOrderModalOpenChange?.(true)}
-                      className="flex items-center gap-1 text-[#2463eb] hover:underline"
+                      className="flex items-center gap-1 text-sm text-[#2463eb] hover:underline"
                     >
                       <EditIcon width={16} height={16} />
                       <span className="font-medium">Edit</span>
@@ -573,7 +573,7 @@ export default function WorkOrderDetailsV2({
                 </div>
                 <button
                   onClick={handleOpenEstimateTotalModal}
-                  className="flex items-center gap-1 text-[#2463eb] hover:underline"
+                  className="flex items-center gap-1 text-sm text-[#2463eb] hover:underline"
                 >
                   <EditIcon width={16} height={16} />
                   <span className="font-medium">Edit</span>
