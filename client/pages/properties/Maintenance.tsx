@@ -193,7 +193,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
     dueDate: "Oct 2, 2025",
     priority: "high",
     fieldTeam: [
-      { initials: "CH", color: "bg-blue-500", name: "Christopher Harris" },
+      { initials: "CH", color: "bg-blue-500", name: "Christopher Harris", email: "chris.harris@example.com", phone: "(555) 901-2345", title: "Field Lead" },
     ],
     status: "dispatched",
     timesheetStatus: "awaiting-submission",
@@ -207,7 +207,7 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
     dueDate: "Sep 29, 2025",
     priority: "normal",
     fieldTeam: [
-      { initials: "CS", color: "bg-green-500", name: "Cassandra Smith" },
+      { initials: "CS", color: "bg-green-500", name: "Cassandra Smith", email: "cassandra.smith@example.com", phone: "(555) 012-3456", title: "HVAC Specialist" },
     ],
     status: "approved",
     timesheetStatus: "approved",
