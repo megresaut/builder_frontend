@@ -1,37 +1,66 @@
 import React from "react";
 
 type FTOStatusType = "pending-approval" | "dispatched" | "approved";
-type TimesheetStatusType = "awaiting-submission" | "submitted" | "rejected" | "approved";
+type TimesheetStatusType =
+  | "awaiting-submission"
+  | "submitted"
+  | "rejected"
+  | "approved";
 type ApprovalStatusType = "pending" | "approved" | "rejected";
-type LegacyStatusType = "Paid" | "Pending" | "Pending Approval" | "Partially Paid" | "Overdue" | "Draft" | "active" | "inactive" | "Cancelled";
+type LegacyStatusType =
+  | "Paid"
+  | "Pending"
+  | "Pending Approval"
+  | "Partially Paid"
+  | "Overdue"
+  | "Draft"
+  | "active"
+  | "inactive"
+  | "Cancelled";
 
-type StatusType = FTOStatusType | TimesheetStatusType | ApprovalStatusType | LegacyStatusType;
+type StatusType =
+  | FTOStatusType
+  | TimesheetStatusType
+  | ApprovalStatusType
+  | LegacyStatusType;
 
 interface StatusBadgeProps {
   status: StatusType;
   variant?: "fto-status" | "timesheet-status" | "approval-status" | "legacy";
 }
 
-const FTO_STATUS_CONFIG: Record<FTOStatusType, { label: string; color: string }> = {
+const FTO_STATUS_CONFIG: Record<
+  FTOStatusType,
+  { label: string; color: string }
+> = {
   "pending-approval": { label: "New", color: "#1E40AF" },
   dispatched: { label: "Dispatched", color: "#B45309" },
   approved: { label: "Completed", color: "#166534" },
 };
 
-const TIMESHEET_STATUS_CONFIG: Record<TimesheetStatusType, { label: string; color: string }> = {
+const TIMESHEET_STATUS_CONFIG: Record<
+  TimesheetStatusType,
+  { label: string; color: string }
+> = {
   "awaiting-submission": { label: "Awaiting Submission", color: "#3730A3" },
   submitted: { label: "Submitted", color: "#991B1B" },
   rejected: { label: "Rejected", color: "#DC2626" },
   approved: { label: "Approved", color: "#065F46" },
 };
 
-const APPROVAL_STATUS_CONFIG: Record<ApprovalStatusType, { label: string; color: string }> = {
+const APPROVAL_STATUS_CONFIG: Record<
+  ApprovalStatusType,
+  { label: string; color: string }
+> = {
   pending: { label: "Pending", color: "#D97706" },
   approved: { label: "Approved", color: "#059669" },
   rejected: { label: "Rejected", color: "#DC2626" },
 };
 
-const LEGACY_STATUS_CONFIG: Record<LegacyStatusType, { label: string; color: string }> = {
+const LEGACY_STATUS_CONFIG: Record<
+  LegacyStatusType,
+  { label: string; color: string }
+> = {
   Paid: { label: "Paid", color: "rgb(39, 176, 125)" },
   Pending: { label: "Pending", color: "rgb(214, 133, 10)" },
   "Pending Approval": { label: "Pending Approval", color: "rgb(214, 133, 10)" },
@@ -44,7 +73,10 @@ const LEGACY_STATUS_CONFIG: Record<LegacyStatusType, { label: string; color: str
   Cancelled: { label: "Cancelled", color: "rgb(100, 100, 100)" },
 };
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, variant = "legacy" }) => {
+export const StatusBadge: React.FC<StatusBadgeProps> = ({
+  status,
+  variant = "legacy",
+}) => {
   let config: { label: string; color: string } | undefined;
 
   if (variant === "fto-status") {

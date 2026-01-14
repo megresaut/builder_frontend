@@ -103,8 +103,26 @@ const mockPropertyTasks: Task[] = [
     due: "Oct 2, 2025",
     updated: "Oct 2, 2025",
     priority: "Normal",
-    assignees: [{ id: 1, name: "John Doe", initials: "JD", email: "john.doe@example.com", phone: "(555) 123-4567", title: "Project Manager" }],
-    collaborators: [{ id: 4, name: "Sarah Wilson", initials: "SW", email: "sarah.wilson@example.com", phone: "(555) 234-5678", title: "Inspector" }],
+    assignees: [
+      {
+        id: 1,
+        name: "John Doe",
+        initials: "JD",
+        email: "john.doe@example.com",
+        phone: "(555) 123-4567",
+        title: "Project Manager",
+      },
+    ],
+    collaborators: [
+      {
+        id: 4,
+        name: "Sarah Wilson",
+        initials: "SW",
+        email: "sarah.wilson@example.com",
+        phone: "(555) 234-5678",
+        title: "Inspector",
+      },
+    ],
   },
   {
     id: 2,
@@ -113,7 +131,16 @@ const mockPropertyTasks: Task[] = [
     due: "Sep 25, 2025",
     updated: "Sep 25, 2025",
     priority: "Low",
-    assignees: [{ id: 2, name: "Jane Smith", initials: "JS", email: "jane.smith@example.com", phone: "(555) 345-6789", title: "Maintenance Tech" }],
+    assignees: [
+      {
+        id: 2,
+        name: "Jane Smith",
+        initials: "JS",
+        email: "jane.smith@example.com",
+        phone: "(555) 345-6789",
+        title: "Maintenance Tech",
+      },
+    ],
     collaborators: [],
   },
   {
@@ -123,8 +150,34 @@ const mockPropertyTasks: Task[] = [
     due: "Sep 12, 2025",
     updated: "Sep 12, 2025",
     priority: "High",
-    assignees: [{ id: 3, name: "Mike Johnson", initials: "MJ", email: "mike.johnson@example.com", phone: "(555) 456-7890", title: "Senior Technician" }],
-    collaborators: [{ id: 5, name: "Tom Brown", initials: "TB", email: "tom.brown@example.com", phone: "(555) 567-8901", title: "Safety Officer" }, { id: 6, name: "Lisa Davis", initials: "LD", email: "lisa.davis@example.com", phone: "(555) 678-9012", title: "QA Inspector" }],
+    assignees: [
+      {
+        id: 3,
+        name: "Mike Johnson",
+        initials: "MJ",
+        email: "mike.johnson@example.com",
+        phone: "(555) 456-7890",
+        title: "Senior Technician",
+      },
+    ],
+    collaborators: [
+      {
+        id: 5,
+        name: "Tom Brown",
+        initials: "TB",
+        email: "tom.brown@example.com",
+        phone: "(555) 567-8901",
+        title: "Safety Officer",
+      },
+      {
+        id: 6,
+        name: "Lisa Davis",
+        initials: "LD",
+        email: "lisa.davis@example.com",
+        phone: "(555) 678-9012",
+        title: "QA Inspector",
+      },
+    ],
   },
 ];
 
@@ -170,7 +223,16 @@ const mockPropertyWorkOrders: WorkOrder[] = [
     status: "In progress",
     billStatus: "Paid",
     billTotal: "$420",
-    assignees: [{ id: 1, name: "Jerry Sanchez", initials: "JS", email: "jerry.sanchez@example.com", phone: "(555) 789-0123", title: "Lead Technician" }],
+    assignees: [
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        email: "jerry.sanchez@example.com",
+        phone: "(555) 789-0123",
+        title: "Lead Technician",
+      },
+    ],
   },
   {
     id: 2,
@@ -183,7 +245,16 @@ const mockPropertyWorkOrders: WorkOrder[] = [
     status: "In progress",
     billStatus: "Awaiting Invoice",
     billTotal: "No invoice",
-    assignees: [{ id: 2, name: "Jane Smith", initials: "JS", email: "jane.smith@example.com", phone: "(555) 890-1234", title: "Maintenance Tech" }],
+    assignees: [
+      {
+        id: 2,
+        name: "Jane Smith",
+        initials: "JS",
+        email: "jane.smith@example.com",
+        phone: "(555) 890-1234",
+        title: "Maintenance Tech",
+      },
+    ],
   },
 ];
 
@@ -196,7 +267,14 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
     dueDate: "Oct 2, 2025",
     priority: "high",
     fieldTeam: [
-      { initials: "CH", color: "bg-blue-500", name: "Christopher Harris", email: "chris.harris@example.com", phone: "(555) 901-2345", title: "Field Lead" },
+      {
+        initials: "CH",
+        color: "bg-blue-500",
+        name: "Christopher Harris",
+        email: "chris.harris@example.com",
+        phone: "(555) 901-2345",
+        title: "Field Lead",
+      },
     ],
     status: "dispatched",
     timesheetStatus: "awaiting-submission",
@@ -210,7 +288,14 @@ const mockPropertyFieldTeamOrders: FieldTeamOrder[] = [
     dueDate: "Sep 29, 2025",
     priority: "normal",
     fieldTeam: [
-      { initials: "CS", color: "bg-green-500", name: "Cassandra Smith", email: "cassandra.smith@example.com", phone: "(555) 012-3456", title: "HVAC Specialist" },
+      {
+        initials: "CS",
+        color: "bg-green-500",
+        name: "Cassandra Smith",
+        email: "cassandra.smith@example.com",
+        phone: "(555) 012-3456",
+        title: "HVAC Specialist",
+      },
     ],
     status: "approved",
     timesheetStatus: "approved",
@@ -242,9 +327,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [workOrdersList, setWorkOrdersList] = useState<WorkOrder[]>(
     mockPropertyWorkOrders,
   );
-  const [fieldTeamOrdersList, setFieldTeamOrdersList] = useState<FieldTeamOrder[]>(
-    mockPropertyFieldTeamOrders,
-  );
+  const [fieldTeamOrdersList, setFieldTeamOrdersList] = useState<
+    FieldTeamOrder[]
+  >(mockPropertyFieldTeamOrders);
 
   // Column management hooks for each table
   const tasksColumnManagement = useColumnManagement([
@@ -327,8 +412,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [recurringItemsPerPage, setRecurringItemsPerPage] =
     usePageState<number>("recurringItemsPerPage", 10);
   const [recurringShowDropdown, setRecurringShowDropdown] = useState(false);
-  const [recurringOpenMenuId, setRecurringOpenMenuId] =
-    usePageState<number | null>("recurringOpenMenuId", null);
+  const [recurringOpenMenuId, setRecurringOpenMenuId] = usePageState<
+    number | null
+  >("recurringOpenMenuId", null);
 
   const [workordersPage, setWorkordersPage] = usePageState<number>(
     "workordersPage",
@@ -337,8 +423,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [workordersItemsPerPage, setWorkordersItemsPerPage] =
     usePageState<number>("workordersItemsPerPage", 10);
   const [workordersShowDropdown, setWorkordersShowDropdown] = useState(false);
-  const [workordersOpenMenuId, setWorkordersOpenMenuId] =
-    usePageState<number | null>("workordersOpenMenuId", null);
+  const [workordersOpenMenuId, setWorkordersOpenMenuId] = usePageState<
+    number | null
+  >("workordersOpenMenuId", null);
 
   const [fieldteamPage, setFieldteamPage] = usePageState<number>(
     "fieldteamPage",
@@ -347,8 +434,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [fieldteamItemsPerPage, setFieldteamItemsPerPage] =
     usePageState<number>("fieldteamItemsPerPage", 10);
   const [fieldteamShowDropdown, setFieldteamShowDropdown] = useState(false);
-  const [fieldteamOpenMenuId, setFieldteamOpenMenuId] =
-    usePageState<number | null>("fieldteamOpenMenuId", null);
+  const [fieldteamOpenMenuId, setFieldteamOpenMenuId] = usePageState<
+    number | null
+  >("fieldteamOpenMenuId", null);
 
   // Modal states
   const [showCreateTaskModal, setShowCreateTaskModal] = usePageState<boolean>(
@@ -417,7 +505,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   }, [tasksPage, tasksTotalPages, setTasksPage]);
 
   useEffect(() => {
-    if (recurringPage > recurringTotalPages) setRecurringPage(recurringTotalPages);
+    if (recurringPage > recurringTotalPages)
+      setRecurringPage(recurringTotalPages);
     if (recurringPage < 1) setRecurringPage(1);
   }, [recurringPage, recurringTotalPages, setRecurringPage]);
 
@@ -428,7 +517,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   }, [workordersPage, workordersTotalPages, setWorkordersPage]);
 
   useEffect(() => {
-    if (fieldteamPage > fieldteamTotalPages) setFieldteamPage(fieldteamTotalPages);
+    if (fieldteamPage > fieldteamTotalPages)
+      setFieldteamPage(fieldteamTotalPages);
     if (fieldteamPage < 1) setFieldteamPage(1);
   }, [fieldteamPage, fieldteamTotalPages, setFieldteamPage]);
 
@@ -1054,9 +1144,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             </button>
           }
           showColumnModal={recurringColumnManagement.showColumnModal}
-          onShowColumnModalChange={
-            recurringColumnManagement.setShowColumnModal
-          }
+          onShowColumnModalChange={recurringColumnManagement.setShowColumnModal}
         />
       )}
 
@@ -1259,7 +1347,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             </button>
           }
           showColumnModal={workordersColumnManagement.showColumnModal}
-          onShowColumnModalChange={workordersColumnManagement.setShowColumnModal}
+          onShowColumnModalChange={
+            workordersColumnManagement.setShowColumnModal
+          }
         />
       )}
 
@@ -1371,7 +1461,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   />
                 );
               case "status":
-                return <StatusBadge status={order.status} variant="fto-status" />;
+                return (
+                  <StatusBadge status={order.status} variant="fto-status" />
+                );
               case "timesheetStatus":
                 return (
                   <StatusBadge
@@ -1428,14 +1520,34 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           isOpen={tasksColumnManagement.showColumnModal}
           position={tasksColumnManagement.columnMenuPos}
           columns={[
-            { key: "priority", label: "Priority", icon: tasksColumnConfig.priority.icon },
-            { key: "status", label: "Status", icon: tasksColumnConfig.status.icon },
+            {
+              key: "priority",
+              label: "Priority",
+              icon: tasksColumnConfig.priority.icon,
+            },
+            {
+              key: "status",
+              label: "Status",
+              icon: tasksColumnConfig.status.icon,
+            },
             { key: "title", label: "Task", icon: tasksColumnConfig.title.icon },
             { key: "due", label: "Due", icon: tasksColumnConfig.due.icon },
-            { key: "updated", label: "Updated", icon: tasksColumnConfig.updated.icon },
+            {
+              key: "updated",
+              label: "Updated",
+              icon: tasksColumnConfig.updated.icon,
+            },
             { key: "age", label: "Age", icon: tasksColumnConfig.age.icon },
-            { key: "assignees", label: "Assignees", icon: tasksColumnConfig.assignees.icon },
-            { key: "collaborators", label: "Collaborators", icon: tasksColumnConfig.collaborators.icon },
+            {
+              key: "assignees",
+              label: "Assignees",
+              icon: tasksColumnConfig.assignees.icon,
+            },
+            {
+              key: "collaborators",
+              label: "Collaborators",
+              icon: tasksColumnConfig.collaborators.icon,
+            },
           ]}
           visibleColumns={tasksColumnManagement.visibleColumns}
           onToggleColumn={tasksColumnManagement.toggleColumnVisibility}
@@ -1449,12 +1561,36 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           isOpen={recurringColumnManagement.showColumnModal}
           position={recurringColumnManagement.columnMenuPos}
           columns={[
-            { key: "priority", label: "Priority", icon: recurringTasksColumnConfig.priority.icon },
-            { key: "task", label: "Task", icon: recurringTasksColumnConfig.task.icon },
-            { key: "nextDate", label: "Next Date", icon: recurringTasksColumnConfig.nextDate.icon },
-            { key: "category", label: "Category", icon: recurringTasksColumnConfig.category.icon },
-            { key: "assignees", label: "Assignees", icon: recurringTasksColumnConfig.assignees.icon },
-            { key: "status", label: "Status", icon: recurringTasksColumnConfig.status.icon },
+            {
+              key: "priority",
+              label: "Priority",
+              icon: recurringTasksColumnConfig.priority.icon,
+            },
+            {
+              key: "task",
+              label: "Task",
+              icon: recurringTasksColumnConfig.task.icon,
+            },
+            {
+              key: "nextDate",
+              label: "Next Date",
+              icon: recurringTasksColumnConfig.nextDate.icon,
+            },
+            {
+              key: "category",
+              label: "Category",
+              icon: recurringTasksColumnConfig.category.icon,
+            },
+            {
+              key: "assignees",
+              label: "Assignees",
+              icon: recurringTasksColumnConfig.assignees.icon,
+            },
+            {
+              key: "status",
+              label: "Status",
+              icon: recurringTasksColumnConfig.status.icon,
+            },
           ]}
           visibleColumns={recurringColumnManagement.visibleColumns}
           onToggleColumn={recurringColumnManagement.toggleColumnVisibility}
@@ -1468,15 +1604,47 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           isOpen={workordersColumnManagement.showColumnModal}
           position={workordersColumnManagement.columnMenuPos}
           columns={[
-            { key: "priority", label: "Priority", icon: workOrdersColumnConfig.priority.icon },
-            { key: "status", label: "Status", icon: workOrdersColumnConfig.status.icon },
-            { key: "task", label: "Task", icon: workOrdersColumnConfig.task.icon },
-            { key: "dueDate", label: "Due Date", icon: workOrdersColumnConfig.dueDate.icon },
-            { key: "updated", label: "Updated", icon: workOrdersColumnConfig.updated.icon },
+            {
+              key: "priority",
+              label: "Priority",
+              icon: workOrdersColumnConfig.priority.icon,
+            },
+            {
+              key: "status",
+              label: "Status",
+              icon: workOrdersColumnConfig.status.icon,
+            },
+            {
+              key: "task",
+              label: "Task",
+              icon: workOrdersColumnConfig.task.icon,
+            },
+            {
+              key: "dueDate",
+              label: "Due Date",
+              icon: workOrdersColumnConfig.dueDate.icon,
+            },
+            {
+              key: "updated",
+              label: "Updated",
+              icon: workOrdersColumnConfig.updated.icon,
+            },
             { key: "age", label: "Age", icon: workOrdersColumnConfig.age.icon },
-            { key: "assignees", label: "Assignees", icon: workOrdersColumnConfig.assignees.icon },
-            { key: "billStatus", label: "Bill Status", icon: workOrdersColumnConfig.billStatus.icon },
-            { key: "billTotal", label: "Bill Total", icon: workOrdersColumnConfig.billTotal.icon },
+            {
+              key: "assignees",
+              label: "Assignees",
+              icon: workOrdersColumnConfig.assignees.icon,
+            },
+            {
+              key: "billStatus",
+              label: "Bill Status",
+              icon: workOrdersColumnConfig.billStatus.icon,
+            },
+            {
+              key: "billTotal",
+              label: "Bill Total",
+              icon: workOrdersColumnConfig.billTotal.icon,
+            },
           ]}
           visibleColumns={workordersColumnManagement.visibleColumns}
           onToggleColumn={workordersColumnManagement.toggleColumnVisibility}
@@ -1490,13 +1658,41 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           isOpen={fieldteamColumnManagement.showColumnModal}
           position={fieldteamColumnManagement.columnMenuPos}
           columns={[
-            { key: "priority", label: "Priority", icon: fieldTeamColumnConfig.priority.icon },
-            { key: "description", label: "Description", icon: fieldTeamColumnConfig.description.icon },
-            { key: "dueDate", label: "Due Date", icon: fieldTeamColumnConfig.dueDate.icon },
-            { key: "fieldTeam", label: "Field Team", icon: fieldTeamColumnConfig.fieldTeam.icon },
-            { key: "status", label: "Status", icon: fieldTeamColumnConfig.status.icon },
-            { key: "timesheetStatus", label: "Timesheet Status", icon: fieldTeamColumnConfig.timesheetStatus.icon },
-            { key: "amount", label: "Amount", icon: fieldTeamColumnConfig.amount.icon },
+            {
+              key: "priority",
+              label: "Priority",
+              icon: fieldTeamColumnConfig.priority.icon,
+            },
+            {
+              key: "description",
+              label: "Description",
+              icon: fieldTeamColumnConfig.description.icon,
+            },
+            {
+              key: "dueDate",
+              label: "Due Date",
+              icon: fieldTeamColumnConfig.dueDate.icon,
+            },
+            {
+              key: "fieldTeam",
+              label: "Field Team",
+              icon: fieldTeamColumnConfig.fieldTeam.icon,
+            },
+            {
+              key: "status",
+              label: "Status",
+              icon: fieldTeamColumnConfig.status.icon,
+            },
+            {
+              key: "timesheetStatus",
+              label: "Timesheet Status",
+              icon: fieldTeamColumnConfig.timesheetStatus.icon,
+            },
+            {
+              key: "amount",
+              label: "Amount",
+              icon: fieldTeamColumnConfig.amount.icon,
+            },
           ]}
           visibleColumns={fieldteamColumnManagement.visibleColumns}
           onToggleColumn={fieldteamColumnManagement.toggleColumnVisibility}

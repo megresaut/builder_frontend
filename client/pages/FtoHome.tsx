@@ -386,8 +386,10 @@ export default function FtoHome() {
       : submissions;
 
   // Sorting hook
-  const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(displayData as any, "ftoHome");
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    displayData as any,
+    "ftoHome",
+  );
 
   // Get column defaults based on active tab
   const getDefaultColumns = () => {
@@ -689,12 +691,7 @@ export default function FtoHome() {
           rightContent={
             activeTab === "open" && (
               <BlueButton
-                icon={
-                  <ApproveIcon
-                    width={16}
-                    height={16}
-                  />
-                }
+                icon={<ApproveIcon width={16} height={16} />}
                 onClick={() => navigate("/fto/submission")}
               >
                 Submit
@@ -774,8 +771,8 @@ export default function FtoHome() {
                   <StatusBadge
                     status={
                       activeTab === "open"
-                        ? ((row as FieldTeamOrder).approvalStatus ||
-                            "pending") as ApprovalStatusType
+                        ? (((row as FieldTeamOrder).approvalStatus ||
+                            "pending") as ApprovalStatusType)
                         : (row as SubmissionRecord).status
                     }
                     variant="approval-status"
@@ -864,15 +861,9 @@ export default function FtoHome() {
               },
               icon: () =>
                 activeTab === "open" ? (
-                  <ApproveIcon
-                    width={18}
-                    height={18}
-                  />
+                  <ApproveIcon width={18} height={18} />
                 ) : (
-                  <EyeIcon
-                    width={18}
-                    height={18}
-                  />
+                  <EyeIcon width={18} height={18} />
                 ),
               onClick: (row) => {
                 if (activeTab === "open") {
@@ -906,12 +897,7 @@ export default function FtoHome() {
             },
             {
               label: () => "View Task",
-              icon: () => (
-                <EyeIcon
-                  width={18}
-                  height={18}
-                />
-              ),
+              icon: () => <EyeIcon width={18} height={18} />,
               onClick: (row) => {
                 openViewTaskModal(row as FieldTeamOrder | SubmissionRecord);
               },

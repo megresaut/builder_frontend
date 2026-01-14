@@ -1,7 +1,15 @@
 import { useState, useMemo } from "react";
 import { DateField } from "@/components/forms";
-import { IdentitySelectField, type IdentityOption } from "@/components/forms/IdentitySelectField";
-import { DrawerTemplate, DrawerSubheader, DrawerSection, DrawerButtons } from "@/components/ui/DrawerTemplate";
+import {
+  IdentitySelectField,
+  type IdentityOption,
+} from "@/components/forms/IdentitySelectField";
+import {
+  DrawerTemplate,
+  DrawerSubheader,
+  DrawerSection,
+  DrawerButtons,
+} from "@/components/ui/DrawerTemplate";
 
 interface FieldTeamOrder {
   id: number;
@@ -34,11 +42,36 @@ interface HoursSummaryDrawerProps {
 }
 
 const FIELD_TEAM_MANAGERS: IdentityOption[] = [
-  { id: "1", label: "Christopher Harris", initials: "CH", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
-  { id: "2", label: "Cassandra Smith", initials: "CS", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
-  { id: "3", label: "David Chen", initials: "DC", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
-  { id: "4", label: "Emma Rodriguez", initials: "ER", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
-  { id: "5", label: "James Wilson", initials: "JW", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
+  {
+    id: "1",
+    label: "Christopher Harris",
+    initials: "CH",
+    avatarColor: "bg-white border border-blue-500 !text-blue-500",
+  },
+  {
+    id: "2",
+    label: "Cassandra Smith",
+    initials: "CS",
+    avatarColor: "bg-white border border-blue-500 !text-blue-500",
+  },
+  {
+    id: "3",
+    label: "David Chen",
+    initials: "DC",
+    avatarColor: "bg-white border border-blue-500 !text-blue-500",
+  },
+  {
+    id: "4",
+    label: "Emma Rodriguez",
+    initials: "ER",
+    avatarColor: "bg-white border border-blue-500 !text-blue-500",
+  },
+  {
+    id: "5",
+    label: "James Wilson",
+    initials: "JW",
+    avatarColor: "bg-white border border-blue-500 !text-blue-500",
+  },
 ];
 
 export default function HoursSummaryDrawer({
@@ -49,9 +82,15 @@ export default function HoursSummaryDrawer({
   dateRangeStart: initialDateRangeStart,
   dateRangeEnd: initialDateRangeEnd,
 }: HoursSummaryDrawerProps) {
-  const [selectedManagers, setSelectedManagers] = useState<string[]>(initialSelectedManagers || []);
-  const [dateRangeStart, setDateRangeStart] = useState<Date | null>(initialDateRangeStart || null);
-  const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(initialDateRangeEnd || null);
+  const [selectedManagers, setSelectedManagers] = useState<string[]>(
+    initialSelectedManagers || [],
+  );
+  const [dateRangeStart, setDateRangeStart] = useState<Date | null>(
+    initialDateRangeStart || null,
+  );
+  const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(
+    initialDateRangeEnd || null,
+  );
 
   // Filter orders based on selected filters
   const filteredOrders = useMemo(() => {
@@ -66,7 +105,9 @@ export default function HoursSummaryDrawer({
             4: { id: 4, name: "Emma Rodriguez" },
             5: { id: 5, name: "James Wilson" },
           };
-          const user = Object.values(mockUsers).find((u) => u.name === member.name);
+          const user = Object.values(mockUsers).find(
+            (u) => u.name === member.name,
+          );
           return user && selectedManagers.includes(String(user.id));
         });
         if (!matchesManager) return false;
@@ -84,7 +125,10 @@ export default function HoursSummaryDrawer({
   }, [orders, selectedManagers, dateRangeStart, dateRangeEnd]);
 
   // Calculate metrics
-  const totalHours = filteredOrders.reduce((sum, order) => sum + (order.hours || 0), 0);
+  const totalHours = filteredOrders.reduce(
+    (sum, order) => sum + (order.hours || 0),
+    0,
+  );
   const approvedHours = filteredOrders
     .filter((o) => o.timesheetStatus === "approved")
     .reduce((sum, order) => sum + (order.hours || 0), 0);
@@ -115,7 +159,8 @@ export default function HoursSummaryDrawer({
     hours: order.hours || 0,
   }));
 
-  const hasRequiredFilters = selectedManagers.length > 0 || (!!dateRangeStart && !!dateRangeEnd);
+  const hasRequiredFilters =
+    selectedManagers.length > 0 || (!!dateRangeStart && !!dateRangeEnd);
 
   const handleReset = () => {
     setSelectedManagers([]);
@@ -133,12 +178,7 @@ export default function HoursSummaryDrawer({
       title="Hours Summary"
       width={384}
       variant="floating"
-      footer={
-        <DrawerButtons
-          onCancel={onClose}
-          cancelLabel="Close"
-        />
-      }
+      footer={<DrawerButtons onCancel={onClose} cancelLabel="Close" />}
     >
       {/* Scope Controls Section */}
       <div>
@@ -153,13 +193,18 @@ export default function HoursSummaryDrawer({
             <IdentitySelectField
               label="Field Managers"
               value={selectedManagers}
-              onChange={(value) => setSelectedManagers(Array.isArray(value) ? value : [])}
+              onChange={(value) =>
+                setSelectedManagers(Array.isArray(value) ? value : [])
+              }
               placeholder="All managers"
               options={FIELD_TEAM_MANAGERS}
               multiple={true}
             />
             <div>
-              <label className="text-sm font-medium mb-2 block" style={{ color: "var(--color-text-primary)" }}>
+              <label
+                className="text-sm font-medium mb-2 block"
+                style={{ color: "var(--color-text-primary)" }}
+              >
                 Due Date Range
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -193,13 +238,21 @@ export default function HoursSummaryDrawer({
       {/* Summary Metrics Section */}
       {!hasRequiredFilters ? (
         <DrawerSection>
-          <div className="py-8 text-center" style={{ color: "var(--color-text-secondary)" }}>
-            <p className="text-sm">Select a Field Manager or Date Range to view hours summary</p>
+          <div
+            className="py-8 text-center"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            <p className="text-sm">
+              Select a Field Manager or Date Range to view hours summary
+            </p>
           </div>
         </DrawerSection>
       ) : filteredOrders.length === 0 ? (
         <DrawerSection>
-          <div className="py-8 text-center" style={{ color: "var(--color-text-secondary)" }}>
+          <div
+            className="py-8 text-center"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
             <p className="text-sm">No orders found for the selected criteria</p>
           </div>
         </DrawerSection>
@@ -213,10 +266,16 @@ export default function HoursSummaryDrawer({
                 className="flex items-center justify-between py-4"
                 style={{ borderBottom: "1px solid var(--color-border-light)" }}
               >
-                <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
                   Total Hours
                 </span>
-                <span className="text-base font-medium" style={{ color: "var(--color-text-primary)" }}>
+                <span
+                  className="text-base font-medium"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
                   {totalHours.toFixed(1)}
                 </span>
               </div>
@@ -226,10 +285,16 @@ export default function HoursSummaryDrawer({
                 className="flex items-center justify-between py-4"
                 style={{ borderBottom: "1px solid var(--color-border-light)" }}
               >
-                <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
                   Approved Hours
                 </span>
-                <span className="text-base font-medium" style={{ color: "#059669" }}>
+                <span
+                  className="text-base font-medium"
+                  style={{ color: "#059669" }}
+                >
                   {approvedHours.toFixed(1)}
                 </span>
               </div>
@@ -239,26 +304,37 @@ export default function HoursSummaryDrawer({
                 className="flex items-center justify-between py-4"
                 style={{ borderBottom: "1px solid var(--color-border-light)" }}
               >
-                <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
                   Submitted Hours
                 </span>
-                <span className="text-base font-medium" style={{ color: "#2463eb" }}>
+                <span
+                  className="text-base font-medium"
+                  style={{ color: "#2463eb" }}
+                >
                   {submittedHours.toFixed(1)}
                 </span>
               </div>
 
               {/* Pending Hours */}
               <div className="flex items-center justify-between py-4">
-                <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
                   Pending Hours
                 </span>
-                <span className="text-base font-medium" style={{ color: "#d97706" }}>
+                <span
+                  className="text-base font-medium"
+                  style={{ color: "#d97706" }}
+                >
                   {pendingHours.toFixed(1)}
                 </span>
               </div>
             </div>
           </DrawerSection>
-
         </>
       )}
     </DrawerTemplate>

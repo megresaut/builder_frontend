@@ -21,7 +21,11 @@ import { AddNoteModal, AddFileModal } from "@/components/task";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
-import { ModalTemplate, ModalField, ModalButtons } from "@/components/ui/ModalTemplate";
+import {
+  ModalTemplate,
+  ModalField,
+  ModalButtons,
+} from "@/components/ui/ModalTemplate";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import type { Note, File } from "@/components/templates";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
@@ -847,7 +851,7 @@ export default function WorkOrderDetailsV2({
             value={draftEstimateTotal}
             onChange={(value) =>
               setDraftEstimateTotal(
-                typeof value === "string" ? parseFloat(value) || 0 : value
+                typeof value === "string" ? parseFloat(value) || 0 : value,
               )
             }
             showCurrencySymbol={true}

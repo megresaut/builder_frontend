@@ -590,7 +590,9 @@ export default function FtoSubmissionForm() {
                           placeholder="Select Task"
                           customInputPlaceholder="Enter task name"
                           customButtonLabel="+ Create New Task"
-                          disabled={!entry.propertyId || !entry.unitId || isApproved}
+                          disabled={
+                            !entry.propertyId || !entry.unitId || isApproved
+                          }
                         />
 
                         <NumberField
@@ -882,7 +884,9 @@ export default function FtoSubmissionForm() {
                           placeholder="Select Task"
                           customInputPlaceholder="Enter task name"
                           customButtonLabel="+ Create New Task"
-                          disabled={!entry.propertyId || !entry.unitId || isApproved}
+                          disabled={
+                            !entry.propertyId || !entry.unitId || isApproved
+                          }
                         />
 
                         <CurrencyField

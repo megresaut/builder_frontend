@@ -14,7 +14,11 @@ import { PROPERTIES } from "@/data/fto/properties";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import {
   EditIcon,
   DeleteIcon,
@@ -75,12 +79,45 @@ interface APIFTOResponse {
 }
 
 // Mock user database - simulates GET /users/{id}
-const mockUsers: Record<number, { id: number; name: string; email?: string; phone?: string; title?: string }> = {
-  1: { id: 1, name: "Christopher Harris", email: "chris.harris@example.com", phone: "(555) 901-2345", title: "Field Lead" },
-  2: { id: 2, name: "Cassandra Smith", email: "cassandra.smith@example.com", phone: "(555) 012-3456", title: "HVAC Specialist" },
-  3: { id: 3, name: "David Chen", email: "david.chen@example.com", phone: "(555) 123-4567", title: "Electrician" },
-  4: { id: 4, name: "Emma Rodriguez", email: "emma.rodriguez@example.com", phone: "(555) 234-5678", title: "Plumber" },
-  5: { id: 5, name: "James Wilson", email: "james.wilson@example.com", phone: "(555) 345-6789", title: "General Contractor" },
+const mockUsers: Record<
+  number,
+  { id: number; name: string; email?: string; phone?: string; title?: string }
+> = {
+  1: {
+    id: 1,
+    name: "Christopher Harris",
+    email: "chris.harris@example.com",
+    phone: "(555) 901-2345",
+    title: "Field Lead",
+  },
+  2: {
+    id: 2,
+    name: "Cassandra Smith",
+    email: "cassandra.smith@example.com",
+    phone: "(555) 012-3456",
+    title: "HVAC Specialist",
+  },
+  3: {
+    id: 3,
+    name: "David Chen",
+    email: "david.chen@example.com",
+    phone: "(555) 123-4567",
+    title: "Electrician",
+  },
+  4: {
+    id: 4,
+    name: "Emma Rodriguez",
+    email: "emma.rodriguez@example.com",
+    phone: "(555) 234-5678",
+    title: "Plumber",
+  },
+  5: {
+    id: 5,
+    name: "James Wilson",
+    email: "james.wilson@example.com",
+    phone: "(555) 345-6789",
+    title: "General Contractor",
+  },
 };
 
 // Helper to generate initials from name
@@ -95,8 +132,15 @@ const getInitials = (name: string): string => {
 
 // Helper to resolve field team members (replaces real GET /users/{id} call)
 const resolveFieldTeamMembers = (
-  memberIds: number[]
-): Array<{ initials: string; color: string; name: string; email?: string; phone?: string; title?: string }> => {
+  memberIds: number[],
+): Array<{
+  initials: string;
+  color: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  title?: string;
+}> => {
   return memberIds.map((id) => {
     const user = mockUsers[id] || { id, name: "Unknown User" };
     return {
@@ -112,7 +156,7 @@ const resolveFieldTeamMembers = (
 
 // Map form_submission_status to timesheetStatus
 const mapFormSubmissionToTimesheetStatus = (
-  formStatus: "none" | "partial" | "complete"
+  formStatus: "none" | "partial" | "complete",
 ): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
   switch (formStatus) {
     case "none":
@@ -354,7 +398,7 @@ const mockFetchFTOs = async (params: {
 };
 
 const transformAPIToFieldTeamOrder = (
-  apiData: APIFTOResponse[]
+  apiData: APIFTOResponse[],
 ): FieldTeamOrder[] => {
   return apiData.map((fto) => {
     const dateObj = new Date(fto.due_date);
@@ -365,7 +409,7 @@ const transformAPIToFieldTeamOrder = (
     });
 
     const timesheetStatus = mapFormSubmissionToTimesheetStatus(
-      fto.form_submission_status
+      fto.form_submission_status,
     );
 
     return {
@@ -374,9 +418,12 @@ const transformAPIToFieldTeamOrder = (
       property: fto.property_name,
       description: fto.description,
       dueDate,
-      priority: (fto.priority.toLowerCase() as "low" | "normal" | "high") || "normal",
+      priority:
+        (fto.priority.toLowerCase() as "low" | "normal" | "high") || "normal",
       fieldTeam: resolveFieldTeamMembers(fto.field_team_member_ids),
-      status: (fto.status as "dispatched" | "approved" | "pending-approval") || "pending-approval",
+      status:
+        (fto.status as "dispatched" | "approved" | "pending-approval") ||
+        "pending-approval",
       timesheetStatus,
       amount: fto.total_amount,
       hours: fto.hours_decimal,
@@ -384,7 +431,6 @@ const transformAPIToFieldTeamOrder = (
     };
   });
 };
-
 
 export default function FieldTeamOrders() {
   const navigate = useNavigate();
@@ -453,17 +499,23 @@ export default function FieldTeamOrders() {
       order.status.toLowerCase().includes(searchLower) ||
       order.priority.toLowerCase().includes(searchLower) ||
       order.fieldTeam.some((member) =>
-        member.name.toLowerCase().includes(searchLower)
+        member.name.toLowerCase().includes(searchLower),
       );
 
     // Date range filter
     let matchesDateRange = true;
     if (appliedFilters.dateRangeStart || appliedFilters.dateRangeEnd) {
       const orderDate = new Date(order.dueDate);
-      if (appliedFilters.dateRangeStart && orderDate < appliedFilters.dateRangeStart) {
+      if (
+        appliedFilters.dateRangeStart &&
+        orderDate < appliedFilters.dateRangeStart
+      ) {
         matchesDateRange = false;
       }
-      if (appliedFilters.dateRangeEnd && orderDate > appliedFilters.dateRangeEnd) {
+      if (
+        appliedFilters.dateRangeEnd &&
+        orderDate > appliedFilters.dateRangeEnd
+      ) {
         matchesDateRange = false;
       }
     }
@@ -480,7 +532,9 @@ export default function FieldTeamOrders() {
     const matchesFieldManager =
       !appliedFilters.fieldManager ||
       order.fieldTeam.some((member) => {
-        const user = Object.values(mockUsers).find((u) => u.name === member.name);
+        const user = Object.values(mockUsers).find(
+          (u) => u.name === member.name,
+        );
         return user && appliedFilters.fieldManager === String(user.id);
       });
 
@@ -495,12 +549,15 @@ export default function FieldTeamOrders() {
     // Unit filter
     const matchesUnit =
       !appliedFilters.unit ||
-      (order.unit?.toLowerCase().includes(appliedFilters.unit.toLowerCase()) ?? false);
+      (order.unit?.toLowerCase().includes(appliedFilters.unit.toLowerCase()) ??
+        false);
 
     // FTO Name filter
     const matchesFTOName =
       !appliedFilters.ftoName ||
-      order.description.toLowerCase().includes(appliedFilters.ftoName.toLowerCase());
+      order.description
+        .toLowerCase()
+        .includes(appliedFilters.ftoName.toLowerCase());
 
     // FTO Status filter
     const matchesFTOStatus =
@@ -514,8 +571,10 @@ export default function FieldTeamOrders() {
 
     // Amount range filter
     const matchesAmountRange =
-      (appliedFilters.minAmount === null || order.amount >= appliedFilters.minAmount) &&
-      (appliedFilters.maxAmount === null || order.amount <= appliedFilters.maxAmount);
+      (appliedFilters.minAmount === null ||
+        order.amount >= appliedFilters.minAmount) &&
+      (appliedFilters.maxAmount === null ||
+        order.amount <= appliedFilters.maxAmount);
 
     return (
       matchesSearch &&
@@ -614,19 +673,16 @@ export default function FieldTeamOrders() {
     },
   ];
 
-  const handleDeleteOrder = useCallback(
-    (order: FieldTeamOrder) => {
-      setOrders((prev) => prev.filter((o) => o.id !== order.id));
-    },
-    []
-  );
+  const handleDeleteOrder = useCallback((order: FieldTeamOrder) => {
+    setOrders((prev) => prev.filter((o) => o.id !== order.id));
+  }, []);
 
   const handleEditOrder = useCallback(
     (order: FieldTeamOrder) => {
       setEditingOrder(order);
       setShowFTOModal(true);
     },
-    [setShowFTOModal]
+    [setShowFTOModal],
   );
 
   const handleApproveOrder = useCallback(
@@ -643,7 +699,7 @@ export default function FieldTeamOrders() {
         },
       });
     },
-    [navigate]
+    [navigate],
   );
 
   return (
@@ -752,10 +808,17 @@ export default function FieldTeamOrders() {
                   );
                 }
                 if (columnKey === "status") {
-                  return <StatusBadge status={order.status} variant="fto-status" />;
+                  return (
+                    <StatusBadge status={order.status} variant="fto-status" />
+                  );
                 }
                 if (columnKey === "timesheetStatus") {
-                  return <StatusBadge status={order.timesheetStatus} variant="timesheet-status" />;
+                  return (
+                    <StatusBadge
+                      status={order.timesheetStatus}
+                      variant="timesheet-status"
+                    />
+                  );
                 }
                 if (columnKey === "amount") {
                   return (
@@ -861,7 +924,7 @@ export default function FieldTeamOrders() {
                 "?",
               color: assignee.color || "bg-blue-500",
               name: assignee.name || assignee.label || assignee.value || "",
-            })
+            }),
           );
           const newFTO: FieldTeamOrder = {
             id: newId,

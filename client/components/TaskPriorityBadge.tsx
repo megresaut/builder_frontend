@@ -7,15 +7,17 @@ interface TaskPriorityBadgeProps {
 }
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
-  "Low": { label: "Low", color: "#059669" },
-  "low": { label: "Low", color: "#059669" },
-  "Normal": { label: "Normal", color: "#2463eb" },
-  "normal": { label: "Normal", color: "#2463eb" },
-  "High": { label: "High", color: "#d97706" },
-  "high": { label: "High", color: "#d97706" },
+  Low: { label: "Low", color: "#059669" },
+  low: { label: "Low", color: "#059669" },
+  Normal: { label: "Normal", color: "#2463eb" },
+  normal: { label: "Normal", color: "#2463eb" },
+  High: { label: "High", color: "#d97706" },
+  high: { label: "High", color: "#d97706" },
 };
 
-export const TaskPriorityBadge: React.FC<TaskPriorityBadgeProps> = ({ priority }) => {
+export const TaskPriorityBadge: React.FC<TaskPriorityBadgeProps> = ({
+  priority,
+}) => {
   const config = PRIORITY_CONFIG[priority] || PRIORITY_CONFIG["Normal"];
 
   return (

@@ -1,6 +1,12 @@
 import React from "react";
 
-type TaskStatus = "Not Started" | "In Progress" | "Completed" | "not_started" | "in_progress" | "completed";
+type TaskStatus =
+  | "Not Started"
+  | "In Progress"
+  | "Completed"
+  | "not_started"
+  | "in_progress"
+  | "completed";
 
 interface TaskStatusBadgeProps {
   status: TaskStatus;
@@ -8,11 +14,11 @@ interface TaskStatusBadgeProps {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   "Not Started": { label: "Not Started", color: "#d97706" },
-  "not_started": { label: "Not Started", color: "#d97706" },
+  not_started: { label: "Not Started", color: "#d97706" },
   "In Progress": { label: "In Progress", color: "#2463eb" },
-  "in_progress": { label: "In Progress", color: "#2463eb" },
-  "Completed": { label: "Completed", color: "#059669" },
-  "completed": { label: "Completed", color: "#059669" },
+  in_progress: { label: "In Progress", color: "#2463eb" },
+  Completed: { label: "Completed", color: "#059669" },
+  completed: { label: "Completed", color: "#059669" },
 };
 
 export const TaskStatusBadge: React.FC<TaskStatusBadgeProps> = ({ status }) => {

@@ -3,11 +3,13 @@ import { useState, useEffect, useRef } from "react";
 export function useColumnManagement(defaultColumns: string[]) {
   const [columnOrder, setColumnOrder] = useState<string[]>(defaultColumns);
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
-    new Set(defaultColumns)
+    new Set(defaultColumns),
   );
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [dropTargetColumn, setDropTargetColumn] = useState<string | null>(null);
-  const [dropPosition, setDropPosition] = useState<"before" | "after">("before");
+  const [dropPosition, setDropPosition] = useState<"before" | "after">(
+    "before",
+  );
   const [showColumnModal, setShowColumnModal] = useState(false);
   const [columnMenuPos, setColumnMenuPos] = useState({ top: 0, left: 0 });
   const columnButtonRef = useRef<HTMLButtonElement>(null);
@@ -26,7 +28,10 @@ export function useColumnManagement(defaultColumns: string[]) {
         );
 
         let top = rect.bottom + 8;
-        top = Math.min(Math.max(PADDING, top), Math.max(PADDING, window.innerHeight - PADDING));
+        top = Math.min(
+          Math.max(PADDING, top),
+          Math.max(PADDING, window.innerHeight - PADDING),
+        );
 
         setColumnMenuPos({
           top,
@@ -38,12 +43,12 @@ export function useColumnManagement(defaultColumns: string[]) {
     if (showColumnModal) {
       updateColumnMenuPos();
       // Listen for scroll/resize to keep menu anchored
-      window.addEventListener('scroll', updateColumnMenuPos, true);
-      window.addEventListener('resize', updateColumnMenuPos);
+      window.addEventListener("scroll", updateColumnMenuPos, true);
+      window.addEventListener("resize", updateColumnMenuPos);
 
       return () => {
-        window.removeEventListener('scroll', updateColumnMenuPos, true);
-        window.removeEventListener('resize', updateColumnMenuPos);
+        window.removeEventListener("scroll", updateColumnMenuPos, true);
+        window.removeEventListener("resize", updateColumnMenuPos);
       };
     }
   }, [showColumnModal]);
@@ -55,7 +60,8 @@ export function useColumnManagement(defaultColumns: string[]) {
       const columnDropdownEl = document.querySelector<HTMLElement>(
         '[data-column-filter-modal="true"]',
       );
-      const isColumnDropdownClick = !!columnDropdownEl && columnDropdownEl.contains(target);
+      const isColumnDropdownClick =
+        !!columnDropdownEl && columnDropdownEl.contains(target);
 
       if (!isColumnButtonClick && !isColumnDropdownClick) {
         setShowColumnModal(false);
@@ -64,7 +70,8 @@ export function useColumnManagement(defaultColumns: string[]) {
 
     if (showColumnModal) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showColumnModal]);
 

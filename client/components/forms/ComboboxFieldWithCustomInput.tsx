@@ -98,9 +98,13 @@ export const ComboboxFieldWithCustomInput: React.FC<
   const [customValue, setCustomValue] = useState("");
   const customInputRef = useRef<HTMLInputElement>(null);
 
-  const fieldId = id || (label && typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, "-") : "combobox");
+  const fieldId =
+    id ||
+    (label && typeof label === "string"
+      ? label.toLowerCase().replace(/\s+/g, "-")
+      : "combobox");
   const selectedOption = options.find((opt) => opt?.value === value);
-  const selectedLabel = selectedOption?.label ?? (value || placeholder || '');
+  const selectedLabel = selectedOption?.label ?? (value || placeholder || "");
 
   // Use all options (no filtering)
   const filteredOptions = options;
