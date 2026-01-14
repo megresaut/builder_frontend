@@ -690,7 +690,7 @@ export default function FtoSubmissionForm() {
                     onClick={addHourEntry}
                     className="rounded-lg bg-white border border-dashed border-[rgba(18,18,18,0.4)] px-3 py-2 flex items-center justify-center gap-2"
                   >
-                    <PlusIcon width={16} height={16} color="#2463EB" />
+                    <PlusIcon width={16} height={16} />
                     <span
                       className="text-base font-medium text-[#2463EB]"
                       style={{
@@ -1015,7 +1015,7 @@ export default function FtoSubmissionForm() {
                     onClick={addExpenseEntry}
                     className="rounded-lg bg-white border border-dashed border-[rgba(18,18,18,0.4)] px-3 py-2 flex items-center justify-center gap-2"
                   >
-                    <PlusIcon width={16} height={16} color="#2463EB" />
+                    <PlusIcon width={16} height={16} />
                     <span
                       className="text-base font-medium text-[#2463EB]"
                       style={{
