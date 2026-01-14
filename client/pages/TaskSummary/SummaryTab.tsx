@@ -357,14 +357,14 @@ export default function SummaryTab({
                 type: "vendor",
               },
               {
-                label: "Field Team",
+                label: "",
                 mode: "rows",
                 people: fieldTeamFromOrders.map((fieldTeam) => ({
                   id: fieldTeam.id,
                   name: fieldTeam.name,
                   initials: fieldTeam.initials,
                   email: fieldTeam.email,
-                  roleLabel: fieldTeam.title || "Field Team Member",
+                  roleLabel: "Field Manager",
                   phone: "",
                   type: "fieldteam",
                 })),
