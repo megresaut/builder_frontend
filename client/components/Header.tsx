@@ -70,6 +70,7 @@ export default function Header({
       cleanPath.includes("/tasks/") ||
       cleanPath === "/recurring-tasks" ||
       cleanPath === "/field-team-orders" ||
+      cleanPath.startsWith("/fto") ||
       cleanPath === "/work-orders" ||
       cleanPath === "/vendors" ||
       cleanPath.includes("/vendors/")
