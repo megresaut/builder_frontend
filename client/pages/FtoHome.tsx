@@ -693,7 +693,6 @@ export default function FtoHome() {
                   <ApproveIcon
                     width={16}
                     height={16}
-                    className="brightness-0 invert"
                   />
                 }
                 onClick={() => navigate("/fto/submission")}
