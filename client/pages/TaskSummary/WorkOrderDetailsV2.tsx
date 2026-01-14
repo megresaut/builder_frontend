@@ -239,6 +239,23 @@ export default function WorkOrderDetailsV2({
     setNotifications(notifications.filter((n) => n.id !== id));
   };
 
+  const handleOpenEstimateTotalModal = () => {
+    setDraftEstimateTotal(estimateTotal);
+    setIsEstimateTotalModalOpen(true);
+  };
+
+  const handleSaveEstimateTotal = () => {
+    setEstimateTotal(draftEstimateTotal);
+    setIsEstimateTotalModalOpen(false);
+  };
+
+  // Reset estimate total modal when it closes
+  useEffect(() => {
+    if (!isEstimateTotalModalOpen) {
+      setDraftEstimateTotal(0);
+    }
+  }, [isEstimateTotalModalOpen]);
+
   const handleWorkOrderUpdate = (formData: {
     property?: string;
     unit?: string;
