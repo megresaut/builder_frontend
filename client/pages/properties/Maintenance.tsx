@@ -267,6 +267,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     "status",
     "task",
     "dueDate",
+    "updated",
+    "age",
     "assignees",
     "billStatus",
     "billTotal",
