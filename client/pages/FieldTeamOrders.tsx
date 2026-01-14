@@ -5,6 +5,7 @@ import HoursSummaryDrawer from "@/components/HoursSummaryDrawer";
 import FTOFilterPopover from "@/components/FTOFilterPopover";
 import PageHeader from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
+import PersonAvatars from "@/components/PersonAvatars";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
