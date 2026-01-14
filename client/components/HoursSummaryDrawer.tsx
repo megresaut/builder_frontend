@@ -127,6 +127,13 @@ export default function HoursSummaryDrawer({
 
   const hasRequiredFilters = !!selectedManager || (!!dateRangeStart && !!dateRangeEnd);
 
+  const handleReset = () => {
+    setSelectedManager("");
+    setDateRangeStart(null);
+    setDateRangeEnd(null);
+    setExpandedSections({});
+  };
+
   return (
     <DrawerTemplate
       open={isOpen}
