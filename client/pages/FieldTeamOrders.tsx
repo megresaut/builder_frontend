@@ -23,6 +23,7 @@ import {
   NoteIcon,
   CalendarIcon,
   HamburgerIcon,
+  DotsIcon,
   DocumentIcon,
   DollarIcon,
   UserIcon,
