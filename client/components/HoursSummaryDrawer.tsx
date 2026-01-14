@@ -35,10 +35,10 @@ interface HoursSummaryDrawerProps {
 
 const FIELD_TEAM_MANAGERS: IdentityOption[] = [
   { id: "1", label: "Christopher Harris", initials: "CH", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
-  { id: "2", label: "Cassandra Smith", initials: "CS", avatarColor: "bg-white border border-purple-500 !text-purple-500" },
-  { id: "3", label: "David Chen", initials: "DC", avatarColor: "bg-white border border-green-500 !text-green-500" },
-  { id: "4", label: "Emma Rodriguez", initials: "ER", avatarColor: "bg-white border border-pink-500 !text-pink-500" },
-  { id: "5", label: "James Wilson", initials: "JW", avatarColor: "bg-white border border-orange-500 !text-orange-500" },
+  { id: "2", label: "Cassandra Smith", initials: "CS", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
+  { id: "3", label: "David Chen", initials: "DC", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
+  { id: "4", label: "Emma Rodriguez", initials: "ER", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
+  { id: "5", label: "James Wilson", initials: "JW", avatarColor: "bg-white border border-blue-500 !text-blue-500" },
 ];
 
 export default function HoursSummaryDrawer({
