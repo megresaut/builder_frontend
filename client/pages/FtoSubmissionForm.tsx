@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import PdfViewerModal from "@/components/PdfViewerModal";
-import CreateFTOModal from "@/components/CreateFTOModal";
 import {
   ClockIcon,
   DollarIcon,
