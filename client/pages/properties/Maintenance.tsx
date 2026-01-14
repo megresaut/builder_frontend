@@ -622,6 +622,21 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
       label: "Due Date",
       icon: <CalendarIcon width={16} height={16} />,
     },
+    updated: {
+      label: "Updated",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    age: {
+      label: "Age",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/2097f26d1f65ef5b2149203767c6f5d5b91df5d0?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
     assignees: {
       label: "Assignees",
       icon: (
