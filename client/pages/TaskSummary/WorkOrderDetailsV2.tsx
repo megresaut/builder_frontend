@@ -578,7 +578,7 @@ export default function WorkOrderDetailsV2({
                   className="flex justify-center items-center gap-1 rounded-lg hover:opacity-80 transition-opacity flex-shrink-0 whitespace-nowrap mt-1"
                 >
                   <EditIcon width={16} height={16} />
-                  <span className="text-[#2463eb] text-sm font-medium leading-[140%] tracking-[-0.32px] capitalize">
+                  <span className="text-[#2463eb] text-base font-medium leading-[140%] tracking-[-0.32px] capitalize">
                     Edit
                   </span>
                 </button>
