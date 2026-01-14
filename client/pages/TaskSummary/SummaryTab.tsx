@@ -200,7 +200,7 @@ export default function SummaryTab({
             name: "Julia LoSchiavo",
             email: "julia.loschiavo@company.com",
             phone: "(555) 123-4567",
-            title: "Project Manager",
+            title: "Property Manager",
             property:
               currentProperty && currentProperty !== "Unassigned"
                 ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
@@ -395,8 +395,8 @@ export default function SummaryTab({
                             name: "Julia LoSchiavo",
                             initials: "JL",
                             email: "julia.loschiavo@company.com",
-                            roleLabel: "Project Manager",
-                            phone: "(555) 123-4567",
+                            roleLabel: "Property Manager",
+                            phone: "",
                           },
                         ]
                       : [
@@ -405,8 +405,8 @@ export default function SummaryTab({
                             name: "Julia LoSchiavo",
                             initials: "JL",
                             email: "julia.loschiavo@company.com",
-                            roleLabel: "Project Manager",
-                            phone: "(203) 927-1280",
+                            roleLabel: "Property Manager",
+                            phone: "",
                           },
                         ]),
                   ],
