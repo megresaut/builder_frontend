@@ -23,7 +23,7 @@ export const TaskStatusBadge: React.FC<TaskStatusBadgeProps> = ({ status }) => {
       style={{
         display: "flex",
         alignItems: "center",
-        color: config.color,
+        color: "#303030",
         gap: "8px",
         fontSize: "14px",
         fontWeight: "400",
