@@ -484,6 +484,10 @@ const SelectFieldContent: React.FC<SelectFieldContentProps> = ({
                     cursor: "pointer",
                     fontFamily:
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    backgroundColor: highlightedIndex === index
+                      ? "rgba(36, 99, 235, 0.08)"
+                      : "transparent",
+                    transition: "background-color 0.15s",
                   }}
                   onMouseEnter={() => popoverContext.setHighlightedIndex(index)}
                 >
