@@ -90,6 +90,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
   options,
   emptyMessage = "No results found",
   customInputPlaceholder = "Or enter a new value",
+  customButtonLabel = "+ Add custom value",
 }) => {
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
