@@ -861,7 +861,7 @@ export default function FtoSubmissionForm() {
                           </div>
                         </div>
 
-                        <SelectField
+                        <ComboboxFieldWithCustomInput
                           label="Task"
                           required
                           error={expenseErrors[entry.id]?.taskId}
@@ -879,9 +879,8 @@ export default function FtoSubmissionForm() {
                             updateExpenseEntry(entry.id, "taskId", value);
                           }}
                           placeholder="Select Task"
+                          customInputPlaceholder="Enter task name"
                           disabled={!entry.propertyId || !entry.unitId || isApproved}
-                          onCreateNew={() => setIsCreateFTOModalOpen(true)}
-                          createNewLabel="Create New Task"
                         />
 
                         <CurrencyField
