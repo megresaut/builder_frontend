@@ -43,7 +43,17 @@ interface TabMetadata {
 }
 
 export default function App() {
-  const [selectedTab, setSelectedTab] = useState<string>("properties");
+  const [selectedTab, setSelectedTab] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      if (path.startsWith("/fto")) return "field-team-orders";
+      if (path === "/bills" || path.startsWith("/bills/")) return "bills";
+      if (path === "/work-orders") return "work-orders";
+      if (path.startsWith("/all-tasks") || path.startsWith("/tasks/"))
+        return "field-team-orders";
+    }
+    return "properties";
+  });
   const [tabMetadata, setTabMetadataState] = useState<
     Record<string, TabMetadata>
   >({
