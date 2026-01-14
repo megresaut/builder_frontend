@@ -270,8 +270,6 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   ]);
   const fieldteamColumnManagement = useColumnManagement([
     "priority",
-    "property",
-    "unit",
     "description",
     "dueDate",
     "fieldTeam",
