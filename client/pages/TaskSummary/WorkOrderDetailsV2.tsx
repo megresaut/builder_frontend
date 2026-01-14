@@ -637,7 +637,7 @@ export default function WorkOrderDetailsV2({
                           .slice(0, 2),
                         roleLabel: "Vendor Company",
                         email: getVendorEmail(workOrder.vendorName),
-                        phone: getVendorPhone(workOrder.vendorName),
+                        phone: "",
                         href: getVendorHref(workOrder.vendorName),
                       },
                     ]
@@ -668,7 +668,7 @@ export default function WorkOrderDetailsV2({
                         : "?"),
                     roleLabel: assignee.title || "Property manager",
                     email: assignee.email || "",
-                    phone: assignee.phone || "",
+                    phone: "",
                   };
                 }),
                 showRoleLabel: true,
@@ -699,7 +699,7 @@ export default function WorkOrderDetailsV2({
                         : "?"),
                     roleLabel: collaborator.title || "Property manager",
                     email: collaborator.email || "",
-                    phone: collaborator.phone || "",
+                    phone: "",
                   };
                 }),
                 showRoleLabel: true,
