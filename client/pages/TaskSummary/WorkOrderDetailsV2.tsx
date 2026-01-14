@@ -831,6 +831,36 @@ export default function WorkOrderDetailsV2({
         }}
         onDataUpdate={handleWorkOrderUpdate}
       />
+
+      <ModalTemplate
+        open={isEstimateTotalModalOpen}
+        onOpenChange={setIsEstimateTotalModalOpen}
+        title="Update Estimate Total"
+        size="sm"
+      >
+        <ModalField label="Estimate Total">
+          <CurrencyField
+            value={draftEstimateTotal}
+            onChange={(value) =>
+              setDraftEstimateTotal(
+                typeof value === "string" ? parseFloat(value) || 0 : value
+              )
+            }
+            showCurrencySymbol={true}
+            currencySymbol="$"
+            decimalPlaces={2}
+            placeholder="$0.00"
+          />
+        </ModalField>
+        <div style={{ marginTop: "28px" }}>
+          <ModalButtons
+            onCancel={() => setIsEstimateTotalModalOpen(false)}
+            onConfirm={handleSaveEstimateTotal}
+            confirmLabel="Save"
+            cancelLabel="Cancel"
+          />
+        </div>
+      </ModalTemplate>
     </div>
   );
 }
