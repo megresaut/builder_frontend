@@ -273,7 +273,7 @@ export default function AllTasks() {
     "collaborators",
   ]);
 
-  // Fetch tasks from mock API
+  // Fetch tasks from mock API on component mount
   useEffect(() => {
     const loadTasks = async () => {
       try {
