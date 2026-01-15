@@ -224,7 +224,6 @@ function transformApiTaskToUiTask(apiTask: ApiTask): Task {
 export default function AllTasks() {
   const navigate = useNavigate();
   const [tasksList, setTasksList] = useState<Task[]>([]);
-  const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
