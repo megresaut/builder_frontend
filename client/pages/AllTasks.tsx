@@ -22,11 +22,13 @@ import {
   UserIcon,
 } from "@/components/icons";
 
-import { MOCK_TASKS, type Task } from "@/data/tasks";
+import type { Task } from "@/data/tasks";
+import { mockFetchTasks, transformApiTaskToUiTask } from "@/data/mockTasksApi";
 
 export default function AllTasks() {
   const navigate = useNavigate();
-  const [tasksList, setTasksList] = useState<Task[]>(MOCK_TASKS);
+  const [tasksList, setTasksList] = useState<Task[]>([]);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -75,6 +77,25 @@ export default function AllTasks() {
     "assignees",
     "collaborators",
   ]);
+
+  // Fetch tasks from mock API
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        setIsLoadingTasks(true);
+        const apiResponse = await mockFetchTasks();
+        const transformedTasks = apiResponse.map(transformApiTaskToUiTask);
+        setTasksList(transformedTasks);
+      } catch (error) {
+        console.error("Error loading tasks:", error);
+        setTasksList([]);
+      } finally {
+        setIsLoadingTasks(false);
+      }
+    };
+
+    loadTasks();
+  }, []);
 
   // Hide collaborators by default
   useEffect(() => {
