@@ -366,10 +366,12 @@ export const ModalButtons: React.FC<ModalButtonsProps> = ({
         {cancelLabel}
       </button>
       <button
-        onClick={onConfirm}
+        onClick={confirmDisabled ? undefined : onConfirm}
+        disabled={confirmDisabled}
+        title={confirmDisabled ? "Please make an update" : undefined}
         style={{
           borderRadius: "8px",
-          backgroundColor: "var(--color-button-primary)",
+          backgroundColor: confirmDisabled ? "rgba(229, 231, 235, 1)" : "var(--color-button-primary)",
           border: "1px solid rgba(255, 255, 255, 1)",
           display: "flex",
           alignItems: "center",
@@ -379,26 +381,29 @@ export const ModalButtons: React.FC<ModalButtonsProps> = ({
           paddingTop: "8px",
           paddingBottom: "8px",
           minHeight: "36px",
-          color: "rgba(255, 255, 255, 1)",
+          color: confirmDisabled ? "rgba(156, 163, 175, 1)" : "rgba(255, 255, 255, 1)",
           fontWeight: 500,
           letterSpacing: "-0.32px",
           lineHeight: 1.4,
           justifyContent: "center",
-          cursor: "pointer",
+          cursor: confirmDisabled ? "not-allowed" : "pointer",
           fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
           fontSize: "16px",
           whiteSpace: "nowrap",
-          boxShadow: "0px 0px 0px 1px var(--color-button-primary-shadow)",
+          boxShadow: confirmDisabled ? "none" : "0px 0px 0px 1px var(--color-button-primary-shadow)",
           transition: "background-color 0.2s",
+          opacity: confirmDisabled ? 0.6 : 1,
         }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor =
-            "var(--color-button-primary-hover)")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.backgroundColor =
-            "var(--color-button-primary)")
-        }
+        onMouseEnter={(e) => {
+          if (!confirmDisabled) {
+            e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!confirmDisabled) {
+            e.currentTarget.style.backgroundColor = "var(--color-button-primary)";
+          }
+        }}
       >
         {confirmLabel}
       </button>

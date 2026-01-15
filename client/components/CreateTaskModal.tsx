@@ -1,39 +1,47 @@
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect, useRef } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+  ModalTemplate,
+  ModalButtons,
+  FieldRow,
+  FieldRowItem,
+} from "@/components/ui/ModalTemplate";
 import {
-  format,
-  parse,
-  isValid,
-  getDaysInMonth,
-  startOfMonth,
-  getDay,
-} from "date-fns";
+  TextField,
+  SelectField,
+  TextAreaField,
+  DateField,
+  MultiSelectField,
+  FileUploadField,
+  PrioritySelectField,
+  StatusSelectField,
+  ComboboxField,
+} from "@/components/forms";
+import type { MultiSelectOption } from "@/components/forms";
+import type { UploadedFile } from "@/components/ui/attachment-uploader";
+import { FormSection } from "@/components/ui/form-section";
 import { fetchJSON } from "@/api/fetchJSON";
+import PdfViewerModal from "@/components/PdfViewerModal";
+import { useAuth } from "@/auth/useAuth";
 
-interface Assignee {
-  id: number;
-  name: string;
-  initials: string;
-}
-
-type SimpleProperty = {
+interface SimpleProperty {
   id: number;
   name?: string | null;
   address_line1?: string | null;
   city?: string | null;
   state?: string | null;
-};
+}
+
+interface SimpleUnit {
+  id: number;
+  unit_name: string;
+}
+
+interface Assignee {
+  id: number;
+  name: string;
+  email?: string;
+}
+
 interface CreateTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -44,12 +52,22 @@ interface CreateTaskModalProps {
     priority: string;
     category: string;
     property_id: number;
+    unit_id?: number | null;
     due_date: string | null;
     assignees: number[];
+    collaborators?: number[];
+    status?: string;
+    attachments?: Array<{
+      id: number;
+      file_name: string;
+      storage_path: string;
+      file_type: string;
+      file_size: number;
+    }>;
   };
-  onSubmit: (form: any) => void;
+  onSubmit?: (form: any) => void;
+  variant?: "compact" | "withMessageAndAttachments";
 }
-
 
 const renderPropertyLabel = (p: SimpleProperty) =>
   p.name ||
@@ -59,701 +77,969 @@ const renderPropertyLabel = (p: SimpleProperty) =>
 export default function CreateTaskModal({
   open,
   onOpenChange,
-  editData, 
+  editData,
   onSubmit,
+  variant = "withMessageAndAttachments",
 }: CreateTaskModalProps) {
+  const { userId } = useAuth();
+  const hasHydratedRef = useRef(false);
+  const hasHydratedUpdateModeRef = useRef(false);
   const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState("medium");
-  const [dueDate, setDueDate] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const dueDateInputRef = useRef<HTMLInputElement>(null);
-  const [calendarPos, setCalendarPos] = useState({ top: 0, left: 0 });
-  const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
-  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
-  const assigneeButtonRef = useRef<HTMLButtonElement>(null);
-  const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({
-    top: 0,
-    left: 0,
-  });
-  const [properties, setProperties] = useState<SimpleProperty[]>([]);
-  const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
-  const [taskName, setTaskName] = useState("");
   const [description, setDescription] = useState("");
+  const [updateMessage, setUpdateMessage] = useState("");
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
+    null
+  );
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
   const [category, setCategory] = useState("");
+  const [priority, setPriority] = useState<"normal" | "low" | "high" | "urgent">("normal");
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [status, setStatus] = useState<"not_started" | "in_progress" | "completed">("not_started");
+  const [assigneeIds, setAssigneeIds] = useState<number[]>([]);
+  const [collaboratorIds, setCollaboratorIds] = useState<number[]>([]);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [properties, setProperties] = useState<SimpleProperty[]>([]);
+  const [units, setUnits] = useState<SimpleUnit[]>([]);
   const [availableAssignees, setAvailableAssignees] = useState<Assignee[]>([]);
-  useEffect(() => {
-    if (!open || !editData) return;
-  
-    // Populate fields
-    setTaskName(editData.name);
-    setDescription(editData.description || "");
-    setCategory(editData.category || "");
-    setPriority(editData.priority || "medium");
-    setSelectedProperty(String(editData.property_id));
-  
-    // Due date
-    if (editData.due_date) {
-      const parsed = new Date(editData.due_date);
-      if (!isNaN(parsed.getTime())) {
-        setSelectedDate(parsed);
-        setDueDate(format(parsed, "MM/dd/yyyy"));
-        setCalendarMonth(parsed);
-      }
-    } else {
-      setDueDate("");
-      setSelectedDate(null);
-    }
-  
+  const [availableCollaborators, setAvailableCollaborators] = useState<Assignee[]>([]);
+  const [unitsLoading, setUnitsLoading] = useState(false);
+  const [viewingFile, setViewingFile] = useState<UploadedFile | null>(null);
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
 
-  }, [open, editData]);
-  
-  
+  const initialStateRef = useRef<{
+    title: string;
+    description: string;
+    propertyId: number | null;
+    unitId: number | null;
+    category: string;
+    priority: "normal" | "low" | "high" | "urgent";
+    dueDate: Date | null;
+    status: "not_started" | "in_progress" | "completed";
+    assigneeIds: number[];
+    collaboratorIds: number[];
+    files: UploadedFile[];
+  } | null>(null);
 
-  useEffect(() => {
-    if (!open) return; // only load when modal opens
-  
-    async function loadAssignees() {
-      try {
-        const data = await fetchJSON("/users/property-managers");
-  
-        const mapped = data.map((u: any) => ({
-          id: Number(u.id),
-          name: u.name || u.email,
-          initials: (u.name || u.email).slice(0, 2).toUpperCase(),
-        }));
-  
-        setAvailableAssignees(mapped);
-      } catch (err) {
-        console.error("Failed to load managers:", err);
-      }
-    }
-  
-    loadAssignees();
-  }, [open]);
+  const updateModeInitialStateRef = useRef<{
+    priority: "normal" | "low" | "high" | "urgent";
+    dueDate: Date | null;
+    status: "not_started" | "in_progress" | "completed";
+    assigneeIds: number[];
+    collaboratorIds: number[];
+    updateMessage: string;
+    attachmentIds: number[];
+  } | null>(null);
 
-  // Correct: map editData.assignees → availableAssignees once both exist
-  useEffect(() => {
-    if (!open || !editData) return;
+  const isEditing = !!editData;
+  const isUpdateMode = Boolean(editData?.id) && variant === "withMessageAndAttachments";
 
-    // Wait until we have available assignees
-    if (availableAssignees.length === 0) return;
-
-    const initial = editData.assignees.map((id) => {
-      const match = availableAssignees.find(a => a.id === id);
-      return match ?? { id, name: `User ${id}`, initials: "U" };
-    });
-
-    setSelectedAssignees(initial);
-  }, [open, availableAssignees]);
-
-
-    
   useEffect(() => {
     if (!open) return;
-  
+
     let cancelled = false;
-  
-    const loadProps = async () => {
+
+    async function loadOptions() {
       try {
-        const props = await fetchJSON("/properties").catch(() => []);
-        if (!cancelled) setProperties(props || []);
+        const [propsRes, assigneesRes, collaboratorsRes] = await Promise.all([
+          fetchJSON("/properties").catch(() => []),
+          fetchJSON("/users/property-managers").catch(() => []),
+          fetchJSON("/users/property-managers").catch(() => []),
+        ]);
+
+        if (cancelled) return;
+
+        setProperties(propsRes || []);
+        setAvailableAssignees(
+          (assigneesRes || []).map((u: any) => ({
+            id: Number(u.id),
+            name: u.name || u.email,
+            email: u.email,
+          }))
+        );
+        setAvailableCollaborators(
+          (collaboratorsRes || []).map((u: any) => ({
+            id: Number(u.id),
+            name: u.name || u.email,
+            email: u.email,
+          }))
+        );
       } catch (err) {
-        console.error("Error loading properties:", err);
+        console.error("Failed to load options:", err);
       }
-    };
-  
-    loadProps();
+    }
+
+    loadOptions();
     return () => {
       cancelled = true;
     };
   }, [open]);
-  
+
   useEffect(() => {
-    let animationFrameId: number;
-
-    const updatePositions = () => {
-      if (showCalendar && dueDateInputRef.current) {
-        const rect = dueDateInputRef.current.getBoundingClientRect();
-        setCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showAssigneeDropdown && assigneeButtonRef.current) {
-        const rect = assigneeButtonRef.current.getBoundingClientRect();
-        setAssigneeDropdownPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showCalendar || showAssigneeDropdown) {
-        animationFrameId = requestAnimationFrame(updatePositions);
-      }
-    };
-
-    if (showCalendar || showAssigneeDropdown) {
-      updatePositions();
+    if (!open || !selectedPropertyId) {
+      setUnits([]);
+      return;
     }
 
+    let cancelled = false;
+
+    async function loadUnits() {
+      try {
+        setUnitsLoading(true);
+        const data = await fetchJSON(`/properties/${selectedPropertyId}/units`).catch(() => []);
+
+        if (!cancelled) {
+          setUnits(data || []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load units:", err);
+          setUnits([]);
+        }
+      } finally {
+        if (!cancelled) setUnitsLoading(false);
+      }
+    }
+
+    loadUnits();
     return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+      cancelled = true;
+    };
+  }, [open, selectedPropertyId]);
+
+  useEffect(() => {
+    if (!open || !editData) {
+      hasHydratedRef.current = false;
+      hasHydratedUpdateModeRef.current = false;
+      updateModeInitialStateRef.current = null;
+      return;
+    }
+
+    if (isUpdateMode) {
+      if (hasHydratedUpdateModeRef.current) return;
+      hasHydratedUpdateModeRef.current = true;
+
+      setDescription(editData.description || "");
+      setUpdateMessage("");
+      setAssigneeIds(editData.assignees || []);
+      setCollaboratorIds(editData.collaborators || []);
+
+      const priorityMap: Record<string, "normal" | "low" | "high" | "urgent"> = {
+        low: "low",
+        medium: "normal",
+        normal: "normal",
+        high: "high",
+        urgent: "urgent",
+      };
+      const initialPriority = priorityMap[editData.priority] || "normal";
+      setPriority(initialPriority);
+
+      const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+        open: "not_started",
+        not_started: "not_started",
+        in_progress: "in_progress",
+        completed: "completed",
+        closed: "completed",
+      };
+      const initialStatus = statusMap[editData.status || "open"] || "not_started";
+      setStatus(initialStatus);
+
+      let initialDueDate: Date | null = null;
+      if (editData.due_date) {
+        const parsed = new Date(editData.due_date);
+        if (!isNaN(parsed.getTime())) {
+          initialDueDate = parsed;
+          setDueDate(parsed);
+        }
       }
-    };
-  }, [showCalendar, showAssigneeDropdown]);
 
-  const getPriorityIcon = (priorityLevel: string = priority) => {
-    const colors: Record<string, string> = {
-      low: "#059669",       // green
-      medium: "#2463EB",    // blue
-      high: "#D97706",      // yellow/orange
-      urgent: "#DC2626",    // red
-    };
-    return (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 14 14"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M2.91602 7H11.0827"
-          stroke={colors[priorityLevel] || colors.medium}
-          strokeWidth="1.3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  };
+      let initialFiles: UploadedFile[] = [];
+      if (editData.attachments) {
+        initialFiles = editData.attachments.map((att) => ({
+          id: String(att.id),
+          name: att.file_name,
+          size: att.file_size,
+          type: att.file_type,
+          storage_path: att.storage_path,
+        }));
+        setFiles(initialFiles);
+      }
 
-  const getPriorityLabel = () => {
-    const labels: Record<string, string> = {
-      low: "Low",
-      medium: "Medium",
-      high: "High",
-      urgent: "Urgent",
-    };
-    return labels[priority] || "Medium";
-  };
+      // Take snapshot immediately with the initial values
+      const initialAssigneeIds = [...(editData.assignees || [])].sort((a, b) => a - b);
+      const initialCollaboratorIds = [...(editData.collaborators || [])].sort((a, b) => a - b);
+      const initialAttachmentIds = initialFiles
+        .filter((f) => f.id)
+        .map((f) => Number(f.id))
+        .sort((a, b) => a - b);
 
-  const getPriorityBgColor = () => {
-    const colors: Record<string, string> = {
-      low: "#d1fae5",
-      medium: "#dbe9fe",
-      high: "#fef3c7",
-      urgent: "#fee2e2",
-    };
-    return colors[priority] || colors.medium;
-  };
-
-  const getPriorityTextColor = () => {
-    const colors: Record<string, string> = {
-      low: "#059669",
-      medium: "#2463eb",
-      high: "#d97706",
-      urgent: "#DC2626",
-    };
-    return colors[priority] || colors.medium;
-  };
-
-  const toggleAssignee = (assignee: Assignee) => {
-    setSelectedAssignees((prev) => {
-      const isSelected = prev.some((a) => a.id === assignee.id);
-      return isSelected
-        ? prev.filter((a) => a.id !== assignee.id)
-        : [...prev, assignee];
-    });
-  };
-  
-  const removeAssignee = (assigneeId: number) => {
-    setSelectedAssignees((prev) => prev.filter((a) => a.id !== assigneeId));
-  };
-  
-  const handleDateSelect = (day: number) => {
-    const selected = new Date(
-      calendarMonth.getFullYear(),
-      calendarMonth.getMonth(),
-      day,
-    );
-    setSelectedDate(selected);
-    const formatted = format(selected, "MM/dd/yyyy");
-    setDueDate(formatted);
-    setShowCalendar(false);
-  };
-
-  const getCalendarDays = () => {
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
-    const daysInMonth = getDaysInMonth(new Date(year, month, 1));
-    const firstDay = getDay(startOfMonth(new Date(year, month, 1)));
-
-    const days: (number | null)[] = [];
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-    return days;
-  };
-
-  const previousMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
-    );
-  };
-
-  const nextMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
-    );
-  };
-
-  const handleCreate = async () => {
-    if (!selectedProperty) {
-      alert("Please select a property.");
-      return;
-    }
-    if (!taskName.trim()) {
-      alert("Task name is required.");
-      return;
-    }
-  
-    const payload = {
-      property_id: Number(selectedProperty),
-      name: taskName,
-      description,
-      priority,
-      category,
-      due_date: selectedDate ? selectedDate.toISOString() : null,
-      requested_by: 1,
-      assignees: selectedAssignees.map((a) => Number(a.id)),
-      tags: [],
-    };
-  
-    if (editData) {
-      // UPDATE
-      await fetchJSON(`/maintenance/tasks/${editData.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-      });
+      updateModeInitialStateRef.current = {
+        priority: initialPriority,
+        dueDate: initialDueDate,
+        status: initialStatus,
+        assigneeIds: initialAssigneeIds,
+        collaboratorIds: initialCollaboratorIds,
+        updateMessage: "",
+        attachmentIds: initialAttachmentIds,
+      };
     } else {
-      // CREATE
-      await onSubmit(payload);
+      if (hasHydratedRef.current) return;
+      hasHydratedRef.current = true;
+
+      setTitle(editData.name);
+      setDescription(editData.description || "");
+      setCategory(editData.category || "");
+      setSelectedPropertyId(editData.property_id);
+      setSelectedUnitId(editData.unit_id ?? null);
+      setAssigneeIds(editData.assignees || []);
+      setCollaboratorIds(editData.collaborators || []);
+
+      const priorityMap: Record<string, "normal" | "low" | "high" | "urgent"> = {
+        low: "low",
+        medium: "normal",
+        normal: "normal",
+        high: "high",
+        urgent: "urgent",
+      };
+      setPriority(priorityMap[editData.priority] || "normal");
+
+      const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+        open: "not_started",
+        not_started: "not_started",
+        in_progress: "in_progress",
+        completed: "completed",
+        closed: "completed",
+      };
+      setStatus(statusMap[editData.status || "open"] || "not_started");
+
+      if (editData.due_date) {
+        const parsed = new Date(editData.due_date);
+        if (!isNaN(parsed.getTime())) {
+          setDueDate(parsed);
+        }
+      }
+
+      if (editData.attachments) {
+        const uploadedFiles: UploadedFile[] = editData.attachments.map((att) => ({
+          id: String(att.id),
+          name: att.file_name,
+          size: att.file_size,
+          type: att.file_type,
+          storage_path: att.storage_path,
+        }));
+        setFiles(uploadedFiles);
+      }
     }
-  
+  }, [open, editData, isUpdateMode]);
+
+  useEffect(() => {
+    if (!open) {
+      hasHydratedRef.current = false;
+      hasHydratedUpdateModeRef.current = false;
+      updateModeInitialStateRef.current = null;
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open && !editData) {
+      setTitle("");
+      setDescription("");
+      setUpdateMessage("");
+      setSelectedPropertyId(null);
+      setSelectedUnitId(null);
+      setCategory("");
+      setPriority("normal");
+      setDueDate(null);
+      setStatus("not_started");
+      setAssigneeIds([]);
+      setCollaboratorIds([]);
+      setFiles([]);
+      setErrors({});
+      initialStateRef.current = null;
+      updateModeInitialStateRef.current = null;
+    }
+  }, [open, editData]);
+
+  const hasChanges = (): boolean => {
+    if (!isEditing) return true;
+
+    if (isUpdateMode) {
+      if (!updateModeInitialStateRef.current) return false;
+      const initial = updateModeInitialStateRef.current;
+      
+      if (initial.priority !== priority) return true;
+      if (initial.status !== status) return true;
+      if (initial.dueDate?.getTime() !== dueDate?.getTime()) return true;
+      if (initial.updateMessage !== updateMessage) return true;
+      
+      const currentAssigneeIds = [...assigneeIds].sort((a, b) => a - b);
+      const currentCollaboratorIds = [...collaboratorIds].sort((a, b) => a - b);
+      const currentAttachmentIds = files
+        .filter((f) => f.id)
+        .map((f) => Number(f.id))
+        .sort((a, b) => a - b);
+      
+      // Check if any new files were added (files without IDs)
+      const hasNewFiles = files.some((f) => !f.id);
+      
+      if (JSON.stringify(initial.assigneeIds) !== JSON.stringify(currentAssigneeIds)) return true;
+      if (JSON.stringify(initial.collaboratorIds) !== JSON.stringify(currentCollaboratorIds)) return true;
+      if (JSON.stringify(initial.attachmentIds) !== JSON.stringify(currentAttachmentIds)) return true;
+      if (hasNewFiles) return true;
+      
+      return false;
+    } else {
+      if (!initialStateRef.current) return true;
+      const initial = initialStateRef.current;
+      if (
+        initial.title !== title ||
+        initial.description !== description ||
+        initial.propertyId !== selectedPropertyId ||
+        initial.unitId !== selectedUnitId ||
+        initial.category !== category ||
+        initial.priority !== priority ||
+        initial.status !== status ||
+        (initial.dueDate?.getTime() !== dueDate?.getTime()) ||
+        JSON.stringify(initial.assigneeIds.sort()) !== JSON.stringify(assigneeIds.sort()) ||
+        JSON.stringify(initial.collaboratorIds.sort()) !== JSON.stringify(collaboratorIds.sort()) ||
+        initial.files.length !== files.length ||
+        JSON.stringify(initial.files.map(f => f.id).sort()) !== JSON.stringify(files.map(f => f.id).sort())
+      ) {
+        return true;
+      }
+      return false;
+    }
+  };
+
+  const generateUpdateMessage = (): string => {
+    if (!isEditing || isUpdateMode) return "";
+    
+    if (!initialStateRef.current) return "";
+    const initial = initialStateRef.current;
+    const changes: string[] = [];
+
+    if (initial.title !== title) {
+      changes.push(`Task name changed from "${initial.title}" to "${title}"`);
+    }
+    if (initial.description !== description) {
+      changes.push("Description updated");
+    }
+    if (initial.priority !== priority) {
+      changes.push(`Priority changed from ${initial.priority} to ${priority}`);
+    }
+    if (initial.status !== status) {
+      changes.push(`Status changed from ${initial.status} to ${status}`);
+    }
+    if (initial.category !== category) {
+      changes.push(`Category changed from "${initial.category}" to "${category}"`);
+    }
+    if (initial.dueDate?.getTime() !== dueDate?.getTime()) {
+      changes.push("Due date updated");
+    }
+    if (JSON.stringify(initial.assigneeIds.sort()) !== JSON.stringify(assigneeIds.sort())) {
+      changes.push("Assignees updated");
+    }
+    if (JSON.stringify(initial.collaboratorIds.sort()) !== JSON.stringify(collaboratorIds.sort())) {
+      changes.push("Collaborators updated");
+    }
+    if (initial.files.length !== files.length) {
+      changes.push("Attachments updated");
+    }
+
+    return changes.join(", ");
+  };
+
+  const propertyOptions = properties.map((p) => ({
+    value: String(p.id),
+    label: renderPropertyLabel(p),
+  }));
+
+  const unitOptions = units.map((u) => ({
+    value: String(u.id),
+    label: u.unit_name || `Unit #${u.id}`,
+  }));
+
+  const assigneeOptions: MultiSelectOption[] = availableAssignees.map((u) => ({
+    id: String(u.id),
+    label: u.name,
+    initials: u.name.slice(0, 2).toUpperCase(),
+  }));
+
+  const collaboratorOptions: MultiSelectOption[] = availableCollaborators.map((u) => ({
+    id: String(u.id),
+    label: u.name,
+    initials: u.name.slice(0, 2).toUpperCase(),
+  }));
+
+  const selectedAssignees = assigneeOptions.filter((opt) =>
+    assigneeIds.includes(Number(opt.id))
+  );
+
+  const selectedCollaborators = collaboratorOptions.filter((opt) =>
+    collaboratorIds.includes(Number(opt.id))
+  );
+
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (isUpdateMode) {
+      if (!priority) {
+        newErrors.priority = "Priority is required";
+      }
+      if (!dueDate) {
+        newErrors.dueDate = "Due date is required";
+      }
+      if (assigneeIds.length === 0) {
+        newErrors.assignees = "At least one assignee is required";
+      }
+    } else {
+      if (!selectedPropertyId) {
+        newErrors.property = "Property is required";
+      }
+      if (!title.trim()) {
+        newErrors.title = "Task name is required";
+      }
+      if (!priority) {
+        newErrors.priority = "Priority is required";
+      }
+      if (!dueDate) {
+        newErrors.dueDate = "Due date is required";
+      }
+      if (assigneeIds.length === 0) {
+        newErrors.assignees = "At least one assignee is required";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    if (isEditing && !hasChanges()) {
+      setErrors({ submit: "No changes to save" });
+      return;
+    }
+
+    let payload: any;
+
+    if (isUpdateMode) {
+      if (!updateModeInitialStateRef.current) {
+        setErrors({ submit: "Cannot determine initial state" });
+        return;
+      }
+
+      const initial = updateModeInitialStateRef.current;
+      payload = {};
+
+      if (initial.status !== status) {
+        const statusMap: Record<"not_started" | "in_progress" | "completed", "open" | "in_progress" | "completed"> = {
+          not_started: "open",
+          in_progress: "in_progress",
+          completed: "completed",
+        };
+        payload.status = statusMap[status] || status;
+      }
+
+      if (initial.priority !== priority) {
+        const priorityMap: Record<"normal" | "low" | "high" | "urgent", "low" | "medium" | "high" | "urgent"> = {
+          low: "low",
+          normal: "medium",
+          high: "high",
+          urgent: "urgent",
+        };
+        payload.priority = priorityMap[priority] || priority;
+      }
+
+      if (initial.dueDate?.getTime() !== dueDate?.getTime()) {
+        payload.due_date = dueDate ? dueDate.toISOString() : null;
+      }
+
+      const currentAssigneeIds = [...assigneeIds].sort((a, b) => a - b);
+      if (JSON.stringify(initial.assigneeIds) !== JSON.stringify(currentAssigneeIds)) {
+        payload.assignees = assigneeIds;
+      }
+
+      const currentCollaboratorIds = [...collaboratorIds].sort((a, b) => a - b);
+      if (JSON.stringify(initial.collaboratorIds) !== JSON.stringify(currentCollaboratorIds)) {
+        payload.collaborators = collaboratorIds;
+      }
+
+      const currentAttachmentIds = files
+        .filter((f) => f.id)
+        .map((f) => Number(f.id))
+        .sort((a, b) => a - b);
+
+      if (JSON.stringify(initial.attachmentIds) !== JSON.stringify(currentAttachmentIds)) {
+        payload.attachment_ids = currentAttachmentIds;
+      }
+
+      const newAttachments = files
+        .filter((f) => !f.id && f.storage_path)
+        .map((f) => ({
+          file_name: f.name,
+          storage_path: f.storage_path!,
+          file_type: f.type,
+          file_size: f.size,
+        }));
+
+      if (newAttachments.length > 0) {
+        payload.new_attachments = newAttachments;
+      }
+
+      if (!userId) {
+        setErrors({ submit: "User ID is required" });
+        return;
+      }
+      payload.actor_id = userId;
+
+      if (updateMessage.trim()) {
+        payload.message = updateMessage.trim();
+      }
+    } else {
+      const priorityMap: Record<"normal" | "low" | "high" | "urgent", "low" | "medium" | "high" | "urgent"> = {
+        low: "low",
+        normal: "medium",
+        high: "high",
+        urgent: "urgent",
+      };
+
+      const statusMap: Record<"not_started" | "in_progress" | "completed", "open" | "in_progress" | "completed"> = {
+        not_started: "open",
+        in_progress: "in_progress",
+        completed: "completed",
+      };
+
+      payload = {
+        property_id: selectedPropertyId!,
+        name: title.trim(),
+        priority: priorityMap[priority],
+        tags: [],
+      };
+
+      if (userId) {
+        payload.requested_by = userId;
+      }
+
+      if (selectedUnitId) {
+        payload.unit_id = selectedUnitId;
+      }
+
+      if (description.trim()) {
+        payload.description = description.trim();
+      }
+
+      if (status) {
+        payload.status = statusMap[status];
+      }
+
+      if (category.trim()) {
+        payload.category = category.trim();
+      }
+
+      if (dueDate) {
+        payload.due_date = dueDate.toISOString();
+      }
+
+      if (assigneeIds.length > 0) {
+        payload.assignees = assigneeIds;
+      }
+
+      if (collaboratorIds.length > 0) {
+        payload.collaborators = collaboratorIds;
+      }
+
+      const filesWithTempKey = files.filter((f) => {
+        if (f.error) return false;
+        const tempKey = (f as any).temp_object_key;
+        return tempKey && typeof tempKey === "string" && tempKey.trim() !== "" && f.name && f.type && typeof f.size === "number";
+      });
+      if (filesWithTempKey.length > 0) {
+        payload.attachments = filesWithTempKey.map((f) => ({
+          temp_object_key: (f as any).temp_object_key,
+          file_name: f.name,
+          file_type: f.type,
+          file_size: f.size,
+        }));
+      }
+    }
+
+    if (isEditing) {
+      if (isUpdateMode) {
+        await fetchJSON(`/maintenance/tasks/${editData.id}/update`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
+        updateModeInitialStateRef.current = null;
+      } else {
+        await fetchJSON(`/maintenance/tasks/${editData.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
+      }
+    } else {
+      try {
+        await fetchJSON("/maintenance/tasks", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      } catch (error) {
+        console.error("Failed to create task:", error);
+        setErrors({ submit: "Failed to create task" });
+        return;
+      }
+    }
+
     onOpenChange(false);
   };
-  
-  
 
-  
+  const handleFilesAdded = async (newFiles: UploadedFile[]) => {
+    if (isEditing) {
+      const filesToAdd: UploadedFile[] = [];
+
+      for (const file of newFiles) {
+        if (file.file) {
+          const formData = new FormData();
+          formData.append("file", file.file);
+
+          try {
+            const response = await fetch("http://localhost:8080/maintenance/uploads", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!response.ok) {
+              throw new Error("Upload failed");
+            }
+
+            const uploaded = await response.json();
+            filesToAdd.push({
+              ...file,
+              id: undefined,
+              storage_path: uploaded.storage_path,
+              uploading: false,
+            });
+          } catch (err) {
+            filesToAdd.push({
+              ...file,
+              uploading: false,
+              error: "Upload failed",
+            });
+          }
+        } else {
+          filesToAdd.push(file);
+        }
+      }
+
+      setFiles([...files, ...filesToAdd]);
+    } else {
+      const filesToAdd: UploadedFile[] = [];
+
+      for (const file of newFiles) {
+        if (file.file) {
+          const formData = new FormData();
+          formData.append("file", file.file);
+
+          try {
+            const response = await fetch("http://localhost:8080/maintenance/tasks/attachments/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!response.ok) {
+              throw new Error("Upload failed");
+            }
+
+            const uploaded = await response.json();
+            if (!uploaded.temp_object_key || typeof uploaded.temp_object_key !== "string") {
+              throw new Error("Invalid upload response: missing temp_object_key");
+            }
+            filesToAdd.push({
+              ...file,
+              name: uploaded.original_name || file.name,
+              type: uploaded.file_type || file.type,
+              size: uploaded.file_size || file.size,
+              temp_object_key: uploaded.temp_object_key,
+              uploading: false,
+            } as UploadedFile & { temp_object_key: string });
+          } catch (err) {
+            filesToAdd.push({
+              ...file,
+              uploading: false,
+              error: "Upload failed",
+            });
+          }
+        } else {
+          filesToAdd.push(file);
+        }
+      }
+
+      setFiles([...files, ...filesToAdd]);
+    }
+  };
+
+  const handleFileRemoved = async (fileId: string) => {
+    const file = files.find((f) => f.id === fileId);
+    if (isEditing && file?.storage_path) {
+      const filename = file.storage_path.split("/").pop();
+      if (filename) {
+        try {
+          await fetchJSON(`/maintenance/uploads/${filename}`, {
+            method: "DELETE",
+          });
+        } catch (err) {
+          console.error("Failed to delete file:", err);
+        }
+      }
+    }
+    setFiles(files.filter((f) => f.id !== fileId));
+  };
+
+  const handleViewFile = (file: UploadedFile) => {
+    if (file.storage_path) {
+      const url = `/api/files/${file.storage_path}`;
+      setViewingFile({ ...file, storage_path: url } as UploadedFile);
+      setPdfViewerOpen(true);
+    }
+  };
+
+  const showAttachments = variant === "withMessageAndAttachments";
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[694px] p-0 gap-0">
-        <div className="flex flex-col gap-4 p-6">
-          {/* Title */}
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
-            {editData ? "Edit Task" : "Create Task"}
-          </DialogTitle>
+    <>
+      <ModalTemplate
+        open={open}
+        onOpenChange={onOpenChange}
+        title={isUpdateMode ? "Update task" : isEditing ? "Edit Task" : "Create Task"}
+        size={isUpdateMode ? "md" : "lg"}
+        footer={
+          <ModalButtons
+            onCancel={() => onOpenChange(false)}
+            onConfirm={handleSubmit}
+            cancelLabel="Cancel"
+            confirmLabel={isUpdateMode ? "Save Update" : isEditing ? "Update Task" : "Create Task"}
+            confirmDisabled={isUpdateMode && !hasChanges()}
+          />
+        }
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: isUpdateMode ? "8px" : "-20px" }}>
+          {isUpdateMode ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                <StatusSelectField
+                  label="Status"
+                  required
+                  value={status}
+                  onChange={(value) => setStatus(value)}
+                  error={errors.status}
+                />
+                <PrioritySelectField
+                  label="Priority"
+                  required
+                  value={priority}
+                  onChange={(value) => setPriority(value)}
+                  error={errors.priority}
+                />
+                <DateField
+                  label="Due Date"
+                  required
+                  value={dueDate}
+                  onChange={(date) => setDueDate(date as Date)}
+                  error={errors.dueDate}
+                  placeholder="mm/dd/yyyy"
+                />
+              </div>
 
-          {/* Property and Unit Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Property <span className="text-red-600">*</span>
-              </label>
-              <Select
-                value={selectedProperty || ""}
-                onValueChange={setSelectedProperty}
-                >
-                <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
-                  <SelectValue placeholder="Select Property" />
-                </SelectTrigger>
-                <SelectContent>
-                  {properties.length === 0 && (
-                    <SelectItem value="none" disabled>
-                      No properties found
-                    </SelectItem>
-                  )}
-                  {properties.map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
-                      {renderPropertyLabel(p)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Unit
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Select Unit If Applicable"
-                    className="text-[#A1A1A9] capitalize"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unit1">Unit 1</SelectItem>
-                  <SelectItem value="unit2">Unit 2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <MultiSelectField
+                  label="Assigned To"
+                  required
+                  value={selectedAssignees}
+                  onChange={(options) => {
+                    setAssigneeIds(options.map((opt) => Number(opt.id)));
+                  }}
+                  placeholder="Select assignees"
+                  options={assigneeOptions}
+                  error={errors.assignees}
+                />
+                <MultiSelectField
+                  label="Collaborators"
+                  value={selectedCollaborators}
+                  onChange={(options) => {
+                    setCollaboratorIds(options.map((opt) => Number(opt.id)));
+                  }}
+                  placeholder="Select collaborators"
+                  options={collaboratorOptions}
+                />
+              </div>
 
-          {/* Task Name and Priority Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Task Name <span className="text-red-600">*</span>
-              </label>
-              <Input
-                value={taskName}
-                onChange={(e) => setTaskName(e.target.value)}
-                placeholder="Type Task Name"
-                className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:capitalize"
+              <TextAreaField
+                label="Message"
+                value={updateMessage}
+                onChange={(e) => setUpdateMessage(e.target.value)}
+                error={errors.updateMessage}
+                placeholder="Add a message..."
+                rows={4}
               />
             </div>
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Priority <span className="text-red-600">*</span>
-              </label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
-                  <div
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-2xl"
-                    style={{ backgroundColor: getPriorityBgColor() }}
-                  >
-                    {getPriorityIcon()}
-                    <span
-                      className="text-sm capitalize"
-                      style={{ color: getPriorityTextColor() }}
-                    >
-                      {getPriorityLabel()}
-                    </span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          ) : (
+            <>
+              <FormSection title="Task Details">
+                <TextField
+                  label="Task Name"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  error={errors.title}
+                  placeholder="Type Task Name"
+                />
 
-          {/* Due Date and Assignees Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Due Date <span className="text-red-600">*</span>
-              </label>
-              <div className="relative">
-                <Input
-                  ref={dueDateInputRef}
-                  type="text"
-                  placeholder="MM/DD/YYYY"
-                  value={dueDate}
-                  onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, "");
-                    if (value.length > 0) {
-                      if (value.length <= 2) {
-                        value = value;
-                      } else if (value.length <= 4) {
-                        value = value.slice(0, 2) + "/" + value.slice(2);
-                      } else {
-                        value =
-                          value.slice(0, 2) +
-                          "/" +
-                          value.slice(2, 4) +
-                          "/" +
-                          value.slice(4, 8);
+                {showAttachments && (
+                  <TextAreaField
+                    label="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    error={errors.description}
+                    placeholder="Insert Description Here"
+                    rows={6}
+                  />
+                )}
+
+                <FieldRow columns={2}>
+                  <FieldRowItem>
+                    <ComboboxField
+                      label="Property"
+                      required
+                      value={String(selectedPropertyId || "")}
+                      onChange={(value) => {
+                        const id = value ? Number(value) : null;
+                        setSelectedPropertyId(id);
+                        setSelectedUnitId(null);
+                      }}
+                      error={errors.property}
+                      placeholder="Select Property"
+                      searchPlaceholder="Search properties..."
+                      options={propertyOptions}
+                    />
+                  </FieldRowItem>
+                  <FieldRowItem>
+                    <SelectField
+                      label="Unit"
+                      value={String(selectedUnitId || "")}
+                      onChange={(value) => {
+                        setSelectedUnitId(value ? Number(value) : null);
+                      }}
+                      placeholder={
+                        !selectedPropertyId
+                          ? "Select property first"
+                          : unitsLoading
+                          ? "Loading units…"
+                          : "Select Unit If Applicable"
                       }
-                    }
-                    setDueDate(value);
-                    const parsed = parse(value, "MM/dd/yyyy", new Date());
-                    if (isValid(parsed)) {
-                      setSelectedDate(parsed);
-                      setCalendarMonth(parsed);
-                    }
-                  }}
-                  maxLength={10}
-                  className="h-11 rounded-lg border-[#E5E5E5] placeholder:text-[#A1A1A9]"
-                />
-                <button
-                  onClick={() => setShowCalendar(!showCalendar)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-70 transition-opacity p-1"
-                  type="button"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M14 6.66668H2M10.6667 1.33334V4.00001M5.33333 1.33334V4.00001M5.2 14.6667H10.8C11.9201 14.6667 12.4802 14.6667 12.908 14.4487C13.2843 14.2569 13.5903 13.951 13.782 13.5747C14 13.1468 14 12.5868 14 11.4667V5.86668C14 4.74657 14 4.18652 13.782 3.7587C13.5903 3.38237 13.2843 3.07641 12.908 2.88466C12.4802 2.66668 11.9201 2.66668 10.8 2.66668H5.2C4.0799 2.66668 3.51984 2.66668 3.09202 2.88466C2.71569 3.07641 2.40973 3.38237 2.21799 3.7587C2 4.18652 2 4.74657 2 5.86668V11.4667C2 12.5868 2 13.1468 2.21799 13.5747C2.40973 13.951 2.71569 14.2569 3.09202 14.4487C3.51984 14.6667 4.0799 14.6667 5.2 14.6667Z"
-                      stroke="black"
-                      strokeWidth="1.48576"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                      options={unitOptions}
+                      disabled={!selectedPropertyId || unitsLoading}
                     />
-                  </svg>
-                </button>
+                  </FieldRowItem>
+                </FieldRow>
 
-                {showCalendar &&
-                  createPortal(
-                    <div
-                      className="bg-white flex flex-col gap-3 p-4"
-                      style={{
-                        width: "280px",
-                        border: "0.5px solid #DADADA",
-                        borderRadius: "8px",
-                        boxShadow:
-                          "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-                        zIndex: 99999,
-                        position: "fixed",
-                        top: calendarPos.top + "px",
-                        left: calendarPos.left + "px",
-                        pointerEvents: "auto",
-                      }}
-                      onMouseLeave={() => setShowCalendar(false)}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <button
-                          onClick={previousMonth}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors"
-                          type="button"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <span className="text-sm font-medium text-[#303030]">
-                          {format(calendarMonth, "MMMM yyyy")}
-                        </span>
-                        <button
-                          onClick={nextMonth}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors"
-                          type="button"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-7 gap-1">
-                        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(
-                          (day) => (
-                            <div
-                              key={day}
-                              className="w-8 h-8 flex items-center justify-center text-xs font-medium text-[#8B8D8D]"
-                            >
-                              {day}
-                            </div>
-                          ),
-                        )}
-
-                        {getCalendarDays().map((day, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() =>
-                              day !== null && handleDateSelect(day)
-                            }
-                            disabled={day === null}
-                            className={`w-8 h-8 flex items-center justify-center text-xs rounded transition-colors ${
-                              day === null
-                                ? "text-transparent cursor-default"
-                                : selectedDate &&
-                                    selectedDate.getDate() === day &&
-                                    selectedDate.getMonth() ===
-                                      calendarMonth.getMonth() &&
-                                    selectedDate.getFullYear() ===
-                                      calendarMonth.getFullYear()
-                                  ? "bg-[#2463EB] text-white font-medium"
-                                  : "hover:bg-gray-100 text-[#303030]"
-                            }`}
-                            type="button"
-                          >
-                            {day}
-                          </button>
-                        ))}
-                      </div>
-                    </div>,
-                    document.body,
-                  )}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Assignees <span className="text-red-600">*</span>
-              </label>
-              <div className="relative">
-                <button
-                  ref={assigneeButtonRef}
-                  onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                  className="h-11 rounded-lg border border-[#E5E5E5] w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors bg-white"
-                >
-                  <div className="flex items-center gap-1.5 flex-wrap flex-1">
-                    {selectedAssignees.length === 0 ? (
-                      <span className="text-[#A1A1A9] text-sm">
-                        Select assignees
-                      </span>
-                    ) : (
-                      selectedAssignees.map((assignee) => (
-                        <div
-                          key={assignee.id}
-                          className="flex items-center gap-1 bg-white rounded-full border border-[#2463EB] px-2 py-0.5"
-                        >
-                          <div className="flex w-[18px] h-[18px] justify-center items-center rounded-full bg-[#2463EB]">
-                            <span className="text-white font-semibold text-[8px]">
-                              {assignee.initials}
-                            </span>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeAssignee(assignee.id);
-                            }}
-                            className="hover:opacity-70 transition-opacity"
-                          >
-                            <X className="w-3 h-3 text-[#2463EB]" />
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  <svg
-                    className="w-4 h-4 text-gray-600 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                    />
-                  </svg>
-                </button>
-
-                {showAssigneeDropdown &&
-                  createPortal(
-                    <div
-                      className="bg-white flex flex-col justify-start items-start p-2 gap-1"
-                      style={{
-                        width: "280px",
-                        border: "0.5px solid #DADADA",
-                        borderRadius: "8px",
-                        boxShadow:
-                          "0 38px 11px 0 rgba(0, 0, 0, 0.00), 0 24px 10px 0 rgba(0, 0, 0, 0.01), 0 14px 8px 0 rgba(0, 0, 0, 0.04), 0 6px 6px 0 rgba(0, 0, 0, 0.06), 0 2px 3px 0 rgba(0, 0, 0, 0.07)",
-                        zIndex: 99999,
-                        position: "fixed",
-                        top: assigneeDropdownPos.top + "px",
-                        left: assigneeDropdownPos.left + "px",
-                        pointerEvents: "auto",
-                      }}
-                      onMouseLeave={() => {}}
-                    >
-                      {availableAssignees.map((assignee) => {  
-                        const isSelected = selectedAssignees.some(
-                          (a) => a.id === assignee.id,
-                        );
-                        return (
-                          <button
-                            key={assignee.id}
-                            onClick={() => toggleAssignee(assignee)}
-                            className="w-full flex items-center justify-between gap-2 px-3 py-2 hover:bg-gray-50 rounded transition-colors"
-                          >
-                            <div className="flex items-center gap-2 flex-1">
-                              <div className="flex w-[24px] h-[24px] justify-center items-center rounded-full bg-[#2463EB]">
-                                <span className="text-white font-semibold text-[10px]">
-                                  {assignee.initials}
-                                </span>
-                              </div>
-                              <span className="text-[#303030] font-normal text-sm">
-                                {assignee.name}
-                              </span>
-                            </div>
-                            {isSelected && (
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M13.5 3L6 10.5L2.5 7"
-                                  stroke="#2463EB"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>,
-                    document.body,
-                  )}
-              </div>
-            </div>
-          </div>
-
-          {/* Category */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-5">
-              Category
-            </label>
-            <Select>
-              <SelectTrigger className="h-11 rounded-lg border-[#E5E5E5]">
-                <SelectValue
+                <SelectField
+                  label="Category"
+                  value={category}
+                  onChange={(value) => setCategory(typeof value === "string" ? value : value[0] || "")}
                   placeholder="Select Category"
-                  className="text-[#A1A1A9] capitalize"
+                  options={[
+                    { value: "Maintenance", label: "Maintenance" },
+                    { value: "Repair", label: "Repair" },
+                    { value: "Other", label: "Other" },
+                  ]}
                 />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="category1">Maintenance</SelectItem>
-                <SelectItem value="category2">Repair</SelectItem>
-                <SelectItem value="category3">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
-          {/* Description */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-5">
-              Description
-            </label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Insert Description Here"
-            />
-          </div>
+                <FieldRow columns={3}>
+                  <FieldRowItem>
+                    <PrioritySelectField
+                      label="Priority"
+                      required
+                      value={priority}
+                      onChange={(value) => setPriority(value)}
+                      error={errors.priority}
+                    />
+                  </FieldRowItem>
+                  <FieldRowItem>
+                    <DateField
+                      label="Due Date"
+                      required
+                      value={dueDate}
+                      onChange={(date) => setDueDate(date as Date)}
+                      error={errors.dueDate}
+                      placeholder="mm/dd/yyyy"
+                    />
+                  </FieldRowItem>
+                  <FieldRowItem>
+                    <StatusSelectField
+                      label="Status"
+                      required
+                      value={status}
+                      onChange={(value) => setStatus(value)}
+                      error={errors.status}
+                    />
+                  </FieldRowItem>
+                </FieldRow>
 
-          {/* Create/Update Task Button */}
-          <button
-              onClick={handleCreate}
-              className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
-            >
-              <span className="text-white font-medium text-base">
-                {editData ? "Update Task" : "Create Task"}
-              </span>
-          </button>
+                <FileUploadField
+                  label="Attachments"
+                  files={files}
+                  onFilesAdded={handleFilesAdded}
+                  onFileRemoved={handleFileRemoved}
+                  onViewFile={handleViewFile}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+                  maxFiles={10}
+                  maxSize={10 * 1024 * 1024}
+                />
+              </FormSection>
 
+              <FormSection title="Assignment">
+                <FieldRow columns={2}>
+                  <FieldRowItem>
+                    <MultiSelectField
+                      label="Assignees"
+                      required
+                      value={selectedAssignees}
+                      onChange={(options) => {
+                        setAssigneeIds(options.map((opt) => Number(opt.id)));
+                      }}
+                      placeholder="Select assignees"
+                      options={assigneeOptions}
+                      error={errors.assignees}
+                    />
+                  </FieldRowItem>
+                  <FieldRowItem>
+                    <MultiSelectField
+                      label="Collaborators"
+                      value={selectedCollaborators}
+                      onChange={(options) => {
+                        setCollaboratorIds(options.map((opt) => Number(opt.id)));
+                      }}
+                      placeholder="Select collaborators"
+                      options={collaboratorOptions}
+                    />
+                  </FieldRowItem>
+                </FieldRow>
+              </FormSection>
+            </>
+          )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </ModalTemplate>
+
+      {pdfViewerOpen && viewingFile && (
+        <PdfViewerModal
+          open={pdfViewerOpen}
+          onOpenChange={setPdfViewerOpen}
+          title={viewingFile.name}
+          url={viewingFile.storage_path}
+        />
+      )}
+    </>
   );
 }

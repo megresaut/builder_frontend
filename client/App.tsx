@@ -29,7 +29,7 @@ import { Login } from "./pages/Login";
 import { Welcome } from "./pages/Welcome";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { TermsOfService } from "./pages/TermsOfService";
-
+import TaskSummaryPage from "./pages/TaskSummary/index";
 // FTO
 import FtoShellLayout from "./layout/FTOShellLayout";
 import FTOHome from "./pages/FTOHome";
