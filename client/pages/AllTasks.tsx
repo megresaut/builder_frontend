@@ -23,7 +23,6 @@ import {
 } from "@/components/icons";
 
 import type { Task } from "@/data/tasks";
-import { mockFetchTasks, transformApiTaskToUiTask } from "@/data/mockTasksApi";
 
 export default function AllTasks() {
   const navigate = useNavigate();
