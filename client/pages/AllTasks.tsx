@@ -60,9 +60,7 @@ async function mockFetchTasks(): Promise<ApiTask[]> {
       priority: "Normal",
       due_date: "2025-10-02",
       last_updated: "2025-10-02",
-      assignees: [
-        { id: 1, name: "John Doe", email: "john.doe@company.com" },
-      ],
+      assignees: [{ id: 1, name: "John Doe", email: "john.doe@company.com" }],
       collaborators: [
         { id: 2, name: "Jane Smith", email: "jane.smith@company.com" },
       ],
@@ -144,9 +142,7 @@ async function mockFetchTasks(): Promise<ApiTask[]> {
       priority: "High",
       due_date: "2025-11-15",
       last_updated: "2025-09-01",
-      assignees: [
-        { id: 1, name: "John Doe", email: "john.doe@company.com" },
-      ],
+      assignees: [{ id: 1, name: "John Doe", email: "john.doe@company.com" }],
       collaborators: [
         { id: 2, name: "Jane Smith", email: "jane.smith@company.com" },
         { id: 3, name: "Mike Johnson", email: "mike.johnson@company.com" },

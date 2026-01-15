@@ -18,8 +18,22 @@ export interface ApiTask {
   date_requested: string; // ISO timestamp
   last_updated: string; // ISO timestamp
   requested_by: number;
-  assignees: Array<{ id: number; name: string; email: string; title?: string; phone?: string; initials?: string }>;
-  collaborators: Array<{ id: number; name: string; email: string; title?: string; phone?: string; initials?: string }>;
+  assignees: Array<{
+    id: number;
+    name: string;
+    email: string;
+    title?: string;
+    phone?: string;
+    initials?: string;
+  }>;
+  collaborators: Array<{
+    id: number;
+    name: string;
+    email: string;
+    title?: string;
+    phone?: string;
+    initials?: string;
+  }>;
   is_visible_to_client: boolean;
   is_editable_by_client: boolean;
   tags: string[];
@@ -519,7 +533,14 @@ export function transformApiTaskToUiTask(apiTask: ApiTask): Task {
   // Ensure all assignees and collaborators have initials
   const ensureInitials = (person: any) => ({
     ...person,
-    initials: person.initials || person.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase() || "?",
+    initials:
+      person.initials ||
+      person.name
+        ?.split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase() ||
+      "?",
   });
 
   const assignees = apiTask.assignees.map(ensureInitials);
