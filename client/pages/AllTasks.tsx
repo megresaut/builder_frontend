@@ -277,15 +277,12 @@ export default function AllTasks() {
   useEffect(() => {
     const loadTasks = async () => {
       try {
-        setIsLoadingTasks(true);
         const apiResponse = await mockFetchTasks();
         const transformedTasks = apiResponse.map(transformApiTaskToUiTask);
         setTasksList(transformedTasks);
       } catch (error) {
         console.error("Error loading tasks:", error);
         setTasksList([]);
-      } finally {
-        setIsLoadingTasks(false);
       }
     };
 
