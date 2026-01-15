@@ -24,6 +24,203 @@ import {
 
 import type { Task } from "@/data/tasks";
 
+/**
+ * Mock API response shape for GET /maintenance/tasks
+ */
+interface ApiTask {
+  id: number;
+  name: string;
+  description: string;
+  property_name: string;
+  unit_name: string | null;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  last_updated: string;
+  assignees: Array<{ id: number; name: string; email: string }>;
+  collaborators: Array<{ id: number; name: string; email: string }>;
+}
+
+/**
+ * Mock function simulating GET /maintenance/tasks
+ * Returns an array of task objects shaped like the real API
+ */
+async function mockFetchTasks(): Promise<ApiTask[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  const mockData: ApiTask[] = [
+    {
+      id: 1,
+      name: "Edgerton - Quote",
+      description: "Get quote for door repair",
+      property_name: "22 Indian Chase Dr",
+      unit_name: "Unit 1A",
+      status: "Completed",
+      priority: "Normal",
+      due_date: "2025-10-02",
+      last_updated: "2025-10-02",
+      assignees: [
+        { id: 1, name: "John Doe", email: "john.doe@company.com" },
+      ],
+      collaborators: [
+        { id: 2, name: "Jane Smith", email: "jane.smith@company.com" },
+      ],
+    },
+    {
+      id: 2,
+      name: "Doors Need To Be Repaired",
+      description: "Repair doors in unit 2B",
+      property_name: "22 Indian Chase Dr",
+      unit_name: "Unit 2B",
+      status: "In Progress",
+      priority: "Low",
+      due_date: "2025-09-25",
+      last_updated: "2025-09-25",
+      assignees: [
+        { id: 2, name: "Jane Smith", email: "jane.smith@company.com" },
+      ],
+      collaborators: [
+        { id: 3, name: "Mike Johnson", email: "mike.johnson@company.com" },
+      ],
+    },
+    {
+      id: 3,
+      name: "Roof Inspection",
+      description: "Annual roof inspection",
+      property_name: "22 Indian Chase Dr",
+      unit_name: "Unit 3C",
+      status: "Completed",
+      priority: "Normal",
+      due_date: "2025-09-12",
+      last_updated: "2025-09-12",
+      assignees: [
+        { id: 1, name: "John Doe", email: "john.doe@company.com" },
+        { id: 2, name: "Jane Smith", email: "jane.smith@company.com" },
+      ],
+      collaborators: [
+        { id: 3, name: "Mike Johnson", email: "mike.johnson@company.com" },
+      ],
+    },
+    {
+      id: 4,
+      name: "HVAC Maintenance",
+      description: "Service HVAC system",
+      property_name: "22 Indian Chase Dr",
+      unit_name: "Unit 1D",
+      status: "Completed",
+      priority: "High",
+      due_date: "2025-09-06",
+      last_updated: "2025-09-06",
+      assignees: [
+        { id: 3, name: "Mike Johnson", email: "mike.johnson@company.com" },
+      ],
+      collaborators: [
+        { id: 1, name: "John Doe", email: "john.doe@company.com" },
+      ],
+    },
+    {
+      id: 5,
+      name: "Window Sealing",
+      description: "Seal windows to prevent drafts",
+      property_name: "22 Indian Chase Dr",
+      unit_name: "Unit 2E",
+      status: "In Progress",
+      priority: "Normal",
+      due_date: null,
+      last_updated: "2025-09-05",
+      assignees: [
+        { id: 2, name: "Jane Smith", email: "jane.smith@company.com" },
+      ],
+      collaborators: [],
+    },
+    {
+      id: 6,
+      name: "Plumbing Inspection",
+      description: "Check for leaks and damage",
+      property_name: "22 Indian Chase Dr",
+      unit_name: null,
+      status: "Not Started",
+      priority: "High",
+      due_date: "2025-11-15",
+      last_updated: "2025-09-01",
+      assignees: [
+        { id: 1, name: "John Doe", email: "john.doe@company.com" },
+      ],
+      collaborators: [
+        { id: 2, name: "Jane Smith", email: "jane.smith@company.com" },
+        { id: 3, name: "Mike Johnson", email: "mike.johnson@company.com" },
+      ],
+    },
+  ];
+
+  return mockData;
+}
+
+/**
+ * Transform API task to UI Task format
+ * Maps API field names to UI field names
+ */
+function transformApiTaskToUiTask(apiTask: ApiTask): Task {
+  // Generate initials from name
+  const getInitials = (name: string): string => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 3);
+  };
+
+  // Format date to "Oct 2, 2025" format
+  const formatDate = (dateString: string | null): string => {
+    if (!dateString) return "No Due Date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Calculate age based on last_updated
+  const getAge = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "1 Day";
+    return `${diffDays} Days`;
+  };
+
+  return {
+    id: apiTask.id,
+    title: apiTask.name,
+    property: apiTask.property_name,
+    unit: apiTask.unit_name || undefined,
+    status: apiTask.status,
+    priority: apiTask.priority,
+    due: formatDate(apiTask.due_date),
+    updated: formatDate(apiTask.last_updated),
+    age: getAge(apiTask.last_updated),
+    assignees: apiTask.assignees.map((person) => ({
+      id: person.id,
+      name: person.name,
+      initials: getInitials(person.name),
+    })),
+    collaborators:
+      apiTask.collaborators.length > 0
+        ? apiTask.collaborators.map((person) => ({
+            id: person.id,
+            name: person.name,
+            initials: getInitials(person.name),
+          }))
+        : undefined,
+  };
+}
+
 export default function AllTasks() {
   const navigate = useNavigate();
   const [tasksList, setTasksList] = useState<Task[]>([]);
