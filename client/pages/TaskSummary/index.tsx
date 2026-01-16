@@ -1,0 +1,3023 @@
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import PageHeader from "@/components/PageHeader";
+import {
+  EditIcon,
+  NoteIcon,
+  PaperclipIcon,
+  FlagIcon,
+  CalendarIcon,
+  ApproveIcon,
+} from "@/components/icons";
+import { SectionActionTemplate } from "@/components/templates";
+import PageTemplate from "@/layout/PageTemplate";
+import WorkOrders from "../WorkOrders";
+import TaskWorkOrders from "./TaskWorkOrders";
+import TaskFieldTeamOrders from "./TaskFieldTeamOrders";
+import WorkOrderDetailsV2 from "./WorkOrderDetailsV2";
+import SummaryTab from "./SummaryTab";
+import TaskSummaryModals from "./TaskSummaryModals";
+import { useTabContext } from "@/hooks/useTabContext";
+import { usePageState } from "@/hooks/usePageState";
+import { useTaskSummaryUI } from "@/hooks/useTaskSummaryUI";
+import TaskOverviewCard from "@/components/TaskOverviewCard";
+import TaskLocationCard from "@/components/TaskLocationCard";
+import LinkedTasksCard from "@/components/LinkedTasksCard";
+import TaskUpdatesTimeline from "@/components/TaskUpdatesTimeline";
+import PeopleCard from "@/components/PeopleCard";
+import SectionCard from "@/components/SectionCard";
+import PersonAvatars from "@/components/PersonAvatars";
+import TaskStatusBadge from "@/components/TaskStatusBadge";
+import TaskPriorityBadge from "@/components/TaskPriorityBadge";
+import CreateTaskModal from "@/components/CreateTaskModal";
+import {
+  AddNoteModal,
+  AddFileModal,
+  EditTaskDetailsModal,
+  LinkTaskModal,
+} from "@/components/task";
+import { StatusSelectField } from "@/components/forms/StatusSelectField";
+import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
+import { NotesTemplate } from "@/components/templates";
+import { FilesTemplate } from "@/components/templates";
+import type { Note } from "@/components/templates";
+import type { File } from "@/components/templates";
+import type { LinkedTaskData } from "@/components/task";
+import type { EditTaskDetailsData } from "@/components/task";
+import type { UploadedFile } from "@/components/ui/attachment-uploader";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import PdfViewerModal from "@/components/PdfViewerModal";
+import RecordBillModal from "@/components/RecordBillModal";
+import { MOCK_TASKS } from "@/data/tasks";
+import { fetchJSON } from "@/api/fetchJSON";
+import { useAuth } from "@/auth/useAuth";
+import { usePdfViewer } from "@/hooks/usePdfViewer";
+
+// Vendor master data with contact information
+const vendorMasterData: Record<
+  string,
+  { email: string; phone: string; title: string }
+> = {
+  "ABC Doors & Hardware": {
+    email: "info@abcdoors.com",
+    phone: "(555) 123-1234",
+    title: "Vendor Company",
+  },
+  "Elite HVAC Services": {
+    email: "contact@elitehvac.com",
+    phone: "(555) 234-5678",
+    title: "Vendor Company",
+  },
+  "Glass & Frames Inc": {
+    email: "sales@glassframes.com",
+    phone: "(555) 345-6789",
+    title: "Vendor Company",
+  },
+  "Pro Roofing Solutions": {
+    email: "quote@proroofing.com",
+    phone: "(555) 456-7890",
+    title: "Vendor Company",
+  },
+  "Dolce Plumbing & Heating LLC": {
+    email: "service@dolceplumbing.com",
+    phone: "(555) 567-8901",
+    title: "Vendor Company",
+  },
+  "Spark Electrical": {
+    email: "jobs@sparkelectrical.com",
+    phone: "(555) 678-9012",
+    title: "Vendor Company",
+  },
+  "Premium Painters Co": {
+    email: "estimate@premiumpainters.com",
+    phone: "(555) 789-0123",
+    title: "Vendor Company",
+  },
+  "Quality Flooring LLC": {
+    email: "orders@qualityflooring.com",
+    phone: "(555) 890-1234",
+    title: "Vendor Company",
+  },
+  "Green Lawn Services": {
+    email: "schedule@greenlawn.com",
+    phone: "(555) 901-2345",
+    title: "Vendor Company",
+  },
+  "Outdoor Construction Corp": {
+    email: "bids@outdoorconstruction.com",
+    phone: "(555) 012-3456",
+    title: "Vendor Company",
+  },
+};
+
+// Internal Team Master Data
+const internalTeamMasterData: Record<
+  string,
+  { email: string; phone: string; title: string }
+> = {
+  "Jerry Sanchez": {
+    email: "jerry.sanchez@company.com",
+    phone: "(555) 111-1111",
+    title: "Field Technician",
+  },
+  "Sarah Wilson": {
+    email: "sarah.wilson@company.com",
+    phone: "(555) 555-5555",
+    title: "Project Manager",
+  },
+  "Jane Smith": {
+    email: "jane.smith@company.com",
+    phone: "(555) 333-3333",
+    title: "HVAC Specialist",
+  },
+  "Tom Davis": {
+    email: "tom.davis@company.com",
+    phone: "(555) 666-6666",
+    title: "Supervisor",
+  },
+  "Lisa Brown": {
+    email: "lisa.brown@company.com",
+    phone: "(555) 777-7777",
+    title: "Inspector",
+  },
+  "John Doe": {
+    email: "john.doe@company.com",
+    phone: "(555) 222-2222",
+    title: "Lead Inspector",
+  },
+  "Mike Johnson": {
+    email: "mike.johnson@company.com",
+    phone: "(555) 444-4444",
+    title: "Plumber",
+  },
+  "Julia LoSchiavo": {
+    email: "julia.loschiavo@company.com",
+    phone: "(555) 123-4567",
+    title: "Project Manager",
+  },
+  "Chris Henry": {
+    email: "chris.henry@company.com",
+    phone: "(555) 888-9999",
+    title: "Coordinator",
+  },
+  "Connor Smith": {
+    email: "connor.smith@company.com",
+    phone: "(555) 000-1111",
+    title: "Technician",
+  },
+  "Sarah Martinez": {
+    email: "sarah.martinez@company.com",
+    phone: "(555) 222-4444",
+    title: "Specialist",
+  },
+};
+
+// Field team member master data with contact information
+const fieldTeamMasterData: Record<
+  string,
+  { email: string; phone: string; title: string }
+> = {
+  "Christopher Harris": {
+    email: "christopher.harris@company.com",
+    phone: "(555) 111-2222",
+    title: "Field Lead",
+  },
+  "Cassandra Smith": {
+    email: "cassandra.smith@company.com",
+    phone: "(555) 222-3333",
+    title: "Field Technician",
+  },
+  "David Chen": {
+    email: "david.chen@company.com",
+    phone: "(555) 333-4444",
+    title: "Field Specialist",
+  },
+  "Emma Rodriguez": {
+    email: "emma.rodriguez@company.com",
+    phone: "(555) 444-5555",
+    title: "Field Technician",
+  },
+  "James Wilson": {
+    email: "james.wilson@company.com",
+    phone: "(555) 555-6666",
+    title: "Field Lead",
+  },
+};
+
+// Helper to hydrate person data
+const hydratePerson = (person: {
+  id: number | string;
+  name: string;
+  initials?: string;
+}) => {
+  const internal = internalTeamMasterData[person.name];
+  const field = fieldTeamMasterData[person.name];
+  const vendor = vendorMasterData[person.name];
+  const info = internal || field || vendor;
+
+  // Generate initials if missing
+  const initials =
+    person.initials ||
+    person.name
+      .split(" ")
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase();
+
+  return {
+    ...person,
+    initials,
+    email: info?.email || "",
+    phone: info?.phone || "",
+    title: info?.title || "",
+  };
+};
+
+/**
+ * API response shape for task notes
+ */
+interface ApiTaskNote {
+  id: number;
+  task_id: number;
+  author_type: string;
+  author_id: number;
+  body: string;
+  is_visible_to_client: boolean;
+  created_at: string;
+  updated_at: string | null;
+}
+
+/**
+ * API response shape for task attachments
+ */
+interface ApiTaskAttachment {
+  id: number;
+  task_id: number;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  storage_path: string;
+  uploaded_by_type: string;
+  uploaded_by: number;
+  label: string | null;
+  description: string | null;
+  created_at: string;
+}
+
+/**
+ * API response shape for file upload
+ */
+interface ApiFileUploadResponse {
+  ok: boolean;
+  temp_object_key: string;
+  original_name: string;
+  file_type: string;
+  file_size: number;
+  sha256: string;
+}
+
+/**
+ * API response shape for task updates feed (task_updates table)
+ */
+interface ApiTaskUpdateFeedRow {
+  id: number;
+  task_id: number;
+  actor_type: string;
+  actor_id: number | null;
+  update_type: string;
+  old_value: any | null;
+  new_value: any | null;
+  message: string;
+  attachment_ids: number[] | null;
+  is_visible_to_client: boolean;
+  timestamp: string;
+}
+
+interface PropertyManagerRecord {
+  id: number;
+  name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+}
+
+/**
+ * Transform API note to UI Note format
+ */
+function transformApiNoteToUiNote(
+  apiNote: ApiTaskNote,
+  propertyManagers?: Map<number, string>,
+): Note {
+  // Format date to "MM/DD/YYYY HH:MM AM/PM" format
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // Look up property manager name by author_id, fallback to "User" if not found
+  const authorName =
+    propertyManagers?.get(apiNote.author_id) || "User";
+
+  return {
+    id: apiNote.id,
+    text: apiNote.body,
+    date: formatDate(apiNote.created_at),
+    author: authorName,
+    // Store API fields for potential future use
+    author_type: apiNote.author_type,
+    author_id: apiNote.author_id,
+    is_visible_to_client: apiNote.is_visible_to_client,
+    created_at: apiNote.created_at,
+    updated_at: apiNote.updated_at,
+  };
+}
+
+export default function TaskSummary() {
+  const { taskId, tab, workOrderId } = useParams<{
+    taskId: string;
+    tab?: string;
+    workOrderId?: string;
+  }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const navigationState = location.state as any;
+  const { setSelectedTab, setTabMetadata, tabMetadata } = useTabContext();
+  const { userId } = useAuth();
+
+  // Extract sequentialNumber from navigation state
+  const sequentialNumber = navigationState?.sequentialNumber;
+
+  // Find the task in MOCK_TASKS if navigation state is missing
+  const existingTask = useMemo(() => {
+    return MOCK_TASKS.find((t) => String(t.id) === taskId);
+  }, [taskId]);
+
+  // Use either provided task data or find it from MOCK_TASKS
+  const taskData =
+    navigationState?.taskData || navigationState?.task || existingTask;
+
+  // Log taskData when component opens
+  useEffect(() => {
+    console.log("TaskSummary taskData:", taskData);
+    console.log("TaskSummary requested_by:", taskData?.requested_by);
+  }, [taskData]);
+
+  // Ref for tracking blob URLs created during task initialization
+  const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
+
+  // Initialize UI state reducer
+  const { state: uiState, dispatch: uiDispatch } = useTaskSummaryUI(
+    (tab as "summary" | "workorders" | "fieldteam") || "summary",
+  );
+
+  // PDF viewer hook (same as ApproveFtoPage)
+  const pdfViewer = usePdfViewer();
+
+  // Initialize activeTab and selectedWorkOrderId from URL params on mount and when URL changes
+  useEffect(() => {
+    const tabValue =
+      (tab as "summary" | "workorders" | "fieldteam") || "summary";
+    if (tabValue !== uiState.activeTab) {
+      uiDispatch({ type: "SET_ACTIVE_TAB", payload: tabValue });
+    }
+
+    // Use URL workOrderId if available (on workorders tab with a selection)
+    // Otherwise use preserved ID from location state (when returning from other tabs)
+    const urlId = workOrderId
+      ? parseInt(workOrderId)
+      : navigationState?.preservedWorkOrderId || null;
+    if (urlId !== uiState.selectedWorkOrderId) {
+      uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: urlId });
+    }
+  }, [tab, workOrderId, navigationState?.preservedWorkOrderId, uiDispatch]);
+
+  // Sync state to URL when tab changes (from user clicking tab button)
+  // This happens when handleTabChange calls navigate, then this ensures state is synced
+  /*
+    REMOVED: This effect caused a race condition/bounce because it would try to sync "old" state
+    back to the URL before the URL-to-State sync could update the state.
+    Since we are using URL as the single source of truth and all actions (tabs, rows, create)
+    trigger navigation explicitly, we don't need to sync State -> URL here.
+    We only need to handle the case where no tab is selected (redirect to summary).
+  */
+  useEffect(() => {
+    if (!tab && taskId) {
+      navigate(`/tasks/${taskId}/summary`, {
+        replace: true,
+        state: navigationState, // Preserve the navigation state when redirecting
+      });
+    }
+  }, [tab, taskId, navigate, navigationState]);
+
+  // Handle FTO approval/rejection return state
+  useEffect(() => {
+    if (navigationState?.ftoAction && navigationState?.ftoId) {
+      const actionFtoId = Number(navigationState.ftoId);
+
+      if (navigationState.ftoAction === "approved") {
+        setFieldTeamOrders((prev) =>
+          prev.map((o) =>
+            o.id === actionFtoId
+              ? {
+                  ...o,
+                  status: "approved",
+                  timesheetStatus: "approved",
+                }
+              : o,
+          ),
+        );
+
+        setUpdates((prev) => [
+          {
+            id: prev.length + 1,
+            author: "System",
+            authorType: "assignee",
+            action: `timesheet for field team order #${actionFtoId} was approved`,
+            timestamp: new Date().toLocaleString(),
+            icon: <ApproveIcon width={16} height={16} />,
+          },
+          ...prev,
+        ]);
+      } else if (navigationState.ftoAction === "rejected") {
+        setFieldTeamOrders((prev) =>
+          prev.map((o) =>
+            o.id === actionFtoId
+              ? {
+                  ...o,
+                  status: "dispatched",
+                  timesheetStatus: "rejected",
+                }
+              : o,
+          ),
+        );
+
+        setUpdates((prev) => [
+          {
+            id: prev.length + 1,
+            author: "System",
+            authorType: "assignee",
+            action: `timesheet for field team order #${actionFtoId} was rejected`,
+            timestamp: new Date().toLocaleString(),
+            icon: <EditIcon width={16} height={16} />,
+          },
+          ...prev,
+        ]);
+      }
+    }
+  }, [navigationState?.ftoAction, navigationState?.ftoId]);
+
+  // Determine if this is a new task
+  const isNewTask = !!(
+    navigationState?.taskData ||
+    navigationState?.task ||
+    (existingTask && taskId !== "1")
+  ); // Task 1 is our "Edgerton" demo
+
+  // Update tab metadata with actual task name and switch to task tab
+  useEffect(() => {
+    if (taskId && taskData?.title) {
+      const tabId = `task-${taskId}`;
+      const activeTab =
+        (tab as "summary" | "workorders" | "fieldteam") || "summary";
+      setTabMetadata(tabId, {
+        label: taskData.title,
+        route: `/tasks/${taskId}/${activeTab}`,
+        sectionId: "all-tasks",
+      });
+      setSelectedTab(tabId);
+    }
+  }, [taskId, taskData?.title, tab, setTabMetadata, setSelectedTab]);
+
+  // Track creation timestamp - set once and never change
+  const [createdTimestamp] = useState<string>(() => {
+    // Use provided creation timestamp or current time
+    return (
+      taskData?.createdAt || taskData?.updated || new Date().toLocaleString()
+    );
+  });
+
+  // Track last updated timestamp - updates when task is modified
+  const [lastUpdatedTimestamp, setLastUpdatedTimestamp] =
+    useState<string>(createdTimestamp);
+
+  // Notes state - loaded from API
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+
+  // Property managers map (ID -> name) for matching note authors
+  const [propertyManagers, setPropertyManagers] = useState<
+    Map<number, string>
+  >(new Map());
+
+  // Property managers details (ID -> details) for matching update actors
+  const [propertyManagerDetailsById, setPropertyManagerDetailsById] = useState<
+    Map<number, { name: string; email: string; phone?: string; role: string }>
+  >(new Map());
+
+  // Property manager details for the creator (requested_by)
+  const [creatorDetails, setCreatorDetails] = useState<{
+    name: string;
+    email: string;
+    role: string;
+    phone?: string;
+    initials: string;
+  } | null>(null);
+
+  // Fetch property managers on mount
+  useEffect(() => {
+    const fetchPropertyManagers = async () => {
+      try {
+        const data: PropertyManagerRecord[] = await fetchJSON(
+          "/users/property-managers",
+        );
+        const pmMap = new Map<number, string>();
+        const pmDetailsMap = new Map<
+          number,
+          { name: string; email: string; phone?: string; role: string }
+        >();
+        data.forEach((pm: any) => {
+          const id = Number(pm.id);
+          const name = pm.name || pm.email || `PM ${pm.id}`;
+          const email = pm.email || "";
+          const role = pm.role || "Property Manager";
+          const phone = pm.phone;
+
+          pmMap.set(id, name);
+          pmDetailsMap.set(id, { name, email, role, phone });
+        });
+        setPropertyManagers(pmMap);
+        setPropertyManagerDetailsById(pmDetailsMap);
+        
+        // If taskData has requested_by, find and set creator details
+        const requestedById = taskData?.requested_by ?? null;
+        if (requestedById != null) {
+          const creator = data.find((pm: any) => Number(pm.id) === Number(requestedById));
+          if (creator) {
+            const name = creator.name || creator.email || "Unknown";
+            const initials = name
+              .split(" ")
+              .slice(0, 2)
+              .map((w: string) => w[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2);
+            
+            setCreatorDetails({
+              name,
+              email: creator.email || "",
+              role: creator.role || "Property Manager",
+              phone: creator.phone,
+              initials,
+            });
+          } else {
+            console.warn(`Property manager with ID ${requestedById} not found in property managers list`);
+          }
+        } else {
+          console.log("No requested_by ID found in taskData:", taskData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch property managers:", err);
+      }
+    };
+
+    fetchPropertyManagers();
+  }, [taskData?.requested_by]);
+
+  const initialsFromName = useCallback((name: string): string => {
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  }, []);
+
+  const formatTimestamp = useCallback((ts: string): string => {
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return ts;
+    return d.toLocaleString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }, []);
+
+  const normalizeStatusForBadge = useCallback((status: string | undefined) => {
+    if (!status) return "not_started";
+    const s = String(status).toLowerCase();
+    if (s === "in_progress") return "in_progress";
+    if (s === "open") return "not_started";
+    if (s === "closed" || s === "completed") return "completed";
+    // fallbacks for other backend statuses
+    if (s === "scheduled" || s === "pending_vendor") return "in_progress";
+    if (s === "cancelled") return "completed";
+    return "not_started";
+  }, []);
+
+  const normalizePriorityForBadge = useCallback((priority: string | undefined) => {
+    if (!priority) return "normal";
+    const p = String(priority).toLowerCase();
+    if (p === "medium") return "normal";
+    if (p === "low" || p === "normal" || p === "high" || p === "urgent") return p;
+    return "normal";
+  }, []);
+
+  const buildUpdateFieldsDisplay = useCallback(
+    (row: ApiTaskUpdateFeedRow) => {
+      const oldV = (row.old_value ?? {}) as any;
+      const newV = (row.new_value ?? {}) as any;
+
+      // creation: show status/priority/due date/assignees grid (matches screenshot)
+      if (row.update_type === "task_created") {
+        const fallbackStatus =
+          typeof taskData?.status === "string" ? taskData.status : undefined;
+        const fallbackPriority =
+          typeof taskData?.priority === "string" ? taskData.priority : undefined;
+
+        const statusBadge = (
+          <TaskStatusBadge
+            status={normalizeStatusForBadge(newV.status || fallbackStatus)}
+          />
+        );
+        const priorityBadge = (
+          <TaskPriorityBadge
+            priority={normalizePriorityForBadge(newV.priority || fallbackPriority)}
+          />
+        );
+        const rawDueDate =
+          newV.due_date || taskData?.dueDate || taskData?.due || taskData?.due_date;
+        const due = rawDueDate ? new Date(rawDueDate) : null;
+        const dueLabel =
+          due && !Number.isNaN(due.getTime())
+            ? due.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "No due date";
+
+        const assignees: Array<{ id: number; name: string; email?: string }> =
+          Array.isArray(newV.assignees)
+            ? newV.assignees
+            : Array.isArray(taskData?.assignees)
+              ? taskData.assignees
+              : [];
+        const people = assignees.map((a) => ({
+          id: a.id,
+          name: a.name,
+          initials: initialsFromName(a.name),
+          email: a.email,
+        }));
+
+        return (
+          <div className="grid grid-cols-4 gap-6 mt-3">
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Status
+              </div>
+              <div className="mt-0.5">{statusBadge}</div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Priority
+              </div>
+              <div className="mt-0.5">{priorityBadge}</div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Due Date
+              </div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">
+                {dueLabel}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Assignees
+              </div>
+              <div className="mt-0.5">
+                <PersonAvatars people={people} type="assignee" />
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // status / priority / assignee changes: show a minimal grid of the changed field
+      if (row.update_type === "status_change") {
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Status
+              </div>
+              <div className="mt-0.5">
+                <TaskStatusBadge status={normalizeStatusForBadge(newV.status)} />
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (row.update_type === "priority_change") {
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Priority
+              </div>
+              <div className="mt-0.5">
+                <TaskPriorityBadge
+                  priority={normalizePriorityForBadge(newV.priority)}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (row.update_type === "assignee_change") {
+        const assignees: Array<{ id: number; name: string; email?: string }> =
+          Array.isArray(newV.assignees) ? newV.assignees : [];
+        const people = assignees.map((a) => ({
+          id: a.id,
+          name: a.name,
+          initials: initialsFromName(a.name),
+          email: a.email,
+        }));
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Assignees
+              </div>
+              <div className="mt-0.5">
+                <PersonAvatars people={people} type="assignee" />
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Generic fallback: if the row contains known fields in new_value, render them
+      // (covers update_type like "general_update", "due_date_change", etc.)
+      const hasStatus = typeof newV.status === "string";
+      const hasPriority = typeof newV.priority === "string";
+      const hasDueDate = typeof newV.due_date === "string";
+      const hasAssignees = Array.isArray(newV.assignees);
+
+      if (!hasStatus && !hasPriority && !hasDueDate && !hasAssignees) {
+        void oldV;
+        return undefined;
+      }
+
+      const cells: Array<{ label: string; value: React.ReactNode }> = [];
+
+      if (hasStatus) {
+        cells.push({
+          label: "Status",
+          value: (
+            <TaskStatusBadge status={normalizeStatusForBadge(newV.status)} />
+          ),
+        });
+      }
+
+      if (hasPriority) {
+        cells.push({
+          label: "Priority",
+          value: (
+            <TaskPriorityBadge
+              priority={normalizePriorityForBadge(newV.priority)}
+            />
+          ),
+        });
+      }
+
+      if (hasDueDate) {
+        const d = new Date(newV.due_date);
+        const dueLabel =
+          !Number.isNaN(d.getTime())
+            ? d.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : String(newV.due_date);
+        cells.push({
+          label: "Due Date",
+          value: (
+            <div className="text-sm text-[#303030] font-medium mt-0.5">
+              {dueLabel}
+            </div>
+          ),
+        });
+      }
+
+      if (hasAssignees) {
+        const assignees: Array<{ id: number; name: string; email?: string }> =
+          newV.assignees;
+        const people = assignees.map((a) => ({
+          id: a.id,
+          name: a.name,
+          initials: initialsFromName(a.name),
+          email: a.email,
+        }));
+        cells.push({
+          label: "Assignees",
+          value: <PersonAvatars people={people} type="assignee" />,
+        });
+      }
+
+      // 1 col on small, 2 on md, 3 on lg (same style as other updates)
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
+          {cells.map((c) => (
+            <div key={c.label}>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                {c.label}
+              </div>
+              <div className="mt-0.5">{c.value}</div>
+            </div>
+          ))}
+        </div>
+      );
+    },
+    [
+      initialsFromName,
+      normalizePriorityForBadge,
+      normalizeStatusForBadge,
+      taskData,
+    ],
+  );
+
+  // Load notes from API
+  const loadNotes = useCallback(async () => {
+    if (!taskId) return;
+
+    try {
+      setNotesLoading(true);
+      const apiNotes: ApiTaskNote[] = await fetchJSON(
+        `/maintenance/tasks/id/${taskId}/notes`,
+      );
+      const transformedNotes = apiNotes.map((note) =>
+        transformApiNoteToUiNote(note, propertyManagers),
+      );
+      setNotes(transformedNotes);
+    } catch (error) {
+      console.error("Error loading notes:", error);
+      setNotes([]);
+    } finally {
+      setNotesLoading(false);
+    }
+  }, [taskId, propertyManagers]);
+
+  // Load notes on mount and when taskId changes
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
+
+  // Handle creating a new note
+  const handleCreateNote = useCallback(
+    async (body: string, isVisibleToClient: boolean = false) => {
+      if (!taskId) return;
+      if (!userId) {
+        console.error("User ID is required to create a note");
+        throw new Error("User ID is required");
+      }
+
+      try {
+        const newNote = await fetchJSON(`/maintenance/tasks/id/${taskId}/notes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            author_type: "property_manager",
+            author_id: userId,
+            body,
+            is_visible_to_client: isVisibleToClient,
+          }),
+        });
+        const transformedNote = transformApiNoteToUiNote(
+          newNote,
+          propertyManagers,
+        );
+        setNotes((prev) => [transformedNote, ...prev]);
+      } catch (error) {
+        console.error("Error creating note:", error);
+        throw error;
+      }
+    },
+    [taskId, userId, propertyManagers],
+  );
+
+  // Handle updating a note
+  const handleUpdateNote = useCallback(
+    async (noteId: number, body: string, isVisibleToClient?: boolean) => {
+      try {
+        const updateData: any = { body };
+        if (isVisibleToClient !== undefined) {
+          updateData.is_visible_to_client = isVisibleToClient;
+        }
+
+        const updatedNote = await fetchJSON(`/maintenance/notes/${noteId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateData),
+        });
+        const transformedNote = transformApiNoteToUiNote(
+          updatedNote,
+          propertyManagers,
+        );
+        setNotes((prev) =>
+          prev.map((n) => (n.id === noteId ? transformedNote : n)),
+        );
+      } catch (error) {
+        console.error("Error updating note:", error);
+        throw error;
+      }
+    },
+    [propertyManagers],
+  );
+
+  // Handle deleting a note
+  const handleDeleteNote = useCallback(async (noteId: number) => {
+    try {
+      await fetchJSON(`/maintenance/notes/${noteId}`, {
+        method: "DELETE",
+      });
+      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      throw error;
+    }
+  }, []);
+
+  // Handle creating a new file attachment (two-step: upload then create)
+  const handleCreateFile = useCallback(
+    async (
+      uploadedFiles: Array<{
+        id: string;
+        name: string;
+        file?: File;
+        url?: string;
+      }>,
+      category: string,
+      description: string,
+    ) => {
+      if (!taskId) return;
+      if (!userId) {
+        console.error("User ID is required to create a file");
+        throw new Error("User ID is required");
+      }
+      if (uploadedFiles.length === 0 || !uploadedFiles[0].file) {
+        throw new Error("File is required");
+      }
+
+      try {
+        const file = uploadedFiles[0].file!;
+
+        // Step 1: Upload file to temporary storage
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // For multipart/form-data, we need to use fetch directly (not fetchJSON)
+        // because fetchJSON sets Content-Type: application/json, but we need the browser
+        // to set Content-Type with boundary for multipart/form-data
+        const API_BASE = "http://localhost:8080";
+        const uploadRes = await fetch(`${API_BASE}/maintenance/tasks/attachments/upload`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+          // Don't set Content-Type - browser will set it with boundary
+        });
+
+        if (!uploadRes.ok) {
+          const text = await uploadRes.text();
+          throw new Error(`Upload failed ${uploadRes.status}: ${text}`);
+        }
+
+        const uploadResponse: ApiFileUploadResponse = await uploadRes.json();
+
+        // Step 2: Create attachment record
+        const newAttachment = await fetchJSON(
+          `/maintenance/tasks/id/${taskId}/attachments`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              file_name: uploadResponse.original_name,
+              file_type: uploadResponse.file_type,
+              file_size: uploadResponse.file_size,
+              storage_path: uploadResponse.temp_object_key,
+              uploaded_by_type: "property_manager",
+              uploaded_by: userId,
+              label: category || null,
+              description: description || null,
+            }),
+          },
+        );
+
+        const transformedFile = transformApiAttachmentToUiFile(newAttachment);
+        setFiles((prev) => [transformedFile, ...prev]);
+      } catch (error) {
+        console.error("Error creating file:", error);
+        throw error;
+      }
+    },
+    [taskId, userId],
+  );
+
+  // Handle updating a file attachment
+  const handleUpdateFile = useCallback(
+    async (fileId: number, label?: string, description?: string) => {
+      try {
+        const updateData: any = {};
+        if (label !== undefined) {
+          updateData.label = label || null;
+        }
+        if (description !== undefined) {
+          updateData.description = description || null;
+        }
+
+        const updatedAttachment = await fetchJSON(
+          `/maintenance/attachments/${fileId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updateData),
+          },
+        );
+
+        const transformedFile = transformApiAttachmentToUiFile(updatedAttachment);
+        setFiles((prev) =>
+          prev.map((f) => (f.id === fileId ? transformedFile : f)),
+        );
+      } catch (error) {
+        console.error("Error updating file:", error);
+        throw error;
+      }
+    },
+    [],
+  );
+
+  // Handle deleting a file attachment
+  const handleDeleteFile = useCallback(async (fileId: number) => {
+    try {
+      await fetchJSON(`/maintenance/attachments/${fileId}`, {
+        method: "DELETE",
+      });
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      throw error;
+    }
+  }, []);
+
+  // Files state - loaded from API
+  const [files, setFiles] = useState<File[]>([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+
+  /**
+   * Transform API attachment to UI File format
+   */
+  const transformApiAttachmentToUiFile = (
+    apiAttachment: ApiTaskAttachment,
+  ): File => {
+    // Format date to "MM/DD/YYYY HH:MM AM/PM" format
+    const formatDate = (dateString: string): string => {
+      const date = new Date(dateString);
+      return date.toLocaleString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    };
+
+    // TODO: Construct file URL from storage_path if needed
+    // For now, we'll leave url undefined and handle it later if needed
+    return {
+      id: apiAttachment.id,
+      name: apiAttachment.file_name,
+      url: undefined, // TODO: Construct download URL from storage_path if needed
+      uploadedAt: formatDate(apiAttachment.created_at),
+      category: apiAttachment.label || "",
+      description: apiAttachment.description || "",
+      // Store API fields for potential future use
+      file_type: apiAttachment.file_type,
+      file_size: apiAttachment.file_size,
+      storage_path: apiAttachment.storage_path,
+      uploaded_by_type: apiAttachment.uploaded_by_type,
+      uploaded_by: apiAttachment.uploaded_by,
+    };
+  };
+
+  // Load attachments from API
+  const loadFiles = useCallback(async () => {
+    if (!taskId) return;
+
+    try {
+      setFilesLoading(true);
+      const apiAttachments: ApiTaskAttachment[] = await fetchJSON(
+        `/maintenance/tasks/id/${taskId}/attachments`,
+      );
+      const transformedFiles = apiAttachments.map(transformApiAttachmentToUiFile);
+      setFiles(transformedFiles);
+    } catch (error) {
+      console.error("Error loading files:", error);
+      setFiles([]);
+    } finally {
+      setFilesLoading(false);
+    }
+  }, [taskId]);
+
+  // Load files on mount and when taskId changes
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
+
+  const getAttachmentData = (file: any, index?: number) => {
+    const fileUrl: string | undefined =
+      file?.file instanceof File
+        ? URL.createObjectURL(file.file)
+        : typeof file?.url === "string"
+          ? file.url
+          : undefined;
+
+    if (fileUrl && fileUrl.startsWith("blob:")) {
+      createdAttachmentUrlsRef.current.add(fileUrl);
+    }
+
+    const isImage =
+      typeof file?.type === "string"
+        ? file.type.startsWith("image/")
+        : typeof file?.name === "string"
+          ? /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
+          : false;
+
+    // Ensure ID is stable and unique. Prefer file.id, fallback to name+index for initial files
+    const stableId =
+      file.id || (index !== undefined ? `${file.name}-${index}` : file.name);
+
+    return {
+      name: file.name,
+      url: fileUrl,
+      preview: isImage ? fileUrl : undefined,
+      id: String(stableId),
+    };
+  };
+
+  const getInitialUpdate = () => {
+    const statusMap: { [key: string]: string } = {
+      not_started: "Not Started",
+      in_progress: "In Progress",
+      completed: "Completed",
+      "Not Started": "Not Started",
+      "In Progress": "In Progress",
+      Completed: "Completed",
+    };
+    const priorityLabel = taskData?.priority
+      ? typeof taskData.priority === "string"
+        ? taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1)
+        : taskData.priority
+      : "Normal";
+    const dueDate =
+      taskData?.dueDate || taskData?.due
+        ? taskData.dueDate instanceof Date
+          ? taskData.dueDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : taskData.dueDate || taskData.due
+        : "No due date";
+    const fields = [
+      {
+        label: "Status",
+        value: (
+          <TaskStatusBadge
+            status={
+              (statusMap[taskData?.status] ||
+                taskData?.status ||
+                "Not Started") as any
+            }
+          />
+        ),
+      },
+      {
+        label: "Priority",
+        value: <TaskPriorityBadge priority={priorityLabel as any} />,
+      },
+      { label: "Due Date", value: dueDate },
+      {
+        label: "Assignees",
+        value: (
+          <PersonAvatars
+            people={taskData?.assignees || []}
+            type="assignee"
+            fallback="Unassigned"
+          />
+        ),
+      },
+    ];
+
+    if (taskData?.collaborators && taskData.collaborators.length > 0) {
+      fields.push({
+        label: "Collaborators",
+        value: (
+          <PersonAvatars people={taskData.collaborators} type="collaborator" />
+        ),
+      });
+    }
+
+    return {
+      id: 0,
+      author: "Julia LoSchiavo",
+      authorType: "assignee",
+      authorEmail: "julia.loschiavo@company.com",
+      authorPhone: "(555) 123-4567",
+      authorTitle: "Project Manager",
+      action: "created this task",
+      timestamp: new Date().toLocaleString(),
+      fieldsDisplay: (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
+          {fields.map((field, idx) => (
+            <div key={idx}>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                {field.label}
+              </div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">
+                {field.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      ),
+      ...(taskData?.description && {
+        details: (
+          <div className="text-sm text-[#303030]">{taskData.description}</div>
+        ),
+      }),
+      ...(taskData?.files &&
+        taskData.files.length > 0 && {
+          attachments: taskData.files.map((f: any, idx: number) =>
+            getAttachmentData(f, idx),
+          ),
+          onAttachmentClick: (file: any) => {
+            uiDispatch({
+              type: "SET_VIEWING_ATTACHMENT",
+              payload: { id: file.id, name: file.name, url: file.url },
+            });
+            uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
+            uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
+          },
+        }),
+      icon: <FlagIcon width={16} height={16} />,
+      isInitialCreation: true,
+    };
+  };
+
+  // Initialize updates based on whether this is a newly created task
+  const getInitialUpdates = () => {
+    if (isNewTask || existingTask) {
+      // For newly created or existing MOCK tasks, start with just the creation update
+      return [getInitialUpdate()];
+    }
+
+    // For existing tasks (like the Edgerton demo), show just the creation update
+    return [
+      {
+        id: 0,
+        author: "Julia LoSchiavo",
+        authorType: "assignee",
+        authorEmail: "julia.loschiavo@company.com",
+        authorPhone: "(555) 123-4567",
+        authorTitle: "Project Manager",
+        action: "created this task",
+        timestamp: "11/12/2025 9:22 PM",
+        fieldsDisplay: (
+          <div className="grid grid-cols-4 gap-6 mt-3">
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Status
+              </div>
+              <div className="mt-0.5">
+                <TaskStatusBadge status="Not Started" />
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Priority
+              </div>
+              <div className="mt-0.5">
+                <TaskPriorityBadge priority="Normal" />
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Due Date
+              </div>
+              <div className="text-sm text-[#303030] font-medium mt-0.5">
+                Oct 15, 2025
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                Assignees
+              </div>
+              <div className="mt-0.5">
+                <PersonAvatars
+                  people={[{ id: 1, name: "Julia LoSchiavo", initials: "JL" }]}
+                  type="assignee"
+                />
+              </div>
+            </div>
+          </div>
+        ),
+        details: (
+          <div className="text-sm text-[#303030]">
+            We have been experiencing issues with the water heater. At first we
+            thought the issue was due to us just moving in and maybe the water
+            heater needed time to heat up after no tenants. It has been 3 days
+            in a row now that we lose hot water mid shower.
+          </div>
+        ),
+        icon: <FlagIcon width={16} height={16} />,
+        isInitialCreation: true,
+      },
+    ];
+  };
+
+  // Updates timeline (should be sourced from DB via updates-feed endpoint)
+  const [updates, setUpdates] = useState<any[]>([]);
+  const [updatesLoading, setUpdatesLoading] = useState(false);
+  const [currentProperty, setCurrentProperty] = useState<string>(
+    taskData?.property || "",
+  );
+  const [currentPropertyId, setCurrentPropertyId] = useState<number | undefined>(
+    taskData?.property_id,
+  );
+  const [currentUnit, setCurrentUnit] = useState<string>(taskData?.unit || "");
+  const [currentUnitId, setCurrentUnitId] = useState<number | undefined>(
+    taskData?.unit_id,
+  );
+  const [currentTitle, setCurrentTitle] = useState<string>(
+    taskData?.title || "Edgerton - Quote",
+  );
+  const [currentDescription, setCurrentDescription] = useState<string>(
+    taskData?.description ||
+      (isNewTask
+        ? ""
+        : "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower."),
+  );
+  const [currentCategory, setCurrentCategory] = useState<string>(
+    taskData?.category || "Uncategorized",
+  );
+  const [currentStatus, setCurrentStatus] = useState<string>(() => {
+    // UI expects: not_started | in_progress | completed
+    // Backend may send: open | in_progress | pending_vendor | scheduled | closed | cancelled
+    const status = taskData?.status || "not_started";
+    if (status === "Completed") return "completed";
+    if (status === "In Progress") return "in_progress";
+    if (status === "Not Started") return "not_started";
+    return normalizeStatusForBadge(
+      typeof status === "string" ? status : undefined,
+    );
+  });
+  const [currentPriority, setCurrentPriority] = useState<string>(() => {
+    // UI expects: low | normal | high | urgent (backend may send "medium")
+    const priority = taskData?.priority || "normal";
+    if (priority === "Normal") return "normal";
+    if (priority === "High") return "high";
+    if (priority === "Low") return "low";
+    if (priority === "Urgent") return "urgent";
+    return normalizePriorityForBadge(
+      typeof priority === "string" ? priority : undefined,
+    );
+  });
+  const [currentDueDate, setCurrentDueDate] = useState<Date | null>(() => {
+    const rawDueDate = taskData?.dueDate || taskData?.due;
+    if (rawDueDate) {
+      const date = new Date(rawDueDate);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return isNewTask ? null : new Date(2025, 9, 15); // Oct 15, 2025
+  });
+  const [currentAssignees, setCurrentAssignees] = useState<any[]>(() => {
+    if (taskData?.assignees && taskData.assignees.length > 0) {
+      return taskData.assignees;
+    }
+    return isNewTask
+      ? []
+      : [hydratePerson({ id: 1, name: "Julia LoSchiavo", initials: "JL" })];
+  });
+  const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(
+    () => {
+      if (taskData?.collaborators && taskData.collaborators.length > 0) {
+        return taskData.collaborators;
+      }
+      return isNewTask
+        ? []
+        : [
+            hydratePerson({ id: 2, name: "Chris Henry", initials: "CH" }),
+            hydratePerson({ id: 3, name: "Connor Smith", initials: "CS" }),
+            hydratePerson({ id: 8, name: "Sarah Martinez", initials: "SM" }),
+          ];
+    },
+  );
+
+  // Keep top-bar fields in sync if taskData changes (e.g. refreshed navigation state)
+  useEffect(() => {
+    if (typeof taskData?.status === "string") {
+      setCurrentStatus(normalizeStatusForBadge(taskData.status));
+    }
+    if (typeof taskData?.priority === "string") {
+      setCurrentPriority(normalizePriorityForBadge(taskData.priority));
+    }
+  }, [taskData?.status, taskData?.priority, normalizeStatusForBadge, normalizePriorityForBadge]);
+
+  const loadUpdatesFromDb = useCallback(async () => {
+    if (!taskId) return;
+
+    try {
+      setUpdatesLoading(true);
+
+      const [rows, attachments]: [ApiTaskUpdateFeedRow[], ApiTaskAttachment[]] =
+        await Promise.all([
+          fetchJSON(`/maintenance/tasks/id/${taskId}/updates-feed`),
+          fetchJSON(`/maintenance/tasks/id/${taskId}/attachments`),
+        ]);
+
+      const attachmentById = new Map<number, ApiTaskAttachment>();
+      attachments.forEach((a) => attachmentById.set(Number(a.id), a));
+
+      const mapped = (rows || []).map((row) => {
+        const pm =
+          row.actor_id != null
+            ? propertyManagerDetailsById.get(Number(row.actor_id))
+            : undefined;
+
+        const authorName =
+          pm?.name ||
+          (row.actor_type === "system" || row.actor_id == null ? "System" : "User");
+        const authorEmail = pm?.email || "";
+        const authorPhone = pm?.phone || "";
+        const authorTitle = pm?.role || (authorName === "System" ? "System" : "");
+        const initials = initialsFromName(authorName);
+
+        const oldV = (row.old_value ?? {}) as any;
+        const newV = (row.new_value ?? {}) as any;
+
+        let action = row.message || "made an update";
+        let actionValue: any = undefined;
+
+        if (row.update_type === "task_created") {
+          action = "created this task";
+        } else if (row.update_type === "status_change") {
+          const oldStatus = oldV.status ? String(oldV.status) : "";
+          const newStatus = newV.status ? String(newV.status) : "";
+          action = oldStatus ? `updated status from ${oldStatus} to` : "updated status to";
+          actionValue = newStatus || undefined;
+        } else if (row.update_type === "priority_change") {
+          const oldPr = oldV.priority ? String(oldV.priority) : "";
+          const newPr = newV.priority ? String(newV.priority) : "";
+          action = oldPr
+            ? `updated priority from ${oldPr} to`
+            : "updated priority to";
+          actionValue = newPr || undefined;
+        } else if (row.update_type === "assignee_change") {
+          action = "updated assignees";
+        }
+
+        const attachmentIds = Array.isArray(row.attachment_ids)
+          ? row.attachment_ids
+          : [];
+
+        const timelineAttachments = attachmentIds
+          .map((id) => attachmentById.get(Number(id)))
+          .filter(Boolean)
+          .map((a) => {
+            const url = a!.storage_path;
+            const isImage =
+              typeof a!.file_type === "string"
+                ? a!.file_type.startsWith("image/")
+                : /\.(jpg|jpeg|png|gif|webp)$/i.test(a!.file_name);
+
+            return {
+              id: String(a!.id),
+              name: a!.file_name,
+              url,
+              preview: isImage ? url : undefined,
+            };
+          });
+
+        return {
+          id: row.id,
+          author: authorName,
+          authorType: "assignee",
+          authorEmail,
+          authorPhone,
+          authorTitle,
+          initials,
+          action,
+          actionValue,
+          timestamp: formatTimestamp(row.timestamp),
+          fieldsDisplay: buildUpdateFieldsDisplay(row),
+          icon:
+            row.update_type === "task_created" ? (
+              <FlagIcon width={16} height={16} />
+            ) : (
+              <EditIcon width={16} height={16} />
+            ),
+          isInitialCreation: row.update_type === "task_created",
+          ...(timelineAttachments.length > 0 && {
+            attachments: timelineAttachments,
+            onAttachmentClick: (file: any) => {
+              if (file?.url) window.open(file.url, "_blank");
+            },
+          }),
+        };
+      });
+
+      setUpdates(mapped);
+    } catch (err) {
+      console.error("Failed to load updates feed:", err);
+      setUpdates([]);
+    } finally {
+      setUpdatesLoading(false);
+    }
+  }, [
+    taskId,
+    buildUpdateFieldsDisplay,
+    formatTimestamp,
+    initialsFromName,
+    propertyManagerDetailsById,
+  ]);
+
+  // Load updates feed on mount and when taskId changes
+  useEffect(() => {
+    loadUpdatesFromDb();
+  }, [loadUpdatesFromDb]);
+
+  // Sync assignees and collaborators when taskData changes
+  useEffect(() => {
+    if (taskData?.assignees && taskData.assignees.length > 0) {
+      setCurrentAssignees(taskData.assignees);
+    }
+    if (taskData?.collaborators && taskData.collaborators.length > 0) {
+      setCurrentCollaborators(taskData.collaborators);
+    }
+  }, [taskData?.assignees, taskData?.collaborators]);
+
+  // Mock data types
+  interface Assignee {
+    id: number;
+    name: string;
+    initials: string;
+  }
+
+  interface WorkOrder {
+    id: number;
+    task: string;
+    taskId: number;
+    property: string;
+    unit: string;
+    dueDate: string | Date | null;
+    updatedDate: string;
+    age: string;
+    priority: string;
+    status: string;
+    billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
+    billTotal: string;
+    assignees: Assignee[];
+    collaborators: Assignee[];
+    vendorName?: string;
+  }
+
+  // Mock work orders data - memoized to ensure hydratePerson is available
+  const mockWorkOrders: WorkOrder[] = useMemo(
+    () => [
+      {
+        id: 1,
+        task: "Doors need to be repaired",
+        taskId: 1,
+        property: "Downtown Building",
+        unit: "Unit 101",
+        dueDate: "Oct 2, 2025",
+        updatedDate: "Oct 2, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "in_progress",
+        billStatus: "Paid",
+        billTotal: "$420",
+        assignees: [
+          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
+        ],
+        vendorName: "ABC Doors & Hardware",
+      },
+      {
+        id: 2,
+        task: "HVAC maintenance needed",
+        taskId: 2,
+        property: "Riverside Complex",
+        unit: "Unit 205",
+        dueDate: "Sep 29, 2025",
+        updatedDate: "Sep 29, 2025",
+        age: "6 days 5 hours",
+        priority: "low",
+        status: "in_progress",
+        billStatus: "Awaiting Invoice",
+        billTotal: "No invoice",
+        assignees: [
+          hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
+          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
+        ],
+        vendorName: "Elite HVAC Services",
+      },
+      {
+        id: 3,
+        task: "Window replacement",
+        taskId: 3,
+        property: "Central Plaza",
+        unit: "Unit 312",
+        dueDate: "Sep 10, 2025",
+        updatedDate: "Sep 10, 2025",
+        age: "6 days 5 hours",
+        priority: "normal",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$95",
+        assignees: [
+          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
+        ],
+        collaborators: [],
+        vendorName: "Glass & Frames Inc",
+      },
+      {
+        id: 4,
+        task: "Roof inspection",
+        taskId: 4,
+        property: "Highland Towers",
+        unit: "Roof Level",
+        dueDate: "Sep 6, 2025",
+        updatedDate: "Sep 6, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$112",
+        assignees: [hydratePerson({ id: 2, name: "John Doe", initials: "JD" })],
+        collaborators: [
+          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
+        ],
+        vendorName: "Pro Roofing Solutions",
+      },
+      {
+        id: 5,
+        task: "Plumbing repair",
+        taskId: 5,
+        property: "Market Street Apt",
+        unit: "Unit 404",
+        dueDate: "Sep 5, 2025",
+        updatedDate: "Sep 5, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$93",
+        assignees: [
+          hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
+        ],
+        vendorName: "Dolce Plumbing & Heating LLC",
+      },
+      {
+        id: 6,
+        task: "Electrical work",
+        taskId: 6,
+        property: "Oak Ridge Manor",
+        unit: "Unit 501",
+        dueDate: "Sep 4, 2025",
+        updatedDate: "Sep 4, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$75",
+        assignees: [
+          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
+          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
+        ],
+        vendorName: "Spark Electrical",
+      },
+      {
+        id: 7,
+        task: "Painting job",
+        taskId: 7,
+        property: "Park Avenue Building",
+        unit: "Unit 102",
+        dueDate: "Sep 4, 2025",
+        updatedDate: "Sep 4, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$101",
+        assignees: [
+          hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
+        ],
+        collaborators: [],
+        vendorName: "Premium Painters Co",
+      },
+      {
+        id: 8,
+        task: "Carpet replacement",
+        taskId: 8,
+        property: "Westside Residences",
+        unit: "Unit 203",
+        dueDate: "Sep 3, 2025",
+        updatedDate: "Sep 3, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$124",
+        assignees: [hydratePerson({ id: 2, name: "John Doe", initials: "JD" })],
+        collaborators: [
+          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
+        ],
+        vendorName: "Quality Flooring LLC",
+      },
+      {
+        id: 9,
+        task: "Landscaping work",
+        taskId: 9,
+        property: "Spring Valley Complex",
+        unit: "Common Area",
+        dueDate: "Sep 1, 2025",
+        updatedDate: "Sep 1, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$67",
+        assignees: [
+          hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
+          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
+        ],
+        vendorName: "Green Lawn Services",
+      },
+      {
+        id: 10,
+        task: "Fence repair",
+        taskId: 10,
+        property: "Lakeside Gardens",
+        unit: "Unit 606",
+        dueDate: "Sep 1, 2025",
+        updatedDate: "Sep 1, 2025",
+        age: "6 days 5 hours",
+        priority: "high",
+        status: "completed",
+        billStatus: "Unpaid",
+        billTotal: "$118",
+        assignees: [
+          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
+        ],
+        collaborators: [
+          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
+        ],
+        vendorName: "Outdoor Construction Corp",
+      },
+    ],
+    [],
+  );
+
+  // Work orders and field team orders state
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
+  const [isUpdateWorkOrderModalOpen, setIsUpdateWorkOrderModalOpen] =
+    useState(false);
+
+  // Mock field team orders data - memoized to ensure hydratePerson is available
+  const mockFieldTeamOrders = useMemo(
+    () => [
+      {
+        id: 1,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Oct 2, 2025",
+        priority: "high",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 420,
+        unit: "Unit",
+      },
+      {
+        id: 2,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 29, 2025",
+        priority: "normal",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "approved",
+        timesheetStatus: "approved",
+        amount: 95,
+        unit: "Unit",
+      },
+      {
+        id: 3,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 10, 2025",
+        priority: "low",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "pending-approval",
+        timesheetStatus: "submitted",
+        amount: 95,
+        unit: "Unit",
+      },
+      {
+        id: 4,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 6, 2025",
+        priority: "high",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 112,
+        unit: "Unit",
+      },
+      {
+        id: 5,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 5, 2025",
+        priority: "normal",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "approved",
+        amount: 93,
+        unit: "Unit",
+      },
+      {
+        id: 6,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 4, 2025",
+        priority: "low",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 75,
+        unit: "Unit",
+      },
+      {
+        id: 7,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 4, 2025",
+        priority: "high",
+        fieldTeam: [
+          hydratePerson({ initials: "DC", name: "David Chen" }),
+          hydratePerson({ initials: "ER", name: "Emma Rodriguez" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "submitted",
+        amount: 101,
+        unit: "Unit",
+      },
+      {
+        id: 8,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 3, 2025",
+        priority: "normal",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 124,
+        unit: "Unit",
+      },
+      {
+        id: 9,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 1, 2025",
+        priority: "low",
+        fieldTeam: [hydratePerson({ initials: "JW", name: "James Wilson" })],
+        status: "dispatched",
+        timesheetStatus: "approved",
+        amount: 67,
+        unit: "Unit",
+      },
+      {
+        id: 10,
+        taskId: 6,
+        property: "22 Indian Chase Dr",
+        description: "Door Repair",
+        dueDate: "Sep 1, 2025",
+        priority: "high",
+        fieldTeam: [
+          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
+          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
+        ],
+        status: "dispatched",
+        timesheetStatus: "awaiting-submission",
+        amount: 118,
+        unit: "Unit",
+      },
+    ],
+    [],
+  );
+
+  const [fieldTeamOrders, setFieldTeamOrders] =
+    useState<any[]>(mockFieldTeamOrders);
+
+  useEffect(() => {
+    return () => {
+      createdAttachmentUrlsRef.current.forEach((url) => {
+        if (url.startsWith("blob:")) {
+          try {
+            URL.revokeObjectURL(url);
+          } catch {
+            // ignore
+          }
+        }
+      });
+      createdAttachmentUrlsRef.current.clear();
+    };
+  }, []);
+
+  // Get editing note/file from reducer state
+  const editingNote = uiState.editingNoteId
+    ? notes.find((n) => n.id === uiState.editingNoteId)
+    : null;
+  const editingFile = uiState.editingFileId
+    ? files.find((f) => f.id === uiState.editingFileId)
+    : null;
+
+  // Map MOCK_TASKS to LinkedTaskData for default availability, excluding current task
+  const availableTasksForLinking = useMemo(() => {
+    return MOCK_TASKS.filter((t) => String(t.id) !== taskId).map((task) => ({
+      id: task.id,
+      name: task.title,
+      status: task.status.toLowerCase().replace(" ", "_") as any,
+      updatedDate: task.updated,
+      updatedBy: task.assignees[0]?.name || "Unknown",
+    }));
+  }, [taskId]);
+
+  // Helper function to sync file names across files and updates states
+  const syncFileNameAcrossStates = (
+    fileId: string | number,
+    newName: string,
+  ) => {
+    const stringId = String(fileId);
+
+    // Update the main files state
+    setFiles((prevFiles) =>
+      prevFiles.map((f) =>
+        String(f.id) === stringId ? { ...f, name: newName } : f,
+      ),
+    );
+
+    // Update the attachment in all timeline updates
+    setUpdates((prevUpdates) =>
+      prevUpdates.map((update) => {
+        if (update.attachments && Array.isArray(update.attachments)) {
+          const updatedAttachments = update.attachments.map((att: any) =>
+            String(att.id) === stringId ? { ...att, name: newName } : att,
+          );
+          return { ...update, attachments: updatedAttachments };
+        }
+        return update;
+      }),
+    );
+  };
+
+  const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
+    // Navigate to the new tab and preserve the selected work order ID in state
+    // The URL will only include workOrderId when on the workorders tab
+    if (newTab === "workorders" && uiState.selectedWorkOrderId) {
+      navigate(`/tasks/${taskId}/${newTab}/${uiState.selectedWorkOrderId}`, {
+        replace: false,
+        state: { preservedWorkOrderId: uiState.selectedWorkOrderId },
+      });
+    } else {
+      navigate(`/tasks/${taskId}/${newTab}`, {
+        replace: false,
+        state: { preservedWorkOrderId: uiState.selectedWorkOrderId },
+      });
+    }
+  };
+
+  const handleWorkOrderSelect = (woId: number | null) => {
+    // Update state when work order is selected
+    // This is called by the table row click handler
+    uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: woId });
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    setCurrentStatus(newStatus);
+    setLastUpdatedTimestamp(new Date().toLocaleString());
+  };
+
+  const handlePriorityChange = (newPriority: string) => {
+    setCurrentPriority(newPriority);
+    setLastUpdatedTimestamp(new Date().toLocaleString());
+  };
+
+  const handleDueDateChange = (newDate: Date | string | null) => {
+    if (newDate instanceof Date) {
+      setCurrentDueDate(newDate);
+    } else if (newDate && typeof newDate === "string") {
+      // Parse string date back to Date object
+      const parsed = new Date(newDate);
+      setCurrentDueDate(!isNaN(parsed.getTime()) ? parsed : null);
+    } else {
+      setCurrentDueDate(null);
+    }
+    setLastUpdatedTimestamp(new Date().toLocaleString());
+  };
+
+  // --- Auto-save top-bar fields (status/priority/due date) ---
+  const topBarSnapshotRef = useRef<{
+    status: string;
+    priority: string;
+    dueDateISO: string | null;
+  } | null>(null);
+  const topBarSavingRef = useRef(false);
+
+  const toBackendStatus = useCallback((uiStatus: string): string => {
+    const map: Record<string, string> = {
+      not_started: "open",
+      in_progress: "in_progress",
+      completed: "closed",
+      open: "open",
+      closed: "closed",
+    };
+    return map[uiStatus] || "open";
+  }, []);
+
+  const toBackendPriority = useCallback((uiPriority: string): string => {
+    const map: Record<string, string> = {
+      low: "low",
+      normal: "medium",
+      high: "high",
+      urgent: "urgent",
+      medium: "medium",
+    };
+    return map[uiPriority] || "medium";
+  }, []);
+
+  const syncTopBarSnapshot = useCallback(() => {
+    topBarSnapshotRef.current = {
+      status: currentStatus,
+      priority: currentPriority,
+      dueDateISO: currentDueDate ? currentDueDate.toISOString() : null,
+    };
+  }, [currentDueDate, currentPriority, currentStatus]);
+
+  // Initialize snapshot on first render once we have the fields
+  useEffect(() => {
+    if (!topBarSnapshotRef.current) {
+      syncTopBarSnapshot();
+    }
+  }, [syncTopBarSnapshot]);
+
+  useEffect(() => {
+    if (!taskId) return;
+    if (!userId) return;
+
+    const snap = topBarSnapshotRef.current;
+    if (!snap) return;
+
+    const next = {
+      status: currentStatus,
+      priority: currentPriority,
+      dueDateISO: currentDueDate ? currentDueDate.toISOString() : null,
+    };
+
+    const changed =
+      snap.status !== next.status ||
+      snap.priority !== next.priority ||
+      snap.dueDateISO !== next.dueDateISO;
+
+    if (!changed) return;
+    if (topBarSavingRef.current) return;
+
+    const run = async () => {
+      try {
+        topBarSavingRef.current = true;
+
+        const payload: any = {
+          actor_id: userId,
+          message: "",
+        };
+
+        if (snap.status !== next.status) {
+          payload.status = toBackendStatus(next.status);
+        }
+        if (snap.priority !== next.priority) {
+          payload.priority = toBackendPriority(next.priority);
+        }
+        if (snap.dueDateISO !== next.dueDateISO) {
+          // Note: backend uses *time.Time with omitempty; cannot "clear" due_date via nil.
+          if (next.dueDateISO) payload.due_date = next.dueDateISO;
+        }
+
+        // If for some reason nothing to send, just update snapshot and bail
+        const keys = Object.keys(payload).filter(
+          (k) => !["actor_id", "message"].includes(k),
+        );
+        if (keys.length === 0) {
+          syncTopBarSnapshot();
+          return;
+        }
+
+        await fetchJSON(`/maintenance/tasks/${taskId}/update`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        // update snapshot to current values after successful save
+        syncTopBarSnapshot();
+
+        // refresh updates timeline so the new row appears
+        await loadUpdatesFromDb();
+      } catch (err) {
+        console.error("Failed to auto-save top bar fields:", err);
+        // keep snapshot as-is so we can retry on next change
+      } finally {
+        topBarSavingRef.current = false;
+      }
+    };
+
+    run();
+  }, [
+    currentDueDate,
+    currentPriority,
+    currentStatus,
+    loadUpdatesFromDb,
+    syncTopBarSnapshot,
+    taskId,
+    toBackendPriority,
+    toBackendStatus,
+    userId,
+  ]);
+
+  const handleStartRenamingAttachment = () => {
+    if (uiState.viewingAttachment) {
+      uiDispatch({
+        type: "START_RENAMING_ATTACHMENT",
+        payload: uiState.viewingAttachment.name,
+      });
+    }
+  };
+
+  const handleSaveAttachmentFileName = () => {
+    const trimmedName = uiState.renamingAttachmentName.trim();
+    if (
+      uiState.viewingAttachment &&
+      uiState.viewingAttachment.id &&
+      trimmedName
+    ) {
+      syncFileNameAcrossStates(uiState.viewingAttachment.id, trimmedName);
+
+      uiDispatch({
+        type: "SET_VIEWING_ATTACHMENT",
+        payload: {
+          ...uiState.viewingAttachment,
+          name: trimmedName,
+        },
+      });
+      uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
+    }
+  };
+
+  const handleCancelRenamingAttachment = () => {
+    uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
+  };
+
+  // Map property values to addresses
+  const getPropertyAddress = (propertyValue: string): string => {
+    const propertyMap: Record<string, { name: string; address: string }> = {
+      property1: {
+        name: "(C) 22 Indian Chase Dr, Greenwich, CT 06831 -1",
+        address: "22 Indian Chase Dr Greenwich, CT 06831",
+      },
+      property2: {
+        name: "(C) Property 2 Address -1",
+        address: "Property 2 Address Details",
+      },
+    };
+    return propertyMap[propertyValue]?.address || "";
+  };
+
+  // Map property values to rental owner information
+  const getRentalOwnerByProperty = (
+    propertyValue: string | undefined,
+  ): {
+    id: number;
+    name: string;
+    initials: string;
+    roleLabel: string;
+    phone: string;
+  } | null => {
+    if (!propertyValue || propertyValue.includes("Unassigned")) {
+      return null;
+    }
+
+    const rentalOwnerMap: Record<
+      string,
+      {
+        id: number;
+        name: string;
+        initials: string;
+        roleLabel: string;
+        phone: string;
+      }
+    > = {
+      property1: {
+        id: 5,
+        name: "Peter & Ali Jennison",
+        initials: "PJ",
+        roleLabel: "Rental Owner",
+        phone: "(203) 927-1280",
+      },
+      property2: {
+        id: 6,
+        name: "Sarah Mitchell",
+        initials: "SM",
+        roleLabel: "Rental Owner",
+        phone: "(203) 555-1234",
+      },
+    };
+    return rentalOwnerMap[propertyValue] || null;
+  };
+
+  const getPropertyName = (propertyValue: string): string => {
+    const propertyMap: Record<string, { name: string; address: string }> = {
+      property1: {
+        name: "(C) 22 Indian Chase Dr, Greenwich, CT 06831 -1",
+        address: "22 Indian Chase Dr Greenwich, CT 06831",
+      },
+      property2: {
+        name: "(C) Property 2 Address -1",
+        address: "Property 2 Address Details",
+      },
+    };
+    return propertyMap[propertyValue]?.name || "";
+  };
+
+  const getPropertyDisplayLabel = (propertyValue: string): string => {
+    const propertyLabels: Record<string, string> = {
+      property1: "22 Indian Chase Dr",
+      property2: "Property 2",
+    };
+    return propertyLabels[propertyValue] || "";
+  };
+
+  const getUnitDisplayLabel = (unitValue: string): string => {
+    const unitLabels: Record<string, string> = {
+      unit1: "Unit 1",
+      unit2: "Unit 2",
+    };
+    return unitLabels[unitValue] || "";
+  };
+
+  // Extract unique vendors from work orders
+  const vendorsFromWorkOrders = useMemo(() => {
+    const uniqueVendors = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        initials: string;
+        email: string;
+        phone: string;
+        title: string;
+      }
+    >();
+    workOrders.forEach((wo) => {
+      if (wo.vendorName && wo.vendorName.trim()) {
+        if (!uniqueVendors.has(wo.vendorName)) {
+          const initials = wo.vendorName
+            .split(" ")
+            .slice(0, 2)
+            .map((word) => word[0])
+            .join("")
+            .toUpperCase();
+          const vendorInfo = vendorMasterData[wo.vendorName];
+          uniqueVendors.set(wo.vendorName, {
+            id: `vendor-${uniqueVendors.size + 1}`,
+            name: wo.vendorName,
+            initials: initials || "V",
+            email: vendorInfo?.email || "",
+            phone: vendorInfo?.phone || "",
+            title: vendorInfo?.title || "Vendor Company",
+          });
+        }
+      }
+    });
+    return Array.from(uniqueVendors.values());
+  }, [workOrders]);
+
+  // Extract unique field team members from field team orders
+  const fieldTeamFromOrders = useMemo(() => {
+    const uniqueFieldTeam = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        initials: string;
+        email: string;
+        phone: string;
+        title: string;
+      }
+    >();
+    fieldTeamOrders.forEach((order) => {
+      if (order.fieldTeam && Array.isArray(order.fieldTeam)) {
+        order.fieldTeam.forEach(
+          (member: { name: string; initials: string }) => {
+            if (member.name && member.name.trim()) {
+              if (!uniqueFieldTeam.has(member.name)) {
+                const memberInfo = fieldTeamMasterData[member.name];
+                uniqueFieldTeam.set(member.name, {
+                  id: `fieldteam-${uniqueFieldTeam.size + 1}`,
+                  name: member.name,
+                  initials:
+                    member.initials ||
+                    member.name
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2),
+                  email: memberInfo?.email || "",
+                  phone: memberInfo?.phone || "",
+                  title: memberInfo?.title || "Field Team Member",
+                });
+              }
+            }
+          },
+        );
+      }
+    });
+    return Array.from(uniqueFieldTeam.values());
+  }, [fieldTeamOrders]);
+
+  // Memoize editData to prevent unnecessary re-initialization of the modal
+  // Format matches AllTasks editData structure for CreateTaskModal autofill
+  const modalEditData = useMemo(() => {
+    if (!taskId) return undefined;
+    
+    // Map frontend status values to backend values
+    const statusMap: Record<string, string> = {
+      not_started: "open",
+      in_progress: "in_progress",
+      completed: "completed",
+      open: "open",
+      closed: "closed",
+    };
+    const backendStatus = statusMap[currentStatus] || currentStatus || "open";
+    
+    // Map frontend priority values to backend values
+    const priorityMap: Record<string, string> = {
+      low: "low",
+      normal: "medium",
+      high: "high",
+      urgent: "urgent",
+      medium: "medium",
+    };
+    const backendPriority = priorityMap[currentPriority] || currentPriority || "medium";
+    
+    return {
+      id: parseInt(taskId || "0"),
+      name: currentTitle,
+      description: currentDescription || "",
+      priority: backendPriority,
+      status: backendStatus,
+      category: currentCategory || "",
+      property_id: currentPropertyId || taskData?.property_id,
+      unit_id: currentUnitId || taskData?.unit_id || null,
+      due_date: currentDueDate ? currentDueDate.toISOString() : null,
+      assignees: currentAssignees.map((a) => a.id),
+      collaborators: currentCollaborators?.map((c) => c.id) || [],
+      attachments: taskData?.attachments || [],
+    };
+  }, [
+    taskId,
+    currentTitle,
+    currentDescription,
+    currentPriority,
+    currentStatus,
+    currentCategory,
+    currentPropertyId,
+    currentUnitId,
+    currentDueDate,
+    currentAssignees,
+    currentCollaborators,
+    taskData?.property_id,
+    taskData?.unit_id,
+    taskData?.attachments,
+  ]);
+
+  // Get the selected work order if workOrderId is present or set in state
+  const selectedWorkOrder = useMemo(() => {
+    // Prefer workOrderId from URL params (this is the source of truth)
+    const targetId = workOrderId
+      ? parseInt(workOrderId)
+      : uiState.selectedWorkOrderId;
+    if (!targetId) return null;
+
+    // First check if this is a newly created work order passed through location state
+    const newWorkOrder = navigationState?.newWorkOrder;
+    if (newWorkOrder && newWorkOrder.id === targetId) {
+      return newWorkOrder;
+    }
+
+    // Otherwise look for it in the workOrders list
+    const found = workOrders.find((wo) => wo.id === targetId);
+    return found || null;
+  }, [
+    workOrderId,
+    uiState.selectedWorkOrderId,
+    workOrders,
+    navigationState?.newWorkOrder,
+  ]);
+
+  // Clear location state once the new work order is added to the list
+  useEffect(() => {
+    if (navigationState?.newWorkOrder && selectedWorkOrder) {
+      const found = workOrders.find((wo) => wo.id === selectedWorkOrder.id);
+      if (found) {
+        // The newly created work order is now in the list, we can clear the navigation state
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname,
+        );
+      }
+    }
+  }, [workOrders, selectedWorkOrder, navigationState?.newWorkOrder]);
+
+  // Determine if we are trying to view a work order but it's not found yet (loading state)
+  const isLoadingWorkOrder = !!workOrderId && !selectedWorkOrder;
+
+  // Work order state
+  const [workOrderStatus, setWorkOrderStatus] = useState<string>(() => {
+    if (!selectedWorkOrder) return "in_progress";
+    const status = selectedWorkOrder.status;
+    return status === "Completed" ? "completed" : "in_progress";
+  });
+
+  const [workOrderPriority, setWorkOrderPriority] = useState<string>(() => {
+    if (!selectedWorkOrder) return "normal";
+    const priority = selectedWorkOrder.priority;
+    return priority.toLowerCase();
+  });
+
+  const [workOrderNotifications, setWorkOrderNotifications] = useState<
+    Array<{ id: string; message: string }>
+  >([{ id: "1", message: "A bill from Edgerton Inc was uploaded" }]);
+
+  // Helper function to safely parse bill total
+  const getBillAmount = (billTotal: string): number => {
+    if (!billTotal) return 0;
+    const amount = parseFloat(billTotal.replace("$", "").replace(",", ""));
+    return isNaN(amount) ? 0 : amount;
+  };
+
+  return (
+    <PageTemplate>
+      {/* Header Section */}
+      <PageHeader
+        title={
+          currentTitle ||
+          navigationState?.task?.title ||
+          navigationState?.taskData?.title ||
+          "Edgerton - Quote"
+        }
+        subtitle={
+          <div className="flex items-center gap-3">
+            <div className="text-[#717179] font-medium text-base leading-4">
+              To-Do
+            </div>
+            <svg
+              width="4"
+              height="4"
+              viewBox="0 0 4 4"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="2" cy="2" r="2" fill="#717179" />
+            </svg>
+            <span className="text-[#717179] font-medium text-base leading-4">
+              {sequentialNumber !== undefined
+                ? `#${sequentialNumber} ${taskId}`
+                : `#${taskId}`}
+            </span>
+          </div>
+        }
+        action={{
+          label: uiState.selectedWorkOrderId
+            ? "Update Work Order"
+            : "Update task",
+          onClick: () => {
+            if (uiState.selectedWorkOrderId) {
+              // Trigger Update Work Order Modal
+              setIsUpdateWorkOrderModalOpen(true);
+            } else {
+              // Trigger Update Task Modal
+              uiDispatch({ type: "OPEN_MODAL", payload: "editTask" });
+            }
+          },
+        }}
+        moreOptions={{
+          onView: () => {
+            // Handle view
+          },
+          onDelete: () => {
+            // Handle delete
+          },
+        }}
+      />
+
+      {/* Tabs Section */}
+      <div className="flex flex-col mt-6 w-full">
+        <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium flex-nowrap overflow-x-auto">
+          <button
+            onClick={() => handleTabChange("summary")}
+            className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
+              uiState.activeTab === "summary"
+                ? "border-b-2 border-[#09090b] text-[#09090b]"
+                : "hover:text-[#09090b]"
+            } transition-colors`}
+          >
+            Summary
+          </button>
+          <button
+            onClick={() => handleTabChange("workorders")}
+            className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
+              uiState.activeTab === "workorders"
+                ? "border-b-2 border-[#09090b] text-[#09090b]"
+                : "hover:text-[#09090b]"
+            } transition-colors`}
+          >
+            Work orders
+          </button>
+          <button
+            onClick={() => handleTabChange("fieldteam")}
+            className={`flex items-center gap-1.5 py-2 whitespace-nowrap ${
+              uiState.activeTab === "fieldteam"
+                ? "border-b-2 border-[#09090b] text-[#09090b]"
+                : "hover:text-[#09090b]"
+            } transition-colors`}
+          >
+            Field Team Orders
+          </button>
+        </div>
+
+        {/* Notifications Banner - COMMENTED OUT */}
+        {false && uiState.activeTab === "summary" && (
+          <div className="flex flex-col mt-5 w-full border border-[#e3e3e3] rounded-[10px] overflow-hidden font-['Geist',sans-serif]">
+            <div className="flex items-center justify-between gap-10 px-3 py-3 bg-[#f9f9f9] max-w-full flex-wrap">
+              <div className="flex items-center gap-2">
+                <Bell className="w-[18px] h-[18px]" />
+                <div className="text-base text-[#303030] font-bold tracking-[-0.32px]">
+                  Notifications
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between px-3 py-3 bg-white flex-wrap">
+              <div className="flex items-center gap-2 min-w-[240px] flex-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#e5e5e5]"></div>
+                <div className="text-base text-[#303030]">
+                  Task looks similar to a previous task XYZ. Would you like to
+                  link tasks?
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-sm tracking-[-0.28px]">
+                <button className="text-[#303030] underline hover:no-underline">
+                  Dismiss
+                </button>
+                <button className="text-[#2463eb] hover:underline">
+                  Approve
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content Area */}
+        <div className="flex mt-5 w-full gap-6 flex-wrap lg:flex-nowrap">
+          {/* Show TaskWorkOrders component when work orders tab is active */}
+          {uiState.activeTab === "workorders" &&
+            (selectedWorkOrder ? (
+              <WorkOrderDetailsV2
+                workOrder={selectedWorkOrder}
+                currentAssignees={currentAssignees}
+                currentCollaborators={currentCollaborators}
+                onBillAdded={(bill) => {
+                  setUpdates((prev) => [
+                    {
+                      id: prev.length + 1,
+                      author: "System",
+                      authorType: "assignee",
+                      action: `entered bill for work order #${selectedWorkOrder.id}`,
+                      actionValue: `${bill.invoiceNumber} - ${bill.amount}`,
+                      timestamp: new Date().toLocaleString(),
+                      icon: <PaperclipIcon width={16} height={16} />,
+                    },
+                    ...prev,
+                  ]);
+                }}
+                onWorkOrderUpdate={(updatedWorkOrder) => {
+                  // Convert dueDate back to string format when updating the list
+                  const workOrderForUpdate = {
+                    ...updatedWorkOrder,
+                    dueDate:
+                      updatedWorkOrder.dueDate instanceof Date
+                        ? updatedWorkOrder.dueDate.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : updatedWorkOrder.dueDate,
+                  };
+
+                  // Find the original work order to check what changed
+                  const originalWorkOrder = workOrders.find(
+                    (wo) => wo.id === updatedWorkOrder.id,
+                  );
+                  const newUpdates: any[] = [];
+
+                  // Check if status changed to completed
+                  if (
+                    originalWorkOrder &&
+                    originalWorkOrder.status !== updatedWorkOrder.status &&
+                    updatedWorkOrder.status === "completed"
+                  ) {
+                    newUpdates.push({
+                      id: updates.length + newUpdates.length + 1,
+                      author: "System",
+                      authorType: "assignee",
+                      action: `completed work order #${updatedWorkOrder.id}`,
+                      timestamp: new Date().toLocaleString(),
+                      icon: <EditIcon width={16} height={16} />,
+                    });
+                  }
+
+                  // Update work orders list
+                  const newWorkOrders = workOrders.map((wo) =>
+                    wo.id === updatedWorkOrder.id ? workOrderForUpdate : wo,
+                  );
+                  setWorkOrders(newWorkOrders);
+
+                  // Extract new notes and files to add to main task if they were added during work order update
+                  if (
+                    updatedWorkOrder.notes &&
+                    updatedWorkOrder.notes.length > notes.length
+                  ) {
+                    const newNotes = updatedWorkOrder.notes.filter(
+                      (wn) =>
+                        !notes.some(
+                          (n) => n.id === wn.id && n.text === wn.text,
+                        ),
+                    );
+                    if (newNotes.length > 0) {
+                      setNotes((prev) => [...prev, ...newNotes]);
+                    }
+                  }
+
+                  if (
+                    updatedWorkOrder.files &&
+                    updatedWorkOrder.files.length > files.length
+                  ) {
+                    const newFiles = updatedWorkOrder.files.filter(
+                      (wf) =>
+                        !files.some(
+                          (f) => f.id === wf.id && f.name === wf.name,
+                        ),
+                    );
+                    if (newFiles.length > 0) {
+                      setFiles((prev) => [...prev, ...newFiles]);
+                    }
+                  }
+
+                  // Add new updates to timeline
+                  if (newUpdates.length > 0) {
+                    setUpdates((prev) => [...newUpdates, ...prev]);
+                  }
+                }}
+                isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
+                onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
+              />
+            ) : isLoadingWorkOrder ? (
+              <div className="flex flex-col items-center justify-center w-full h-[300px] bg-white rounded-lg border border-[#e5e5e5]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            ) : (
+              <TaskWorkOrders
+                workOrders={workOrders}
+                onWorkOrdersChange={setWorkOrders}
+                defaultProperty={currentProperty}
+                defaultTask={currentTitle}
+                defaultUnit={currentUnit}
+                taskId={taskId || "0"}
+                onWorkOrderSelect={handleWorkOrderSelect}
+              />
+            ))}
+
+          {/* Show summary content when summary tab is active */}
+          {uiState.activeTab === "summary" && (
+            <SummaryTab
+              currentCategory={currentCategory}
+              currentDescription={currentDescription}
+              currentStatus={currentStatus}
+              currentPriority={currentPriority}
+              currentDueDate={currentDueDate}
+              currentProperty={currentProperty}
+              currentPropertyId={currentPropertyId}
+              currentPropertyName={taskData?.property_name}
+              currentPropertyAddress={taskData?.property_address}
+              currentUnit={currentUnit}
+              createdTimestamp={createdTimestamp}
+              lastUpdatedTimestamp={lastUpdatedTimestamp}
+              workOrders={workOrders}
+              fieldTeamOrders={fieldTeamOrders}
+              notes={notes}
+              files={files}
+              updates={updates}
+              linkedTasks={uiState.linkedTasks}
+              currentAssignees={currentAssignees}
+              currentCollaborators={currentCollaborators}
+              vendorsFromWorkOrders={vendorsFromWorkOrders}
+              fieldTeamFromOrders={fieldTeamFromOrders}
+              isNewTask={isNewTask}
+              taskData={taskData}
+              sequentialNumber={sequentialNumber}
+              taskId={taskId}
+              creatorDetails={creatorDetails}
+              onEditTaskDetails={() =>
+                uiDispatch({ type: "OPEN_MODAL", payload: "editTaskDetails" })
+              }
+              onAddNote={() => {
+                uiDispatch({ type: "SET_EDITING_NOTE_ID", payload: null });
+                uiDispatch({ type: "SET_VIEWING_NOTE", payload: null });
+                uiDispatch({ type: "OPEN_MODAL", payload: "addNote" });
+              }}
+              onEditNote={(note) => {
+                uiDispatch({ type: "SET_EDITING_NOTE_ID", payload: note.id });
+                uiDispatch({ type: "OPEN_MODAL", payload: "addNote" });
+              }}
+              onDeleteNote={async (noteId) => {
+                try {
+                  await handleDeleteNote(noteId);
+                } catch (error) {
+                  console.error("Error deleting note:", error);
+                  // Optionally show error toast/notification here
+                }
+              }}
+              onAddFile={() => {
+                uiDispatch({ type: "SET_EDITING_FILE_ID", payload: null });
+                uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
+              }}
+              onEditFile={(file) => {
+                uiDispatch({ type: "SET_EDITING_FILE_ID", payload: file.id });
+                uiDispatch({ type: "OPEN_MODAL", payload: "addFile" });
+              }}
+              onDeleteFile={async (fileId) => {
+                try {
+                  await handleDeleteFile(fileId);
+                } catch (error) {
+                  console.error("Error deleting file:", error);
+                  // Optionally show error toast/notification here
+                }
+              }}
+              onViewFile={(file) => {
+                // Use the same pattern as ApproveFtoPage
+                // Use http://localhost:8080 instead of /api as requested
+                // The file.id should be the attachment ID from the API response (e.g., 47)
+                console.log("onViewFile called with file:", file);
+                console.log("file.id:", file.id, "type:", typeof file.id);
+                
+                if (!file.id) {
+                  console.warn("File has no ID:", file);
+                  return;
+                }
+                
+                // Ensure ID is a number if needed (though string should work too)
+                const attachmentId = typeof file.id === 'number' ? file.id : parseInt(String(file.id), 10);
+                if (isNaN(attachmentId)) {
+                  console.error("Invalid attachment ID:", file.id);
+                  return;
+                }
+                
+                const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;
+                console.log("Opening PDF with URL:", url);
+                
+                pdfViewer.openPdf(url, file.name);
+              }}
+              onLinkTasks={() =>
+                uiDispatch({ type: "OPEN_MODAL", payload: "linkTask" })
+              }
+              onUnlinkTask={(taskId) =>
+                uiDispatch({ type: "REMOVE_LINKED_TASK", payload: taskId })
+              }
+              onTaskClick={(linkedTaskId) => {
+                const tabId = `task-${linkedTaskId}`;
+                setSelectedTab(tabId);
+                setTabMetadata(tabId, {
+                  label: `Task ${linkedTaskId}`,
+                  route: `/tasks/${linkedTaskId}`,
+                });
+                navigate(`/tasks/${linkedTaskId}`);
+              }}
+              onAddUpdate={() =>
+                uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })
+              }
+              onEditTask={() =>
+                uiDispatch({ type: "OPEN_MODAL", payload: "editTask" })
+              }
+              onStatusChange={handleStatusChange}
+              onPriorityChange={handlePriorityChange}
+              onDueDateChange={handleDueDateChange}
+              getPropertyDisplayLabel={getPropertyDisplayLabel}
+              getUnitDisplayLabel={getUnitDisplayLabel}
+              getPropertyName={getPropertyName}
+              getPropertyAddress={getPropertyAddress}
+              getRentalOwnerByProperty={getRentalOwnerByProperty}
+            />
+          )}
+
+          {/* Field Team Orders tab content */}
+          {uiState.activeTab === "fieldteam" && (
+            <TaskFieldTeamOrders
+              orders={fieldTeamOrders}
+              onOrdersChange={(newOrders) => {
+                // Check for timesheet status changes and create updates
+                newOrders.forEach((newOrder, idx) => {
+                  const oldOrder = fieldTeamOrders[idx];
+                  if (
+                    oldOrder &&
+                    oldOrder.timesheetStatus !== newOrder.timesheetStatus
+                  ) {
+                    if (newOrder.timesheetStatus === "submitted") {
+                      setUpdates((prev) => [
+                        {
+                          id: prev.length + 1,
+                          author: "System",
+                          authorType: "assignee",
+                          action: `timesheet for field team order #${newOrder.id} was submitted`,
+                          timestamp: new Date().toLocaleString(),
+                          icon: <EditIcon width={16} height={16} />,
+                        },
+                        ...prev,
+                      ]);
+                    } else if (newOrder.timesheetStatus === "approved") {
+                      setUpdates((prev) => [
+                        {
+                          id: prev.length + 1,
+                          author: "System",
+                          authorType: "assignee",
+                          action: `timesheet for field team order #${newOrder.id} was approved`,
+                          timestamp: new Date().toLocaleString(),
+                          icon: <ApproveIcon width={16} height={16} />,
+                        },
+                        ...prev,
+                      ]);
+                    }
+                  }
+                });
+                setFieldTeamOrders(newOrders);
+              }}
+            />
+          )}
+        </div>
+      </div>
+
+      <TaskSummaryModals
+        uiState={uiState}
+        uiDispatch={uiDispatch}
+        notes={notes}
+        files={files}
+        updates={updates}
+        currentTitle={currentTitle}
+        currentDescription={currentDescription}
+        currentProperty={currentProperty}
+        currentUnit={currentUnit}
+        currentPropertyId={currentPropertyId}
+        currentUnitId={currentUnitId}
+        currentCategory={currentCategory}
+        currentStatus={currentStatus}
+        currentPriority={currentPriority}
+        currentDueDate={currentDueDate}
+        currentAssignees={currentAssignees}
+        currentCollaborators={currentCollaborators}
+        availableTasksForLinking={availableTasksForLinking}
+        modalEditData={modalEditData}
+        editingNote={editingNote}
+        editingFile={editingFile}
+        taskId={taskId}
+        onNotesChange={setNotes}
+        onCreateNote={handleCreateNote}
+        onUpdateNote={handleUpdateNote}
+        onDeleteNote={handleDeleteNote}
+        onFilesChange={setFiles}
+        onCreateFile={handleCreateFile}
+        onUpdateFile={handleUpdateFile}
+        onDeleteFile={handleDeleteFile}
+        onUpdatesChange={setUpdates}
+        onCurrentTitleChange={setCurrentTitle}
+        onCurrentDescriptionChange={setCurrentDescription}
+        onCurrentPropertyChange={setCurrentProperty}
+        onCurrentUnitChange={setCurrentUnit}
+        onCurrentCategoryChange={setCurrentCategory}
+        onCurrentStatusChange={setCurrentStatus}
+        onCurrentPriorityChange={setCurrentPriority}
+        onCurrentDueDateChange={setCurrentDueDate}
+        onCurrentAssigneesChange={setCurrentAssignees}
+        onCurrentCollaboratorsChange={setCurrentCollaborators}
+        onLastUpdatedChange={setLastUpdatedTimestamp}
+        syncFileNameAcrossStates={syncFileNameAcrossStates}
+        getAttachmentData={getAttachmentData}
+        handleStartRenamingAttachment={handleStartRenamingAttachment}
+        handleSaveAttachmentFileName={handleSaveAttachmentFileName}
+        handleCancelRenamingAttachment={handleCancelRenamingAttachment}
+      />
+
+      {/* PDF Viewer Modal (same pattern as ApproveFtoPage) */}
+      <PdfViewerModal
+        open={pdfViewer.isOpen}
+        onOpenChange={(open) => {
+          if (!open) pdfViewer.closePdf();
+        }}
+        url={pdfViewer.url}
+        title={pdfViewer.title}
+      />
+    </PageTemplate>
+  );
+}

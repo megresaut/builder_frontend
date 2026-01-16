@@ -1,0 +1,16 @@
+export const TASK_CATEGORIES = [
+  { value: "uncategorized", label: "Uncategorized" },
+  { value: "collections", label: "Collections" },
+  { value: "complaint", label: "Complaint" },
+  { value: "contribution_request", label: "Contribution request" },
+  { value: "eviction", label: "Eviction" },
+  { value: "general_inquiry", label: "General Inquiry" },
+  { value: "leads", label: "Leads" },
+  { value: "maintenance_request", label: "Maintenance Request" },
+  { value: "notice_to_quit", label: "Notice To Quit" },
+  { value: "other", label: "Other" },
+  { value: "payment_plan", label: "Payment Plan" },
+  { value: "preventative_maintenance", label: "Preventative Maintenance" },
+  { value: "projects", label: "Projects" },
+  { value: "small_claims_court", label: "Small Claims Court" },
+];

@@ -8,7 +8,7 @@ export { KeyValueGrid } from "./KeyValueGrid";
 export { NotesTemplate } from "./NotesTemplate";
 export { FilesTemplate } from "./FilesTemplate";
 export { DataSectionTemplate } from "./DataSectionTemplate";
-
+export { TaskDetailsBarTemplate } from "./TaskDetailsBarTemplate";
 export type { KeyValueCell } from "./KeyValueGrid";
 export type { Note } from "./NotesTemplate";
 export type { File } from "./FilesTemplate";

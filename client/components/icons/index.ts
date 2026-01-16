@@ -35,5 +35,8 @@ export { SyncIcon } from "./SyncIcon";
 export { RecordBillIcon } from "./RecordBillIcon";
 export { FlagIcon } from "./FlagIcon";
 export { EyeIcon } from "./EyeIcon";
+export { HashtagIcon } from "./HashtagIcon";
+export { PaperclipIcon } from "./PaperclipIcon";
+export { HamburgerIcon } from "./HamburgerIcon";
 
 export type {} from "./EditIcon";

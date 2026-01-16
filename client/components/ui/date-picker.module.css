@@ -12,6 +12,7 @@
   width: 100%;
   padding: 0.5rem 0.75rem 0.5rem 0.75rem;
   padding-right: 2.5rem;
+  min-height: 44px;
   font-family:
     Geist,
     -apple-system,

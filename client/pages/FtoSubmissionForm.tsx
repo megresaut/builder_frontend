@@ -13,6 +13,7 @@ import {
 import { ChevronRight, ChevronDown } from "lucide-react";
 import {
   DateField,
+  TextField,
   SelectField,
   ComboboxField,
   NumberField,
@@ -32,6 +33,8 @@ import { fetchJSON } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 
+const CUSTOM_FTO_TASK_VALUE = "__custom_fto__";
+
 
 interface HourEntry {
   id: string;
@@ -40,6 +43,7 @@ interface HourEntry {
   propertyId: string | null;
   unitId: string | null;
   taskId: string | null;
+  customTaskName: string;
   hours: number | string;
   emergencyRate: string | null;
   nonBillableHours: string | null;
@@ -309,6 +313,7 @@ export default function FtoSubmissionForm() {
   });
 
   const [isCreateFTOModalOpen, setIsCreateFTOModalOpen] = useState(false);
+  const [isCreatingCustomFto, setIsCreatingCustomFto] = useState(false);
 
   const [hourEntries, setHourEntries] = useState<HourEntry[]>([
     {
@@ -318,6 +323,7 @@ export default function FtoSubmissionForm() {
       propertyId: null,
       unitId: null,
       taskId: null,
+      customTaskName: "",
       hours: "",
       emergencyRate: "no",
       nonBillableHours: "no",
@@ -540,6 +546,7 @@ export default function FtoSubmissionForm() {
         propertyId: entryPropertyId,
         unitId: entryUnitId, // Will be mapped to ID later if it's a name
         taskId: entryTaskId,
+        customTaskName: "",
     
         hours: h.hours_decimal,
         emergencyRate: h.emergency ? "yes" : "no",
@@ -883,6 +890,7 @@ export default function FtoSubmissionForm() {
         propertyId: null,
         unitId: null,
         taskId: null,
+        customTaskName: "",
         hours: "",
         emergencyRate: "no",
         nonBillableHours: "no",
@@ -1010,6 +1018,9 @@ export default function FtoSubmissionForm() {
       if (!entry.taskId) {
         errors.taskId = "Task is required";
         isValid = false;
+      } else if (entry.taskId === CUSTOM_FTO_TASK_VALUE) {
+        errors.taskId = "Please create the task (FTO) before submitting.";
+        isValid = false;
       }
       if (!entry.hours) {
         errors.hours = "Hours is required";
@@ -1069,6 +1080,107 @@ export default function FtoSubmissionForm() {
     setHourErrors(newHourErrors);
     setExpenseErrors(newExpenseErrors);
     return isValid;
+  };
+
+  const getActiveCustomHourEntry = (): HourEntry | null => {
+    for (let i = hourEntries.length - 1; i >= 0; i -= 1) {
+      if (hourEntries[i]?.taskId === CUSTOM_FTO_TASK_VALUE) return hourEntries[i];
+    }
+    return null;
+  };
+
+  const canCreateCustomFtoFromHourEntry = (entry: HourEntry | null): boolean => {
+    if (!entry) return false;
+    if (!entry.propertyId) return false;
+    if (!entry.date) return false;
+    if (!entry.note?.trim()) return false;
+    if (!entry.customTaskName?.trim()) return false;
+    const techIdNum = Number(userId);
+    if (!techIdNum || Number.isNaN(techIdNum)) return false;
+    return true;
+  };
+
+  const getMissingCustomFtoFields = (entry: HourEntry | null): string[] => {
+    if (!entry) return ["Property", "Task name", "Date", "Notes"];
+    const missing: string[] = [];
+    if (!entry.propertyId) missing.push("Property");
+    if (!entry.customTaskName?.trim()) missing.push("Task name");
+    if (!entry.date) missing.push("Date");
+    if (!entry.note?.trim()) missing.push("Notes");
+    // Include auth requirement if it ever becomes an issue
+    const techIdNum = Number(userId);
+    if (!techIdNum || Number.isNaN(techIdNum)) missing.push("Logged in user");
+    return missing;
+  };
+
+  const handleCreateCustomFto = async () => {
+    const entry = getActiveCustomHourEntry();
+    if (!canCreateCustomFtoFromHourEntry(entry)) return;
+    if (!entry) return;
+
+    const techIdNum = Number(userId);
+    const propertyIdNum = Number(entry.propertyId);
+    const unitIdNum = entry.unitId ? Number(entry.unitId) : null;
+
+    const payload = {
+      property_id: propertyIdNum,
+      unit_id: unitIdNum && !Number.isNaN(unitIdNum) ? unitIdNum : undefined,
+      name: entry.customTaskName.trim(),
+      description: entry.note.trim(),
+      status: "completed",
+      due_date: new Date(entry.date!).toISOString(),
+      priority: "normal",
+      field_team_member_ids: [techIdNum],
+      pm_assignee_ids: [],
+    };
+
+    try {
+      setIsCreatingCustomFto(true);
+      const created: any = await fetchJSON("/maintenance/ftos", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      const createdId =
+        created?.id ?? created?.fto?.id ?? created?.data?.id ?? null;
+      const createdName =
+        created?.name ??
+        created?.fto?.name ??
+        created?.data?.name ??
+        payload.name;
+
+      if (!createdId) {
+        throw new Error("Create FTO succeeded but no id returned.");
+      }
+
+      setFtosByProperty((prev) => {
+        const key = String(entry.propertyId);
+        const existing = prev[key] ?? [];
+        if (existing.some((f) => String(f.id) === String(createdId))) return prev;
+
+        const newFto: FTO = {
+          id: Number(createdId),
+          name: String(createdName),
+          description: payload.description,
+          property_id: propertyIdNum,
+          property_name: "",
+          status: payload.status,
+          priority: payload.priority,
+          approval_status: "",
+          form_submission_status: "none",
+        };
+
+        return { ...prev, [key]: [...existing, newFto] };
+      });
+
+      updateHourEntry(entry.id, "taskId", String(createdId));
+      updateHourEntry(entry.id, "customTaskName", "");
+    } catch (err) {
+      console.error("Failed to create FTO from submission form:", err);
+      alert("Failed to create task (FTO).");
+    } finally {
+      setIsCreatingCustomFto(false);
+    }
   };
 
 
@@ -1336,6 +1448,7 @@ export default function FtoSubmissionForm() {
                                         updateHourEntry(entry.id, "propertyId", value);
                                         updateHourEntry(entry.id, "unitId", null); // Clear unit when property changes
                                         updateHourEntry(entry.id, "taskId", null);
+                                        updateHourEntry(entry.id, "customTaskName", "");
                                         if (value) {
                                           loadFtosForProperty(value as string);
                                           loadUnitsForProperty(value as string);
@@ -1380,13 +1493,22 @@ export default function FtoSubmissionForm() {
                             label="Task"
                             required
                             error={hourErrors[entry.id]?.taskId}
-                            options={(ftosByProperty[entry.propertyId ?? ""] ?? []).map((fto) => ({
+                            options={[
+                              ...(ftosByProperty[entry.propertyId ?? ""] ?? []).map((fto) => ({
                                 value: String(fto.id),
                                 label: fto.name,
-                            }))}
+                              })),
+                              ...(isApproved || (isViewingExistingSubmission && !isApproved)
+                                ? []
+                                : [{ value: CUSTOM_FTO_TASK_VALUE, label: "+ Add" }]),
+                            ]}
                             value={(() => {
                               // Priority: Use FTO name from location state if available, otherwise use entry.taskId or submission fto_id
                               let taskIdToCheck = entry.taskId;
+
+                              if (taskIdToCheck === CUSTOM_FTO_TASK_VALUE) {
+                                return CUSTOM_FTO_TASK_VALUE;
+                              }
                               
                               if (isViewingExistingSubmission) {
                                 // First try to match by FTO name from location state
@@ -1422,6 +1544,15 @@ export default function FtoSubmissionForm() {
                             onChange={(value) => {
                                 if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                 updateHourEntry(entry.id, "taskId", value);
+                                if (value === CUSTOM_FTO_TASK_VALUE) {
+                                  // Enter custom mode
+                                  if (!entry.customTaskName) {
+                                    updateHourEntry(entry.id, "customTaskName", "");
+                                  }
+                                } else {
+                                  // Leaving custom mode
+                                  updateHourEntry(entry.id, "customTaskName", "");
+                                }
                             }}
                             placeholder={
                                 ftosLoading
@@ -1432,6 +1563,20 @@ export default function FtoSubmissionForm() {
                             }
                             disabled={!entry.propertyId || ftosLoading || isApproved || (isViewingExistingSubmission && !isApproved)}
                         />
+
+                        {entry.taskId === CUSTOM_FTO_TASK_VALUE && (
+                          <TextField
+                            label="Task name"
+                            required
+                            value={entry.customTaskName}
+                            onChange={(e) => {
+                              if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                              updateHourEntry(entry.id, "customTaskName", e.target.value);
+                            }}
+                            placeholder="Type a custom task name"
+                            disabled={isApproved || (isViewingExistingSubmission && !isApproved)}
+                          />
+                        )}
 
 
                         <NumberField
@@ -1520,6 +1665,35 @@ export default function FtoSubmissionForm() {
                     )}
                   </div>
                 ))}
+
+                {/* Create FTO Button (custom task flow only) */}
+                {!isApproved && !isViewingExistingSubmission && (() => {
+                  const activeCustom = getActiveCustomHourEntry();
+                  if (!activeCustom) return null;
+                  const enabled =
+                    canCreateCustomFtoFromHourEntry(activeCustom) &&
+                    !isCreatingCustomFto;
+                  const missingFields = getMissingCustomFtoFields(activeCustom);
+                  const tooltip = enabled
+                    ? ""
+                    : `Complete: ${missingFields.join(", ")}`;
+                  return (
+                    <div title={tooltip}>
+                      <button
+                        onClick={handleCreateCustomFto}
+                        disabled={!enabled}
+                        className={[
+                          "w-full rounded-lg px-3 py-2 min-h-[36px] flex items-center justify-center",
+                          enabled
+                            ? "bg-[#013764] border border-white shadow-[0_0_0_1px_#002D5A] text-white hover:opacity-90 transition-opacity"
+                            : "bg-[#F2F2F2] border border-[#DADADA] text-[rgba(48,48,48,0.55)] cursor-not-allowed",
+                        ].join(" ")}
+                      >
+                        {isCreatingCustomFto ? "Creating task..." : "Create FTO"}
+                      </button>
+                    </div>
+                  );
+                })()}
 
                 {/* Add Hour Entry Button */}
                 {!isApproved && (

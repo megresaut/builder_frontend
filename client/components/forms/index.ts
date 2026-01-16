@@ -43,6 +43,9 @@ export {
 export { SensitiveInputField } from "./SensitiveInputField";
 export { ReadOnlyTextField } from "./ReadOnlyTextField";
 export { FileUploadField } from "./FileUploadField";
+export { StatusIndicator } from "./StatusIndicator";
+export { PrioritySelectField } from "./PrioritySelectField";
+export { StatusSelectField } from "./StatusSelectField";
 
 // Cell field components (for table cells)
 export { SelectFieldCell } from "./SelectFieldCell";
