@@ -50,10 +50,15 @@ const mockPhotos: UploadedPhoto[] = [
   { id: "2", url: "", caption: "Gutter issue", timestamp: "Oct 16, 2025 2:35 PM" },
 ];
 
-export default function InspectionDetail() {
+interface InspectionDetailProps {
+  isNew?: boolean;
+  isEdit?: boolean;
+}
+
+export default function InspectionDetail({ isNew = false, isEdit = false }: InspectionDetailProps) {
   const navigate = useNavigate();
   const { propertyId, inspectionId } = useParams();
-  const [isDraft, setIsDraft] = usePageState("isDraft", true);
+  const [isDraft, setIsDraft] = usePageState("isDraft", isNew || isEdit);
   const [photos, setPhotos] = useState<UploadedPhoto[]>(mockPhotos);
   const [checklist, setChecklist] = useState<ChecklistSection[]>(mockChecklistTemplate);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["section1", "section2"]));
