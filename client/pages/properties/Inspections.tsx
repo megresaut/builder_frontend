@@ -294,7 +294,7 @@ function InspectionsList() {
           data={inspectionsList}
           rowKey="id"
           onRowClick={(inspection) => {
-            navigate(`/properties/${propertyId}/inspections/${inspection.id}`);
+            navigate(`/property/${propertyId}/inspections/${inspection.id}`);
           }}
           renderCell={(inspection, columnKey) => {
             if (columnKey === "name") {
