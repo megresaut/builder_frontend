@@ -282,7 +282,7 @@ function InspectionsList() {
           rightContent={
             <BlueButton
               icon={<PlusIcon width={20} height={20} />}
-              onClick={() => navigate("new")}
+              onClick={() => navigate(`/properties/${propertyId}/inspections/new`)}
             >
               New Inspection
             </BlueButton>
