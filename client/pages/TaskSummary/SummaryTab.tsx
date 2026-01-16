@@ -34,6 +34,16 @@ const getVendorHref = (vendorName: string): string | undefined => {
   return vendorId ? `/vendors/${vendorId}` : undefined;
 };
 
+// Helper function to format role from snake_case to Title Case
+const formatRole = (role: string): string => {
+  if (!role) return "Property Manager";
+  // Replace underscores with spaces and capitalize each word
+  return role
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
 interface SummaryTabProps {
   currentCategory: string;
   currentDescription: string;
@@ -41,6 +51,9 @@ interface SummaryTabProps {
   currentPriority: string;
   currentDueDate: Date | null;
   currentProperty: string;
+  currentPropertyId?: number;
+  currentPropertyName?: string;
+  currentPropertyAddress?: string;
   currentUnit: string;
   createdTimestamp: string;
   lastUpdatedTimestamp: string;
@@ -56,6 +69,15 @@ interface SummaryTabProps {
   fieldTeamFromOrders: any[];
   isNewTask: boolean;
   taskData: any;
+  sequentialNumber?: number;
+  taskId?: string;
+  creatorDetails?: {
+    name: string;
+    email: string;
+    role: string;
+    phone?: string;
+    initials: string;
+  } | null;
   onEditTaskDetails: () => void;
   onAddNote: () => void;
   onEditNote: (note: Note) => void;
@@ -86,6 +108,9 @@ export default function SummaryTab({
   currentPriority,
   currentDueDate,
   currentProperty,
+  currentPropertyId,
+  currentPropertyName,
+  currentPropertyAddress,
   currentUnit,
   createdTimestamp,
   lastUpdatedTimestamp,
@@ -101,6 +126,9 @@ export default function SummaryTab({
   fieldTeamFromOrders,
   isNewTask,
   taskData,
+  sequentialNumber,
+  taskId,
+  creatorDetails,
   onEditTaskDetails,
   onAddNote,
   onEditNote,
@@ -197,10 +225,10 @@ export default function SummaryTab({
               : "No due date"
           }
           createdBy={{
-            name: "Julia LoSchiavo",
-            email: "julia.loschiavo@company.com",
-            phone: "(555) 123-4567",
-            title: "Property Manager",
+            name: creatorDetails?.name || "Unknown",
+            email: creatorDetails?.email || "",
+            phone: creatorDetails?.phone || "",
+            title: formatRole(creatorDetails?.role || "Property Manager"),
             property:
               currentProperty && currentProperty !== "Unassigned"
                 ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
@@ -213,6 +241,8 @@ export default function SummaryTab({
             { label: "WORK ORDERS", value: workOrders.length.toString() },
             { label: "FTOs", value: fieldTeamOrders.length.toString() },
           ]}
+          sequentialNumber={sequentialNumber}
+          taskId={taskId}
           onEdit={onEditTaskDetails}
         />
 
@@ -255,10 +285,10 @@ export default function SummaryTab({
         {currentProperty && currentProperty !== "Unassigned" && (
           <TaskLocationCard
             propertyImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
-            propertyName={`${getPropertyName(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`}
-            propertyAddress={getPropertyAddress(currentProperty)}
+            propertyName={`${currentPropertyName || getPropertyName(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`}
+            propertyAddress={currentPropertyAddress || getPropertyAddress(currentProperty)}
             mapImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b2c68a80effe0893f444c93ea4b66f4db8c65123?placeholderIfAbsent=true"
-            propertyId={currentProperty}
+            propertyId={currentPropertyId ? String(currentPropertyId) : undefined}
           />
         )}
 
@@ -389,23 +419,23 @@ export default function SummaryTab({
                   label: "Created by",
                   mode: "rows",
                   people: [
-                    ...(isNewTask
+                    ...(creatorDetails
                       ? [
                           {
-                            id: 0,
-                            name: "Julia LoSchiavo",
-                            initials: "JL",
-                            email: "julia.loschiavo@company.com",
-                            roleLabel: "Property Manager",
-                            phone: "",
+                            id: taskData?.requested_by || 0,
+                            name: creatorDetails.name,
+                            initials: creatorDetails.initials,
+                            email: creatorDetails.email,
+                            roleLabel: formatRole(creatorDetails.role),
+                            phone: creatorDetails.phone || "",
                           },
                         ]
                       : [
                           {
-                            id: 4,
-                            name: "Julia LoSchiavo",
-                            initials: "JL",
-                            email: "julia.loschiavo@company.com",
+                            id: 0,
+                            name: "Unknown",
+                            initials: "?",
+                            email: "",
                             roleLabel: "Property Manager",
                             phone: "",
                           },

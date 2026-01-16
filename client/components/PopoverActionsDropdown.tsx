@@ -25,11 +25,22 @@ interface PopoverActionsDropdownProps {
 function PopoverActionsDropdownContent({
   row,
   allActions,
+  open,
+  setOpen,
+  highlightedIndex,
+  setHighlightedIndex,
 }: {
   row: any;
   allActions: ActionItem[];
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  highlightedIndex: number;
+  setHighlightedIndex: (index: number) => void;
 }) {
+  // #region agent log
   const popover = usePopoverContext();
+  fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PopoverActionsDropdown.tsx:32',message:'usePopoverContext returned',data:{popoverKeys:Object.keys(popover||{}),hasSetOpen:typeof(popover?.setOpen)==='function',hasSetHighlightedIndex:typeof(popover?.setHighlightedIndex)==='function',hasIsOpen:'isOpen' in (popover||{}),receivedOpen:open,receivedSetOpen:typeof setOpen==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   const actionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const items = useMemo(
@@ -42,35 +53,20 @@ function PopoverActionsDropdownContent({
           value: String(index),
           label: resolvedLabel,
           onSelect: () => {
-            popover.setOpen(false);
+            setOpen(false);
             action.onClick(row);
           },
         };
       }),
-    [allActions, popover, row],
+    [allActions, row, setOpen],
   );
-
-  useEffect(() => {
-    if (!popover.isOpen) return;
-
-    popover.setSearchableItems(
-      items.map(({ value, label }) => ({ value, label })),
-    );
-    popover.setHighlightedIndex(0);
-
-    popover.onEnterSelect((item) => {
-      if (!item) return;
-      const match = items.find((i) => i.value === item.value);
-      match?.onSelect();
-    });
-  }, [items, popover]);
 
   // Sync DOM focus with visual highlight when arrow keys navigate
   useEffect(() => {
-    if (popover.isOpen && actionRefs.current[popover.highlightedIndex]) {
-      actionRefs.current[popover.highlightedIndex]?.focus();
+    if (open && actionRefs.current[highlightedIndex]) {
+      actionRefs.current[highlightedIndex]?.focus();
     }
-  }, [popover.highlightedIndex, popover.isOpen]);
+  }, [highlightedIndex, open]);
 
   return (
     <div className="flex flex-col justify-start items-start">
@@ -79,7 +75,7 @@ function PopoverActionsDropdownContent({
           typeof action.label === "function" ? action.label(row) : action.label;
         const resolvedIcon =
           typeof action.icon === "function" ? action.icon(row) : action.icon;
-        const isHighlighted = popover.highlightedIndex === index;
+        const isHighlighted = highlightedIndex === index;
 
         return (
           <button
@@ -90,19 +86,27 @@ function PopoverActionsDropdownContent({
             type="button"
             role="menuitem"
             onClick={(e) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PopoverActionsDropdown.tsx:95',message:'onClick handler called',data:{actionLabel:resolvedLabel,setOpenType:typeof setOpen,willCallSetOpen:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+              // #endregion
               e.preventDefault();
               e.stopPropagation();
-              popover.setOpen(false);
+              setOpen(false);
               action.onClick(row);
             }}
             onKeyDown={(e) => {
               if (e.key === "Escape") {
                 e.preventDefault();
                 e.stopPropagation();
-                popover.setOpen(false);
+                setOpen(false);
               }
             }}
-            onMouseEnter={() => popover.setHighlightedIndex(index)}
+            onMouseEnter={() => {
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PopoverActionsDropdown.tsx:105',message:'onMouseEnter handler called',data:{index,setHighlightedIndexType:typeof setHighlightedIndex,willCallSetHighlightedIndex:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+              // #endregion
+              setHighlightedIndex(index);
+            }}
             data-highlighted={isHighlighted ? "true" : "false"}
             className={cn(
               "ra-action-item flex justify-between items-center w-full gap-3 px-4 py-2 transition-colors first:rounded-t-md last:rounded-b-md text-left",
@@ -135,9 +139,17 @@ export default function PopoverActionsDropdown({
   additionalActions = [],
 }: PopoverActionsDropdownProps) {
   const [open, setOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const allActions = [...actions, ...additionalActions];
+  
+  // Reset highlighted index when opening
+  useEffect(() => {
+    if (open) {
+      setHighlightedIndex(0);
+    }
+  }, [open]);
 
   useGlobalActionsScrollLock(open, {
     allowRefs: [triggerRef, contentRef],
@@ -239,7 +251,14 @@ export default function PopoverActionsDropdown({
         }}
       >
         <div ref={contentRef} role="menu">
-          <PopoverActionsDropdownContent row={row} allActions={allActions} />
+          <PopoverActionsDropdownContent 
+            row={row} 
+            allActions={allActions}
+            open={open}
+            setOpen={setOpen}
+            highlightedIndex={highlightedIndex}
+            setHighlightedIndex={setHighlightedIndex}
+          />
         </div>
       </PopoverContent>
     </Popover>

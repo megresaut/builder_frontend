@@ -34,6 +34,7 @@ interface ApiTask {
   description: string;
   property_id: number;
   property_name: string;
+  property_address: string;
   unit_id: number | null;
   unit_name: string | null;
   status: string;
@@ -41,6 +42,7 @@ interface ApiTask {
   category: string;
   due_date: string | null;
   last_updated: string;
+  requested_by: number | null;
   assignees: Array<{ id: number; name: string; email: string }>;
   collaborators: Array<{ id: number; name: string; email: string }>;
   attachments?: Array<{
@@ -56,7 +58,7 @@ interface ApiTask {
  * Transform API task to UI Task format
  * Maps API field names to UI field names
  */
-function transformApiTaskToUiTask(apiTask: ApiTask): Task {
+function transformApiTaskToUiTask(apiTask: ApiTask, sequentialNumber?: number): Task & { sequentialNumber?: number } {
   // Generate initials from name
   const getInitials = (name: string): string => {
     return name
@@ -105,26 +107,37 @@ function transformApiTaskToUiTask(apiTask: ApiTask): Task {
   return {
     id: apiTask.id,
     title: apiTask.name,
+    description: apiTask.description || "",
     property: apiTask.property_name,
+    property_id: apiTask.property_id,
+    property_name: apiTask.property_name,
+    property_address: apiTask.property_address,
     unit: apiTask.unit_name || undefined,
+    unit_id: apiTask.unit_id || undefined,
     status: apiTask.status,
     priority: mapPriority(apiTask.priority),
+    category: apiTask.category || "",
     due: formatDate(apiTask.due_date),
     updated: formatDate(apiTask.last_updated),
     age: getAge(apiTask.last_updated),
-    assignees: apiTask.assignees.map((person) => ({
+    requested_by: apiTask.requested_by ?? undefined,
+    assignees: (apiTask.assignees || []).map((person) => ({
       id: person.id,
       name: person.name,
       initials: getInitials(person.name),
+      email: person.email,
     })),
     collaborators:
-      apiTask.collaborators.length > 0
+      apiTask.collaborators && apiTask.collaborators.length > 0
         ? apiTask.collaborators.map((person) => ({
             id: person.id,
             name: person.name,
             initials: getInitials(person.name),
+            email: person.email,
           }))
         : undefined,
+    attachments: apiTask.attachments || [],
+    sequentialNumber,
   };
 }
 
@@ -183,23 +196,41 @@ export default function AllTasks() {
 
   const [apiTasks, setApiTasks] = useState<ApiTask[]>([]);
 
+  // Function to load tasks from API
+  const loadTasks = useCallback(async () => {
+    try {
+      const apiResponse: ApiTask[] = await fetchJSON("/maintenance/tasks");
+      // Sort tasks by ID (ascending)
+      const sortedTasks = [...apiResponse].sort((a, b) => a.id - b.id);
+      setApiTasks(sortedTasks);
+      // Assign sequential numbers based on sorted position (1, 2, 3, etc.)
+      const transformedTasks = sortedTasks.map((task, index) => 
+        transformApiTaskToUiTask(task, index + 1)
+      );
+      setTasksList(transformedTasks);
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+      setTasksList([]);
+      setApiTasks([]);
+    }
+  }, []);
+
   // Fetch tasks from API on component mount
   useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        const apiResponse: ApiTask[] = await fetchJSON("/maintenance/tasks");
-        setApiTasks(apiResponse);
-        const transformedTasks = apiResponse.map(transformApiTaskToUiTask);
-        setTasksList(transformedTasks);
-      } catch (error) {
-        console.error("Error loading tasks:", error);
-        setTasksList([]);
-        setApiTasks([]);
-      }
+    loadTasks();
+  }, [loadTasks]);
+
+  // Listen for refresh events from other pages
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadTasks();
     };
 
-    loadTasks();
-  }, []);
+    window.addEventListener("refreshAllTasks", handleRefresh);
+    return () => {
+      window.removeEventListener("refreshAllTasks", handleRefresh);
+    };
+  }, [loadTasks]);
 
   // Hide collaborators by default
   useEffect(() => {
@@ -452,7 +483,7 @@ export default function AllTasks() {
           rowKey="id"
           onRowClick={(task) => {
             navigate(`/tasks/${task.id}/summary`, {
-              state: { task, taskData: task },
+              state: { task, taskData: task, sequentialNumber: (task as any).sequentialNumber },
             });
           }}
           renderCell={(task, columnKey) => {
@@ -468,7 +499,7 @@ export default function AllTasks() {
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/tasks/${task.id}/summary`, {
-                      state: { task, taskData: task },
+                      state: { task, taskData: task, sequentialNumber: (task as any).sequentialNumber },
                     });
                   }}
                   className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors truncate"

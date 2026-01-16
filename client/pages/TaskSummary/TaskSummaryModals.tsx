@@ -23,6 +23,7 @@ import CreateTaskModal from "@/components/CreateTaskModal";
 import PersonAvatars from "@/components/PersonAvatars";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
+import { fetchJSON } from "@/api/fetchJSON";
 
 interface TaskSummaryModalsProps {
   uiState: any;
@@ -34,6 +35,8 @@ interface TaskSummaryModalsProps {
   currentDescription: string;
   currentProperty: string;
   currentUnit: string;
+  currentPropertyId?: number;
+  currentUnitId?: number | null;
   currentCategory: string;
   currentStatus: string;
   currentPriority: string;
@@ -44,8 +47,19 @@ interface TaskSummaryModalsProps {
   modalEditData: any;
   editingNote: Note | undefined;
   editingFile: File | undefined;
+  taskId?: string;
   onNotesChange: (notes: Note[]) => void;
+  onCreateNote: (body: string, isVisibleToClient?: boolean) => Promise<void>;
+  onUpdateNote: (noteId: number, body: string, isVisibleToClient?: boolean) => Promise<void>;
+  onDeleteNote: (noteId: number) => Promise<void>;
   onFilesChange: (files: File[]) => void;
+  onCreateFile: (
+    uploadedFiles: Array<{ id: string; name: string; file?: File; url?: string }>,
+    category: string,
+    description: string,
+  ) => Promise<void>;
+  onUpdateFile: (fileId: number, label?: string, description?: string) => Promise<void>;
+  onDeleteFile: (fileId: number) => Promise<void>;
   onUpdatesChange: (updates: any[]) => void;
   onCurrentTitleChange: (title: string) => void;
   onCurrentDescriptionChange: (description: string) => void;
@@ -75,6 +89,8 @@ export default function TaskSummaryModals({
   currentDescription,
   currentProperty,
   currentUnit,
+  currentPropertyId,
+  currentUnitId,
   currentCategory,
   currentStatus,
   currentPriority,
@@ -85,8 +101,15 @@ export default function TaskSummaryModals({
   modalEditData,
   editingNote,
   editingFile,
+  taskId,
   onNotesChange,
+  onCreateNote,
+  onUpdateNote,
+  onDeleteNote,
   onFilesChange,
+  onCreateFile,
+  onUpdateFile,
+  onDeleteFile,
   onUpdatesChange,
   onCurrentTitleChange,
   onCurrentDescriptionChange,
@@ -162,27 +185,21 @@ export default function TaskSummaryModals({
         onOpenChange={(open) => {
           if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "addNote" });
         }}
-        onSubmit={(text) => {
-          if (uiState.editingNoteId) {
-            onNotesChange(
-              notes.map((n) =>
-                n.id === uiState.editingNoteId
-                  ? { ...n, text, date: new Date().toLocaleString() }
-                  : n,
-              ),
-            );
-          } else {
-            const maxId =
-              notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0;
-            const newNote: Note = {
-              id: maxId + 1,
-              text,
-              date: new Date().toLocaleString(),
-              author: "Julia LoSchiavo",
-            };
-            onNotesChange([newNote, ...notes]);
+        onSubmit={async (text) => {
+          try {
+            if (uiState.editingNoteId) {
+              // Update existing note
+              await onUpdateNote(uiState.editingNoteId, text);
+            } else {
+              // Create new note
+              await onCreateNote(text, false);
+            }
+            uiDispatch({ type: "CLOSE_MODAL", payload: "addNote" });
+            uiDispatch({ type: "SET_EDITING_NOTE_ID", payload: null });
+          } catch (error) {
+            console.error("Error saving note:", error);
+            // Optionally show error toast/notification here
           }
-          uiDispatch({ type: "CLOSE_MODAL", payload: "addNote" });
         }}
         initialText={editingNote?.text || ""}
         isEditMode={!!uiState.editingNoteId}
@@ -196,39 +213,21 @@ export default function TaskSummaryModals({
         onOpenChange={(open) => {
           if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "addFile" });
         }}
-        onSubmit={(uploadedFiles, category, description) => {
-          if (uiState.editingFileId) {
-            const oldFile = files.find((f) => f.id === uiState.editingFileId);
-            const oldFileName = oldFile?.name || "";
-            const newFileName = uploadedFiles[0]?.name || oldFileName;
-
-            syncFileNameAcrossStates(uiState.editingFileId, newFileName);
-
-            onFilesChange(
-              files.map((f) =>
-                f.id === uiState.editingFileId
-                  ? {
-                      ...f,
-                      category: category || f.category,
-                      description,
-                    }
-                  : f,
-              ),
-            );
-          } else {
-            const maxId =
-              files.length > 0 ? Math.max(...files.map((f) => f.id)) : 0;
-            const newFiles: File[] = uploadedFiles.map((uf, idx) => ({
-              id: maxId + idx + 1,
-              name: uf.name,
-              url: uf.url,
-              uploadedAt: new Date().toLocaleString(),
-              category,
-              description,
-            }));
-            onFilesChange([...newFiles, ...files]);
+        onSubmit={async (uploadedFiles, category, description) => {
+          try {
+            if (uiState.editingFileId) {
+              // Update existing file
+              await onUpdateFile(uiState.editingFileId, category, description);
+            } else {
+              // Create new file (two-step: upload then create)
+              await onCreateFile(uploadedFiles, category, description);
+            }
+            uiDispatch({ type: "CLOSE_MODAL", payload: "addFile" });
+            uiDispatch({ type: "SET_EDITING_FILE_ID", payload: null });
+          } catch (error) {
+            console.error("Error saving file:", error);
+            // Optionally show error toast/notification here
           }
-          uiDispatch({ type: "CLOSE_MODAL", payload: "addFile" });
         }}
         initialFiles={
           editingFile
@@ -302,6 +301,8 @@ export default function TaskSummaryModals({
           property: currentProperty,
           unit: currentUnit,
           category: currentCategory,
+          property_id: currentPropertyId,
+          unit_id: currentUnitId,
         }}
         onSubmit={(data: EditTaskDetailsData) => {
           onCurrentTitleChange(data.title);
@@ -309,6 +310,9 @@ export default function TaskSummaryModals({
           onCurrentPropertyChange(data.property);
           onCurrentUnitChange(data.unit);
           onCurrentCategoryChange(data.category);
+          // Note: property_id and unit_id are handled internally by the modal
+          // and returned in the data, but we don't have setters for them here
+          // They will be updated when the task is saved via the backend
           uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
         }}
       />
@@ -321,6 +325,61 @@ export default function TaskSummaryModals({
         }}
         variant="withMessageAndAttachments"
         editData={modalEditData}
+        onTaskUpdated={async (taskId: number) => {
+          // Fetch updated task data from API
+          try {
+            const updatedTask = await fetchJSON(`/maintenance/tasks/${taskId}`);
+            
+            // Map backend status to frontend status
+            const statusMap: Record<string, string> = {
+              open: "not_started",
+              in_progress: "in_progress",
+              completed: "completed",
+              closed: "completed",
+            };
+            const frontendStatus = statusMap[updatedTask.status] || updatedTask.status || "not_started";
+            
+            // Map backend priority to frontend priority
+            const priorityMap: Record<string, string> = {
+              low: "low",
+              medium: "normal",
+              high: "high",
+              urgent: "urgent",
+            };
+            const frontendPriority = priorityMap[updatedTask.priority] || updatedTask.priority || "normal";
+            
+            // Update local state with fetched data
+            if (updatedTask.name) {
+              onCurrentTitleChange(updatedTask.name);
+            }
+            if (updatedTask.description !== undefined) {
+              onCurrentDescriptionChange(updatedTask.description || "");
+            }
+            if (updatedTask.category !== undefined) {
+              onCurrentCategoryChange(updatedTask.category || "");
+            }
+            if (updatedTask.status) {
+              onCurrentStatusChange(frontendStatus);
+            }
+            if (updatedTask.priority) {
+              onCurrentPriorityChange(frontendPriority);
+            }
+            if (updatedTask.due_date !== undefined) {
+              const dueDate = updatedTask.due_date ? new Date(updatedTask.due_date) : null;
+              onCurrentDueDateChange(dueDate);
+            }
+            if (updatedTask.assignees) {
+              onCurrentAssigneesChange(updatedTask.assignees);
+            }
+            if (updatedTask.collaborators !== undefined) {
+              onCurrentCollaboratorsChange(updatedTask.collaborators || []);
+            }
+            
+            onLastUpdatedChange(new Date().toLocaleString());
+          } catch (error) {
+            console.error("Failed to fetch updated task:", error);
+          }
+        }}
         onTaskCreated={(taskData: any) => {
           if (taskData.property) {
             onCurrentPropertyChange(taskData.property);

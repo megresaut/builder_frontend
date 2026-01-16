@@ -1,6 +1,6 @@
 import React from "react";
 import SectionCard from "@/components/SectionCard";
-import LinkedTasksList from "@/components/LinkedTasksList";
+import LinkedTasksList from "@/components/LinkedTaskList";
 import type { LinkedTaskData } from "@/components/LinkTaskModal";
 
 interface LinkedTasksCardProps {

@@ -26,6 +26,8 @@ interface TaskOverviewCardProps {
   lastUpdatedDate?: string;
   onEdit?: () => void;
   variant?: "default" | "gray";
+  sequentialNumber?: number;
+  taskId?: string;
 }
 
 /**
@@ -46,13 +48,20 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   lastUpdatedDate,
   onEdit,
   variant = "default",
+  sequentialNumber,
+  taskId,
 }) => {
+  const taskNumberDisplay =
+    sequentialNumber !== undefined
+      ? `#${sequentialNumber} ${taskId || ""}`
+      : `#${taskId || ""}`;
+
   return (
     <SectionCard
       variant={variant}
       title={
         <span className="text-[#303030] text-[22px] font-semibold leading-[1.36]">
-          To-Do - #I 1024431
+          To-Do · {taskNumberDisplay}
         </span>
       }
       actions={

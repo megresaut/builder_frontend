@@ -55,6 +55,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
   const [fileDescription, setFileDescription] = useState(initialDescription);
   const [validateFileForm, setValidateFileForm] = useState(false);
   const [viewingFile, setViewingFile] = useState<UploadedFile | null>(null);
+  const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [isRenamingFile, setIsRenamingFile] = useState(false);
   const [renamingFileName, setRenamingFileName] = useState("");
 
@@ -66,6 +67,15 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
       setValidateFileForm(false);
     }
   }, [open]); // Only sync when modal opens
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (viewingFileUrl && viewingFileUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(viewingFileUrl);
+      }
+    };
+  }, [viewingFileUrl]);
 
   const handleSubmit = async () => {
     if (uploadedFiles.length === 0) {
@@ -88,6 +98,11 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
     setValidateFileForm(false);
     setIsRenamingFile(false);
     setRenamingFileName("");
+    setViewingFile(null);
+    if (viewingFileUrl) {
+      URL.revokeObjectURL(viewingFileUrl);
+      setViewingFileUrl(null);
+    }
   };
 
   const handleStartRenaming = () => {
@@ -163,7 +178,66 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
                 );
               }}
               onViewFile={(file) => {
-                setViewingFile(file);
+                const attachmentId = file.id ? parseInt(file.id, 10) : null;
+                if (attachmentId && !isNaN(attachmentId)) {
+                  (async () => {
+                    try {
+                      const res = await fetch(
+                        `http://localhost:8080/maintenance/attachments/${attachmentId}`,
+                        { credentials: "include" }
+                      );
+                    
+                      if (!res.ok) {
+                        alert("Failed to load attachment");
+                        return;
+                      }
+                    
+                      const blob = await res.blob();
+                      const url = URL.createObjectURL(blob);
+                    
+                      setViewingFileUrl(url);
+                      setViewingFile(file);
+                    } catch (error) {
+                      console.error("Error loading attachment:", error);
+                      alert("Failed to load attachment");
+                    }
+                  })();
+                } else if (file.storage_path) {
+                  // Fallback to old endpoint if attachment ID is not available
+                  (async () => {
+                    try {
+                      const res = await fetch(
+                        `http://localhost:8080/api/files?key=${encodeURIComponent(
+                          file.storage_path
+                        )}`,
+                        { credentials: "include" }
+                      );
+                    
+                      if (!res.ok) {
+                        alert("Failed to load PDF");
+                        return;
+                      }
+                    
+                      const blob = await res.blob();
+                      const url = URL.createObjectURL(blob);
+                    
+                      setViewingFileUrl(url);
+                      setViewingFile(file);
+                    } catch (error) {
+                      console.error("Error loading PDF:", error);
+                      alert("Failed to load PDF");
+                    }
+                  })();
+                } else if (file.file) {
+                  // For newly uploaded files, use the file object directly
+                  const url = URL.createObjectURL(file.file);
+                  setViewingFileUrl(url);
+                  setViewingFile(file);
+                } else if (file.url) {
+                  // For files with existing URLs
+                  setViewingFileUrl(file.url);
+                  setViewingFile(file);
+                }
               }}
               onFileRenamed={(fileId, newName) => {
                 setUploadedFiles(
@@ -180,13 +254,13 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
             />
           </ModalField>
 
-          <SelectField
+          {/* <SelectField
             label="Category"
             value={fileCategory}
             onChange={(value) => setFileCategory(value as string)}
             options={CATEGORY_OPTIONS}
             placeholder="Select a category"
-          />
+          /> */}
 
           <TextAreaField
             label="Description"
@@ -202,13 +276,17 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
         open={viewingFile !== null}
         onOpenChange={(open) => {
           if (!open) {
+            if (viewingFileUrl && viewingFileUrl.startsWith("blob:")) {
+              URL.revokeObjectURL(viewingFileUrl);
+            }
             setViewingFile(null);
+            setViewingFileUrl(null);
             setIsRenamingFile(false);
             setRenamingFileName("");
           }
         }}
         title={viewingFile?.name || "File Preview"}
-        url={viewingFile?.file ? URL.createObjectURL(viewingFile.file) : viewingFile?.url}
+        url={viewingFileUrl || (viewingFile?.file ? URL.createObjectURL(viewingFile.file) : viewingFile?.url) || null}
         onRenameClick={handleStartRenaming}
         isRenaming={isRenamingFile}
         renamingFileName={renamingFileName}

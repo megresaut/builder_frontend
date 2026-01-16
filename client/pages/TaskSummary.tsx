@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   ChevronDown,
@@ -390,6 +390,7 @@ const ActionButton = ({
 
 export default function TaskSummary() {
   const { taskId } = useParams<{ taskId: string }>();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("workorders");
   const [messageText, setMessageText] = useState("");
   const [summary, setSummary] = useState<any | null>(null);
@@ -398,6 +399,17 @@ export default function TaskSummary() {
   const [loadingAttachments, setLoadingAttachments] = useState(true);
   const [updates, setUpdates] = useState([]);
   const [loadingUpdates, setLoadingUpdates] = useState(true);
+  const [propertyManagerDetails, setPropertyManagerDetails] = useState<{
+    name: string;
+    email: string;
+    role: string;
+    phone?: string;
+  } | null>(null);
+  const [hoveredCreatedBy, setHoveredCreatedBy] = useState(false);
+  // Initialize sequential number from navigation state if available
+  const [sequentialNumber, setSequentialNumber] = useState<number | null>(
+    () => location.state?.sequentialNumber || null
+  );
   
   useEffect(() => {
     async function loadAttachments() {
@@ -419,6 +431,39 @@ export default function TaskSummary() {
       try {
         const data = await fetchJSON(`/maintenance/tasks/summary?id=${taskId}`);
         setSummary(data);
+        
+        // Fetch property manager details if requested_by ID is available
+        if (data?.created_by?.id) {
+          try {
+            const propertyManagers = await fetchJSON("/users/property-managers");
+            const manager = propertyManagers.find((pm: any) => pm.id === data.created_by.id);
+            if (manager) {
+              setPropertyManagerDetails({
+                name: manager.name || data.created_by.name || "",
+                email: manager.email || data.created_by.email || "",
+                role: manager.role || "Property Manager",
+                phone: manager.phone,
+              });
+            } else {
+              // Fallback to created_by data if not found in property managers
+              setPropertyManagerDetails({
+                name: data.created_by.name || "",
+                email: data.created_by.email || "",
+                role: "Property Manager",
+              });
+            }
+          } catch (err) {
+            console.error("Failed to load property manager details:", err);
+            // Fallback to created_by data
+            if (data.created_by) {
+              setPropertyManagerDetails({
+                name: data.created_by.name || "",
+                email: data.created_by.email || "",
+                role: "Property Manager",
+              });
+            }
+          }
+        }
       } catch (err) {
         console.error("Failed to load summary:", err);
       } finally {
@@ -426,6 +471,32 @@ export default function TaskSummary() {
       }
     }
     load();
+  }, [taskId]);
+  
+  // Calculate sequential number based on all tasks sorted by ID
+  useEffect(() => {
+    if (!taskId) return;
+    
+    async function calculateSequentialNumber() {
+      try {
+        const allTasks: Array<{ id: number }> = await fetchJSON("/maintenance/tasks");
+        // Sort by ID (ascending) and find the position of current task
+        const sortedTasks = [...allTasks].sort((a, b) => a.id - b.id);
+        const taskIndex = sortedTasks.findIndex((t) => t.id === Number(taskId));
+        if (taskIndex !== -1) {
+          const calculatedNumber = taskIndex + 1;
+          console.log(`Task ${taskId} found at index ${taskIndex}, sequential number: ${calculatedNumber}`, sortedTasks.map(t => t.id));
+          setSequentialNumber(calculatedNumber);
+        } else {
+          console.warn(`Task ${taskId} not found in sorted tasks`);
+        }
+      } catch (err) {
+        console.error("Failed to calculate sequential number:", err);
+      }
+    }
+    
+    // Calculate sequential number on mount and when taskId changes
+    calculateSequentialNumber();
   }, [taskId]);
   
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
@@ -463,6 +534,54 @@ export default function TaskSummary() {
     }
   
     loadUpdates();
+  }, [taskId]);
+  
+  // Listen for refresh events to reload summary, updates, and attachments
+  useEffect(() => {
+    if (!taskId) return;
+    
+    const handleRefresh = async () => {
+      // Refresh summary
+      try {
+        const data = await fetchJSON(`/maintenance/tasks/summary?id=${taskId}`);
+        setSummary(data);
+      } catch (err) {
+        console.error("Failed to refresh summary:", err);
+      }
+      
+      // Recalculate sequential number after refresh
+      try {
+        const allTasks: Array<{ id: number }> = await fetchJSON("/maintenance/tasks");
+        const sortedTasks = [...allTasks].sort((a, b) => a.id - b.id);
+        const taskIndex = sortedTasks.findIndex((t) => t.id === Number(taskId));
+        if (taskIndex !== -1) {
+          setSequentialNumber(taskIndex + 1);
+        }
+      } catch (err) {
+        console.error("Failed to recalculate sequential number:", err);
+      }
+      
+      // Refresh updates
+      try {
+        const updatesData = await fetchJSON(`/maintenance/tasks/updates/${taskId}`);
+        setUpdates(updatesData || []);
+      } catch (err) {
+        console.error("Failed to refresh updates:", err);
+      }
+      
+      // Refresh attachments
+      try {
+        const attachmentsList = await fetchJSON(`/maintenance/attachments/tasks/${taskId}`);
+        setAttachments(attachmentsList || []);
+      } catch (err) {
+        console.error("Failed to refresh attachments:", err);
+      }
+    };
+
+    window.addEventListener("refreshAllTasks", handleRefresh);
+    return () => {
+      window.removeEventListener("refreshAllTasks", handleRefresh);
+    };
   }, [taskId]);
   
   if (loading || !summary) {
@@ -512,9 +631,15 @@ export default function TaskSummary() {
           {summary.title}
         </div>
         <div className="flex items-center gap-1 mt-1 text-base text-[#717179] font-medium">
-          <span>ID</span>
-          <span>/</span>
-          <span>{summary.reference_number}</span>
+          <span>To-Do</span>
+          <span>•</span>
+          <span>
+            {sequentialNumber !== null 
+              ? `#${sequentialNumber} ${taskId}` 
+              : summary 
+                ? `#? ${taskId}` 
+                : `#? ${taskId}`}
+          </span>
         </div>
         </div>
         <div className="flex items-center gap-3">
@@ -1130,18 +1255,35 @@ export default function TaskSummary() {
                   Created by
                 </div>
                 <div className="flex items-center justify-between mt-3 w-full">
-                  <div className="flex items-center gap-2.5 min-w-[240px] flex-1">
-                    <div className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-xl text-[#2463eb] font-semibold leading-[0.8]">
-                      JL
+                  <div className="flex items-center gap-2.5 min-w-[240px] flex-1 relative">
+                    <div
+                      className="flex items-center justify-center w-10 h-10 bg-white border border-[#2463eb] rounded-full text-xl text-[#2463eb] font-semibold leading-[0.8] cursor-pointer"
+                      onMouseEnter={() => setHoveredCreatedBy(true)}
+                      onMouseLeave={() => setHoveredCreatedBy(false)}
+                    >
+                      {summary.created_by?.initials || propertyManagerDetails?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "?"}
                     </div>
+                    {hoveredCreatedBy && propertyManagerDetails && (
+                      <div
+                        className="absolute left-0 top-12 z-50 bg-[#303030] text-white px-4 py-3 rounded-lg shadow-lg min-w-[200px]"
+                        style={{ pointerEvents: "auto" }}
+                      >
+                        <div className="text-base font-semibold">{propertyManagerDetails.name}</div>
+                        <div className="text-sm mt-1 opacity-90">{propertyManagerDetails.role}</div>
+                        <div className="text-sm mt-1 opacity-90">{propertyManagerDetails.email}</div>
+                        {propertyManagerDetails.phone && (
+                          <div className="text-sm mt-1 opacity-90">{propertyManagerDetails.phone}</div>
+                        )}
+                      </div>
+                    )}
                     <div className="flex flex-col flex-1 text-sm">
                       <div className="text-[#2463eb] font-medium tracking-[-0.28px]">
-                        {summary.created_by?.name}
+                        {propertyManagerDetails?.name || summary.created_by?.name || "Unknown"}
                       </div>
-                      <div className="mt-1 text-[#a1a1a9]">Staff member</div>
+                      <div className="mt-1 text-[#a1a1a9]">{propertyManagerDetails?.role || "Staff member"}</div>
                     </div>
                   </div>
-                  <div className="text-sm text-[#a1a1a9]">{summary.created_by?.email || "No email"}</div>
+                  <div className="text-sm text-[#a1a1a9]">{propertyManagerDetails?.email || summary.created_by?.email || "No email"}</div>
                 </div>
               </div>
 

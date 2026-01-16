@@ -66,6 +66,7 @@ interface CreateTaskModalProps {
     }>;
   };
   onSubmit?: (form: any) => void;
+  onTaskUpdated?: (taskId: number) => void;
   variant?: "compact" | "withMessageAndAttachments";
 }
 
@@ -79,6 +80,7 @@ export default function CreateTaskModal({
   onOpenChange,
   editData,
   onSubmit,
+  onTaskUpdated,
   variant = "withMessageAndAttachments",
 }: CreateTaskModalProps) {
   const { userId } = useAuth();
@@ -127,7 +129,6 @@ export default function CreateTaskModal({
     status: "not_started" | "in_progress" | "completed";
     assigneeIds: number[];
     collaboratorIds: number[];
-    updateMessage: string;
     attachmentIds: number[];
   } | null>(null);
 
@@ -253,9 +254,8 @@ export default function CreateTaskModal({
         }
       }
 
-      let initialFiles: UploadedFile[] = [];
       if (editData.attachments) {
-        initialFiles = editData.attachments.map((att) => ({
+        const initialFiles = editData.attachments.map((att) => ({
           id: String(att.id),
           name: att.file_name,
           size: att.file_size,
@@ -264,24 +264,6 @@ export default function CreateTaskModal({
         }));
         setFiles(initialFiles);
       }
-
-      // Take snapshot immediately with the initial values
-      const initialAssigneeIds = [...(editData.assignees || [])].sort((a, b) => a - b);
-      const initialCollaboratorIds = [...(editData.collaborators || [])].sort((a, b) => a - b);
-      const initialAttachmentIds = initialFiles
-        .filter((f) => f.id)
-        .map((f) => Number(f.id))
-        .sort((a, b) => a - b);
-
-      updateModeInitialStateRef.current = {
-        priority: initialPriority,
-        dueDate: initialDueDate,
-        status: initialStatus,
-        assigneeIds: initialAssigneeIds,
-        collaboratorIds: initialCollaboratorIds,
-        updateMessage: "",
-        attachmentIds: initialAttachmentIds,
-      };
     } else {
       if (hasHydratedRef.current) return;
       hasHydratedRef.current = true;
@@ -340,6 +322,37 @@ export default function CreateTaskModal({
     }
   }, [open]);
 
+  // Snapshot initial update-mode state after all state has stabilized
+  useEffect(() => {
+    if (!isUpdateMode || !open || updateModeInitialStateRef.current !== null || !hasHydratedUpdateModeRef.current) {
+      return;
+    }
+
+    // Use a small timeout to ensure all state updates have been applied
+    const timeoutId = setTimeout(() => {
+      // Snapshot current state values after React has settled
+      // Assignees: sort IDs for stable comparison
+      const snapshotAssigneeIds = [...assigneeIds].sort((a, b) => a - b);
+      // Collaborators: treated identically to assignees - sort IDs for stable comparison
+      const snapshotCollaboratorIds = [...collaboratorIds].sort((a, b) => a - b);
+      const snapshotAttachmentIds = files
+        .filter((f) => f.id)
+        .map((f) => Number(f.id))
+        .sort((a, b) => a - b);
+
+      updateModeInitialStateRef.current = {
+        priority,
+        dueDate,
+        status,
+        assigneeIds: snapshotAssigneeIds,
+        collaboratorIds: snapshotCollaboratorIds, // Stored identically to assignees
+        attachmentIds: snapshotAttachmentIds,
+      };
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [isUpdateMode, open, priority, status, dueDate, assigneeIds, collaboratorIds, files]);
+
   useEffect(() => {
     if (!open && !editData) {
       setTitle("");
@@ -370,8 +383,11 @@ export default function CreateTaskModal({
       if (initial.priority !== priority) return true;
       if (initial.status !== status) return true;
       if (initial.dueDate?.getTime() !== dueDate?.getTime()) return true;
-      if (initial.updateMessage !== updateMessage) return true;
       
+      // Check updateMessage without relying on initial snapshot
+      if (updateMessage.trim()) return true;
+      
+      // Sort current IDs for comparison (same logic for both assignees and collaborators)
       const currentAssigneeIds = [...assigneeIds].sort((a, b) => a - b);
       const currentCollaboratorIds = [...collaboratorIds].sort((a, b) => a - b);
       const currentAttachmentIds = files
@@ -382,7 +398,9 @@ export default function CreateTaskModal({
       // Check if any new files were added (files without IDs)
       const hasNewFiles = files.some((f) => !f.id);
       
+      // Assignees change detection - collaborators use identical logic below
       if (JSON.stringify(initial.assigneeIds) !== JSON.stringify(currentAssigneeIds)) return true;
+      // Collaborators change detection - treated identically to assignees
       if (JSON.stringify(initial.collaboratorIds) !== JSON.stringify(currentCollaboratorIds)) return true;
       if (JSON.stringify(initial.attachmentIds) !== JSON.stringify(currentAttachmentIds)) return true;
       if (hasNewFiles) return true;
@@ -531,9 +549,17 @@ export default function CreateTaskModal({
         return;
       }
 
+      if (!userId) {
+        setErrors({ submit: "User ID is required" });
+        return;
+      }
+
       const initial = updateModeInitialStateRef.current;
       payload = {};
 
+      // Always compute all field diffs - message is additive only and does not gate other fields
+      
+      // Status diff
       if (initial.status !== status) {
         const statusMap: Record<"not_started" | "in_progress" | "completed", "open" | "in_progress" | "completed"> = {
           not_started: "open",
@@ -543,6 +569,7 @@ export default function CreateTaskModal({
         payload.status = statusMap[status] || status;
       }
 
+      // Priority diff
       if (initial.priority !== priority) {
         const priorityMap: Record<"normal" | "low" | "high" | "urgent", "low" | "medium" | "high" | "urgent"> = {
           low: "low",
@@ -553,20 +580,26 @@ export default function CreateTaskModal({
         payload.priority = priorityMap[priority] || priority;
       }
 
+      // Due date diff
       if (initial.dueDate?.getTime() !== dueDate?.getTime()) {
         payload.due_date = dueDate ? dueDate.toISOString() : null;
       }
 
+      // Assignees diff - compute sorted arrays for comparison
       const currentAssigneeIds = [...assigneeIds].sort((a, b) => a - b);
       if (JSON.stringify(initial.assigneeIds) !== JSON.stringify(currentAssigneeIds)) {
         payload.assignees = assigneeIds;
       }
 
+      // Collaborators diff - treated identically to assignees
+      // Compute sorted arrays for comparison (same logic as assignees)
       const currentCollaboratorIds = [...collaboratorIds].sort((a, b) => a - b);
+      // Include in payload ONLY when changed (same comparison logic as assignees)
       if (JSON.stringify(initial.collaboratorIds) !== JSON.stringify(currentCollaboratorIds)) {
         payload.collaborators = collaboratorIds;
       }
 
+      // Attachment IDs diff
       const currentAttachmentIds = files
         .filter((f) => f.id)
         .map((f) => Number(f.id))
@@ -576,6 +609,7 @@ export default function CreateTaskModal({
         payload.attachment_ids = currentAttachmentIds;
       }
 
+      // New attachments (additive)
       const newAttachments = files
         .filter((f) => !f.id && f.storage_path)
         .map((f) => ({
@@ -589,12 +623,10 @@ export default function CreateTaskModal({
         payload.new_attachments = newAttachments;
       }
 
-      if (!userId) {
-        setErrors({ submit: "User ID is required" });
-        return;
-      }
+      // Actor ID is always included
       payload.actor_id = userId;
 
+      // Message is additive only - if it exists, include it, but it doesn't gate other fields
       if (updateMessage.trim()) {
         payload.message = updateMessage.trim();
       }
@@ -672,12 +704,23 @@ export default function CreateTaskModal({
           method: "PATCH",
           body: JSON.stringify(payload),
         });
-        updateModeInitialStateRef.current = null;
+        // Trigger refresh of all tasks page
+        window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+        // Call onTaskUpdated callback if provided
+        if (onTaskUpdated) {
+          onTaskUpdated(editData.id);
+        }
       } else {
         await fetchJSON(`/maintenance/tasks/${editData.id}`, {
           method: "PATCH",
           body: JSON.stringify(payload),
         });
+        // Trigger refresh of all tasks page
+        window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+        // Call onTaskUpdated callback if provided
+        if (onTaskUpdated) {
+          onTaskUpdated(editData.id);
+        }
       }
     } else {
       try {
@@ -685,6 +728,8 @@ export default function CreateTaskModal({
           method: "POST",
           body: JSON.stringify(payload),
         });
+        // Trigger refresh of all tasks page
+        window.dispatchEvent(new CustomEvent("refreshAllTasks"));
       } catch (error) {
         console.error("Failed to create task:", error);
         setErrors({ submit: "Failed to create task" });

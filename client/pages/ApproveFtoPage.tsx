@@ -147,6 +147,12 @@ const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]
     },
   );
 
+  // Treat "not found" as "no submissions yet" so the UI can show
+  // a friendly empty state instead of logging an error.
+  if (res.status === 404) {
+    return [];
+  }
+
   if (!res.ok) {
     throw new Error("Failed to fetch submissions");
   }
@@ -441,8 +447,6 @@ export default function ApproveFTOPage() {
       try {
         setIsLoadingSubmissions(true);
         const submissions = await fetchSubmissionsByFto(ftoIdNum);
-        const attachments = await fetchAttachmentsByFto(ftoIdNum);
-        const attachmentIndex = buildAttachmentIndex(attachments);
         // 🚨 HANDLE null / empty explicitly
         if (!submissions || !Array.isArray(submissions) || submissions.length === 0) {
           setHasNoSubmissions(true);
@@ -455,6 +459,8 @@ export default function ApproveFTOPage() {
         // otherwise, submissions exist
         setHasNoSubmissions(false);
                 
+        const attachments = await fetchAttachmentsByFto(ftoIdNum);
+        const attachmentIndex = buildAttachmentIndex(attachments);
 
         // Flatten all hour lines from all submissions into HourRow[]
         const allHourLines: HourRow[] = [];
@@ -969,7 +975,7 @@ export default function ApproveFTOPage() {
                             className="text-[#A1A1A9] hover:text-[#303030] transition-colors flex-shrink-0"
                             title="View file"
                           >
-                            <EyeIcon width={16} height={16} color="currentColor" />
+                            <EyeIcon width={16} height={16} />
                           </button>
                           <button
                             onClick={() => handleRemoveFile(index)}
@@ -1051,7 +1057,7 @@ export default function ApproveFTOPage() {
 
               <div>
                 <div className="font-medium">
-                  No submissions recorded yet
+                  No FTO submissions received yet
                 </div>
                 <div className="mt-1 text-amber-800">
                   The field team hasn’t submitted any hours or expenses for this order yet.
@@ -1891,7 +1897,7 @@ export default function ApproveFTOPage() {
                                   : "View receipt"
                               }
                             >
-                              <EyeIcon width={16} height={16} color="currentColor" />
+                              <EyeIcon width={16} height={16} />
                             </button>
 
                             {/* 🗑 Delete */}

@@ -11,14 +11,28 @@ export interface Task {
   id: number;
   status: string;
   title: string;
+  description?: string;
   property: string;
+  property_id?: number;
+  property_name?: string;
+  property_address?: string;
   unit?: string;
+  unit_id?: number;
+  category?: string;
   due: string;
   updated: string;
   age: string;
   priority: string;
+  requested_by?: number;
   assignees: Assignee[];
   collaborators?: Assignee[];
+  attachments?: Array<{
+    id: number;
+    file_name: string;
+    storage_path: string;
+    file_type: string;
+    file_size: number;
+  }>;
 }
 
 export const MOCK_TASKS: Task[] = [

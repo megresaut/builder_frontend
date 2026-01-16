@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams } from "react-router-dom";
 import React, { useState } from "react";
 
 import FieldTeamOrders from "./pages/FieldTeamOrders";
@@ -12,7 +12,6 @@ import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
 import Bills from "./pages/Bills";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
-import TaskSummary from "./pages/TaskSummary";
 import RecurringTasks from "./pages/RecurringTasks";
 import Vendors from "./pages/Vendors";
 import VendorDetail from "./pages/VendorDetail";
@@ -29,7 +28,8 @@ import { Login } from "./pages/Login";
 import { Welcome } from "./pages/Welcome";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { TermsOfService } from "./pages/TermsOfService";
-import TaskSummaryPage from "./pages/TaskSummary/index";
+import TaskSummary from "./pages/TaskSummary/index";
+
 // FTO
 import FtoShellLayout from "./layout/FTOShellLayout";
 import FTOHome from "./pages/FTOHome";
@@ -287,35 +287,27 @@ export default function App() {
                 />
 
                 <Route
-                  path="/tasks/:taskId/:tab/:workOrderId"
+                  path="/task-summary/:taskId/:tab/:workOrderId"
                   element={
-                    <RequireAuth>
-                      <ShellLayout>
-                        <TaskSummary />
-                      </ShellLayout>
-                    </RequireAuth>
+                    <ShellLayout>
+                      <TaskSummaryWrapper />
+                    </ShellLayout>
                   }
                 />
-
                 <Route
                   path="/tasks/:taskId/:tab"
                   element={
-                    <RequireAuth>
-                      <ShellLayout>
-                        <TaskSummary />
-                      </ShellLayout>
-                    </RequireAuth>
+                    <ShellLayout>
+                      <TaskSummaryWrapper />
+                    </ShellLayout>
                   }
                 />
-
                 <Route
                   path="/tasks/:taskId"
                   element={
-                    <RequireAuth>
-                      <ShellLayout>
-                        <TaskSummary />
-                      </ShellLayout>
-                    </RequireAuth>
+                    <ShellLayout>
+                      <TaskSummaryWrapper />
+                    </ShellLayout>
                   }
                 />
 
@@ -370,3 +362,8 @@ export default function App() {
     </QueryClientProvider>
   );
 }
+
+const TaskSummaryWrapper = () => {
+  const { taskId } = useParams();
+  return <TaskSummary key={taskId} />;
+};
