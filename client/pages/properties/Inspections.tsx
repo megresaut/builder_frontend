@@ -302,7 +302,7 @@ function InspectionsList() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/properties/${propertyId}/inspections/${inspection.id}`);
+                    navigate(`/property/${propertyId}/inspections/${inspection.id}`);
                   }}
                   className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors truncate"
                 >
