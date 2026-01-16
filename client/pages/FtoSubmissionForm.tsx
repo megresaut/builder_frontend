@@ -1011,10 +1011,10 @@ export default function FtoSubmissionForm() {
         errors.propertyId = "Property is required";
         isValid = false;
       }
-      // if (!entry.unitId) {
-      //   errors.unitId = "Unit is required";
-      //   isValid = false;
-      // }
+      if (!entry.unitId) {
+        errors.unitId = "Unit is required";
+        isValid = false;
+      }
       if (!entry.taskId) {
         errors.taskId = "Task is required";
         isValid = false;
@@ -1051,10 +1051,10 @@ export default function FtoSubmissionForm() {
         errors.propertyId = "Property is required";
         isValid = false;
       }
-      // if (!entry.unitId) {
-      //   errors.unitId = "Unit is required";
-      //   isValid = false;
-      // }
+      if (!entry.unitId) {
+        errors.unitId = "Unit is required";
+        isValid = false;
+      }
       if (!entry.taskId) {
         errors.taskId = "Task is required";
         isValid = false;
@@ -1463,6 +1463,7 @@ export default function FtoSubmissionForm() {
                           <div className="flex-1">
                             <SelectField
                               label="Unit"
+                              required
                               error={hourErrors[entry.id]?.unitId}
                               options={getUnitOptions(entry.propertyId)}
                               value={entry.unitId || ""}
@@ -1847,6 +1848,7 @@ export default function FtoSubmissionForm() {
                           <div className="flex-1">
                             <SelectField
                               label="Unit"
+                              required
                               error={expenseErrors[entry.id]?.unitId}
                               options={getUnitOptions(entry.propertyId)}
                               value={entry.unitId || ""}
