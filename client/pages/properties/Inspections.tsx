@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, Routes, Route } from "react-router-dom";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
@@ -8,6 +8,7 @@ import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import BlueButton from "@/components/BlueButton";
 import PersonAvatars from "@/components/PersonAvatars";
 import PageTemplate from "@/layout/PageTemplate";
+import InspectionDetail from "./InspectionDetail";
 import {
   EditIcon,
   DeleteIcon,
