@@ -95,8 +95,9 @@ const mockInspections: Inspection[] = [
   },
 ];
 
-export default function Inspections() {
+function InspectionsList() {
   const navigate = useNavigate();
+  const { propertyId } = useParams();
   const [inspectionsList, setInspectionsList] = useState<Inspection[]>(mockInspections);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
