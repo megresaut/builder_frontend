@@ -7,6 +7,7 @@ import { Units } from "./Units";
 import { Utilities } from "./Utilities";
 import { Maintenance } from "./Maintenance";
 import { Tasks } from "./Tasks";
+import Inspections from "./Inspections";
 import { Vendors } from "./Vendors";
 import { Bills } from "./Bills";
 import { Notes } from "./Notes";
