@@ -419,3 +419,16 @@ function InspectionsList() {
     </PageTemplate>
   );
 }
+
+export default function Inspections() {
+  const { propertyId } = useParams();
+
+  return (
+    <Routes>
+      <Route index element={<InspectionsList />} />
+      <Route path="new" element={<InspectionDetail isNew />} />
+      <Route path=":inspectionId" element={<InspectionDetail />} />
+      <Route path=":inspectionId/edit" element={<InspectionDetail isEdit />} />
+    </Routes>
+  );
+}
