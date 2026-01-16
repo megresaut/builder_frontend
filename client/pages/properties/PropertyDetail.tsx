@@ -984,6 +984,14 @@ export default function PropertyDetail() {
             propertyUnits={property.units}
           />
         );
+      case "Inspections":
+        return (
+          <Inspections
+            propertyAddress={property.address}
+            propertyType={property.type}
+            propertyUnits={property.units}
+          />
+        );
       case "Tasks":
         return (
           <Tasks
