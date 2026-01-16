@@ -152,14 +152,18 @@ export default function InspectionDetail({ isNew = false, isEdit = false }: Insp
         {/* Header */}
         <div className="border-b border-[#DADADA] px-6 py-4 flex items-center gap-3">
           <button
-            onClick={() => navigate("..")}
+            onClick={() => navigate(-1)}
             className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <ArrowBackIcon width={20} height={20} />
           </button>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Quarterly Building Inspection</h1>
-            <p className="text-sm text-gray-600">Oct 15, 2025 • Submitted by John Doe</p>
+            <h1 className="text-xl font-semibold text-gray-900">
+              {isNew ? "New Inspection" : "Quarterly Building Inspection"}
+            </h1>
+            <p className="text-sm text-gray-600">
+              {isNew ? "Create a new inspection record" : "Oct 15, 2025 • Submitted by John Doe"}
+            </p>
           </div>
         </div>
 
