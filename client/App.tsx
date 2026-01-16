@@ -151,6 +151,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/property/:propertyId/inspections/:inspectionId/*"
+                  element={
+                    <ShellLayout>
+                      <PropertyDetail />
+                    </ShellLayout>
+                  }
+                />
+                <Route
                   path="/property/:propertyId/:tab"
                   element={
                     <ShellLayout>
