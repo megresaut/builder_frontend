@@ -234,12 +234,12 @@ function InspectionsList() {
   }, []);
 
   const handleEditInspection = useCallback((inspection: Inspection) => {
-    navigate(`inspection/${inspection.id}/edit`);
-  }, [navigate]);
+    navigate(`/properties/${propertyId}/inspections/${inspection.id}/edit`);
+  }, [navigate, propertyId]);
 
   const handleViewInspection = useCallback((inspection: Inspection) => {
-    navigate(`inspection/${inspection.id}`);
-  }, [navigate]);
+    navigate(`/properties/${propertyId}/inspections/${inspection.id}`);
+  }, [navigate, propertyId]);
 
   const actions = [
     {
