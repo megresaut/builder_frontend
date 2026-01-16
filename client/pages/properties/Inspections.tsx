@@ -294,7 +294,7 @@ function InspectionsList() {
           data={inspectionsList}
           rowKey="id"
           onRowClick={(inspection) => {
-            navigate(`inspection/${inspection.id}`);
+            navigate(`/properties/${propertyId}/inspections/${inspection.id}`);
           }}
           renderCell={(inspection, columnKey) => {
             if (columnKey === "name") {
@@ -302,7 +302,7 @@ function InspectionsList() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`inspection/${inspection.id}`);
+                    navigate(`/properties/${propertyId}/inspections/${inspection.id}`);
                   }}
                   className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors truncate"
                 >
