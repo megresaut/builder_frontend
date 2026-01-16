@@ -73,6 +73,7 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
     "Units",
     "Utilities",
     "Maintenance",
+    "Inspections",
     "Vendors",
     "Bills",
     "Notes",
