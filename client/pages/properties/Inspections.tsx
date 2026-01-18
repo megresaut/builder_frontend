@@ -4,7 +4,6 @@ import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import GlobalTable from "@/components/GlobalTable";
-import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import BlueButton from "@/components/BlueButton";
 import PersonAvatars from "@/components/PersonAvatars";
 import InspectionDetail from "./InspectionDetail";
