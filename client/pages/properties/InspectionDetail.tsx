@@ -158,7 +158,7 @@ export default function InspectionDetail({ isNew = false, isEdit = false }: Insp
       {/* Header */}
         <div className="border-b border-[#DADADA] px-6 py-4 flex items-center gap-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <ArrowBackIcon width={20} height={20} />
