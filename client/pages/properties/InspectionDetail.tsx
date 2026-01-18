@@ -63,6 +63,14 @@ export default function InspectionDetail({ isNew = false, isEdit = false }: Insp
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["section1", "section2"]));
   const [selectedTemplate, setSelectedTemplate] = usePageState("selectedTemplate", "default");
 
+  const handleBack = useCallback(() => {
+    if (propertyId) {
+      navigate(`/property/${propertyId}/Inspections`);
+    } else {
+      navigate(-1);
+    }
+  }, [navigate, propertyId]);
+
   const handlePhotoDelete = useCallback((photoId: string) => {
     setPhotos((prev) => prev.filter((p) => p.id !== photoId));
   }, []);
