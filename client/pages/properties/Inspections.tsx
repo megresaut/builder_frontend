@@ -7,7 +7,6 @@ import GlobalTable from "@/components/GlobalTable";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import BlueButton from "@/components/BlueButton";
 import PersonAvatars from "@/components/PersonAvatars";
-import PageTemplate from "@/layout/PageTemplate";
 import InspectionDetail from "./InspectionDetail";
 import {
   EditIcon,
