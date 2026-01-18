@@ -154,7 +154,7 @@ export default function InspectionDetail({ isNew = false, isEdit = false }: Insp
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-screen bg-white">
       {/* Header */}
         <div className="border-b border-[#DADADA] px-6 py-4 flex items-center gap-3">
           <button
