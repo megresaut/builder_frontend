@@ -275,8 +275,7 @@ function InspectionsList() {
   };
 
   return (
-    <PageTemplate>
-      <div className="flex flex-col gap-6 w-fit min-w-full">
+    <div className="flex flex-col gap-6 w-fit min-w-full">
         <SubPageHeaderV2
           leftContent={<div className="text-lg font-semibold">Inspections</div>}
           rightContent={
@@ -416,7 +415,6 @@ function InspectionsList() {
           onShowColumnModalChange={setShowColumnModal}
         />
       </div>
-    </PageTemplate>
   );
 }
 
