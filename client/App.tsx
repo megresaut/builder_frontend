@@ -152,18 +152,18 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="/property/:propertyId/inspections/:inspectionId/*"
-                  element={
-                    <ShellLayout>
-                      <InspectionDetail />
-                    </ShellLayout>
-                  }
-                />
-                <Route
                   path="/property/:propertyId/inspections/new"
                   element={
                     <ShellLayout>
                       <InspectionDetail isNew />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/property/:propertyId/inspections/:inspectionId/*"
+                  element={
+                    <ShellLayout>
+                      <InspectionDetail />
                     </ShellLayout>
                   }
                 />
