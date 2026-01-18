@@ -23,6 +23,7 @@ import FtoShellLayout from "./layout/FtoShellLayout";
 import { TabContext } from "./hooks/useTabContext";
 import { FavoritesProvider } from "./hooks/FavoritesContext";
 import PropertyDetail from "./pages/properties/PropertyDetail";
+import InspectionDetail from "./pages/properties/InspectionDetail";
 import BlankPage from "./pages/BlankPage";
 import { RecordBill } from "./pages/properties/RecordBill";
 import { Auth } from "./pages/Auth";
@@ -154,7 +155,15 @@ export default function App() {
                   path="/property/:propertyId/inspections/:inspectionId/*"
                   element={
                     <ShellLayout>
-                      <PropertyDetail />
+                      <InspectionDetail />
+                    </ShellLayout>
+                  }
+                />
+                <Route
+                  path="/property/:propertyId/inspections/new"
+                  element={
+                    <ShellLayout>
+                      <InspectionDetail isNew />
                     </ShellLayout>
                   }
                 />
