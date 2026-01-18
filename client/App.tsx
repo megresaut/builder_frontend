@@ -160,6 +160,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/property/:propertyId/inspections/:inspectionId/edit"
+                  element={
+                    <ShellLayout>
+                      <InspectionDetail isEdit />
+                    </ShellLayout>
+                  }
+                />
+                <Route
                   path="/property/:propertyId/inspections/:inspectionId/*"
                   element={
                     <ShellLayout>
