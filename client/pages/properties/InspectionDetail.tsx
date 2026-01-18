@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePageState } from "@/hooks/usePageState";
-import PageTemplate from "@/layout/PageTemplate";
 import { EditIcon, DeleteIcon, ArrowBackIcon } from "@/components/icons";
 
 interface UploadedPhoto {
@@ -147,9 +146,8 @@ export default function InspectionDetail({ isNew = false, isEdit = false }: Insp
   }, []);
 
   return (
-    <PageTemplate>
-      <div className="flex flex-col h-screen bg-white">
-        {/* Header */}
+    <div className="flex flex-col h-full bg-white">
+      {/* Header */}
         <div className="border-b border-[#DADADA] px-6 py-4 flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
@@ -306,28 +304,27 @@ export default function InspectionDetail({ isNew = false, isEdit = false }: Insp
           </div>
         </div>
 
-        {/* Sticky Footer */}
-        <div className="border-t border-[#DADADA] bg-white px-6 py-4 flex justify-end gap-3">
-          <button
-            onClick={handleSaveDraft}
-            className="px-4 py-2 border border-[#DADADA] rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Save Draft
-          </button>
-          <button
-            onClick={handleMarkReviewed}
-            className="px-4 py-2 border border-blue-500 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors"
-          >
-            Mark as Reviewed
-          </button>
-          <button
-            onClick={handleApprove}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-          >
-            Approve
-          </button>
-        </div>
+      {/* Sticky Footer */}
+      <div className="border-t border-[#DADADA] bg-white px-6 py-4 flex justify-end gap-3">
+        <button
+          onClick={handleSaveDraft}
+          className="px-4 py-2 border border-[#DADADA] rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          Save Draft
+        </button>
+        <button
+          onClick={handleMarkReviewed}
+          className="px-4 py-2 border border-blue-500 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors"
+        >
+          Mark as Reviewed
+        </button>
+        <button
+          onClick={handleApprove}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          Approve
+        </button>
       </div>
-    </PageTemplate>
+    </div>
   );
 }
