@@ -36,6 +36,12 @@ interface Inspection {
   updated: string;
 }
 
+interface InspectionsProps {
+  propertyAddress?: string;
+  propertyType?: string;
+  propertyUnits?: number;
+}
+
 const mockInspections: Inspection[] = [
   {
     id: 1,
@@ -94,7 +100,7 @@ const mockInspections: Inspection[] = [
   },
 ];
 
-function InspectionsList() {
+function InspectionsList({ propertyAddress }: InspectionsProps) {
   const navigate = useNavigate();
   const { propertyId } = useParams();
   const [inspectionsList, setInspectionsList] = useState<Inspection[]>(mockInspections);
@@ -275,19 +281,34 @@ function InspectionsList() {
 
   return (
     <div className="flex flex-col gap-6 w-fit min-w-full">
-        <SubPageHeaderV2
-          leftContent={<div className="text-lg font-semibold">Inspections</div>}
-          rightContent={
-            <BlueButton
-              icon={<PlusIcon width={20} height={20} />}
-              onClick={() => navigate(`/property/${propertyId}/inspections/new`)}
+      <div className="flex items-center gap-10 justify-between flex-wrap">
+        {/* Title and Description */}
+        <div className="flex flex-col gap-1 min-w-[240px]">
+          <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+            Inspections
+          </h1>
+          <div className="flex items-center gap-3 mt-1">
+            <p
+              className="text-[#717179] font-medium text-base leading-4"
+              style={{ marginTop: "-4px" }}
             >
-              New Inspection
-            </BlueButton>
-          }
-        />
+              All inspections for {propertyAddress}
+            </p>
+          </div>
+        </div>
 
-        <GlobalTable
+        {/* Action Button */}
+        <div className="flex items-center gap-4">
+          <BlueButton
+            icon={<PlusIcon width={20} height={20} />}
+            onClick={() => navigate(`/property/${propertyId}/inspections/new`)}
+          >
+            New Inspection
+          </BlueButton>
+        </div>
+      </div>
+
+      <GlobalTable
           columns={columns}
           data={inspectionsList}
           rowKey="id"
@@ -417,12 +438,12 @@ function InspectionsList() {
   );
 }
 
-export default function Inspections() {
+export default function Inspections(props: InspectionsProps) {
   const { propertyId } = useParams();
 
   return (
     <Routes>
-      <Route index element={<InspectionsList />} />
+      <Route index element={<InspectionsList {...props} />} />
       <Route path="new" element={<InspectionDetail isNew />} />
       <Route path=":inspectionId" element={<InspectionDetail />} />
       <Route path=":inspectionId/edit" element={<InspectionDetail isEdit />} />
