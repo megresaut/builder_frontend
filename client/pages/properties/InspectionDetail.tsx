@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import mammoth from "mammoth";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import SectionCard from "@/components/SectionCard";
@@ -645,7 +646,7 @@ function UploadDocxModal({
               Click to browse file
             </label>
           )}
-          <p className="text-xs text-gray-400 mt-2">Supported: .docx (mock), .txt, .md</p>
+          <p className="text-xs text-gray-400 mt-2">Supported: .docx, .txt, .md</p>
         </div>
       </div>
     </ModalTemplate>
