@@ -260,11 +260,22 @@ export default function InspectionDetail() {
                         <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
                           <img src={photo.url} alt="Inspection" className="w-full h-full object-cover" />
                         </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div className="flex-1 min-w-0 flex flex-col justify-between gap-2">
                           <div>
-                            <div className="text-xs text-gray-500 mb-1">
+                            <div className="text-xs text-gray-500 mb-2">
                               {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
+                            <input
+                              type="text"
+                              placeholder="Add a comment..."
+                              value={photo.comment || ""}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleUpdatePhotoComment(photo.id, e.target.value);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-full text-xs p-1.5 border border-gray-200 rounded placeholder-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            />
                           </div>
 
                           <div className="flex justify-end gap-2 mt-1">
