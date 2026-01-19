@@ -51,7 +51,17 @@ const mockInspections: InspectionRecord[] = [
 
 export default function FtoInspections() {
   const navigate = useNavigate();
-  const [inspections, setInspections] = useState<InspectionRecord[]>(mockInspections);
+  const [inspections, setInspections] = useState<InspectionRecord[]>(() => {
+    // Initialize inspections with mock data, but update status based on localStorage
+    const completedIds = JSON.parse(
+      localStorage.getItem("completedInspections") || "[]",
+    ) as number[];
+
+    return mockInspections.map((inspection) => ({
+      ...inspection,
+      status: completedIds.includes(inspection.id) ? "Completed" : inspection.status,
+    }));
+  });
   const [loading, setLoading] = useState(false);
 
   // Sorting hook
