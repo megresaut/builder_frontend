@@ -81,6 +81,36 @@ export default function FtoInspectionForm() {
 
   // --- Effects ---
 
+  // Load inspection data from localStorage if viewing existing inspection
+  useEffect(() => {
+    if (inspectionId && isReadOnly) {
+      const storedInspections = JSON.parse(
+        localStorage.getItem("inspectionData") || "{}"
+      ) as Record<string, StoredInspection>;
+
+      const inspectionData = storedInspections[inspectionId];
+      if (inspectionData) {
+        setDate(inspectionData.date);
+        setPropertyId(inspectionData.propertyId);
+        setUnitId(inspectionData.unitId);
+        setPhotos(inspectionData.photos);
+
+        if (inspectionData.requirements.hasDoc && inspectionData.requirements.arrayBuffer) {
+          // Convert base64 back to ArrayBuffer
+          const binaryString = atob(inspectionData.requirements.arrayBuffer);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          setRequirements({
+            ...inspectionData.requirements,
+            arrayBuffer: bytes.buffer,
+          });
+        }
+      }
+    }
+  }, [inspectionId, isReadOnly]);
+
   // Render doc when requirements change
   useEffect(() => {
     if (requirements.arrayBuffer && docContainerRef.current) {
