@@ -372,17 +372,6 @@ export default function FtoInspectionForm() {
             <div className="rounded-xl bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-6">
               <h2 className="text-lg font-medium text-gray-900">Inspection Details</h2>
 
-              {(validationErrors.date || validationErrors.property) && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  {validationErrors.date && (
-                    <p className="text-sm text-red-600">{validationErrors.date}</p>
-                  )}
-                  {validationErrors.property && (
-                    <p className="text-sm text-red-600">{validationErrors.property}</p>
-                  )}
-                </div>
-              )}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <DateField
                   label="Date"
@@ -391,8 +380,9 @@ export default function FtoInspectionForm() {
                   onChange={(d) => setDate(d instanceof Date ? d.toISOString().split("T")[0] : d)}
                   placeholder="mm/dd/yyyy"
                   disabled={isReadOnly}
+                  error={validationErrors.date}
                 />
-                
+
                 <div className="hidden md:block" /> {/* Spacer */}
 
                 <SelectField
@@ -403,6 +393,7 @@ export default function FtoInspectionForm() {
                   onChange={(value) => setPropertyId(typeof value === 'string' ? value : value[0] || null)}
                   placeholder="Select Property"
                   disabled={isReadOnly}
+                  error={validationErrors.property}
                 />
 
                 <SelectField
