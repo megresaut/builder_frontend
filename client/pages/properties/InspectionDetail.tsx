@@ -308,9 +308,19 @@ export default function InspectionDetail() {
         </div>
       </div>
 
+      {/* Photo Gallery Modal */}
+      <PhotoGalleryModal
+        open={isGalleryOpen}
+        onOpenChange={setIsGalleryOpen}
+        photos={photos}
+        currentPhotoIndex={currentPhotoIndex}
+        onPrev={handlePrevPhoto}
+        onNext={handleNextPhoto}
+      />
+
       {/* Upload Requirements Modal */}
-      <UploadDocxModal 
-        open={isUploadModalOpen} 
+      <UploadDocxModal
+        open={isUploadModalOpen}
         onOpenChange={setIsUploadModalOpen}
         onUpload={handleUploadDocx}
       />
