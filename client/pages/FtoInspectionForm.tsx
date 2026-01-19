@@ -402,6 +402,7 @@ export default function FtoInspectionForm() {
                   value={propertyId || ""}
                   onChange={(value) => setPropertyId(typeof value === 'string' ? value : value[0] || null)}
                   placeholder="Select Property"
+                  disabled={isReadOnly}
                 />
 
                 <SelectField
