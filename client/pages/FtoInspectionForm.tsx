@@ -181,9 +181,14 @@ export default function FtoInspectionForm() {
         <div
           ref={docContainerRef}
           className={cn(
-            "flex-1 overflow-auto prose prose-sm max-w-none px-4 sm:px-8 py-8 bg-white",
-            "[&_.docx-wrapper]:bg-white [&_.docx-wrapper]:border-0 [&_.docx-wrapper]:p-0"
+            "flex-1 overflow-auto bg-white",
+            "[&_.docx-wrapper]:bg-white [&_.docx-wrapper]:border-0 [&_.docx-wrapper]:m-0",
+            "[&_section]:mx-auto"
           )}
+          style={{
+            paddingTop: "2rem",
+            paddingBottom: "2rem",
+          }}
         />
       </div>
     );
