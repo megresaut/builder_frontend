@@ -420,7 +420,7 @@ export default function FtoInspectionForm() {
             <div className="rounded-xl bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-medium text-gray-900">Inspection Requirements</h2>
-                {requirements.hasDoc && (
+                {requirements.hasDoc && !isReadOnly && (
                   <button
                     onClick={() => setIsUploadModalOpen(true)}
                     className="text-sm text-blue-600 hover:underline"
