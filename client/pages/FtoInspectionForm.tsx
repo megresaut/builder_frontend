@@ -510,15 +510,26 @@ export default function FtoInspectionForm() {
 
           {/* Footer Actions */}
           <div className="flex items-center justify-end gap-3 mt-4 mb-8">
-            <button
-              onClick={() => navigate("/fto/inspections")}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 font-medium text-sm transition-colors"
-            >
-              Cancel
-            </button>
-            <BlueButton onClick={handleSubmit}>
-              Submit Inspection
-            </BlueButton>
+            {isReadOnly ? (
+              <button
+                onClick={() => navigate("/fto/inspections")}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 font-medium text-sm transition-colors"
+              >
+                Back
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate("/fto/inspections")}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 font-medium text-sm transition-colors"
+                >
+                  Cancel
+                </button>
+                <BlueButton onClick={handleSubmit}>
+                  Submit Inspection
+                </BlueButton>
+              </>
+            )}
           </div>
 
         </div>
