@@ -348,9 +348,14 @@ export default function FtoInspectionForm() {
           {/* Title and Header */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <h1 className="text-[28px] font-semibold text-[#303030] leading-[26px]" style={{ fontFamily: "Geist, sans-serif" }}>
-                Property Inspection
-              </h1>
+              <div>
+                <h1 className="text-[28px] font-semibold text-[#303030] leading-[26px]" style={{ fontFamily: "Geist, sans-serif" }}>
+                  Property Inspection
+                </h1>
+                {isReadOnly && (
+                  <p className="text-sm text-gray-500 mt-1">Viewing completed inspection</p>
+                )}
+              </div>
               <button
                 onClick={() => navigate("/fto/inspections")}
                 className="text-[#303030] hover:opacity-70 transition-opacity"
