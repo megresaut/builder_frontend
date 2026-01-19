@@ -35,23 +35,11 @@ interface RequirementsDoc {
 
 // --- Mock Data ---
 
-const MOCK_INITIAL_NODES: RequirementsNode[] = [
-  { id: "1", type: "heading", text: "Exterior Assessment", level: 1 },
-  { id: "2", type: "bullet", text: "Driveway condition (cracks, stains)", level: 2 },
-  { id: "3", type: "bullet", text: "Landscaping status (overgrown, dead plants)", level: 2 },
-  { id: "4", type: "bullet", text: "Exterior lighting functionality", level: 2 },
-  { id: "5", type: "heading", text: "Interior - Main Floor", level: 1 },
-  { id: "6", type: "bullet", text: "Entrance/Foyer cleanliness", level: 2 },
-  { id: "7", type: "bullet", text: "Kitchen appliances check", level: 2 },
-  { id: "8", type: "bullet", text: "Flooring condition", level: 2 },
-];
-
 const MOCK_PHOTOS: InspectionPhoto[] = [
   {
     id: "p1",
     url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d5d01db2db718e32f4e620e7b1fc6ea705e115b1?placeholderIfAbsent=true",
     uploadedAt: new Date().toISOString(),
-    attachedToNodeId: "2",
   },
 ];
 
