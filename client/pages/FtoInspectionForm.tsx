@@ -481,16 +481,19 @@ export default function FtoInspectionForm() {
                         placeholder="Add a comment..."
                         value={photo.comment || ""}
                         onChange={(e) => handleUpdatePhotoComment(photo.id, e.target.value)}
-                        className="w-full text-xs p-2 border border-gray-200 rounded placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        className="w-full text-xs p-2 border border-gray-200 rounded placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        disabled={isReadOnly}
                       />
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => handleRemovePhoto(photo.id)}
-                          className="text-xs text-red-600 hover:text-red-700 font-medium"
-                        >
-                          Remove
-                        </button>
-                      </div>
+                      {!isReadOnly && (
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => handleRemovePhoto(photo.id)}
+                            className="text-xs text-red-600 hover:text-red-700 font-medium"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
