@@ -331,6 +331,83 @@ export default function InspectionDetail() {
 
 // --- Helper Components ---
 
+function PhotoGalleryModal({
+  open,
+  onOpenChange,
+  photos,
+  currentPhotoIndex,
+  onPrev,
+  onNext,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  photos: InspectionPhoto[];
+  currentPhotoIndex: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  if (!open || photos.length === 0) return null;
+
+  const currentPhoto = photos[currentPhotoIndex];
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-gray-900">Review Photos</h2>
+            <span className="text-sm text-gray-500">
+              {currentPhotoIndex + 1} of {photos.length}
+            </span>
+          </div>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <span className="text-2xl leading-none">×</span>
+          </button>
+        </div>
+
+        {/* Image Container */}
+        <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-hidden">
+          <img
+            src={currentPhoto.url}
+            alt={`Photo ${currentPhotoIndex + 1}`}
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+
+        {/* Footer with Navigation */}
+        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
+          <button
+            onClick={onPrev}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50"
+            disabled={photos.length === 1}
+          >
+            ← Previous
+          </button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">
+              {new Date(currentPhoto.uploadedAt).toLocaleString()}
+            </span>
+          </div>
+
+          <button
+            onClick={onNext}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50"
+            disabled={photos.length === 1}
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function UploadDocxModal({ 
   open, 
   onOpenChange, 
