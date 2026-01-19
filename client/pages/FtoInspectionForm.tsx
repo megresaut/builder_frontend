@@ -444,22 +444,24 @@ export default function FtoInspectionForm() {
               )}
 
               {/* Upload Area */}
-              <div
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors text-gray-400"
-                onClick={() => photoInputRef.current?.click()}
-              >
-                <PlusIcon width={24} height={24} />
-                <span className="mt-2 text-sm text-gray-600 font-medium">Add Photos</span>
-                <span className="text-xs text-gray-400 mt-1">Supports JPG, PNG</span>
-                <input 
-                  ref={photoInputRef}
-                  type="file" 
-                  multiple 
-                  accept="image/*" 
-                  className="hidden" 
-                  onChange={handlePhotoUpload}
-                />
-              </div>
+              {!isReadOnly && (
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors text-gray-400"
+                  onClick={() => photoInputRef.current?.click()}
+                >
+                  <PlusIcon width={24} height={24} />
+                  <span className="mt-2 text-sm text-gray-600 font-medium">Add Photos</span>
+                  <span className="text-xs text-gray-400 mt-1">Supports JPG, PNG</span>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
+                </div>
+              )}
 
               {/* Photo Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
