@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import mammoth from "mammoth";
+import { renderAsync } from "docx-preview";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import SectionCard from "@/components/SectionCard";
@@ -18,26 +18,19 @@ import { cn } from "@/lib/utils";
 
 // --- Types ---
 
-interface RequirementsNode {
-  id: string;
-  type: "heading" | "bullet";
-  text: string;
-  level: number; // 1 for heading, 2+ for bullets
-}
-
 interface InspectionPhoto {
   id: string;
   url: string;
   uploadedAt: string; // ISO string
   capturedAt?: string;
-  attachedToNodeId: string | null; // null = Unassigned
 }
 
 interface RequirementsDoc {
   hasDoc: boolean;
   fileName?: string;
   lastUpdated?: string;
-  nodes: RequirementsNode[];
+  blobUrl?: string; // URL to the uploaded docx file
+  arrayBuffer?: ArrayBuffer; // Raw file data for rendering
 }
 
 // --- Mock Data ---
