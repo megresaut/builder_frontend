@@ -390,6 +390,7 @@ export default function FtoInspectionForm() {
                   value={date}
                   onChange={(d) => setDate(d instanceof Date ? d.toISOString().split("T")[0] : d)}
                   placeholder="mm/dd/yyyy"
+                  disabled={isReadOnly}
                 />
                 
                 <div className="hidden md:block" /> {/* Spacer */}
