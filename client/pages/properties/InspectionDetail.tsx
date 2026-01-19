@@ -195,7 +195,7 @@ export default function InspectionDetail() {
               Upload Photos
             </button>
             <BlueButton
-              icon={<ApproveIcon width={20} height={20} />}
+              icon={<ApproveIcon width={20} height={20} className="brightness-0 invert" />}
               onClick={() => {}}
             >
               Mark Complete
