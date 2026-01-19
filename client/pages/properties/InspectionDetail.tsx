@@ -436,18 +436,38 @@ export default function InspectionDetail() {
                               {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                             <div className="text-sm font-medium text-gray-900 truncate">
-                              {attachedNode ? attachedNode.text : "Unassigned"}
+                              {editingPhotoId === photo.id ? (
+                                <select
+                                  className="w-full p-1 border rounded text-xs"
+                                  value={photo.attachedToNodeId || ""}
+                                  onChange={(e) => handleChangeTarget(photo.id, e.target.value || null)}
+                                  autoFocus
+                                  onBlur={() => setEditingPhotoId(null)}
+                                >
+                                  <option value="">Unassigned</option>
+                                  {requirements.nodes.map(n => (
+                                    <option key={n.id} value={n.id}>{n.text}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                attachedNode ? attachedNode.text : "Unassigned"
+                              )}
                             </div>
                           </div>
-                          
+
                           <div className="flex justify-end gap-2 mt-1">
-                            <button 
+                            <button
+                              onClick={() => setEditingPhotoId(photo.id)}
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              Change
+                            </button>
+                            <button
                               onClick={() => handleRemovePhoto(photo.id)}
                               className="text-xs text-red-600 hover:text-red-700 hover:underline"
                             >
                               Remove
                             </button>
-                            {/* Re-assign logic could go here */}
                           </div>
                         </div>
                       </div>
