@@ -13,6 +13,7 @@ import {
   ApproveIcon,
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import BlueButton from "@/components/BlueButton";
 
 // --- Types ---
 
