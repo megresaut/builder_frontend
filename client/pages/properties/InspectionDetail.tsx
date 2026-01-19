@@ -315,6 +315,7 @@ export default function InspectionDetail() {
         currentPhotoIndex={currentPhotoIndex}
         onPrev={handlePrevPhoto}
         onNext={handleNextPhoto}
+        onUpdateComment={handleUpdatePhotoComment}
       />
 
       {/* Upload Requirements Modal */}
@@ -337,6 +338,7 @@ function PhotoGalleryModal({
   currentPhotoIndex,
   onPrev,
   onNext,
+  onUpdateComment,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -344,6 +346,7 @@ function PhotoGalleryModal({
   currentPhotoIndex: number;
   onPrev: () => void;
   onNext: () => void;
+  onUpdateComment: (id: string, comment: string) => void;
 }) {
   if (!open || photos.length === 0) return null;
 
@@ -370,11 +373,23 @@ function PhotoGalleryModal({
         </div>
 
         {/* Image Container */}
-        <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-hidden">
+        <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-hidden p-4">
           <img
             src={currentPhoto.url}
             alt={`Photo ${currentPhotoIndex + 1}`}
-            className="max-h-full max-w-full object-contain"
+            className="max-h-full max-w-full object-contain shadow-sm"
+          />
+        </div>
+
+        {/* Comment Section */}
+        <div className="bg-white px-6 py-4 border-t border-gray-200">
+          <input
+            type="text"
+            value={currentPhoto.comment || ""}
+            onChange={(e) => onUpdateComment(currentPhoto.id, e.target.value)}
+            placeholder="Add a comment to this photo..."
+            className="w-full text-sm px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+            autoFocus
           />
         </div>
 
