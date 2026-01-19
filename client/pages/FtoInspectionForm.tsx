@@ -236,14 +236,45 @@ export default function FtoInspectionForm() {
     // Clear errors on successful validation
     setValidationErrors({});
 
+    // For demo purposes, use a mock inspection ID
+    // In a real app, this would come from the form data
+    const mockInspectionId = 1;
+
+    // Store inspection data to localStorage
+    const storedInspections = JSON.parse(
+      localStorage.getItem("inspectionData") || "{}"
+    ) as Record<string, StoredInspection>;
+
+    let arrayBufferBase64: string | undefined;
+    if (requirements.arrayBuffer) {
+      const bytes = new Uint8Array(requirements.arrayBuffer);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      arrayBufferBase64 = btoa(binary);
+    }
+
+    storedInspections[mockInspectionId.toString()] = {
+      id: mockInspectionId,
+      date,
+      propertyId,
+      unitId,
+      photos,
+      requirements: {
+        hasDoc: requirements.hasDoc,
+        fileName: requirements.fileName,
+        lastUpdated: requirements.lastUpdated,
+        arrayBuffer: arrayBufferBase64,
+      },
+    };
+
+    localStorage.setItem("inspectionData", JSON.stringify(storedInspections));
+
     // Update the inspection status to "Completed" in localStorage
     const completedInspections = JSON.parse(
       localStorage.getItem("completedInspections") || "[]",
     ) as number[];
-
-    // For demo purposes, use a mock inspection ID
-    // In a real app, this would come from the form data
-    const mockInspectionId = 1;
 
     if (!completedInspections.includes(mockInspectionId)) {
       completedInspections.push(mockInspectionId);
