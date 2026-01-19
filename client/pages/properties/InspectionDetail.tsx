@@ -194,12 +194,12 @@ export default function InspectionDetail() {
             >
               Upload Photos
             </button>
-            <button
-              className="px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 bg-white transition-colors flex items-center gap-2"
+            <BlueButton
+              icon={<ApproveIcon width={20} height={20} />}
+              onClick={() => {}}
             >
-              <ApproveIcon width={16} height={16} />
-              <span>Mark Complete</span>
-            </button>
+              Mark Complete
+            </BlueButton>
           </div>
         </div>
 
