@@ -151,6 +151,7 @@ export default function InspectionDetail() {
 
   const handleChangeTarget = (photoId: string, nodeId: string | null) => {
     setPhotos((prev) => prev.map(p => p.id === photoId ? { ...p, attachedToNodeId: nodeId } : p));
+    setEditingPhotoId(null);
   };
 
   const handleUploadDocx = (file: File) => {
