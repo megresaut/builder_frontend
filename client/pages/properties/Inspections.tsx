@@ -139,9 +139,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     "name",
     "inspector",
     "inspectionDate",
-    "submitted",
     "status",
-    "issues",
     "photos",
     "updated",
   ]);
@@ -153,9 +151,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
         "name",
         "inspector",
         "inspectionDate",
-        "submitted",
         "status",
-        "issues",
         "photos",
         "updated",
       ]),
@@ -186,29 +182,12 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
       icon: <CalendarIcon width={16} height={16} />,
     },
     {
-      key: "submitted",
-      label: "Submitted",
-      icon: <CalendarIcon width={16} height={16} />,
-    },
-    {
       key: "status",
       label: "Status",
       icon: (
         <img
           loading="lazy"
           src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
-    },
-    {
-      key: "issues",
-      label: "Issues (#)",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/7f481edecd98b8475a23ac762feb99280a60a52a?placeholderIfAbsent=true"
           style={{ width: "16px", height: "16px" }}
           alt=""
         />
@@ -340,13 +319,6 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
                 </span>
               );
             }
-            if (columnKey === "submitted") {
-              return (
-                <span className="text-gray-900 font-normal text-sm truncate">
-                  {inspection.submitted}
-                </span>
-              );
-            }
             if (columnKey === "status") {
               return (
                 <div className="flex items-center gap-2">
@@ -358,13 +330,6 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
                     {inspection.status}
                   </span>
                 </div>
-              );
-            }
-            if (columnKey === "issues") {
-              return (
-                <span className="text-gray-900 font-normal text-sm">
-                  {inspection.issues}
-                </span>
               );
             }
             if (columnKey === "photos") {
