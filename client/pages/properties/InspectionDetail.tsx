@@ -353,8 +353,14 @@ function PhotoGalleryModal({
   const currentPhoto = photos[currentPhotoIndex];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+    <div
+      className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4"
+      onClick={() => onOpenChange(false)}
+    >
+      <div
+        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
 
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
