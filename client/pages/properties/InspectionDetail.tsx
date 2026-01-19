@@ -191,7 +191,65 @@ export default function InspectionDetail() {
       }
     }
 
-    // Mock processing of .docx
+    // .docx handling with Mammoth
+    if (file.name.endsWith(".docx")) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const html = result.value; // The generated HTML
+
+        // Parse HTML to Nodes
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        const newNodes: RequirementsNode[] = [];
+
+        const processElement = (el: Element) => {
+          const text = el.textContent?.trim();
+          if (!text) return;
+
+          const tagName = el.tagName.toLowerCase();
+          const id = `doc_${Date.now()}_${newNodes.length}`;
+
+          // Heuristic mapping
+          if (tagName.startsWith("h")) {
+            newNodes.push({ id, type: "heading", text, level: 1 });
+          } else if (tagName === "li") {
+            newNodes.push({ id, type: "bullet", text, level: 2 });
+          } else if (tagName === "p") {
+            // Treat P as bullet/text item for now
+            newNodes.push({ id, type: "bullet", text, level: 2 });
+          }
+        };
+
+        // Mammoth outputs flat or nested lists. We traverse children.
+        Array.from(doc.body.children).forEach((child) => {
+          if (child.tagName.toLowerCase() === "ul" || child.tagName.toLowerCase() === "ol") {
+            Array.from(child.children).forEach((li) => processElement(li));
+          } else {
+            processElement(child);
+          }
+        });
+
+        if (newNodes.length > 0) {
+          setRequirements({
+            hasDoc: true,
+            fileName: file.name,
+            lastUpdated: "Just now",
+            nodes: newNodes,
+          });
+          setIsUploadModalOpen(false);
+          return;
+        } else {
+          console.warn("No nodes extracted from docx");
+        }
+      } catch (err) {
+        console.error("Mammoth error", err);
+      }
+      // Fall through to mock if parsing fails or returns no nodes
+    }
+
+    // Mock processing fallback
     // In a real app, this would send file to server, parse, and return nodes
     const mockParsedNodes: RequirementsNode[] = [
       { id: "new_1", type: "heading", text: "Imported Section 1: Structure", level: 1 },
