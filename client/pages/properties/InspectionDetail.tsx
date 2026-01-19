@@ -154,15 +154,53 @@ export default function InspectionDetail() {
     setEditingPhotoId(null);
   };
 
-  const handleUploadDocx = (file: File) => {
+  const handleUploadDocx = async (file: File) => {
+    // Reset selection to avoid orphaned targets
+    setActiveTargetId(null);
+
+    // Feature: Parse .txt/.md files for real-time preview (since .docx requires backend/heavy lib)
+    if (file.name.endsWith(".txt") || file.name.endsWith(".md")) {
+      try {
+        const text = await file.text();
+        const lines = text.split("\n").filter((l) => l.trim().length > 0);
+
+        const realNodes: RequirementsNode[] = lines.map((line, i) => {
+          // Simple heuristic: Lines starting with # or all caps are headings
+          const isHeading = line.trim().startsWith("#") || (line.trim().length < 50 && line.toUpperCase() === line);
+          const cleanText = line.replace(/^[#\-\*]\s*/, "").trim();
+
+          return {
+            id: `doc_${Date.now()}_${i}`,
+            type: isHeading ? "heading" : "bullet",
+            text: cleanText,
+            level: isHeading ? 1 : 2,
+          };
+        });
+
+        setRequirements({
+          hasDoc: true,
+          fileName: file.name,
+          lastUpdated: "Just now",
+          nodes: realNodes,
+        });
+        setIsUploadModalOpen(false);
+        return;
+      } catch (e) {
+        console.error("Failed to parse text file", e);
+      }
+    }
+
     // Mock processing of .docx
     // In a real app, this would send file to server, parse, and return nodes
     const mockParsedNodes: RequirementsNode[] = [
-      { id: "new_1", type: "heading", text: "Imported Section 1", level: 1 },
-      { id: "new_2", type: "bullet", text: "Imported Requirement A", level: 2 },
-      { id: "new_3", type: "bullet", text: "Imported Requirement B", level: 2 },
+      { id: "new_1", type: "heading", text: "Imported Section 1: Structure", level: 1 },
+      { id: "new_2", type: "bullet", text: "Foundation walls condition (cracks, water marks)", level: 2 },
+      { id: "new_3", type: "bullet", text: "Sump pump functionality test", level: 2 },
+      { id: "new_4", type: "heading", text: "Imported Section 2: Roof", level: 1 },
+      { id: "new_5", type: "bullet", text: "Shingle condition estimation", level: 2 },
+      { id: "new_6", type: "bullet", text: "Gutter cleanliness and attachment", level: 2 },
     ];
-    
+
     setRequirements({
       hasDoc: true,
       fileName: file.name,
