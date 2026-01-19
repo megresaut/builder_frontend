@@ -94,6 +94,25 @@ export default function FtoInspections() {
     "status",
   ]);
 
+  // Update inspections when completed status changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const completedIds = JSON.parse(
+        localStorage.getItem("completedInspections") || "[]",
+      ) as number[];
+
+      setInspections((prev) =>
+        prev.map((inspection) => ({
+          ...inspection,
+          status: completedIds.includes(inspection.id) ? "Completed" : "Draft",
+        })),
+      );
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   // Pagination state
   const [currentPage, setCurrentPage] = usePageState("inspectionsPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("inspectionsPerPage", 50);
