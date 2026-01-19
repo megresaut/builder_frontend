@@ -107,6 +107,10 @@ export default function InspectionDetail() {
     setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
   };
 
+  const handleUpdatePhotoComment = (photoId: string, comment: string) => {
+    setPhotos((prev) => prev.map(p => p.id === photoId ? { ...p, comment } : p));
+  };
+
   const handleUploadDocx = async (file: File) => {
     if (!file.name.endsWith(".docx")) {
       console.error("Only .docx files are supported");
