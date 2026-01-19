@@ -256,10 +256,19 @@ export default function InspectionDetail() {
                 </div>
 
                 {/* Photo List */}
+                {photos.length > 0 && (
+                  <button
+                    onClick={() => handleOpenGallery(0)}
+                    className="w-full px-3 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium transition-colors border border-blue-200 text-center"
+                  >
+                    Review All Photos ({photos.length})
+                  </button>
+                )}
+
                 <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                  {photos.map((photo) => {
+                  {photos.map((photo, index) => {
                     return (
-                      <div key={photo.id} className="flex gap-3 p-2 border border-gray-200 rounded-lg bg-white shadow-sm">
+                      <div key={photo.id} className="flex gap-3 p-2 border border-gray-200 rounded-lg bg-white shadow-sm cursor-pointer hover:border-blue-300 transition-colors" onClick={() => handleOpenGallery(index)}>
                         <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
                           <img src={photo.url} alt="Inspection" className="w-full h-full object-cover" />
                         </div>
@@ -272,7 +281,10 @@ export default function InspectionDetail() {
 
                           <div className="flex justify-end gap-2 mt-1">
                             <button
-                              onClick={() => handleRemovePhoto(photo.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemovePhoto(photo.id);
+                              }}
                               className="text-xs text-red-600 hover:text-red-700 hover:underline"
                             >
                               Remove
