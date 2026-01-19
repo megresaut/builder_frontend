@@ -49,6 +49,8 @@ interface StoredInspection {
 
 export default function FtoInspectionForm() {
   const navigate = useNavigate();
+  const { inspectionId } = useParams<{ inspectionId?: string }>();
+  const isReadOnly = Boolean(inspectionId);
 
   // Form State
   const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
@@ -60,7 +62,7 @@ export default function FtoInspectionForm() {
     hasDoc: false,
   });
   const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
-  
+
   // UI State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isRenderingDoc, setIsRenderingDoc] = useState(false);
