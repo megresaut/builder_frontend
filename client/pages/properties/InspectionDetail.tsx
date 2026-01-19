@@ -613,23 +613,23 @@ function UploadDocxModal({
     >
       <div className="flex flex-col gap-4">
         <p className="text-sm text-gray-600">
-          Upload a Microsoft Word (.docx) document containing the inspection requirements. 
+          Upload a document containing the inspection requirements.
           The content will be parsed into a checklist.
         </p>
-        
+
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center">
           <DocumentIcon width={32} height={32} className="text-gray-400 mb-3" />
-          
-          <input 
-            type="file" 
-            accept=".docx"
+
+          <input
+            type="file"
+            accept=".docx,.txt,.md"
             id="docx-upload"
             className="hidden"
             onChange={(e) => {
               if (e.target.files?.[0]) setFile(e.target.files[0]);
             }}
           />
-          
+
           {file ? (
             <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded text-sm">
               <span className="font-medium">{file.name}</span>
@@ -638,14 +638,14 @@ function UploadDocxModal({
               </button>
             </div>
           ) : (
-            <label 
-              htmlFor="docx-upload" 
+            <label
+              htmlFor="docx-upload"
               className="text-blue-600 font-medium hover:underline cursor-pointer"
             >
               Click to browse file
             </label>
           )}
-          <p className="text-xs text-gray-400 mt-2">Max file size: 10MB</p>
+          <p className="text-xs text-gray-400 mt-2">Supported: .docx (mock), .txt, .md</p>
         </div>
       </div>
     </ModalTemplate>
