@@ -213,7 +213,7 @@ export default function FtoInspectionForm() {
           style={{
             paddingTop: "2rem",
             paddingBottom: "2rem",
-            zoom: "0.6",
+            zoom: docZoom,
             transformOrigin: "top center",
           }}
         />
