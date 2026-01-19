@@ -172,7 +172,7 @@ export default function FtoInspectionForm() {
     }
 
     return (
-      <div className="flex flex-col h-[600px] border border-gray-200 rounded-lg overflow-hidden">
+      <div className="flex flex-col h-[600px] border border-gray-200 rounded-lg overflow-hidden bg-white">
         {isRenderingDoc && (
           <div className="flex items-center justify-center py-8">
             <span className="text-sm text-gray-500">Loading document...</span>
@@ -181,8 +181,8 @@ export default function FtoInspectionForm() {
         <div
           ref={docContainerRef}
           className={cn(
-            "flex-1 overflow-auto prose prose-sm max-w-none px-8 py-8 bg-white",
-            "[&_.docx-wrapper]:bg-white [&_.docx-wrapper]:border-0"
+            "flex-1 overflow-auto prose prose-sm max-w-none px-4 sm:px-8 py-8 bg-white",
+            "[&_.docx-wrapper]:bg-white [&_.docx-wrapper]:border-0 [&_.docx-wrapper]:p-0"
           )}
         />
       </div>
