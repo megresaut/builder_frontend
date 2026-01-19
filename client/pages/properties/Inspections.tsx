@@ -279,7 +279,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-fit min-w-full">
+    <div className="flex flex-col gap-6 max-w-full">
       <div className="flex items-center gap-10 justify-between flex-wrap">
         {/* Title and Description */}
         <div className="flex flex-col gap-1 min-w-[240px]">
