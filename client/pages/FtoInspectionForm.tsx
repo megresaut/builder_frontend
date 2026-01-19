@@ -426,13 +426,15 @@ export default function FtoInspectionForm() {
 
             {/* 3. Photos Card */}
             <div className="rounded-xl bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-6">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-medium text-gray-900">Photos</h2>
-                <span className="text-red-600 font-bold">*</span>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-medium text-gray-900">Photos</h2>
+                  <span className="text-red-600 font-bold">*</span>
+                </div>
+                {validationErrors.photos && (
+                  <p className="text-sm text-red-600">{validationErrors.photos}</p>
+                )}
               </div>
-              {validationErrors.photos && (
-                <div className="text-sm text-red-600">{validationErrors.photos}</div>
-              )}
 
               {/* Upload Area */}
               {!isReadOnly && (
