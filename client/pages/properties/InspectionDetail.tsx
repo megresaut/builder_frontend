@@ -188,12 +188,6 @@ export default function InspectionDetail() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-4">
-            <button
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors"
-              onClick={() => photoInputRef.current?.click()}
-            >
-              Upload Photos
-            </button>
             <BlueButton
               icon={<ApproveIcon width={20} height={20} className="brightness-0 invert" />}
               onClick={() => {}}
