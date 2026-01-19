@@ -4,15 +4,13 @@ import { renderAsync } from "docx-preview";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import SectionCard from "@/components/SectionCard";
-import { ModalTemplate, ModalButtons, ModalField } from "@/components/ui/ModalTemplate";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   ArrowBackIcon,
-  EditIcon,
   PlusIcon,
   DocumentIcon,
   DeleteIcon,
   ApproveIcon,
-  EyeIcon
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -67,6 +65,7 @@ export default function InspectionDetail() {
     // When requirements.arrayBuffer changes, render the document
     if (requirements.arrayBuffer && docContainerRef.current) {
       setIsRenderingDoc(true);
+      docContainerRef.current.innerHTML = ""; // Clear previous content
       renderAsync(requirements.arrayBuffer, docContainerRef.current)
         .then(() => setIsRenderingDoc(false))
         .catch((err) => {
@@ -82,18 +81,15 @@ export default function InspectionDetail() {
     navigate(`/property/${propertyId}/Inspections`);
   };
 
-
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newPhotos: InspectionPhoto[] = Array.from(e.target.files).map((file) => ({
         id: `new_${Date.now()}_${Math.random()}`,
-        url: URL.createObjectURL(file), // Preview URL
+        url: URL.createObjectURL(file),
         uploadedAt: new Date().toISOString(),
-        attachedToNodeId: activeTargetId, // Attach to active target or null
       }));
       setPhotos((prev) => [...prev, ...newPhotos]);
       
-      // Reset input
       if (photoInputRef.current) photoInputRef.current.value = "";
     }
   };
@@ -134,7 +130,7 @@ export default function InspectionDetail() {
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No requirements uploaded</h3>
           <p className="text-sm text-gray-500 max-w-sm mb-6">
-            Upload the property’s Word inspection document. It will be rendered and editable in the app.
+            Upload the property's Word inspection document (.docx). It will be displayed in the app.
           </p>
           <button
             onClick={() => setIsUploadModalOpen(true)}
@@ -146,93 +142,20 @@ export default function InspectionDetail() {
       );
     }
 
-    if (isEditingRequirements) {
-      return (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4">
-            <span className="text-sm text-blue-800 font-medium">Editing Mode Active</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsEditingRequirements(false)}
-                className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveRequirements}
-                className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {editNodes.map((node, index) => (
-              <div key={node.id} className="flex gap-2 items-start">
-                <div className={cn("flex-shrink-0 pt-2", node.type === "bullet" ? "pl-6" : "")}>
-                  {node.type === "bullet" ? "•" : "#"}
-                </div>
-                <input
-                  type="text"
-                  value={node.text}
-                  onChange={(e) => {
-                    const newNodes = [...editNodes];
-                    newNodes[index].text = e.target.value;
-                    setEditNodes(newNodes);
-                  }}
-                  className={cn(
-                    "w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none",
-                    node.type === "heading" ? "font-bold" : "text-sm"
-                  )}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <div className="space-y-1">
-        {requirements.nodes.map((node) => {
-          const photosForNode = photos.filter(p => p.attachedToNodeId === node.id);
-          const isTarget = activeTargetId === node.id;
-
-          return (
-            <div
-              key={node.id}
-              className={cn(
-                "group flex items-start justify-between py-2 px-3 rounded-lg transition-colors border border-transparent",
-                isTarget ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50",
-                node.type === "bullet" ? "ml-6" : "mt-2"
-              )}
-            >
-              <div className={cn("flex-1", node.type === "heading" ? "font-semibold text-gray-900" : "text-sm text-gray-700")}>
-                {node.type === "bullet" && <span className="mr-2">•</span>}
-                {node.text}
-              </div>
-              
-              <button
-                onClick={() => setActiveTargetId(isTarget ? null : node.id)}
-                className={cn(
-                  "flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors ml-4 flex-shrink-0",
-                  isTarget 
-                    ? "bg-blue-100 text-blue-700" 
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                )}
-                title={isTarget ? "Deselect target" : "Set as photo target"}
-              >
-                <PlusIcon width={14} height={14} />
-                <span>Photos</span>
-                {photosForNode.length > 0 && (
-                  <span className="bg-white px-1.5 py-0.5 rounded-full text-[10px] shadow-sm">
-                    {photosForNode.length}
-                  </span>
-                )}
-              </button>
-            </div>
-          );
-        })}
+      <div className="flex flex-col h-full">
+        {isRenderingDoc && (
+          <div className="flex items-center justify-center py-8">
+            <span className="text-sm text-gray-500">Loading document...</span>
+          </div>
+        )}
+        <div
+          ref={docContainerRef}
+          className={cn(
+            "flex-1 overflow-auto prose prose-sm max-w-none px-4 py-4",
+            "[&_.docx-wrapper]:bg-white [&_.docx-wrapper]:border-0"
+          )}
+        />
       </div>
     );
   };
@@ -266,7 +189,7 @@ export default function InspectionDetail() {
                 <div>
                   <h1 className="text-xl font-semibold text-[#303030]">Inspection</h1>
                   <p className="text-sm text-gray-500">
-                    22 Indian Chase Dr • {requirements.lastUpdated}
+                    22 Indian Chase Dr • {requirements.lastUpdated || "No document"}
                   </p>
                 </div>
               </div>
@@ -275,29 +198,16 @@ export default function InspectionDetail() {
           rightContent={
             <div className="flex items-center gap-3">
               <button 
-                onClick={() => setIsEditingRequirements(!isEditingRequirements)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors"
-              >
-                {isEditingRequirements ? "Cancel Edit" : "Edit Requirements"}
-              </button>
-              <button 
                 className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors"
                 onClick={() => photoInputRef.current?.click()}
               >
                 Upload Photos
               </button>
               <button 
-                className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors flex items-center gap-2",
-                  isComplete ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
-                )}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-2"
               >
-                {isComplete ? (
-                  <>
-                    <ApproveIcon width={16} height={16} />
-                    <span>Complete</span>
-                  </>
-                ) : "Mark Complete"}
+                <ApproveIcon width={16} height={16} />
+                <span>Mark Complete</span>
               </button>
             </div>
           }
@@ -306,13 +216,13 @@ export default function InspectionDetail() {
         {/* Content Layout */}
         <div className="flex flex-col lg:flex-row gap-6 w-full">
           
-          {/* LEFT COLUMN: Requirements */}
+          {/* LEFT COLUMN: Requirements Document */}
           <div className="flex-1 min-w-0">
             <SectionCard 
               title="Inspection Requirements" 
               className="h-full"
               actions={
-                requirements.hasDoc && !isEditingRequirements && (
+                requirements.hasDoc && (
                   <button 
                     onClick={() => setIsUploadModalOpen(true)}
                     className="text-xs text-blue-600 hover:underline"
@@ -326,33 +236,11 @@ export default function InspectionDetail() {
             </SectionCard>
           </div>
 
-          {/* RIGHT COLUMN: Uploads & Coverage */}
-          <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-6">
-            
-            {/* Card 1: Upload Photos */}
-            <SectionCard title="Upload Photos">
+          {/* RIGHT COLUMN: Photos */}
+          <div className="w-full lg:w-[400px] flex-shrink-0">
+            <SectionCard title="Inspection Photos">
               <div className="flex flex-col gap-4">
                 
-                {/* Active Target Indicator */}
-                <div className={cn(
-                  "p-3 rounded-lg border text-sm",
-                  activeTargetId 
-                    ? "bg-blue-50 border-blue-200 text-blue-800" 
-                    : "bg-gray-50 border-gray-200 text-gray-600"
-                )}>
-                  <div className="font-medium text-xs uppercase tracking-wider mb-1 opacity-70">
-                    Active Target
-                  </div>
-                  <div className="font-medium truncate">
-                    {activeTargetNode ? activeTargetNode.text : "No specific target selected"}
-                  </div>
-                  {!activeTargetId && (
-                    <div className="text-xs mt-1 opacity-80">
-                      Photos will be "Unassigned"
-                    </div>
-                  )}
-                </div>
-
                 {/* Upload Button area */}
                 <div 
                   className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
@@ -374,8 +262,6 @@ export default function InspectionDetail() {
                 {/* Photo List */}
                 <div className="space-y-3 max-h-[400px] overflow-y-auto">
                   {photos.map((photo) => {
-                    const attachedNode = requirements.nodes.find(n => n.id === photo.attachedToNodeId);
-                    
                     return (
                       <div key={photo.id} className="flex gap-3 p-2 border border-gray-200 rounded-lg bg-white shadow-sm">
                         <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
@@ -386,33 +272,9 @@ export default function InspectionDetail() {
                             <div className="text-xs text-gray-500 mb-1">
                               {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
-                            <div className="text-sm font-medium text-gray-900 truncate">
-                              {editingPhotoId === photo.id ? (
-                                <select
-                                  className="w-full p-1 border rounded text-xs"
-                                  value={photo.attachedToNodeId || ""}
-                                  onChange={(e) => handleChangeTarget(photo.id, e.target.value || null)}
-                                  autoFocus
-                                  onBlur={() => setEditingPhotoId(null)}
-                                >
-                                  <option value="">Unassigned</option>
-                                  {requirements.nodes.map(n => (
-                                    <option key={n.id} value={n.id}>{n.text}</option>
-                                  ))}
-                                </select>
-                              ) : (
-                                attachedNode ? attachedNode.text : "Unassigned"
-                              )}
-                            </div>
                           </div>
 
                           <div className="flex justify-end gap-2 mt-1">
-                            <button
-                              onClick={() => setEditingPhotoId(photo.id)}
-                              className="text-xs text-blue-600 hover:underline"
-                            >
-                              Change
-                            </button>
                             <button
                               onClick={() => handleRemovePhoto(photo.id)}
                               className="text-xs text-red-600 hover:text-red-700 hover:underline"
@@ -433,55 +295,8 @@ export default function InspectionDetail() {
 
               </div>
             </SectionCard>
-
-            {/* Card 2: Coverage */}
-            <SectionCard title="Coverage">
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Progress</span>
-                  <span className={cn("text-sm font-bold", isComplete ? "text-green-600" : "text-blue-600")}>
-                    {coverageStats.covered} / {coverageStats.total}
-                  </span>
-                </div>
-                
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div 
-                    className={cn("h-2.5 rounded-full transition-all duration-500", isComplete ? "bg-green-500" : "bg-blue-600")}
-                    style={{ width: `${coverageStats.total > 0 ? (coverageStats.covered / coverageStats.total) * 100 : 0}%` }}
-                  ></div>
-                </div>
-
-                {/* Missing Targets */}
-                {coverageStats.missing.length > 0 ? (
-                  <div className="mt-2">
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                      Missing Targets
-                    </div>
-                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                      {coverageStats.missing.map(node => (
-                        <div key={node.id} className="flex items-center justify-between text-sm p-2 bg-red-50 rounded text-red-800 border border-red-100">
-                          <span className="truncate flex-1 mr-2">{node.text}</span>
-                          <button 
-                            onClick={() => setActiveTargetId(node.id)}
-                            className="text-xs bg-white border border-red-200 text-red-700 px-2 py-1 rounded hover:bg-red-50"
-                          >
-                            Set Target
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-3 bg-green-50 text-green-800 text-sm rounded border border-green-100 flex items-center gap-2">
-                    <ApproveIcon width={16} height={16} />
-                    <span>All requirements covered!</span>
-                  </div>
-                )}
-              </div>
-            </SectionCard>
-
           </div>
+
         </div>
       </div>
 
@@ -526,8 +341,7 @@ function UploadDocxModal({
     >
       <div className="flex flex-col gap-4">
         <p className="text-sm text-gray-600">
-          Upload a document containing the inspection requirements.
-          The content will be parsed into a checklist.
+          Upload a Microsoft Word (.docx) document containing the inspection requirements.
         </p>
 
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center">
@@ -535,7 +349,7 @@ function UploadDocxModal({
 
           <input
             type="file"
-            accept=".docx,.txt,.md"
+            accept=".docx"
             id="docx-upload"
             className="hidden"
             onChange={(e) => {
@@ -558,7 +372,7 @@ function UploadDocxModal({
               Click to browse file
             </label>
           )}
-          <p className="text-xs text-gray-400 mt-2">Supported: .docx, .txt, .md</p>
+          <p className="text-xs text-gray-400 mt-2">Supported: .docx files only</p>
         </div>
       </div>
     </ModalTemplate>
