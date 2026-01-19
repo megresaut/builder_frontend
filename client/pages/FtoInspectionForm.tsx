@@ -179,8 +179,8 @@ export default function FtoInspectionForm() {
     if (!requirements.hasDoc) {
       return (
         <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <DocumentIcon width={32} height={32} color="#9ca3af" />
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
+            <DocumentIcon width={32} height={32} />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No requirements found</h3>
           <p className="text-sm text-gray-500 max-w-sm mb-6">
@@ -264,7 +264,7 @@ export default function FtoInspectionForm() {
                   required
                   options={PROPERTIES.map(p => ({ value: p.id, label: p.name }))}
                   value={propertyId || ""}
-                  onChange={setPropertyId}
+                  onChange={(value) => setPropertyId(typeof value === 'string' ? value : value[0] || null)}
                   placeholder="Select Property"
                 />
 
@@ -272,7 +272,7 @@ export default function FtoInspectionForm() {
                   label="Unit"
                   options={getPropertyUnits(propertyId).map(u => ({ value: u.id, label: u.name }))}
                   value={unitId || ""}
-                  onChange={setUnitId}
+                  onChange={(value) => setUnitId(typeof value === 'string' ? value : value[0] || null)}
                   placeholder="Select Unit"
                   disabled={!propertyId}
                 />
@@ -302,10 +302,10 @@ export default function FtoInspectionForm() {
 
               {/* Upload Area */}
               <div
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors text-gray-400"
                 onClick={() => photoInputRef.current?.click()}
               >
-                <PlusIcon width={24} height={24} color="#9ca3af" />
+                <PlusIcon width={24} height={24} />
                 <span className="mt-2 text-sm text-gray-600 font-medium">Add Photos</span>
                 <span className="text-xs text-gray-400 mt-1">Supports JPG, PNG</span>
                 <input 
@@ -528,8 +528,8 @@ function UploadDocxModal({
           Upload a Microsoft Word (.docx) document containing the inspection requirements.
         </p>
 
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center">
-          <DocumentIcon width={32} height={32} className="text-gray-400 mb-3" />
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center text-gray-400">
+          <DocumentIcon width={32} height={32} className="mb-3" />
 
           <input
             type="file"
