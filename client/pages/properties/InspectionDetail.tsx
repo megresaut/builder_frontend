@@ -82,24 +82,6 @@ export default function InspectionDetail() {
     navigate(`/property/${propertyId}/Inspections`);
   };
 
-  const handleToggleEdit = () => {
-    if (!isEditingRequirements) {
-      setEditNodes([...requirements.nodes]); // Init edit state
-      setIsEditingRequirements(true);
-    } else {
-      // Cancel
-      setIsEditingRequirements(false);
-    }
-  };
-
-  const handleSaveRequirements = () => {
-    setRequirements((prev) => ({
-      ...prev,
-      nodes: editNodes,
-      lastUpdated: `Just now by Current User`,
-    }));
-    setIsEditingRequirements(false);
-  };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
