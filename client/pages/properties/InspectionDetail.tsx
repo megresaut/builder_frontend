@@ -99,6 +99,19 @@ export default function InspectionDetail() {
     setPhotos((prev) => prev.filter((p) => p.id !== photoId));
   };
 
+  const handleOpenGallery = (index: number = 0) => {
+    setCurrentPhotoIndex(index);
+    setIsGalleryOpen(true);
+  };
+
+  const handlePrevPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+  };
+
+  const handleNextPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+  };
+
   const handleUploadDocx = async (file: File) => {
     if (!file.name.endsWith(".docx")) {
       console.error("Only .docx files are supported");
