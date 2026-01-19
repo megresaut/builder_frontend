@@ -31,6 +31,20 @@ interface RequirementsDoc {
   arrayBuffer?: ArrayBuffer;
 }
 
+interface StoredInspection {
+  id: number;
+  date: string;
+  propertyId: string;
+  unitId: string | null;
+  photos: InspectionPhoto[];
+  requirements: {
+    hasDoc: boolean;
+    fileName?: string;
+    lastUpdated?: string;
+    arrayBuffer?: string; // Base64 encoded for localStorage
+  };
+}
+
 // --- Components ---
 
 export default function FtoInspectionForm() {
