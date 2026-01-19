@@ -166,21 +166,29 @@ export default function FtoInspectionForm() {
   };
 
   const handleSubmit = () => {
+    const errors: typeof validationErrors = {};
+
     // Validate required fields
     if (!date) {
-      alert("Date is required");
-      return;
+      errors.date = "Date is required";
     }
 
     if (!propertyId) {
-      alert("Property is required");
-      return;
+      errors.property = "Property is required";
     }
 
     if (photos.length === 0) {
-      alert("At least one photo is required");
+      errors.photos = "At least one photo is required";
+    }
+
+    // Show errors if validation fails
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       return;
     }
+
+    // Clear errors on successful validation
+    setValidationErrors({});
 
     // Update the inspection status to "Completed" in localStorage
     const completedInspections = JSON.parse(
