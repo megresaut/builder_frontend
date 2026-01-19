@@ -206,7 +206,17 @@ export default function InspectionDetail() {
         {/* Content Layout */}
         <div className="flex flex-col lg:flex-row gap-6 w-full">
 
-          {/* Photos */}
+          {/* LEFT COLUMN: Requirements Document */}
+          <div className="flex-1 min-w-0">
+            <SectionCard
+              title="Inspection Requirements"
+              className="h-full"
+            >
+              {renderRequirements()}
+            </SectionCard>
+          </div>
+
+          {/* RIGHT COLUMN: Photos */}
           <div className="flex-1 lg:flex-none lg:w-[400px]">
             <SectionCard title="Inspection Photos">
               <div className="flex flex-col gap-4">
