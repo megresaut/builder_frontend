@@ -341,12 +341,9 @@ export default function FtoInspectionForm() {
             >
               Cancel
             </button>
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 rounded-lg bg-[#013764] text-white hover:bg-[#012d53] font-medium text-sm transition-colors shadow-sm"
-            >
+            <BlueButton onClick={handleSubmit}>
               Submit Inspection
-            </button>
+            </BlueButton>
           </div>
 
         </div>
