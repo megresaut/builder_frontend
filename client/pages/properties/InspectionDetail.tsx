@@ -51,23 +51,16 @@ export default function InspectionDetail() {
 
   // --- State ---
   const [requirements, setRequirements] = useState<RequirementsDoc>({
-    hasDoc: true, // Default to true for demo, toggleable via "Remove" logic if we added it
-    fileName: "22_Indian_Chase_Inspection_Reqs.docx",
-    lastUpdated: "Oct 10, 2025 by John Doe",
-    nodes: MOCK_INITIAL_NODES,
+    hasDoc: false,
   });
 
   const [photos, setPhotos] = useState<InspectionPhoto[]>(MOCK_PHOTOS);
-  const [activeTargetId, setActiveTargetId] = useState<string | null>(null);
-  const [isEditingRequirements, setIsEditingRequirements] = useState(false);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false); // For .docx upload
-  const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null); // For changing target
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isRenderingDoc, setIsRenderingDoc] = useState(false);
 
-  // Temporary state for editing requirements
-  const [editNodes, setEditNodes] = useState<RequirementsNode[]>([]);
-
-  // File input ref for photos
+  // Refs
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const docContainerRef = useRef<HTMLDivElement>(null);
 
   // --- Computed ---
   const activeTargetNode = useMemo(() => {
