@@ -396,7 +396,7 @@ function PhotoGalleryModal({
       onClick={() => onOpenChange(false)}
     >
       <div
-        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col"
+        className="bg-white rounded-lg shadow-2xl w-full max-w-[95vw] sm:max-w-4xl max-h-[90vh] flex flex-col mx-2 sm:mx-0"
         onClick={(e) => e.stopPropagation()}
       >
 
@@ -438,28 +438,30 @@ function PhotoGalleryModal({
         </div>
 
         {/* Footer with Navigation */}
-        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
-          <button
-            onClick={onPrev}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50"
-            disabled={photos.length === 1}
-          >
-            ← Previous
-          </button>
+        <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-200 bg-gray-50 gap-3">
+          <div className="flex items-center justify-between w-full sm:w-auto gap-3 order-2 sm:order-1">
+            <button
+              onClick={onPrev}
+              className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50"
+              disabled={photos.length === 1}
+            >
+              ← <span className="sm:hidden">Prev</span><span className="hidden sm:inline">Previous</span>
+            </button>
 
-          <div className="flex items-center gap-2">
+            <button
+              onClick={onNext}
+              className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50 sm:order-last"
+              disabled={photos.length === 1}
+            >
+              <span className="sm:hidden">Next</span><span className="hidden sm:inline">Next</span> →
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 order-1 sm:order-2">
             <span className="text-sm text-gray-600">
               {new Date(currentPhoto.uploadedAt).toLocaleString()}
             </span>
           </div>
-
-          <button
-            onClick={onNext}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50"
-            disabled={photos.length === 1}
-          >
-            Next →
-          </button>
         </div>
       </div>
     </div>
