@@ -20,6 +20,7 @@ interface InspectionPhoto {
   url: string;
   uploadedAt: string; // ISO string
   capturedAt?: string;
+  comment?: string; // User comment/annotation
 }
 
 interface RequirementsDoc {
