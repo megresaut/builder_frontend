@@ -439,12 +439,16 @@ export default function FtoInspectionForm() {
               {/* Upload Area */}
               {!isReadOnly && (
                 <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors text-gray-400"
+                  className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                    validationErrors.photos
+                      ? "border-red-300 bg-red-50 text-red-400 hover:bg-red-50"
+                      : "border-gray-300 text-gray-400 hover:bg-gray-50"
+                  }`}
                   onClick={() => photoInputRef.current?.click()}
                 >
                   <PlusIcon width={24} height={24} />
-                  <span className="mt-2 text-sm text-gray-600 font-medium">Add Photos</span>
-                  <span className="text-xs text-gray-400 mt-1">Supports JPG, PNG</span>
+                  <span className="mt-2 text-sm font-medium" style={{ color: validationErrors.photos ? "#dc2626" : "#4b5563" }}>Add Photos</span>
+                  <span className="text-xs mt-1" style={{ color: validationErrors.photos ? "#fca5a5" : "#9ca3af" }}>Supports JPG, PNG</span>
                   <input
                     ref={photoInputRef}
                     type="file"
