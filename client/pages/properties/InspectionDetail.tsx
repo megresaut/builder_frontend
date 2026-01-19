@@ -62,23 +62,19 @@ export default function InspectionDetail() {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const docContainerRef = useRef<HTMLDivElement>(null);
 
-  // --- Computed ---
-  const activeTargetNode = useMemo(() => {
-    return requirements.nodes.find((n) => n.id === activeTargetId);
-  }, [requirements.nodes, activeTargetId]);
-
-  const coverageStats = useMemo(() => {
-    const totalTargets = requirements.nodes.length;
-    const coveredNodes = new Set(photos.map((p) => p.attachedToNodeId).filter(Boolean));
-    const coveredCount = coveredNodes.size;
-    
-    // Find missing targets (nodes that don't have a photo)
-    const missingTargets = requirements.nodes.filter(n => !coveredNodes.has(n.id));
-
-    return { total: totalTargets, covered: coveredCount, missing: missingTargets };
-  }, [requirements.nodes, photos]);
-
-  const isComplete = coverageStats.covered === coverageStats.total && coverageStats.total > 0;
+  // --- Effects ---
+  useEffect(() => {
+    // When requirements.arrayBuffer changes, render the document
+    if (requirements.arrayBuffer && docContainerRef.current) {
+      setIsRenderingDoc(true);
+      renderAsync(requirements.arrayBuffer, docContainerRef.current)
+        .then(() => setIsRenderingDoc(false))
+        .catch((err) => {
+          console.error("Error rendering docx", err);
+          setIsRenderingDoc(false);
+        });
+    }
+  }, [requirements.arrayBuffer]);
 
   // --- Handlers ---
 
