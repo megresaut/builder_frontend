@@ -32,13 +32,7 @@ interface RequirementsDoc {
 
 // --- Mock Data ---
 
-const MOCK_PHOTOS: InspectionPhoto[] = [
-  {
-    id: "p1",
-    url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d5d01db2db718e32f4e620e7b1fc6ea705e115b1?placeholderIfAbsent=true",
-    uploadedAt: new Date().toISOString(),
-  },
-];
+const MOCK_PHOTOS: InspectionPhoto[] = [];
 
 // --- Components ---
 
