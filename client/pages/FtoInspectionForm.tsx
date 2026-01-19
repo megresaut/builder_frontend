@@ -82,6 +82,29 @@ export default function FtoInspectionForm() {
     }
   }, [propertyId]);
 
+  // Handle zoom on doc container (trackpad pinch and wheel)
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (!docContainerRef.current?.contains(e.target as Node)) return;
+
+      // Check for Ctrl key (Windows/Linux) or Cmd key (Mac)
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+
+        // Zoom in/out based on wheel delta
+        const zoomDelta = e.deltaY > 0 ? -0.05 : 0.05;
+        setDocZoom((prev) => {
+          const newZoom = prev + zoomDelta;
+          // Limit zoom between 0.4 (40%) and 2 (200%)
+          return Math.max(0.4, Math.min(2, newZoom));
+        });
+      }
+    };
+
+    document.addEventListener("wheel", handleWheel, { passive: false });
+    return () => document.removeEventListener("wheel", handleWheel);
+  }, []);
+
   // --- Handlers ---
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
