@@ -233,7 +233,7 @@ export default function PopoverActionsDropdown({
 
       <PopoverContent
         align="end"
-        className="ra-actions-dropdown p-0 w-auto min-w-[145px]"
+        className="ra-actions-dropdown p-0 w-auto min-w-[200px]"
       >
         <div ref={contentRef} role="menu">
           <PopoverActionsDropdownContent row={row} allActions={allActions} />
