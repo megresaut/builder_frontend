@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { renderAsync } from "docx-preview";
 import PageTemplate from "@/layout/PageTemplate";
 import BlueButton from "@/components/BlueButton";
