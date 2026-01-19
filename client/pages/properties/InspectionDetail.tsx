@@ -2,11 +2,9 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { renderAsync } from "docx-preview";
 import PageTemplate from "@/layout/PageTemplate";
-import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import SectionCard from "@/components/SectionCard";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
-  ArrowBackIcon,
   PlusIcon,
   DocumentIcon,
   DeleteIcon,
