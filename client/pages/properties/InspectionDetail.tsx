@@ -166,53 +166,35 @@ export default function InspectionDetail() {
       <div className="flex flex-col gap-6 w-fit min-w-full font-['Geist',sans-serif]">
         
         {/* Header */}
-        <SubPageHeaderV2
-          leftContent={
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <button onClick={handleBack} className="hover:text-gray-900 transition-colors">
-                  Properties
-                </button>
-                <span>/</span>
-                <button onClick={handleBack} className="hover:text-gray-900 transition-colors">
-                  Inspections
-                </button>
-                <span>/</span>
-                <span className="text-gray-900 font-medium">Detail</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={handleBack}
-                  className="p-1 -ml-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
-                >
-                  <ArrowBackIcon width={20} height={20} />
-                </button>
-                <div>
-                  <h1 className="text-xl font-semibold text-[#303030]">Inspection</h1>
-                  <p className="text-sm text-gray-500">
-                    22 Indian Chase Dr • {requirements.lastUpdated || "No document"}
-                  </p>
-                </div>
-              </div>
+        <div className="flex items-center gap-10 justify-between flex-wrap">
+          {/* Title and Description */}
+          <div className="flex flex-col gap-1 min-w-[240px]">
+            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+              Inspection
+            </h1>
+            <div className="flex items-center gap-3 mt-1">
+              <p className="text-[#717179] font-medium text-base leading-4" style={{ marginTop: "-4px" }}>
+                22 Indian Chase Dr
+              </p>
             </div>
-          }
-          rightContent={
-            <div className="flex items-center gap-3">
-              <button 
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors"
-                onClick={() => photoInputRef.current?.click()}
-              >
-                Upload Photos
-              </button>
-              <button 
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <ApproveIcon width={16} height={16} />
-                <span>Mark Complete</span>
-              </button>
-            </div>
-          }
-        />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-4">
+            <button
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors"
+              onClick={() => photoInputRef.current?.click()}
+            >
+              Upload Photos
+            </button>
+            <button
+              className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <ApproveIcon width={16} height={16} />
+              <span>Mark Complete</span>
+            </button>
+          </div>
+        </div>
 
         {/* Content Layout */}
         <div className="flex flex-col lg:flex-row gap-6 w-full">
