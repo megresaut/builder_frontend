@@ -53,6 +53,11 @@ export default function FtoInspectionForm() {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [docZoom, setDocZoom] = useState(0.6);
+  const [validationErrors, setValidationErrors] = useState<{
+    date?: string;
+    property?: string;
+    photos?: string;
+  }>({});
 
   // Refs
   const photoInputRef = useRef<HTMLInputElement>(null);
