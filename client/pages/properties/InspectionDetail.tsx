@@ -79,7 +79,8 @@ export default function InspectionDetail() {
   const [activeTargetId, setActiveTargetId] = useState<string | null>(null);
   const [isEditingRequirements, setIsEditingRequirements] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false); // For .docx upload
-  
+  const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null); // For changing target
+
   // Temporary state for editing requirements
   const [editNodes, setEditNodes] = useState<RequirementsNode[]>([]);
 
