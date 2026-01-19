@@ -161,7 +161,20 @@ export default function FtoInspectionForm() {
   };
 
   const handleSubmit = () => {
-    // Mock submit
+    // Update the inspection status to "Completed" in localStorage
+    const completedInspections = JSON.parse(
+      localStorage.getItem("completedInspections") || "[]",
+    ) as number[];
+
+    // For demo purposes, use a mock inspection ID
+    // In a real app, this would come from the form data
+    const mockInspectionId = 1;
+
+    if (!completedInspections.includes(mockInspectionId)) {
+      completedInspections.push(mockInspectionId);
+      localStorage.setItem("completedInspections", JSON.stringify(completedInspections));
+    }
+
     navigate("/fto/inspections");
   };
 
