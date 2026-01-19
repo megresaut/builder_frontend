@@ -161,6 +161,22 @@ export default function FtoInspectionForm() {
   };
 
   const handleSubmit = () => {
+    // Validate required fields
+    if (!date) {
+      alert("Date is required");
+      return;
+    }
+
+    if (!propertyId) {
+      alert("Property is required");
+      return;
+    }
+
+    if (photos.length === 0) {
+      alert("At least one photo is required");
+      return;
+    }
+
     // Update the inspection status to "Completed" in localStorage
     const completedInspections = JSON.parse(
       localStorage.getItem("completedInspections") || "[]",
