@@ -252,11 +252,6 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
       onClick: handleViewInspection,
     },
     {
-      label: "Edit Inspection",
-      icon: <EditIcon width={18} height={18} color="#525252" />,
-      onClick: handleEditInspection,
-    },
-    {
       label: "Delete Inspection",
       icon: <DeleteIcon width={18} height={18} color="#982740" />,
       onClick: handleDeleteInspection,
