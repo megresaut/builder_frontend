@@ -110,7 +110,7 @@ function PopoverActionsDropdownContent({
             )}
           >
             <span
-              className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize flex-1"
+              className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize flex-1 whitespace-nowrap"
               style={{
                 fontFamily:
                   "Geist, -apple-system, Roboto, Helvetica, sans-serif",
@@ -233,10 +233,7 @@ export default function PopoverActionsDropdown({
 
       <PopoverContent
         align="end"
-        className="ra-actions-dropdown p-0 w-auto"
-        style={{
-          width: "145px",
-        }}
+        className="ra-actions-dropdown p-0 w-auto min-w-[145px]"
       >
         <div ref={contentRef} role="menu">
           <PopoverActionsDropdownContent row={row} allActions={allActions} />
