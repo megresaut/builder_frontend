@@ -209,7 +209,6 @@ export default function InspectionDetail() {
           {/* LEFT COLUMN: Requirements Document */}
           <div className="flex-1 min-w-0">
             <SectionCard
-              title="Inspection Requirements"
               className="h-full"
             >
               {renderRequirements()}
