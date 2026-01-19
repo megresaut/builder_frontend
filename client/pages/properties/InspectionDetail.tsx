@@ -54,6 +54,8 @@ export default function InspectionDetail() {
   const [photos, setPhotos] = useState<InspectionPhoto[]>(MOCK_PHOTOS);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isRenderingDoc, setIsRenderingDoc] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   // Refs
   const photoInputRef = useRef<HTMLInputElement>(null);
