@@ -411,7 +411,7 @@ export default function FtoInspectionForm() {
                   value={unitId || ""}
                   onChange={(value) => setUnitId(typeof value === 'string' ? value : value[0] || null)}
                   placeholder="Select Unit"
-                  disabled={!propertyId}
+                  disabled={!propertyId || isReadOnly}
                 />
               </div>
             </div>
