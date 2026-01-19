@@ -212,8 +212,8 @@ export default function InspectionDetail() {
               <div className="flex flex-col gap-4">
                 
                 {/* Upload Button area */}
-                <div 
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
                   onClick={() => photoInputRef.current?.click()}
                 >
                   <PlusIcon width={24} height={24} color="#9ca3af" />
