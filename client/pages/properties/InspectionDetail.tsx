@@ -102,123 +102,25 @@ export default function InspectionDetail() {
     setPhotos((prev) => prev.filter((p) => p.id !== photoId));
   };
 
-  const handleChangeTarget = (photoId: string, nodeId: string | null) => {
-    setPhotos((prev) => prev.map(p => p.id === photoId ? { ...p, attachedToNodeId: nodeId } : p));
-    setEditingPhotoId(null);
-  };
-
   const handleUploadDocx = async (file: File) => {
-    // Reset selection to avoid orphaned targets
-    setActiveTargetId(null);
-
-    // Feature: Parse .txt/.md files for real-time preview (since .docx requires backend/heavy lib)
-    if (file.name.endsWith(".txt") || file.name.endsWith(".md")) {
-      try {
-        const text = await file.text();
-        const lines = text.split("\n").filter((l) => l.trim().length > 0);
-
-        const realNodes: RequirementsNode[] = lines.map((line, i) => {
-          // Simple heuristic: Lines starting with # or all caps are headings
-          const isHeading = line.trim().startsWith("#") || (line.trim().length < 50 && line.toUpperCase() === line);
-          const cleanText = line.replace(/^[#\-\*]\s*/, "").trim();
-
-          return {
-            id: `doc_${Date.now()}_${i}`,
-            type: isHeading ? "heading" : "bullet",
-            text: cleanText,
-            level: isHeading ? 1 : 2,
-          };
-        });
-
-        setRequirements({
-          hasDoc: true,
-          fileName: file.name,
-          lastUpdated: "Just now",
-          nodes: realNodes,
-        });
-        setIsUploadModalOpen(false);
-        return;
-      } catch (e) {
-        console.error("Failed to parse text file", e);
-      }
+    if (!file.name.endsWith(".docx")) {
+      console.error("Only .docx files are supported");
+      return;
     }
 
-    // .docx handling with Mammoth
-    if (file.name.endsWith(".docx")) {
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.convertToHtml({ arrayBuffer });
-        const html = result.value; // The generated HTML
-
-        // Parse HTML to Nodes
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-
-        const newNodes: RequirementsNode[] = [];
-
-        const processElement = (el: Element) => {
-          const text = el.textContent?.trim();
-          if (!text) return;
-
-          const tagName = el.tagName.toLowerCase();
-          const id = `doc_${Date.now()}_${newNodes.length}`;
-
-          // Heuristic mapping
-          if (tagName.startsWith("h")) {
-            newNodes.push({ id, type: "heading", text, level: 1 });
-          } else if (tagName === "li") {
-            newNodes.push({ id, type: "bullet", text, level: 2 });
-          } else if (tagName === "p") {
-            // Treat P as bullet/text item for now
-            newNodes.push({ id, type: "bullet", text, level: 2 });
-          }
-        };
-
-        // Mammoth outputs flat or nested lists. We traverse children.
-        Array.from(doc.body.children).forEach((child) => {
-          if (child.tagName.toLowerCase() === "ul" || child.tagName.toLowerCase() === "ol") {
-            Array.from(child.children).forEach((li) => processElement(li));
-          } else {
-            processElement(child);
-          }
-        });
-
-        if (newNodes.length > 0) {
-          setRequirements({
-            hasDoc: true,
-            fileName: file.name,
-            lastUpdated: "Just now",
-            nodes: newNodes,
-          });
-          setIsUploadModalOpen(false);
-          return;
-        } else {
-          console.warn("No nodes extracted from docx");
-        }
-      } catch (err) {
-        console.error("Mammoth error", err);
-      }
-      // Fall through to mock if parsing fails or returns no nodes
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      setRequirements({
+        hasDoc: true,
+        fileName: file.name,
+        lastUpdated: "Just now",
+        blobUrl: URL.createObjectURL(file),
+        arrayBuffer,
+      });
+      setIsUploadModalOpen(false);
+    } catch (err) {
+      console.error("Error reading file", err);
     }
-
-    // Mock processing fallback
-    // In a real app, this would send file to server, parse, and return nodes
-    const mockParsedNodes: RequirementsNode[] = [
-      { id: "new_1", type: "heading", text: "Imported Section 1: Structure", level: 1 },
-      { id: "new_2", type: "bullet", text: "Foundation walls condition (cracks, water marks)", level: 2 },
-      { id: "new_3", type: "bullet", text: "Sump pump functionality test", level: 2 },
-      { id: "new_4", type: "heading", text: "Imported Section 2: Roof", level: 1 },
-      { id: "new_5", type: "bullet", text: "Shingle condition estimation", level: 2 },
-      { id: "new_6", type: "bullet", text: "Gutter cleanliness and attachment", level: 2 },
-    ];
-
-    setRequirements({
-      hasDoc: true,
-      fileName: file.name,
-      lastUpdated: "Just now",
-      nodes: mockParsedNodes
-    });
-    setIsUploadModalOpen(false);
   };
 
   // --- Renderers ---
