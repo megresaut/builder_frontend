@@ -26,6 +26,7 @@ export const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
   onSubmit,
   title = "Add Photo",
   submitLabel = "Upload Photo",
+  initialFile = null,
 }) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [comment, setComment] = useState("");
@@ -34,11 +35,24 @@ export const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      setUploadedFiles([]);
+      // If an initial file is provided, pre-populate the upload field
+      if (initialFile) {
+        const uploadedFile: UploadedFile = {
+          id: `file_${Date.now()}`,
+          name: initialFile.name,
+          file: initialFile,
+          url: URL.createObjectURL(initialFile),
+          size: initialFile.size,
+          type: initialFile.type,
+        };
+        setUploadedFiles([uploadedFile]);
+      } else {
+        setUploadedFiles([]);
+      }
       setComment("");
       setValidateForm(false);
     }
-  }, [open]);
+  }, [open, initialFile]);
 
   const handleSubmit = async () => {
     if (uploadedFiles.length === 0) {
