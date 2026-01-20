@@ -224,28 +224,29 @@ export default function CreateRecurringTaskModal({
             ]}
           />
 
-          {/* Start Date */}
-          <DateField
-            label="Start Date"
-            required
-            value={startDate}
-            onChange={setStartDate}
-            error={errors.startDate}
-            placeholder="mm/dd/yyyy"
-          />
+          {/* Start Date and End Condition in same row */}
+          <div className="grid grid-cols-2 gap-4">
+            <DateField
+              label="Start Date"
+              required
+              value={startDate}
+              onChange={setStartDate}
+              error={errors.startDate}
+              placeholder="mm/dd/yyyy"
+            />
+            <SelectField
+              label="End"
+              value={endCondition}
+              onChange={setEndCondition}
+              options={[
+                { value: "never", label: "Never" },
+                { value: "after", label: "After" },
+                { value: "onDate", label: "On date" },
+              ]}
+            />
+          </div>
 
-          {/* End Condition with conditional fields */}
-          <SelectField
-            label="End"
-            value={endCondition}
-            onChange={setEndCondition}
-            options={[
-              { value: "never", label: "Never" },
-              { value: "after", label: "After" },
-              { value: "onDate", label: "On date" },
-            ]}
-          />
-
+          {/* Conditional End Date or After Times fields */}
           {endCondition === "after" && (
             <NumberField
               label="After"
