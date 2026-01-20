@@ -294,7 +294,7 @@ export default function FtoInspections() {
             },
             {
               label: "Mark as Complete",
-              icon: <EditIcon width={18} height={18} color="#059669" />,
+              icon: <ApproveIcon width={18} height={18} />,
               onClick: (row) => {
                 // Update inspection status
                 setInspections((prev) =>
