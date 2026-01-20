@@ -26,6 +26,8 @@ interface RecurringTask {
   priority: "High" | "Low" | "Normal";
   category: string;
   status: "active" | "inactive";
+  property: string;
+  unit: string;
   assignees: Assignee[];
 }
 
