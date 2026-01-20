@@ -237,7 +237,7 @@ export default function CreateRecurringTaskModal({
             />
             <SelectField
               label="End"
-              value={endCondition}
+              value={endCondition ?? "never"}
               onChange={setEndCondition}
               options={[
                 { value: "never", label: "Never" },
