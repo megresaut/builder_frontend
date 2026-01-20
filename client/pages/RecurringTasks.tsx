@@ -17,6 +17,9 @@ interface Assignee {
   name: string;
   initials: string;
   color: string;
+  email?: string;
+  phone?: string;
+  title?: string;
 }
 
 const mockRecurringTasks: RecurringTask[] = [
