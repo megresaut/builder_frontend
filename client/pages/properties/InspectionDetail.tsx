@@ -1,87 +1,123 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { renderAsync } from "docx-preview";
 import PageTemplate from "@/layout/PageTemplate";
 import SectionCard from "@/components/SectionCard";
+import BlueButton from "@/components/BlueButton";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   PlusIcon,
-  DocumentIcon,
   DeleteIcon,
   ApproveIcon,
+  EditIcon,
+  ArrowBackIcon,
+  ArrowForwardIcon,
+  ChevronDownIcon,
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
-import BlueButton from "@/components/BlueButton";
-
-// --- Types ---
-
-interface InspectionPhoto {
-  id: string;
-  url: string;
-  uploadedAt: string; // ISO string
-  capturedAt?: string;
-  comment?: string; // User comment/annotation
-}
-
-interface RequirementsDoc {
-  hasDoc: boolean;
-  fileName?: string;
-  lastUpdated?: string;
-  blobUrl?: string; // URL to the uploaded docx file
-  arrayBuffer?: ArrayBuffer; // Raw file data for rendering
-}
-
-// --- Mock Data ---
-
-const MOCK_PHOTOS: InspectionPhoto[] = [];
+import {
+  ChecklistNode,
+  InspectionPhoto,
+  MOCK_CHECKLIST_NODES,
+} from "@/data/inspection-checklist";
 
 // --- Components ---
 
 export default function InspectionDetail() {
   const navigate = useNavigate();
-  const { propertyId, inspectionId } = useParams();
+  const { propertyId } = useParams();
 
   // --- State ---
-  const [requirements, setRequirements] = useState<RequirementsDoc>({
-    hasDoc: false,
-  });
-
-  const [photos, setPhotos] = useState<InspectionPhoto[]>(MOCK_PHOTOS);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [isRenderingDoc, setIsRenderingDoc] = useState(false);
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-
-  // Refs
+  const [nodes, setNodes] = useState<ChecklistNode[]>(MOCK_CHECKLIST_NODES);
+  const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [status, setStatus] = useState<"Draft" | "Completed">("Draft");
+  
+  // Photo Upload State
+  const [selectedSectionId, setSelectedSectionId] = useState<string>("");
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const docContainerRef = useRef<HTMLDivElement>(null);
 
-  // --- Effects ---
-  useEffect(() => {
-    // When requirements.arrayBuffer changes, render the document
-    if (requirements.arrayBuffer && docContainerRef.current) {
-      setIsRenderingDoc(true);
-      docContainerRef.current.innerHTML = ""; // Clear previous content
-      renderAsync(requirements.arrayBuffer, docContainerRef.current)
-        .then(() => setIsRenderingDoc(false))
-        .catch((err) => {
-          console.error("Error rendering docx", err);
-          setIsRenderingDoc(false);
-        });
-    }
-  }, [requirements.arrayBuffer]);
+  // --- Derived Data ---
+  const sections = useMemo(() => nodes.filter((n) => n.depth === 0), [nodes]);
 
-  // --- Handlers ---
+  const photosBySection = useMemo(() => {
+    const grouped: Record<string, InspectionPhoto[]> = {};
+    // Initialize for all sections so they appear even if empty
+    sections.forEach(s => grouped[s.id] = []);
+    
+    photos.forEach((p) => {
+      if (!grouped[p.sectionNodeId]) {
+        grouped[p.sectionNodeId] = [];
+      }
+      grouped[p.sectionNodeId].push(p);
+    });
+    return grouped;
+  }, [nodes, photos, sections]);
 
-  const handleBack = () => {
-    navigate(`/property/${propertyId}/Inspections`);
+  // --- Handlers: Checklist Editing ---
+
+  const handleTextChange = (id: string, newText: string) => {
+    setNodes((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, text: newText } : n))
+    );
   };
 
+  const handleIndent = (id: string, direction: "in" | "out") => {
+    setNodes((prev) =>
+      prev.map((n) => {
+        if (n.id !== id) return n;
+        const newDepth = direction === "in" ? n.depth + 1 : Math.max(0, n.depth - 1);
+        // If depth becomes 0, it's a section, else item
+        const newType = newDepth === 0 ? "section" : "item";
+        return { ...n, depth: newDepth, type: newType };
+      })
+    );
+  };
+
+  const handleMove = (index: number, direction: "up" | "down") => {
+    if (direction === "up" && index === 0) return;
+    if (direction === "down" && index === nodes.length - 1) return;
+
+    const newNodes = [...nodes];
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    [newNodes[index], newNodes[swapIndex]] = [newNodes[swapIndex], newNodes[index]];
+    setNodes(newNodes);
+  };
+
+  const handleDeleteNode = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      setNodes((prev) => prev.filter((n) => n.id !== id));
+    }
+  };
+
+  const handleAddNode = (index: number) => {
+    const newNode: ChecklistNode = {
+      id: `node-${Date.now()}`,
+      parentId: null, // Simplified: logic could be smarter about parent
+      orderIndex: 0,
+      type: "item",
+      text: "",
+      depth: 1, // Default to item depth
+    };
+    const newNodes = [...nodes];
+    newNodes.splice(index + 1, 0, newNode);
+    setNodes(newNodes);
+  };
+
+  // --- Handlers: Photos ---
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedSectionId) {
+      alert("Please select a section first.");
+      if (photoInputRef.current) photoInputRef.current.value = "";
+      return;
+    }
+
     if (e.target.files && e.target.files.length > 0) {
       const newPhotos: InspectionPhoto[] = Array.from(e.target.files).map((file) => ({
-        id: `new_${Date.now()}_${Math.random()}`,
-        url: URL.createObjectURL(file),
+        id: `photo-${Date.now()}-${Math.random()}`,
+        inspectionId: "insp-1",
+        sectionNodeId: selectedSectionId,
+        fileRef: URL.createObjectURL(file),
         uploadedAt: new Date().toISOString(),
       }));
       setPhotos((prev) => [...prev, ...newPhotos]);
@@ -91,211 +127,295 @@ export default function InspectionDetail() {
   };
 
   const handleRemovePhoto = (photoId: string) => {
-    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
-  };
-
-  const handleOpenGallery = (index: number = 0) => {
-    setCurrentPhotoIndex(index);
-    setIsGalleryOpen(true);
-  };
-
-  const handlePrevPhoto = () => {
-    setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
-  };
-
-  const handleNextPhoto = () => {
-    setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
-  };
-
-  const handleUpdatePhotoComment = (photoId: string, comment: string) => {
-    setPhotos((prev) => prev.map(p => p.id === photoId ? { ...p, comment } : p));
-  };
-
-  const handleUploadDocx = async (file: File) => {
-    if (!file.name.endsWith(".docx")) {
-      console.error("Only .docx files are supported");
-      return;
-    }
-
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      setRequirements({
-        hasDoc: true,
-        fileName: file.name,
-        lastUpdated: "Just now",
-        blobUrl: URL.createObjectURL(file),
-        arrayBuffer,
-      });
-      setIsUploadModalOpen(false);
-    } catch (err) {
-      console.error("Error reading file", err);
+    if (window.confirm("Delete this photo?")) {
+      setPhotos((prev) => prev.filter((p) => p.id !== photoId));
     }
   };
 
-  // --- Renderers ---
+  // --- Handlers: General ---
 
-  const renderRequirements = () => {
-    if (!requirements.hasDoc) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <DocumentIcon width={32} height={32} color="#9ca3af" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No requirements uploaded</h3>
-          <p className="text-sm text-gray-500 max-w-sm mb-6">
-            Upload the property's Word inspection document (.docx). It will be displayed in the app.
-          </p>
-          <button
-            onClick={() => setIsUploadModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-          >
-            Upload Requirements (.docx)
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex flex-col h-full">
-        {isRenderingDoc && (
-          <div className="flex items-center justify-center py-8">
-            <span className="text-sm text-gray-500">Loading document...</span>
-          </div>
-        )}
-        <div
-          ref={docContainerRef}
-          className={cn(
-            "flex-1 overflow-auto prose prose-sm max-w-none px-4 py-4",
-            "[&_.docx-wrapper]:bg-white [&_.docx-wrapper]:border-0"
-          )}
-        />
-      </div>
-    );
+  const toggleStatus = () => {
+    setStatus((prev) => (prev === "Draft" ? "Completed" : "Draft"));
   };
 
   return (
     <PageTemplate>
-      <div className="flex flex-col gap-6 w-fit min-w-full font-['Geist',sans-serif]">
+      <div className="flex flex-col gap-6 w-full font-['Geist',sans-serif]">
         
         {/* Header */}
-        <div className="flex items-center gap-10 justify-between flex-wrap">
-          {/* Title and Description */}
-          <div className="flex flex-col gap-1 min-w-[240px]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
             <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
               Inspection
             </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <p className="text-[#717179] font-medium text-base leading-4" style={{ marginTop: "-4px" }}>
-                22 Indian Chase Dr
-              </p>
+            <div className="flex items-center gap-3 text-[#717179] font-medium text-base">
+              <span>22 Indian Chase Dr</span>
+              <span className="text-gray-300">•</span>
+              <span>{new Date().toLocaleDateString()}</span>
+            </div>
+            <div className="mt-2">
+              <span
+                className={cn(
+                  "px-2.5 py-0.5 rounded-full text-xs font-medium",
+                  status === "Draft"
+                    ? "bg-gray-100 text-gray-700"
+                    : "bg-green-100 text-green-700"
+                )}
+              >
+                {status}
+              </span>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsUploadModalOpen(true)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors"
+              onClick={() => setIsEditing(!isEditing)}
+              className={cn(
+                "px-4 py-2 border rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
+                isEditing
+                  ? "bg-gray-100 border-gray-300 text-gray-900"
+                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+              )}
             >
-              Replace doc
+              <EditIcon width={16} height={16} className="text-current" />
+              {isEditing ? "Done Editing" : "Edit Checklist"}
+            </button>
+            <button
+              onClick={() => {
+                if (sections.length > 0 && !selectedSectionId) {
+                   setSelectedSectionId(sections[0].id);
+                }
+                photoInputRef.current?.click();
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors flex items-center gap-2"
+            >
+              <PlusIcon width={16} height={16} className="text-gray-500" />
+              Upload Photos
             </button>
             <BlueButton
               icon={<ApproveIcon width={20} height={20} className="brightness-0 invert" />}
-              onClick={() => {}}
+              onClick={toggleStatus}
             >
-              Mark Complete
+              {status === "Draft" ? "Mark Complete" : "Reopen Inspection"}
             </BlueButton>
           </div>
         </div>
 
-        {/* Content Layout */}
+        {/* Content */}
         <div className="flex flex-col lg:flex-row gap-6 w-full">
-
-          {/* LEFT COLUMN: Requirements Document */}
+          
+          {/* LEFT COLUMN: Checklist */}
           <div className="flex-1 min-w-0">
-            <SectionCard
-              className="h-full"
-            >
-              {renderRequirements()}
+            <SectionCard title="Inspection Checklist" className="h-full">
+              <div className="flex flex-col gap-1">
+                {nodes.length === 0 && (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    Checklist is empty. Click "Edit Checklist" to add items.
+                  </div>
+                )}
+                
+                {nodes.map((node, index) => (
+                  <div
+                    key={node.id}
+                    className={cn(
+                      "group flex items-start gap-2 py-2 px-2 rounded hover:bg-gray-50 transition-colors",
+                      isEditing && "border border-transparent hover:border-gray-200"
+                    )}
+                    style={{ marginLeft: `${node.depth * 24}px` }}
+                  >
+                    {/* Bullet / Icon */}
+                    <div className="mt-1 flex-shrink-0">
+                      {node.depth === 0 ? (
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-900 mt-1.5" />
+                      ) : (
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5" />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={node.text}
+                          onChange={(e) => handleTextChange(node.id, e.target.value)}
+                          className={cn(
+                            "w-full bg-transparent border-none p-0 focus:ring-0 text-sm",
+                            node.depth === 0 ? "font-bold text-gray-900" : "text-gray-700"
+                          )}
+                          placeholder={node.depth === 0 ? "Section Title" : "Checklist Item"}
+                          autoFocus={node.text === ""}
+                        />
+                      ) : (
+                        <div
+                          className={cn(
+                            "text-sm whitespace-pre-wrap",
+                            node.depth === 0 ? "font-bold text-gray-900" : "text-gray-700"
+                          )}
+                        >
+                          {node.text}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Edit Controls */}
+                    {isEditing && (
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                         {/* Move Up */}
+                        <button
+                          onClick={() => handleMove(index, "up")}
+                          disabled={index === 0}
+                          className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                          title="Move Up"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+                        </button>
+                        {/* Move Down */}
+                        <button
+                          onClick={() => handleMove(index, "down")}
+                          disabled={index === nodes.length - 1}
+                          className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                          title="Move Down"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
+                        </button>
+                        {/* Indent Out */}
+                        <button
+                          onClick={() => handleIndent(node.id, "out")}
+                          disabled={node.depth === 0}
+                          className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                          title="Outdent"
+                        >
+                          <ArrowBackIcon width={12} height={12} />
+                        </button>
+                        {/* Indent In */}
+                        <button
+                          onClick={() => handleIndent(node.id, "in")}
+                          className="p-1 text-gray-400 hover:text-gray-700"
+                          title="Indent"
+                        >
+                          <ArrowForwardIcon width={12} height={12} />
+                        </button>
+                        {/* Add Sibling */}
+                        <button
+                          onClick={() => handleAddNode(index)}
+                          className="p-1 text-blue-500 hover:text-blue-700"
+                          title="Add Item Below"
+                        >
+                          <PlusIcon width={12} height={12} />
+                        </button>
+                        {/* Delete */}
+                        <button
+                          onClick={() => handleDeleteNode(node.id)}
+                          className="p-1 text-red-400 hover:text-red-600"
+                          title="Delete"
+                        >
+                          <DeleteIcon width={12} height={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {isEditing && (
+                  <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
+                    <button
+                      onClick={() => handleAddNode(nodes.length - 1)}
+                      className="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1"
+                    >
+                      <PlusIcon width={14} height={14} /> Add Item to End
+                    </button>
+                  </div>
+                )}
+              </div>
             </SectionCard>
           </div>
 
           {/* RIGHT COLUMN: Photos */}
           <div className="flex-1 lg:flex-none lg:w-[400px]">
-            <SectionCard title="Inspection Photos">
-              <div className="flex flex-col gap-4">
+            <SectionCard title="Inspection Photos" className="h-full">
+              <div className="flex flex-col gap-6">
                 
-                {/* Upload Button area */}
-                <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => photoInputRef.current?.click()}
-                >
-                  <PlusIcon width={24} height={24} color="#9ca3af" />
-                  <span className="mt-2 text-sm text-gray-600 font-medium">Add Photos</span>
-                  <span className="text-xs text-gray-400 mt-1">Supports JPG, PNG</span>
-                  <input 
-                    ref={photoInputRef}
-                    type="file" 
-                    multiple 
-                    accept="image/*" 
-                    className="hidden" 
-                    onChange={handlePhotoUpload}
-                  />
+                {/* Upload Controls */}
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-gray-500 uppercase">Associate with Section</label>
+                    <div className="relative">
+                      <select
+                        value={selectedSectionId}
+                        onChange={(e) => setSelectedSectionId(e.target.value)}
+                        className="w-full pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-md text-sm appearance-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      >
+                        <option value="" disabled>Select a section...</option>
+                        {sections.map((s) => (
+                          <option key={s.id} value={s.id}>{s.text}</option>
+                        ))}
+                      </select>
+                      <ChevronDownIcon width={16} height={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
+                    </div>
+                  </div>
+
+                  <div
+                    className={cn(
+                      "border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
+                      !selectedSectionId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-white bg-gray-50"
+                    )}
+                    onClick={() => {
+                      if (selectedSectionId) photoInputRef.current?.click();
+                      else alert("Please select a section first");
+                    }}
+                  >
+                    <PlusIcon width={24} height={24} color="#9ca3af" />
+                    <span className="mt-1 text-sm text-gray-600 font-medium">Click to Upload</span>
+                    <input 
+                      ref={photoInputRef}
+                      type="file" 
+                      multiple 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handlePhotoUpload}
+                      disabled={!selectedSectionId}
+                    />
+                  </div>
                 </div>
 
-                {/* Photo List */}
-                {photos.length > 0 && (
-                  <button
-                    onClick={() => handleOpenGallery(0)}
-                    className="w-full px-3 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium transition-colors border border-blue-200 text-center"
-                  >
-                    Review All Photos ({photos.length})
-                  </button>
-                )}
+                {/* Photos List */}
+                <div className="flex flex-col gap-6">
+                  {sections.map(section => {
+                    const sectionPhotos = photosBySection[section.id];
+                    if (!sectionPhotos || sectionPhotos.length === 0) return null;
 
-                <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                  {photos.map((photo, index) => {
                     return (
-                      <div key={photo.id} className="flex gap-3 p-2 border border-gray-200 rounded-lg bg-white shadow-sm cursor-pointer hover:border-blue-300 transition-colors" onClick={() => handleOpenGallery(index)}>
-                        <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                          <img src={photo.url} alt="Inspection" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-between gap-2">
-                          <div>
-                            <div className="text-xs text-gray-500 mb-2">
-                              {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <div key={section.id} className="flex flex-col gap-2">
+                        <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-1">
+                          {section.text}
+                        </h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {sectionPhotos.map(photo => (
+                            <div key={photo.id} className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                              <div className="aspect-square bg-gray-100">
+                                <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
+                              </div>
+                              <div className="p-2 text-[10px] text-gray-500 truncate">
+                                {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                              <button
+                                onClick={() => handleRemovePhoto(photo.id)}
+                                className="absolute top-1 right-1 p-1 bg-white/90 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:text-red-600"
+                                title="Remove photo"
+                              >
+                                <DeleteIcon width={12} height={12} />
+                              </button>
                             </div>
-                            <input
-                              type="text"
-                              placeholder="Add a comment..."
-                              value={photo.comment || ""}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                handleUpdatePhotoComment(photo.id, e.target.value);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="w-full text-xs p-1.5 border border-gray-200 rounded placeholder-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                            />
-                          </div>
-
-                          <div className="flex justify-end gap-2 mt-1">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemovePhoto(photo.id);
-                              }}
-                              className="text-xs text-red-600 hover:text-red-700 hover:underline"
-                            >
-                              Remove
-                            </button>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     );
                   })}
-                  {photos.length === 0 && (
-                    <div className="text-center text-sm text-gray-400 py-4 italic">
-                      No photos uploaded yet
+
+                  {Object.keys(photosBySection).every(k => photosBySection[k].length === 0) && (
+                    <div className="text-center py-8 text-gray-400 text-sm italic">
+                      No photos uploaded yet. Select a section and upload photos to see them here.
                     </div>
                   )}
                 </div>
@@ -306,190 +426,6 @@ export default function InspectionDetail() {
 
         </div>
       </div>
-
-      {/* Photo Gallery Modal */}
-      <PhotoGalleryModal
-        open={isGalleryOpen}
-        onOpenChange={setIsGalleryOpen}
-        photos={photos}
-        currentPhotoIndex={currentPhotoIndex}
-        onPrev={handlePrevPhoto}
-        onNext={handleNextPhoto}
-        onUpdateComment={handleUpdatePhotoComment}
-      />
-
-      {/* Upload Requirements Modal */}
-      <UploadDocxModal
-        open={isUploadModalOpen}
-        onOpenChange={setIsUploadModalOpen}
-        onUpload={handleUploadDocx}
-      />
-
     </PageTemplate>
-  );
-}
-
-// --- Helper Components ---
-
-function PhotoGalleryModal({
-  open,
-  onOpenChange,
-  photos,
-  currentPhotoIndex,
-  onPrev,
-  onNext,
-  onUpdateComment,
-}: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-  photos: InspectionPhoto[];
-  currentPhotoIndex: number;
-  onPrev: () => void;
-  onNext: () => void;
-  onUpdateComment: (id: string, comment: string) => void;
-}) {
-  if (!open || photos.length === 0) return null;
-
-  const currentPhoto = photos[currentPhotoIndex];
-
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4"
-      onClick={() => onOpenChange(false)}
-    >
-      <div
-        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-gray-900">Review Photos</h2>
-            <span className="text-sm text-gray-500">
-              {currentPhotoIndex + 1} of {photos.length}
-            </span>
-          </div>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <span className="text-2xl leading-none">×</span>
-          </button>
-        </div>
-
-        {/* Image Container */}
-        <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-hidden p-4">
-          <img
-            src={currentPhoto.url}
-            alt={`Photo ${currentPhotoIndex + 1}`}
-            className="max-h-full max-w-full object-contain shadow-sm"
-          />
-        </div>
-
-        {/* Comment Section */}
-        <div className="bg-white px-6 py-4 border-t border-gray-200">
-          <input
-            type="text"
-            value={currentPhoto.comment || ""}
-            onChange={(e) => onUpdateComment(currentPhoto.id, e.target.value)}
-            placeholder="Add a comment to this photo..."
-            className="w-full text-sm px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
-            autoFocus
-          />
-        </div>
-
-        {/* Footer with Navigation */}
-        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
-          <button
-            onClick={onPrev}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50"
-            disabled={photos.length === 1}
-          >
-            ← Previous
-          </button>
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">
-              {new Date(currentPhoto.uploadedAt).toLocaleString()}
-            </span>
-          </div>
-
-          <button
-            onClick={onNext}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50"
-            disabled={photos.length === 1}
-          >
-            Next →
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function UploadDocxModal({ 
-  open, 
-  onOpenChange, 
-  onUpload 
-}: { 
-  open: boolean; 
-  onOpenChange: (o: boolean) => void;
-  onUpload: (file: File) => void;
-}) {
-  const [file, setFile] = useState<File | null>(null);
-
-  return (
-    <ModalTemplate
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Upload Inspection Requirements"
-      size="sm"
-      footer={
-        <ModalButtons
-          onCancel={() => onOpenChange(false)}
-          onConfirm={() => file && onUpload(file)}
-          confirmLabel="Import Document"
-          confirmDisabled={!file}
-        />
-      }
-    >
-      <div className="flex flex-col gap-4">
-        <p className="text-sm text-gray-600">
-          Upload a Microsoft Word (.docx) document containing the inspection requirements.
-        </p>
-
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center">
-          <DocumentIcon width={32} height={32} className="text-gray-400 mb-3" />
-
-          <input
-            type="file"
-            accept=".docx"
-            id="docx-upload"
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files?.[0]) setFile(e.target.files[0]);
-            }}
-          />
-
-          {file ? (
-            <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded text-sm">
-              <span className="font-medium">{file.name}</span>
-              <button onClick={() => setFile(null)} className="hover:text-blue-900">
-                <DeleteIcon width={14} height={14} />
-              </button>
-            </div>
-          ) : (
-            <label
-              htmlFor="docx-upload"
-              className="text-blue-600 font-medium hover:underline cursor-pointer"
-            >
-              Click to browse file
-            </label>
-          )}
-          <p className="text-xs text-gray-400 mt-2">Supported: .docx files only</p>
-        </div>
-      </div>
-    </ModalTemplate>
   );
 }
