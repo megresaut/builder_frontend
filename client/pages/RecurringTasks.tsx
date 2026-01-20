@@ -537,7 +537,7 @@ export default function RecurringTasks() {
                 <PersonAvatars
                   people={task.assignees}
                   type="assignee"
-                  size="md"
+                  size="sm"
                 />
               );
             }
