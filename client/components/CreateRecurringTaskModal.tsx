@@ -277,6 +277,13 @@ export default function CreateRecurringTaskModal({
             options={AVAILABLE_ASSIGNEES}
           />
           <div className="grid grid-cols-2 gap-4">
+            <MultiSelectField
+              label="Collaborators"
+              value={collaborators}
+              onChange={setCollaborators}
+              placeholder="Select collaborators"
+              options={AVAILABLE_ASSIGNEES}
+            />
             <SelectField
               label="Priority"
               value={priority}
@@ -287,18 +294,18 @@ export default function CreateRecurringTaskModal({
                 { value: "high", label: "High" },
               ]}
             />
-            <SelectField
-              label="Category"
-              value={category}
-              onChange={setCategory}
-              placeholder="Select Category"
-              options={[
-                { value: "maintenance", label: "Maintenance" },
-                { value: "repair", label: "Repair" },
-                { value: "other", label: "Other" },
-              ]}
-            />
           </div>
+          <SelectField
+            label="Category"
+            value={category}
+            onChange={setCategory}
+            placeholder="Select Category"
+            options={[
+              { value: "maintenance", label: "Maintenance" },
+              { value: "repair", label: "Repair" },
+              { value: "other", label: "Other" },
+            ]}
+          />
         </FormSection>
       </FormLayout>
     </ModalTemplate>
