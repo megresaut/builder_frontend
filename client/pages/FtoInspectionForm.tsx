@@ -551,6 +551,7 @@ export default function FtoInspectionForm() {
         onSubmit={handlePhotoCommentSubmit}
         title="Add Photo"
         submitLabel="Upload Photo"
+        initialFile={pendingPhotoFile}
       />
 
       <PhotoGalleryModal
