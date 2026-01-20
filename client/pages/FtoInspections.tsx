@@ -17,6 +17,7 @@ import {
   DotsIcon,
   EditIcon,
   UserIcon,
+  ApproveIcon,
 } from "@/components/icons";
 
 interface InspectionRecord {
