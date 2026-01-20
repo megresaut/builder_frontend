@@ -9,7 +9,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
-import { EditIcon, DeleteIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, BuildingIcon } from "@/components/icons";
 
 interface Assignee {
   id: number;
