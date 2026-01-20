@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import {
   ModalTemplate,
