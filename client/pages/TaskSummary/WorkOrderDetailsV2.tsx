@@ -510,8 +510,8 @@ export default function WorkOrderDetailsV2({
                     </button>
                   </div>
                   <div className="flex flex-col items-start gap-2 w-full">
-                    <div className="text-[#717179] text-sm font-medium leading-4">
-                      Created by Julia LoSchiavo for
+                    <div className="text-sm text-[#303030] font-medium">
+                      Created by
                     </div>
                     <div className="text-[#2463eb] text-sm font-bold leading-4">
                       (C) {workOrder.property}{" "}
