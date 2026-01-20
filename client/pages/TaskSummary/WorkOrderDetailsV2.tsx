@@ -634,6 +634,39 @@ export default function WorkOrderDetailsV2({
             }}
           />
 
+          {/* Vendor Card */}
+          <PeopleCard
+            title="Vendor"
+            variant="white"
+            footerActions={[]}
+            subsections={[
+              {
+                mode: "rows",
+                people: workOrder.vendorName
+                  ? [
+                      {
+                        id: "vendor-1",
+                        name: workOrder.vendorName,
+                        initials: workOrder.vendorName
+                          .split(" ")
+                          .map((w) => w[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2),
+                        roleLabel: "Vendor Company",
+                        email: getVendorEmail(workOrder.vendorName),
+                        phone: "",
+                        href: getVendorHref(workOrder.vendorName),
+                      },
+                    ]
+                  : [],
+                showRoleLabel: true,
+                showPhone: true,
+                showDivider: false,
+              },
+            ]}
+          />
+
           {/* Created By Card */}
           <PeopleCard
             variant="white"
