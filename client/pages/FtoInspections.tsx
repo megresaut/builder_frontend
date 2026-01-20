@@ -182,6 +182,11 @@ export default function FtoInspections() {
       icon: <CalendarIcon width={16} height={16} />,
     },
     {
+      key: "month",
+      label: "Month",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    {
       key: "inspector",
       label: "Inspector",
       icon: <UserIcon width={16} height={16} />,
