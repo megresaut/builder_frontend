@@ -17,9 +17,6 @@ interface Assignee {
   name: string;
   initials: string;
   color: string;
-  email?: string;
-  phone?: string;
-  title?: string;
 }
 
 const mockRecurringTasks: RecurringTask[] = [
@@ -38,18 +35,12 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "Jerry Sanchez",
         initials: "JS",
         color: "bg-blue-500",
-        email: "jerry.sanchez@example.com",
-        phone: "(555) 123-4567",
-        title: "Maintenance Tech"
       },
       {
         id: 2,
         name: "John Doe",
         initials: "JD",
         color: "bg-purple-500",
-        email: "john.doe@example.com",
-        phone: "(555) 987-6543",
-        title: "Supervisor"
       },
     ],
   },
@@ -68,18 +59,12 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "Jane Smith",
         initials: "JMS",
         color: "bg-green-500",
-        email: "jane.smith@example.com",
-        phone: "(555) 456-7890",
-        title: "Property Manager"
       },
       {
         id: 4,
         name: "Mike Johnson",
         initials: "MJ",
         color: "bg-orange-500",
-        email: "mike.johnson@example.com",
-        phone: "(555) 789-0123",
-        title: "Contractor"
       },
     ],
   },
@@ -98,18 +83,12 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "Jerry Sanchez",
         initials: "JS",
         color: "bg-blue-500",
-        email: "jerry.sanchez@example.com",
-        phone: "(555) 123-4567",
-        title: "Maintenance Tech"
       },
       {
         id: 3,
         name: "Jane Smith",
         initials: "JMS",
         color: "bg-green-500",
-        email: "jane.smith@example.com",
-        phone: "(555) 456-7890",
-        title: "Property Manager"
       },
     ],
   },
@@ -128,18 +107,12 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "John Doe",
         initials: "JD",
         color: "bg-purple-500",
-        email: "john.doe@example.com",
-        phone: "(555) 987-6543",
-        title: "Supervisor"
       },
       {
         id: 4,
         name: "Mike Johnson",
         initials: "MJ",
         color: "bg-orange-500",
-        email: "mike.johnson@example.com",
-        phone: "(555) 789-0123",
-        title: "Contractor"
       },
     ],
   },
@@ -158,9 +131,6 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "Jerry Sanchez",
         initials: "JS",
         color: "bg-blue-500",
-        email: "jerry.sanchez@example.com",
-        phone: "(555) 123-4567",
-        title: "Maintenance Tech"
       },
     ],
   },
@@ -179,18 +149,12 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "Jane Smith",
         initials: "JMS",
         color: "bg-green-500",
-        email: "jane.smith@example.com",
-        phone: "(555) 456-7890",
-        title: "Property Manager"
       },
       {
         id: 2,
         name: "John Doe",
         initials: "JD",
         color: "bg-purple-500",
-        email: "john.doe@example.com",
-        phone: "(555) 987-6543",
-        title: "Supervisor"
       },
     ],
   },
@@ -209,18 +173,12 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "Mike Johnson",
         initials: "MJ",
         color: "bg-orange-500",
-        email: "mike.johnson@example.com",
-        phone: "(555) 789-0123",
-        title: "Contractor"
       },
       {
         id: 1,
         name: "Jerry Sanchez",
         initials: "JS",
         color: "bg-blue-500",
-        email: "jerry.sanchez@example.com",
-        phone: "(555) 123-4567",
-        title: "Maintenance Tech"
       },
     ],
   },
@@ -239,18 +197,12 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "John Doe",
         initials: "JD",
         color: "bg-purple-500",
-        email: "john.doe@example.com",
-        phone: "(555) 987-6543",
-        title: "Supervisor"
       },
       {
         id: 3,
         name: "Jane Smith",
         initials: "JMS",
         color: "bg-green-500",
-        email: "jane.smith@example.com",
-        phone: "(555) 456-7890",
-        title: "Property Manager"
       },
     ],
   },
@@ -269,18 +221,12 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "Jerry Sanchez",
         initials: "JS",
         color: "bg-blue-500",
-        email: "jerry.sanchez@example.com",
-        phone: "(555) 123-4567",
-        title: "Maintenance Tech"
       },
       {
         id: 4,
         name: "Mike Johnson",
         initials: "MJ",
         color: "bg-orange-500",
-        email: "mike.johnson@example.com",
-        phone: "(555) 789-0123",
-        title: "Contractor"
       },
     ],
   },
@@ -299,9 +245,6 @@ const mockRecurringTasks: RecurringTask[] = [
         name: "Jane Smith",
         initials: "JMS",
         color: "bg-green-500",
-        email: "jane.smith@example.com",
-        phone: "(555) 456-7890",
-        title: "Property Manager"
       },
     ],
   },
