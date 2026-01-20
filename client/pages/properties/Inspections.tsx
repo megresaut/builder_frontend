@@ -255,12 +255,10 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     switch (status) {
       case "Approved":
         return "#059669";
-      case "In Review":
-        return "#2463eb";
-      case "Submitted":
+      case "Outstanding":
         return "#d97706";
-      case "Revisions Needed":
-        return "#dc2626";
+      case "Submitted":
+        return "#2463eb";
       default:
         return "#525252";
     }
