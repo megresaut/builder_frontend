@@ -297,11 +297,16 @@ export default function FtoInspectionForm() {
     const property = PROPERTIES.find((p) => p.id === propertyId);
     const unit = property?.units?.find((u) => u.id === unitId);
 
+    // Calculate month from date
+    const dateObj = new Date(date);
+    const month = dateObj.toLocaleString("default", { month: "short", year: "numeric" });
+
     submissions.push({
       id: inspectionId,
       property: property?.name || "Unknown Property",
       unit: unit?.name || (unitId || "N/A"),
       date,
+      month,
       inspector: "Current User", // In a real app, this would come from auth
       status: "Completed",
     });
