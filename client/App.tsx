@@ -96,10 +96,10 @@ export default function App() {
         <ToastProvider>
           <Toaster />
           <Sonner />
-        <FavoritesProvider>
-          <TabContext.Provider
-            value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}
-          >
+          <FavoritesProvider>
+            <TabContext.Provider
+              value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}
+            >
             <BrowserRouter>
               <Routes>
                 <Route
