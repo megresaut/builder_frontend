@@ -168,7 +168,7 @@ export const Toast: React.FC<ToastProps> = ({
     >
       <div
         className={cn(
-          "flex items-start gap-3 rounded-lg border p-4 pr-12 shadow-lg",
+          "relative flex items-start gap-3 rounded-lg border p-4 pr-12 shadow-lg",
           config.bgColor,
           config.borderColor,
           config.textColor
