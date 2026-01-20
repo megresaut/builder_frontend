@@ -95,7 +95,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
   return (
     <div className="flex flex-col w-full">
       {/* Header: Label + optional Action */}
-      {!shouldHideHeader && (
+      {!shouldHideHeader && label !== "" && (
         <div className="flex items-center justify-between gap-4 w-full">
           <div className="text-sm text-[#303030] font-medium">{label}</div>
           {actionNode ? (
