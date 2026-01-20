@@ -107,6 +107,7 @@ export default function CreateRecurringTaskModal({
       console.log("Form submitted", {
         taskName,
         description,
+        collaborators,
         property,
         unit,
         dueAfter: `${dueAfterValue} ${dueAfterUnit}`,
