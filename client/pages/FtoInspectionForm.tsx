@@ -12,6 +12,7 @@ import {
 import { SelectField, DateField } from "@/components/forms";
 import { PROPERTIES } from "@/data/fto/properties";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import PhotoCommentModal from "@/components/PhotoCommentModal";
 import { cn } from "@/lib/utils";
 
 // --- Types ---
