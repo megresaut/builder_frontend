@@ -67,6 +67,7 @@ export default function FtoInspectionForm() {
   // UI State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isPhotoCommentModalOpen, setIsPhotoCommentModalOpen] = useState(false);
+  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
   const [isRenderingDoc, setIsRenderingDoc] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
