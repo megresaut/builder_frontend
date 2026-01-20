@@ -641,7 +641,6 @@ export default function WorkOrderDetailsV2({
             footerActions={[]}
             subsections={[
               {
-                label: "Vendor",
                 mode: "rows",
                 people: workOrder.vendorName
                   ? [
@@ -663,7 +662,7 @@ export default function WorkOrderDetailsV2({
                   : [],
                 showRoleLabel: true,
                 showPhone: true,
-                showDivider: false,
+                showDivider: true,
               },
             ]}
           />
