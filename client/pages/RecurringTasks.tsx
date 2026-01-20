@@ -241,6 +241,28 @@ export default function RecurringTasks() {
       ),
     },
     {
+      key: "property",
+      label: "Property",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    {
+      key: "unit",
+      label: "Unit",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+      ),
+    },
+    {
       key: "nextDate",
       label: "Next Date",
       icon: (
@@ -274,16 +296,6 @@ export default function RecurringTasks() {
           style={{ width: "16px", height: "16px" }}
           alt=""
         />
-      ),
-    },
-    {
-      key: "status",
-      label: "Status",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6l4 2" />
-        </svg>
       ),
     },
   ];
