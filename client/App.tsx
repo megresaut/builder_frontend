@@ -102,7 +102,7 @@ export default function App() {
             >
               <BrowserRouter>
                 <Routes>
-                <Route
+                  <Route
                   path="/"
                   element={
                     <ShellLayout>
@@ -327,8 +327,8 @@ export default function App() {
                   path="/fto/approve/:ftoId"
                   element={<ApproveFTOPage />}
                 />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
             </TabContext.Provider>
