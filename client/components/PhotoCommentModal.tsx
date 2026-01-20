@@ -90,12 +90,17 @@ export const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
       onOpenChange={(openState) => {
         if (!openState) {
           resetForm();
+          // Clear the comment when modal closes
+          setComment("");
         }
         onOpenChange(openState);
       }}
       title={title}
       size="sm"
-      onClose={resetForm}
+      onClose={() => {
+        resetForm();
+        setComment("");
+      }}
       footer={
         <ModalButtons
           onCancel={handleCancel}
