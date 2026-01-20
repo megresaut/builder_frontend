@@ -93,8 +93,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
+        <ToastProvider>
+          <Toaster />
+          <Sonner />
         <FavoritesProvider>
           <TabContext.Provider
             value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}
@@ -332,6 +333,7 @@ export default function App() {
             </BrowserRouter>
           </TabContext.Provider>
         </FavoritesProvider>
+        </ToastProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
