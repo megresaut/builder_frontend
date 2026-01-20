@@ -224,11 +224,24 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     navigate(`/property/${propertyId}/inspections/${inspection.id}`);
   }, [navigate, propertyId]);
 
+  const handleMarkAsComplete = useCallback((inspection: Inspection) => {
+    setInspectionsList((prev) =>
+      prev.map((i) =>
+        i.id === inspection.id ? { ...i, status: "Approved" as const } : i
+      )
+    );
+  }, []);
+
   const actions = [
     {
       label: "View Inspection",
       icon: <EditIcon width={18} height={18} color="#525252" />,
       onClick: handleViewInspection,
+    },
+    {
+      label: "Mark as Complete",
+      icon: <EditIcon width={18} height={18} color="#059669" />,
+      onClick: handleMarkAsComplete,
     },
     {
       label: "Delete Inspection",
