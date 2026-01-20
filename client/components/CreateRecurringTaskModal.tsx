@@ -196,7 +196,7 @@ export default function CreateRecurringTaskModal({
               placeholder="Enter number"
             />
             <SelectField
-              label=" "
+              label="Period"
               value={dueAfterUnit}
               onChange={setDueAfterUnit}
               options={[
