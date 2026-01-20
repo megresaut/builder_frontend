@@ -542,6 +542,14 @@ export default function FtoInspectionForm() {
       </div>
 
       {/* Modals */}
+      <PhotoCommentModal
+        open={isPhotoCommentModalOpen}
+        onOpenChange={setIsPhotoCommentModalOpen}
+        onSubmit={handlePhotoCommentSubmit}
+        title="Add Photo"
+        submitLabel="Upload Photo"
+      />
+
       <PhotoGalleryModal
         open={isGalleryOpen}
         onOpenChange={setIsGalleryOpen}
