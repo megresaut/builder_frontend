@@ -227,47 +227,35 @@ export default function CreateRecurringTaskModal({
           />
 
           {/* End Condition with conditional fields */}
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
-              End
-            </label>
-            <SelectField
-              label=""
-              value={endCondition}
-              onChange={setEndCondition}
-              options={[
-                { value: "never", label: "Never" },
-                { value: "after", label: "After" },
-                { value: "onDate", label: "On date" },
-              ]}
+          <SelectField
+            label="End"
+            value={endCondition}
+            onChange={setEndCondition}
+            options={[
+              { value: "never", label: "Never" },
+              { value: "after", label: "After" },
+              { value: "onDate", label: "On date" },
+            ]}
+          />
+
+          {endCondition === "after" && (
+            <NumberField
+              label="After"
+              value={endAfterTimes}
+              onChange={(e) => setEndAfterTimes(e.target.value)}
+              placeholder="Enter number"
+              description="time(s)"
             />
+          )}
 
-            {endCondition === "after" && (
-              <div className="flex gap-4 items-end">
-                <div className="flex-1">
-                  <input
-                    type="number"
-                    value={endAfterTimes}
-                    onChange={(e) => setEndAfterTimes(e.target.value)}
-                    placeholder="Enter number"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="flex-1 pb-2">
-                  <span className="text-sm text-gray-600">time{endAfterTimes !== "1" ? "s" : ""}</span>
-                </div>
-              </div>
-            )}
-
-            {endCondition === "onDate" && (
-              <DateField
-                label=""
-                value={endDate}
-                onChange={setEndDate}
-                placeholder="mm/dd/yyyy"
-              />
-            )}
-          </div>
+          {endCondition === "onDate" && (
+            <DateField
+              label="End Date"
+              value={endDate}
+              onChange={setEndDate}
+              placeholder="mm/dd/yyyy"
+            />
+          )}
         </FormSection>
 
         <FormSection title="Assignment & Priority">
