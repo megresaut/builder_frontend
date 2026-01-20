@@ -17,18 +17,9 @@ interface Assignee {
   name: string;
   initials: string;
   color: string;
-}
-
-interface RecurringTask {
-  id: number;
-  task: string;
-  nextDate: string;
-  priority: "High" | "Low" | "Normal";
-  category: string;
-  status: "active" | "inactive";
-  property: string;
-  unit: string;
-  assignees: Assignee[];
+  email?: string;
+  phone?: string;
+  title?: string;
 }
 
 const mockRecurringTasks: RecurringTask[] = [
@@ -42,8 +33,24 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 1",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        color: "bg-blue-500",
+        email: "jerry.sanchez@example.com",
+        phone: "(555) 123-4567",
+        title: "Maintenance Tech"
+      },
+      {
+        id: 2,
+        name: "John Doe",
+        initials: "JD",
+        color: "bg-purple-500",
+        email: "john.doe@example.com",
+        phone: "(555) 987-6543",
+        title: "Supervisor"
+      },
     ],
   },
   {
@@ -56,8 +63,24 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 2",
     assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+      {
+        id: 3,
+        name: "Jane Smith",
+        initials: "JMS",
+        color: "bg-green-500",
+        email: "jane.smith@example.com",
+        phone: "(555) 456-7890",
+        title: "Property Manager"
+      },
+      {
+        id: 4,
+        name: "Mike Johnson",
+        initials: "MJ",
+        color: "bg-orange-500",
+        email: "mike.johnson@example.com",
+        phone: "(555) 789-0123",
+        title: "Contractor"
+      },
     ],
   },
   {
@@ -70,8 +93,24 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 3",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        color: "bg-blue-500",
+        email: "jerry.sanchez@example.com",
+        phone: "(555) 123-4567",
+        title: "Maintenance Tech"
+      },
+      {
+        id: 3,
+        name: "Jane Smith",
+        initials: "JMS",
+        color: "bg-green-500",
+        email: "jane.smith@example.com",
+        phone: "(555) 456-7890",
+        title: "Property Manager"
+      },
     ],
   },
   {
@@ -84,8 +123,24 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 4",
     assignees: [
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+      {
+        id: 2,
+        name: "John Doe",
+        initials: "JD",
+        color: "bg-purple-500",
+        email: "john.doe@example.com",
+        phone: "(555) 987-6543",
+        title: "Supervisor"
+      },
+      {
+        id: 4,
+        name: "Mike Johnson",
+        initials: "MJ",
+        color: "bg-orange-500",
+        email: "mike.johnson@example.com",
+        phone: "(555) 789-0123",
+        title: "Contractor"
+      },
     ],
   },
   {
@@ -98,7 +153,15 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 5",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        color: "bg-blue-500",
+        email: "jerry.sanchez@example.com",
+        phone: "(555) 123-4567",
+        title: "Maintenance Tech"
+      },
     ],
   },
   {
@@ -111,8 +174,24 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 6",
     assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
+      {
+        id: 3,
+        name: "Jane Smith",
+        initials: "JMS",
+        color: "bg-green-500",
+        email: "jane.smith@example.com",
+        phone: "(555) 456-7890",
+        title: "Property Manager"
+      },
+      {
+        id: 2,
+        name: "John Doe",
+        initials: "JD",
+        color: "bg-purple-500",
+        email: "john.doe@example.com",
+        phone: "(555) 987-6543",
+        title: "Supervisor"
+      },
     ],
   },
   {
@@ -125,8 +204,24 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 7",
     assignees: [
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
+      {
+        id: 4,
+        name: "Mike Johnson",
+        initials: "MJ",
+        color: "bg-orange-500",
+        email: "mike.johnson@example.com",
+        phone: "(555) 789-0123",
+        title: "Contractor"
+      },
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        color: "bg-blue-500",
+        email: "jerry.sanchez@example.com",
+        phone: "(555) 123-4567",
+        title: "Maintenance Tech"
+      },
     ],
   },
   {
@@ -139,8 +234,24 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 8",
     assignees: [
-      { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      {
+        id: 2,
+        name: "John Doe",
+        initials: "JD",
+        color: "bg-purple-500",
+        email: "john.doe@example.com",
+        phone: "(555) 987-6543",
+        title: "Supervisor"
+      },
+      {
+        id: 3,
+        name: "Jane Smith",
+        initials: "JMS",
+        color: "bg-green-500",
+        email: "jane.smith@example.com",
+        phone: "(555) 456-7890",
+        title: "Property Manager"
+      },
     ],
   },
   {
@@ -153,8 +264,24 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 9",
     assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
-      { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
+      {
+        id: 1,
+        name: "Jerry Sanchez",
+        initials: "JS",
+        color: "bg-blue-500",
+        email: "jerry.sanchez@example.com",
+        phone: "(555) 123-4567",
+        title: "Maintenance Tech"
+      },
+      {
+        id: 4,
+        name: "Mike Johnson",
+        initials: "MJ",
+        color: "bg-orange-500",
+        email: "mike.johnson@example.com",
+        phone: "(555) 789-0123",
+        title: "Contractor"
+      },
     ],
   },
   {
@@ -167,7 +294,15 @@ const mockRecurringTasks: RecurringTask[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit 10",
     assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
+      {
+        id: 3,
+        name: "Jane Smith",
+        initials: "JMS",
+        color: "bg-green-500",
+        email: "jane.smith@example.com",
+        phone: "(555) 456-7890",
+        title: "Property Manager"
+      },
     ],
   },
 ];
