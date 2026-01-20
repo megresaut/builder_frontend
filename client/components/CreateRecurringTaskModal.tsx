@@ -268,16 +268,17 @@ export default function CreateRecurringTaskModal({
         </FormSection>
 
         <FormSection title="Assignment & Priority">
-          <MultiSelectField
-            label="Assignees"
-            required
-            value={selectedAssignees}
-            onChange={setSelectedAssignees}
-            error={errors.selectedAssignees}
-            placeholder="Select assignees"
-            options={AVAILABLE_ASSIGNEES}
-          />
+          {/* Assignees and Collaborators in same row */}
           <div className="grid grid-cols-2 gap-4">
+            <MultiSelectField
+              label="Assignees"
+              required
+              value={selectedAssignees}
+              onChange={setSelectedAssignees}
+              error={errors.selectedAssignees}
+              placeholder="Select assignees"
+              options={AVAILABLE_ASSIGNEES}
+            />
             <MultiSelectField
               label="Collaborators"
               value={collaborators}
@@ -285,6 +286,10 @@ export default function CreateRecurringTaskModal({
               placeholder="Select collaborators"
               options={AVAILABLE_ASSIGNEES}
             />
+          </div>
+
+          {/* Priority and Category in same row */}
+          <div className="grid grid-cols-2 gap-4">
             <SelectField
               label="Priority"
               value={priority}
@@ -295,18 +300,18 @@ export default function CreateRecurringTaskModal({
                 { value: "high", label: "High" },
               ]}
             />
+            <SelectField
+              label="Category"
+              value={category}
+              onChange={setCategory}
+              placeholder="Select Category"
+              options={[
+                { value: "maintenance", label: "Maintenance" },
+                { value: "repair", label: "Repair" },
+                { value: "other", label: "Other" },
+              ]}
+            />
           </div>
-          <SelectField
-            label="Category"
-            value={category}
-            onChange={setCategory}
-            placeholder="Select Category"
-            options={[
-              { value: "maintenance", label: "Maintenance" },
-              { value: "repair", label: "Repair" },
-              { value: "other", label: "Other" },
-            ]}
-          />
         </FormSection>
       </FormLayout>
     </ModalTemplate>
