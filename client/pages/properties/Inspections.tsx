@@ -82,7 +82,7 @@ const mockInspections: Inspection[] = [
     inspector: { id: 1, name: "John Doe", initials: "JD", email: "john.doe@company.com" },
     inspectionDate: "Sep 25, 2025",
     submitted: "Sep 26, 2025",
-    status: "Approved",
+    status: "Completed",
     issues: 0,
     photos: 10,
     updated: "Sep 27, 2025",
