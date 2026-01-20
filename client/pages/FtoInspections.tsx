@@ -30,12 +30,22 @@ interface InspectionRecord {
   documentName?: string;
 }
 
+const getMonthFromDate = (dateStr: string): string => {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleString("default", { month: "short", year: "numeric" });
+  } catch {
+    return "";
+  }
+};
+
 const mockInspections: InspectionRecord[] = [
   {
     id: 1,
     property: "22 Indian Chase Dr",
     unit: "Unit A",
     date: "2025-10-15",
+    month: getMonthFromDate("2025-10-15"),
     inspector: "John Doe",
     status: "Completed",
     documentName: "Q4 Inspection.docx",
@@ -45,6 +55,7 @@ const mockInspections: InspectionRecord[] = [
     property: "22 Indian Chase Dr",
     unit: "Unit B",
     date: "2025-10-10",
+    month: getMonthFromDate("2025-10-10"),
     inspector: "Jane Smith",
     status: "Completed",
     documentName: "HVAC Inspection.docx",
