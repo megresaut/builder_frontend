@@ -20,7 +20,7 @@ interface PhotoCommentModalProps {
   initialFile?: File | null;
 }
 
-export const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
+const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
   open,
   onOpenChange,
   onSubmit,
