@@ -12,6 +12,7 @@ import {
   ArrowBackIcon,
   ArrowForwardIcon,
   ChevronDownIcon,
+  DocumentIcon,
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import {
@@ -41,14 +42,21 @@ export default function InspectionDetail() {
 
   const photosBySection = useMemo(() => {
     const grouped: Record<string, InspectionPhoto[]> = {};
-    // Initialize for all sections so they appear even if empty
+    // Initialize for all sections
     sections.forEach(s => grouped[s.id] = []);
     
     photos.forEach((p) => {
+      // Handle cases where a section might have been deleted but photos remain
+      // In a real app we might reassign them to 'Uncategorized' or delete them
       if (!grouped[p.sectionNodeId]) {
-        grouped[p.sectionNodeId] = [];
+        // Only add if the section still exists, or maybe add to a fallback?
+        // For now, we'll skip if section is gone to avoid errors
+        if (sections.find(s => s.id === p.sectionNodeId)) {
+           grouped[p.sectionNodeId].push(p);
+        }
+      } else {
+        grouped[p.sectionNodeId].push(p);
       }
-      grouped[p.sectionNodeId].push(p);
     });
     return grouped;
   }, [nodes, photos, sections]);
@@ -66,7 +74,6 @@ export default function InspectionDetail() {
       prev.map((n) => {
         if (n.id !== id) return n;
         const newDepth = direction === "in" ? n.depth + 1 : Math.max(0, n.depth - 1);
-        // If depth becomes 0, it's a section, else item
         const newType = newDepth === 0 ? "section" : "item";
         return { ...n, depth: newDepth, type: newType };
       })
@@ -92,11 +99,11 @@ export default function InspectionDetail() {
   const handleAddNode = (index: number) => {
     const newNode: ChecklistNode = {
       id: `node-${Date.now()}`,
-      parentId: null, // Simplified: logic could be smarter about parent
+      parentId: null,
       orderIndex: 0,
       type: "item",
       text: "",
-      depth: 1, // Default to item depth
+      depth: 1,
     };
     const newNodes = [...nodes];
     newNodes.splice(index + 1, 0, newNode);
@@ -130,6 +137,12 @@ export default function InspectionDetail() {
     if (window.confirm("Delete this photo?")) {
       setPhotos((prev) => prev.filter((p) => p.id !== photoId));
     }
+  };
+
+  const handleMovePhoto = (photoId: string, newSectionId: string) => {
+    setPhotos((prev) =>
+      prev.map((p) => (p.id === photoId ? { ...p, sectionNodeId: newSectionId } : p))
+    );
   };
 
   // --- Handlers: General ---
@@ -392,21 +405,13 @@ export default function InspectionDetail() {
                         </h3>
                         <div className="grid grid-cols-2 gap-2">
                           {sectionPhotos.map(photo => (
-                            <div key={photo.id} className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-                              <div className="aspect-square bg-gray-100">
-                                <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
-                              </div>
-                              <div className="p-2 text-[10px] text-gray-500 truncate">
-                                {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </div>
-                              <button
-                                onClick={() => handleRemovePhoto(photo.id)}
-                                className="absolute top-1 right-1 p-1 bg-white/90 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:text-red-600"
-                                title="Remove photo"
-                              >
-                                <DeleteIcon width={12} height={12} />
-                              </button>
-                            </div>
+                            <PhotoCard 
+                              key={photo.id}
+                              photo={photo}
+                              sections={sections}
+                              onRemove={handleRemovePhoto}
+                              onMove={handleMovePhoto}
+                            />
                           ))}
                         </div>
                       </div>
@@ -427,5 +432,73 @@ export default function InspectionDetail() {
         </div>
       </div>
     </PageTemplate>
+  );
+}
+
+// --- Helper Components ---
+
+interface PhotoCardProps {
+  photo: InspectionPhoto;
+  sections: ChecklistNode[];
+  onRemove: (id: string) => void;
+  onMove: (id: string, newSectionId: string) => void;
+}
+
+function PhotoCard({ photo, sections, onRemove, onMove }: PhotoCardProps) {
+  const [isMoving, setIsMoving] = useState(false);
+
+  if (isMoving) {
+    return (
+      <div className="aspect-square bg-gray-50 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 gap-2 shadow-sm">
+        <p className="text-[10px] font-semibold text-gray-500 uppercase">Move to:</p>
+        <select
+          className="w-full text-xs p-1 border border-gray-300 rounded bg-white outline-none focus:border-blue-500"
+          value={photo.sectionNodeId}
+          onChange={(e) => {
+            onMove(photo.id, e.target.value);
+            setIsMoving(false);
+          }}
+        >
+          {sections.map(s => (
+            <option key={s.id} value={s.id}>{s.text}</option>
+          ))}
+        </select>
+        <button 
+          onClick={() => setIsMoving(false)}
+          className="text-xs text-gray-500 hover:text-gray-800 hover:underline"
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:border-blue-300 transition-colors">
+      <div className="aspect-square bg-gray-100">
+        <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
+      </div>
+      <div className="p-2 text-[10px] text-gray-500 truncate border-t border-gray-100">
+        {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </div>
+      
+      {/* Overlay Actions */}
+      <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => onRemove(photo.id)}
+          className="p-1.5 bg-white/90 rounded-full text-red-500 shadow-sm hover:text-red-600 hover:bg-white"
+          title="Remove photo"
+        >
+          <DeleteIcon width={12} height={12} />
+        </button>
+        <button
+          onClick={() => setIsMoving(true)}
+          className="p-1.5 bg-white/90 rounded-full text-blue-500 shadow-sm hover:text-blue-600 hover:bg-white"
+          title="Move to another section"
+        >
+          <DocumentIcon width={12} height={12} />
+        </button>
+      </div>
+    </div>
   );
 }
