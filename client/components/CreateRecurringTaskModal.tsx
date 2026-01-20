@@ -291,15 +291,9 @@ export default function CreateRecurringTaskModal({
 
           {/* Priority and Category in same row */}
           <div className="grid grid-cols-2 gap-4">
-            <SelectField
-              label="Priority"
+            <PrioritySelectField
               value={priority}
               onChange={setPriority}
-              options={[
-                { value: "low", label: "Low" },
-                { value: "normal", label: "Normal" },
-                { value: "high", label: "High" },
-              ]}
             />
             <SelectField
               label="Category"
