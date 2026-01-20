@@ -14,6 +14,7 @@ import {
   DotsIcon,
   CalendarIcon,
   UserIcon,
+  ApproveIcon,
 } from "@/components/icons";
 
 interface Inspector {
