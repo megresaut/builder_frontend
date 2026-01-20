@@ -158,6 +158,13 @@ export default function CreateRecurringTaskModal({
             placeholder="Insert Description Here"
             rows={4}
           />
+          <MultiSelectField
+            label="Collaborators"
+            value={collaborators}
+            onChange={setCollaborators}
+            placeholder="Select collaborators"
+            options={AVAILABLE_ASSIGNEES}
+          />
         </FormSection>
 
         <FormSection title="Property & Scheduling">
