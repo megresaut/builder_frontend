@@ -58,11 +58,12 @@ export default function CreateRecurringTaskModal({
     if (!open) {
       setTaskName("");
       setDescription("");
+      setCollaborators([]);
       setProperty("");
       setUnit("");
       setDueAfterValue("");
       setDueAfterUnit("days");
-      setRepeat("daily");
+      setRepeat("monthly");
       setStartDate(null);
       setEndCondition("never");
       setEndAfterTimes("");
