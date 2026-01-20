@@ -100,8 +100,8 @@ export default function App() {
             <TabContext.Provider
               value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}
             >
-            <BrowserRouter>
-              <Routes>
+              <BrowserRouter>
+                <Routes>
                 <Route
                   path="/"
                   element={
