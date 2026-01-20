@@ -153,43 +153,68 @@ export default function CreateRecurringTaskModal({
             value={description}
             onChange={setDescription}
             placeholder="Insert Description Here"
-            rows={6}
+            rows={4}
           />
         </FormSection>
 
         <FormSection title="Property & Scheduling">
-          <SelectField
-            label="Property"
-            value={property}
-            onChange={setProperty}
-            placeholder="Select Property"
-            options={[
-              { value: "property1", label: "22 Indian Chase Dr" },
-              { value: "property2", label: "Property 2" },
-            ]}
-          />
-          <SelectField
-            label="Unit"
-            value={unit}
-            onChange={setUnit}
-            placeholder="Select Unit If Applicable"
-            options={[
-              { value: "unit1", label: "Unit 1" },
-              { value: "unit2", label: "Unit 2" },
-            ]}
-          />
-          <TextField
-            label="Due After"
-            value={dueAfter}
-            onChange={setDueAfter}
-            type="number"
-            placeholder="Insert Number Of Days"
-          />
+          {/* Property and Unit in same row */}
+          <div className="grid grid-cols-2 gap-4">
+            <SelectField
+              label="Property"
+              value={property}
+              onChange={setProperty}
+              placeholder="Select Property"
+              options={[
+                { value: "property1", label: "22 Indian Chase Dr" },
+                { value: "property2", label: "Property 2" },
+              ]}
+            />
+            <SelectField
+              label="Unit"
+              value={unit}
+              onChange={setUnit}
+              placeholder="Select Unit"
+              options={[
+                { value: "unit1", label: "Unit 1" },
+                { value: "unit2", label: "Unit 2" },
+              ]}
+            />
+          </div>
+
+          {/* Due After with days/weeks/months selector */}
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Due After
+              </label>
+              <input
+                type="number"
+                value={dueAfterValue}
+                onChange={(e) => setDueAfterValue(e.target.value)}
+                placeholder="Enter number"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex-1">
+              <SelectField
+                label=""
+                value={dueAfterUnit}
+                onChange={setDueAfterUnit}
+                options={[
+                  { value: "days", label: "days" },
+                  { value: "weeks", label: "weeks" },
+                  { value: "months", label: "months" },
+                ]}
+              />
+            </div>
+          </div>
+
+          {/* Repeat field */}
           <SelectField
             label="Repeat"
             value={repeat}
             onChange={setRepeat}
-            placeholder="Daily, Monthly, Or Yearly, Etc"
             options={[
               { value: "daily", label: "Daily" },
               { value: "weekly", label: "Weekly" },
@@ -197,6 +222,8 @@ export default function CreateRecurringTaskModal({
               { value: "yearly", label: "Yearly" },
             ]}
           />
+
+          {/* Start Date */}
           <DateField
             label="Start Date"
             required
@@ -205,12 +232,49 @@ export default function CreateRecurringTaskModal({
             error={errors.startDate}
             placeholder="mm/dd/yyyy"
           />
-          <DateField
-            label="End Date"
-            value={endDate}
-            onChange={setEndDate}
-            placeholder="mm/dd/yyyy"
-          />
+
+          {/* End Condition with conditional fields */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700">
+              End
+            </label>
+            <SelectField
+              label=""
+              value={endCondition}
+              onChange={setEndCondition}
+              options={[
+                { value: "never", label: "Never" },
+                { value: "after", label: "After" },
+                { value: "onDate", label: "On date" },
+              ]}
+            />
+
+            {endCondition === "after" && (
+              <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    value={endAfterTimes}
+                    onChange={(e) => setEndAfterTimes(e.target.value)}
+                    placeholder="Enter number"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex-1 pb-2">
+                  <span className="text-sm text-gray-600">time{endAfterTimes !== "1" ? "s" : ""}</span>
+                </div>
+              </div>
+            )}
+
+            {endCondition === "onDate" && (
+              <DateField
+                label=""
+                value={endDate}
+                onChange={setEndDate}
+                placeholder="mm/dd/yyyy"
+              />
+            )}
+          </div>
         </FormSection>
 
         <FormSection title="Assignment & Priority">
@@ -223,27 +287,29 @@ export default function CreateRecurringTaskModal({
             placeholder="Select assignees"
             options={AVAILABLE_ASSIGNEES}
           />
-          <SelectField
-            label="Priority"
-            value={priority}
-            onChange={setPriority}
-            options={[
-              { value: "low", label: "Low" },
-              { value: "normal", label: "Normal" },
-              { value: "high", label: "High" },
-            ]}
-          />
-          <SelectField
-            label="Category"
-            value={category}
-            onChange={setCategory}
-            placeholder="Select Category"
-            options={[
-              { value: "maintenance", label: "Maintenance" },
-              { value: "repair", label: "Repair" },
-              { value: "other", label: "Other" },
-            ]}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <SelectField
+              label="Priority"
+              value={priority}
+              onChange={setPriority}
+              options={[
+                { value: "low", label: "Low" },
+                { value: "normal", label: "Normal" },
+                { value: "high", label: "High" },
+              ]}
+            />
+            <SelectField
+              label="Category"
+              value={category}
+              onChange={setCategory}
+              placeholder="Select Category"
+              options={[
+                { value: "maintenance", label: "Maintenance" },
+                { value: "repair", label: "Repair" },
+                { value: "other", label: "Other" },
+              ]}
+            />
+          </div>
         </FormSection>
       </FormLayout>
     </ModalTemplate>
