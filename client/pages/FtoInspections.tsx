@@ -101,23 +101,31 @@ export default function FtoInspections() {
     "status",
   ]);
 
-  // Update inspections when completed status changes
+  // Refresh inspections when page is focused or mounted
   useEffect(() => {
-    const handleStorageChange = () => {
-      const completedIds = JSON.parse(
-        localStorage.getItem("completedInspections") || "[]",
-      ) as number[];
+    const loadInspections = () => {
+      const submissions = JSON.parse(
+        localStorage.getItem("ftoSubmissions") || "[]",
+      ) as InspectionRecord[];
 
-      setInspections((prev) =>
-        prev.map((inspection) => ({
-          ...inspection,
-          status: completedIds.includes(inspection.id) ? "Completed" : "Draft",
-        })),
-      );
+      // Combine mock data with submitted inspections
+      const allInspections = [...mockInspections, ...submissions];
+
+      // Remove duplicates by ID
+      const uniqueMap = new Map<number, InspectionRecord>();
+      allInspections.forEach((inspection) => {
+        uniqueMap.set(inspection.id, inspection);
+      });
+
+      setInspections(Array.from(uniqueMap.values()));
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    // Load on mount
+    loadInspections();
+
+    // Listen for focus events to reload when user comes back to the tab
+    window.addEventListener("focus", loadInspections);
+    return () => window.removeEventListener("focus", loadInspections);
   }, []);
 
   // Pagination state
