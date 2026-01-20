@@ -651,7 +651,7 @@ export default function WorkOrderDetailsV2({
           <PeopleCard
             title="Assignees"
             variant="white"
-            tabs={["Vendors", "Staff"]}
+            tabs={["Vendors"]}
             defaultTab={0}
             footerActions={[]}
             subsections={[
