@@ -533,14 +533,6 @@ export default function WorkOrderDetailsV2({
                       {workOrder.invoiceNumber || ""}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[#717179] text-sm font-semibold leading-4">
-                      Vendor:
-                    </span>
-                    <span className="text-[#717179] text-sm font-medium leading-4">
-                      {workOrder.vendorName || "Unassigned"}
-                    </span>
-                  </div>
 
                   {/* Description Section */}
                   <div className="w-full">
