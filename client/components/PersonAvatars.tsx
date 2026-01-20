@@ -74,15 +74,11 @@ export const PersonAvatars: React.FC<PersonAvatarsProps> = ({
             >
               {initials}
             </div>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#303030] text-white text-xs rounded opacity-0 group-hover/avatar:opacity-100 transition-opacity pointer-events-none z-50 whitespace-normal min-w-max">
-              <div className="font-semibold">{name}</div>
-              {title && <div className="text-[#b4b4b4]">{title}</div>}
-              {person.email && (
-                <div className="text-[#b4b4b4]">{person.email}</div>
-              )}
-              {person.phone && (
-                <div className="text-[#b4b4b4]">{person.phone}</div>
-              )}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#303030] text-white text-xs rounded opacity-0 group-hover/avatar:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap min-w-max flex flex-col gap-0.5 shadow-lg">
+              <div className="font-semibold text-white">{name}</div>
+              {title && <div className="text-gray-300 font-normal">{title}</div>}
+              {person.email && <div className="text-gray-300 font-normal">{person.email}</div>}
+              {person.phone && <div className="text-gray-300 font-normal">{person.phone}</div>}
             </div>
           </div>
         );
