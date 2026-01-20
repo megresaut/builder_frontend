@@ -547,7 +547,12 @@ export default function FtoInspectionForm() {
       {/* Modals */}
       <PhotoCommentModal
         open={isPhotoCommentModalOpen}
-        onOpenChange={setIsPhotoCommentModalOpen}
+        onOpenChange={(open) => {
+          setIsPhotoCommentModalOpen(open);
+          if (!open) {
+            setPendingPhotoFile(null);
+          }
+        }}
         onSubmit={handlePhotoCommentSubmit}
         title="Add Photo"
         submitLabel="Upload Photo"
