@@ -147,14 +147,14 @@ export default function CreateRecurringTaskModal({
             label="Task Name"
             required
             value={taskName}
-            onChange={setTaskName}
+            onChange={(e) => setTaskName(e.target.value)}
             error={errors.taskName}
             placeholder="Type Task Name"
           />
           <TextAreaField
             label="Description"
             value={description}
-            onChange={setDescription}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="Insert Description Here"
             rows={4}
           />
