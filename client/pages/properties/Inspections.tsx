@@ -30,7 +30,7 @@ interface Inspection {
   inspector: Inspector;
   inspectionDate: string;
   submitted: string;
-  status: "Submitted" | "Outstanding" | "Approved";
+  status: "Submitted" | "Outstanding" | "Approved" | "Completed";
   issues: number;
   photos: number;
   updated: string;
