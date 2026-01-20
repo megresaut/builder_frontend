@@ -374,6 +374,20 @@ export default function RecurringTasks() {
                 </span>
               );
             }
+            if (columnKey === "property") {
+              return (
+                <span className="text-gray-900 font-normal text-sm truncate">
+                  {task.property}
+                </span>
+              );
+            }
+            if (columnKey === "unit") {
+              return (
+                <span className="text-gray-900 font-normal text-sm truncate">
+                  {task.unit}
+                </span>
+              );
+            }
             if (columnKey === "nextDate") {
               return (
                 <span className="text-gray-900 font-normal text-sm truncate">
@@ -411,9 +425,6 @@ export default function RecurringTasks() {
                   ))}
                 </div>
               );
-            }
-            if (columnKey === "status") {
-              return <StatusBadge status={task.status} />;
             }
             return null;
           }}
