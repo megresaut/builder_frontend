@@ -163,7 +163,8 @@ export default function FtoInspectionForm() {
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // Open the modal instead of immediately adding photos
+      // Store the selected file and open the modal
+      setPendingPhotoFile(e.target.files[0]);
       setIsPhotoCommentModalOpen(true);
 
       if (photoInputRef.current) photoInputRef.current.value = "";
@@ -178,6 +179,7 @@ export default function FtoInspectionForm() {
       comment: comment || undefined,
     };
     setPhotos((prev) => [...prev, newPhoto]);
+    setPendingPhotoFile(null);
     setIsPhotoCommentModalOpen(false);
   };
 
