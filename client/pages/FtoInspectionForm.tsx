@@ -162,15 +162,22 @@ export default function FtoInspectionForm() {
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newPhotos: InspectionPhoto[] = Array.from(e.target.files).map((file) => ({
-        id: `new_${Date.now()}_${Math.random()}`,
-        url: URL.createObjectURL(file),
-        uploadedAt: new Date().toISOString(),
-      }));
-      setPhotos((prev) => [...prev, ...newPhotos]);
-      
+      // Open the modal instead of immediately adding photos
+      setIsPhotoCommentModalOpen(true);
+
       if (photoInputRef.current) photoInputRef.current.value = "";
     }
+  };
+
+  const handlePhotoCommentSubmit = async (file: File, comment: string) => {
+    const newPhoto: InspectionPhoto = {
+      id: `new_${Date.now()}_${Math.random()}`,
+      url: URL.createObjectURL(file),
+      uploadedAt: new Date().toISOString(),
+      comment: comment || undefined,
+    };
+    setPhotos((prev) => [...prev, newPhoto]);
+    setIsPhotoCommentModalOpen(false);
   };
 
   const handleRemovePhoto = (photoId: string) => {
