@@ -60,11 +60,6 @@ const vendorMasterData: Record<
   string,
   { email: string; phone: string; id: number }
 > = {
-  "ABC Doors & Hardware": {
-    email: "info@abcdoors.com",
-    phone: "(555) 123-1234",
-    id: 1,
-  },
   "Elite HVAC Services": {
     email: "contact@elitehvac.com",
     phone: "(555) 234-5678",
