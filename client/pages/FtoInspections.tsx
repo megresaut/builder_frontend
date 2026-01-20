@@ -24,6 +24,7 @@ interface InspectionRecord {
   property: string;
   unit: string;
   date: string;
+  month?: string;
   inspector: string;
   status: "Completed" | "Draft";
   documentName?: string;
