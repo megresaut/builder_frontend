@@ -179,35 +179,28 @@ export default function CreateRecurringTaskModal({
                 { value: "unit1", label: "Unit 1" },
                 { value: "unit2", label: "Unit 2" },
               ]}
+              disabled={!property}
             />
           </div>
 
           {/* Due After with days/weeks/months selector */}
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Due After
-              </label>
-              <input
-                type="number"
-                value={dueAfterValue}
-                onChange={(e) => setDueAfterValue(e.target.value)}
-                placeholder="Enter number"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="flex-1">
-              <SelectField
-                label=""
-                value={dueAfterUnit}
-                onChange={setDueAfterUnit}
-                options={[
-                  { value: "days", label: "days" },
-                  { value: "weeks", label: "weeks" },
-                  { value: "months", label: "months" },
-                ]}
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-4">
+            <NumberField
+              label="Due After"
+              value={dueAfterValue}
+              onChange={(e) => setDueAfterValue(e.target.value)}
+              placeholder="Enter number"
+            />
+            <SelectField
+              label="Unit"
+              value={dueAfterUnit}
+              onChange={setDueAfterUnit}
+              options={[
+                { value: "days", label: "days" },
+                { value: "weeks", label: "weeks" },
+                { value: "months", label: "months" },
+              ]}
+            />
           </div>
 
           {/* Repeat field */}
