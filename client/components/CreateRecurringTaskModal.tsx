@@ -166,7 +166,7 @@ export default function CreateRecurringTaskModal({
           <div className="grid grid-cols-2 gap-4">
             <SelectField
               label="Property"
-              value={property}
+              value={property ?? ""}
               onChange={setProperty}
               placeholder="Select Property"
               options={[
@@ -176,7 +176,7 @@ export default function CreateRecurringTaskModal({
             />
             <SelectField
               label="Unit"
-              value={unit}
+              value={unit ?? ""}
               onChange={setUnit}
               placeholder="Select Unit"
               options={[
@@ -191,13 +191,13 @@ export default function CreateRecurringTaskModal({
           <div className="grid grid-cols-2 gap-4">
             <NumberField
               label="Due After"
-              value={dueAfterValue}
+              value={dueAfterValue ?? ""}
               onChange={(e) => setDueAfterValue(e.target.value)}
               placeholder="Enter number"
             />
             <SelectField
               label="Period"
-              value={dueAfterUnit}
+              value={dueAfterUnit ?? "days"}
               onChange={setDueAfterUnit}
               options={[
                 { value: "days", label: "days" },
@@ -210,7 +210,7 @@ export default function CreateRecurringTaskModal({
           {/* Repeat field */}
           <SelectField
             label="Repeat"
-            value={repeat}
+            value={repeat ?? "monthly"}
             onChange={setRepeat}
             options={[
               { value: "daily", label: "Daily" },
