@@ -642,12 +642,10 @@ export default function WorkOrderDetailsV2({
             }}
           />
 
-          {/* Assignees Card */}
+          {/* Vendor Card */}
           <PeopleCard
-            title="Assignees"
+            title="Vendor"
             variant="white"
-            tabs={["Vendors"]}
-            defaultTab={0}
             footerActions={[]}
             subsections={[
               {
@@ -674,70 +672,6 @@ export default function WorkOrderDetailsV2({
                 showRoleLabel: true,
                 showPhone: true,
                 showDivider: false,
-                tabIndex: 0,
-                hideHeaderOnTab: 0,
-              },
-              {
-                label: "Assigned to",
-                mode: "rows",
-                people: currentAssignees.map((assignee) => {
-                  const name = assignee.name || assignee.label || "Unknown";
-                  return {
-                    id: assignee.id,
-                    name,
-                    initials:
-                      assignee.initials ||
-                      (name
-                        ? name
-                            .split(" ")
-                            .slice(0, 2)
-                            .map((w: string) => w[0])
-                            .join("")
-                            .toUpperCase()
-                        : "?"),
-                    roleLabel: assignee.title || "Property manager",
-                    email: assignee.email || "",
-                    phone: "",
-                  };
-                }),
-                showRoleLabel: true,
-                showPhone: true,
-                showDivider: true,
-                tabIndex: 1,
-                onAction: () => onUpdateWorkOrderModalOpenChange?.(true),
-                actionLabel: "Edit",
-              },
-              {
-                label: "Collaborators",
-                mode: "rows",
-                people: currentCollaborators.map((collaborator) => {
-                  const name =
-                    collaborator.name || collaborator.label || "Unknown";
-                  return {
-                    id: collaborator.id,
-                    name,
-                    initials:
-                      collaborator.initials ||
-                      (name
-                        ? name
-                            .split(" ")
-                            .slice(0, 2)
-                            .map((w: string) => w[0])
-                            .join("")
-                            .toUpperCase()
-                        : "?"),
-                    roleLabel: collaborator.title || "Property manager",
-                    email: collaborator.email || "",
-                    phone: "",
-                  };
-                }),
-                showRoleLabel: true,
-                showPhone: true,
-                showDivider: true,
-                tabIndex: 1,
-                type: "collaborator",
-                onAction: () => onUpdateWorkOrderModalOpenChange?.(true),
-                actionLabel: "Edit",
               },
             ]}
           />
