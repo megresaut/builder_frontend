@@ -221,8 +221,13 @@ export default function CreateRecurringTaskModal({
             options={[
               { value: "daily", label: "Daily" },
               { value: "weekly", label: "Weekly" },
+              { value: "biweekly", label: "Every two weeks" },
               { value: "monthly", label: "Monthly" },
+              { value: "bimonthly", label: "Every two months" },
+              { value: "quarterly", label: "Quarterly" },
+              { value: "semiannual", label: "Every six months" },
               { value: "yearly", label: "Yearly" },
+              { value: "once", label: "One time" },
             ]}
           />
 
