@@ -37,11 +37,12 @@ export default function CreateRecurringTaskModal({
 }: CreateRecurringTaskModalProps) {
   const [taskName, setTaskName] = useState("");
   const [description, setDescription] = useState("");
+  const [collaborators, setCollaborators] = useState<MultiSelectOption[]>([]);
   const [property, setProperty] = useState("");
   const [unit, setUnit] = useState("");
   const [dueAfterValue, setDueAfterValue] = useState("");
   const [dueAfterUnit, setDueAfterUnit] = useState("days");
-  const [repeat, setRepeat] = useState("daily");
+  const [repeat, setRepeat] = useState("monthly");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endCondition, setEndCondition] = useState("never");
   const [endAfterTimes, setEndAfterTimes] = useState("");
