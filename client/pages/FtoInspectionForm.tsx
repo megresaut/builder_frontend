@@ -373,9 +373,9 @@ export default function FtoInspectionForm() {
   };
 
   return (
-    <PageTemplate className="!px-4 !pt-6 !pb-24 max-w-none !min-w-0 lg:!px-6 lg:!py-9 min-h-screen">
+    <PageTemplate className="!px-4 !pt-6 !pb-24 max-w-none !min-w-0 lg:!px-6 lg:!py-9">
       <div className="flex flex-col items-center w-full">
-        <div className="w-full lg:max-w-[800px] flex flex-col gap-7 pb-12">
+        <div className="w-full lg:max-w-[800px] flex flex-col gap-7">
           
           {/* Title and Header */}
           <div className="flex flex-col gap-3">
