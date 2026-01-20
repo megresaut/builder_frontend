@@ -59,9 +59,12 @@ export default function CreateRecurringTaskModal({
       setDescription("");
       setProperty("");
       setUnit("");
-      setDueAfter("");
-      setRepeat("");
+      setDueAfterValue("");
+      setDueAfterUnit("days");
+      setRepeat("daily");
       setStartDate(null);
+      setEndCondition("never");
+      setEndAfterTimes("");
       setEndDate(null);
       setSelectedAssignees([]);
       setPriority("normal");
