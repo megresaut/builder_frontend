@@ -248,9 +248,8 @@ export default function FtoInspectionForm() {
     // Clear errors on successful validation
     setValidationErrors({});
 
-    // For demo purposes, use a mock inspection ID
-    // In a real app, this would come from the form data
-    const mockInspectionId = 1;
+    // Generate a unique inspection ID
+    const inspectionId = Date.now();
 
     // Store inspection data to localStorage
     const storedInspections = JSON.parse(
@@ -267,8 +266,8 @@ export default function FtoInspectionForm() {
       arrayBufferBase64 = btoa(binary);
     }
 
-    storedInspections[mockInspectionId.toString()] = {
-      id: mockInspectionId,
+    storedInspections[inspectionId.toString()] = {
+      id: inspectionId,
       date,
       propertyId,
       unitId,
@@ -283,15 +282,31 @@ export default function FtoInspectionForm() {
 
     localStorage.setItem("inspectionData", JSON.stringify(storedInspections));
 
-    // Update the inspection status to "Completed" in localStorage
-    const completedInspections = JSON.parse(
-      localStorage.getItem("completedInspections") || "[]",
-    ) as number[];
+    // Store the inspection in the submissions list
+    const submissions = JSON.parse(
+      localStorage.getItem("ftoSubmissions") || "[]"
+    ) as Array<{
+      id: number;
+      property: string;
+      unit: string;
+      date: string;
+      inspector: string;
+      status: "Completed" | "Draft";
+    }>;
 
-    if (!completedInspections.includes(mockInspectionId)) {
-      completedInspections.push(mockInspectionId);
-      localStorage.setItem("completedInspections", JSON.stringify(completedInspections));
-    }
+    const property = PROPERTIES.find((p) => p.id === propertyId);
+    const unit = property?.units?.find((u) => u.id === unitId);
+
+    submissions.push({
+      id: inspectionId,
+      property: property?.name || "Unknown Property",
+      unit: unit?.name || (unitId || "N/A"),
+      date,
+      inspector: "Current User", // In a real app, this would come from auth
+      status: "Completed",
+    });
+
+    localStorage.setItem("ftoSubmissions", JSON.stringify(submissions));
 
     navigate("/fto/inspections");
   };
