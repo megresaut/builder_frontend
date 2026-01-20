@@ -141,7 +141,8 @@ export default function FtoInspections() {
         uniqueMap.set(inspection.id, inspection);
       });
 
-      setInspections(Array.from(uniqueMap.values()));
+      // Sort by ID descending to show newest first
+      setInspections(Array.from(uniqueMap.values()).sort((a, b) => b.id - a.id));
     };
 
     // Load on mount
