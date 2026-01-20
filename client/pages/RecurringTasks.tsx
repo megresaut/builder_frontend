@@ -39,6 +39,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "High",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 1",
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
@@ -51,6 +53,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Low",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 2",
     assignees: [
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
@@ -63,6 +67,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 3",
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
@@ -75,6 +81,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 4",
     assignees: [
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
@@ -87,6 +95,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 5",
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
     ],
@@ -98,6 +108,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 6",
     assignees: [
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
@@ -110,6 +122,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 7",
     assignees: [
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
@@ -122,6 +136,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 8",
     assignees: [
       { id: 2, name: "John Doe", initials: "JD", color: "bg-purple-500" },
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
@@ -134,6 +150,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 9",
     assignees: [
       { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
       { id: 4, name: "Mike Johnson", initials: "MJ", color: "bg-orange-500" },
@@ -146,6 +164,8 @@ const mockRecurringTasks: RecurringTask[] = [
     priority: "Normal",
     category: "Cansaas",
     status: "active",
+    property: "22 Indian Chase Dr",
+    unit: "Unit 10",
     assignees: [
       { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
     ],
