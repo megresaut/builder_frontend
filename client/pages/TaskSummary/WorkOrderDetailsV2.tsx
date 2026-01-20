@@ -636,11 +636,11 @@ export default function WorkOrderDetailsV2({
 
           {/* Vendor Card */}
           <PeopleCard
-            title="Vendor"
             variant="white"
             footerActions={[]}
             subsections={[
               {
+                label: "Vendor",
                 mode: "rows",
                 people: workOrder.vendorName
                   ? [
