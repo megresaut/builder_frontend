@@ -254,6 +254,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
   const getStatusColor = (status: string): string => {
     switch (status) {
       case "Approved":
+      case "Completed":
         return "#059669";
       case "Outstanding":
         return "#d97706";
