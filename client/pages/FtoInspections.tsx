@@ -64,6 +64,7 @@ const mockInspections: InspectionRecord[] = [
 
 export default function FtoInspections() {
   const navigate = useNavigate();
+  const toast = useToastNotification();
   const [inspections, setInspections] = useState<InspectionRecord[]>(() => {
     // Load submitted inspections from localStorage
     const submissions = JSON.parse(
