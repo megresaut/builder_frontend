@@ -70,8 +70,14 @@ export default function FtoInspections() {
       localStorage.getItem("ftoSubmissions") || "[]",
     ) as InspectionRecord[];
 
+    // Add month field to submissions if missing
+    const submissionsWithMonth = submissions.map((inspection) => ({
+      ...inspection,
+      month: inspection.month || getMonthFromDate(inspection.date),
+    }));
+
     // Combine mock data with submitted inspections
-    const allInspections = [...mockInspections, ...submissions];
+    const allInspections = [...mockInspections, ...submissionsWithMonth];
 
     // Remove duplicates by ID (in case of re-submissions)
     const uniqueMap = new Map<number, InspectionRecord>();
