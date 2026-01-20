@@ -115,6 +115,7 @@ export default function FtoInspections() {
     "property",
     "unit",
     "date",
+    "month",
     "inspector",
     "status",
   ]);
