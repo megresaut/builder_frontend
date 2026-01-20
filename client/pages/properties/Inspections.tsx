@@ -228,7 +228,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
   const handleMarkAsComplete = useCallback((inspection: Inspection) => {
     setInspectionsList((prev) =>
       prev.map((i) =>
-        i.id === inspection.id ? { ...i, status: "Approved" as const } : i
+        i.id === inspection.id ? { ...i, status: "Completed" as const } : i
       )
     );
   }, []);
