@@ -17,6 +17,7 @@ interface PhotoCommentModalProps {
   onSubmit: (file: File, comment: string) => Promise<void> | void;
   title?: string;
   submitLabel?: string;
+  initialFile?: File | null;
 }
 
 export const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
