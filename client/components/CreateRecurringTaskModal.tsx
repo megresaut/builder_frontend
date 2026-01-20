@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import {
@@ -38,9 +39,12 @@ export default function CreateRecurringTaskModal({
   const [description, setDescription] = useState("");
   const [property, setProperty] = useState("");
   const [unit, setUnit] = useState("");
-  const [dueAfter, setDueAfter] = useState("");
-  const [repeat, setRepeat] = useState("");
+  const [dueAfterValue, setDueAfterValue] = useState("");
+  const [dueAfterUnit, setDueAfterUnit] = useState("days");
+  const [repeat, setRepeat] = useState("daily");
   const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endCondition, setEndCondition] = useState("never");
+  const [endAfterTimes, setEndAfterTimes] = useState("");
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedAssignees, setSelectedAssignees] = useState<
     MultiSelectOption[]
