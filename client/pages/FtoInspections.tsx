@@ -224,8 +224,6 @@ export default function FtoInspections() {
                 return <span className="text-gray-900 text-sm">{row.date}</span>;
               case "month":
                 return <span className="text-gray-900 text-sm">{row.month}</span>;
-              case "inspector":
-                return <span className="text-gray-900 text-sm">{row.inspector}</span>;
               case "status":
                 return (
                   <span
