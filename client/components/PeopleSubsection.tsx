@@ -116,7 +116,6 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
       {showDivider && mode === "rows" && !shouldHideHeader && (
         <div className={cn("w-full h-px bg-[#e5e5e5]", {
           "mt-3 mb-3": label !== "",
-          "mb-2": label === "",
         })}></div>
       )}
 
