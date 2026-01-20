@@ -251,7 +251,7 @@ export default function CreateRecurringTaskModal({
           {endCondition === "after" && (
             <NumberField
               label="After"
-              value={endAfterTimes}
+              value={endAfterTimes ?? ""}
               onChange={(e) => setEndAfterTimes(e.target.value)}
               placeholder="Enter number"
               description="time(s)"
