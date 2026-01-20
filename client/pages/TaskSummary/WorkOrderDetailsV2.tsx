@@ -641,6 +641,7 @@ export default function WorkOrderDetailsV2({
             footerActions={[]}
             subsections={[
               {
+                label: "Vendor",
                 mode: "rows",
                 people: workOrder.vendorName
                   ? [
