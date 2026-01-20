@@ -231,15 +231,18 @@ export default function FtoInspections() {
                 return <span className="text-gray-900 text-sm">{row.month}</span>;
               case "status":
                 return (
-                  <span
-                    className={`text-sm px-2 py-1 rounded-full ${
-                      row.status === "Completed"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {row.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{
+                        backgroundColor:
+                          row.status === "Completed"
+                            ? "#059669"
+                            : "#6b7280",
+                      }}
+                    />
+                    <span className="text-gray-900 text-sm">{row.status}</span>
+                  </div>
                 );
               default:
                 return null;
