@@ -9,6 +9,7 @@ import {
   MultiSelectField,
   NumberField,
   type MultiSelectOption,
+  PrioritySelectField,
 } from "@/components/forms";
 
 interface CreateRecurringTaskModalProps {
