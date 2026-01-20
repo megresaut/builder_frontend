@@ -208,10 +208,11 @@ export default function RecurringTasks() {
   } = useColumnManagement([
     "priority",
     "task",
+    "property",
+    "unit",
     "nextDate",
     "category",
     "assignees",
-    "status",
   ]);
 
   const columns = [
