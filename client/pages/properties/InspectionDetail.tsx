@@ -469,14 +469,6 @@ export default function InspectionDetail() {
         </div>
       </div>
 
-      {/* Review Photos Modal */}
-      <ReviewPhotosModal
-        open={isReviewPhotosOpen}
-        onOpenChange={setIsReviewPhotosOpen}
-        photos={allPhotos}
-        onPhotoClick={handleOpenPhotoModal}
-      />
-
       {/* Photo Viewer Modal */}
       {selectedPhotoForModal && (
         <PhotoViewerModal
