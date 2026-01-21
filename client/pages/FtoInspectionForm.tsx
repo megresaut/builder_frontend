@@ -173,28 +173,12 @@ export default function FtoInspectionForm() {
       localStorage.getItem("inspectionData") || "{}"
     ) as Record<string, StoredInspection>;
 
-    let arrayBufferBase64: string | undefined;
-    if (requirements.arrayBuffer) {
-      const bytes = new Uint8Array(requirements.arrayBuffer);
-      let binary = "";
-      for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      arrayBufferBase64 = btoa(binary);
-    }
-
     storedInspections[inspectionId.toString()] = {
       id: inspectionId,
       date,
       propertyId,
       unitId,
       photos,
-      requirements: {
-        hasDoc: requirements.hasDoc,
-        fileName: requirements.fileName,
-        lastUpdated: requirements.lastUpdated,
-        arrayBuffer: arrayBufferBase64,
-      },
     };
 
     localStorage.setItem("inspectionData", JSON.stringify(storedInspections));
