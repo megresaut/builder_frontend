@@ -12,7 +12,6 @@ import {
   ArrowBackIcon,
   ArrowForwardIcon,
   ChevronDownIcon,
-  DocumentIcon,
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import {
