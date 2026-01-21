@@ -30,8 +30,6 @@ interface InspectionDetailProps {
   onBack?: () => void;
 }
 
-// --- Components ---
-
 export default function InspectionDetail({
   isNew,
   isEdit,
@@ -63,7 +61,7 @@ export default function InspectionDetail({
   // Photo Modal States
   const [selectedPhotoForModal, setSelectedPhotoForModal] = useState<InspectionPhoto | null>(null);
   const [isPhotoViewerOpen, setIsPhotoViewerOpen] = useState(false);
-  const [photoNote, setPhotoNote] = useState<string>("");
+  const [photoNotes, setPhotoNotes] = useState<Record<string, string>>({});
 
   // --- Derived Data ---
   const sections = useMemo(() => nodes.filter((n) => n.depth === 0), [nodes]);
@@ -71,13 +69,9 @@ export default function InspectionDetail({
   const photosBySection = useMemo(() => {
     const grouped: Record<string, InspectionPhoto[]> = {};
     sections.forEach(s => grouped[s.id] = []);
-    
+
     photos.forEach((p) => {
-      if (!grouped[p.sectionNodeId]) {
-        if (sections.find(s => s.id === p.sectionNodeId)) {
-           grouped[p.sectionNodeId].push(p);
-        }
-      } else {
+      if (grouped[p.sectionNodeId]) {
         grouped[p.sectionNodeId].push(p);
       }
     });
@@ -153,7 +147,7 @@ export default function InspectionDetail({
         uploadedAt: new Date().toISOString(),
       }));
       setPhotos((prev) => [...prev, ...newPhotos]);
-      
+
       if (photoInputRef.current) photoInputRef.current.value = "";
     }
   };
@@ -161,6 +155,11 @@ export default function InspectionDetail({
   const handleRemovePhoto = (photoId: string) => {
     if (window.confirm("Delete this photo?")) {
       setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+      setPhotoNotes((prev) => {
+        const updated = { ...prev };
+        delete updated[photoId];
+        return updated;
+      });
     }
   };
 
@@ -185,90 +184,140 @@ export default function InspectionDetail({
     }
   };
 
+  const handleUpdatePhotoNote = (photoId: string, note: string) => {
+    setPhotoNotes((prev) => ({
+      ...prev,
+      [photoId]: note,
+    }));
+  };
+
   // --- Handlers: General ---
 
   const toggleStatus = () => {
     setStatus((prev) => (prev === "Draft" ? "Completed" : "Draft"));
   };
 
-  return (
-    <PageTemplate>
-      <div className="flex flex-col gap-6 w-full font-['Geist',sans-serif]">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-              Inspection
-            </h1>
-            <div className="flex items-center gap-3 text-[#717179] font-medium text-base">
-              <span>22 Indian Chase Dr</span>
-              <span className="text-gray-300">•</span>
-              <span>{new Date().toLocaleDateString()}</span>
-            </div>
-            <div className="mt-2">
-              <span
-                className={cn(
-                  "px-2.5 py-0.5 rounded-full text-xs font-medium",
-                  status === "Draft"
-                    ? "bg-gray-100 text-gray-700"
-                    : "bg-green-100 text-green-700"
-                )}
-              >
-                {status}
-              </span>
-            </div>
-          </div>
+  const handleExportInspection = () => {
+    const photosExportData = photos.map(photo => {
+      const section = sections.find(s => s.id === photo.sectionNodeId);
+      return {
+        section: section?.text || "Unknown",
+        uploadedAt: new Date(photo.uploadedAt).toLocaleString(),
+        note: photoNotes[photo.id] || "",
+      };
+    });
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={() => setIsEditing(!isEditing)}
+    const exportData = {
+      inspectionMetadata: {
+        inspectionDate,
+        uploadedBy,
+        uploadedAt,
+        lastUpdated,
+        lastUpdatedBy,
+        status,
+      },
+      checklist: nodes,
+      photos: photosExportData,
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `inspection-${inspectionDate.replace(/\//g, '-')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const containerClass = isInline ? "flex flex-col gap-6 w-full" : "flex flex-col gap-6 w-full";
+  const ContentWrapper = isInline ? React.Fragment : PageTemplate;
+  const contentWrapperProps = isInline ? {} : {};
+
+  const content = (
+    <div className={cn(containerClass, "font-['Geist',sans-serif]")}>
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+            Inspection
+          </h1>
+          <div className="flex items-center gap-3 text-[#717179] font-medium text-base">
+            <span>22 Indian Chase Dr</span>
+            <span className="text-gray-300">•</span>
+            <span>{inspectionDate}</span>
+          </div>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-gray-600">
+            <div><span className="font-medium">Inspection Date:</span> {inspectionDate}</div>
+            <div><span className="font-medium">Uploaded by:</span> {uploadedBy}</div>
+            <div><span className="font-medium">Uploaded at:</span> {uploadedAt}</div>
+            <div><span className="font-medium">Last updated:</span> {lastUpdated} by {lastUpdatedBy}</div>
+          </div>
+          <div className="mt-2">
+            <span
               className={cn(
-                "px-4 py-2 border rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
-                isEditing
-                  ? "bg-gray-100 border-gray-300 text-gray-900"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                "px-2.5 py-0.5 rounded-full text-xs font-medium",
+                status === "Draft"
+                  ? "bg-gray-100 text-gray-700"
+                  : "bg-green-100 text-green-700"
               )}
             >
-              <EditIcon width={16} height={16} className="text-current" />
-              {isEditing ? "Done Editing" : "Edit Checklist"}
-            </button>
-            {status === "Draft" && (
-              <button
-                onClick={() => {
-                  if (sections.length > 0 && !selectedSectionId) {
-                     setSelectedSectionId(sections[0].id);
-                  }
-                  photoInputRef.current?.click();
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors flex items-center gap-2"
-              >
-                <PlusIcon width={16} height={16} className="text-gray-500" />
-                Upload Photos
-              </button>
-            )}
-            <BlueButton
-              icon={<ApproveIcon width={20} height={20} className="brightness-0 invert" />}
-              onClick={toggleStatus}
-            >
-              {status === "Draft" ? "Mark Complete" : "Reopen Inspection"}
-            </BlueButton>
+              {status}
+            </span>
           </div>
         </div>
 
-        {/* Content - Dynamic layout with items-start for flexible sizing */}
-        <div className="flex flex-col lg:flex-row gap-6 w-full lg:items-start">
-          
-          {/* LEFT COLUMN: Checklist */}
-          <div className="flex-1 min-w-0">
-            <SectionCard title="Inspection Checklist">
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className={cn(
+              "px-4 py-2 border rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
+              isEditing
+                ? "bg-gray-100 border-gray-300 text-gray-900"
+                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+            )}
+          >
+            <EditIcon width={16} height={16} className="text-current" />
+            {isEditing ? "Done Editing" : "Edit Checklist"}
+          </button>
+          <button
+            onClick={handleExportInspection}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors flex items-center gap-2"
+          >
+            <DownloadIcon width={16} height={16} className="text-gray-500" />
+            Export
+          </button>
+          <BlueButton
+            icon={<ApproveIcon width={20} height={20} className="brightness-0 invert" />}
+            onClick={toggleStatus}
+          >
+            {status === "Draft" ? "Mark Complete" : "Reopen Inspection"}
+          </BlueButton>
+        </div>
+      </div>
+
+      {/* Content - Dynamic layout with items-start for flexible sizing */}
+      <div className="flex flex-col lg:flex-row gap-6 w-full lg:items-start">
+
+        {/* LEFT COLUMN: Checklist */}
+        <div className="flex-1 min-w-0">
+          <SectionCard title="Inspection Checklist">
+            <div className="flex flex-col gap-4">
+              {/* Last Updated Meta */}
+              <div className="text-xs text-gray-600 pb-3 border-b border-gray-200">
+                <span className="font-medium">Last updated by Property Manager:</span> {lastUpdatedBy} on {lastUpdated}
+              </div>
+
               <div className="flex flex-col gap-1">
                 {nodes.length === 0 && (
                   <div className="text-center py-8 text-gray-500 text-sm">
                     Checklist is empty. Click "Edit Checklist" to add items.
                   </div>
                 )}
-                
+
                 {nodes.map((node, index) => (
                   <div
                     key={node.id}
@@ -316,7 +365,6 @@ export default function InspectionDetail({
                     {/* Edit Controls */}
                     {isEditing && (
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                         {/* Move Up */}
                         <button
                           onClick={() => handleMove(index, "up")}
                           disabled={index === 0}
@@ -325,7 +373,6 @@ export default function InspectionDetail({
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
                         </button>
-                        {/* Move Down */}
                         <button
                           onClick={() => handleMove(index, "down")}
                           disabled={index === nodes.length - 1}
@@ -334,7 +381,6 @@ export default function InspectionDetail({
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
                         </button>
-                        {/* Indent Out */}
                         <button
                           onClick={() => handleIndent(node.id, "out")}
                           disabled={node.depth === 0}
@@ -343,7 +389,6 @@ export default function InspectionDetail({
                         >
                           <ArrowBackIcon width={12} height={12} />
                         </button>
-                        {/* Indent In */}
                         <button
                           onClick={() => handleIndent(node.id, "in")}
                           className="p-1 text-gray-400 hover:text-gray-700"
@@ -351,7 +396,6 @@ export default function InspectionDetail({
                         >
                           <ArrowForwardIcon width={12} height={12} />
                         </button>
-                        {/* Add Sibling */}
                         <button
                           onClick={() => handleAddNode(index)}
                           className="p-1 text-blue-500 hover:text-blue-700"
@@ -359,7 +403,6 @@ export default function InspectionDetail({
                         >
                           <PlusIcon width={12} height={12} />
                         </button>
-                        {/* Delete */}
                         <button
                           onClick={() => handleDeleteNode(node.id)}
                           className="p-1 text-red-400 hover:text-red-600"
@@ -383,98 +426,102 @@ export default function InspectionDetail({
                   </div>
                 )}
               </div>
-            </SectionCard>
-          </div>
+            </div>
+          </SectionCard>
+        </div>
 
-          {/* RIGHT COLUMN: Photos */}
-          <div className="flex-1 lg:flex-none lg:w-[400px]">
-            <SectionCard title="Inspection Photos">
-              <div className="flex flex-col gap-6">
-                
-                {/* Upload Controls - Hidden when Completed */}
-                {status === "Draft" && (
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-semibold text-gray-500 uppercase">Associate with Section</label>
-                      <div className="relative">
-                        <select
-                          value={selectedSectionId}
-                          onChange={(e) => setSelectedSectionId(e.target.value)}
-                          className="w-full pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-md text-sm appearance-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                        >
-                          <option value="" disabled>Select a section...</option>
-                          {sections.map((s) => (
-                            <option key={s.id} value={s.id}>{s.text}</option>
-                          ))}
-                        </select>
-                        <ChevronDownIcon width={16} height={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
-                      </div>
-                    </div>
+        {/* RIGHT COLUMN: Photos */}
+        <div className="flex-1 lg:flex-none lg:w-[400px]">
+          <SectionCard title="Inspection Photos">
+            <div className="flex flex-col gap-6">
 
-                    <div
-                      className={cn(
-                        "border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
-                        !selectedSectionId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-white bg-gray-50"
-                      )}
-                      onClick={() => {
-                        if (selectedSectionId) photoInputRef.current?.click();
-                        else alert("Please select a section first");
-                      }}
+              {/* Upload Controls - Always visible */}
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-gray-500 uppercase">Associate with Section</label>
+                  <div className="relative">
+                    <select
+                      value={selectedSectionId}
+                      onChange={(e) => setSelectedSectionId(e.target.value)}
+                      className="w-full pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-md text-sm appearance-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     >
-                      <PlusIcon width={24} height={24} color="#9ca3af" />
-                      <span className="mt-1 text-sm text-gray-600 font-medium">Click to Upload</span>
-                      <input
-                        ref={photoInputRef}
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handlePhotoUpload}
-                        disabled={!selectedSectionId}
-                      />
-                    </div>
+                      <option value="" disabled>Select a section...</option>
+                      {sections.map((s) => (
+                        <option key={s.id} value={s.id}>{s.text}</option>
+                      ))}
+                    </select>
+                    <ChevronDownIcon width={16} height={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
                   </div>
-                )}
-
-                {/* Photos List */}
-                <div className="flex flex-col gap-6">
-                  {sections.map(section => {
-                    const sectionPhotos = photosBySection[section.id];
-                    if (!sectionPhotos || sectionPhotos.length === 0) return null;
-
-                    return (
-                      <div key={section.id} className="flex flex-col gap-2">
-                        <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-1">
-                          {section.text}
-                        </h3>
-                        <div className="grid grid-cols-2 gap-2">
-                          {sectionPhotos.map(photo => (
-                            <PhotoCard
-                              key={photo.id}
-                              photo={photo}
-                              sections={sections}
-                              onRemove={handleRemovePhoto}
-                              onPhotoClick={handleOpenPhotoModal}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {Object.keys(photosBySection).every(k => photosBySection[k].length === 0) && (
-                    <div className="text-center py-8 text-gray-400 text-sm italic">
-                      No photos uploaded yet. Select a section and upload photos to see them here.
-                    </div>
-                  )}
                 </div>
 
+                <div
+                  className={cn(
+                    "border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
+                    !selectedSectionId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-white bg-gray-50"
+                  )}
+                  onClick={() => {
+                    if (selectedSectionId) photoInputRef.current?.click();
+                    else alert("Please select a section first");
+                  }}
+                >
+                  <PlusIcon width={24} height={24} color="#9ca3af" />
+                  <span className="mt-1 text-sm text-gray-600 font-medium">Click to Upload</span>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={!selectedSectionId}
+                  />
+                </div>
               </div>
-            </SectionCard>
-          </div>
 
+              {/* Photos List */}
+              <div className="flex flex-col gap-6">
+                {sections.map(section => {
+                  const sectionPhotos = photosBySection[section.id];
+                  if (!sectionPhotos || sectionPhotos.length === 0) return null;
+
+                  return (
+                    <div key={section.id} className="flex flex-col gap-2">
+                      <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-1">
+                        {section.text} <span className="font-normal text-gray-600">({sectionPhotos.length} photos)</span>
+                      </h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {sectionPhotos.map(photo => (
+                          <PhotoCard
+                            key={photo.id}
+                            photo={photo}
+                            sections={sections}
+                            onRemove={handleRemovePhoto}
+                            onPhotoClick={handleOpenPhotoModal}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {Object.keys(photosBySection).every(k => photosBySection[k].length === 0) && (
+                  <div className="text-center py-8 text-gray-400 text-sm italic">
+                    No photos uploaded yet. Select a section and upload photos to see them here.
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </SectionCard>
         </div>
+
       </div>
+    </div>
+  );
+
+  return (
+    <ContentWrapper>
+      {content}
 
       {/* Photo Viewer Modal */}
       {selectedPhotoForModal && (
@@ -486,9 +533,11 @@ export default function InspectionDetail({
           onPrev={handlePrevPhoto}
           photoIndex={allPhotos.findIndex(p => p.id === selectedPhotoForModal.id)}
           totalPhotos={allPhotos.length}
+          note={photoNotes[selectedPhotoForModal.id] || ""}
+          onNoteChange={(note) => handleUpdatePhotoNote(selectedPhotoForModal.id, note)}
         />
       )}
-    </PageTemplate>
+    </ContentWrapper>
   );
 }
 
@@ -502,9 +551,8 @@ interface PhotoCardProps {
 }
 
 function PhotoCard({ photo, sections, onRemove, onPhotoClick }: PhotoCardProps) {
-
   return (
-    <div 
+    <div
       className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:border-blue-300 transition-colors cursor-pointer"
       onClick={() => onPhotoClick(photo)}
     >
@@ -514,7 +562,7 @@ function PhotoCard({ photo, sections, onRemove, onPhotoClick }: PhotoCardProps) 
       <div className="p-2 text-[10px] text-gray-500 truncate border-t border-gray-100">
         {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
       </div>
-      
+
       {/* Overlay Actions */}
       <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
         <button
@@ -540,6 +588,8 @@ interface PhotoViewerModalProps {
   onPrev: () => void;
   photoIndex: number;
   totalPhotos: number;
+  note: string;
+  onNoteChange: (note: string) => void;
 }
 
 function PhotoViewerModal({
@@ -550,6 +600,8 @@ function PhotoViewerModal({
   onPrev,
   photoIndex,
   totalPhotos,
+  note,
+  onNoteChange,
 }: PhotoViewerModalProps) {
   if (!open) return null;
 
@@ -581,13 +633,26 @@ function PhotoViewerModal({
           </button>
         </div>
 
-        {/* Image Container */}
-        <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-hidden p-4">
-          <img
-            src={photo.fileRef}
-            alt="Inspection"
-            className="max-h-full max-w-full object-contain shadow-sm"
-          />
+        {/* Image and Note Container */}
+        <div className="flex-1 flex gap-4 overflow-hidden p-4">
+          <div className="flex-1 flex items-center justify-center bg-gray-50 rounded">
+            <img
+              src={photo.fileRef}
+              alt="Inspection"
+              className="max-h-full max-w-full object-contain shadow-sm"
+            />
+          </div>
+
+          {/* Note Section */}
+          <div className="w-64 flex flex-col gap-2">
+            <label className="text-sm font-semibold text-gray-900">Photo Notes</label>
+            <textarea
+              value={note}
+              onChange={(e) => onNoteChange(e.target.value)}
+              placeholder="Add notes about this photo..."
+              className="flex-1 p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         </div>
 
         {/* Footer with Navigation */}
