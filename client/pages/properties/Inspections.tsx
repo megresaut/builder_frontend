@@ -105,6 +105,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
   const navigate = useNavigate();
   const { propertyId } = useParams();
   const [inspectionsList, setInspectionsList] = useState<Inspection[]>(mockInspections);
+  const [selectedInspectionId, setSelectedInspectionId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
