@@ -8,7 +8,7 @@ export interface ChecklistNode {
   orderIndex: number;
   type: ChecklistNodeType;
   text: string;
-  depth: number; // 0 for sections, 1+ for items
+  depth: number; // 0 for main sections, 1+ for subsections/items
 }
 
 export interface PropertyInspectionChecklist {
@@ -29,35 +29,58 @@ export interface InspectionPhoto {
 }
 
 export const MOCK_CHECKLIST_NODES: ChecklistNode[] = [
-  // Section 1: Exterior
+  // Main Section: Exterior (depth 0)
   { id: "s1", parentId: null, orderIndex: 0, type: "section", text: "Exterior", depth: 0 },
   
-  // Driveway/Masonry subsection items
-  { id: "i1-1", parentId: "s1", orderIndex: 0, type: "item", text: "Driveway/Masonry: Driveway – check for cracks, settling and sealing if needed", depth: 1 },
-  { id: "i1-2", parentId: "s1", orderIndex: 1, type: "item", text: "Driveway/Masonry: Check all drains/catch basins (should be cleaned 1-2 years)", depth: 1 },
-  { id: "i1-3", parentId: "s1", orderIndex: 2, type: "item", text: "Driveway/Masonry: Check cobble stone around driveway/joints for deterioration", depth: 1 },
-  { id: "i1-4", parentId: "s1", orderIndex: 3, type: "item", text: "Driveway/Masonry: Check the front patio for broken stones or if joints need to be filled", depth: 1 },
-  { id: "i1-5", parentId: "s1", orderIndex: 4, type: "item", text: "Driveway/Masonry: Check stone on the bench for missing stones and gaps", depth: 1 },
-  { id: "i1-6", parentId: "s1", orderIndex: 5, type: "item", text: "Driveway/Masonry: Verify patios/walkways condition and if they need to be resealed", depth: 1 },
-  { id: "i1-7", parentId: "s1", orderIndex: 6, type: "item", text: "Driveway/Masonry: Check if any stone steps are loose or dangerous", depth: 1 },
+  // Subsection: Driveway/Masonry (depth 1)
+  { id: "s1-1", parentId: "s1", orderIndex: 0, type: "section", text: "Driveway/Masonry", depth: 1 },
+  { id: "i1-1-1", parentId: "s1-1", orderIndex: 0, type: "item", text: "Driveway – check for cracks, settling and sealing if needed.", depth: 2 },
+  { id: "i1-1-2", parentId: "s1-1", orderIndex: 1, type: "item", text: "Check all drains/catch basins (should be cleaned 1-2 yr).", depth: 2 },
+  { id: "i1-1-3", parentId: "s1-1", orderIndex: 2, type: "item", text: "Check cobble stone around driveway/joints for deterioration.", depth: 2 },
+  { id: "i1-1-4", parentId: "s1-1", orderIndex: 3, type: "item", text: "Check the front patio for broken stones or if joints need to be filled.", depth: 2 },
+  { id: "i1-1-5", parentId: "s1-1", orderIndex: 4, type: "item", text: "Check stone on the bench for missing stones and gaps.", depth: 2 },
+  { id: "i1-1-6", parentId: "s1-1", orderIndex: 5, type: "item", text: "Do patios/walkways need to be resealed.", depth: 2 },
+  { id: "i1-1-7", parentId: "s1-1", orderIndex: 6, type: "item", text: "Any stone steps loose or dangerous?", depth: 2 },
+
+  // Subsection: Landscape (depth 1)
+  { id: "s1-2", parentId: "s1", orderIndex: 1, type: "section", text: "Landscape", depth: 1 },
   
-  // Landscape subsection items
-  { id: "i1-8", parentId: "s1", orderIndex: 7, type: "item", text: "Landscape - Grass: Check for browning (need water or does it need to be treated for bugs?)", depth: 1 },
-  { id: "i1-9", parentId: "s1", orderIndex: 8, type: "item", text: "Landscape - Grass: Make sure the grass has been cut and not overgrown", depth: 1 },
-  { id: "i1-10", parentId: "s1", orderIndex: 9, type: "item", text: "Landscape - Trees/Planting: Check for dead or dead branches", depth: 1 },
-  { id: "i1-11", parentId: "s1", orderIndex: 10, type: "item", text: "Landscape - Trees/Planting: Check for overgrown trees or obstructed plants", depth: 1 },
-  { id: "i1-12", parentId: "s1", orderIndex: 11, type: "item", text: "Landscape - Plant Beds/Mulch: Check for weeds", depth: 1 },
-  { id: "i1-13", parentId: "s1", orderIndex: 12, type: "item", text: "Landscape - Plant Beds/Mulch: Make sure weekly cleanup is happening (leaves, branches, etc.)", depth: 1 },
-  { id: "i1-14", parentId: "s1", orderIndex: 13, type: "item", text: "Landscape - Fencing: Check perimeter fence, fallen trees, damage, and openings for animals", depth: 1 },
-  { id: "i1-15", parentId: "s1", orderIndex: 14, type: "item", text: "Landscape - Decks/Patio: Check for loose boards, cracking, and if treatment is needed", depth: 1 },
+  // Sub-subsection: Grass (depth 2)
+  { id: "s1-2-1", parentId: "s1-2", orderIndex: 0, type: "section", text: "Grass", depth: 2 },
+  { id: "i1-2-1-1", parentId: "s1-2-1", orderIndex: 0, type: "item", text: "Check for browning (need water or does it need to be treated for bugs?).", depth: 3 },
+  { id: "i1-2-1-2", parentId: "s1-2-1", orderIndex: 1, type: "item", text: "Make sure the grass has been cut and not overgrown.", depth: 3 },
+
+  // Sub-subsection: Trees/Planting (depth 2)
+  { id: "s1-2-2", parentId: "s1-2", orderIndex: 1, type: "section", text: "Trees/Planting", depth: 2 },
+  { id: "i1-2-2-1", parentId: "s1-2-2", orderIndex: 0, type: "item", text: "Check for dead or dead branches.", depth: 3 },
+  { id: "i1-2-2-2", parentId: "s1-2-2", orderIndex: 1, type: "item", text: "Check for overgrown trees or obstructed plants.", depth: 3 },
+
+  // Sub-subsection: Plant Beds/Mulch (depth 2)
+  { id: "s1-2-3", parentId: "s1-2", orderIndex: 2, type: "section", text: "Plant Beds/Mulch", depth: 2 },
+  { id: "i1-2-3-1", parentId: "s1-2-3", orderIndex: 0, type: "item", text: "Check for weeds.", depth: 3 },
+  { id: "i1-2-3-2", parentId: "s1-2-3", orderIndex: 1, type: "item", text: "Make sure weekly cleanup is happening (leaves, branches etc.).", depth: 3 },
+
+  // Sub-subsection: Perimeter/Decks (depth 2)
+  { id: "s1-2-4", parentId: "s1-2", orderIndex: 3, type: "section", text: "Perimeter/Decks", depth: 2 },
+  { id: "i1-2-4-1", parentId: "s1-2-4", orderIndex: 0, type: "item", text: "Check perimeter fence, fallen trees, damage, opening for animals.", depth: 3 },
+  { id: "i1-2-4-2", parentId: "s1-2-4", orderIndex: 1, type: "item", text: "Check decks/patio (joints, broken stones).", depth: 3 },
+  { id: "i1-2-4-3", parentId: "s1-2-4", orderIndex: 2, type: "item", text: "Loose boards, cracking, treatment needed?", depth: 3 },
+
+  // Subsection: Main House (depth 1)
+  { id: "s1-3", parentId: "s1", orderIndex: 2, type: "section", text: "Main House", depth: 1 },
   
-  // Main house subsection items
-  { id: "i1-16", parentId: "s1", orderIndex: 15, type: "item", text: "Main House - Trim/Stucco: Check for rotting wood", depth: 1 },
-  { id: "i1-17", parentId: "s1", orderIndex: 16, type: "item", text: "Main House - Trim/Stucco: Paint if needed", depth: 1 },
-  { id: "i1-18", parentId: "s1", orderIndex: 17, type: "item", text: "Main House - Trim/Stucco: Check for cracking and missing pieces", depth: 1 },
-  { id: "i1-19", parentId: "s1", orderIndex: 18, type: "item", text: "Main House - Trim/Stucco: Verify stucco repair needs", depth: 1 },
-  { id: "i1-20", parentId: "s1", orderIndex: 19, type: "item", text: "Main House - Roof: Check for cracking or missing shingles", depth: 1 },
-  { id: "i1-21", parentId: "s1", orderIndex: 20, type: "item", text: "Main House - Roof: Check if it needs to be treated or sealed", depth: 1 },
+  // Sub-subsection: Trim/Stucco (depth 2)
+  { id: "s1-3-1", parentId: "s1-3", orderIndex: 0, type: "section", text: "Trim/Stucco", depth: 2 },
+  { id: "i1-3-1-1", parentId: "s1-3-1", orderIndex: 0, type: "item", text: "Check for rotting wood.", depth: 3 },
+  { id: "i1-3-1-2", parentId: "s1-3-1", orderIndex: 1, type: "item", text: "Paint if needed.", depth: 3 },
+  { id: "i1-3-1-3", parentId: "s1-3-1", orderIndex: 2, type: "item", text: "Cracking", depth: 3 },
+  { id: "i1-3-1-4", parentId: "s1-3-1", orderIndex: 3, type: "item", text: "Missing pieces.", depth: 3 },
+  { id: "i1-3-1-5", parentId: "s1-3-1", orderIndex: 4, type: "item", text: "Stucco repair", depth: 3 },
+
+  // Sub-subsection: Roof (depth 2)
+  { id: "s1-3-2", parentId: "s1-3", orderIndex: 1, type: "section", text: "Roof", depth: 2 },
+  { id: "i1-3-2-1", parentId: "s1-3-2", orderIndex: 0, type: "item", text: "Check for cracking or missing shingles.", depth: 3 },
+  { id: "i1-3-2-2", parentId: "s1-3-2", orderIndex: 1, type: "item", text: "Check if it needs to be treated or sealed.", depth: 3 },
 ];
 
 export const MOCK_INSPECTION_CHECKLIST: PropertyInspectionChecklist = {
