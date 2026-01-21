@@ -393,7 +393,7 @@ export default function FtoInspectionForm() {
               {/* Photo Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {photos.map((photo, index) => {
-                  const section = MOCK_CHECKLIST_NODES.find(n => n.id === photo.sectionNodeId);
+                  const section = currentChecklist.find(n => n.id === photo.sectionNodeId);
                   return (
                     <div key={photo.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm flex flex-col">
                       <div
