@@ -266,6 +266,31 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     }
   };
 
+  if (selectedInspectionId) {
+    const selectedInspection = inspectionsList.find(i => i.id === selectedInspectionId);
+
+    return (
+      <div className="flex flex-col gap-6 w-full">
+        {/* Back Button */}
+        <button
+          onClick={() => setSelectedInspectionId(null)}
+          className="flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors"
+        >
+          <ArrowBackIcon width={16} height={16} />
+          Back to Inspections
+        </button>
+
+        {/* Inspection Detail - Inline */}
+        <InspectionDetail
+          inspectionId={selectedInspectionId}
+          inspection={selectedInspection}
+          isInline={true}
+          onBack={() => setSelectedInspectionId(null)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 max-w-full">
       <div className="flex items-center gap-10 justify-between flex-wrap">
@@ -288,7 +313,10 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
         <div className="flex items-center gap-4">
           <BlueButton
             icon={<PlusIcon width={20} height={20} />}
-            onClick={() => navigate(`/property/${propertyId}/inspections/new`)}
+            onClick={() => {
+              const newId = Math.max(...inspectionsList.map(i => i.id), 0) + 1;
+              setSelectedInspectionId(newId);
+            }}
           >
             New Inspection
           </BlueButton>
