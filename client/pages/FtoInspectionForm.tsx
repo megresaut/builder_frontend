@@ -393,38 +393,46 @@ export default function FtoInspectionForm() {
 
               {/* Photo Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {photos.map((photo, index) => (
-                  <div key={photo.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm flex flex-col">
-                    <div 
-                      className="aspect-[4/3] bg-gray-100 cursor-pointer relative group"
-                      onClick={() => handleOpenGallery(index)}
-                    >
-                      <img src={photo.url} alt="Inspection" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity" />
+                {photos.map((photo, index) => {
+                  const section = MOCK_CHECKLIST_NODES.find(n => n.id === photo.sectionNodeId);
+                  return (
+                    <div key={photo.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm flex flex-col">
+                      <div
+                        className="aspect-[4/3] bg-gray-100 cursor-pointer relative group"
+                        onClick={() => handleOpenGallery(index)}
+                      >
+                        <img src={photo.url} alt="Inspection" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity" />
+                      </div>
+
+                      <div className="p-3 flex flex-col gap-2">
+                        {section && (
+                          <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded truncate">
+                            {section.text}
+                          </div>
+                        )}
+                        <input
+                          type="text"
+                          placeholder="Add a comment..."
+                          value={photo.comment || ""}
+                          onChange={(e) => handleUpdatePhotoComment(photo.id, e.target.value)}
+                          className="w-full text-xs p-2 border border-gray-200 rounded placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                          disabled={isReadOnly}
+                        />
+                        {!isReadOnly && (
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() => handleRemovePhoto(photo.id)}
+                              className="text-xs text-red-600 hover:text-red-700 font-medium"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    
-                    <div className="p-3 flex flex-col gap-2">
-                      <input
-                        type="text"
-                        placeholder="Add a comment..."
-                        value={photo.comment || ""}
-                        onChange={(e) => handleUpdatePhotoComment(photo.id, e.target.value)}
-                        className="w-full text-xs p-2 border border-gray-200 rounded placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
-                        disabled={isReadOnly}
-                      />
-                      {!isReadOnly && (
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => handleRemovePhoto(photo.id)}
-                            className="text-xs text-red-600 hover:text-red-700 font-medium"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               
               {photos.length === 0 && (
