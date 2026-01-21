@@ -37,12 +37,6 @@ interface StoredInspection {
   propertyId: string;
   unitId: string | null;
   photos: InspectionPhoto[];
-  requirements: {
-    hasDoc: boolean;
-    fileName?: string;
-    lastUpdated?: string;
-    arrayBuffer?: string; // Base64 encoded for localStorage
-  };
 }
 
 // --- Components ---
