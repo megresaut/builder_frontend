@@ -496,11 +496,6 @@ export default function FtoInspectionForm() {
         onUpdateComment={handleUpdatePhotoComment}
       />
 
-      <UploadDocxModal
-        open={isUploadModalOpen}
-        onOpenChange={setIsUploadModalOpen}
-        onUpload={handleUploadDocx}
-      />
     </PageTemplate>
   );
 }
