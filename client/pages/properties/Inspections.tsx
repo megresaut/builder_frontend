@@ -440,14 +440,5 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
 }
 
 export default function Inspections(props: InspectionsProps) {
-  const { propertyId } = useParams();
-
-  return (
-    <Routes>
-      <Route index element={<InspectionsList {...props} />} />
-      <Route path="new" element={<InspectionDetail isNew />} />
-      <Route path=":inspectionId" element={<InspectionDetail />} />
-      <Route path=":inspectionId/edit" element={<InspectionDetail isEdit />} />
-    </Routes>
-  );
+  return <InspectionsList {...props} />;
 }
