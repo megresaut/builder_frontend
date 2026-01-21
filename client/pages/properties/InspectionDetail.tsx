@@ -48,7 +48,14 @@ export default function InspectionDetail({
   const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState<"Draft" | "Completed">("Draft");
-  
+
+  // Metadata State
+  const [inspectionDate] = useState<string>(new Date().toLocaleDateString());
+  const [uploadedBy] = useState<string>("John Doe");
+  const [uploadedAt] = useState<string>(new Date().toLocaleString());
+  const [lastUpdated] = useState<string>(new Date().toLocaleString());
+  const [lastUpdatedBy] = useState<string>("Jerry Sanchez");
+
   // Photo Upload State
   const [selectedSectionId, setSelectedSectionId] = useState<string>("");
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +63,7 @@ export default function InspectionDetail({
   // Photo Modal States
   const [selectedPhotoForModal, setSelectedPhotoForModal] = useState<InspectionPhoto | null>(null);
   const [isPhotoViewerOpen, setIsPhotoViewerOpen] = useState(false);
+  const [photoNote, setPhotoNote] = useState<string>("");
 
   // --- Derived Data ---
   const sections = useMemo(() => nodes.filter((n) => n.depth === 0), [nodes]);
