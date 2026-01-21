@@ -547,17 +547,6 @@ function PhotoCard({ photo, sections, onRemove, onMove, onPhotoClick }: PhotoCar
         >
           <DeleteIcon width={12} height={12} />
         </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            // Placeholder - move functionality could be accessed here if needed
-          }}
-          className="p-1.5 bg-white/90 rounded-full text-blue-500 shadow-sm hover:text-blue-600 hover:bg-white"
-          title="Move to another section"
-          disabled
-        >
-          <DocumentIcon width={12} height={12} />
-        </button>
       </div>
     </div>
   );
