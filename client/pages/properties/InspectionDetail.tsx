@@ -440,12 +440,11 @@ export default function InspectionDetail() {
                         </h3>
                         <div className="grid grid-cols-2 gap-2">
                           {sectionPhotos.map(photo => (
-                            <PhotoCard 
+                            <PhotoCard
                               key={photo.id}
                               photo={photo}
                               sections={sections}
                               onRemove={handleRemovePhoto}
-                              onMove={handleMovePhoto}
                               onPhotoClick={handleOpenPhotoModal}
                             />
                           ))}
