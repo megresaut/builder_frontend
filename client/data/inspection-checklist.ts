@@ -31,70 +31,39 @@ export interface InspectionPhoto {
 export const MOCK_CHECKLIST_NODES: ChecklistNode[] = [
   // Section 1: Exterior
   { id: "s1", parentId: null, orderIndex: 0, type: "section", text: "Exterior", depth: 0 },
-  { id: "i1-1", parentId: "s1", orderIndex: 0, type: "item", text: "Roof: Inspect shingles, flashing, chimneys, vents; note damage or missing shingles", depth: 1 },
-  { id: "i1-2", parentId: "s1", orderIndex: 1, type: "item", text: "Gutters & Downspouts: Check for clogs, secure attachment, and drainage away from foundation", depth: 1 },
-  { id: "i1-3", parentId: "s1", orderIndex: 2, type: "item", text: "Siding & Trim: Check for rot, holes, cracks, and peeling paint", depth: 1 },
-  { id: "i1-4", parentId: "s1", orderIndex: 3, type: "item", text: "Foundation & Grading: Look for cracks, settlement, and proper grading away from structure", depth: 1 },
-  { id: "i1-5", parentId: "s1", orderIndex: 4, type: "item", text: "Driveway & Walkways: Inspect condition and tripping hazards", depth: 1 },
-  { id: "i1-6", parentId: "s1", orderIndex: 5, type: "item", text: "Landscaping & Drainage: Observe trees near structure, grading, and standing water", depth: 1 },
-  { id: "i1-7", parentId: "s1", orderIndex: 6, type: "item", text: "Exterior Doors & Locks: Check operation, weatherstripping, and thresholds", depth: 1 },
-  { id: "i1-8", parentId: "s1", orderIndex: 7, type: "item", text: "Decks & Porches: Inspect structure, railing, stairs, and ledger connections", depth: 1 },
-
-  // Section 2: Garage / Carport
-  { id: "s2", parentId: null, orderIndex: 1, type: "section", text: "Garage / Carport", depth: 0 },
-  { id: "i2-1", parentId: "s2", orderIndex: 0, type: "item", text: "Garage Door Operation: Inspect opener, springs, and safety sensors", depth: 1 },
-  { id: "i2-2", parentId: "s2", orderIndex: 1, type: "item", text: "Garage Structure & Floor: Check for moisture, cracks, and condition", depth: 1 },
-  { id: "i2-3", parentId: "s2", orderIndex: 2, type: "item", text: "Storage & Lighting: Ensure adequate lighting and safe storage", depth: 1 },
-
-  // Section 3: Interior
-  { id: "s3", parentId: null, orderIndex: 2, type: "section", text: "Interior", depth: 0 },
-  { id: "i3-1", parentId: "s3", orderIndex: 0, type: "item", text: "Entryway & Hallways: Check doors, closet operation, and lighting", depth: 1 },
-  { id: "i3-2", parentId: "s3", orderIndex: 1, type: "item", text: "Living/Dining Areas: Inspect walls, ceilings, floors, and windows", depth: 1 },
-  { id: "i3-3", parentId: "s3", orderIndex: 2, type: "item", text: "Kitchen: Check cabinets, countertops, sink, dishwasher, range/oven and venting", depth: 1 },
-  { id: "i3-4", parentId: "s3", orderIndex: 3, type: "item", text: "Bathrooms: Check toilets, sinks, tubs/showers, ventilation, tile/grout, and drains", depth: 1 },
-  { id: "i3-5", parentId: "s3", orderIndex: 4, type: "item", text: "Bedrooms: Inspect windows (egress), closets, floors, ceilings, and lighting", depth: 1 },
-  { id: "i3-6", parentId: "s3", orderIndex: 5, type: "item", text: "Stairs & Railings: Inspect structural soundness and handrail security", depth: 1 },
-  { id: "i3-7", parentId: "s3", orderIndex: 6, type: "item", text: "Interior Doors & Hardware: Ensure latches and locks operate correctly", depth: 1 },
-
-  // Section 4: Systems
-  { id: "s4", parentId: null, orderIndex: 3, type: "section", text: "Systems", depth: 0 },
-  { id: "i4-1", parentId: "s4", orderIndex: 0, type: "item", text: "Electrical: Test outlets, GFCIs, switches, visible wiring, and main panel labeling", depth: 1 },
-  { id: "i4-2", parentId: "s4", orderIndex: 1, type: "item", text: "Plumbing: Inspect visible supply and drain piping, fixtures, check for active leaks", depth: 1 },
-  { id: "i4-3", parentId: "s4", orderIndex: 2, type: "item", text: "HVAC: Test heating/cooling operation, thermostat, filters, and look for leaks/noises", depth: 1 },
-  { id: "i4-4", parentId: "s4", orderIndex: 3, type: "item", text: "Water Heater: Inspect tank condition, age, TPR valve, and signs of leakage", depth: 1 },
-  { id: "i4-5", parentId: "s4", orderIndex: 4, type: "item", text: "Appliances: Test major appliances included with the property", depth: 1 },
-
-  // Section 5: Attic / Insulation
-  { id: "s5", parentId: null, orderIndex: 4, type: "section", text: "Attic / Insulation", depth: 0 },
-  { id: "i5-1", parentId: "s5", orderIndex: 0, type: "item", text: "Attic Access: Confirm safe access and condition of hatch/stair", depth: 1 },
-  { id: "i5-2", parentId: "s5", orderIndex: 1, type: "item", text: "Insulation & Ventilation: Check levels and ventilation; check for moisture or pest signs", depth: 1 },
-  { id: "i5-3", parentId: "s5", orderIndex: 2, type: "item", text: "Roof Structure: Look for signs of leaks, rot, or structural damage", depth: 1 },
-
-  // Section 6: Basement / Crawlspace
-  { id: "s6", parentId: null, orderIndex: 5, type: "section", text: "Basement / Crawlspace", depth: 0 },
-  { id: "i6-1", parentId: "s6", orderIndex: 0, type: "item", text: "Moisture & Sumps: Check for standing water and sump pump operation", depth: 1 },
-  { id: "i6-2", parentId: "s6", orderIndex: 1, type: "item", text: "Foundation Walls: Inspect for cracks, efflorescence, and water staining", depth: 1 },
-  { id: "i6-3", parentId: "s6", orderIndex: 2, type: "item", text: "Mechanical Equipment: Inspect boilers, furnaces or other equipment present", depth: 1 },
-
-  // Section 7: Safety & Compliance
-  { id: "s7", parentId: null, orderIndex: 6, type: "section", text: "Safety & Compliance", depth: 0 },
-  { id: "i7-1", parentId: "s7", orderIndex: 0, type: "item", text: "Smoke Detectors: Present and functional", depth: 1 },
-  { id: "i7-2", parentId: "s7", orderIndex: 1, type: "item", text: "CO Detectors: Present and functional", depth: 1 },
-  { id: "i7-3", parentId: "s7", orderIndex: 2, type: "item", text: "Fire Extinguishers: Present and accessible where required", depth: 1 },
-  { id: "i7-4", parentId: "s7", orderIndex: 3, type: "item", text: "Stair & Balcony Railings: Secure and safe", depth: 1 },
-  { id: "i7-5", parentId: "s7", orderIndex: 4, type: "item", text: "Environmental Concerns: Note visible mold, asbestos, or lead-based paint", depth: 1 },
-
-  // Section 8: Exterior Amenities
-  { id: "s8", parentId: null, orderIndex: 7, type: "section", text: "Exterior Amenities", depth: 0 },
-  { id: "i8-1", parentId: "s8", orderIndex: 0, type: "item", text: "Pool/Hot Tub: Condition, gates, covers, and safety features", depth: 1 },
-  { id: "i8-2", parentId: "s8", orderIndex: 1, type: "item", text: "Outbuildings & Fences: Condition and access", depth: 1 },
-  { id: "i8-3", parentId: "s8", orderIndex: 2, type: "item", text: "Driveway Gates / Entry Systems: Operation and security", depth: 1 },
+  
+  // Driveway/Masonry subsection items
+  { id: "i1-1", parentId: "s1", orderIndex: 0, type: "item", text: "Driveway/Masonry: Driveway – check for cracks, settling and sealing if needed", depth: 1 },
+  { id: "i1-2", parentId: "s1", orderIndex: 1, type: "item", text: "Driveway/Masonry: Check all drains/catch basins (should be cleaned 1-2 years)", depth: 1 },
+  { id: "i1-3", parentId: "s1", orderIndex: 2, type: "item", text: "Driveway/Masonry: Check cobble stone around driveway/joints for deterioration", depth: 1 },
+  { id: "i1-4", parentId: "s1", orderIndex: 3, type: "item", text: "Driveway/Masonry: Check the front patio for broken stones or if joints need to be filled", depth: 1 },
+  { id: "i1-5", parentId: "s1", orderIndex: 4, type: "item", text: "Driveway/Masonry: Check stone on the bench for missing stones and gaps", depth: 1 },
+  { id: "i1-6", parentId: "s1", orderIndex: 5, type: "item", text: "Driveway/Masonry: Verify patios/walkways condition and if they need to be resealed", depth: 1 },
+  { id: "i1-7", parentId: "s1", orderIndex: 6, type: "item", text: "Driveway/Masonry: Check if any stone steps are loose or dangerous", depth: 1 },
+  
+  // Landscape subsection items
+  { id: "i1-8", parentId: "s1", orderIndex: 7, type: "item", text: "Landscape - Grass: Check for browning (need water or does it need to be treated for bugs?)", depth: 1 },
+  { id: "i1-9", parentId: "s1", orderIndex: 8, type: "item", text: "Landscape - Grass: Make sure the grass has been cut and not overgrown", depth: 1 },
+  { id: "i1-10", parentId: "s1", orderIndex: 9, type: "item", text: "Landscape - Trees/Planting: Check for dead or dead branches", depth: 1 },
+  { id: "i1-11", parentId: "s1", orderIndex: 10, type: "item", text: "Landscape - Trees/Planting: Check for overgrown trees or obstructed plants", depth: 1 },
+  { id: "i1-12", parentId: "s1", orderIndex: 11, type: "item", text: "Landscape - Plant Beds/Mulch: Check for weeds", depth: 1 },
+  { id: "i1-13", parentId: "s1", orderIndex: 12, type: "item", text: "Landscape - Plant Beds/Mulch: Make sure weekly cleanup is happening (leaves, branches, etc.)", depth: 1 },
+  { id: "i1-14", parentId: "s1", orderIndex: 13, type: "item", text: "Landscape - Fencing: Check perimeter fence, fallen trees, damage, and openings for animals", depth: 1 },
+  { id: "i1-15", parentId: "s1", orderIndex: 14, type: "item", text: "Landscape - Decks/Patio: Check for loose boards, cracking, and if treatment is needed", depth: 1 },
+  
+  // Main house subsection items
+  { id: "i1-16", parentId: "s1", orderIndex: 15, type: "item", text: "Main House - Trim/Stucco: Check for rotting wood", depth: 1 },
+  { id: "i1-17", parentId: "s1", orderIndex: 16, type: "item", text: "Main House - Trim/Stucco: Paint if needed", depth: 1 },
+  { id: "i1-18", parentId: "s1", orderIndex: 17, type: "item", text: "Main House - Trim/Stucco: Check for cracking and missing pieces", depth: 1 },
+  { id: "i1-19", parentId: "s1", orderIndex: 18, type: "item", text: "Main House - Trim/Stucco: Verify stucco repair needs", depth: 1 },
+  { id: "i1-20", parentId: "s1", orderIndex: 19, type: "item", text: "Main House - Roof: Check for cracking or missing shingles", depth: 1 },
+  { id: "i1-21", parentId: "s1", orderIndex: 20, type: "item", text: "Main House - Roof: Check if it needs to be treated or sealed", depth: 1 },
 ];
 
 export const MOCK_INSPECTION_CHECKLIST: PropertyInspectionChecklist = {
   propertyId: "1-woodland",
-  title: "1 Woodland Inspection Checklist",
+  title: "1 Woodland Rd - Inspection Checklist",
   nodes: MOCK_CHECKLIST_NODES,
   updatedAt: new Date().toISOString(),
-  updatedBy: "Imported: 1 Woodland (mock)",
+  updatedBy: "Property Manager: Chris Schenarts",
 };
