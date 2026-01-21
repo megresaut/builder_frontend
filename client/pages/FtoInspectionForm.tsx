@@ -134,27 +134,6 @@ export default function FtoInspectionForm() {
     setIsGalleryOpen(true);
   };
 
-  const handleUploadDocx = async (file: File) => {
-    if (!file.name.endsWith(".docx")) {
-      console.error("Only .docx files are supported");
-      return;
-    }
-
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      setRequirements({
-        hasDoc: true,
-        fileName: file.name,
-        lastUpdated: "Just now",
-        blobUrl: URL.createObjectURL(file),
-        arrayBuffer,
-      });
-      setIsUploadModalOpen(false);
-    } catch (err) {
-      console.error("Error reading file", err);
-    }
-  };
-
   const getPropertyUnits = (propId: string | null) => {
     if (!propId) return [];
     const property = PROPERTIES.find((p) => p.id === propId);
