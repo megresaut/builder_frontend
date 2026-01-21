@@ -490,38 +490,10 @@ interface PhotoCardProps {
   photo: InspectionPhoto;
   sections: ChecklistNode[];
   onRemove: (id: string) => void;
-  onMove: (id: string, newSectionId: string) => void;
   onPhotoClick: (photo: InspectionPhoto) => void;
 }
 
-function PhotoCard({ photo, sections, onRemove, onMove, onPhotoClick }: PhotoCardProps) {
-  const [isMoving, setIsMoving] = useState(false);
-
-  if (isMoving) {
-    return (
-      <div className="aspect-square bg-gray-50 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 gap-2 shadow-sm">
-        <p className="text-[10px] font-semibold text-gray-500 uppercase">Move to:</p>
-        <select
-          className="w-full text-xs p-1 border border-gray-300 rounded bg-white outline-none focus:border-blue-500"
-          value={photo.sectionNodeId}
-          onChange={(e) => {
-            onMove(photo.id, e.target.value);
-            setIsMoving(false);
-          }}
-        >
-          {sections.map(s => (
-            <option key={s.id} value={s.id}>{s.text}</option>
-          ))}
-        </select>
-        <button 
-          onClick={() => setIsMoving(false)}
-          className="text-xs text-gray-500 hover:text-gray-800 hover:underline"
-        >
-          Cancel
-        </button>
-      </div>
-    );
-  }
+function PhotoCard({ photo, sections, onRemove, onPhotoClick }: PhotoCardProps) {
 
   return (
     <div 
