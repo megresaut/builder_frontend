@@ -38,5 +38,6 @@ export { EyeIcon } from "./EyeIcon";
 export { HashtagIcon } from "./HashtagIcon";
 export { PaperclipIcon } from "./PaperclipIcon";
 export { HamburgerIcon } from "./HamburgerIcon";
+export { DownloadIcon } from "./DownloadIcon";
 
 export type {} from "./EditIcon";
