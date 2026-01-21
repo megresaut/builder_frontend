@@ -219,56 +219,43 @@ export default function FtoInspectionForm() {
 
   // --- Renderers ---
 
-  const renderRequirements = () => {
-    if (!propertyId) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <p className="text-gray-500">Please select a property to view requirements</p>
-        </div>
-      );
-    }
-
-    if (!requirements.hasDoc) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
-            <DocumentIcon width={32} height={32} />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No requirements found</h3>
-          <p className="text-sm text-gray-500 max-w-sm mb-6">
-            There are no inspection requirements loaded for this property.
-          </p>
-          <button
-            onClick={() => setIsUploadModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-          >
-            Upload Requirements (.docx)
-          </button>
-        </div>
-      );
-    }
-
+  const renderChecklist = () => {
     return (
-      <div className="flex flex-col h-[600px] border border-gray-200 rounded-lg overflow-hidden bg-white">
-        {isRenderingDoc && (
-          <div className="flex items-center justify-center py-8">
-            <span className="text-sm text-gray-500">Loading document...</span>
+      <div className="flex flex-col gap-1 border border-gray-200 rounded-lg bg-white p-4 max-h-[600px] overflow-y-auto">
+        {MOCK_CHECKLIST_NODES.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 text-sm">
+            No checklist items available
           </div>
+        ) : (
+          MOCK_CHECKLIST_NODES.map((node) => (
+            <div
+              key={node.id}
+              className="group flex items-start gap-2 py-2 px-2 rounded hover:bg-gray-50 transition-colors"
+              style={{ marginLeft: `${node.depth * 24}px` }}
+            >
+              {/* Bullet / Icon */}
+              <div className="mt-1 flex-shrink-0">
+                {node.depth === 0 ? (
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-900 mt-1.5" />
+                ) : (
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5" />
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div
+                  className={cn(
+                    "text-sm whitespace-pre-wrap",
+                    node.depth === 0 ? "font-bold text-gray-900" : "text-gray-700"
+                  )}
+                >
+                  {node.text}
+                </div>
+              </div>
+            </div>
+          ))
         )}
-        <div
-          ref={docContainerRef}
-          className={cn(
-            "flex-1 overflow-auto bg-white",
-            "[&_.docx-wrapper]:bg-white [&_.docx-wrapper]:border-0 [&_.docx-wrapper]:m-0",
-            "[&_section]:mx-auto"
-          )}
-          style={{
-            paddingTop: "2rem",
-            paddingBottom: "2rem",
-            zoom: docZoom,
-            transformOrigin: "top center",
-          }}
-        />
       </div>
     );
   };
