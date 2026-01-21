@@ -139,12 +139,6 @@ export default function InspectionDetail() {
     }
   };
 
-  const handleMovePhoto = (photoId: string, newSectionId: string) => {
-    setPhotos((prev) =>
-      prev.map((p) => (p.id === photoId ? { ...p, sectionNodeId: newSectionId } : p))
-    );
-  };
-
   const handleOpenPhotoModal = (photo: InspectionPhoto) => {
     setSelectedPhotoForModal(photo);
     setIsPhotoViewerOpen(true);
