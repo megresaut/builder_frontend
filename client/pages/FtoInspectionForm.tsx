@@ -52,19 +52,14 @@ export default function FtoInspectionForm() {
   const [unitId, setUnitId] = useState<string | null>(null);
 
   // Inspection State
-  const [requirements, setRequirements] = useState<RequirementsDoc>({
-    hasDoc: false,
-  });
   const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
+  const [selectedSectionId, setSelectedSectionId] = useState<string>("");
 
   // UI State
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isPhotoCommentModalOpen, setIsPhotoCommentModalOpen] = useState(false);
   const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
-  const [isRenderingDoc, setIsRenderingDoc] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [docZoom, setDocZoom] = useState(0.6);
   const [validationErrors, setValidationErrors] = useState<{
     date?: string;
     property?: string;
