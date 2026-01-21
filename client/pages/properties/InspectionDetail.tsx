@@ -216,15 +216,6 @@ export default function InspectionDetail() {
               <EditIcon width={16} height={16} className="text-current" />
               {isEditing ? "Done Editing" : "Edit Checklist"}
             </button>
-            {allPhotos.length > 0 && (
-              <button
-                onClick={() => setIsReviewPhotosOpen(true)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors flex items-center gap-2"
-              >
-                <DocumentIcon width={16} height={16} className="text-gray-500" />
-                Review Photos ({allPhotos.length})
-              </button>
-            )}
             <button
               onClick={() => {
                 if (sections.length > 0 && !selectedSectionId) {
@@ -232,7 +223,13 @@ export default function InspectionDetail() {
                 }
                 photoInputRef.current?.click();
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors flex items-center gap-2"
+              disabled={status === "Completed"}
+              className={cn(
+                "px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
+                status === "Completed"
+                  ? "opacity-50 cursor-not-allowed bg-gray-50 text-gray-500"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              )}
             >
               <PlusIcon width={16} height={16} className="text-gray-500" />
               Upload Photos
