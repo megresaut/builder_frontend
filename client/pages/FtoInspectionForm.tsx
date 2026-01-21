@@ -87,67 +87,9 @@ export default function FtoInspectionForm() {
         setPropertyId(inspectionData.propertyId);
         setUnitId(inspectionData.unitId);
         setPhotos(inspectionData.photos);
-
-        if (inspectionData.requirements.hasDoc && inspectionData.requirements.arrayBuffer) {
-          // Convert base64 back to ArrayBuffer
-          const binaryString = atob(inspectionData.requirements.arrayBuffer);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          setRequirements({
-            ...inspectionData.requirements,
-            arrayBuffer: bytes.buffer,
-          });
-        }
       }
     }
   }, [inspectionId, isReadOnly]);
-
-  // Render doc when requirements change
-  useEffect(() => {
-    if (requirements.arrayBuffer && docContainerRef.current) {
-      setIsRenderingDoc(true);
-      docContainerRef.current.innerHTML = "";
-      renderAsync(requirements.arrayBuffer, docContainerRef.current)
-        .then(() => setIsRenderingDoc(false))
-        .catch((err) => {
-          console.error("Error rendering docx", err);
-          setIsRenderingDoc(false);
-        });
-    }
-  }, [requirements.arrayBuffer]);
-
-  // Simulate fetching doc when property changes (Mock)
-  useEffect(() => {
-    if (propertyId) {
-      // In a real app, we would fetch the doc for this property here
-      // For now, we'll reset requirements or keep them if uploaded manually
-    }
-  }, [propertyId]);
-
-  // Handle zoom on doc container (trackpad pinch and wheel)
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      if (!docContainerRef.current?.contains(e.target as Node)) return;
-
-      // Check for Ctrl key (Windows/Linux) or Cmd key (Mac)
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-
-        // Zoom in/out based on wheel delta
-        const zoomDelta = e.deltaY > 0 ? -0.05 : 0.05;
-        setDocZoom((prev) => {
-          const newZoom = prev + zoomDelta;
-          // Limit zoom between 0.4 (40%) and 2 (200%)
-          return Math.max(0.4, Math.min(2, newZoom));
-        });
-      }
-    };
-
-    document.addEventListener("wheel", handleWheel, { passive: false });
-    return () => document.removeEventListener("wheel", handleWheel);
-  }, []);
 
   // --- Handlers ---
 
