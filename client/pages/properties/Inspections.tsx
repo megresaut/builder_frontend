@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate, useParams, Routes, Route } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
@@ -15,6 +15,7 @@ import {
   CalendarIcon,
   UserIcon,
   ApproveIcon,
+  ArrowBackIcon,
 } from "@/components/icons";
 
 interface Inspector {
