@@ -221,12 +221,12 @@ export default function FtoInspectionForm() {
   const renderChecklist = () => {
     return (
       <div className="flex flex-col gap-1 border border-gray-200 rounded-lg bg-white p-4 max-h-[600px] overflow-y-auto">
-        {MOCK_CHECKLIST_NODES.length === 0 ? (
+        {currentChecklist.length === 0 ? (
           <div className="text-center py-8 text-gray-500 text-sm">
-            No checklist items available
+            Please select a property to view the inspection checklist
           </div>
         ) : (
-          MOCK_CHECKLIST_NODES.map((node) => (
+          currentChecklist.map((node) => (
             <div
               key={node.id}
               className="group flex items-start gap-2 py-2 px-2 rounded hover:bg-gray-50 transition-colors"
