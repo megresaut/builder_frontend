@@ -30,13 +30,6 @@ interface InspectionPhoto {
   sectionNodeId?: string;
 }
 
-interface RequirementsDoc {
-  hasDoc: boolean;
-  fileName?: string;
-  lastUpdated?: string;
-  blobUrl?: string;
-  arrayBuffer?: ArrayBuffer;
-}
 
 interface StoredInspection {
   id: number;
