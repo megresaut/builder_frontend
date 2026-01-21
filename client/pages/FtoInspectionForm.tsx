@@ -1,18 +1,15 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { renderAsync } from "docx-preview";
 import PageTemplate from "@/layout/PageTemplate";
 import BlueButton from "@/components/BlueButton";
 import {
   CloseIcon,
   PlusIcon,
-  DocumentIcon,
   DeleteIcon,
   ChevronDownIcon,
 } from "@/components/icons";
 import { SelectField, DateField } from "@/components/forms";
 import { PROPERTIES } from "@/data/fto/properties";
-import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import PhotoCommentModal from "@/components/PhotoCommentModal";
 import { cn } from "@/lib/utils";
 import {
