@@ -30,14 +30,15 @@ interface InspectionDetailProps {
   onBack?: () => void;
 }
 
-export default function InspectionDetail({
-  isNew,
-  isEdit,
-  isInline = false,
-  inspectionId,
-  inspection,
-  onBack
-}: InspectionDetailProps = {}) {
+export default function InspectionDetail(props: InspectionDetailProps = {}) {
+  const {
+    isNew,
+    isEdit,
+    isInline = false,
+    inspectionId,
+    inspection,
+    onBack
+  } = props;
   const navigate = useNavigate();
   const { propertyId } = useParams();
 
