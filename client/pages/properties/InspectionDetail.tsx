@@ -12,6 +12,7 @@ import {
   ArrowBackIcon,
   ArrowForwardIcon,
   ChevronDownIcon,
+  DownloadIcon,
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import {
@@ -20,9 +21,25 @@ import {
   MOCK_CHECKLIST_NODES,
 } from "@/data/inspection-checklist";
 
+interface InspectionDetailProps {
+  isNew?: boolean;
+  isEdit?: boolean;
+  isInline?: boolean;
+  inspectionId?: number;
+  inspection?: any;
+  onBack?: () => void;
+}
+
 // --- Components ---
 
-export default function InspectionDetail() {
+export default function InspectionDetail({
+  isNew,
+  isEdit,
+  isInline = false,
+  inspectionId,
+  inspection,
+  onBack
+}: InspectionDetailProps = {}) {
   const navigate = useNavigate();
   const { propertyId } = useParams();
 
