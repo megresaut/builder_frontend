@@ -366,56 +366,50 @@ export default function InspectionDetail() {
             <SectionCard title="Inspection Photos">
               <div className="flex flex-col gap-6">
                 
-                {/* Upload Controls */}
-                <div className={cn(
-                  "p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3",
-                  status === "Completed" && "opacity-50 pointer-events-none"
-                )}>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-gray-500 uppercase">Associate with Section</label>
-                    <div className="relative">
-                      <select
-                        value={selectedSectionId}
-                        onChange={(e) => setSelectedSectionId(e.target.value)}
-                        disabled={status === "Completed"}
-                        className={cn(
-                          "w-full pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-md text-sm appearance-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none",
-                          status === "Completed" && "cursor-not-allowed"
-                        )}
-                      >
-                        <option value="" disabled>Select a section...</option>
-                        {sections.map((s) => (
-                          <option key={s.id} value={s.id}>{s.text}</option>
-                        ))}
-                      </select>
-                      <ChevronDownIcon width={16} height={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
+                {/* Upload Controls - Hidden when Completed */}
+                {status === "Draft" && (
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-gray-500 uppercase">Associate with Section</label>
+                      <div className="relative">
+                        <select
+                          value={selectedSectionId}
+                          onChange={(e) => setSelectedSectionId(e.target.value)}
+                          className="w-full pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-md text-sm appearance-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        >
+                          <option value="" disabled>Select a section...</option>
+                          {sections.map((s) => (
+                            <option key={s.id} value={s.id}>{s.text}</option>
+                          ))}
+                        </select>
+                        <ChevronDownIcon width={16} height={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
+                      </div>
+                    </div>
+
+                    <div
+                      className={cn(
+                        "border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
+                        !selectedSectionId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-white bg-gray-50"
+                      )}
+                      onClick={() => {
+                        if (selectedSectionId) photoInputRef.current?.click();
+                        else alert("Please select a section first");
+                      }}
+                    >
+                      <PlusIcon width={24} height={24} color="#9ca3af" />
+                      <span className="mt-1 text-sm text-gray-600 font-medium">Click to Upload</span>
+                      <input
+                        ref={photoInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoUpload}
+                        disabled={!selectedSectionId}
+                      />
                     </div>
                   </div>
-
-                  <div
-                    className={cn(
-                      "border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
-                      status === "Completed" ? "opacity-50 cursor-not-allowed bg-gray-100" : (!selectedSectionId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-white bg-gray-50")
-                    )}
-                    onClick={() => {
-                      if (status === "Completed") return;
-                      if (selectedSectionId) photoInputRef.current?.click();
-                      else alert("Please select a section first");
-                    }}
-                  >
-                    <PlusIcon width={24} height={24} color="#9ca3af" />
-                    <span className="mt-1 text-sm text-gray-600 font-medium">Click to Upload</span>
-                    <input
-                      ref={photoInputRef}
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePhotoUpload}
-                      disabled={!selectedSectionId || status === "Completed"}
-                    />
-                  </div>
-                </div>
+                )}
 
                 {/* Photos List */}
                 <div className="flex flex-col gap-6">
