@@ -197,3 +197,15 @@ export const MOCK_INSPECTION_CHECKLIST: PropertyInspectionChecklist = {
   updatedAt: new Date().toISOString(),
   updatedBy: "Property Manager: Chris Schenarts",
 };
+
+// Map properties to their checklists
+export const PROPERTY_CHECKLISTS: Record<string, ChecklistNode[]> = {
+  "property1": MOCK_CHECKLIST_NODES, // 22 Indian Chase Dr
+  "property2": MOCK_CHECKLIST_NODES, // Property 2 - using same checklist for now
+};
+
+// Default checklist to use if property not found
+export const getChecklistForProperty = (propertyId: string | null): ChecklistNode[] => {
+  if (!propertyId) return [];
+  return PROPERTY_CHECKLISTS[propertyId] || [];
+};
