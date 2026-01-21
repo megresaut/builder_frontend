@@ -347,25 +347,47 @@ export default function FtoInspectionForm() {
 
               {/* Upload Area */}
               {!isReadOnly && (
-                <div
-                  className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                    validationErrors.photos
-                      ? "border-red-300 bg-red-50 text-red-400 hover:bg-red-50"
-                      : "border-gray-300 text-gray-400 hover:bg-gray-50"
-                  }`}
-                  onClick={() => photoInputRef.current?.click()}
-                >
-                  <PlusIcon width={24} height={24} />
-                  <span className="mt-2 text-sm font-medium" style={{ color: validationErrors.photos ? "#dc2626" : "#4b5563" }}>Add Photos</span>
-                  <span className="text-xs mt-1" style={{ color: validationErrors.photos ? "#fca5a5" : "#9ca3af" }}>Supports JPG, PNG</span>
-                  <input
-                    ref={photoInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                  />
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-gray-500 uppercase">Associate with Section</label>
+                    <div className="relative">
+                      <select
+                        value={selectedSectionId}
+                        onChange={(e) => setSelectedSectionId(e.target.value)}
+                        className="w-full pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-md text-sm appearance-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      >
+                        <option value="" disabled>Select a section...</option>
+                        {checklistSections.map((s) => (
+                          <option key={s.id} value={s.id}>{s.text}</option>
+                        ))}
+                      </select>
+                      <ChevronDownIcon width={16} height={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
+                    </div>
+                  </div>
+
+                  <div
+                    className={cn(
+                      "border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors",
+                      !selectedSectionId ? "opacity-50 cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400" : "border-gray-300 text-gray-400 hover:bg-white bg-gray-50"
+                    )}
+                    onClick={() => {
+                      if (selectedSectionId) photoInputRef.current?.click();
+                      else alert("Please select a section first");
+                    }}
+                  >
+                    <PlusIcon width={24} height={24} />
+                    <span className="mt-2 text-sm font-medium text-gray-600">Add Photos</span>
+                    <span className="text-xs mt-1 text-gray-400">Supports JPG, PNG</span>
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoUpload}
+                      disabled={!selectedSectionId}
+                    />
+                  </div>
                 </div>
               )}
 
