@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { renderAsync } from "docx-preview";
 import PageTemplate from "@/layout/PageTemplate";
@@ -8,12 +8,17 @@ import {
   PlusIcon,
   DocumentIcon,
   DeleteIcon,
+  ChevronDownIcon,
 } from "@/components/icons";
 import { SelectField, DateField } from "@/components/forms";
 import { PROPERTIES } from "@/data/fto/properties";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import PhotoCommentModal from "@/components/PhotoCommentModal";
 import { cn } from "@/lib/utils";
+import {
+  ChecklistNode,
+  MOCK_CHECKLIST_NODES,
+} from "@/data/inspection-checklist";
 
 // --- Types ---
 
@@ -22,6 +27,7 @@ interface InspectionPhoto {
   url: string;
   uploadedAt: string;
   comment?: string;
+  sectionNodeId?: string;
 }
 
 interface RequirementsDoc {
