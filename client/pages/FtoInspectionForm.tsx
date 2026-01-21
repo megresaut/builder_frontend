@@ -68,7 +68,9 @@ export default function FtoInspectionForm() {
 
   // Refs
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const docContainerRef = useRef<HTMLDivElement>(null);
+
+  // Derived Data
+  const checklistSections = useMemo(() => MOCK_CHECKLIST_NODES.filter((n) => n.depth === 0), []);
 
   // --- Effects ---
 
