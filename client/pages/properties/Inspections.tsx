@@ -220,12 +220,12 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
   }, []);
 
   const handleEditInspection = useCallback((inspection: Inspection) => {
-    navigate(`/property/${propertyId}/inspections/${inspection.id}/edit`);
-  }, [navigate, propertyId]);
+    setSelectedInspectionId(inspection.id);
+  }, []);
 
   const handleViewInspection = useCallback((inspection: Inspection) => {
-    navigate(`/property/${propertyId}/inspections/${inspection.id}`);
-  }, [navigate, propertyId]);
+    setSelectedInspectionId(inspection.id);
+  }, []);
 
   const handleMarkAsComplete = useCallback((inspection: Inspection) => {
     setInspectionsList((prev) =>
