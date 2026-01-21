@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import {
   ChecklistNode,
   MOCK_CHECKLIST_NODES,
+  getChecklistForProperty,
 } from "@/data/inspection-checklist";
 
 // --- Types ---
