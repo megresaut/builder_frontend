@@ -37,20 +37,20 @@ export default function InspectionDetail() {
   const [selectedSectionId, setSelectedSectionId] = useState<string>("");
   const photoInputRef = useRef<HTMLInputElement>(null);
 
+  // Photo Modal States
+  const [isReviewPhotosOpen, setIsReviewPhotosOpen] = useState(false);
+  const [selectedPhotoForModal, setSelectedPhotoForModal] = useState<InspectionPhoto | null>(null);
+  const [isPhotoViewerOpen, setIsPhotoViewerOpen] = useState(false);
+
   // --- Derived Data ---
   const sections = useMemo(() => nodes.filter((n) => n.depth === 0), [nodes]);
 
   const photosBySection = useMemo(() => {
     const grouped: Record<string, InspectionPhoto[]> = {};
-    // Initialize for all sections
     sections.forEach(s => grouped[s.id] = []);
     
     photos.forEach((p) => {
-      // Handle cases where a section might have been deleted but photos remain
-      // In a real app we might reassign them to 'Uncategorized' or delete them
       if (!grouped[p.sectionNodeId]) {
-        // Only add if the section still exists, or maybe add to a fallback?
-        // For now, we'll skip if section is gone to avoid errors
         if (sections.find(s => s.id === p.sectionNodeId)) {
            grouped[p.sectionNodeId].push(p);
         }
@@ -60,6 +60,8 @@ export default function InspectionDetail() {
     });
     return grouped;
   }, [nodes, photos, sections]);
+
+  const allPhotos = useMemo(() => photos, [photos]);
 
   // --- Handlers: Checklist Editing ---
 
@@ -145,6 +147,27 @@ export default function InspectionDetail() {
     );
   };
 
+  const handleOpenPhotoModal = (photo: InspectionPhoto) => {
+    setSelectedPhotoForModal(photo);
+    setIsPhotoViewerOpen(true);
+  };
+
+  const handleNextPhoto = () => {
+    if (!selectedPhotoForModal) return;
+    const currentIndex = allPhotos.findIndex(p => p.id === selectedPhotoForModal.id);
+    if (currentIndex < allPhotos.length - 1) {
+      setSelectedPhotoForModal(allPhotos[currentIndex + 1]);
+    }
+  };
+
+  const handlePrevPhoto = () => {
+    if (!selectedPhotoForModal) return;
+    const currentIndex = allPhotos.findIndex(p => p.id === selectedPhotoForModal.id);
+    if (currentIndex > 0) {
+      setSelectedPhotoForModal(allPhotos[currentIndex - 1]);
+    }
+  };
+
   // --- Handlers: General ---
 
   const toggleStatus = () => {
@@ -180,7 +203,7 @@ export default function InspectionDetail() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => setIsEditing(!isEditing)}
               className={cn(
@@ -193,6 +216,15 @@ export default function InspectionDetail() {
               <EditIcon width={16} height={16} className="text-current" />
               {isEditing ? "Done Editing" : "Edit Checklist"}
             </button>
+            {allPhotos.length > 0 && (
+              <button
+                onClick={() => setIsReviewPhotosOpen(true)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors flex items-center gap-2"
+              >
+                <DocumentIcon width={16} height={16} className="text-gray-500" />
+                Review Photos ({allPhotos.length})
+              </button>
+            )}
             <button
               onClick={() => {
                 if (sections.length > 0 && !selectedSectionId) {
@@ -214,12 +246,12 @@ export default function InspectionDetail() {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex flex-col lg:flex-row gap-6 w-full">
+        {/* Content - Dynamic layout with items-start for flexible sizing */}
+        <div className="flex flex-col lg:flex-row gap-6 w-full lg:items-start">
           
           {/* LEFT COLUMN: Checklist */}
           <div className="flex-1 min-w-0">
-            <SectionCard title="Inspection Checklist" className="h-full">
+            <SectionCard title="Inspection Checklist">
               <div className="flex flex-col gap-1">
                 {nodes.length === 0 && (
                   <div className="text-center py-8 text-gray-500 text-sm">
@@ -346,7 +378,7 @@ export default function InspectionDetail() {
 
           {/* RIGHT COLUMN: Photos */}
           <div className="flex-1 lg:flex-none lg:w-[400px]">
-            <SectionCard title="Inspection Photos" className="h-full">
+            <SectionCard title="Inspection Photos">
               <div className="flex flex-col gap-6">
                 
                 {/* Upload Controls */}
@@ -411,6 +443,7 @@ export default function InspectionDetail() {
                               sections={sections}
                               onRemove={handleRemovePhoto}
                               onMove={handleMovePhoto}
+                              onPhotoClick={handleOpenPhotoModal}
                             />
                           ))}
                         </div>
@@ -431,6 +464,27 @@ export default function InspectionDetail() {
 
         </div>
       </div>
+
+      {/* Review Photos Modal */}
+      <ReviewPhotosModal
+        open={isReviewPhotosOpen}
+        onOpenChange={setIsReviewPhotosOpen}
+        photos={allPhotos}
+        onPhotoClick={handleOpenPhotoModal}
+      />
+
+      {/* Photo Viewer Modal */}
+      {selectedPhotoForModal && (
+        <PhotoViewerModal
+          open={isPhotoViewerOpen}
+          onOpenChange={setIsPhotoViewerOpen}
+          photo={selectedPhotoForModal}
+          onNext={handleNextPhoto}
+          onPrev={handlePrevPhoto}
+          photoIndex={allPhotos.findIndex(p => p.id === selectedPhotoForModal.id)}
+          totalPhotos={allPhotos.length}
+        />
+      )}
     </PageTemplate>
   );
 }
@@ -442,9 +496,10 @@ interface PhotoCardProps {
   sections: ChecklistNode[];
   onRemove: (id: string) => void;
   onMove: (id: string, newSectionId: string) => void;
+  onPhotoClick: (photo: InspectionPhoto) => void;
 }
 
-function PhotoCard({ photo, sections, onRemove, onMove }: PhotoCardProps) {
+function PhotoCard({ photo, sections, onRemove, onMove, onPhotoClick }: PhotoCardProps) {
   const [isMoving, setIsMoving] = useState(false);
 
   if (isMoving) {
@@ -474,7 +529,10 @@ function PhotoCard({ photo, sections, onRemove, onMove }: PhotoCardProps) {
   }
 
   return (
-    <div className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:border-blue-300 transition-colors">
+    <div 
+      className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:border-blue-300 transition-colors cursor-pointer"
+      onClick={() => onPhotoClick(photo)}
+    >
       <div className="aspect-square bg-gray-100">
         <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
       </div>
@@ -483,21 +541,190 @@ function PhotoCard({ photo, sections, onRemove, onMove }: PhotoCardProps) {
       </div>
       
       {/* Overlay Actions */}
-      <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
         <button
-          onClick={() => onRemove(photo.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(photo.id);
+          }}
           className="p-1.5 bg-white/90 rounded-full text-red-500 shadow-sm hover:text-red-600 hover:bg-white"
           title="Remove photo"
         >
           <DeleteIcon width={12} height={12} />
         </button>
         <button
-          onClick={() => setIsMoving(true)}
+          onClick={(e) => {
+            e.stopPropagation();
+            // Placeholder - move functionality could be accessed here if needed
+          }}
           className="p-1.5 bg-white/90 rounded-full text-blue-500 shadow-sm hover:text-blue-600 hover:bg-white"
           title="Move to another section"
+          disabled
         >
           <DocumentIcon width={12} height={12} />
         </button>
+      </div>
+    </div>
+  );
+}
+
+interface ReviewPhotosModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  photos: InspectionPhoto[];
+  onPhotoClick: (photo: InspectionPhoto) => void;
+}
+
+function ReviewPhotosModal({ open, onOpenChange, photos, onPhotoClick }: ReviewPhotosModalProps) {
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      onClick={() => onOpenChange(false)}
+    >
+      <div
+        className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-gray-900">Review All Photos</h2>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              {photos.length} photo{photos.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors text-2xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {photos.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              No photos uploaded yet
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {photos.map((photo) => (
+                <div
+                  key={photo.id}
+                  className="cursor-pointer group relative rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-colors"
+                  onClick={() => {
+                    onPhotoClick(photo);
+                    onOpenChange(false);
+                  }}
+                >
+                  <div className="aspect-square bg-gray-100">
+                    <img
+                      src={photo.fileRef}
+                      alt="Inspection"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 text-white text-sm font-medium">
+                      View
+                    </div>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 text-white text-[10px]">
+                    {new Date(photo.uploadedAt).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface PhotoViewerModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  photo: InspectionPhoto;
+  onNext: () => void;
+  onPrev: () => void;
+  photoIndex: number;
+  totalPhotos: number;
+}
+
+function PhotoViewerModal({
+  open,
+  onOpenChange,
+  photo,
+  onNext,
+  onPrev,
+  photoIndex,
+  totalPhotos,
+}: PhotoViewerModalProps) {
+  if (!open) return null;
+
+  const canGoNext = photoIndex < totalPhotos - 1;
+  const canGoPrev = photoIndex > 0;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4"
+      onClick={() => onOpenChange(false)}
+    >
+      <div
+        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-gray-900">Photo Viewer</h2>
+            <span className="text-sm text-gray-500">
+              {photoIndex + 1} of {totalPhotos}
+            </span>
+          </div>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors text-2xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Image Container */}
+        <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-hidden p-4">
+          <img
+            src={photo.fileRef}
+            alt="Inspection"
+            className="max-h-full max-w-full object-contain shadow-sm"
+          />
+        </div>
+
+        {/* Footer with Navigation */}
+        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50 gap-4">
+          <button
+            onClick={onPrev}
+            disabled={!canGoPrev}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ← Previous
+          </button>
+
+          <div className="text-sm text-gray-600">
+            {new Date(photo.uploadedAt).toLocaleString()}
+          </div>
+
+          <button
+            onClick={onNext}
+            disabled={!canGoNext}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next →
+          </button>
+        </div>
       </div>
     </div>
   );
