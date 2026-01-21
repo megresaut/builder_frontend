@@ -104,11 +104,17 @@ export default function FtoInspectionForm() {
   };
 
   const handlePhotoCommentSubmit = async (file: File, comment: string) => {
+    if (!selectedSectionId) {
+      alert("Please select a section first.");
+      return;
+    }
+
     const newPhoto: InspectionPhoto = {
       id: `new_${Date.now()}_${Math.random()}`,
       url: URL.createObjectURL(file),
       uploadedAt: new Date().toISOString(),
       comment: comment || undefined,
+      sectionNodeId: selectedSectionId,
     };
     setPhotos((prev) => [...prev, newPhoto]);
     setPendingPhotoFile(null);
