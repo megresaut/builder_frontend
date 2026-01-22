@@ -40,7 +40,7 @@ function ActionsMenuContent({
   return (
     <div className="flex flex-col py-1 whitespace-nowrap">
       {items.map((item, index) => {
-        const isSelected = item.value === "home" && isHome;
+        const isSelected = (item.value === "home" && isHome) || (item.value === "inspections" && !isHome && location.pathname.includes("/inspections"));
         const isHighlighted = popover.highlightedIndex === index;
 
         return (
