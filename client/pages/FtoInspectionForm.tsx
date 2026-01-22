@@ -329,8 +329,24 @@ export default function FtoInspectionForm() {
             </div>
 
             {/* 2. Inspection Checklist Card */}
-            <div className="rounded-xl bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-6">
-              <h2 className="text-lg font-medium text-gray-900">Inspection Checklist</h2>
+            <div className={cn(
+              "bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col gap-6",
+              isChecklistFullScreen ? "fixed inset-0 z-50 h-screen w-screen rounded-none p-6 overflow-y-auto" : "rounded-xl p-6"
+            )}>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-lg font-medium text-gray-900">Inspection Checklist</h2>
+                <button
+                  onClick={() => setIsChecklistFullScreen(!isChecklistFullScreen)}
+                  className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 transition-colors flex-shrink-0"
+                  title={isChecklistFullScreen ? "Exit Full Screen" : "Full Screen"}
+                >
+                  {isChecklistFullScreen ? (
+                    <Minimize2 className="w-4 h-4" />
+                  ) : (
+                    <Maximize2 className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
               {renderChecklist()}
             </div>
 
