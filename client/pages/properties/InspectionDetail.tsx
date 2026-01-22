@@ -297,10 +297,10 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       </div>
 
       {/* Content - Dynamic layout with items-start for flexible sizing */}
-      <div className="flex flex-col lg:flex-row gap-6 w-full lg:items-start">
+      <div className="flex flex-col gap-6 w-full">
 
-        {/* LEFT COLUMN: Checklist */}
-        <div className="flex-1 min-w-0">
+        {/* Checklist */}
+        <div className="w-full">
           <SectionCard title="Inspection Checklist">
             <div className="flex flex-col gap-4">
               {/* Last Updated Meta */}
