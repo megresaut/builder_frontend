@@ -252,6 +252,29 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     );
   }, []);
 
+  const handleScheduleInspection = useCallback((fieldManager: FieldManager, dueDate: string) => {
+    const newId = Math.max(...inspectionsList.map(i => i.id), 0) + 1;
+    const today = new Date().toLocaleDateString();
+
+    // Extract month name from dueDate (format: "Nov 2025")
+    const monthName = new Date(dueDate + " 1").toLocaleDateString("en-US", { month: "long" });
+
+    const newInspection: Inspection = {
+      id: newId,
+      name: `${monthName} Inspection`,
+      inspector: fieldManager,
+      inspectionDate: dueDate,
+      submitted: "",
+      status: "Upcoming",
+      issues: 0,
+      photos: 0,
+      updated: today,
+    };
+
+    setInspectionsList((prev) => [newInspection, ...prev]);
+    setShowScheduleModal(false);
+  }, [inspectionsList]);
+
   const actions = [
     {
       label: "View Inspection",
