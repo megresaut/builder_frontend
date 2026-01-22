@@ -215,9 +215,23 @@ export default function FtoInspections() {
       <div className="flex flex-col gap-6">
         <SubPageHeaderV2
           leftContent={
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Property Inspections
-            </h1>
+            <div className="flex flex-col gap-1">
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Property Inspections
+              </h1>
+              <p className="text-sm text-gray-600">
+                View and manage property inspection reports
+              </p>
+            </div>
+          }
+          rightContent={
+            <BlueButton
+              icon={<PlusIcon width={16} height={16} />}
+              onClick={() => navigate("/fto/inspections/new")}
+              className="hidden md:flex"
+            >
+              New Inspection
+            </BlueButton>
           }
         />
 
