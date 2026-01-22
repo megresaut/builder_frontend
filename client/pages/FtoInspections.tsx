@@ -132,7 +132,7 @@ export default function FtoInspections() {
     "property",
     "unit",
     "date",
-    "month",
+    "lastUpdated",
     "status",
   ]);
 
