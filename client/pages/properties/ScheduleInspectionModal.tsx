@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { SelectField } from "@/components/forms/SelectField";
 import { DateField } from "@/components/forms/DateField";
+import { ComboboxFieldWithCustomInput } from "@/components/forms/ComboboxFieldWithCustomInput";
+import { DEFAULT_INSPECTION_TEMPLATES } from "@/data/inspection-checklist";
 import { FieldManager } from "./Inspections";
 
 interface ScheduleInspectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   fieldManagers: FieldManager[];
-  onConfirm: (fieldManager: FieldManager, dueDate: string) => void;
+  onConfirm: (fieldManager: FieldManager, dueDate: string, templateName: string) => void;
 }
 
 export default function ScheduleInspectionModal({
@@ -19,6 +21,7 @@ export default function ScheduleInspectionModal({
 }: ScheduleInspectionModalProps) {
   const [selectedManagerId, setSelectedManagerId] = useState<string>("");
   const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Reset form when modal closes
@@ -26,6 +29,7 @@ export default function ScheduleInspectionModal({
     if (!open) {
       setSelectedManagerId("");
       setDueDate(null);
+      setSelectedTemplate("");
       setErrors({});
     }
   }, [open]);
@@ -33,6 +37,9 @@ export default function ScheduleInspectionModal({
   const handleConfirm = () => {
     const newErrors: Record<string, string> = {};
 
+    if (!selectedTemplate) {
+      newErrors.template = "Please select or create a template";
+    }
     if (!selectedManagerId) {
       newErrors.fieldManager = "Please select a field manager";
     }
@@ -52,13 +59,18 @@ export default function ScheduleInspectionModal({
     if (selectedManager && dueDate) {
       // Convert date to full date format (e.g., "Nov 15, 2025")
       const fullDate = dueDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-      onConfirm(selectedManager, fullDate);
+      onConfirm(selectedManager, fullDate, selectedTemplate);
     }
   };
 
   const fieldManagerOptions = fieldManagers.map((fm) => ({
     value: fm.id.toString(),
     label: fm.name,
+  }));
+
+  const templateOptions = DEFAULT_INSPECTION_TEMPLATES.map((template) => ({
+    value: template.id,
+    label: template.name,
   }));
 
   return (
@@ -77,6 +89,24 @@ export default function ScheduleInspectionModal({
       }
     >
       <div className="flex flex-col gap-6">
+        <ComboboxFieldWithCustomInput
+          label="Inspection Template"
+          options={templateOptions}
+          value={selectedTemplate}
+          onChange={(value) => {
+            setSelectedTemplate(value);
+            setErrors((prev) => {
+              const updated = { ...prev };
+              delete updated.template;
+              return updated;
+            });
+          }}
+          placeholder="Select or create a template"
+          customInputPlaceholder="Enter new template name"
+          customButtonLabel="+ Create new template"
+          error={errors.template}
+        />
+
         <SelectField
           label="Field Manager"
           options={fieldManagerOptions}
