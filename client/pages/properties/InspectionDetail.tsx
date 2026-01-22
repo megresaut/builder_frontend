@@ -345,7 +345,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   };
 
   const content = (
-    <div className="flex flex-col gap-6 w-full font-['Geist',sans-serif]">
+    <div className="flex flex-col gap-6 w-full font-['Geist',sans-serif] bg-white p-6 rounded-lg">
 
 
       {/* Page Title + Controls */}
