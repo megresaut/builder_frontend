@@ -7,6 +7,7 @@ import GlobalTable from "@/components/GlobalTable";
 import BlueButton from "@/components/BlueButton";
 import PersonAvatars from "@/components/PersonAvatars";
 import InspectionDetail from "./InspectionDetail";
+import ScheduleInspectionModal from "./ScheduleInspectionModal";
 import {
   EditIcon,
   DeleteIcon,
@@ -17,6 +18,13 @@ import {
   ApproveIcon,
   ArrowBackIcon,
 } from "@/components/icons";
+
+export interface FieldManager {
+  id: number;
+  name: string;
+  initials: string;
+  email?: string;
+}
 
 interface Inspector {
   id: number;
@@ -31,7 +39,7 @@ interface Inspection {
   inspector: Inspector;
   inspectionDate: string;
   submitted: string;
-  status: "Submitted" | "Outstanding" | "Completed";
+  status: "Submitted" | "Outstanding" | "Completed" | "Upcoming";
   issues: number;
   photos: number;
   updated: string;
