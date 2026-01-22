@@ -534,7 +534,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                     else alert("Please select a section first");
                   }}
                 >
-                  <PlusIcon width={24} height={24} color="#9ca3af" />
+                  <PlusIcon width={24} height={24} />
                   <span className="mt-1 text-sm text-gray-600 font-medium">Click to Upload</span>
                   <input
                     ref={photoInputRef}
