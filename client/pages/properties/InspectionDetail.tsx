@@ -233,10 +233,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     URL.revokeObjectURL(url);
   };
 
-  const containerClass = isInline ? "flex flex-col gap-6 w-full" : "flex flex-col gap-6 w-full";
-  const ContentWrapper = isInline ? React.Fragment : PageTemplate;
-  const contentWrapperProps = isInline ? {} : {};
-
   const content = (
     <div className={cn(containerClass, "font-['Geist',sans-serif]")}>
 
