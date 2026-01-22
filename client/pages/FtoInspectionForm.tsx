@@ -408,52 +408,75 @@ export default function FtoInspectionForm() {
                 </div>
               )}
 
-              {/* Photo Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {photos.map((photo, index) => {
-                  const section = currentChecklist.find(n => n.id === photo.sectionNodeId);
-                  return (
-                    <div key={photo.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm flex flex-col">
-                      <div
-                        className="aspect-[4/3] bg-gray-100 cursor-pointer relative group"
-                        onClick={() => handleOpenGallery(index)}
-                      >
-                        <img src={photo.url} alt="Inspection" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity" />
-                      </div>
+              {/* Photo Grid - 4 Column Layout Grouped by Section */}
+              {photos.length > 0 ? (
+                (() => {
+                  // Group photos by section
+                  const photosBySection: Record<string, typeof photos> = {};
+                  photos.forEach(photo => {
+                    const sectionId = photo.sectionNodeId || 'uncategorized';
+                    if (!photosBySection[sectionId]) {
+                      photosBySection[sectionId] = [];
+                    }
+                    photosBySection[sectionId].push(photo);
+                  });
 
-                      <div className="p-3 flex flex-col gap-2">
-                        {section && (
-                          <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded truncate">
-                            {section.text}
-                          </div>
-                        )}
-                        <input
-                          type="text"
-                          placeholder="Add a comment..."
-                          value={photo.comment || ""}
-                          onChange={(e) => handleUpdatePhotoComment(photo.id, e.target.value)}
-                          className="w-full text-xs p-2 border border-gray-200 rounded placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
-                          disabled={isReadOnly}
-                        />
-                        {!isReadOnly && (
-                          <div className="flex justify-end">
-                            <button
-                              onClick={() => handleRemovePhoto(photo.id)}
-                              className="text-xs text-red-600 hover:text-red-700 font-medium"
+                  return Object.entries(photosBySection).map(([sectionId, sectionPhotos]) => {
+                    const section = currentChecklist.find(n => n.id === sectionId);
+                    return (
+                      <div key={sectionId} className="mb-6">
+                        <div className="font-semibold text-xs md:text-sm text-blue-700 bg-blue-50 px-3 py-2 rounded-md mb-4 text-center">
+                          Section: {section?.text || "Uncategorized"}
+                        </div>
+                        <div className="grid grid-cols-4 gap-3">
+                          {sectionPhotos.map((photo, index) => (
+                            <div
+                              key={photo.id}
+                              className="border border-gray-200 rounded-lg bg-white overflow-hidden flex flex-col"
                             >
-                              Remove
-                            </button>
-                          </div>
-                        )}
+                              <div
+                                className="flex items-center justify-center min-h-[120px] bg-gray-100 cursor-pointer overflow-hidden"
+                                onClick={() => handleOpenGallery(photos.indexOf(photo))}
+                              >
+                                <img src={photo.url} alt="Inspection" className="w-full h-full object-contain" />
+                              </div>
+
+                              <div className="p-2 flex flex-col gap-2">
+                                <div className="text-7px text-gray-600 text-center">
+                                  📷 {new Date(photo.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                </div>
+                                {photo.comment && (
+                                  <div className="text-8px text-gray-700 p-2 bg-gray-50 rounded border border-gray-200 line-clamp-3">
+                                    {photo.comment}
+                                  </div>
+                                )}
+                                {!isReadOnly && (
+                                  <div className="flex gap-2 justify-center pt-1">
+                                    <input
+                                      type="text"
+                                      placeholder="Add comment..."
+                                      value={photo.comment || ""}
+                                      onChange={(e) => handleUpdatePhotoComment(photo.id, e.target.value)}
+                                      className="w-full text-7px px-2 py-1 border border-gray-200 rounded placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                    />
+                                    <button
+                                      onClick={() => handleRemovePhoto(photo.id)}
+                                      className="text-7px text-red-600 hover:text-red-700 font-medium px-1"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {photos.length === 0 && (
-                <div className="text-center text-sm text-gray-400 italic">
+                    );
+                  });
+                })()
+              ) : (
+                <div className="text-center text-sm text-gray-500 py-8">
                   No photos uploaded yet
                 </div>
               )}
