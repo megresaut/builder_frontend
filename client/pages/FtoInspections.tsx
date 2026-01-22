@@ -144,10 +144,11 @@ export default function FtoInspections() {
         localStorage.getItem("ftoSubmissions") || "[]",
       ) as InspectionRecord[];
 
-      // Add month field to submissions if missing
+      // Add month and lastUpdated fields to submissions if missing
       const submissionsWithMonth = submissions.map((inspection) => ({
         ...inspection,
         month: inspection.month || getMonthFromDate(inspection.date),
+        lastUpdated: inspection.lastUpdated || inspection.date,
       }));
 
       // Combine mock data with submitted inspections
