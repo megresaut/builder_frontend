@@ -47,10 +47,12 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [nodes, setNodes] = useState<ChecklistNode[]>(MOCK_CHECKLIST_NODES);
   const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [status, setStatus] = useState<"Draft" | "Completed">("Draft");
+  const [status, setStatus] = useState<"In Progress" | "Completed">("In Progress");
+  const [inspectionDueDate, setInspectionDueDate] = useState<Date | string | null>(
+    inspection?.inspectionDate ? new Date(inspection.inspectionDate) : new Date()
+  );
 
   // Metadata State
-  const [inspectionDate] = useState<string>(new Date().toLocaleDateString());
   const [uploadedBy] = useState<string>("John Doe");
   const [uploadedAt] = useState<string>(new Date().toLocaleString());
   const [lastUpdated] = useState<string>(new Date().toLocaleString());
