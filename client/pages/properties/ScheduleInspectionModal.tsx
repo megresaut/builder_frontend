@@ -25,7 +25,7 @@ export default function ScheduleInspectionModal({
   useEffect(() => {
     if (!open) {
       setSelectedManagerId("");
-      setDueDate("");
+      setDueDate(null);
       setErrors({});
     }
   }, [open]);
@@ -49,8 +49,10 @@ export default function ScheduleInspectionModal({
       (fm) => fm.id.toString() === selectedManagerId
     );
 
-    if (selectedManager) {
-      onConfirm(selectedManager, dueDate);
+    if (selectedManager && dueDate) {
+      // Convert date to "Mon YYYY" format (e.g., "Nov 2025")
+      const monthName = dueDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      onConfirm(selectedManager, monthName);
     }
   };
 
