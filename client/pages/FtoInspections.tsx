@@ -229,101 +229,131 @@ export default function FtoInspections() {
           }
         />
 
-        <GlobalTable
-          columns={columns}
-          data={inspections}
-          rowKey="id"
-          renderCell={(row, columnKey) => {
-            switch (columnKey) {
-              case "property":
-                return <span className="text-gray-900 text-sm">{row.property}</span>;
-              case "unit":
-                return <span className="text-gray-900 text-sm">{row.unit}</span>;
-              case "date":
-                return <span className="text-gray-900 text-sm">{row.date}</span>;
-              case "month":
-                return <span className="text-gray-900 text-sm">{row.month}</span>;
-              case "status":
-                return (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{
-                        backgroundColor:
-                          row.status === "Completed"
-                            ? "#059669"
-                            : "#6b7280",
-                      }}
-                    />
-                    <span className="text-gray-900 text-sm">{row.status}</span>
-                  </div>
-                );
-              default:
-                return null;
-            }
-          }}
-          sortingHook={{
-            handleSortClick,
-            getSortIndicator,
-            getSortedData,
-          }}
-          columnManagementHook={{
-            columnOrder,
-            visibleColumns,
-            draggedColumn,
-            dropTargetColumn,
-            dropPosition,
-            columnMenuPos,
-            columnButtonRef,
-            toggleColumnVisibility,
-            handleColumnDragStart,
-            handleColumnDragOver,
-            handleColumnDragLeave,
-            handleColumnDrop,
-          }}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          itemsPerPage={itemsPerPage}
-          onItemsPerPageChange={setItemsPerPage}
-          showPageSizeDropdown={showPageSizeDropdown}
-          onShowPageSizeDropdownChange={setShowPageSizeDropdown}
-          openMenuId={openMenuId}
-          onOpenMenuIdChange={setOpenMenuId}
-          title="Inspections"
-          headerActions={
-            <button
-              ref={columnButtonRef}
-              onClick={() => {
-                setShowPageSizeDropdown(false);
-                setOpenMenuId(null);
-                setShowColumnModal((prev) => !prev);
+        {/* Desktop Table View */}
+        {!isMobile && (
+          <>
+            <GlobalTable
+              columns={columns}
+              data={inspections}
+              rowKey="id"
+              renderCell={(row, columnKey) => {
+                switch (columnKey) {
+                  case "property":
+                    return <span className="text-gray-900 text-sm">{row.property}</span>;
+                  case "unit":
+                    return <span className="text-gray-900 text-sm">{row.unit}</span>;
+                  case "date":
+                    return <span className="text-gray-900 text-sm">{row.date}</span>;
+                  case "month":
+                    return <span className="text-gray-900 text-sm">{row.month}</span>;
+                  case "status":
+                    return (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{
+                            backgroundColor:
+                              row.status === "Completed"
+                                ? "#059669"
+                                : "#6b7280",
+                          }}
+                        />
+                        <span className="text-gray-900 text-sm">{row.status}</span>
+                      </div>
+                    );
+                  default:
+                    return null;
+                }
               }}
-              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-            >
-              <DotsIcon width={18} height={18} color="#303030" />
-            </button>
-          }
-          actions={[
-            {
-              label: row => row.status === "Completed" ? "View Inspection" : "Upload Inspection",
-              icon: <EditIcon width={18} height={18} color="#525252" />,
-              onClick: (row) => navigate(`/fto/inspections/${row.id}`),
-            },
-          ]}
-          onRowClick={(row) => navigate(`/fto/inspections/${row.id}`)}
-          showColumnModal={showColumnModal}
-          onShowColumnModalChange={setShowColumnModal}
-        />
+              sortingHook={{
+                handleSortClick,
+                getSortIndicator,
+                getSortedData,
+              }}
+              columnManagementHook={{
+                columnOrder,
+                visibleColumns,
+                draggedColumn,
+                dropTargetColumn,
+                dropPosition,
+                columnMenuPos,
+                columnButtonRef,
+                toggleColumnVisibility,
+                handleColumnDragStart,
+                handleColumnDragOver,
+                handleColumnDragLeave,
+                handleColumnDrop,
+              }}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={setItemsPerPage}
+              showPageSizeDropdown={showPageSizeDropdown}
+              onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+              openMenuId={openMenuId}
+              onOpenMenuIdChange={setOpenMenuId}
+              title="Inspections"
+              headerActions={
+                <button
+                  ref={columnButtonRef}
+                  onClick={() => {
+                    setShowPageSizeDropdown(false);
+                    setOpenMenuId(null);
+                    setShowColumnModal((prev) => !prev);
+                  }}
+                  className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                >
+                  <DotsIcon width={18} height={18} color="#303030" />
+                </button>
+              }
+              actions={[
+                {
+                  label: row => row.status === "Completed" ? "View Inspection" : "Upload Inspection",
+                  icon: <EditIcon width={18} height={18} color="#525252" />,
+                  onClick: (row) => navigate(`/fto/inspections/${row.id}`),
+                },
+              ]}
+              onRowClick={(row) => navigate(`/fto/inspections/${row.id}`)}
+              showColumnModal={showColumnModal}
+              onShowColumnModalChange={setShowColumnModal}
+            />
 
-        <ColumnFilterModal
-          isOpen={showColumnModal}
-          position={columnMenuPos}
-          columns={columns}
-          visibleColumns={visibleColumns}
-          onToggleColumn={toggleColumnVisibility}
-          onClose={() => setShowColumnModal(false)}
-          buttonRef={columnButtonRef}
-        />
+            <ColumnFilterModal
+              isOpen={showColumnModal}
+              position={columnMenuPos}
+              columns={columns}
+              visibleColumns={visibleColumns}
+              onToggleColumn={toggleColumnVisibility}
+              onClose={() => setShowColumnModal(false)}
+              buttonRef={columnButtonRef}
+            />
+          </>
+        )}
+
+        {/* Mobile Card View */}
+        {isMobile && (
+          <div className="grid grid-cols-1 gap-3">
+            {inspections.length > 0 ? (
+              inspections.map((inspection) => (
+                <InspectionCard
+                  key={inspection.id}
+                  id={inspection.id}
+                  property={inspection.property}
+                  unit={inspection.unit}
+                  date={inspection.date}
+                  month={inspection.month}
+                  inspector={inspection.inspector}
+                  status={inspection.status}
+                  onAction={(row) => navigate(`/fto/inspections/${row.id}`)}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                No inspections found
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </PageTemplate>
   );
