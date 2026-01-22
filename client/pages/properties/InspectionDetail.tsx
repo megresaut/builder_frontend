@@ -396,14 +396,21 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           </SectionCard>
           <SectionCard title="Inspection Checklist" variant="white">
             <div className="flex flex-col gap-4">
-              {/* Last Updated Meta */}
               <div className="flex items-center gap-3 text-xs text-gray-600 pb-3 border-b border-gray-200">
                 <span className="font-medium text-gray-500">Last updated:</span>
                 <PersonAvatars
-                  people={[{ name: lastUpdatedBy, initials: lastUpdatedBy.split(" ").map(n => n[0]).join(""), id: "manager" }]}
+                  people={[{
+                    name: lastUpdatedBy,
+                    initials: "JS",
+                    id: "manager",
+                    email: "jerry.sanchez@example.com",
+                    phone: "(555) 123-4567",
+                    title: "Field Manager"
+                  }]}
                   type="assignee"
                   size="sm"
                   fallback={lastUpdatedBy}
+                  className="mt-0"
                 />
                 <span className="text-gray-500">{lastUpdated}</span>
               </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface PersonAvatarsPerson {
   id?: string | number;
@@ -19,6 +20,7 @@ interface PersonAvatarsProps {
   type?: "assignee" | "collaborator";
   fallback?: string;
   size?: "sm" | "md" | "lg";
+  className?: string;
 }
 
 export const PersonAvatars: React.FC<PersonAvatarsProps> = ({
@@ -26,6 +28,7 @@ export const PersonAvatars: React.FC<PersonAvatarsProps> = ({
   type = "assignee",
   fallback = "None",
   size = "md",
+  className,
 }) => {
   // Determine border and text color based on type
   const borderColor =
@@ -48,7 +51,7 @@ export const PersonAvatars: React.FC<PersonAvatarsProps> = ({
   }
 
   return (
-    <div className="flex items-center gap-2 mt-1">
+    <div className={cn("flex items-center gap-2 mt-1", className)}>
       {people.map((person, idx) => {
         const name = person.name || person.label || "Unknown";
         const initials =
