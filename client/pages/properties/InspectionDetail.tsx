@@ -429,9 +429,10 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
             </div>
           </SectionCard>
         </div>
+        {/* End of Left Column */}
 
-        {/* Photos */}
-        <div className="w-full">
+        {/* Right Column: Photos */}
+        <div className="flex-1 min-w-0">
           <SectionCard title={`Inspection Photos (${photos.length} total)`}>
             <div className="flex flex-col gap-6">
 
