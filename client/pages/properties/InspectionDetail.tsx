@@ -389,7 +389,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         {/* Left Column: Status Bar + Checklist */}
         <div className="flex-1 min-w-0 flex flex-col gap-6">
           {/* Metadata Bar - Status and Due Date */}
-          <SectionCard padding="none">
+          <SectionCard padding="none" variant="white">
             <InspectionDetailsBarTemplate
               status={status}
               dueDate={inspectionDueDate}
