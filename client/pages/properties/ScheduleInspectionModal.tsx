@@ -93,41 +93,21 @@ export default function ScheduleInspectionModal({
           error={errors.fieldManager}
         />
 
-        <FieldShell
+        <DateField
           label="Monthly Due Date"
+          value={dueDate}
+          onChange={(date) => {
+            setDueDate(date instanceof Date ? date : date ? new Date(date) : null);
+            setErrors((prev) => {
+              const updated = { ...prev };
+              delete updated.dueDate;
+              return updated;
+            });
+          }}
           error={errors.dueDate}
-          htmlFor="due-date"
-        >
-          <Input
-            id="due-date"
-            type="month"
-            value={dueDate}
-            onChange={(e) => {
-              setDueDate(e.target.value);
-              setErrors((prev) => {
-                const updated = { ...prev };
-                delete updated.dueDate;
-                return updated;
-              });
-            }}
-            style={{
-              borderRadius: "8px",
-              backgroundColor: "rgba(255, 255, 255, 1)",
-              borderColor: errors.dueDate ? "#dc2626" : "rgba(229, 229, 229, 1)",
-              borderStyle: "solid",
-              borderWidth: "1px",
-              padding: "8px 12px",
-              fontSize: "16px",
-              fontWeight: 400,
-              letterSpacing: "-0.32px",
-              lineHeight: 1.4,
-              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-              color: "#303030",
-              width: "100%",
-              boxSizing: "border-box",
-            }}
-          />
-        </FieldShell>
+          placeholder="Select a due date"
+          returnFormat="Date"
+        />
 
         <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
           <p>
