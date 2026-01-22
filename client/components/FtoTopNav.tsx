@@ -21,6 +21,7 @@ function ActionsMenuContent({
 
   const items = [
     { value: "home", label: "Home", onSelect: () => onNavigate("/fto") },
+    { value: "inspections", label: "Property Inspections", onSelect: () => onNavigate("/fto/inspections") },
     { value: "settings", label: "Settings", onSelect: () => onClose() },
   ];
 
