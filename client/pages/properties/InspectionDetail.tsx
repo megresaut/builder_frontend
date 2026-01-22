@@ -326,11 +326,25 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     element.innerHTML = htmlContent;
     document.body.appendChild(element);
 
+    // Wait for images to load
+    const images = element.getElementsByTagName("img");
+    const imagePromises = Array.from(images).map((img) => {
+      if (img.complete) return Promise.resolve();
+      return new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve; // Continue even if image fails
+      });
+    });
+
     try {
+      await Promise.all(imagePromises);
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        logging: false
+        logging: false,
+        allowTaint: true,
+        backgroundColor: "#ffffff"
       });
 
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
