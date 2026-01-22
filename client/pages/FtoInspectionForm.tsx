@@ -365,22 +365,13 @@ export default function FtoInspectionForm() {
               {/* Upload Area */}
               {!isReadOnly && (
                 <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-gray-500 uppercase">Associate with Section</label>
-                    <div className="relative">
-                      <select
-                        value={selectedSectionId}
-                        onChange={(e) => setSelectedSectionId(e.target.value)}
-                        className="w-full pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-md text-sm appearance-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                      >
-                        <option value="" disabled>Select a section...</option>
-                        {checklistSections.map((s) => (
-                          <option key={s.id} value={s.id}>{s.text}</option>
-                        ))}
-                      </select>
-                      <ChevronDownIcon width={16} height={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
-                    </div>
-                  </div>
+                  <SelectField
+                    label="Associate with Section"
+                    value={selectedSectionId}
+                    onChange={(value) => setSelectedSectionId(typeof value === 'string' ? value : value[0] || '')}
+                    options={checklistSections.map((s) => ({ value: s.id, label: s.text }))}
+                    placeholder="Select a section..."
+                  />
 
                   <div
                     className={cn(
