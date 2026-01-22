@@ -151,17 +151,27 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     }
 
     if (e.target.files && e.target.files.length > 0) {
-      const newPhotos: InspectionPhoto[] = Array.from(e.target.files).map((file) => ({
-        id: `photo-${Date.now()}-${Math.random()}`,
-        inspectionId: "insp-1",
-        sectionNodeId: selectedSectionId,
-        fileRef: URL.createObjectURL(file),
-        uploadedAt: new Date().toISOString(),
-      }));
-      setPhotos((prev) => [...prev, ...newPhotos]);
-
+      // Store the selected file and open the modal
+      setPendingPhotoFile(e.target.files[0]);
+      setIsPhotoCommentModalOpen(true);
       if (photoInputRef.current) photoInputRef.current.value = "";
     }
+  };
+
+  const handlePhotoCommentSubmit = (file: File, comment: string) => {
+    const newPhoto: InspectionPhoto = {
+      id: `photo-${Date.now()}-${Math.random()}`,
+      inspectionId: "insp-1",
+      sectionNodeId: selectedSectionId,
+      fileRef: URL.createObjectURL(file),
+      uploadedAt: new Date().toISOString(),
+    };
+
+    setPhotos((prev) => [...prev, newPhoto]);
+    setPhotoNotes((prev) => ({
+      ...prev,
+      [newPhoto.id]: comment,
+    }));
   };
 
   const handleRemovePhoto = (photoId: string) => {
