@@ -282,17 +282,17 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
   const actions = [
     {
       label: "View Inspection",
-      icon: <EditIcon width={18} height={18} color="#525252" />,
+      icon: <EditIcon width={18} height={18} />,
       onClick: handleViewInspection,
     },
     {
       label: "Mark as Complete",
-      icon: <ApproveIcon width={18} height={18} color="#059669" />,
+      icon: <ApproveIcon width={18} height={18} />,
       onClick: handleMarkAsComplete,
     },
     {
       label: "Delete Inspection",
-      icon: <DeleteIcon width={18} height={18} color="#982740" />,
+      icon: <DeleteIcon width={18} height={18} />,
       onClick: handleDeleteInspection,
     },
   ];
