@@ -291,28 +291,9 @@ export default function FtoInspections() {
           }
           actions={[
             {
-              label: "View Inspection",
+              label: row => row.status === "Completed" ? "View Inspection" : "Upload Inspection",
               icon: <EditIcon width={18} height={18} color="#525252" />,
               onClick: (row) => navigate(`/fto/inspections/${row.id}`),
-            },
-            {
-              label: "Mark as Complete",
-              icon: <ApproveIcon width={18} height={18} />,
-              onClick: (row) => {
-                // Update inspection status
-                setInspections((prev) =>
-                  prev.map((inspection) =>
-                    inspection.id === row.id
-                      ? { ...inspection, status: "Completed" as const }
-                      : inspection
-                  )
-                );
-
-                // Show success toast
-                toast.showSuccess("Inspection marked as complete", {
-                  message: `${row.property} - ${row.unit} inspection completed successfully`,
-                });
-              },
             },
           ]}
           onRowClick={(row) => navigate(`/fto/inspections/${row.id}`)}
