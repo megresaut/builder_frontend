@@ -271,6 +271,8 @@ export default function FtoInspections() {
                     return <span className="text-gray-900 text-sm">{row.property}</span>;
                   case "unit":
                     return <span className="text-gray-900 text-sm">{row.unit}</span>;
+                  case "inspectionName":
+                    return <span className="text-gray-900 text-sm">{row.inspectionName || "—"}</span>;
                   case "date":
                     return <span className="text-gray-900 text-sm">{formatDate(row.date)}</span>;
                   case "lastUpdated":
