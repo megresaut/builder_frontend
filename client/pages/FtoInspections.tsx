@@ -212,6 +212,11 @@ export default function FtoInspections() {
       icon: <DocumentIcon width={16} height={16} />,
     },
     {
+      key: "inspectionName",
+      label: "Inspection",
+      icon: <DocumentIcon width={16} height={16} />,
+    },
+    {
       key: "date",
       label: "Due Date",
       icon: <CalendarIcon width={16} height={16} />,
