@@ -51,6 +51,14 @@ interface InspectionsProps {
   propertyUnits?: number;
 }
 
+const mockFieldManagers: FieldManager[] = [
+  { id: 1, name: "John Doe", initials: "JD", email: "john.doe@company.com" },
+  { id: 2, name: "Jane Smith", initials: "JS", email: "jane.smith@company.com" },
+  { id: 3, name: "Mike Johnson", initials: "MJ", email: "mike.johnson@company.com" },
+  { id: 4, name: "Sarah Williams", initials: "SW", email: "sarah.williams@company.com" },
+  { id: 5, name: "Robert Brown", initials: "RB", email: "robert.brown@company.com" },
+];
+
 const mockInspections: Inspection[] = [
   {
     id: 1,
