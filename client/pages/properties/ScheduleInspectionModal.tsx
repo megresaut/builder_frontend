@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { SelectField } from "@/components/forms/SelectField";
-import { FieldShell } from "@/components/forms/FieldShell";
-import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/forms/DateField";
 import { FieldManager } from "./Inspections";
 
 interface ScheduleInspectionModalProps {
@@ -19,7 +18,7 @@ export default function ScheduleInspectionModal({
   onConfirm,
 }: ScheduleInspectionModalProps) {
   const [selectedManagerId, setSelectedManagerId] = useState<string>("");
-  const [dueDate, setDueDate] = useState<string>("");
+  const [dueDate, setDueDate] = useState<Date | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Reset form when modal closes
