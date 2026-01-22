@@ -491,8 +491,25 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
               onDueDateChange={handleDueDateChange}
             />
           </SectionCard>
-          <SectionCard title="Inspection Checklist" variant="white">
-            <div className="flex flex-col gap-4">
+          <SectionCard
+            title="Inspection Checklist"
+            variant="white"
+            className={cn(isChecklistFullScreen && "fixed inset-0 z-50 h-screen w-screen rounded-none")}
+            actions={
+              <button
+                onClick={() => setIsChecklistFullScreen(!isChecklistFullScreen)}
+                className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 transition-colors"
+                title={isChecklistFullScreen ? "Exit Full Screen" : "Full Screen"}
+              >
+                {isChecklistFullScreen ? (
+                  <Minimize2 className="w-4 h-4" />
+                ) : (
+                  <Maximize2 className="w-4 h-4" />
+                )}
+              </button>
+            }
+          >
+            <div className={cn("flex flex-col gap-4", isChecklistFullScreen && "h-[calc(100vh-80px)] overflow-y-auto px-4 pb-4")}>
               <div className="flex items-center gap-3 text-xs text-gray-600 pb-3 border-b border-gray-200">
                 <span className="font-medium text-gray-500">Last updated:</span>
                 <PersonAvatarTag
