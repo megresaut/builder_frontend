@@ -197,8 +197,12 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
   // --- Handlers: General ---
 
-  const toggleStatus = () => {
-    setStatus((prev) => (prev === "Draft" ? "Completed" : "Draft"));
+  const handleStatusChange = (newStatus: "In Progress" | "Completed") => {
+    setStatus(newStatus);
+  };
+
+  const handleDueDateChange = (newDate: Date | string | null) => {
+    setInspectionDueDate(newDate);
   };
 
   const handleExportInspection = () => {
