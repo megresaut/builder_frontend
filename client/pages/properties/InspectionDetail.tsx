@@ -100,6 +100,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [nodes, setNodes] = useState<ChecklistNode[]>(getInitialChecklist());
   const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [isChecklistFullScreen, setIsChecklistFullScreen] = useState(false);
   const [status, setStatus] = useState<"In Progress" | "Completed">("In Progress");
   const [inspectionDueDate, setInspectionDueDate] = useState<Date | string | null>(
     inspection?.inspectionDate ? new Date(inspection.inspectionDate) : new Date()
