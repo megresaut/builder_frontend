@@ -611,6 +611,16 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     <>
       {content}
 
+      {/* Photo Comment Modal - For uploading new photos */}
+      <PhotoCommentModal
+        open={isPhotoCommentModalOpen}
+        onOpenChange={setIsPhotoCommentModalOpen}
+        onSubmit={handlePhotoCommentSubmit}
+        title="Add Photo"
+        submitLabel="Upload Photo"
+        initialFile={pendingPhotoFile}
+      />
+
       {/* Photo Viewer Modal */}
       {selectedPhotoForModal && (
         <PhotoViewerModal
