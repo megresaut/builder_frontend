@@ -299,6 +299,29 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       {/* Content - Dynamic layout with items-start for flexible sizing */}
       <div className="flex flex-col gap-6 w-full">
 
+        {/* Field Team Assignees */}
+        <div className="w-full">
+          <SectionCard title="Field Team Assignees">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
+                  {inspection?.inspector?.initials || "—"}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <div className="text-sm font-semibold text-gray-900">
+                    {inspection?.inspector?.name || "Unassigned"}
+                  </div>
+                  {inspection?.inspector?.email && (
+                    <div className="text-xs text-gray-600">
+                      {inspection.inspector.email}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+        </div>
+
         {/* Checklist */}
         <div className="w-full">
           <SectionCard title="Inspection Checklist">
