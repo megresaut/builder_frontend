@@ -346,11 +346,11 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         </div>
       </div>
 
-      {/* Two-Column Layout: Left (Checklist) and Right (Assignees + Photos) */}
+      {/* Two-Column Layout: Left (Checklist) and Right (Photos + Assignees) */}
       <div className="flex flex-col lg:flex-row gap-6 w-full">
 
         {/* Left Column: Status Bar + Checklist */}
-        <div className="flex-1 min-w-0 max-w-2xl flex flex-col gap-6">
+        <div className="flex-1 min-w-0 flex flex-col gap-6">
           {/* Metadata Bar - Status and Due Date */}
           <SectionCard padding="none" variant="gray">
             <InspectionDetailsBarTemplate
