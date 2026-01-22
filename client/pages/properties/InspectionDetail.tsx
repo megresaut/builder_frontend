@@ -24,9 +24,8 @@ import {
   MOCK_CHECKLIST_NODES,
 } from "@/data/inspection-checklist";
 import { DEFAULT_INSPECTION_TEMPLATES } from "@/data/inspections";
-
-// @ts-ignore - html2pdf is available but not fully typed
-import html2pdf from "html2pdf.js";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 interface InspectionDetailProps {
   isNew?: boolean;
@@ -274,16 +273,22 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     setInspectionDueDate(newDate);
   };
 
-  const handleExportInspection = () => {
+  const handleExportInspection = async () => {
     const dueDate = inspectionDueDate instanceof Date
       ? inspectionDueDate.toLocaleDateString()
       : inspectionDueDate;
 
     // Create a temporary DOM element for the PDF content
     const element = document.createElement("div");
+    element.style.width = "210mm";
+    element.style.minHeight = "297mm";
     element.style.padding = "20px";
     element.style.fontFamily = "Arial, sans-serif";
     element.style.color = "#333";
+    element.style.background = "#ffffff";
+    element.style.position = "absolute";
+    element.style.left = "-9999px";
+    element.style.top = "0";
 
     // Build HTML content
     let htmlContent = `
@@ -319,24 +324,49 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     }
 
     element.innerHTML = htmlContent;
-
-    // Convert HTML to PDF
-    const filename = `inspection-${new Date().toISOString().split("T")[0]}.pdf`;
-
-    const options = {
-      margin: 10,
-      filename: filename,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { orientation: "portrait", unit: "mm", format: "a4" },
-    };
+    document.body.appendChild(element);
 
     try {
-      // @ts-ignore - html2pdf types are incomplete
-      html2pdf().set(options).from(element).save();
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      // Add subsequent pages if needed
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      const filename = `inspection-${new Date().toISOString().split("T")[0]}.pdf`;
+      pdf.save(filename);
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
+    } finally {
+      document.body.removeChild(element);
     }
   };
 
