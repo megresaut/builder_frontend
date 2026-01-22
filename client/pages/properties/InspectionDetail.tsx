@@ -421,14 +421,14 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       let position = 0;
 
       // Add first page
-      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
       heightLeft -= pdfHeight;
 
       // Add subsequent pages if needed
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pdfHeight;
       }
 
