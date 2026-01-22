@@ -310,15 +310,6 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
 
     return (
       <div className="flex flex-col gap-6 w-full">
-        {/* Back Button */}
-        <button
-          onClick={() => setSelectedInspectionId(null)}
-          className="flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700 transition-colors"
-        >
-          <ArrowBackIcon width={16} height={16} />
-          Back to Inspections
-        </button>
-
         {/* Inspection Detail - Inline */}
         <InspectionDetail
           inspectionId={selectedInspectionId}
