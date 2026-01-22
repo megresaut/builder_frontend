@@ -3,7 +3,7 @@ import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { SelectField } from "@/components/forms/SelectField";
 import { DateField } from "@/components/forms/DateField";
 import { ComboboxFieldWithCustomInput } from "@/components/forms/ComboboxFieldWithCustomInput";
-import { DEFAULT_INSPECTION_TEMPLATES } from "@/data/inspection-checklist";
+import { DEFAULT_INSPECTION_TEMPLATES } from "@/data/inspections";
 import { FieldManager } from "./Inspections";
 
 interface ScheduleInspectionModalProps {
