@@ -541,7 +541,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           />
 
           {/* Inspection Photos */}
-          <SectionCard title={`Inspection Photos (${photos.length} total)`}>
+          <SectionCard title={`Inspection Photos (${photos.length} total)`} variant="white">
             <div className="flex flex-col gap-6">
 
               {/* Upload Controls - Always visible */}
