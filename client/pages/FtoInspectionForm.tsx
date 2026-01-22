@@ -59,6 +59,7 @@ export default function FtoInspectionForm() {
   const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [isChecklistFullScreen, setIsChecklistFullScreen] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{
     date?: string;
     property?: string;
