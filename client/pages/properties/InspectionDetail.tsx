@@ -487,8 +487,22 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         </div>
         {/* End of Left Column */}
 
-        {/* Right Column: Photos + Assignees */}
+        {/* Right Column: Assignees + Photos */}
         <div className="w-full lg:w-80 flex-shrink-0 flex flex-col gap-6">
+          {/* Field Team Assignees */}
+          <InspectionAssignees
+            fieldTeam={inspection?.inspector ? [
+              {
+                id: inspection.inspector.id,
+                name: inspection.inspector.name,
+                initials: inspection.inspector.initials,
+                email: inspection.inspector.email || "",
+                title: "Field Manager",
+                type: "fieldManager",
+              }
+            ] : []}
+          />
+
           {/* Inspection Photos */}
           <SectionCard title={`Inspection Photos (${photos.length} total)`}>
             <div className="flex flex-col gap-6">
