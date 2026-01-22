@@ -308,57 +308,20 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         </p>
       </div>
 
-      {/* Metadata Bar - Status and Due Date */}
-      <SectionCard padding="none" variant="gray">
-        <InspectionDetailsBarTemplate
-          status={status}
-          dueDate={inspectionDueDate}
-          onStatusChange={handleStatusChange}
-          onDueDateChange={handleDueDateChange}
-        />
-      </SectionCard>
-
-      {/* Field Team Assignees */}
-      <InspectionAssignees
-        fieldTeam={inspection?.inspector ? [
-          {
-            name: inspection.inspector.name,
-            initials: inspection.inspector.initials,
-            email: inspection.inspector.email || "",
-            title: "Field Manager",
-            avatar: undefined,
-          }
-        ] : []}
-      />
-
-      {/* Edit and Export Controls */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className={cn(
-            "px-4 py-2 border rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
-            isEditing
-              ? "bg-gray-100 border-gray-300 text-gray-900"
-              : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-          )}
-        >
-          <EditIcon width={16} height={16} className="text-current" />
-          {isEditing ? "Done Editing" : "Edit Checklist"}
-        </button>
-        <button
-          onClick={handleExportInspection}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors flex items-center gap-2"
-        >
-          <DownloadIcon width={16} height={16} className="text-gray-500" />
-          Export
-        </button>
-      </div>
-
-      {/* Two-Column Layout: Checklist (left) and Photos (right) */}
+      {/* Two-Column Layout: Left (Checklist) and Right (Assignees + Photos) */}
       <div className="flex flex-col lg:flex-row gap-6 w-full">
 
-        {/* Left Column: Checklist */}
-        <div className="flex-1 min-w-0">
+        {/* Left Column: Status Bar + Checklist */}
+        <div className="flex-1 min-w-0 flex flex-col gap-6">
+          {/* Metadata Bar - Status and Due Date */}
+          <SectionCard padding="none" variant="gray">
+            <InspectionDetailsBarTemplate
+              status={status}
+              dueDate={inspectionDueDate}
+              onStatusChange={handleStatusChange}
+              onDueDateChange={handleDueDateChange}
+            />
+          </SectionCard>
           <SectionCard title="Inspection Checklist">
             <div className="flex flex-col gap-4">
               {/* Last Updated Meta */}
