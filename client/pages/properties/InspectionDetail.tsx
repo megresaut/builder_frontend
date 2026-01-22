@@ -5,6 +5,7 @@ import SectionCard from "@/components/SectionCard";
 import BlueButton from "@/components/BlueButton";
 import InspectionAssignees from "@/components/InspectionAssignees";
 import { InspectionDetailsBarTemplate } from "@/components/templates";
+import PhotoCommentModal from "@/components/PhotoCommentModal";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   PlusIcon,
