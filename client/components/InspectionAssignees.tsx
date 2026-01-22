@@ -20,8 +20,8 @@ export const InspectionAssignees: React.FC<InspectionAssigneesProps> = ({
 }) => {
   return (
     <SectionCard variant={variant} title="Field Team Assignees">
-      <div className="flex flex-col w-full gap-4">
-        <div className="w-full" />
+      <div className="flex flex-col w-full">
+        <div className="h-px bg-[#e5e5e5] w-full mb-3" />
         <PeopleSubsection
           label=""
           mode="rows"
