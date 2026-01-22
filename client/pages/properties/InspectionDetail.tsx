@@ -294,9 +294,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     `;
 
     // Convert HTML to PDF
-    const element = document.createElement("div");
-    element.innerHTML = htmlContent;
-
     const filename = `inspection-${new Date().toISOString().split("T")[0]}.pdf`;
 
     const options = {
@@ -307,6 +304,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       jsPDF: { orientation: "portrait", unit: "mm", format: "a4" },
     };
 
+    // @ts-ignore - html2pdf types are incomplete
     html2pdf().set(options).from(htmlContent).save();
   };
 
