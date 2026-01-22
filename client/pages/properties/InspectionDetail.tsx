@@ -32,6 +32,7 @@ interface InspectionDetailProps {
   isInline?: boolean;
   inspectionId?: number;
   inspection?: any;
+  templateName?: string;
   onBack?: () => void;
 }
 
