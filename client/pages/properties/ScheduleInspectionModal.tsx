@@ -39,6 +39,9 @@ export default function ScheduleInspectionModal({
   const handleConfirm = () => {
     const newErrors: Record<string, string> = {};
 
+    if (!inspectionName.trim()) {
+      newErrors.inspectionName = "Please enter an inspection name";
+    }
     if (!selectedTemplate) {
       newErrors.template = "Please select or create a template";
     }
@@ -61,7 +64,7 @@ export default function ScheduleInspectionModal({
     if (selectedManager && dueDate) {
       // Convert date to full date format (e.g., "Nov 15, 2025")
       const fullDate = dueDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-      onConfirm(selectedManager, fullDate, selectedTemplate);
+      onConfirm(selectedManager, fullDate, selectedTemplate, inspectionName);
     }
   };
 
