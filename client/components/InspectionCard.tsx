@@ -85,7 +85,7 @@ export default function InspectionCard({
         <BlueButton
           icon={<EditIcon width={16} height={16} className="brightness-0 invert" />}
           onClick={handleActionClick}
-          className="h-10 px-4 text-sm w-full"
+          className="h-10 px-4 text-sm"
         >
           {actionLabel}
         </BlueButton>
