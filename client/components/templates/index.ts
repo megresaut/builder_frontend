@@ -9,6 +9,7 @@ export { NotesTemplate } from "./NotesTemplate";
 export { FilesTemplate } from "./FilesTemplate";
 export { DataSectionTemplate } from "./DataSectionTemplate";
 export { TaskDetailsBarTemplate } from "./TaskDetailsBarTemplate";
+export { InspectionDetailsBarTemplate } from "./InspectionDetailsBarTemplate";
 
 export type { KeyValueCell } from "./KeyValueGrid";
 export type { Note } from "./NotesTemplate";
