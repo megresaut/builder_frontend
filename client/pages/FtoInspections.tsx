@@ -43,6 +43,15 @@ const getMonthFromDate = (dateStr: string): string => {
   }
 };
 
+const formatDate = (dateStr: string): string => {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleString("default", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return "";
+  }
+};
+
 const mockInspections: InspectionRecord[] = [
   {
     id: 1,
