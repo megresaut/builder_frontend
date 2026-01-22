@@ -219,14 +219,6 @@ export default function FtoInspections() {
               Property Inspections
             </h1>
           }
-          rightContent={
-            <BlueButton
-              icon={<PlusIcon width={16} height={16} />}
-              onClick={() => navigate("/fto/inspections/new")}
-            >
-              New Inspection
-            </BlueButton>
-          }
         />
 
         {/* Desktop Table View */}
