@@ -70,6 +70,7 @@ export default function FtoTopNav() {
   const [open, setOpen] = useState(false);
 
   const isHome = location.pathname === "/fto" || location.pathname === "/fto/";
+  const isInspections = location.pathname.includes("/fto/inspections");
 
   const handleNavigate = (path: string) => {
     navigate(path);
