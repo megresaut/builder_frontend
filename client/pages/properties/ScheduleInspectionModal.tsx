@@ -94,6 +94,27 @@ export default function ScheduleInspectionModal({
       }
     >
       <div className="flex flex-col gap-6">
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-2 block">Inspection Name</label>
+          <input
+            type="text"
+            value={inspectionName}
+            onChange={(e) => {
+              setInspectionName(e.target.value);
+              setErrors((prev) => {
+                const updated = { ...prev };
+                delete updated.inspectionName;
+                return updated;
+              });
+            }}
+            placeholder="e.g., Monthly Building Inspection"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-normal focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          />
+          {errors.inspectionName && (
+            <p className="text-red-600 text-xs mt-1">{errors.inspectionName}</p>
+          )}
+        </div>
+
         <ComboboxFieldWithCustomInput
           label="Inspection Template"
           options={templateOptions}
