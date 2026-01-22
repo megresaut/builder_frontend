@@ -364,18 +364,12 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
             <DownloadIcon width={16} height={16} className="text-gray-500" />
             Export
           </button>
-          <button
+          <BlueButton
             onClick={() => setIsEditing(!isEditing)}
-            className={cn(
-              "px-4 py-2 border rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
-              isEditing
-                ? "bg-blue-700 border-blue-700 text-white hover:bg-blue-800"
-                : "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
-            )}
+            icon={<EditIcon width={16} height={16} />}
           >
-            <EditIcon width={16} height={16} className="text-current" />
             {isEditing ? "Done Editing" : "Edit Checklist"}
-          </button>
+          </BlueButton>
         </div>
       </div>
 
