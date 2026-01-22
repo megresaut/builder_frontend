@@ -258,13 +258,13 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     );
   }, []);
 
-  const handleScheduleInspection = useCallback((fieldManager: FieldManager, fullDate: string, templateName: string) => {
+  const handleScheduleInspection = useCallback((fieldManager: FieldManager, fullDate: string, templateName: string, inspectionName: string) => {
     const newId = Math.max(...inspectionsList.map(i => i.id), 0) + 1;
     const today = new Date().toLocaleDateString();
 
     const newInspection: Inspection = {
       id: newId,
-      name: `${fullDate} Inspection`,
+      name: inspectionName,
       inspector: fieldManager,
       inspectionDate: fullDate,
       submitted: "",
