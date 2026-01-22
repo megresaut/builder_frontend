@@ -389,7 +389,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         {/* Left Column: Status Bar + Checklist */}
         <div className="flex-1 min-w-0 flex flex-col gap-6">
           {/* Metadata Bar - Status and Due Date */}
-          <SectionCard padding="none" variant="gray">
+          <SectionCard padding="none">
             <InspectionDetailsBarTemplate
               status={status}
               dueDate={inspectionDueDate}
@@ -397,7 +397,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
               onDueDateChange={handleDueDateChange}
             />
           </SectionCard>
-          <SectionCard title="Inspection Checklist">
+          <SectionCard title="Inspection Checklist" variant="white">
             <div className="flex flex-col gap-4">
               {/* Last Updated Meta */}
               <div className="text-xs text-gray-600 pb-3 border-b border-gray-200">
