@@ -121,9 +121,9 @@ export default function FtoTopNav() {
         {/* Right: Add Button & Menu */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
-            onClick={() => navigate("/fto/submission")}
+            onClick={() => navigate(isInspections ? "/fto/inspections/new" : "/fto/submission")}
             className="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-gray-700"
-            title="Add new order"
+            title={isInspections ? "Add new inspection" : "Add new order"}
           >
             <svg
               width="20"
