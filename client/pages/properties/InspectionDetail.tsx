@@ -4,6 +4,7 @@ import PageTemplate from "@/layout/PageTemplate";
 import SectionCard from "@/components/SectionCard";
 import BlueButton from "@/components/BlueButton";
 import InspectionAssignees from "@/components/InspectionAssignees";
+import PersonAvatars from "@/components/PersonAvatars";
 import { InspectionDetailsBarTemplate } from "@/components/templates";
 import PhotoCommentModal from "@/components/PhotoCommentModal";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
