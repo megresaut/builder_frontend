@@ -278,6 +278,31 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       ? inspectionDueDate.toLocaleDateString()
       : inspectionDueDate;
 
+    // Helper to convert Blob URL to Base64
+    const blobUrlToBase64 = async (blobUrl: string): Promise<string> => {
+      try {
+        const response = await fetch(blobUrl);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        console.error("Error converting blob to base64", e);
+        return "";
+      }
+    };
+
+    // Pre-process photos to convert Blob URLs to Base64
+    const photosWithBase64 = await Promise.all(
+      photos.map(async (photo) => {
+        const base64 = await blobUrlToBase64(photo.fileRef);
+        return { ...photo, base64 };
+      })
+    );
+
     // Create a temporary DOM element for the PDF content
     const element = document.createElement("div");
     element.style.width = "210mm";
@@ -303,15 +328,18 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       </div>
     `;
 
-    if (photos.length > 0) {
-      htmlContent += `<h2 style="color: #505050; margin-top: 20px; margin-bottom: 10px; font-size: 16px;">Photos (${photos.length})</h2>`;
+    if (photosWithBase64.length > 0) {
+      htmlContent += `<h2 style="color: #505050; margin-top: 20px; margin-bottom: 10px; font-size: 16px;">Photos (${photosWithBase64.length})</h2>`;
       htmlContent += `<div style="margin-top: 20px;">`;
 
-      photos.forEach(photo => {
+      photosWithBase64.forEach(photo => {
         const section = sections.find(s => s.id === photo.sectionNodeId);
         htmlContent += `
           <div style="margin-bottom: 20px; border: 1px solid #e0e0e0; padding: 12px; border-radius: 4px; page-break-inside: avoid;">
             <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px;">Section: ${section?.text || "Unknown"}</div>
+            <div style="display: flex; justify-content: center; margin: 10px 0;">
+              ${photo.base64 ? `<img src="${photo.base64}" style="max-width: 100%; max-height: 400px; object-fit: contain;" />` : `<div style="padding: 20px; background: #eee; text-align: center;">Image load error</div>`}
+            </div>
             <div style="font-size: 11px; color: #666; margin: 8px 0;">📷 ${new Date(photo.uploadedAt).toLocaleString()}</div>
             ${photoNotes[photo.id] ? `<div style="font-size: 11px; color: #333; margin-top: 8px; white-space: pre-wrap; padding-top: 8px; border-top: 1px solid #eee;">Comment: ${photoNotes[photo.id]}</div>` : ""}
           </div>
@@ -326,7 +354,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     element.innerHTML = htmlContent;
     document.body.appendChild(element);
 
-    // Wait for images to load
+    // Wait for images to load (now they are base64, but technically still async decoding)
     const images = element.getElementsByTagName("img");
     const imagePromises = Array.from(images).map((img) => {
       if (img.complete) return Promise.resolve();
