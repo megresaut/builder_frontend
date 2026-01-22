@@ -3,11 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SectionCard from "@/components/SectionCard";
 import BlueButton from "@/components/BlueButton";
+import InspectionAssignees from "@/components/InspectionAssignees";
+import { InspectionDetailsBarTemplate } from "@/components/templates";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   PlusIcon,
   DeleteIcon,
-  ApproveIcon,
   EditIcon,
   ArrowBackIcon,
   ArrowForwardIcon,
