@@ -298,14 +298,39 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const content = (
     <div className="flex flex-col gap-6 w-full font-['Geist',sans-serif]">
 
-      {/* Page Title */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-          Inspection
-        </h1>
-        <p className="text-[#717179] font-medium text-base">
-          22 Indian Chase Dr
-        </p>
+      {/* Page Title + Controls */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+            Inspection
+          </h1>
+          <p className="text-[#717179] font-medium text-base">
+            22 Indian Chase Dr
+          </p>
+        </div>
+
+        {/* Header Controls */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className={cn(
+              "px-4 py-2 border rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
+              isEditing
+                ? "bg-gray-100 border-gray-300 text-gray-900"
+                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+            )}
+          >
+            <EditIcon width={16} height={16} className="text-current" />
+            {isEditing ? "Done Editing" : "Edit Checklist"}
+          </button>
+          <button
+            onClick={handleExportInspection}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors flex items-center gap-2"
+          >
+            <DownloadIcon width={16} height={16} className="text-gray-500" />
+            Export
+          </button>
+        </div>
       </div>
 
       {/* Two-Column Layout: Left (Checklist) and Right (Assignees + Photos) */}
