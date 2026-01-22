@@ -391,14 +391,21 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       await Promise.all(imagePromises);
 
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 4,
         useCORS: true,
         logging: false,
         allowTaint: true,
-        backgroundColor: "#ffffff"
+        backgroundColor: "#ffffff",
+        imageTimeout: 0,
+        onclone: (clonedDocument) => {
+          const clonedElement = clonedDocument.body.querySelector('div');
+          if (clonedElement) {
+            clonedElement.style.transform = 'scale(1)';
+          }
+        }
       });
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
