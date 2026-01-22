@@ -399,12 +399,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           </SectionCard>
           <SectionCard title="Inspection Checklist">
             <div className="flex flex-col gap-4">
-              {/* Template Name */}
-              {templateName && (
-                <div className="text-xs text-gray-600 pb-3 border-b border-gray-200">
-                  <span className="font-medium">Template:</span> {templateName}
-                </div>
-              )}
               {/* Last Updated Meta */}
               <div className="text-xs text-gray-600 pb-3 border-b border-gray-200">
                 <span className="font-medium">Last updated by Property Manager:</span> {lastUpdatedBy} on {lastUpdated}
