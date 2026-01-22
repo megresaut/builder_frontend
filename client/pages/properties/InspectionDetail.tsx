@@ -349,7 +349,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         const section = sections.find(s => s.id === sectionId);
         htmlContent += `
           <div style="margin-bottom: 16px;">
-            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; background-color: #f0f4ff; padding: 6px 8px; border-radius: 3px;">Section: ${section?.text || "Unknown"}</div>
+            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; background-color: #f0f4ff; padding: 8px 12px; border-radius: 3px; text-align: center; display: flex; align-items: center; justify-content: center; min-height: 24px;">Section: ${section?.text || "Unknown"}</div>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
         `;
 
