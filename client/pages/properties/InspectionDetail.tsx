@@ -597,7 +597,7 @@ function PhotoViewerModal({
       onClick={() => onOpenChange(false)}
     >
       <div
-        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col"
+        className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -616,26 +616,25 @@ function PhotoViewerModal({
           </button>
         </div>
 
-        {/* Image and Note Container */}
-        <div className="flex-1 flex gap-4 overflow-hidden p-4">
-          <div className="flex-1 flex items-center justify-center bg-gray-50 rounded">
-            <img
-              src={photo.fileRef}
-              alt="Inspection"
-              className="max-h-full max-w-full object-contain shadow-sm"
-            />
-          </div>
+        {/* Image Container */}
+        <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-hidden p-4">
+          <img
+            src={photo.fileRef}
+            alt="Inspection"
+            className="max-h-full max-w-full object-contain shadow-sm"
+          />
+        </div>
 
-          {/* Note Section */}
-          <div className="w-64 flex flex-col gap-2">
-            <label className="text-sm font-semibold text-gray-900">Photo Notes</label>
-            <textarea
-              value={note}
-              onChange={(e) => onNoteChange(e.target.value)}
-              placeholder="Add notes about this photo..."
-              className="flex-1 p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+        {/* Notes Section */}
+        <div className="border-t border-gray-200 p-4 bg-white">
+          <label className="text-sm font-semibold text-gray-900 mb-2 block">Notes</label>
+          <textarea
+            value={note}
+            onChange={(e) => onNoteChange(e.target.value)}
+            placeholder="Add notes or comments about this photo..."
+            className="w-full p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            rows={3}
+          />
         </div>
 
         {/* Footer with Navigation */}
