@@ -322,6 +322,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
           inspectionId={selectedInspectionId}
           inspection={selectedInspection}
           isInline={true}
+          templateName={selectedInspection?.templateName}
           onBack={() => setSelectedInspectionId(null)}
         />
       </div>
