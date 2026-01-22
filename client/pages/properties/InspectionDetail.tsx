@@ -4,8 +4,7 @@ import PageTemplate from "@/layout/PageTemplate";
 import SectionCard from "@/components/SectionCard";
 import BlueButton from "@/components/BlueButton";
 import InspectionAssignees from "@/components/InspectionAssignees";
-import PersonAvatars from "@/components/PersonAvatars";
-import { InspectionDetailsBarTemplate } from "@/components/templates";
+import { InspectionDetailsBarTemplate, PersonAvatarTag } from "@/components/templates";
 import PhotoCommentModal from "@/components/PhotoCommentModal";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
@@ -398,18 +397,17 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3 text-xs text-gray-600 pb-3 border-b border-gray-200">
                 <span className="font-medium text-gray-500">Last updated:</span>
-                <PersonAvatars
-                  people={[{
+                <PersonAvatarTag
+                  person={{
                     name: lastUpdatedBy,
                     initials: "JS",
                     id: "manager",
                     email: "jerry.sanchez@example.com",
                     phone: "(555) 123-4567",
                     title: "Field Manager"
-                  }]}
+                  }}
                   type="assignee"
                   size="sm"
-                  fallback={lastUpdatedBy}
                   className="mt-0"
                 />
                 <span className="text-gray-500">{lastUpdated}</span>
