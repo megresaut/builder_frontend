@@ -258,7 +258,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     );
   }, []);
 
-  const handleScheduleInspection = useCallback((fieldManager: FieldManager, fullDate: string) => {
+  const handleScheduleInspection = useCallback((fieldManager: FieldManager, fullDate: string, templateName: string) => {
     const newId = Math.max(...inspectionsList.map(i => i.id), 0) + 1;
     const today = new Date().toLocaleDateString();
 
@@ -272,6 +272,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
       issues: 0,
       photos: 0,
       updated: today,
+      templateName,
     };
 
     setInspectionsList((prev) => [newInspection, ...prev]);
