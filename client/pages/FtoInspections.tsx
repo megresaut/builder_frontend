@@ -181,12 +181,12 @@ export default function FtoInspections() {
     },
     {
       key: "date",
-      label: "Date",
+      label: "Inspection Date",
       icon: <CalendarIcon width={16} height={16} />,
     },
     {
       key: "month",
-      label: "Month",
+      label: "Inspection Month",
       icon: <CalendarIcon width={16} height={16} />,
     },
     {
