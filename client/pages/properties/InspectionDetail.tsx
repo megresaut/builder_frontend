@@ -562,7 +562,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                 <div
                   className={cn(
                     "border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
-                    !selectedSectionId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-white bg-gray-50"
+                    !selectedSectionId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-gray-50 bg-white"
                   )}
                   onClick={() => {
                     if (selectedSectionId) photoInputRef.current?.click();
