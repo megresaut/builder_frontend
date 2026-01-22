@@ -590,6 +590,20 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
             </div>
           </SectionCard>
+
+          {/* Field Team Assignees */}
+          <InspectionAssignees
+            fieldTeam={inspection?.inspector ? [
+              {
+                id: inspection.inspector.id,
+                name: inspection.inspector.name,
+                initials: inspection.inspector.initials,
+                email: inspection.inspector.email || "",
+                title: "Field Manager",
+                type: "fieldManager",
+              }
+            ] : []}
+          />
         </div>
 
       </div>
