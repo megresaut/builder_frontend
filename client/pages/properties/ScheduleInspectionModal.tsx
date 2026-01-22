@@ -105,7 +105,7 @@ export default function ScheduleInspectionModal({
             });
           }}
           error={errors.dueDate}
-          placeholder="Select a due date"
+          placeholder="Select a Due Date"
           returnFormat="Date"
         />
       </div>
