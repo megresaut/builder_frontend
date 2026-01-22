@@ -546,7 +546,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
             <div className="flex flex-col gap-6">
 
               {/* Upload Controls - Always visible */}
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3">
+              <div className="p-4 bg-white border border-gray-200 rounded-lg flex flex-col gap-3">
                 <SelectField
                   label="Associate with Section"
                   value={selectedSectionId}
