@@ -689,6 +689,7 @@ interface PhotoViewerModalProps {
   totalPhotos: number;
   note: string;
   onNoteChange: (note: string) => void;
+  sectionName?: string;
 }
 
 function PhotoViewerModal({
@@ -701,6 +702,7 @@ function PhotoViewerModal({
   totalPhotos,
   note,
   onNoteChange,
+  sectionName,
 }: PhotoViewerModalProps) {
   if (!open) return null;
 
