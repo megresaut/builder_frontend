@@ -721,15 +721,20 @@ function PhotoViewerModal({
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-gray-900">Photo Viewer</h2>
-            <span className="text-sm text-gray-500">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-gray-900">Photo Viewer</h2>
+              {sectionName && (
+                <p className="text-sm text-gray-600 mt-1">Section: <span className="font-medium text-blue-600">{sectionName}</span></p>
+              )}
+            </div>
+            <span className="text-sm text-gray-500 flex-shrink-0 ml-auto">
               {photoIndex + 1} of {totalPhotos}
             </span>
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="text-gray-400 hover:text-gray-600 transition-colors text-2xl leading-none"
+            className="text-gray-400 hover:text-gray-600 transition-colors text-2xl leading-none ml-2 flex-shrink-0"
           >
             ×
           </button>
