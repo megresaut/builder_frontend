@@ -334,16 +334,39 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     if (photosWithBase64.length > 0) {
       htmlContent += `<h2 style="color: #505050; margin: 12px 0 8px 0; font-size: 14px; font-weight: bold; page-break-after: avoid;">Photos (${photosWithBase64.length})</h2>`;
 
+      // Group photos by section
+      const photosBySection: Record<string, typeof photosWithBase64> = {};
       photosWithBase64.forEach(photo => {
-        const section = sections.find(s => s.id === photo.sectionNodeId);
+        const sectionId = photo.sectionNodeId;
+        if (!photosBySection[sectionId]) {
+          photosBySection[sectionId] = [];
+        }
+        photosBySection[sectionId].push(photo);
+      });
+
+      // Render each section with its photos in a 4-column grid
+      Object.entries(photosBySection).forEach(([sectionId, sectionPhotos]) => {
+        const section = sections.find(s => s.id === sectionId);
         htmlContent += `
-          <div style="margin-bottom: 12px; border: 1px solid #ddd; padding: 8px; border-radius: 3px; page-break-inside: avoid;">
-            <div style="font-weight: bold; font-size: 11px; color: #0066cc; margin-bottom: 6px;">Section: ${section?.text || "Unknown"}</div>
-            <div style="display: flex; justify-content: center; margin: 6px 0; background: #fafafa; padding: 4px; border-radius: 2px;">
-              ${photo.base64 ? `<img src="${photo.base64}" style="max-width: 100%; max-height: 350px; object-fit: contain;" />` : `<div style="padding: 12px; color: #999; font-size: 10px;">Image load error</div>`}
+          <div style="margin-bottom: 16px;">
+            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; background-color: #f0f4ff; padding: 6px 8px; border-radius: 3px;">Section: ${section?.text || "Unknown"}</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+        `;
+
+        sectionPhotos.forEach(photo => {
+          htmlContent += `
+            <div style="display: flex; flex-direction: column; border: 1px solid #ddd; padding: 4px; border-radius: 3px; background: #fafafa;">
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 120px; margin-bottom: 4px; border-radius: 2px; overflow: hidden;">
+                ${photo.base64 ? `<img src="${photo.base64}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />` : `<div style="padding: 8px; color: #999; font-size: 9px; text-align: center;">Image error</div>`}
+              </div>
+              <div style="font-size: 8px; color: #666; line-height: 1.2; text-align: center;">📷 ${new Date(photo.uploadedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+              ${photoNotes[photo.id] ? `<div style="font-size: 7px; color: #555; margin-top: 4px; padding-top: 4px; border-top: 1px solid #eee; line-height: 1.3; white-space: pre-wrap; overflow: hidden; text-overflow: ellipsis; max-height: 40px;">💬 ${photoNotes[photo.id].substring(0, 50)}${photoNotes[photo.id].length > 50 ? "..." : ""}</div>` : ""}
             </div>
-            <div style="font-size: 10px; color: #666; margin: 4px 0; line-height: 1.3;">📷 ${new Date(photo.uploadedAt).toLocaleString()}</div>
-            ${photoNotes[photo.id] ? `<div style="font-size: 10px; color: #333; margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee; line-height: 1.4; white-space: pre-wrap;">Comment: ${photoNotes[photo.id]}</div>` : ""}
+          `;
+        });
+
+        htmlContent += `
+            </div>
           </div>
         `;
       });
