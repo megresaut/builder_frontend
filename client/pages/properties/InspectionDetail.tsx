@@ -279,55 +279,46 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       ? inspectionDueDate.toLocaleDateString()
       : inspectionDueDate;
 
-    // Create HTML for PDF - metadata and photos only (no checklist)
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; color: #333; margin: 20px; }
-          h1 { color: #303030; margin-bottom: 10px; }
-          h2 { color: #505050; margin-top: 20px; margin-bottom: 10px; font-size: 16px; }
-          .metadata { background-color: #f5f5f5; padding: 12px; margin-bottom: 20px; border-radius: 5px; }
-          .metadata-item { margin: 6px 0; font-size: 12px; }
-          .metadata-label { font-weight: bold; }
-          .photos-section { margin-top: 20px; }
-          .photo-item { margin-bottom: 20px; page-break-inside: avoid; border: 1px solid #e0e0e0; padding: 12px; border-radius: 4px; }
-          .photo-label { font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; }
-          .photo-timestamp { font-size: 11px; color: #666; margin: 8px 0; }
-          .photo-note { font-size: 11px; color: #333; margin-top: 8px; white-space: pre-wrap; padding-top: 8px; border-top: 1px solid #eee; }
-        </style>
-      </head>
-      <body>
-        <h1>Inspection Report</h1>
-        <div class="metadata">
-          <div class="metadata-item"><span class="metadata-label">Property:</span> 22 Indian Chase Dr</div>
-          <div class="metadata-item"><span class="metadata-label">Inspection Due Date:</span> ${dueDate}</div>
-          <div class="metadata-item"><span class="metadata-label">Field Manager:</span> ${inspection?.inspector?.name || "Unassigned"}</div>
-          <div class="metadata-item"><span class="metadata-label">Uploaded By:</span> ${uploadedBy}</div>
-          <div class="metadata-item"><span class="metadata-label">Uploaded At:</span> ${uploadedAt}</div>
-          <div class="metadata-item"><span class="metadata-label">Last Updated:</span> ${lastUpdated} by ${lastUpdatedBy}</div>
-        </div>
+    // Create a temporary DOM element for the PDF content
+    const element = document.createElement("div");
+    element.style.padding = "20px";
+    element.style.fontFamily = "Arial, sans-serif";
+    element.style.color = "#333";
 
-        ${photos.length > 0 ? `
-          <h2>Photos (${photos.length})</h2>
-          <div class="photos-section">
-            ${photos.map(photo => {
-              const section = sections.find(s => s.id === photo.sectionNodeId);
-              return `
-                <div class="photo-item">
-                  <div class="photo-label">Section: ${section?.text || "Unknown"}</div>
-                  <div class="photo-timestamp">📷 ${new Date(photo.uploadedAt).toLocaleString()}</div>
-                  ${photoNotes[photo.id] ? `<div class="photo-note">Comment: ${photoNotes[photo.id]}</div>` : ""}
-                </div>
-              `;
-            }).join("")}
-          </div>
-        ` : `<p style="color: #999; font-style: italic;">No photos uploaded for this inspection.</p>`}
-      </body>
-      </html>
+    // Build HTML content
+    let htmlContent = `
+      <h1 style="color: #303030; margin-bottom: 10px; margin-top: 0;">Inspection Report</h1>
+      <div style="background-color: #f5f5f5; padding: 12px; margin-bottom: 20px; border-radius: 5px;">
+        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Property:</span> 22 Indian Chase Dr</div>
+        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Inspection Due Date:</span> ${dueDate}</div>
+        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Field Manager:</span> ${inspection?.inspector?.name || "Unassigned"}</div>
+        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Uploaded By:</span> ${uploadedBy}</div>
+        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Uploaded At:</span> ${uploadedAt}</div>
+        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Last Updated:</span> ${lastUpdated} by ${lastUpdatedBy}</div>
+      </div>
     `;
+
+    if (photos.length > 0) {
+      htmlContent += `<h2 style="color: #505050; margin-top: 20px; margin-bottom: 10px; font-size: 16px;">Photos (${photos.length})</h2>`;
+      htmlContent += `<div style="margin-top: 20px;">`;
+
+      photos.forEach(photo => {
+        const section = sections.find(s => s.id === photo.sectionNodeId);
+        htmlContent += `
+          <div style="margin-bottom: 20px; border: 1px solid #e0e0e0; padding: 12px; border-radius: 4px; page-break-inside: avoid;">
+            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px;">Section: ${section?.text || "Unknown"}</div>
+            <div style="font-size: 11px; color: #666; margin: 8px 0;">📷 ${new Date(photo.uploadedAt).toLocaleString()}</div>
+            ${photoNotes[photo.id] ? `<div style="font-size: 11px; color: #333; margin-top: 8px; white-space: pre-wrap; padding-top: 8px; border-top: 1px solid #eee;">Comment: ${photoNotes[photo.id]}</div>` : ""}
+          </div>
+        `;
+      });
+
+      htmlContent += `</div>`;
+    } else {
+      htmlContent += `<p style="color: #999; font-style: italic;">No photos uploaded for this inspection.</p>`;
+    }
+
+    element.innerHTML = htmlContent;
 
     // Convert HTML to PDF
     const filename = `inspection-${new Date().toISOString().split("T")[0]}.pdf`;
@@ -340,8 +331,13 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       jsPDF: { orientation: "portrait", unit: "mm", format: "a4" },
     };
 
-    // @ts-ignore - html2pdf types are incomplete
-    html2pdf().set(options).from(htmlContent).save();
+    try {
+      // @ts-ignore - html2pdf types are incomplete
+      html2pdf().set(options).from(element).save();
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    }
   };
 
   const content = (
