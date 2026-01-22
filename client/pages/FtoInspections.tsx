@@ -64,6 +64,7 @@ const mockInspections: InspectionRecord[] = [
     status: "Completed",
     documentName: "Q4 Inspection.docx",
     lastUpdated: "2025-10-15",
+    inspectionName: "Q4 2025 Property Inspection",
   },
   {
     id: 2,
@@ -75,6 +76,7 @@ const mockInspections: InspectionRecord[] = [
     status: "Completed",
     documentName: "HVAC Inspection.docx",
     lastUpdated: "2025-10-10",
+    inspectionName: "HVAC System Inspection",
   },
 ];
 
