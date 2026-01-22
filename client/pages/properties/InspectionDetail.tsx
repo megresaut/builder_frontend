@@ -21,6 +21,7 @@ import {
   ChecklistNode,
   InspectionPhoto,
   MOCK_CHECKLIST_NODES,
+  DEFAULT_INSPECTION_TEMPLATES,
 } from "@/data/inspection-checklist";
 
 // @ts-ignore - html2pdf is available but not fully typed
