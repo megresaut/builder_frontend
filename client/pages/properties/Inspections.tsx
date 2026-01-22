@@ -71,6 +71,7 @@ const mockInspections: Inspection[] = [
     issues: 2,
     photos: 12,
     updated: "Oct 17, 2025",
+    templateName: "Default Template",
   },
   {
     id: 2,
@@ -82,6 +83,7 @@ const mockInspections: Inspection[] = [
     issues: 1,
     photos: 8,
     updated: "Oct 12, 2025",
+    templateName: "HVAC Inspection",
   },
   {
     id: 3,
@@ -93,6 +95,7 @@ const mockInspections: Inspection[] = [
     issues: 4,
     photos: 15,
     updated: "Oct 8, 2025",
+    templateName: "Default Template",
   },
   {
     id: 4,
@@ -104,6 +107,7 @@ const mockInspections: Inspection[] = [
     issues: 0,
     photos: 10,
     updated: "Sep 27, 2025",
+    templateName: "Default Template",
   },
   {
     id: 5,
@@ -115,6 +119,7 @@ const mockInspections: Inspection[] = [
     issues: 2,
     photos: 6,
     updated: "Sep 21, 2025",
+    templateName: "Plumbing Inspection",
   },
 ];
 
