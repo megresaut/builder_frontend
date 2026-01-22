@@ -665,6 +665,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           totalPhotos={allPhotos.length}
           note={photoNotes[selectedPhotoForModal.id] || ""}
           onNoteChange={(note) => handleUpdatePhotoNote(selectedPhotoForModal.id, note)}
+          sectionName={sections.find(s => s.id === selectedPhotoForModal.sectionNodeId)?.text}
         />
       )}
     </>
