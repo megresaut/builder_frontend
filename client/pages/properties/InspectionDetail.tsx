@@ -176,13 +176,15 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   };
 
   const handleAddNode = (index: number) => {
+    // Get the current node to replicate its depth and type
+    const currentNode = nodes[index];
     const newNode: ChecklistNode = {
       id: `node-${Date.now()}`,
-      parentId: null,
+      parentId: currentNode?.parentId || null,
       orderIndex: 0,
-      type: "section",
+      type: currentNode?.type || "section",
       text: "",
-      depth: 0,
+      depth: currentNode?.depth ?? 0,
     };
     const newNodes = [...nodes];
     newNodes.splice(index + 1, 0, newNode);
