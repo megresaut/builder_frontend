@@ -358,23 +358,23 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         {/* Header Controls */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setIsEditing(!isEditing)}
-            className={cn(
-              "px-4 py-2 border rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
-              isEditing
-                ? "bg-gray-100 border-gray-300 text-gray-900"
-                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-            )}
-          >
-            <EditIcon width={16} height={16} className="text-current" />
-            {isEditing ? "Done Editing" : "Edit Checklist"}
-          </button>
-          <button
             onClick={handleExportInspection}
             className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors flex items-center gap-2"
           >
             <DownloadIcon width={16} height={16} className="text-gray-500" />
             Export
+          </button>
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className={cn(
+              "px-4 py-2 border rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
+              isEditing
+                ? "bg-blue-700 border-blue-700 text-white hover:bg-blue-800"
+                : "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
+            )}
+          >
+            <EditIcon width={16} height={16} className="text-current" />
+            {isEditing ? "Done Editing" : "Edit Checklist"}
           </button>
         </div>
       </div>
