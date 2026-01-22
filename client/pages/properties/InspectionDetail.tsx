@@ -44,13 +44,59 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     isInline = false,
     inspectionId,
     inspection,
+    templateName,
     onBack
   } = props;
   const navigate = useNavigate();
   const { propertyId } = useParams();
 
+  // --- Initialize Checklist Based on Template ---
+  const getInitialChecklist = (): ChecklistNode[] => {
+    if (!templateName) {
+      return MOCK_CHECKLIST_NODES;
+    }
+
+    // Find the template by name
+    const template = DEFAULT_INSPECTION_TEMPLATES.find(t => t.name === templateName);
+
+    if (template) {
+      // Convert template sections and items to ChecklistNode format
+      const nodes: ChecklistNode[] = [];
+      let nodeIndex = 0;
+
+      template.sections.forEach(section => {
+        const sectionNode: ChecklistNode = {
+          id: section.id,
+          parentId: null,
+          orderIndex: nodeIndex++,
+          type: "section",
+          text: section.title,
+          depth: 0,
+        };
+        nodes.push(sectionNode);
+
+        section.items.forEach(item => {
+          const itemNode: ChecklistNode = {
+            id: item.id,
+            parentId: section.id,
+            orderIndex: nodeIndex++,
+            type: "item",
+            text: item.text,
+            depth: 1,
+          };
+          nodes.push(itemNode);
+        });
+      });
+
+      return nodes.length > 0 ? nodes : [];
+    }
+
+    // If template is not found (new template), return empty checklist
+    return [];
+  };
+
   // --- State ---
-  const [nodes, setNodes] = useState<ChecklistNode[]>(MOCK_CHECKLIST_NODES);
+  const [nodes, setNodes] = useState<ChecklistNode[]>(getInitialChecklist());
   const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState<"In Progress" | "Completed">("In Progress");
