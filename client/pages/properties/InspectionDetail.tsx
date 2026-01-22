@@ -349,18 +349,18 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         const section = sections.find(s => s.id === sectionId);
         htmlContent += `
           <div style="margin-bottom: 16px;">
-            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; background-color: #f0f4ff; padding: 8px 12px; border-radius: 3px; text-align: center; display: flex; align-items: center; justify-content: center; min-height: 24px;">Section: ${section?.text || "Unknown"}</div>
+            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; background-color: #f0f4ff; padding: 4px 8px; border-radius: 3px; min-height: 20px; line-height: 1.4;">Section: ${section?.text || "Unknown"}</div>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
         `;
 
         sectionPhotos.forEach(photo => {
           htmlContent += `
-            <div style="display: flex; flex-direction: column; border: 1px solid #ddd; padding: 4px; border-radius: 3px; background: #fafafa; min-height: 180px;">
+            <div style="display: flex; flex-direction: column; border: 1px solid #ddd; padding: 4px; border-radius: 3px; background: #fafafa; min-height: 0;">
               <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 120px; margin-bottom: 4px; border-radius: 2px; overflow: hidden;">
                 ${photo.base64 ? `<img src="${photo.base64}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />` : `<div style="padding: 8px; color: #999; font-size: 9px; text-align: center;">Image error</div>`}
               </div>
               <div style="font-size: 8px; color: #666; line-height: 1.2; text-align: center; margin-bottom: 4px;">📷 ${new Date(photo.uploadedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
-              ${photoNotes[photo.id] ? `<div style="font-size: 9px; color: #333; font-weight: 500; margin-top: 4px; padding: 6px 8px; border-top: 1px solid #e5e7eb; line-height: 1.4; white-space: normal; word-break: break-word; overflow: hidden; background-color: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb;">${photoNotes[photo.id]}</div>` : ""}
+              ${photoNotes[photo.id] ? `<div style="font-size: 9px; color: #333; font-weight: 500; margin-top: 0; padding: 4px 6px; border-top: 1px solid #e5e7eb; line-height: 1.3; white-space: normal; word-break: break-word; overflow: hidden; background-color: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb;">${photoNotes[photo.id]}</div>` : ""}
             </div>
           `;
         });
