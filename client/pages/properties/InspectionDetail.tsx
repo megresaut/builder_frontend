@@ -16,6 +16,7 @@ import {
   ChevronDownIcon,
   DownloadIcon,
 } from "@/components/icons";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectField } from "@/components/forms/SelectField";
 import {
