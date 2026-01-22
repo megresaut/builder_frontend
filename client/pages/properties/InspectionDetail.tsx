@@ -355,7 +355,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
             {inspection?.name || "Inspection"}
           </h1>
           <p className="text-[#717179] font-medium text-base">
-            22 Indian Chase Dr
+            {templateName || "No Template"}
           </p>
         </div>
 
