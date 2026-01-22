@@ -108,14 +108,6 @@ export default function ScheduleInspectionModal({
           placeholder="Select a due date"
           returnFormat="Date"
         />
-
-        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-          <p>
-            This will create an upcoming inspection scheduled for the selected month. 
-            The inspection name will be "{new Date().toLocaleDateString("en-US", { month: "long" })} Inspection" 
-            and the field manager will be assigned to conduct it.
-          </p>
-        </div>
       </div>
     </ModalTemplate>
   );
