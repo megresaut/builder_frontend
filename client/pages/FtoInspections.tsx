@@ -207,12 +207,12 @@ export default function FtoInspections() {
     },
     {
       key: "date",
-      label: "Inspection Date",
+      label: "Due Date",
       icon: <CalendarIcon width={16} height={16} />,
     },
     {
-      key: "month",
-      label: "Inspection Month",
+      key: "lastUpdated",
+      label: "Last Updated",
       icon: <CalendarIcon width={16} height={16} />,
     },
     {
