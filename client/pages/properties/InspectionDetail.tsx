@@ -209,38 +209,90 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   };
 
   const handleExportInspection = () => {
-    const photosExportData = photos.map(photo => {
-      const section = sections.find(s => s.id === photo.sectionNodeId);
-      return {
-        section: section?.text || "Unknown",
-        uploadedAt: new Date(photo.uploadedAt).toLocaleString(),
-        note: photoNotes[photo.id] || "",
-      };
-    });
+    const dueDate = inspectionDueDate instanceof Date
+      ? inspectionDueDate.toLocaleDateString()
+      : inspectionDueDate;
 
-    const exportData = {
-      inspectionMetadata: {
-        inspectionDate,
-        uploadedBy,
-        uploadedAt,
-        lastUpdated,
-        lastUpdatedBy,
-        status,
-      },
-      checklist: nodes,
-      photos: photosExportData,
+    // Create HTML for PDF
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; color: #333; margin: 20px; }
+          h1 { color: #303030; margin-bottom: 10px; }
+          h2 { color: #505050; margin-top: 20px; margin-bottom: 10px; font-size: 16px; }
+          .metadata { background-color: #f5f5f5; padding: 10px; margin-bottom: 20px; border-radius: 5px; }
+          .metadata-item { margin: 5px 0; font-size: 12px; }
+          .metadata-label { font-weight: bold; }
+          .status { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+          .status-in-progress { background-color: #fef3c7; color: #92400e; }
+          .status-completed { background-color: #d1fae5; color: #065f46; }
+          .checklist { margin: 20px 0; }
+          .checklist-item { margin: 5px 0; font-size: 12px; }
+          .section-header { font-weight: bold; margin-top: 10px; margin-left: 0; }
+          .section-item { margin-left: 20px; }
+          .photos-section { margin-top: 20px; }
+          .photo-item { margin-bottom: 15px; page-break-inside: avoid; }
+          .photo-label { font-weight: bold; font-size: 12px; color: #0066cc; }
+          .photo-note { font-size: 11px; color: #666; margin-top: 5px; white-space: pre-wrap; }
+        </style>
+      </head>
+      <body>
+        <h1>Inspection Report</h1>
+        <div class="metadata">
+          <div class="metadata-item"><span class="metadata-label">Property:</span> 22 Indian Chase Dr</div>
+          <div class="metadata-item"><span class="metadata-label">Inspection Due Date:</span> ${dueDate}</div>
+          <div class="metadata-item"><span class="metadata-label">Status:</span> <span class="status ${status === "Completed" ? "status-completed" : "status-in-progress"}">${status}</span></div>
+          <div class="metadata-item"><span class="metadata-label">Field Manager:</span> ${inspection?.inspector?.name || "Unassigned"}</div>
+          <div class="metadata-item"><span class="metadata-label">Uploaded By:</span> ${uploadedBy}</div>
+          <div class="metadata-item"><span class="metadata-label">Uploaded At:</span> ${uploadedAt}</div>
+          <div class="metadata-item"><span class="metadata-label">Last Updated:</span> ${lastUpdated} by ${lastUpdatedBy}</div>
+        </div>
+
+        <h2>Inspection Checklist</h2>
+        <div class="checklist">
+          ${nodes.map(node => {
+            const isSection = node.depth === 0;
+            return `<div class="checklist-item ${isSection ? "section-header" : "section-item"}">${node.text}</div>`;
+          }).join("")}
+        </div>
+
+        ${photos.length > 0 ? `
+          <h2>Photos (${photos.length})</h2>
+          <div class="photos-section">
+            ${photos.map(photo => {
+              const section = sections.find(s => s.id === photo.sectionNodeId);
+              return `
+                <div class="photo-item">
+                  <div class="photo-label">Section: ${section?.text || "Unknown"}</div>
+                  ${photoNotes[photo.id] ? `<div class="photo-note">Note: ${photoNotes[photo.id]}</div>` : ""}
+                  <div style="font-size: 11px; color: #999; margin-top: 3px;">Uploaded: ${new Date(photo.uploadedAt).toLocaleString()}</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        ` : ""}
+      </body>
+      </html>
+    `;
+
+    // Convert HTML to PDF
+    const element = document.createElement("div");
+    element.innerHTML = htmlContent;
+
+    const filename = `inspection-${new Date().toISOString().split("T")[0]}.pdf`;
+
+    const options = {
+      margin: 10,
+      filename: filename,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: "portrait", unit: "mm", format: "a4" },
     };
 
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `inspection-${inspectionDate.replace(/\//g, '-')}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    html2pdf().set(options).from(htmlContent).save();
   };
 
   const content = (
