@@ -136,11 +136,11 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
           {/* Photo Preview */}
           {uploadedFiles.length > 0 && uploadedFiles[0].url && (
             <ModalField spacing="tight" label="">
-              <div className="aspect-square w-full bg-gray-100 border border-gray-200 rounded-lg overflow-hidden cursor-pointer group">
+              <div className="w-full h-96 bg-gray-100 border border-gray-200 rounded-lg overflow-hidden cursor-pointer group flex items-center justify-center">
                 <img
                   src={uploadedFiles[0].url}
                   alt="Preview"
-                  className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                  className="w-full h-full object-contain group-hover:opacity-90 transition-opacity"
                 />
               </div>
             </ModalField>
