@@ -516,8 +516,8 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     </div>
   );
 
-  return (
-    <ContentWrapper>
+  const pageContent = (
+    <>
       {content}
 
       {/* Photo Viewer Modal */}
@@ -534,8 +534,14 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           onNoteChange={(note) => handleUpdatePhotoNote(selectedPhotoForModal.id, note)}
         />
       )}
-    </ContentWrapper>
+    </>
   );
+
+  if (isInline) {
+    return pageContent;
+  }
+
+  return <PageTemplate>{pageContent}</PageTemplate>;
 }
 
 // --- Helper Components ---
