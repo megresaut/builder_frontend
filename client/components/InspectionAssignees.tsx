@@ -1,6 +1,7 @@
 import React from "react";
 import SectionCard from "@/components/SectionCard";
-import { PeopleSubsection, Person } from "@/components/PeopleSubsection";
+import { PeopleSubsection } from "@/components/PeopleSubsection";
+import type { Person } from "@/components/PeopleSubsection";
 
 interface InspectionAssigneesProps {
   fieldTeam: Person[];
