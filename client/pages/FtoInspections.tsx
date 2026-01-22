@@ -261,9 +261,9 @@ export default function FtoInspections() {
                   case "unit":
                     return <span className="text-gray-900 text-sm">{row.unit}</span>;
                   case "date":
-                    return <span className="text-gray-900 text-sm">{row.date}</span>;
-                  case "month":
-                    return <span className="text-gray-900 text-sm">{row.month}</span>;
+                    return <span className="text-gray-900 text-sm">{formatDate(row.date)}</span>;
+                  case "lastUpdated":
+                    return <span className="text-gray-900 text-sm">{formatDate(row.lastUpdated || row.date)}</span>;
                   case "status":
                     return (
                       <div className="flex items-center gap-2">
