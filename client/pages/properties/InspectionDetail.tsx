@@ -585,53 +585,49 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                 </div>
               </div>
 
-              {/* Photos Grid */}
-              <div className="grid grid-cols-1 gap-4">
-                {photos.map((photo, index) => {
+              {/* Photos Grid - Compact Display (Last 3 photos only) */}
+              <div className="grid grid-cols-3 gap-2">
+                {photos.slice(-3).map((photo) => {
                   const section = sections.find(s => s.id === photo.sectionNodeId);
                   return (
-                    <div key={photo.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm flex flex-col">
-                      <div
-                        className="aspect-[4/3] bg-gray-100 cursor-pointer relative group"
-                        onClick={() => handleOpenPhotoModal(photo)}
-                      >
-                        <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity" />
-                      </div>
-
-                      <div className="p-3 flex flex-col gap-2">
+                    <div
+                      key={photo.id}
+                      className="relative group cursor-pointer rounded-lg overflow-hidden bg-gray-100 aspect-square"
+                      onClick={() => handleOpenPhotoModal(photo)}
+                      title={section?.text || "Photo"}
+                    >
+                      <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-end justify-start p-1">
                         {section && (
-                          <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded truncate">
+                          <div className="text-[10px] font-medium text-white bg-black bg-opacity-60 px-1.5 py-0.5 rounded line-clamp-1">
                             {section.text}
                           </div>
                         )}
-                        <textarea
-                          placeholder="Add notes or comments..."
-                          value={photoNotes[photo.id] || ""}
-                          onChange={(e) => handleUpdatePhotoNote(photo.id, e.target.value)}
-                          className="w-full text-xs p-2 border border-gray-200 rounded placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
-                          rows={3}
-                        />
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] text-gray-500">
-                            {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          <button
-                            onClick={() => handleRemovePhoto(photo.id)}
-                            className="text-xs text-red-600 hover:text-red-700 font-medium"
-                          >
-                            Remove
-                          </button>
-                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
 
+              {/* Show all photos link if more than 3 */}
+              {photos.length > 3 && (
+                <div className="text-center">
+                  <button
+                    onClick={() => {
+                      if (photos.length > 0) {
+                        handleOpenPhotoModal(photos[0]);
+                      }
+                    }}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    View all {photos.length} photos
+                  </button>
+                </div>
+              )}
+
               {photos.length === 0 && (
-                <div className="text-center py-8 text-gray-400 text-sm italic">
-                  No photos uploaded yet. Select a section and upload photos to see them here.
+                <div className="text-center py-6 text-gray-400 text-xs italic">
+                  No photos yet
                 </div>
               )}
 
