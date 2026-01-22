@@ -66,6 +66,10 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [selectedSectionId, setSelectedSectionId] = useState<string>("");
   const photoInputRef = useRef<HTMLInputElement>(null);
 
+  // Photo Comment Modal State
+  const [isPhotoCommentModalOpen, setIsPhotoCommentModalOpen] = useState(false);
+  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
+
   // Photo Modal States
   const [selectedPhotoForModal, setSelectedPhotoForModal] = useState<InspectionPhoto | null>(null);
   const [isPhotoViewerOpen, setIsPhotoViewerOpen] = useState(false);
