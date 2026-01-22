@@ -43,6 +43,7 @@ interface Inspection {
   issues: number;
   photos: number;
   updated: string;
+  templateName: string;
 }
 
 interface InspectionsProps {
