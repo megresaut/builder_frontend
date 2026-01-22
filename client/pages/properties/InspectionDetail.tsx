@@ -234,7 +234,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   };
 
   const content = (
-    <div className={cn(containerClass, "font-['Geist',sans-serif]")}>
+    <div className="flex flex-col gap-6 w-full font-['Geist',sans-serif]">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
