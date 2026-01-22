@@ -180,9 +180,9 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       id: `node-${Date.now()}`,
       parentId: null,
       orderIndex: 0,
-      type: "item",
+      type: "section",
       text: "",
-      depth: 1,
+      depth: 0,
     };
     const newNodes = [...nodes];
     newNodes.splice(index + 1, 0, newNode);
