@@ -19,6 +19,7 @@ export default function ScheduleInspectionModal({
   fieldManagers,
   onConfirm,
 }: ScheduleInspectionModalProps) {
+  const [inspectionName, setInspectionName] = useState<string>("");
   const [selectedManagerId, setSelectedManagerId] = useState<string>("");
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
@@ -27,6 +28,7 @@ export default function ScheduleInspectionModal({
   // Reset form when modal closes
   useEffect(() => {
     if (!open) {
+      setInspectionName("");
       setSelectedManagerId("");
       setDueDate(null);
       setSelectedTemplate("");
