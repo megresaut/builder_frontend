@@ -10,7 +10,7 @@ interface ScheduleInspectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   fieldManagers: FieldManager[];
-  onConfirm: (fieldManager: FieldManager, dueDate: string, templateName: string) => void;
+  onConfirm: (fieldManager: FieldManager, dueDate: string, templateName: string, inspectionName: string) => void;
 }
 
 export default function ScheduleInspectionModal({
