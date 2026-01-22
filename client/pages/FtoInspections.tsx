@@ -135,6 +135,7 @@ export default function FtoInspections() {
   } = useColumnManagement([
     "property",
     "unit",
+    "inspectionName",
     "date",
     "lastUpdated",
     "status",
