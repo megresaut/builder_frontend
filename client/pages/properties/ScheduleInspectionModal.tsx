@@ -50,9 +50,9 @@ export default function ScheduleInspectionModal({
     );
 
     if (selectedManager && dueDate) {
-      // Convert date to "Mon YYYY" format (e.g., "Nov 2025")
-      const monthName = dueDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-      onConfirm(selectedManager, monthName);
+      // Convert date to full date format (e.g., "Nov 15, 2025")
+      const fullDate = dueDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      onConfirm(selectedManager, fullDate);
     }
   };
 
