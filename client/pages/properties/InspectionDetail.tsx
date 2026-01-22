@@ -550,7 +550,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
               </div>
 
               {/* Photos Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {photos.map((photo, index) => {
                   const section = sections.find(s => s.id === photo.sectionNodeId);
                   return (
