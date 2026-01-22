@@ -106,7 +106,12 @@ export default function FtoTopNav() {
               Home
             </span>
           )}
-          {!isHome && (
+          {!isHome && isInspections && (
+            <span className="text-sm font-medium text-gray-900 truncate">
+              Property Inspections
+            </span>
+          )}
+          {!isHome && !isInspections && (
             <span className="text-sm font-medium text-gray-900 truncate">
               Field Team Orders
             </span>
