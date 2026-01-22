@@ -76,63 +76,57 @@ export default function ScheduleInspectionModal({
       }
     >
       <div className="flex flex-col gap-6">
-        <ModalField label="Field Manager" spacing="default">
-          <SelectField
-            options={fieldManagerOptions}
-            value={selectedManagerId}
-            onChange={(value) => {
-              setSelectedManagerId(value as string);
+        <SelectField
+          label="Field Manager"
+          options={fieldManagerOptions}
+          value={selectedManagerId}
+          onChange={(value) => {
+            setSelectedManagerId(value as string);
+            setErrors((prev) => {
+              const updated = { ...prev };
+              delete updated.fieldManager;
+              return updated;
+            });
+          }}
+          placeholder="Select a field manager"
+          error={errors.fieldManager}
+        />
+
+        <FieldShell
+          label="Monthly Due Date"
+          error={errors.dueDate}
+          htmlFor="due-date"
+        >
+          <Input
+            id="due-date"
+            type="month"
+            value={dueDate}
+            onChange={(e) => {
+              setDueDate(e.target.value);
               setErrors((prev) => {
                 const updated = { ...prev };
-                delete updated.fieldManager;
+                delete updated.dueDate;
                 return updated;
               });
             }}
-            placeholder="Select a field manager"
-            error={errors.fieldManager}
+            style={{
+              borderRadius: "8px",
+              backgroundColor: "rgba(255, 255, 255, 1)",
+              borderColor: errors.dueDate ? "#dc2626" : "rgba(229, 229, 229, 1)",
+              borderStyle: "solid",
+              borderWidth: "1px",
+              padding: "8px 12px",
+              fontSize: "16px",
+              fontWeight: 400,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.4,
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              color: "#303030",
+              width: "100%",
+              boxSizing: "border-box",
+            }}
           />
-        </ModalField>
-
-        <ModalField label="Monthly Due Date" spacing="default">
-          <FieldShell
-            label=""
-            error={errors.dueDate}
-            htmlFor="due-date"
-          >
-            <Input
-              id="due-date"
-              type="month"
-              value={dueDate}
-              onChange={(e) => {
-                setDueDate(e.target.value);
-                setErrors((prev) => {
-                  const updated = { ...prev };
-                  delete updated.dueDate;
-                  return updated;
-                });
-              }}
-              style={{
-                borderRadius: "8px",
-                backgroundColor: "rgba(255, 255, 255, 1)",
-                borderColor: errors.dueDate ? "#dc2626" : "rgba(229, 229, 229, 1)",
-                borderStyle: "solid",
-                borderWidth: "1px",
-                padding: "8px 12px",
-                fontSize: "16px",
-                fontWeight: 400,
-                letterSpacing: "-0.32px",
-                lineHeight: 1.4,
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                color: "#303030",
-                width: "100%",
-                boxSizing: "border-box",
-              }}
-            />
-          </FieldShell>
-          {errors.dueDate && (
-            <span className="text-sm text-red-600 mt-1">{errors.dueDate}</span>
-          )}
-        </ModalField>
+        </FieldShell>
 
         <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
           <p>
