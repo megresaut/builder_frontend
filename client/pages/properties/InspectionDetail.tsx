@@ -349,7 +349,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-            Inspection
+            {inspection?.name || "Inspection"}
           </h1>
           <p className="text-[#717179] font-medium text-base">
             22 Indian Chase Dr
