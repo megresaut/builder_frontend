@@ -355,10 +355,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
         <div className="flex items-center gap-4">
           <BlueButton
             icon={<PlusIcon width={20} height={20} />}
-            onClick={() => {
-              const newId = Math.max(...inspectionsList.map(i => i.id), 0) + 1;
-              setSelectedInspectionId(newId);
-            }}
+            onClick={() => setShowScheduleModal(true)}
           >
             New Inspection
           </BlueButton>
