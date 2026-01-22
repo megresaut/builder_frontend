@@ -31,6 +31,7 @@ interface InspectionRecord {
   inspector: string;
   status: "Completed" | "Draft";
   documentName?: string;
+  lastUpdated?: string;
 }
 
 const getMonthFromDate = (dateStr: string): string => {
