@@ -475,38 +475,55 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                 </div>
               </div>
 
-              {/* Photos List */}
-              <div className="flex flex-col gap-6">
-                {sections.map(section => {
-                  const sectionPhotos = photosBySection[section.id];
-                  if (!sectionPhotos || sectionPhotos.length === 0) return null;
-
+              {/* Photos Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {photos.map((photo, index) => {
+                  const section = sections.find(s => s.id === photo.sectionNodeId);
                   return (
-                    <div key={section.id} className="flex flex-col gap-2">
-                      <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-1">
-                        {section.text} <span className="font-normal text-gray-600">({sectionPhotos.length} photos)</span>
-                      </h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        {sectionPhotos.map(photo => (
-                          <PhotoCard
-                            key={photo.id}
-                            photo={photo}
-                            sections={sections}
-                            onRemove={handleRemovePhoto}
-                            onPhotoClick={handleOpenPhotoModal}
-                          />
-                        ))}
+                    <div key={photo.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm flex flex-col">
+                      <div
+                        className="aspect-[4/3] bg-gray-100 cursor-pointer relative group"
+                        onClick={() => handleOpenPhotoModal(photo)}
+                      >
+                        <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity" />
+                      </div>
+
+                      <div className="p-3 flex flex-col gap-2">
+                        {section && (
+                          <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded truncate">
+                            {section.text}
+                          </div>
+                        )}
+                        <textarea
+                          placeholder="Add notes or comments..."
+                          value={photoNotes[photo.id] || ""}
+                          onChange={(e) => handleUpdatePhotoNote(photo.id, e.target.value)}
+                          className="w-full text-xs p-2 border border-gray-200 rounded placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                          rows={3}
+                        />
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] text-gray-500">
+                            {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <button
+                            onClick={() => handleRemovePhoto(photo.id)}
+                            className="text-xs text-red-600 hover:text-red-700 font-medium"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
-
-                {Object.keys(photosBySection).every(k => photosBySection[k].length === 0) && (
-                  <div className="text-center py-8 text-gray-400 text-sm italic">
-                    No photos uploaded yet. Select a section and upload photos to see them here.
-                  </div>
-                )}
               </div>
+
+              {photos.length === 0 && (
+                <div className="text-center py-8 text-gray-400 text-sm italic">
+                  No photos uploaded yet. Select a section and upload photos to see them here.
+                </div>
+              )}
 
             </div>
           </SectionCard>
