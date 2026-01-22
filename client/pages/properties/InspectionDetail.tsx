@@ -563,43 +563,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
 // --- Helper Components ---
 
-interface PhotoCardProps {
-  photo: InspectionPhoto;
-  sections: ChecklistNode[];
-  onRemove: (id: string) => void;
-  onPhotoClick: (photo: InspectionPhoto) => void;
-}
-
-function PhotoCard({ photo, sections, onRemove, onPhotoClick }: PhotoCardProps) {
-  return (
-    <div
-      className="relative group border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:border-blue-300 transition-colors cursor-pointer"
-      onClick={() => onPhotoClick(photo)}
-    >
-      <div className="aspect-square bg-gray-100">
-        <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
-      </div>
-      <div className="p-2 text-[10px] text-gray-500 truncate border-t border-gray-100">
-        {new Date(photo.uploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-      </div>
-
-      {/* Overlay Actions */}
-      <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove(photo.id);
-          }}
-          className="p-1.5 bg-white/90 rounded-full text-red-500 shadow-sm hover:text-red-600 hover:bg-white"
-          title="Remove photo"
-        >
-          <DeleteIcon width={12} height={12} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 interface PhotoViewerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
