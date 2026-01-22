@@ -376,15 +376,9 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
           renderCell={(inspection, columnKey) => {
             if (columnKey === "name") {
               return (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/property/${propertyId}/inspections/${inspection.id}`);
-                  }}
-                  className="text-blue-600 font-normal text-sm hover:underline cursor-pointer transition-colors truncate"
-                >
+                <span className="text-gray-900 font-normal text-sm truncate">
                   {inspection.name}
-                </button>
+                </span>
               );
             }
             if (columnKey === "inspector") {
