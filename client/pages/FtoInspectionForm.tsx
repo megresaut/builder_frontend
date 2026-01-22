@@ -436,7 +436,7 @@ export default function FtoInspectionForm() {
                                 <div className="text-6px sm:text-7px md:text-8px text-gray-600 text-center">
                                   📷 {new Date(photo.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                                 </div>
-                                {photo.comment && (
+                                {isReadOnly && photo.comment && (
                                   <div className="text-7px sm:text-8px text-gray-700 p-1.5 sm:p-2 bg-gray-50 rounded border border-gray-200 line-clamp-2 sm:line-clamp-3">
                                     {photo.comment}
                                   </div>
