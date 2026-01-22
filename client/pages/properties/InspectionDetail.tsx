@@ -22,6 +22,9 @@ import {
   MOCK_CHECKLIST_NODES,
 } from "@/data/inspection-checklist";
 
+// @ts-ignore - html2pdf is available but not fully typed
+import html2pdf from "html2pdf.js";
+
 interface InspectionDetailProps {
   isNew?: boolean;
   isEdit?: boolean;
