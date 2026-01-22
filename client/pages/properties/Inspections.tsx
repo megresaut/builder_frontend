@@ -301,6 +301,8 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
         return "#d97706";
       case "Submitted":
         return "#2463eb";
+      case "Upcoming":
+        return "#8b5cf6";
       default:
         return "#525252";
     }
