@@ -307,48 +307,47 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     const element = document.createElement("div");
     element.style.width = "210mm";
     element.style.minHeight = "297mm";
-    element.style.padding = "20px";
+    element.style.padding = "15mm";
+    element.style.paddingTop = "12mm";
     element.style.fontFamily = "Arial, sans-serif";
     element.style.color = "#333";
     element.style.background = "#ffffff";
     element.style.position = "absolute";
     element.style.left = "-9999px";
     element.style.top = "0";
+    element.style.boxSizing = "border-box";
 
     // Build HTML content
     let htmlContent = `
-      <h1 style="color: #303030; margin-bottom: 10px; margin-top: 0;">Inspection Report</h1>
-      <div style="background-color: #f5f5f5; padding: 12px; margin-bottom: 20px; border-radius: 5px;">
-        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Property:</span> 22 Indian Chase Dr</div>
-        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Inspection Due Date:</span> ${dueDate}</div>
-        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Field Manager:</span> ${inspection?.inspector?.name || "Unassigned"}</div>
-        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Uploaded By:</span> ${uploadedBy}</div>
-        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Uploaded At:</span> ${uploadedAt}</div>
-        <div style="margin: 6px 0; font-size: 12px;"><span style="font-weight: bold;">Last Updated:</span> ${lastUpdated} by ${lastUpdatedBy}</div>
+      <h1 style="color: #303030; margin: 0 0 12px 0; font-size: 24px; line-height: 1.2;">Inspection Report</h1>
+      <div style="background-color: #f5f5f5; padding: 10px 12px; margin-bottom: 16px; border-radius: 4px;">
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Property:</span> 22 Indian Chase Dr</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Inspection Due Date:</span> ${dueDate}</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Field Manager:</span> ${inspection?.inspector?.name || "Unassigned"}</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Uploaded By:</span> ${uploadedBy}</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Uploaded At:</span> ${uploadedAt}</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Last Updated:</span> ${lastUpdated} by ${lastUpdatedBy}</div>
       </div>
     `;
 
     if (photosWithBase64.length > 0) {
-      htmlContent += `<h2 style="color: #505050; margin-top: 20px; margin-bottom: 10px; font-size: 16px;">Photos (${photosWithBase64.length})</h2>`;
-      htmlContent += `<div style="margin-top: 20px;">`;
+      htmlContent += `<h2 style="color: #505050; margin: 12px 0 8px 0; font-size: 14px; font-weight: bold; page-break-after: avoid;">Photos (${photosWithBase64.length})</h2>`;
 
       photosWithBase64.forEach(photo => {
         const section = sections.find(s => s.id === photo.sectionNodeId);
         htmlContent += `
-          <div style="margin-bottom: 20px; border: 1px solid #e0e0e0; padding: 12px; border-radius: 4px; page-break-inside: avoid;">
-            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px;">Section: ${section?.text || "Unknown"}</div>
-            <div style="display: flex; justify-content: center; margin: 10px 0;">
-              ${photo.base64 ? `<img src="${photo.base64}" style="max-width: 100%; max-height: 400px; object-fit: contain;" />` : `<div style="padding: 20px; background: #eee; text-align: center;">Image load error</div>`}
+          <div style="margin-bottom: 12px; border: 1px solid #ddd; padding: 8px; border-radius: 3px; page-break-inside: avoid;">
+            <div style="font-weight: bold; font-size: 11px; color: #0066cc; margin-bottom: 6px;">Section: ${section?.text || "Unknown"}</div>
+            <div style="display: flex; justify-content: center; margin: 6px 0; background: #fafafa; padding: 4px; border-radius: 2px;">
+              ${photo.base64 ? `<img src="${photo.base64}" style="max-width: 100%; max-height: 350px; object-fit: contain;" />` : `<div style="padding: 12px; color: #999; font-size: 10px;">Image load error</div>`}
             </div>
-            <div style="font-size: 11px; color: #666; margin: 8px 0;">📷 ${new Date(photo.uploadedAt).toLocaleString()}</div>
-            ${photoNotes[photo.id] ? `<div style="font-size: 11px; color: #333; margin-top: 8px; white-space: pre-wrap; padding-top: 8px; border-top: 1px solid #eee;">Comment: ${photoNotes[photo.id]}</div>` : ""}
+            <div style="font-size: 10px; color: #666; margin: 4px 0; line-height: 1.3;">📷 ${new Date(photo.uploadedAt).toLocaleString()}</div>
+            ${photoNotes[photo.id] ? `<div style="font-size: 10px; color: #333; margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee; line-height: 1.4; white-space: pre-wrap;">Comment: ${photoNotes[photo.id]}</div>` : ""}
           </div>
         `;
       });
-
-      htmlContent += `</div>`;
     } else {
-      htmlContent += `<p style="color: #999; font-style: italic;">No photos uploaded for this inspection.</p>`;
+      htmlContent += `<p style="color: #999; font-style: italic; font-size: 11px;">No photos uploaded for this inspection.</p>`;
     }
 
     element.innerHTML = htmlContent;
