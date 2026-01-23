@@ -585,6 +585,10 @@ export default function FtoInspectionForm() {
         title="Add Photo"
         submitLabel="Upload Photo"
         initialFile={pendingPhotoFile}
+        subsectionName={selectedSubsectionName}
+        subsections={currentSectionSubsections.map(s => ({ id: s.id, text: s.text }))}
+        currentSubsectionIndex={currentSubsectionIndex}
+        onSubsectionChange={handleSubsectionChange}
       />
 
       <PhotoGalleryModal
