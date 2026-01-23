@@ -291,15 +291,25 @@ export default function FtoInspectionForm() {
                 </div>
               </div>
 
-              {/* Camera Icon for Section Headers */}
-              {node.depth === 0 && !isReadOnly && (
+              {/* Camera Icon for Subsections (depth 1 only) */}
+              {node.depth === 1 && !isReadOnly && (
                 <button
                   onClick={() => {
-                    setSelectedSectionId(node.id);
+                    // Find parent section
+                    const nodeIndex = currentChecklist.findIndex(n => n.id === node.id);
+                    let parentSectionIndex = nodeIndex - 1;
+                    while (parentSectionIndex >= 0 && currentChecklist[parentSectionIndex].depth !== 0) {
+                      parentSectionIndex--;
+                    }
+                    const parentSection = currentChecklist[parentSectionIndex];
+
+                    setSelectedSectionId(parentSection.id);
+                    setSelectedSubsectionId(node.id);
+                    setSelectedSubsectionName(node.text);
                     photoInputRef.current?.click();
                   }}
                   className="ml-auto flex-shrink-0 p-2 text-[#013764] bg-white border border-[#013764] hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Add photos to this section"
+                  title="Add photos to this subsection"
                 >
                   <Camera width={18} height={18} />
                 </button>
