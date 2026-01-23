@@ -262,7 +262,7 @@ export default function FtoInspectionForm() {
                     setSelectedSectionId(node.id);
                     photoInputRef.current?.click();
                   }}
-                  className="ml-auto flex-shrink-0 p-1.5 text-[#013764] hover:text-[#002D5A] hover:bg-blue-50 rounded transition-colors"
+                  className="ml-auto flex-shrink-0 p-2 text-white bg-[#013764] hover:bg-[#002D5A] rounded-lg transition-colors"
                   title="Add photos to this section"
                 >
                   <Camera width={18} height={18} />
