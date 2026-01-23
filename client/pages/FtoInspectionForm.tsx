@@ -27,6 +27,9 @@ interface InspectionPhoto {
   uploadedAt: string;
   comment?: string;
   sectionNodeId?: string;
+  sectionName?: string;
+  subsectionNodeId?: string;
+  subsectionName?: string;
 }
 
 
