@@ -117,6 +117,8 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
     }
   };
 
+  const modalTitle = subsectionName ? `${title} - ${subsectionName}` : title;
+
   return (
     <ModalTemplate
       open={open}
@@ -126,17 +128,44 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
         }
         onOpenChange(openState);
       }}
-      title={title}
+      title={modalTitle}
       size="sm"
       onClose={resetForm}
       footer={
-        <ModalButtons
-          onCancel={handleCancel}
-          onConfirm={handleSubmit}
-          cancelLabel="Cancel"
-          confirmLabel={submitLabel}
-          confirmDisabled={uploadedFiles.length === 0 || isSubmitting}
-        />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex gap-2">
+            {hasNavigation && (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  disabled={!canGoPrev}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  ← Previous
+                </button>
+                <span className="flex items-center px-2 text-sm text-gray-600">
+                  {currentSubsectionIndex + 1} of {subsections.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={!canGoNext}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next →
+                </button>
+              </>
+            )}
+          </div>
+          <ModalButtons
+            onCancel={handleCancel}
+            onConfirm={handleSubmit}
+            cancelLabel="Cancel"
+            confirmLabel={submitLabel}
+            confirmDisabled={uploadedFiles.length === 0 || isSubmitting}
+          />
+        </div>
       }
     >
       <FormLayout>
