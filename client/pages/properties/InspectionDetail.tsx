@@ -850,7 +850,10 @@ function PhotoViewerModal({
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-gray-900">Photo Viewer</h2>
-              {sectionName && (
+              {subsectionName && (
+                <p className="text-sm text-gray-600 mt-1">Item: <span className="font-medium text-blue-600">{subsectionName}</span></p>
+              )}
+              {!subsectionName && sectionName && (
                 <p className="text-sm text-gray-600 mt-1">Section: <span className="font-medium text-blue-600">{sectionName}</span></p>
               )}
             </div>
