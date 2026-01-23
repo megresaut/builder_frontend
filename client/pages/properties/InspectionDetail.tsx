@@ -713,20 +713,19 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
               <div className="grid grid-cols-3 gap-2">
                 {photos.slice(-3).map((photo) => {
                   const section = sections.find(s => s.id === photo.sectionNodeId);
+                  const displayText = photo.subsectionName ? `${photo.subsectionName}` : section?.text || "Photo";
                   return (
                     <div
                       key={photo.id}
                       className="relative group cursor-pointer rounded-lg overflow-hidden bg-gray-100 aspect-square"
                       onClick={() => handleOpenPhotoModal(photo)}
-                      title={section?.text || "Photo"}
+                      title={displayText}
                     >
                       <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-end justify-start p-1">
-                        {section && (
-                          <div className="text-[10px] font-medium text-white bg-black bg-opacity-60 px-1.5 py-0.5 rounded line-clamp-1">
-                            {section.text}
-                          </div>
-                        )}
+                        <div className="text-[10px] font-medium text-white bg-black bg-opacity-60 px-1.5 py-0.5 rounded line-clamp-1">
+                          {displayText}
+                        </div>
                       </div>
                     </div>
                   );
