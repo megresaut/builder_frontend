@@ -254,6 +254,20 @@ export default function FtoInspectionForm() {
                   {node.text}
                 </div>
               </div>
+
+              {/* Camera Icon for Section Headers */}
+              {node.depth === 0 && !isReadOnly && (
+                <button
+                  onClick={() => {
+                    setSelectedSectionId(node.id);
+                    setIsPhotoCommentModalOpen(true);
+                  }}
+                  className="ml-auto flex-shrink-0 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors opacity-0 group-hover:opacity-100"
+                  title="Add photos to this section"
+                >
+                  <Camera width={18} height={18} />
+                </button>
+              )}
             </div>
           ))
         )}
