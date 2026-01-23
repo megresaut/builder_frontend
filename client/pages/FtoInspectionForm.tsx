@@ -173,6 +173,13 @@ export default function FtoInspectionForm() {
     setPhotos((prev) => prev.map(p => p.id === photoId ? { ...p, comment } : p));
   };
 
+  const handleSubsectionChange = (subsectionId: string, subsectionName: string) => {
+    setSelectedSubsectionId(subsectionId);
+    setSelectedSubsectionName(subsectionName);
+    // Reset the file input to allow selecting a new photo for this subsection
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  };
+
   const handleOpenGallery = (index: number) => {
     setCurrentPhotoIndex(index);
     setIsGalleryOpen(true);
