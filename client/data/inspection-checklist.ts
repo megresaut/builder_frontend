@@ -23,9 +23,13 @@ export interface InspectionPhoto {
   id: string;
   inspectionId: string;
   sectionNodeId: string;
+  sectionName?: string;
+  subsectionNodeId?: string;
+  subsectionName?: string;
   fileRef: string;
   uploadedAt: string;
   comment?: string;
+  url?: string;
 }
 
 export const MOCK_CHECKLIST_NODES: ChecklistNode[] = [
