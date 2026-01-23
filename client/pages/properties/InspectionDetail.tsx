@@ -829,6 +829,7 @@ function PhotoViewerModal({
   note,
   onNoteChange,
   sectionName,
+  subsectionName,
 }: PhotoViewerModalProps) {
   if (!open) return null;
 
