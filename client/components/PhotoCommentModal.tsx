@@ -11,6 +11,11 @@ import {
 } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 
+interface Subsection {
+  id: string;
+  text: string;
+}
+
 interface PhotoCommentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -18,6 +23,10 @@ interface PhotoCommentModalProps {
   title?: string;
   submitLabel?: string;
   initialFile?: File | null;
+  subsectionName?: string;
+  subsections?: Subsection[];
+  currentSubsectionIndex?: number;
+  onSubsectionChange?: (subsectionId: string, subsectionName: string) => void;
 }
 
 const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
