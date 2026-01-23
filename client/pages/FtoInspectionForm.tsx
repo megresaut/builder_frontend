@@ -8,7 +8,7 @@ import {
   DeleteIcon,
   ChevronDownIcon,
 } from "@/components/icons";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Maximize2, Minimize2, Camera } from "lucide-react";
 import { SelectField, DateField } from "@/components/forms";
 import { PROPERTIES } from "@/data/fto/properties";
 import PhotoCommentModal from "@/components/PhotoCommentModal";
