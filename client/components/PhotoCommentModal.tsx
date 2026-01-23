@@ -101,6 +101,22 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
     setValidateForm(false);
   };
 
+  const handleNext = () => {
+    if (canGoNext && onSubsectionChange) {
+      const nextSubsection = subsections[currentSubsectionIndex + 1];
+      onSubsectionChange(nextSubsection.id, nextSubsection.text);
+      resetForm();
+    }
+  };
+
+  const handlePrev = () => {
+    if (canGoPrev && onSubsectionChange) {
+      const prevSubsection = subsections[currentSubsectionIndex - 1];
+      onSubsectionChange(prevSubsection.id, prevSubsection.text);
+      resetForm();
+    }
+  };
+
   return (
     <ModalTemplate
       open={open}
