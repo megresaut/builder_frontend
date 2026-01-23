@@ -78,6 +78,37 @@ export default function FtoInspectionForm() {
   const currentChecklist = useMemo(() => getChecklistForProperty(propertyId), [propertyId]);
   const checklistSections = useMemo(() => currentChecklist.filter((n) => n.depth === 0), [currentChecklist]);
 
+  // Get subsections for the current section
+  const currentSectionSubsections = useMemo(() => {
+    if (!selectedSubsectionId) return [];
+
+    // Find the parent section of the selected subsection
+    const subsectionIndex = currentChecklist.findIndex(n => n.id === selectedSubsectionId);
+    if (subsectionIndex === -1) return [];
+
+    // Find the section header before this subsection
+    let sectionIndex = subsectionIndex - 1;
+    while (sectionIndex >= 0 && currentChecklist[sectionIndex].depth !== 0) {
+      sectionIndex--;
+    }
+
+    if (sectionIndex === -1) return [];
+
+    // Get all subsections under this section
+    const section = currentChecklist[sectionIndex];
+    const subsections: typeof currentChecklist = [];
+
+    for (let i = sectionIndex + 1; i < currentChecklist.length; i++) {
+      const node = currentChecklist[i];
+      if (node.depth === 0) break; // Stop at next section
+      if (node.depth === 1) {
+        subsections.push(node);
+      }
+    }
+
+    return subsections;
+  }, [selectedSubsectionId, currentChecklist]);
+
   // --- Effects ---
 
   // Load inspection data from localStorage if viewing existing inspection
