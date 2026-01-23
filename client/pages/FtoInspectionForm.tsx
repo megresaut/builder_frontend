@@ -141,10 +141,14 @@ export default function FtoInspectionForm() {
   };
 
   const handlePhotoCommentSubmit = async (file: File, comment: string) => {
-    if (!selectedSectionId) {
-      alert("Please select a section first.");
+    if (!selectedSectionId || !selectedSubsectionId) {
+      alert("Please select a subsection first.");
       return;
     }
+
+    // Find the parent section name
+    const sectionNode = currentChecklist.find(n => n.id === selectedSectionId);
+    const sectionName = sectionNode?.text || "";
 
     const newPhoto: InspectionPhoto = {
       id: `new_${Date.now()}_${Math.random()}`,
@@ -152,6 +156,9 @@ export default function FtoInspectionForm() {
       uploadedAt: new Date().toISOString(),
       comment: comment || undefined,
       sectionNodeId: selectedSectionId,
+      sectionName: sectionName,
+      subsectionNodeId: selectedSubsectionId,
+      subsectionName: selectedSubsectionName,
     };
     setPhotos((prev) => [...prev, newPhoto]);
     setPendingPhotoFile(null);
