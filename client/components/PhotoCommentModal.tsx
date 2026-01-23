@@ -36,11 +36,19 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
   title = "Add Photo",
   submitLabel = "Upload Photo",
   initialFile = null,
+  subsectionName,
+  subsections = [],
+  currentSubsectionIndex = 0,
+  onSubsectionChange,
 }) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [comment, setComment] = useState("");
   const [validateForm, setValidateForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const hasNavigation = subsections && subsections.length > 0;
+  const canGoNext = hasNavigation && currentSubsectionIndex < subsections.length - 1;
+  const canGoPrev = hasNavigation && currentSubsectionIndex > 0;
 
   useEffect(() => {
     if (open) {
