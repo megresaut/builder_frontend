@@ -80,22 +80,13 @@ export default function FtoInspectionForm() {
 
   // Get subsections for the current section
   const currentSectionSubsections = useMemo(() => {
-    if (!selectedSubsectionId) return [];
+    if (!selectedSectionId) return [];
 
-    // Find the parent section of the selected subsection
-    const subsectionIndex = currentChecklist.findIndex(n => n.id === selectedSubsectionId);
-    if (subsectionIndex === -1) return [];
-
-    // Find the section header before this subsection
-    let sectionIndex = subsectionIndex - 1;
-    while (sectionIndex >= 0 && currentChecklist[sectionIndex].depth !== 0) {
-      sectionIndex--;
-    }
-
+    // Find the section index
+    const sectionIndex = currentChecklist.findIndex(n => n.id === selectedSectionId);
     if (sectionIndex === -1) return [];
 
     // Get all subsections under this section
-    const section = currentChecklist[sectionIndex];
     const subsections: typeof currentChecklist = [];
 
     for (let i = sectionIndex + 1; i < currentChecklist.length; i++) {
@@ -107,7 +98,12 @@ export default function FtoInspectionForm() {
     }
 
     return subsections;
-  }, [selectedSubsectionId, currentChecklist]);
+  }, [selectedSectionId, currentChecklist]);
+
+  // Get the current subsection index
+  const currentSubsectionIndex = useMemo(() => {
+    return currentSectionSubsections.findIndex(s => s.id === selectedSubsectionId);
+  }, [selectedSubsectionId, currentSectionSubsections]);
 
   // --- Effects ---
 
