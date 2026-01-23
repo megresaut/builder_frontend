@@ -260,7 +260,7 @@ export default function FtoInspectionForm() {
                 <button
                   onClick={() => {
                     setSelectedSectionId(node.id);
-                    setIsPhotoCommentModalOpen(true);
+                    photoInputRef.current?.click();
                   }}
                   className="ml-auto flex-shrink-0 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors opacity-0 group-hover:opacity-100"
                   title="Add photos to this section"
