@@ -503,6 +503,11 @@ export default function FtoInspectionForm() {
                               </div>
 
                               <div className="p-1.5 sm:p-2 flex flex-col gap-1.5 sm:gap-2">
+                                {photo.subsectionName && (
+                                  <div className="text-6px sm:text-7px md:text-8px text-blue-700 font-semibold bg-blue-50 px-1 py-0.5 rounded text-center">
+                                    {photo.subsectionName}
+                                  </div>
+                                )}
                                 <div className="text-6px sm:text-7px md:text-8px text-gray-600 text-center">
                                   📷 {new Date(photo.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                                 </div>
