@@ -815,6 +815,7 @@ interface PhotoViewerModalProps {
   note: string;
   onNoteChange: (note: string) => void;
   sectionName?: string;
+  subsectionName?: string;
 }
 
 function PhotoViewerModal({
