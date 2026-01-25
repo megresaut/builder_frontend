@@ -242,20 +242,32 @@ export default function Vendors() {
       try {
         setLoading(true);
   
-        const rawVendors = await fetchJSON("/vendors");
-  
-        // Map backend → frontend shape
-        const mapped: BaseVendor[] = rawVendors.map((v: any) => ({
-          id: v.id,
-          name: v.name,
-          phone: v.phone ?? "",
-          email: v.primary_email ?? "",
-          notes: v.notes ?? "",
-          servicesProvided: v.category ? [v.category] : [],
-        }));
+        const pageSize = 200;
+        let offset = 0;
+        const aggregated: BaseVendor[] = [];
+
+        while (true) {
+          const rawVendors = await fetchJSON(
+            `/vendors?limit=${pageSize}&offset=${offset}`,
+          );
+
+          const mapped: BaseVendor[] = rawVendors.map((v: any) => ({
+            id: v.id,
+            name: v.name,
+            phone: v.phone ?? "",
+            email: v.primary_email ?? "",
+            notes: v.notes ?? "",
+            servicesProvided: v.category ? [v.category] : [],
+          }));
+
+          aggregated.push(...mapped);
+
+          if (rawVendors.length < pageSize) break;
+          offset += rawVendors.length;
+        }
   
         if (isMounted) {
-          setVendors(mapped);
+          setVendors(aggregated);
         }
       } catch (err: any) {
         if (isMounted) {

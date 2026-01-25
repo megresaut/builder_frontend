@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { fetchJSON } from "@/api/fetchJSON";
 
 import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
@@ -517,7 +518,8 @@ export default function VendorDetail() {
       id: routeVendor.id,
       name: routeVendor.name,
       category: routeVendor.category ?? "Uncategorized",
-      email: routeVendor.primary_email ?? "",
+      // Handle both 'email' (from list page) and 'primary_email' (from API) fields
+      email: (routeVendor as any).email || routeVendor.primary_email || "",
       phone: routeVendor.phone ?? "",
       address: undefined,
       website: routeVendor.domain ?? undefined,
@@ -527,6 +529,43 @@ export default function VendorDetail() {
     };
   });
   
+  // Fetch vendor detail if not provided via route state
+  useEffect(() => {
+    if (!vendor && id && !isNaN(id)) {
+      (async () => {
+        try {
+          // Try to fetch from real API endpoint first
+          // Note: This endpoint may not exist yet, so we fall back to mock
+          let fetchedVendor: VendorDetail | null = null;
+          try {
+            const apiVendor = await fetchJSON(`/vendors/${id}`);
+            // Map API response to VendorDetail format
+            if (apiVendor) {
+              fetchedVendor = {
+                id: apiVendor.id,
+                name: apiVendor.name,
+                category: apiVendor.category || "Uncategorized",
+                email: apiVendor.primary_email ?? "",
+                phone: apiVendor.phone || "",
+                address: undefined,
+                website: apiVendor.domain || undefined,
+                servicesProvided: apiVendor.category ? [apiVendor.category] : [],
+              };
+            }
+          } catch (apiErr) {
+            // API endpoint doesn't exist or failed, fall back to mock
+            fetchedVendor = await mockFetchVendorDetail(id);
+          }
+          
+          if (fetchedVendor) {
+            setVendor(fetchedVendor);
+          }
+        } catch (err) {
+          console.error("Failed to load vendor detail:", err);
+        }
+      })();
+    }
+  }, [vendor, id]);
 
   // Mock data state for notes
   const [notes, setNotes] = useState<VendorNote[]>([]);

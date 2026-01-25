@@ -27,6 +27,7 @@ import {
   PlusIcon,
 } from "@/components/icons";
 import { fetchJSON } from "@/api/fetchJSON";
+import { formatUnitLabel } from "@/utils/unitLabel";
 import { useAuth } from "@/auth/useAuth";
 
 interface FieldTeamOrder {
@@ -102,7 +103,11 @@ const transformAPIData = (apiData: any[]): FieldTeamOrder[] => {
     description: fto.description,
     property: fto.property_name,
     property_id: fto.property_id,
-    unit: fto.unit_name ?? "N/A",
+    unit: formatUnitLabel({
+      unitId: fto.unit_id,
+      unitName: fto.unit_name,
+      fallback: "N/A",
+    }),
     unit_id: fto.unit_id ?? null,
     priority: fto.priority,
     dueDate: new Date(fto.due_date).toLocaleDateString(),

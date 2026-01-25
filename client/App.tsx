@@ -295,6 +295,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/tasks/:taskId/workorders/:workOrderId"
+                  element={
+                    <ShellLayout>
+                      <TaskSummaryWrapper />
+                    </ShellLayout>
+                  }
+                />
+                <Route
                   path="/tasks/:taskId/:tab"
                   element={
                     <ShellLayout>

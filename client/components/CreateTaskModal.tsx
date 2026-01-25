@@ -22,6 +22,11 @@ import { FormSection } from "@/components/ui/form-section";
 import { fetchJSON } from "@/api/fetchJSON";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { useAuth } from "@/auth/useAuth";
+import {
+  PROPERTY_LEVEL_LABEL,
+  PROPERTY_LEVEL_SHORT_LABEL,
+  PROPERTY_LEVEL_UNIT_ID,
+} from "@/utils/unitLabel";
 
 interface SimpleProperty {
   id: number;
@@ -472,10 +477,17 @@ export default function CreateTaskModal({
     label: renderPropertyLabel(p),
   }));
 
-  const unitOptions = units.map((u) => ({
-    value: String(u.id),
-    label: u.unit_name || `Unit #${u.id}`,
-  }));
+  const unitOptions = [
+    {
+      value: String(PROPERTY_LEVEL_UNIT_ID),
+      label: PROPERTY_LEVEL_LABEL,
+      displayLabel: PROPERTY_LEVEL_SHORT_LABEL,
+    },
+    ...units.map((u) => ({
+      value: String(u.id),
+      label: u.unit_name || `Unit #${u.id}`,
+    })),
+  ];
 
   const assigneeOptions: MultiSelectOption[] = availableAssignees.map((u) => ({
     id: String(u.id),
@@ -655,7 +667,7 @@ export default function CreateTaskModal({
         payload.requested_by = userId;
       }
 
-      if (selectedUnitId) {
+      if (selectedUnitId !== null) {
         payload.unit_id = selectedUnitId;
       }
 
@@ -972,7 +984,9 @@ export default function CreateTaskModal({
                   <FieldRowItem>
                     <SelectField
                       label="Unit"
-                      value={String(selectedUnitId || "")}
+                      value={
+                        selectedUnitId === null ? "" : String(selectedUnitId)
+                      }
                       onChange={(value) => {
                         setSelectedUnitId(value ? Number(value) : null);
                       }}

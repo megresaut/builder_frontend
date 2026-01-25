@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import {
   EditIcon,
@@ -13,7 +14,12 @@ import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "../WorkOrders";
 import TaskWorkOrders from "./TaskWorkOrders";
-import TaskFieldTeamOrders from "./TaskFieldTeamOrders";
+import TaskFieldTeamOrders, {
+  APIFTOResponse,
+  FieldTeamOrder,
+  UserDirectoryEntry,
+  transformAPIToFieldTeamOrders,
+} from "./TaskFieldTeamOrders";
 import WorkOrderDetailsV2 from "./WorkOrderDetailsV2";
 import SummaryTab from "./SummaryTab";
 import TaskSummaryModals from "./TaskSummaryModals";
@@ -30,6 +36,7 @@ import PersonAvatars from "@/components/PersonAvatars";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import CreateTaskModal from "@/components/CreateTaskModal";
+import { formatUnitLabel } from "@/utils/unitLabel";
 import {
   AddNoteModal,
   AddFileModal,
@@ -361,9 +368,77 @@ export default function TaskSummary() {
     return MOCK_TASKS.find((t) => String(t.id) === taskId);
   }, [taskId]);
 
-  // Use either provided task data or find it from MOCK_TASKS
+  // State for fetched task data
+  const [fetchedTaskData, setFetchedTaskData] = useState<any>(null);
+  const [isFetchingTaskData, setIsFetchingTaskData] = useState(false);
+
+  // Function to fetch task data from API (can be called manually to refresh)
+  const refetchTaskData = useCallback(async () => {
+    if (!taskId) return;
+    
+    try {
+      setIsFetchingTaskData(true);
+      const apiTask = await fetchJSON(`/maintenance/tasks/${taskId}`);
+      if (apiTask) {
+        // Format property display string (same format as used in EditTaskDetailsModal)
+        // The modal uses: property_name || [address_line1, city, state].filter(Boolean).join(", ") || `Property #${id}`
+        const propertyDisplay = apiTask.property_name || 
+          (apiTask.property_address ? apiTask.property_address : `Property #${apiTask.property_id}`);
+        
+        // Transform API response to match expected format
+        const refreshedData = {
+          id: apiTask.id,
+          title: apiTask.name || apiTask.title,
+          name: apiTask.name,
+          description: apiTask.description,
+          status: apiTask.status,
+          priority: apiTask.priority,
+          category: apiTask.category,
+          property_id: apiTask.property_id,
+          property_name: apiTask.property_name,
+          property_address: apiTask.property_address,
+          property: propertyDisplay, // Add property field for display
+          unit_id: apiTask.unit_id,
+          unit: formatUnitLabel({
+            unitId: apiTask.unit_id ?? apiTask.unit,
+            unitName: apiTask.unit_name ?? apiTask.unit,
+            fallback: "",
+          }),
+          dueDate: apiTask.due_date,
+          due_date: apiTask.due_date,
+          createdAt: apiTask.date_requested,
+          updated: apiTask.last_updated,
+          requested_by: apiTask.requested_by,
+          assignees: apiTask.assignees || [],
+          collaborators: apiTask.collaborators || [],
+          attachments: apiTask.attachments || [],
+        };
+        
+        setFetchedTaskData(refreshedData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch task data:", error);
+      // If API fetch fails, we'll fall back to existingTask or MOCK_TASKS
+    } finally {
+      setIsFetchingTaskData(false);
+    }
+  }, [taskId]);
+
+  // Fetch task data from API if navigation state is missing
+  useEffect(() => {
+    // Only fetch if we don't have task data from navigation state and we have a taskId
+    if (!navigationState?.taskData && !navigationState?.task && !existingTask && taskId && !isFetchingTaskData) {
+      refetchTaskData();
+    }
+  }, [taskId, navigationState?.taskData, navigationState?.task, existingTask, isFetchingTaskData, refetchTaskData]);
+
+  // Use either provided task data, fetched data, or find it from MOCK_TASKS
+  // Prefer fetchedTaskData if it exists (after manual refetch) to ensure fresh data
   const taskData =
-    navigationState?.taskData || navigationState?.task || existingTask;
+    fetchedTaskData ||
+    navigationState?.taskData || 
+    navigationState?.task || 
+    existingTask;
 
   // Log taskData when component opens
   useEffect(() => {
@@ -384,21 +459,33 @@ export default function TaskSummary() {
 
   // Initialize activeTab and selectedWorkOrderId from URL params on mount and when URL changes
   useEffect(() => {
-    const tabValue =
-      (tab as "summary" | "workorders" | "fieldteam") || "summary";
+    // If workOrderId is present but tab is not, we're on the workorders tab
+    // Also check if the path ends with /workorders to determine the tab
+    const pathEndsWithWorkorders = location.pathname.endsWith('/workorders') && !workOrderId;
+    const tabValue = workOrderId && !tab
+      ? "workorders"
+      : pathEndsWithWorkorders
+      ? "workorders"
+      : (tab as "summary" | "workorders" | "fieldteam") || "summary";
     if (tabValue !== uiState.activeTab) {
       uiDispatch({ type: "SET_ACTIVE_TAB", payload: tabValue });
     }
 
     // Use URL workOrderId if available (on workorders tab with a selection)
     // Otherwise use preserved ID from location state (when returning from other tabs)
-    const urlId = workOrderId
-      ? parseInt(workOrderId)
-      : navigationState?.preservedWorkOrderId || null;
+    // If preservedWorkOrderId is explicitly null in navigation state, clear the selection
+    let urlId: number | null = null;
+    if (workOrderId) {
+      urlId = parseInt(workOrderId);
+    } else if (navigationState?.preservedWorkOrderId !== undefined) {
+      // If preservedWorkOrderId is explicitly set (including null), use it
+      urlId = navigationState.preservedWorkOrderId;
+    }
+    
     if (urlId !== uiState.selectedWorkOrderId) {
       uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: urlId });
     }
-  }, [tab, workOrderId, navigationState?.preservedWorkOrderId, uiDispatch]);
+  }, [tab, workOrderId, navigationState?.preservedWorkOrderId, uiDispatch, location.pathname, uiState.selectedWorkOrderId]);
 
   // Sync state to URL when tab changes (from user clicking tab button)
   // This happens when handleTabChange calls navigate, then this ensures state is synced
@@ -410,13 +497,20 @@ export default function TaskSummary() {
     We only need to handle the case where no tab is selected (redirect to summary).
   */
   useEffect(() => {
-    if (!tab && taskId) {
+    // Don't redirect if we have a workOrderId (we're on workorders tab) or if tab is already set
+    if (!tab && !workOrderId && taskId) {
+      // Preserve task data when redirecting
+      const preservedState = {
+        ...navigationState,
+        taskData: taskData || navigationState?.taskData || navigationState?.task || fetchedTaskData,
+        task: taskData || navigationState?.task || navigationState?.taskData || fetchedTaskData,
+      };
       navigate(`/tasks/${taskId}/summary`, {
         replace: true,
-        state: navigationState, // Preserve the navigation state when redirecting
+        state: preservedState, // Preserve the navigation state when redirecting
       });
     }
-  }, [tab, taskId, navigate, navigationState]);
+  }, [tab, workOrderId, taskId, navigate, navigationState, taskData, fetchedTaskData]);
 
   // Handle FTO approval/rejection return state
   useEffect(() => {
@@ -1372,7 +1466,13 @@ export default function TaskSummary() {
   const [currentPropertyId, setCurrentPropertyId] = useState<number | undefined>(
     taskData?.property_id,
   );
-  const [currentUnit, setCurrentUnit] = useState<string>(taskData?.unit || "");
+  const [currentUnit, setCurrentUnit] = useState<string>(
+    formatUnitLabel({
+      unitId: taskData?.unit_id ?? taskData?.unit,
+      unitName: taskData?.unit_name ?? taskData?.unit,
+      fallback: "",
+    }),
+  );
   const [currentUnitId, setCurrentUnitId] = useState<number | undefined>(
     taskData?.unit_id,
   );
@@ -1449,7 +1549,36 @@ export default function TaskSummary() {
     if (typeof taskData?.priority === "string") {
       setCurrentPriority(normalizePriorityForBadge(taskData.priority));
     }
-  }, [taskData?.status, taskData?.priority, normalizeStatusForBadge, normalizePriorityForBadge]);
+    // Sync title and other fields when taskData changes (to preserve live task info)
+    if (taskData?.title && taskData.title !== currentTitle) {
+      setCurrentTitle(taskData.title);
+    }
+    if (taskData?.description !== undefined && taskData.description !== currentDescription) {
+      setCurrentDescription(taskData.description);
+    }
+    if (taskData?.category !== undefined && taskData.category !== currentCategory) {
+      setCurrentCategory(taskData.category);
+    }
+    if (taskData?.property !== undefined && taskData.property !== currentProperty) {
+      setCurrentProperty(taskData.property);
+    }
+    if (taskData?.property_id !== undefined && taskData.property_id !== currentPropertyId) {
+      setCurrentPropertyId(taskData.property_id);
+    }
+    if (taskData?.unit !== undefined || taskData?.unit_id !== undefined) {
+      const nextUnitLabel = formatUnitLabel({
+        unitId: taskData?.unit_id ?? taskData?.unit,
+        unitName: taskData?.unit_name ?? taskData?.unit,
+        fallback: "",
+      });
+      if (nextUnitLabel !== currentUnit) {
+        setCurrentUnit(nextUnitLabel);
+      }
+    }
+    if (taskData?.unit_id !== undefined && taskData.unit_id !== currentUnitId) {
+      setCurrentUnitId(taskData.unit_id);
+    }
+  }, [taskData?.status, taskData?.priority, taskData, currentTitle, currentDescription, currentCategory, currentProperty, currentPropertyId, currentUnit, currentUnitId, normalizeStatusForBadge, normalizePriorityForBadge]);
 
   const loadUpdatesFromDb = useCallback(async () => {
     if (!taskId) return;
@@ -1604,10 +1733,157 @@ export default function TaskSummary() {
     status: string;
     billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
     billTotal: string;
+    bill_total_cents?: number;
     assignees: Assignee[];
     collaborators: Assignee[];
     vendorName?: string;
+    vendorId?: number;
+    vendorEmail?: string;
+    vendorPhone?: string;
   }
+
+  // Helper function to calculate age from dates
+  const calculateAge = (date: Date | string | null): string => {
+    if (!date) return "Unknown";
+    try {
+      const now = new Date();
+      const then = typeof date === "string" ? new Date(date) : date;
+      
+      if (isNaN(then.getTime())) {
+        return "Unknown";
+      }
+      
+      const diffMs = now.getTime() - then.getTime();
+      if (diffMs < 0) return "Just now";
+      
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      
+      if (diffDays > 0) {
+        return `${diffDays} day${diffDays !== 1 ? "s" : ""}`;
+      }
+      if (diffHours > 0) {
+        return `${diffHours} hour${diffHours !== 1 ? "s" : ""}`;
+      }
+      return "Just now";
+    } catch (error) {
+      console.warn('Error calculating age:', error);
+      return "Unknown";
+    }
+  };
+
+  // Helper function to format date
+  const formatDate = (date: Date | string | null): string => {
+    if (!date) return "No date";
+    try {
+      const d = typeof date === "string" ? new Date(date) : date;
+      if (isNaN(d.getTime())) {
+        return "No date";
+      }
+      return d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch (error) {
+      console.warn('Error formatting date:', error);
+      return "No date";
+    }
+  };
+
+  const formatBillTotal = (billTotalCents?: number | null): string => {
+    if (typeof billTotalCents !== "number" || billTotalCents <= 0) {
+      return "No invoice";
+    }
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(billTotalCents / 100);
+  };
+
+  // Map API work order response to WorkOrder interface
+  const mapApiWorkOrderToWorkOrder = (apiWo: any, taskUnit?: string): WorkOrder => {
+    if (!apiWo || typeof apiWo !== 'object') {
+      throw new Error('Invalid work order data');
+    }
+
+    // Safely parse and format dates
+    const dueDateStr = formatDate(apiWo.due_date);
+    const updatedDateStr = formatDate(apiWo.updated_at);
+    
+    // Safely get age
+    const ageDate = apiWo.created_at || apiWo.updated_at;
+    const age = ageDate ? calculateAge(ageDate) : "Unknown";
+    
+    const mapped = {
+      id: Number(apiWo.id) || 0,
+      task: String(apiWo.name || "Untitled Work Order"),
+      taskId: Number(apiWo.task_id) || 0,
+      property: String(apiWo.property_name || "Unknown Property"),
+      unit: String(taskUnit || "N/A"),
+      dueDate: dueDateStr,
+      updatedDate: updatedDateStr,
+      age: age,
+      priority: String(apiWo.priority || "normal"),
+      status: String(apiWo.status || "not_started"),
+      billStatus: "Awaiting Invoice" as const,
+      billTotal: formatBillTotal(apiWo.bill_total_cents),
+      bill_total_cents:
+        typeof apiWo.bill_total_cents === "number"
+          ? apiWo.bill_total_cents
+          : undefined,
+      assignees: [], // TODO: Fetch assignees if available in API
+      collaborators: [], // TODO: Fetch collaborators if available in API
+      vendorName: apiWo.vendor_name ? String(apiWo.vendor_name) : undefined,
+      vendorId: apiWo.vendor_id ? Number(apiWo.vendor_id) : undefined,
+      vendorEmail: apiWo.vendor_email ? String(apiWo.vendor_email) : undefined,
+      vendorPhone: apiWo.vendor_phone ? String(apiWo.vendor_phone) : undefined,
+    };
+    return mapped;
+  };
+
+  // Fetch work orders by task ID
+  const {
+    data: apiWorkOrders,
+    isLoading: isLoadingWorkOrders,
+    error: workOrdersError,
+  } = useQuery({
+    queryKey: ["workOrders", taskId],
+    queryFn: async () => {
+      if (!taskId) return [];
+      try {
+        const response = await fetchJSON(`/maintenance/work-orders?task_id=${taskId}`);
+        return Array.isArray(response) ? response : [];
+      } catch (error) {
+        console.error('Error fetching work orders:', error);
+        return [];
+      }
+    },
+    enabled: !!taskId && !isNaN(Number(taskId)),
+    retry: 1,
+  });
+
+  // Fetch field team orders by task ID
+  const { data: apiFieldTeamOrders, isLoading: isLoadingFieldTeamOrders } =
+    useQuery<APIFTOResponse[]>({
+      queryKey: ["fieldTeamOrders", taskId],
+      queryFn: async () => {
+        if (!taskId) return [];
+        try {
+          const response = await fetchJSON(
+            `/maintenance/ftos?task_id=${taskId}`,
+          );
+          return Array.isArray(response)
+            ? response
+            : response?.data ?? response?.items ?? response?.results ?? [];
+        } catch (error) {
+          console.error("Error fetching field team orders:", error);
+          return [];
+        }
+      },
+      enabled: !!taskId && !isNaN(Number(taskId)),
+      retry: 1,
+    });
 
   // Mock work orders data - memoized to ensure hydratePerson is available
   const mockWorkOrders: WorkOrder[] = useMemo(
@@ -1821,177 +2097,117 @@ export default function TaskSummary() {
     [],
   );
 
+  // Map API work orders to WorkOrder interface
+  const mappedWorkOrders = useMemo(() => {
+    if (!apiWorkOrders || apiWorkOrders.length === 0) {
+      return mockWorkOrders; // Fallback to mock data if no API data
+    }
+    const unit = formatUnitLabel({
+      unitId: taskData?.unit_id ?? taskData?.unit,
+      unitName: taskData?.unit_name ?? taskData?.unit,
+      fallback: "",
+    });
+    try {
+      return apiWorkOrders
+        .map((apiWo) => {
+          try {
+            return mapApiWorkOrderToWorkOrder(apiWo, unit);
+          } catch (error) {
+            console.error('Error mapping work order:', error, apiWo);
+            return null;
+          }
+        })
+        .filter((wo): wo is WorkOrder => wo !== null);
+    } catch (error) {
+      console.error('Error mapping work orders:', error);
+      return mockWorkOrders; // Fallback to mock data on error
+    }
+  }, [apiWorkOrders, taskData?.unit_id, taskData?.unit_name, taskData?.unit]);
+
   // Work orders and field team orders state
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
+  // Use fetched work orders if available, otherwise fallback to mock data
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mappedWorkOrders);
   const [isUpdateWorkOrderModalOpen, setIsUpdateWorkOrderModalOpen] =
     useState(false);
 
-  // Mock field team orders data - memoized to ensure hydratePerson is available
-  const mockFieldTeamOrders = useMemo(
-    () => [
-      {
-        id: 1,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Oct 2, 2025",
-        priority: "high",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 420,
-        unit: "Unit",
-      },
-      {
-        id: 2,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 29, 2025",
-        priority: "normal",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "approved",
-        timesheetStatus: "approved",
-        amount: 95,
-        unit: "Unit",
-      },
-      {
-        id: 3,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 10, 2025",
-        priority: "low",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "pending-approval",
-        timesheetStatus: "submitted",
-        amount: 95,
-        unit: "Unit",
-      },
-      {
-        id: 4,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 6, 2025",
-        priority: "high",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 112,
-        unit: "Unit",
-      },
-      {
-        id: 5,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 5, 2025",
-        priority: "normal",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "approved",
-        amount: 93,
-        unit: "Unit",
-      },
-      {
-        id: 6,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 4, 2025",
-        priority: "low",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 75,
-        unit: "Unit",
-      },
-      {
-        id: 7,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 4, 2025",
-        priority: "high",
-        fieldTeam: [
-          hydratePerson({ initials: "DC", name: "David Chen" }),
-          hydratePerson({ initials: "ER", name: "Emma Rodriguez" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "submitted",
-        amount: 101,
-        unit: "Unit",
-      },
-      {
-        id: 8,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 3, 2025",
-        priority: "normal",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 124,
-        unit: "Unit",
-      },
-      {
-        id: 9,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 1, 2025",
-        priority: "low",
-        fieldTeam: [hydratePerson({ initials: "JW", name: "James Wilson" })],
-        status: "dispatched",
-        timesheetStatus: "approved",
-        amount: 67,
-        unit: "Unit",
-      },
-      {
-        id: 10,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 1, 2025",
-        priority: "high",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 118,
-        unit: "Unit",
-      },
-    ],
-    [],
-  );
+  // Update work orders when API data changes
+  useEffect(() => {
+    if (mappedWorkOrders.length > 0) {
+      setWorkOrders(mappedWorkOrders);
+    }
+  }, [mappedWorkOrders]);
 
-  const [fieldTeamOrders, setFieldTeamOrders] =
-    useState<any[]>(mockFieldTeamOrders);
+  const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
+  const [isLoadingFieldTeamMembers, setIsLoadingFieldTeamMembers] =
+    useState(false);
+
+  const fetchUsersByIds = async (
+    ids: number[],
+  ): Promise<Record<number, UserDirectoryEntry>> => {
+    const uniqueIds = Array.from(new Set(ids));
+    if (uniqueIds.length === 0) {
+      return {};
+    }
+
+    const users = await Promise.all(
+      uniqueIds.map(async (id) => {
+        const user = await fetchJSON(`/users/${id}`);
+        return user;
+      }),
+    );
+
+    return users.reduce((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {} as Record<number, UserDirectoryEntry>);
+  };
+
+  useEffect(() => {
+    if (!apiFieldTeamOrders) {
+      setFieldTeamOrders([]);
+      return;
+    }
+
+    if (apiFieldTeamOrders.length === 0) {
+      setFieldTeamOrders([]);
+      return;
+    }
+
+    let isActive = true;
+
+    const hydrateFieldTeamOrders = async () => {
+      setIsLoadingFieldTeamMembers(true);
+      try {
+        const allFieldTeamIds = apiFieldTeamOrders.flatMap(
+          (fto) => fto.field_team_member_ids ?? [],
+        );
+        const usersById = await fetchUsersByIds(allFieldTeamIds);
+        const mappedOrders = transformAPIToFieldTeamOrders(
+          apiFieldTeamOrders,
+          usersById,
+        );
+
+        if (isActive) {
+          setFieldTeamOrders(mappedOrders);
+        }
+      } catch (error) {
+        console.error("Error mapping field team orders:", error);
+        if (isActive) {
+          setFieldTeamOrders([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingFieldTeamMembers(false);
+        }
+      }
+    };
+
+    hydrateFieldTeamOrders();
+
+    return () => {
+      isActive = false;
+    };
+  }, [apiFieldTeamOrders]);
 
   useEffect(() => {
     return () => {
@@ -2056,17 +2272,25 @@ export default function TaskSummary() {
   };
 
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
-    // Navigate to the new tab and preserve the selected work order ID in state
+    // Navigate to the new tab and preserve the full navigation state (including live task data)
     // The URL will only include workOrderId when on the workorders tab
+    // Always include taskData in the preserved state to maintain context
+    const preservedState = {
+      ...navigationState, // Preserve all existing navigation state (taskData, task, etc.)
+      taskData: taskData || navigationState?.taskData || navigationState?.task || fetchedTaskData, // Ensure task data is always included
+      task: taskData || navigationState?.task || navigationState?.taskData || fetchedTaskData, // Also set as 'task' for compatibility
+      preservedWorkOrderId: uiState.selectedWorkOrderId,
+    };
+    
     if (newTab === "workorders" && uiState.selectedWorkOrderId) {
-      navigate(`/tasks/${taskId}/${newTab}/${uiState.selectedWorkOrderId}`, {
+      navigate(`/tasks/${taskId}/workorders/${uiState.selectedWorkOrderId}`, {
         replace: false,
-        state: { preservedWorkOrderId: uiState.selectedWorkOrderId },
+        state: preservedState,
       });
     } else {
       navigate(`/tasks/${taskId}/${newTab}`, {
         replace: false,
-        state: { preservedWorkOrderId: uiState.selectedWorkOrderId },
+        state: preservedState,
       });
     }
   };
@@ -2340,19 +2564,19 @@ export default function TaskSummary() {
   };
 
   const getUnitDisplayLabel = (unitValue: string): string => {
-    const unitLabels: Record<string, string> = {
-      unit1: "Unit 1",
-      unit2: "Unit 2",
-    };
-    return unitLabels[unitValue] || "";
+    return formatUnitLabel({
+      unitId: unitValue,
+      unitName: unitValue,
+      fallback: "",
+    });
   };
 
   // Extract unique vendors from work orders
   const vendorsFromWorkOrders = useMemo(() => {
     const uniqueVendors = new Map<
-      string,
+      number | string,
       {
-        id: string;
+        id: number | string;
         name: string;
         initials: string;
         email: string;
@@ -2361,22 +2585,23 @@ export default function TaskSummary() {
       }
     >();
     workOrders.forEach((wo) => {
-      if (wo.vendorName && wo.vendorName.trim()) {
-        if (!uniqueVendors.has(wo.vendorName)) {
+      // Use vendor_id if available, otherwise fall back to vendorName for uniqueness
+      const vendorKey = wo.vendorId || wo.vendorName;
+      if (vendorKey && wo.vendorName && wo.vendorName.trim()) {
+        if (!uniqueVendors.has(vendorKey)) {
           const initials = wo.vendorName
             .split(" ")
             .slice(0, 2)
             .map((word) => word[0])
             .join("")
             .toUpperCase();
-          const vendorInfo = vendorMasterData[wo.vendorName];
-          uniqueVendors.set(wo.vendorName, {
-            id: `vendor-${uniqueVendors.size + 1}`,
+          uniqueVendors.set(vendorKey, {
+            id: wo.vendorId || `vendor-${uniqueVendors.size + 1}`,
             name: wo.vendorName,
             initials: initials || "V",
-            email: vendorInfo?.email || "",
-            phone: vendorInfo?.phone || "",
-            title: vendorInfo?.title || "Vendor Company",
+            email: wo.vendorEmail || "",
+            phone: wo.vendorPhone || "",
+            title: "Vendor Company",
           });
         }
       }
@@ -2461,7 +2686,7 @@ export default function TaskSummary() {
       status: backendStatus,
       category: currentCategory || "",
       property_id: currentPropertyId || taskData?.property_id,
-      unit_id: currentUnitId || taskData?.unit_id || null,
+      unit_id: currentUnitId ?? taskData?.unit_id ?? null,
       due_date: currentDueDate ? currentDueDate.toISOString() : null,
       assignees: currentAssignees.map((a) => a.id),
       collaborators: currentCollaborators?.map((c) => c.id) || [],
@@ -2556,9 +2781,13 @@ export default function TaskSummary() {
       <PageHeader
         title={
           currentTitle ||
+          taskData?.title ||
+          taskData?.name ||
           navigationState?.task?.title ||
           navigationState?.taskData?.title ||
-          "Edgerton - Quote"
+          fetchedTaskData?.title ||
+          fetchedTaskData?.name ||
+          "Loading..."
         }
         subtitle={
           <div className="flex items-center gap-3">
@@ -2775,9 +3004,14 @@ export default function TaskSummary() {
                 isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
                 onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
               />
-            ) : isLoadingWorkOrder ? (
+            ) : isLoadingWorkOrder || isLoadingWorkOrders ? (
               <div className="flex flex-col items-center justify-center w-full h-[300px] bg-white rounded-lg border border-[#e5e5e5]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <p className="mt-4 text-gray-500">Loading work orders...</p>
+              </div>
+            ) : workOrdersError ? (
+              <div className="flex flex-col items-center justify-center w-full h-[300px] bg-white rounded-lg border border-[#e5e5e5]">
+                <p className="text-red-500">Error loading work orders. Using fallback data.</p>
               </div>
             ) : (
               <TaskWorkOrders
@@ -2787,6 +3021,7 @@ export default function TaskSummary() {
                 defaultTask={currentTitle}
                 defaultUnit={currentUnit}
                 taskId={taskId || "0"}
+                propertyId={currentPropertyId || taskData?.property_id}
                 onWorkOrderSelect={handleWorkOrderSelect}
               />
             ))}
@@ -2917,6 +3152,29 @@ export default function TaskSummary() {
           {uiState.activeTab === "fieldteam" && (
             <TaskFieldTeamOrders
               orders={fieldTeamOrders}
+              isLoading={isLoadingFieldTeamOrders || isLoadingFieldTeamMembers}
+              lockedPropertyId={currentPropertyId || taskData?.property_id}
+              lockedPropertyLabel={
+                taskData?.property_name ||
+                currentProperty ||
+                taskData?.property_address ||
+                ""
+              }
+              lockedUnitId={currentUnitId ?? taskData?.unit_id ?? null}
+              lockedUnitLabel={
+                currentUnit ||
+                  formatUnitLabel({
+                    unitId: taskData?.unit_id ?? taskData?.unit,
+                    unitName: taskData?.unit_name ?? taskData?.unit,
+                    fallback: "N/A",
+                  })
+              }
+              lockedTaskId={taskId ? Number(taskId) : undefined}
+              lockedTaskLabel={
+                taskData?.title ||
+                taskData?.name ||
+                (taskId ? `Task #${taskId}` : "")
+              }
               onOrdersChange={(newOrders) => {
                 // Check for timesheet status changes and create updates
                 newOrders.forEach((newOrder, idx) => {
@@ -2982,6 +3240,9 @@ export default function TaskSummary() {
         editingNote={editingNote}
         editingFile={editingFile}
         taskId={taskId}
+        userId={userId}
+        onRefetchTaskData={refetchTaskData}
+        onRefetchUpdates={loadUpdatesFromDb}
         onNotesChange={setNotes}
         onCreateNote={handleCreateNote}
         onUpdateNote={handleUpdateNote}

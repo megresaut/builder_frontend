@@ -11,6 +11,7 @@ import { FieldShell } from "./FieldShell";
 interface SelectOption {
   value: string;
   label: string;
+  displayLabel?: string;
 }
 
 interface SelectFieldProps {
@@ -128,7 +129,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     ? selectedValues.length === 0
       ? placeholder
       : undefined
-    : (selectedOptions[0]?.label ?? placeholder);
+    : (selectedOptions[0]?.displayLabel ??
+      selectedOptions[0]?.label ??
+      placeholder);
 
   const isShowingPlaceholder = isMultiple
     ? selectedValues.length === 0
@@ -313,7 +316,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                   }}
                 >
                   <span style={{ color: "var(--color-text-primary)" }}>
-                    {opt.label}
+                    {opt.displayLabel ?? opt.label}
                   </span>
                   <div
                     role="button"

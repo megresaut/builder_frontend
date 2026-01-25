@@ -10,6 +10,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
+import { formatUnitLabel } from "@/utils/unitLabel";
 import {
   EditIcon,
   DeleteIcon,
@@ -414,7 +415,11 @@ const transformAPIToFieldTeamOrder = (
       originalStatus: fto.status, // Keep original for modal
       timesheetStatus,
       amount: fto.total_amount,
-      unit: fto.unit_name ?? "N/A",
+      unit: formatUnitLabel({
+        unitId: fto.unit_id,
+        unitName: fto.unit_name,
+        fallback: "N/A",
+      }),
       field_team_member_ids: fto.field_team_member_ids ?? [],
     };
   });

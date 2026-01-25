@@ -1,0 +1,481 @@
+import { useState, useCallback, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import GlobalTable from "@/components/GlobalTable";
+import BlueButton from "@/components/BlueButton";
+import PersonAvatars from "@/components/PersonAvatars";
+import InspectionDetail from "./InspectionDetail";  
+import ScheduleInspectionModal from "./ScheduleInspectionModal";
+import {
+  EditIcon,
+  DeleteIcon,
+  PlusIcon,
+  DotsIcon,
+  CalendarIcon,
+  UserIcon,
+  ApproveIcon,
+  ArrowBackIcon,
+} from "@/components/icons";
+
+export interface FieldManager {
+  id: number;
+  name: string;
+  initials: string;
+  email?: string;
+}
+
+interface Inspector {
+  id: number;
+  name: string;
+  initials: string;
+  email?: string;
+}
+
+interface Inspection {
+  id: number;
+  name: string;
+  inspector: Inspector;
+  inspectionDate: string;
+  submitted: string;
+  status: "Submitted" | "Outstanding" | "Completed" | "Upcoming";
+  issues: number;
+  photos: number;
+  updated: string;
+  templateName: string;
+}
+
+interface InspectionsProps {
+  propertyAddress?: string;
+  propertyType?: string;
+  propertyUnits?: number;
+}
+
+const mockFieldManagers: FieldManager[] = [
+  { id: 1, name: "John Doe", initials: "JD", email: "john.doe@company.com" },
+  { id: 2, name: "Jane Smith", initials: "JS", email: "jane.smith@company.com" },
+  { id: 3, name: "Mike Johnson", initials: "MJ", email: "mike.johnson@company.com" },
+  { id: 4, name: "Sarah Williams", initials: "SW", email: "sarah.williams@company.com" },
+  { id: 5, name: "Robert Brown", initials: "RB", email: "robert.brown@company.com" },
+];
+
+const mockInspections: Inspection[] = [
+  {
+    id: 1,
+    name: "Quarterly Building Inspection",
+    inspector: { id: 1, name: "John Doe", initials: "JD", email: "john.doe@company.com" },
+    inspectionDate: "Oct 15, 2025",
+    submitted: "Oct 16, 2025",
+    status: "Completed",
+    issues: 2,
+    photos: 12,
+    updated: "Oct 17, 2025",
+    templateName: "Default Template",
+  },
+  {
+    id: 2,
+    name: "HVAC System Inspection",
+    inspector: { id: 2, name: "Jane Smith", initials: "JS", email: "jane.smith@company.com" },
+    inspectionDate: "Oct 10, 2025",
+    submitted: "Oct 11, 2025",
+    status: "Outstanding",
+    issues: 1,
+    photos: 8,
+    updated: "Oct 12, 2025",
+    templateName: "HVAC Inspection",
+  },
+  {
+    id: 3,
+    name: "Roof and Gutters Inspection",
+    inspector: { id: 3, name: "Mike Johnson", initials: "MJ", email: "mike.johnson@company.com" },
+    inspectionDate: "Oct 5, 2025",
+    submitted: "Oct 6, 2025",
+    status: "Outstanding",
+    issues: 4,
+    photos: 15,
+    updated: "Oct 8, 2025",
+    templateName: "Default Template",
+  },
+  {
+    id: 4,
+    name: "Foundation and Structural Inspection",
+    inspector: { id: 1, name: "John Doe", initials: "JD", email: "john.doe@company.com" },
+    inspectionDate: "Sep 25, 2025",
+    submitted: "Sep 26, 2025",
+    status: "Completed",
+    issues: 0,
+    photos: 10,
+    updated: "Sep 27, 2025",
+    templateName: "Default Template",
+  },
+  {
+    id: 5,
+    name: "Plumbing Systems Inspection",
+    inspector: { id: 2, name: "Jane Smith", initials: "JS", email: "jane.smith@company.com" },
+    inspectionDate: "Sep 20, 2025",
+    submitted: "Sep 21, 2025",
+    status: "Submitted",
+    issues: 2,
+    photos: 6,
+    updated: "Sep 21, 2025",
+    templateName: "Plumbing Inspection",
+  },
+];
+
+function InspectionsList({ propertyAddress }: InspectionsProps) {
+  const navigate = useNavigate();
+  const { propertyId } = useParams();
+  const [inspectionsList, setInspectionsList] = useState<Inspection[]>(mockInspections);
+  const [selectedInspectionId, setSelectedInspectionId] = useState<number | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
+    "showPageSizeDropdown",
+    false,
+  );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "openMenuId",
+    null,
+  );
+
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    inspectionsList,
+    "inspections",
+  );
+
+  const {
+    columnOrder,
+    visibleColumns,
+    draggedColumn,
+    dropTargetColumn,
+    dropPosition,
+    showColumnModal,
+    setShowColumnModal,
+    columnMenuPos,
+    columnButtonRef,
+    toggleColumnVisibility,
+    handleColumnDragStart,
+    handleColumnDragOver,
+    handleColumnDragLeave,
+    handleColumnDrop,
+    setVisibleColumns,
+  } = useColumnManagement([
+    "name",
+    "inspector",
+    "inspectionDate",
+    "status",
+    "photos",
+    "updated",
+  ]);
+
+  // Show all columns by default
+  useEffect(() => {
+    setVisibleColumns(
+      new Set([
+        "name",
+        "inspector",
+        "inspectionDate",
+        "status",
+        "photos",
+        "updated",
+      ]),
+    );
+  }, [setVisibleColumns]);
+
+  const columns = [
+    {
+      key: "name",
+      label: "Inspection",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d5d01db2db718e32f4e620e7b1fc6ea705e115b1?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    {
+      key: "inspector",
+      label: "Inspector",
+      icon: <UserIcon width={16} height={16} />,
+    },
+    {
+      key: "inspectionDate",
+      label: "Inspection Date",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    {
+      key: "status",
+      label: "Status",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    {
+      key: "photos",
+      label: "Photos (#)",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/7f481edecd98b8475a23ac762feb99280a60a52a?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    {
+      key: "updated",
+      label: "Updated",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+  ];
+
+  const handleDeleteInspection = useCallback((inspection: Inspection) => {
+    setInspectionsList((prev) => prev.filter((i) => i.id !== inspection.id));
+  }, []);
+
+  const handleEditInspection = useCallback((inspection: Inspection) => {
+    setSelectedInspectionId(inspection.id);
+  }, []);
+
+  const handleViewInspection = useCallback((inspection: Inspection) => {
+    setSelectedInspectionId(inspection.id);
+  }, []);
+
+  const handleMarkAsComplete = useCallback((inspection: Inspection) => {
+    setInspectionsList((prev) =>
+      prev.map((i) =>
+        i.id === inspection.id ? { ...i, status: "Completed" as const } : i
+      )
+    );
+  }, []);
+
+  const handleScheduleInspection = useCallback((fieldManager: FieldManager, fullDate: string, templateName: string, inspectionName: string) => {
+    const newId = Math.max(...inspectionsList.map(i => i.id), 0) + 1;
+    const today = new Date().toLocaleDateString();
+
+    const newInspection: Inspection = {
+      id: newId,
+      name: inspectionName,
+      inspector: fieldManager,
+      inspectionDate: fullDate,
+      submitted: "",
+      status: "Upcoming",
+      issues: 0,
+      photos: 0,
+      updated: today,
+      templateName,
+    };
+
+    setInspectionsList((prev) => [newInspection, ...prev]);
+    setShowScheduleModal(false);
+  }, [inspectionsList]);
+
+  const actions = [
+    {
+      label: "View Inspection",
+      icon: <EditIcon width={18} height={18} />,
+      onClick: handleViewInspection,
+    },
+    {
+      label: "Mark as Complete",
+      icon: <ApproveIcon width={18} height={18} />,
+      onClick: handleMarkAsComplete,
+    },
+    {
+      label: "Delete Inspection",
+      icon: <DeleteIcon width={18} height={18} />,
+      onClick: handleDeleteInspection,
+    },
+  ];
+
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case "Completed":
+        return "#059669";
+      case "Outstanding":
+        return "#d97706";
+      case "Submitted":
+        return "#2463eb";
+      case "Upcoming":
+        return "#8b5cf6";
+      default:
+        return "#525252";
+    }
+  };
+
+  if (selectedInspectionId) {
+    const selectedInspection = inspectionsList.find(i => i.id === selectedInspectionId);
+
+    return (
+      <div className="flex flex-col gap-6 w-full">
+        {/* Inspection Detail - Inline */}
+        <InspectionDetail
+          inspectionId={selectedInspectionId}
+          inspection={selectedInspection}
+          isInline={true}
+          templateName={selectedInspection?.templateName}
+          onBack={() => setSelectedInspectionId(null)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-6 max-w-full">
+      {/* Schedule Inspection Modal */}
+      <ScheduleInspectionModal
+        open={showScheduleModal}
+        onOpenChange={setShowScheduleModal}
+        fieldManagers={mockFieldManagers}
+        onConfirm={handleScheduleInspection}
+      />
+
+      <div className="flex items-center gap-10 justify-between flex-wrap">
+        {/* Title and Description */}
+        <div className="flex flex-col gap-1 min-w-[240px]">
+          <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+            Inspections
+          </h1>
+          <div className="flex items-center gap-3 mt-1">
+            <p
+              className="text-[#717179] font-medium text-base leading-4"
+              style={{ marginTop: "-4px" }}
+            >
+              All inspections for {propertyAddress}
+            </p>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="flex items-center gap-4">
+          <BlueButton
+            icon={<PlusIcon width={20} height={20} />}
+            onClick={() => setShowScheduleModal(true)}
+          >
+            New Inspection
+          </BlueButton>
+        </div>
+      </div>
+
+      <GlobalTable
+          columns={columns}
+          data={inspectionsList}
+          rowKey="id"
+          onRowClick={(inspection) => {
+            setSelectedInspectionId(inspection.id);
+          }}
+          renderCell={(inspection, columnKey) => {
+            if (columnKey === "name") {
+              return (
+                <span className="text-gray-900 font-normal text-sm truncate">
+                  {inspection.name}
+                </span>
+              );
+            }
+            if (columnKey === "inspector") {
+              return (
+                <PersonAvatars
+                  people={[inspection.inspector]}
+                  type="assignee"
+                  size="sm"
+                  fallback="—"
+                />
+              );
+            }
+            if (columnKey === "inspectionDate") {
+              return (
+                <span className="text-gray-900 font-normal text-sm truncate">
+                  {inspection.inspectionDate}
+                </span>
+              );
+            }
+            if (columnKey === "status") {
+              return (
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: getStatusColor(inspection.status) }}
+                  />
+                  <span className="text-gray-900 font-normal text-sm capitalize">
+                    {inspection.status}
+                  </span>
+                </div>
+              );
+            }
+            if (columnKey === "photos") {
+              return (
+                <span className="text-gray-900 font-normal text-sm">
+                  {inspection.photos}
+                </span>
+              );
+            }
+            if (columnKey === "updated") {
+              return (
+                <span className="text-gray-900 font-normal text-sm truncate">
+                  {inspection.updated}
+                </span>
+              );
+            }
+            return null;
+          }}
+          sortingHook={{
+            handleSortClick,
+            getSortIndicator,
+            getSortedData,
+          }}
+          columnManagementHook={{
+            columnOrder,
+            visibleColumns,
+            draggedColumn,
+            dropTargetColumn,
+            dropPosition,
+            columnMenuPos,
+            columnButtonRef,
+            toggleColumnVisibility,
+            handleColumnDragStart,
+            handleColumnDragOver,
+            handleColumnDragLeave,
+            handleColumnDrop,
+          }}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={setItemsPerPage}
+          showPageSizeDropdown={showPageSizeDropdown}
+          onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+          openMenuId={openMenuId}
+          onOpenMenuIdChange={setOpenMenuId}
+          actions={actions}
+          title="Inspections"
+          headerActions={
+            <button
+              ref={columnButtonRef}
+              onClick={() => {
+                setShowPageSizeDropdown(false);
+                setOpenMenuId(null);
+                setShowColumnModal((prev) => !prev);
+              }}
+              className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+            >
+              <DotsIcon width={18} height={18} color="#303030" />
+            </button>
+          }
+          showColumnModal={showColumnModal}
+          onShowColumnModalChange={setShowColumnModal}
+        />
+      </div>
+  );
+}
+
+export default function Inspections(props: InspectionsProps) {
+  return <InspectionsList {...props} />;
+}

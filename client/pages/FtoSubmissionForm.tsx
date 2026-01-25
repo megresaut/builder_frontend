@@ -32,6 +32,11 @@ import { VENDORS } from "@/data/fto/vendors";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
+import {
+  PROPERTY_LEVEL_LABEL,
+  PROPERTY_LEVEL_SHORT_LABEL,
+  PROPERTY_LEVEL_UNIT_ID,
+} from "@/utils/unitLabel";
 
 const CUSTOM_FTO_TASK_VALUE = "__custom_fto__";
 
@@ -981,12 +986,19 @@ export default function FtoSubmissionForm() {
 
   const getUnitOptions = (propertyId: string | null) => {
     const units = getPropertyUnits(propertyId);
-    return units.map((u) => ({
-      value: String(u.id),
-      label: u.unit_name
-        ? `${u.unit_name}${u.address_1 ? ` — ${u.address_1}` : ""}`
-        : `Unit #${u.id}`,
-    }));
+    return [
+      {
+        value: String(PROPERTY_LEVEL_UNIT_ID),
+        label: PROPERTY_LEVEL_LABEL,
+        displayLabel: PROPERTY_LEVEL_SHORT_LABEL,
+      },
+      ...units.map((u) => ({
+        value: String(u.id),
+        label: u.unit_name
+          ? `${u.unit_name}${u.address_1 ? ` — ${u.address_1}` : ""}`
+          : `Unit #${u.id}`,
+      })),
+    ];
   };
 
   const vendorOptions = VENDORS.map((vendor) => ({

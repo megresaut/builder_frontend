@@ -48,6 +48,9 @@ interface TaskSummaryModalsProps {
   editingNote: Note | undefined;
   editingFile: File | undefined;
   taskId?: string;
+  userId?: number;
+  onRefetchTaskData?: () => Promise<void>;
+  onRefetchUpdates?: () => Promise<void>;
   onNotesChange: (notes: Note[]) => void;
   onCreateNote: (body: string, isVisibleToClient?: boolean) => Promise<void>;
   onUpdateNote: (noteId: number, body: string, isVisibleToClient?: boolean) => Promise<void>;
@@ -102,6 +105,9 @@ export default function TaskSummaryModals({
   editingNote,
   editingFile,
   taskId,
+  userId,
+  onRefetchTaskData,
+  onRefetchUpdates,
   onNotesChange,
   onCreateNote,
   onUpdateNote,
@@ -304,16 +310,61 @@ export default function TaskSummaryModals({
           property_id: currentPropertyId,
           unit_id: currentUnitId,
         }}
-        onSubmit={(data: EditTaskDetailsData) => {
-          onCurrentTitleChange(data.title);
-          onCurrentDescriptionChange(data.description || "");
-          onCurrentPropertyChange(data.property);
-          onCurrentUnitChange(data.unit);
-          onCurrentCategoryChange(data.category);
-          // Note: property_id and unit_id are handled internally by the modal
-          // and returned in the data, but we don't have setters for them here
-          // They will be updated when the task is saved via the backend
-          uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
+        onSubmit={async (data: EditTaskDetailsData) => {
+          if (!taskId || !userId) {
+            console.error("Missing taskId or userId");
+            return;
+          }
+
+          // Use property_id from data, fallback to currentPropertyId if not provided
+          const propertyId = data.property_id || currentPropertyId;
+          if (!propertyId) {
+            console.error("Property ID is required");
+            return;
+          }
+
+          try {
+            // Call the edit-final endpoint
+            await fetchJSON(`/maintenance/tasks/${taskId}/edit-final`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                actor_id: userId,
+                name: data.title,
+                description: data.description || "",
+                property_id: propertyId,
+                unit_id: data.unit_id || null,
+                category: data.category || "",
+              }),
+            });
+
+            // Close modal first
+            uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
+
+            // Refresh the all tasks page in the background
+            window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+
+            // Refresh the current task summary page data first (this will update all state via useEffect)
+            if (onRefetchTaskData) {
+              await onRefetchTaskData();
+            }
+
+            // Refresh the updates feed to show the edit in the timeline
+            if (onRefetchUpdates) {
+              await onRefetchUpdates();
+            }
+
+            // Update local state after refetch to ensure consistency
+            // The refetch should have updated taskData, but we update these immediately for responsiveness
+            onCurrentTitleChange(data.title);
+            onCurrentDescriptionChange(data.description || "");
+            onCurrentPropertyChange(data.property);
+            onCurrentUnitChange(data.unit);
+            onCurrentCategoryChange(data.category);
+          } catch (error) {
+            console.error("Failed to save task details:", error);
+            // Optionally show error toast/notification here
+          }
         }}
       />
 

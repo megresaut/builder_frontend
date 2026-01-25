@@ -15,6 +15,12 @@ import {
 
 import type { MultiSelectOption } from "@/components/forms";
 import { fetchJSON } from "@/api/fetchJSON";
+import {
+  PROPERTY_LEVEL_LABEL,
+  PROPERTY_LEVEL_SHORT_LABEL,
+  PROPERTY_LEVEL_UNIT_ID,
+  formatUnitLabel,
+} from "@/utils/unitLabel";
 
 interface SimpleUnit {
   id: number;
@@ -64,6 +70,12 @@ interface CreateFTOModalProps {
   onOpenChange: (open: boolean) => void;
   editingFTO?: EditingFTO | null;
   readOnly?: boolean; // If true, all fields are read-only (for viewing submissions)
+  lockedPropertyId?: number;
+  lockedPropertyLabel?: string;
+  lockedUnitId?: number | null;
+  lockedUnitLabel?: string;
+  lockedTaskId?: number;
+  lockedTaskLabel?: string;
 }
 
 
@@ -73,6 +85,12 @@ export default function CreateFTOModal({
   onOpenChange,
   editingFTO,
   readOnly = false,
+  lockedPropertyId,
+  lockedPropertyLabel,
+  lockedUnitId,
+  lockedUnitLabel,
+  lockedTaskId,
+  lockedTaskLabel,
 }: CreateFTOModalProps) {
   // Form state - using IDs instead of objects
   // console.log( "editingFTO:", editingFTO )
@@ -160,7 +178,13 @@ export default function CreateFTOModal({
   
     hasHydratedRef.current = true;
   
-    setEditingUnitLabel(editingFTO.unit_name ?? "N/A");
+    setEditingUnitLabel(
+      formatUnitLabel({
+        unitId: editingFTO.unit_id ?? null,
+        unitName: editingFTO.unit_name ?? null,
+        fallback: "N/A",
+      }),
+    );
     setFtoName(editingFTO.name);
     setDescription(editingFTO.description);
     setPriority(editingFTO.priority);
@@ -194,6 +218,19 @@ export default function CreateFTOModal({
       hasHydratedRef.current = false;
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open || editingFTO) return;
+    if (lockedPropertyId != null) {
+      setSelectedPropertyId(lockedPropertyId);
+    }
+    if (lockedUnitId !== undefined) {
+      setSelectedUnitId(lockedUnitId ?? null);
+    }
+    if (lockedTaskId != null) {
+      setSelectedTaskId(lockedTaskId);
+    }
+  }, [open, editingFTO, lockedPropertyId, lockedUnitId, lockedTaskId]);
 
   // Status auto-logic: sync with field team members
   useEffect(() => {
@@ -244,6 +281,11 @@ export default function CreateFTOModal({
       [p.address_line1, p.city, p.state].filter(Boolean).join(", ") ||
       `Property #${p.id}`,
   }));
+
+  const taskOptions = tasks.map((t) => ({
+    value: String(t.id),
+    label: t.name || `Task #${t.id}`,
+  }));
   
   function extractUnitSortKey(unitName: string): number | string {
     // Try to parse numeric unit names (e.g. "1", "10", "12A" → 12)
@@ -254,8 +296,14 @@ export default function CreateFTOModal({
     return unitName;
   }
   
-  const unitOptions = [...units]
-  .sort((a, b) => {
+  const unitOptions = [
+    {
+      value: String(PROPERTY_LEVEL_UNIT_ID),
+      label: PROPERTY_LEVEL_LABEL,
+      displayLabel: PROPERTY_LEVEL_SHORT_LABEL,
+    },
+    ...[...units]
+      .sort((a, b) => {
     const aKey = extractUnitSortKey(a.unit_name);
     const bKey = extractUnitSortKey(b.unit_name);
 
@@ -270,13 +318,14 @@ export default function CreateFTOModal({
 
     // fallback string compare
     return String(aKey).localeCompare(String(bKey));
-  })
-  .map((u) => ({
-    value: String(u.id),
-    label: u.unit_name
-      ? `${u.unit_name}${u.address_1 ? ` — ${u.address_1}` : ""}`
-      : `Unit #${u.id}`,
-  }));
+    })
+      .map((u) => ({
+        value: String(u.id),
+        label: u.unit_name
+          ? `${u.unit_name}${u.address_1 ? ` — ${u.address_1}` : ""}`
+          : `Unit #${u.id}`,
+      })),
+  ];
 
   const assigneeOptions: MultiSelectOption[] = availableAssignees.map((u) => ({
     id: String(u.id),
@@ -339,7 +388,7 @@ export default function CreateFTOModal({
       due_date: dueDate!.toISOString(),
       property_id: selectedPropertyId!,
       task_id: selectedTaskId || undefined,
-      unit_id: selectedUnitId || undefined,
+      unit_id: selectedUnitId !== null ? selectedUnitId : undefined,
       field_team_member_ids: fieldTeamMemberIds,
       pm_assignee_ids: pmAssigneeIds,
     };
@@ -367,6 +416,8 @@ export default function CreateFTOModal({
 
   // Determine if in edit mode
   const isEditing = !!editingFTO;
+  const isPropertyLocked = lockedPropertyId != null;
+  const isTaskLocked = lockedTaskId != null;
 
 
   
@@ -402,17 +453,26 @@ export default function CreateFTOModal({
   }, [open, selectedPropertyId, isEditing]);
 
   const propertyLabel = isEditing
-  ? editingFTO?.property_name || ""
-  : (() => {
-      const p = properties.find((p) => p.id === selectedPropertyId);
-      if (!p) return "";
-      return [p.address_line1, p.city, p.state].filter(Boolean).join(", ");
-    })();
-
+    ? editingFTO?.property_name || ""
+    : lockedPropertyLabel ||
+      (() => {
+        const p = properties.find((p) => p.id === selectedPropertyId);
+        if (!p) {
+          return lockedPropertyId != null ? `Property #${lockedPropertyId}` : "";
+        }
+        return [p.address_line1, p.city, p.state].filter(Boolean).join(", ");
+      })();
 
   const unitDisplayLabel = isEditing
-  ? editingUnitLabel || "N/A"
-  : "";
+    ? editingUnitLabel || "N/A"
+    : formatUnitLabel({
+        unitId: lockedUnitId ?? null,
+        unitName: lockedUnitLabel ?? null,
+        fallback: "N/A",
+      });
+
+  const taskDisplayLabel =
+    lockedTaskLabel || (lockedTaskId != null ? `Task #${lockedTaskId}` : "");
   
   // useEffect(() => {
   //   if (!open || !editingFTO?.property_id) return;
@@ -470,17 +530,17 @@ export default function CreateFTOModal({
       }
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {/* Row 1: Property | Task */}
+        {/* Row 1: Property | Unit | Task */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "2fr 1fr",
+            gridTemplateColumns: "2fr 1fr 1fr",
             gap: "12px",
             width: "100%",
           }}
         >
           <div>
-            {isEditing ? (
+            {isEditing || isPropertyLocked ? (
               <TextField
                 label="Property"
                 required
@@ -506,16 +566,12 @@ export default function CreateFTOModal({
             )}
           </div>
           <div>
-            {isEditing ? (
-              <TextField
-                label="Unit"
-                value={unitDisplayLabel}
-                disabled
-              />
+            {isEditing || isPropertyLocked ? (
+              <TextField label="Unit" value={unitDisplayLabel} disabled />
             ) : (
               <SelectField
                 label="Unit"
-                value={String(selectedUnitId || "")}
+                value={selectedUnitId === null ? "" : String(selectedUnitId)}
                 onChange={(value) => {
                   setSelectedUnitId(value ? Number(value) : null);
                 }}
@@ -528,6 +584,22 @@ export default function CreateFTOModal({
                 }
                 options={unitOptions}
                 disabled={!selectedPropertyId || unitsLoading || readOnly}
+              />
+            )}
+          </div>
+          <div>
+            {isTaskLocked ? (
+              <TextField label="Task" value={taskDisplayLabel} disabled />
+            ) : (
+              <SelectField
+                label="Task"
+                value={String(selectedTaskId || "")}
+                onChange={(value) => {
+                  setSelectedTaskId(value ? Number(value) : null);
+                }}
+                placeholder="Select Task"
+                options={taskOptions}
+                disabled={readOnly || optionsLoading}
               />
             )}
           </div>

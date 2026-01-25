@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { TextField } from "@/components/forms/TextField";
@@ -7,6 +7,12 @@ import { SelectField } from "@/components/forms/SelectField";
 import { ComboboxField } from "@/components/forms";
 import { TASK_CATEGORIES } from "@/constants/taskCategories";
 import { fetchJSON } from "@/api/fetchJSON";
+import {
+  PROPERTY_LEVEL_LABEL,
+  PROPERTY_LEVEL_SHORT_LABEL,
+  PROPERTY_LEVEL_UNIT_ID,
+  formatUnitLabel,
+} from "@/utils/unitLabel";
 
 interface SimpleProperty {
   id: number;
@@ -57,6 +63,7 @@ export default function EditTaskDetailsModal({
   const [properties, setProperties] = useState<SimpleProperty[]>([]);
   const [units, setUnits] = useState<SimpleUnit[]>([]);
   const [unitsLoading, setUnitsLoading] = useState(false);
+  const prevOpenRef = useRef(false);
 
   // Load properties when modal opens
   useEffect(() => {
@@ -113,9 +120,13 @@ export default function EditTaskDetailsModal({
     };
   }, [open, selectedPropertyId]);
 
-  // Initialize form data when modal opens
+  // Initialize form data when modal opens (only when transitioning from closed to open)
   useEffect(() => {
-    if (!open) return;
+    // Only initialize when modal first opens (not on every render)
+    const isOpening = open && !prevOpenRef.current;
+    prevOpenRef.current = open;
+
+    if (!isOpening) return;
 
     if (initialData) {
       setTitle(initialData.title || "");
@@ -126,24 +137,12 @@ export default function EditTaskDetailsModal({
       if (initialData.property_id) {
         // If we have property_id, use it directly (even if properties haven't loaded yet)
         setSelectedPropertyId(initialData.property_id);
-      } else if (initialData.property && properties.length > 0) {
-        // Try to find property by matching the property string
-        const foundProperty = properties.find(
-          (p) => renderPropertyLabel(p) === initialData.property
-        );
-        if (foundProperty) {
-          setSelectedPropertyId(foundProperty.id);
-        } else {
-          setSelectedPropertyId(null);
-        }
       } else {
         setSelectedPropertyId(null);
       }
 
       // Handle unit selection: use unit_id if available
-      // Note: unit_id will be set, but units won't load until property is selected
-      // This is fine - when property loads and units load, the unit_id will match
-      if (initialData.unit_id) {
+      if (initialData.unit_id !== undefined && initialData.unit_id !== null) {
         setSelectedUnitId(initialData.unit_id);
       } else {
         setSelectedUnitId(null);
@@ -155,17 +154,40 @@ export default function EditTaskDetailsModal({
       setSelectedUnitId(null);
       setCategory("");
     }
-  }, [open, initialData, properties]); // Include properties in deps to handle async loading
+  }, [open, initialData]);
+
+  // Handle property matching when properties load (only if we don't have property_id yet)
+  useEffect(() => {
+    if (!open || !initialData || !properties.length) return;
+    
+    // Only try to match property if we don't have a property_id but have a property name
+    // and haven't already selected a property
+    if (!initialData.property_id && initialData.property && !selectedPropertyId) {
+      const foundProperty = properties.find(
+        (p) => renderPropertyLabel(p) === initialData.property
+      );
+      if (foundProperty) {
+        setSelectedPropertyId(foundProperty.id);
+      }
+    }
+  }, [open, initialData, properties, selectedPropertyId]);
 
   const propertyOptions = properties.map((p) => ({
     value: String(p.id),
     label: renderPropertyLabel(p),
   }));
 
-  const unitOptions = units.map((u) => ({
-    value: String(u.id),
-    label: u.unit_name || `Unit #${u.id}`,
-  }));
+  const unitOptions = [
+    {
+      value: String(PROPERTY_LEVEL_UNIT_ID),
+      label: PROPERTY_LEVEL_LABEL,
+      displayLabel: PROPERTY_LEVEL_SHORT_LABEL,
+    },
+    ...units.map((u) => ({
+      value: String(u.id),
+      label: u.unit_name || `Unit #${u.id}`,
+    })),
+  ];
 
   // Get property and unit display names for submission
   const getPropertyDisplayName = (): string => {
@@ -175,9 +197,11 @@ export default function EditTaskDetailsModal({
   };
 
   const getUnitDisplayName = (): string => {
-    if (!selectedUnitId) return "";
-    const unit = units.find((u) => u.id === selectedUnitId);
-    return unit ? unit.unit_name : "";
+    return formatUnitLabel({
+      unitId: selectedUnitId,
+      unitName: units.find((u) => u.id === selectedUnitId)?.unit_name,
+      fallback: "",
+    });
   };
 
   const handleSubmit = () => {
@@ -244,7 +268,7 @@ export default function EditTaskDetailsModal({
 
             <SelectField
               label="Unit"
-              value={String(selectedUnitId || "")}
+              value={selectedUnitId === null ? "" : String(selectedUnitId)}
               onChange={(value) => {
                 setSelectedUnitId(value ? Number(value) : null);
               }}
@@ -262,7 +286,7 @@ export default function EditTaskDetailsModal({
             <SelectField
               label="Category"
               value={category}
-              onChange={setCategory}
+              onChange={(value) => setCategory(typeof value === "string" ? value : "")}
               placeholder="Select Category"
               options={TASK_CATEGORIES}
             />

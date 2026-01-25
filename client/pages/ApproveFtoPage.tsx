@@ -84,7 +84,7 @@ interface BackendSubmission {
     no_charge: boolean;
     emergency: boolean;
     amount_cents?: number;
-  }[];
+  }[] | null;
 }
 
 interface Attachment {
@@ -468,20 +468,22 @@ export default function ApproveFTOPage() {
 
         submissions.forEach((submission) => {
           // Map HoursJSON to HourRow[]
-          submission.HoursJSON.forEach((hourLine, index) => {
-            allHourLines.push({
-              id: `hour-${submission.ID}-${index}`,
-              date: formatDate(new Date(hourLine.date_of_work)),
-              hours: hourLine.hours_decimal.toString(),
-              note: hourLine.note || "",
-              noFee: hourLine.no_charge,
-              emergency: hourLine.emergency,
-              amount: `$${(hourLine.amount_cents / 100).toFixed(2)}`, // Will be populated by user
-              upcharge: "$0", // Will be populated by user
-              assignee: assigneeById[submission.FieldTeamMemberID] || "", // Default to first assignee or use FieldTeamMemberID mapping
-              assigneeId: submission.FieldTeamMemberID,
+          if (submission.HoursJSON) {
+            submission.HoursJSON.forEach((hourLine, index) => {
+              allHourLines.push({
+                id: `hour-${submission.ID}-${index}`,
+                date: formatDate(new Date(hourLine.date_of_work)),
+                hours: hourLine.hours_decimal.toString(),
+                note: hourLine.note || "",
+                noFee: hourLine.no_charge,
+                emergency: hourLine.emergency,
+                amount: `$${(hourLine.amount_cents / 100).toFixed(2)}`, // Will be populated by user
+                upcharge: "$0", // Will be populated by user
+                assignee: assigneeById[submission.FieldTeamMemberID] || "", // Default to first assignee or use FieldTeamMemberID mapping
+                assigneeId: submission.FieldTeamMemberID,
+              });
             });
-          });
+          }
 
           // Decode MaterialsJSON and map to ExpenseRow[]
           if (submission.MaterialsJSON) {

@@ -60,7 +60,6 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
   actionNode,
   density = "default",
   alignBody = "left",
-  showSecondaryMetaColumn = false,
   activeTab = 0,
   hideHeaderOnTab,
   type = "assignee",
