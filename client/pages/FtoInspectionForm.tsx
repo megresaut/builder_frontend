@@ -309,6 +309,11 @@ export default function FtoInspectionForm() {
   // --- Renderers ---
 
   const renderChecklist = () => {
+    // Helper to check if a line item has photos
+    const hasPhotoForLineItem = (lineItemId: string) => {
+      return photos.some(p => p.lineItemNodeId === lineItemId);
+    };
+
     return (
       <div className="flex flex-col gap-1 border border-gray-200 rounded-lg bg-white p-4 max-h-[600px] overflow-y-auto">
         {currentChecklist.length === 0 ? (
@@ -343,25 +348,43 @@ export default function FtoInspectionForm() {
                 </div>
               </div>
 
-              {/* Camera Icon for Subsections (depth 1 only) */}
-              {node.depth === 1 && !isReadOnly && (
+              {/* Photo indicator for line items (depth 2) that have photos */}
+              {node.depth === 2 && hasPhotoForLineItem(node.id) && (
+                <div className="flex-shrink-0 p-1 text-green-600" title="Photo attached">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+
+              {/* Camera Icon for Line Items (depth 2 only) */}
+              {node.depth === 2 && !isReadOnly && (
                 <button
                   onClick={() => {
-                    // Find parent section
+                    // Find parent subsection
                     const nodeIndex = currentChecklist.findIndex(n => n.id === node.id);
-                    let parentSectionIndex = nodeIndex - 1;
+                    let parentSubsectionIndex = nodeIndex - 1;
+                    while (parentSubsectionIndex >= 0 && currentChecklist[parentSubsectionIndex].depth !== 1) {
+                      parentSubsectionIndex--;
+                    }
+                    const parentSubsection = currentChecklist[parentSubsectionIndex];
+
+                    // Find parent section
+                    let parentSectionIndex = parentSubsectionIndex - 1;
                     while (parentSectionIndex >= 0 && currentChecklist[parentSectionIndex].depth !== 0) {
                       parentSectionIndex--;
                     }
                     const parentSection = currentChecklist[parentSectionIndex];
 
                     setSelectedSectionId(parentSection.id);
-                    setSelectedSubsectionId(node.id);
-                    setSelectedSubsectionName(node.text);
+                    setSelectedSubsectionId(parentSubsection.id);
+                    setSelectedSubsectionName(parentSubsection.text);
+                    setSelectedLineItemId(node.id);
+                    setSelectedLineItemText(node.text);
                     photoInputRef.current?.click();
                   }}
                   className="ml-auto flex-shrink-0 p-2 text-[#013764] bg-white border border-[#013764] hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Add photos to this subsection"
+                  title="Add photo to this line item"
                 >
                   <Camera width={18} height={18} />
                 </button>
