@@ -16,6 +16,11 @@ interface Subsection {
   text: string;
 }
 
+interface LineItem {
+  id: string;
+  text: string;
+}
+
 interface PhotoCommentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -27,6 +32,9 @@ interface PhotoCommentModalProps {
   subsections?: Subsection[];
   currentSubsectionIndex?: number;
   onSubsectionChange?: (subsectionId: string, subsectionName: string) => void;
+  lineItems?: LineItem[];
+  currentLineItemIndex?: number;
+  onLineItemChange?: (lineItemId: string, lineItemText: string) => void;
 }
 
 const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
