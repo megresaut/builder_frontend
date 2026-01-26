@@ -174,41 +174,40 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
       size="sm"
       onClose={resetForm}
       footer={
-        <div className="flex flex-col gap-3">
-          {hasNavigation && (
-            <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={handlePrev}
-                disabled={!canGoPrev}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                ← Prev
-              </button>
-              <span className="flex items-center px-2 text-sm text-gray-600 whitespace-nowrap">
-                {currentIndex + 1} of {totalItems}
-              </span>
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={!canGoNext}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Next →
-              </button>
-            </div>
-          )}
-          <div className="flex items-center justify-end gap-2">
+        hasNavigation ? (
+          <div className="flex items-center justify-between gap-2 w-full">
+            <button
+              type="button"
+              onClick={handlePrev}
+              disabled={!canGoPrev}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              ← Prev
+            </button>
+            <span className="flex items-center px-2 text-sm text-gray-600 whitespace-nowrap">
+              {currentIndex + 1} of {totalItems}
+            </span>
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!canGoNext}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next →
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center">
             <button
               type="button"
               onClick={handleSubmit}
               disabled={uploadedFiles.length === 0 || isSubmitting}
-              className="px-6 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-6 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {submitLabel}
             </button>
           </div>
-        </div>
+        )
       }
     >
       <FormLayout>
