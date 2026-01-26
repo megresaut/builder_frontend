@@ -30,6 +30,8 @@ interface InspectionPhoto {
   sectionName?: string;
   subsectionNodeId?: string;
   subsectionName?: string;
+  lineItemNodeId?: string;
+  lineItemText?: string;
 }
 
 
