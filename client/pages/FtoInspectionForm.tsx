@@ -109,6 +109,33 @@ export default function FtoInspectionForm() {
     return currentSectionSubsections.findIndex(s => s.id === selectedSubsectionId);
   }, [selectedSubsectionId, currentSectionSubsections]);
 
+  // Get line items for the current subsection
+  const currentSubsectionLineItems = useMemo(() => {
+    if (!selectedSubsectionId) return [];
+
+    // Find the subsection index
+    const subsectionIndex = currentChecklist.findIndex(n => n.id === selectedSubsectionId);
+    if (subsectionIndex === -1) return [];
+
+    // Get all line items under this subsection (depth 2 nodes)
+    const lineItems: typeof currentChecklist = [];
+
+    for (let i = subsectionIndex + 1; i < currentChecklist.length; i++) {
+      const node = currentChecklist[i];
+      if (node.depth <= 1) break; // Stop at next section or subsection
+      if (node.depth === 2) {
+        lineItems.push(node);
+      }
+    }
+
+    return lineItems;
+  }, [selectedSubsectionId, currentChecklist]);
+
+  // Get the current line item index
+  const currentLineItemIndex = useMemo(() => {
+    return currentSubsectionLineItems.findIndex(li => li.id === selectedLineItemId);
+  }, [selectedLineItemId, currentSubsectionLineItems]);
+
   // --- Effects ---
 
   // Load inspection data from localStorage if viewing existing inspection
