@@ -121,7 +121,11 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
   };
 
   const handleNext = () => {
-    if (canGoNext && onSubsectionChange) {
+    if (hasLineItemNavigation && canGoNextLineItem && onLineItemChange) {
+      const nextLineItem = lineItems[currentLineItemIndex + 1];
+      onLineItemChange(nextLineItem.id, nextLineItem.text);
+      resetForm();
+    } else if (hasSubsectionNavigation && canGoNextSubsection && onSubsectionChange) {
       const nextSubsection = subsections[currentSubsectionIndex + 1];
       onSubsectionChange(nextSubsection.id, nextSubsection.text);
       resetForm();
@@ -129,14 +133,30 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
   };
 
   const handlePrev = () => {
-    if (canGoPrev && onSubsectionChange) {
+    if (hasLineItemNavigation && canGoPrevLineItem && onLineItemChange) {
+      const prevLineItem = lineItems[currentLineItemIndex - 1];
+      onLineItemChange(prevLineItem.id, prevLineItem.text);
+      resetForm();
+    } else if (hasSubsectionNavigation && canGoPrevSubsection && onSubsectionChange) {
       const prevSubsection = subsections[currentSubsectionIndex - 1];
       onSubsectionChange(prevSubsection.id, prevSubsection.text);
       resetForm();
     }
   };
 
-  const modalTitle = subsectionName ? `${title} - ${subsectionName}` : title;
+  // Get current item text for display
+  const currentItemText = hasLineItemNavigation && lineItems.length > 0
+    ? lineItems[currentLineItemIndex]?.text
+    : subsectionName;
+
+  const modalTitle = currentItemText ? `${title} - ${currentItemText}` : title;
+
+  // Get navigation counter and button state
+  const currentIndex = hasLineItemNavigation ? currentLineItemIndex : currentSubsectionIndex;
+  const totalItems = hasLineItemNavigation ? lineItems.length : subsections.length;
+  const canGoNext = hasLineItemNavigation ? canGoNextLineItem : canGoNextSubsection;
+  const canGoPrev = hasLineItemNavigation ? canGoPrevLineItem : canGoPrevSubsection;
+  const hasNavigation = hasLineItemNavigation || hasSubsectionNavigation;
 
   return (
     <ModalTemplate
