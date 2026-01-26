@@ -26,6 +26,8 @@ export interface InspectionPhoto {
   sectionName?: string;
   subsectionNodeId?: string;
   subsectionName?: string;
+  lineItemNodeId?: string;
+  lineItemText?: string;
   fileRef: string;
   uploadedAt: string;
   comment?: string;
