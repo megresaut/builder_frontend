@@ -339,9 +339,20 @@ export default function FtoInspectionForm() {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div
+                  onClick={() => {
+                    // If depth 2 item has photo(s), open gallery for that item
+                    if (node.depth === 2 && hasPhotoForLineItem(node.id) && !isReadOnly) {
+                      const photoIndexForItem = photos.findIndex(p => p.lineItemNodeId === node.id);
+                      if (photoIndexForItem !== -1) {
+                        setCurrentPhotoIndex(photoIndexForItem);
+                        setIsGalleryOpen(true);
+                      }
+                    }
+                  }}
                   className={cn(
                     "text-sm whitespace-pre-wrap",
-                    node.depth === 0 ? "font-bold text-gray-900" : "text-gray-700"
+                    node.depth === 0 ? "font-bold text-gray-900" : "text-gray-700",
+                    node.depth === 2 && hasPhotoForLineItem(node.id) && !isReadOnly ? "cursor-pointer hover:underline text-blue-600" : ""
                   )}
                 >
                   {node.text}
