@@ -205,7 +205,16 @@ export default function FtoInspectionForm() {
   const handleSubsectionChange = (subsectionId: string, subsectionName: string) => {
     setSelectedSubsectionId(subsectionId);
     setSelectedSubsectionName(subsectionName);
+    setSelectedLineItemId(""); // Reset line item when subsection changes
+    setSelectedLineItemText("");
     // Reset the file input to allow selecting a new photo for this subsection
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  };
+
+  const handleLineItemChange = (lineItemId: string, lineItemText: string) => {
+    setSelectedLineItemId(lineItemId);
+    setSelectedLineItemText(lineItemText);
+    // Reset the file input to allow selecting a new photo for this line item
     if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
