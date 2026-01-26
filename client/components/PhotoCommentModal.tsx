@@ -171,39 +171,39 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
       size="sm"
       onClose={resetForm}
       footer={
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex gap-2">
-            {hasNavigation && (
-              <>
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  disabled={!canGoPrev}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  ← Previous
-                </button>
-                <span className="flex items-center px-2 text-sm text-gray-600">
-                  {currentIndex + 1} of {totalItems}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={!canGoNext}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next →
-                </button>
-              </>
-            )}
+        <div className="flex flex-col gap-3">
+          {hasNavigation && (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={handlePrev}
+                disabled={!canGoPrev}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                ← Prev
+              </button>
+              <span className="flex items-center px-2 text-sm text-gray-600 whitespace-nowrap">
+                {currentIndex + 1} of {totalItems}
+              </span>
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={!canGoNext}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next →
+              </button>
+            </div>
+          )}
+          <div className="flex items-center justify-end gap-2">
+            <ModalButtons
+              onCancel={handleCancel}
+              onConfirm={handleSubmit}
+              cancelLabel="Cancel"
+              confirmLabel={submitLabel}
+              confirmDisabled={uploadedFiles.length === 0 || isSubmitting}
+            />
           </div>
-          <ModalButtons
-            onCancel={handleCancel}
-            onConfirm={handleSubmit}
-            cancelLabel="Cancel"
-            confirmLabel={submitLabel}
-            confirmDisabled={uploadedFiles.length === 0 || isSubmitting}
-          />
         </div>
       }
     >
