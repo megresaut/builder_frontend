@@ -71,22 +71,25 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      // If an initial file is provided, pre-populate the upload field
-      if (initialFile) {
-        const uploadedFile: UploadedFile = {
-          id: `file_${Date.now()}`,
-          name: initialFile.name,
-          file: initialFile,
-          url: URL.createObjectURL(initialFile),
-          size: initialFile.size,
-          type: initialFile.type,
-        };
-        setUploadedFiles([uploadedFile]);
-      } else {
-        setUploadedFiles([]);
-      }
+      // Reset state first
+      setUploadedFiles([]);
       setComment("");
       setValidateForm(false);
+
+      // If an initial file is provided, pre-populate the upload field
+      if (initialFile) {
+        setTimeout(() => {
+          const uploadedFile: UploadedFile = {
+            id: `file_${Date.now()}`,
+            name: initialFile.name,
+            file: initialFile,
+            url: URL.createObjectURL(initialFile),
+            size: initialFile.size,
+            type: initialFile.type,
+          };
+          setUploadedFiles([uploadedFile]);
+        }, 0);
+      }
     }
   }, [open, initialFile]);
 
