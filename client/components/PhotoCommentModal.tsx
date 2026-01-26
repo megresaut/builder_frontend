@@ -69,6 +69,20 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
   const canGoNextSubsection = hasSubsectionNavigation && currentSubsectionIndex < subsections.length - 1;
   const canGoPrevSubsection = hasSubsectionNavigation && currentSubsectionIndex > 0;
 
+  // Get current item text for display
+  const currentItemText = hasLineItemNavigation && lineItems.length > 0
+    ? lineItems[currentLineItemIndex]?.text
+    : subsectionName;
+
+  const modalTitle = currentItemText ? `${title} - ${currentItemText}` : title;
+
+  // Get navigation counter and button state
+  const currentIndex = hasLineItemNavigation ? currentLineItemIndex : currentSubsectionIndex;
+  const totalItems = hasLineItemNavigation ? lineItems.length : subsections.length;
+  const canGoNext = hasLineItemNavigation ? canGoNextLineItem : canGoNextSubsection;
+  const canGoPrev = hasLineItemNavigation ? canGoPrevLineItem : canGoPrevSubsection;
+  const hasNavigation = hasLineItemNavigation || hasSubsectionNavigation;
+
   useEffect(() => {
     if (open) {
       // Reset state first
