@@ -184,7 +184,7 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
                   ← Previous
                 </button>
                 <span className="flex items-center px-2 text-sm text-gray-600">
-                  {currentSubsectionIndex + 1} of {subsections.length}
+                  {currentIndex + 1} of {totalItems}
                 </span>
                 <button
                   type="button"
