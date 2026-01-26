@@ -334,7 +334,7 @@ export default function App() {
                 <Route
                   path="/fto"
                   element={
-                    <RequireAuth allowedRoles={["field_team_member"]}>
+                    <RequireAuth>
                       <FtoShellLayout>
                         <FTOHome />
                       </FtoShellLayout>

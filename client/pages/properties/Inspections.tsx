@@ -9,6 +9,17 @@ import PersonAvatars from "@/components/PersonAvatars";
 import InspectionDetail from "./InspectionDetail";  
 import ScheduleInspectionModal from "./ScheduleInspectionModal";
 import {
+  listInspections,
+  createInspection,
+  listChecklists,
+  createChecklist,
+  BackendInspection,
+  BackendInspectionChecklist,
+} from "@/api/inspections";
+import { fetchJSON } from "@/api/fetchJSON";
+import { useAuth } from "@/auth/useAuth";
+import { DEFAULT_INSPECTION_TEMPLATES } from "@/data/inspections";
+import {
   EditIcon,
   DeleteIcon,
   PlusIcon,
@@ -39,11 +50,12 @@ interface Inspection {
   inspector: Inspector;
   inspectionDate: string;
   submitted: string;
-  status: "Submitted" | "Outstanding" | "Completed" | "Upcoming";
+  status: "Submitted" | "Outstanding" | "Completed" | "Upcoming" | "In Progress";
   issues: number;
   photos: number;
   updated: string;
   templateName: string;
+  checklist_id?: number;
 }
 
 interface InspectionsProps {
@@ -126,9 +138,13 @@ const mockInspections: Inspection[] = [
 function InspectionsList({ propertyAddress }: InspectionsProps) {
   const navigate = useNavigate();
   const { propertyId } = useParams();
-  const [inspectionsList, setInspectionsList] = useState<Inspection[]>(mockInspections);
+  const { userId } = useAuth();
+  const [inspectionsList, setInspectionsList] = useState<Inspection[]>([]);
   const [selectedInspectionId, setSelectedInspectionId] = useState<number | null>(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [fieldManagers, setFieldManagers] = useState<FieldManager[]>(mockFieldManagers);
+  const [templates, setTemplates] = useState<BackendInspectionChecklist[]>([]);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -183,6 +199,88 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
       ]),
     );
   }, [setVisibleColumns]);
+
+  // Helper function to compute initials from name
+  const computeInitials = (name: string): string => {
+    if (!name) return "?";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) {
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  // Fetch inspections, field managers, and templates on mount
+  useEffect(() => {
+    async function loadData() {
+      if (!propertyId) return;
+
+      try {
+        setLoading(true);
+        
+        // Fetch inspections (backend returns all; we filter client-side for now)
+        const backendInspections = await listInspections();
+        
+        // Fetch field team members
+        const fieldTeamData = await fetchJSON("/users/field-team");
+        const managers: FieldManager[] = fieldTeamData.map((user: any) => {
+          const fullName = user.name || `${user.first_name} ${user.last_name}`;
+          return {
+            id: user.id,
+            name: fullName,
+            initials: user.initials || `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase() || computeInitials(fullName),
+            email: user.email,
+          };
+        });
+        setFieldManagers(managers);
+
+        // Fetch available templates/checklists
+        const checklistsData = await listChecklists(Number(propertyId));
+        console.log('[Inspections] Fetched checklists from API:', checklistsData);
+        setTemplates(checklistsData);
+
+        // Transform backend inspections to UI format
+        const uiInspections: Inspection[] = backendInspections
+          .filter((bi) => bi.property_id === Number(propertyId))
+          .map((bi) => {
+            const assignedManager = managers.find((m) => m.id === bi.assigned_field_team_member_id);
+            const checklist = checklistsData.find((c) => c.id === bi.checklist_id);
+            
+            // Ensure inspector has proper initials
+            let inspector = assignedManager || { id: 0, name: "Unassigned", initials: "?" };
+            if (assignedManager && !assignedManager.initials) {
+              inspector = {
+                ...assignedManager,
+                initials: computeInitials(assignedManager.name)
+              };
+            }
+            
+            return {
+              id: bi.id,
+              name: `Inspection ${bi.id}`, // Backend doesn't have name; we'll fix this
+              inspector,
+              inspectionDate: bi.due_date ? new Date(bi.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—",
+              submitted: "", // Backend doesn't track submitted date yet
+              status: bi.status as any, // "In Progress" | "Completed"
+              issues: 0, // Not tracked yet
+              photos: 0, // We'd need to fetch photos count
+              updated: new Date(bi.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+              templateName: checklist?.name || "Default Template",
+              checklist_id: bi.checklist_id,
+            };
+          });
+
+        setInspectionsList(uiInspections);
+      } catch (error) {
+        console.error("Failed to load inspections:", error);
+        setInspectionsList([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [propertyId]);
 
   const columns = [
     {
@@ -258,26 +356,69 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     );
   }, []);
 
-  const handleScheduleInspection = useCallback((fieldManager: FieldManager, fullDate: string, templateName: string, inspectionName: string) => {
-    const newId = Math.max(...inspectionsList.map(i => i.id), 0) + 1;
-    const today = new Date().toLocaleDateString();
+  const handleScheduleInspection = useCallback(async (fieldManager: FieldManager, fullDate: string, templateName: string, inspectionName: string) => {
+    if (!propertyId || !userId) return;
 
-    const newInspection: Inspection = {
-      id: newId,
-      name: inspectionName,
-      inspector: fieldManager,
-      inspectionDate: fullDate,
-      submitted: "",
-      status: "Upcoming",
-      issues: 0,
-      photos: 0,
-      updated: today,
-      templateName,
-    };
+    try {
+      // 1. Find or create checklist for this template
+      const existingChecklists = await listChecklists(Number(propertyId));
+      let checklistId: number;
 
-    setInspectionsList((prev) => [newInspection, ...prev]);
-    setShowScheduleModal(false);
-  }, [inspectionsList]);
+      const existingChecklist = existingChecklists.find((c) => c.name === templateName);
+      if (existingChecklist) {
+        checklistId = existingChecklist.id;
+      } else {
+        // Create new checklist from template
+        const template = DEFAULT_INSPECTION_TEMPLATES.find((t) => t.name === templateName);
+        const checklistJson = template ? { sections: template.sections } : { sections: [] };
+        
+        const newChecklist = await createChecklist({
+          property_id: Number(propertyId),
+          name: templateName,
+          checklist_json: checklistJson,
+          created_by_type: "user",
+          created_by_id: userId,
+          is_active: true,
+        });
+        checklistId = newChecklist.id;
+        
+        // Add the new checklist to templates list
+        setTemplates((prev) => [...prev, newChecklist]);
+      }
+
+      // 2. Create inspection
+      const dueDate = new Date(fullDate);
+      const backendInspection = await createInspection({
+        property_id: Number(propertyId),
+        unit_id: null,
+        checklist_id: checklistId,
+        assigned_field_team_member_id: fieldManager.id,
+        status: "In Progress",
+        due_date: dueDate.toISOString(),
+      });
+
+      // 3. Add to UI list
+      const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const newInspection: Inspection = {
+        id: backendInspection.id,
+        name: inspectionName,
+        inspector: fieldManager,
+        inspectionDate: fullDate,
+        submitted: "",
+        status: "In Progress",
+        issues: 0,
+        photos: 0,
+        updated: today,
+        templateName,
+      };
+
+      setInspectionsList((prev) => [newInspection, ...prev]);
+      setShowScheduleModal(false);
+    } catch (error) {
+      console.error("Failed to schedule inspection:", error);
+      alert("Failed to schedule inspection. Please try again.");
+    }
+  }, [propertyId, userId]);
 
   const actions = [
     {
@@ -335,7 +476,8 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
       <ScheduleInspectionModal
         open={showScheduleModal}
         onOpenChange={setShowScheduleModal}
-        fieldManagers={mockFieldManagers}
+        fieldManagers={fieldManagers}
+        templates={templates}
         onConfirm={handleScheduleInspection}
       />
 
@@ -366,7 +508,12 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
         </div>
       </div>
 
-      <GlobalTable
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-gray-500">Loading inspections...</p>
+        </div>
+      ) : (
+        <GlobalTable
           columns={columns}
           data={inspectionsList}
           rowKey="id"
@@ -472,7 +619,8 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
         />
-      </div>
+      )}
+    </div>
   );
 }
 

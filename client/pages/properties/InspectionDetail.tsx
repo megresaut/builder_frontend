@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SectionCard from "@/components/SectionCard";
@@ -24,9 +24,19 @@ import {
   InspectionPhoto,
   MOCK_CHECKLIST_NODES,
 } from "@/data/inspection-checklist";
-import { DEFAULT_INSPECTION_TEMPLATES } from "@/data/inspections";
+import { DEFAULT_INSPECTION_TEMPLATES, ChecklistSectionTemplate } from "@/data/inspections";
 import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import { jsPDF } from "jsPDF";
+import {
+  updateInspection,
+  listChecklists,
+  createChecklist,
+  updateChecklist,
+  addInspectionPhotos,
+  listInspectionPhotos,
+  BackendInspectionChecklist,
+} from "@/api/inspections";
+import { API_BASE } from "@/api/fetchJSON";
 
 interface InspectionDetailProps {
   isNew?: boolean;
@@ -36,6 +46,104 @@ interface InspectionDetailProps {
   inspection?: any;
   templateName?: string;
   onBack?: () => void;
+}
+
+// Helper function to convert backend checklist format to frontend ChecklistNode format
+function convertBackendChecklistToNodes(backendChecklist: BackendInspectionChecklist | null): ChecklistNode[] {
+  if (!backendChecklist || !backendChecklist.checklist_json) {
+    return [];
+  }
+
+  const checklistData = backendChecklist.checklist_json;
+  const sections: ChecklistSectionTemplate[] = checklistData.sections || [];
+  
+  const nodes: ChecklistNode[] = [];
+  let nodeIndex = 0;
+
+  // Recursive function to add items and their nested children
+  const addItemsRecursively = (
+    items: any[],
+    parentId: string,
+    depth: number
+  ) => {
+    items?.forEach(item => {
+      const itemNode: ChecklistNode = {
+        id: item.id,
+        parentId: parentId,
+        orderIndex: nodeIndex++,
+        type: depth === 0 ? "section" : "item",
+        text: item.text,
+        depth: depth,
+      };
+      nodes.push(itemNode);
+
+      // Recursively add nested items
+      if (item.items && item.items.length > 0) {
+        addItemsRecursively(item.items, item.id, depth + 1);
+      }
+    });
+  };
+
+  sections.forEach(section => {
+    // Add section node
+    const sectionNode: ChecklistNode = {
+      id: section.id,
+      parentId: null,
+      orderIndex: nodeIndex++,
+      type: "section",
+      text: section.title,
+      depth: 0,
+    };
+    nodes.push(sectionNode);
+
+    // Add item nodes recursively
+    if (section.items && section.items.length > 0) {
+      addItemsRecursively(section.items, section.id, 1);
+    }
+  });
+
+  return nodes;
+}
+
+// Helper function to convert frontend ChecklistNode format back to backend format
+function convertNodesToBackendChecklist(nodes: ChecklistNode[]): { sections: ChecklistSectionTemplate[] } {
+  const sections: ChecklistSectionTemplate[] = [];
+  
+  // Recursive function to build nested item structure
+  const buildItemsForParent = (parentId: string): any[] => {
+    // Get all direct children of this parent
+    const childNodes = nodes.filter(n => n.parentId === parentId);
+    
+    return childNodes.map(childNode => {
+      const item: any = {
+        id: childNode.id,
+        text: childNode.text,
+      };
+      
+      // Recursively get nested children
+      const nestedItems = buildItemsForParent(childNode.id);
+      if (nestedItems.length > 0) {
+        item.items = nestedItems;
+      }
+      
+      return item;
+    });
+  };
+  
+  // Get all section nodes (depth 0)
+  const sectionNodes = nodes.filter(n => n.type === "section" && n.depth === 0);
+  
+  sectionNodes.forEach(sectionNode => {
+    const section: ChecklistSectionTemplate = {
+      id: sectionNode.id,
+      title: sectionNode.text,
+      items: buildItemsForParent(sectionNode.id),
+    };
+    
+    sections.push(section);
+  });
+  
+  return { sections };
 }
 
 export default function InspectionDetail(props: InspectionDetailProps = {}) {
@@ -51,53 +159,8 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const navigate = useNavigate();
   const { propertyId } = useParams();
 
-  // --- Initialize Checklist Based on Template ---
-  const getInitialChecklist = (): ChecklistNode[] => {
-    if (!templateName) {
-      return MOCK_CHECKLIST_NODES;
-    }
-
-    // Find the template by name
-    const template = DEFAULT_INSPECTION_TEMPLATES.find(t => t.name === templateName);
-
-    if (template) {
-      // Convert template sections and items to ChecklistNode format
-      const nodes: ChecklistNode[] = [];
-      let nodeIndex = 0;
-
-      template.sections.forEach(section => {
-        const sectionNode: ChecklistNode = {
-          id: section.id,
-          parentId: null,
-          orderIndex: nodeIndex++,
-          type: "section",
-          text: section.title,
-          depth: 0,
-        };
-        nodes.push(sectionNode);
-
-        section.items.forEach(item => {
-          const itemNode: ChecklistNode = {
-            id: item.id,
-            parentId: section.id,
-            orderIndex: nodeIndex++,
-            type: "item",
-            text: item.text,
-            depth: 1,
-          };
-          nodes.push(itemNode);
-        });
-      });
-
-      return nodes.length > 0 ? nodes : [];
-    }
-
-    // If template is not found (new template), return empty checklist
-    return [];
-  };
-
   // --- State ---
-  const [nodes, setNodes] = useState<ChecklistNode[]>(getInitialChecklist());
+  const [nodes, setNodes] = useState<ChecklistNode[]>([]);
   const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isChecklistFullScreen, setIsChecklistFullScreen] = useState(false);
@@ -105,12 +168,87 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [inspectionDueDate, setInspectionDueDate] = useState<Date | string | null>(
     inspection?.inspectionDate ? new Date(inspection.inspectionDate) : new Date()
   );
+  const [isLoadingChecklist, setIsLoadingChecklist] = useState(true);
+  const [checklistId, setChecklistId] = useState<number | null>(inspection?.checklist_id || null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // Metadata State
   const [uploadedBy] = useState<string>("John Doe");
   const [uploadedAt] = useState<string>(new Date().toLocaleString());
   const [lastUpdated] = useState<string>(new Date().toLocaleString());
   const [lastUpdatedBy] = useState<string>("Jerry Sanchez");
+
+  // Update checklistId when inspection prop changes
+  useEffect(() => {
+    if (inspection?.checklist_id) {
+      setChecklistId(inspection.checklist_id);
+    }
+  }, [inspection?.checklist_id]);
+
+  // --- Fetch photos from backend ---
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      if (!inspectionId) return;
+
+      try {
+        const backendPhotos = await listInspectionPhotos(inspectionId);
+        
+        // Convert backend photos to frontend format
+        const frontendPhotos: InspectionPhoto[] = backendPhotos.map((bp) => ({
+          id: bp.id.toString(),
+          inspectionId: bp.inspection_id.toString(),
+          sectionNodeId: bp.section_id,
+          fileRef: `${API_BASE}/uploads/${bp.storage_path}`,
+          uploadedAt: bp.created_at,
+          comment: bp.comment,
+        }));
+
+        setPhotos(frontendPhotos);
+        
+        // Set photo notes from comments
+        const notes: Record<string, string> = {};
+        frontendPhotos.forEach((photo) => {
+          if (photo.comment) {
+            notes[photo.id] = photo.comment;
+          }
+        });
+        setPhotoNotes(notes);
+      } catch (error) {
+        console.error("Failed to load photos:", error);
+      }
+    };
+
+    fetchPhotos();
+  }, [inspectionId]);
+
+  // --- Fetch checklist from backend ---
+  useEffect(() => {
+    const fetchChecklist = async () => {
+      if (!checklistId || !propertyId) {
+        setIsLoadingChecklist(false);
+        return;
+      }
+
+      try {
+        // Fetch all checklists for the property
+        const checklists = await listChecklists(Number(propertyId));
+        
+        // Find the checklist by ID
+        const checklist = checklists.find(c => c.id === checklistId);
+        
+        if (checklist) {
+          const convertedNodes = convertBackendChecklistToNodes(checklist);
+          setNodes(convertedNodes);
+        }
+      } catch (error) {
+        console.error("Failed to fetch checklist:", error);
+      } finally {
+        setIsLoadingChecklist(false);
+      }
+    };
+
+    fetchChecklist();
+  }, [checklistId, propertyId]);
 
   // Photo Upload State
   const [selectedSectionId, setSelectedSectionId] = useState<string>("");
@@ -151,14 +289,38 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   };
 
   const handleIndent = (id: string, direction: "in" | "out") => {
-    setNodes((prev) =>
-      prev.map((n) => {
+    setNodes((prev) => {
+      const currentIndex = prev.findIndex(n => n.id === id);
+      if (currentIndex === -1) return prev;
+      
+      const currentNode = prev[currentIndex];
+      const newDepth = direction === "in" ? currentNode.depth + 1 : Math.max(0, currentNode.depth - 1);
+      const newType = newDepth === 0 ? "section" : "item";
+      
+      // Find the new parent
+      let newParentId: string | null = null;
+      
+      if (direction === "in") {
+        // When indenting, the parent becomes the previous sibling
+        for (let i = currentIndex - 1; i >= 0; i--) {
+          if (prev[i].depth === currentNode.depth) {
+            newParentId = prev[i].id;
+            break;
+          }
+        }
+      } else {
+        // When outdenting, the parent becomes the grandparent
+        if (currentNode.parentId) {
+          const parent = prev.find(n => n.id === currentNode.parentId);
+          newParentId = parent?.parentId || null;
+        }
+      }
+      
+      return prev.map((n) => {
         if (n.id !== id) return n;
-        const newDepth = direction === "in" ? n.depth + 1 : Math.max(0, n.depth - 1);
-        const newType = newDepth === 0 ? "section" : "item";
-        return { ...n, depth: newDepth, type: newType };
-      })
-    );
+        return { ...n, depth: newDepth, type: newType, parentId: newParentId };
+      });
+    });
   };
 
   const handleMove = (index: number, direction: "up" | "down") => {
@@ -210,20 +372,57 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     }
   };
 
-  const handlePhotoCommentSubmit = (file: File, comment: string) => {
-    const newPhoto: InspectionPhoto = {
-      id: `photo-${Date.now()}-${Math.random()}`,
-      inspectionId: "insp-1",
-      sectionNodeId: selectedSectionId,
-      fileRef: URL.createObjectURL(file),
-      uploadedAt: new Date().toISOString(),
-    };
+  const handlePhotoCommentSubmit = async (file: File, comment: string) => {
+    if (!inspectionId) {
+      alert("No inspection ID found");
+      return;
+    }
 
-    setPhotos((prev) => [...prev, newPhoto]);
-    setPhotoNotes((prev) => ({
-      ...prev,
-      [newPhoto.id]: comment,
-    }));
+    try {
+      setIsUploadingPhoto(true);
+
+      // Upload photo to backend
+      const result = await addInspectionPhotos(
+        inspectionId,
+        selectedSectionId,
+        comment,
+        [file]
+      );
+
+      if (result.uploaded > 0) {
+        // Fetch updated photos list from backend
+        const backendPhotos = await listInspectionPhotos(inspectionId);
+        
+        // Convert backend photos to frontend format
+        const frontendPhotos: InspectionPhoto[] = backendPhotos.map((bp) => ({
+          id: bp.id.toString(),
+          inspectionId: bp.inspection_id.toString(),
+          sectionNodeId: bp.section_id,
+          fileRef: `${API_BASE}/uploads/${bp.storage_path}`,
+          uploadedAt: bp.created_at,
+          comment: bp.comment,
+        }));
+
+        setPhotos(frontendPhotos);
+        
+        // Set photo notes from comments
+        const notes: Record<string, string> = {};
+        frontendPhotos.forEach((photo) => {
+          if (photo.comment) {
+            notes[photo.id] = photo.comment;
+          }
+        });
+        setPhotoNotes(notes);
+
+        // Close the modal
+        setIsPhotoCommentModalOpen(false);
+      }
+    } catch (error) {
+      console.error("Failed to upload photo:", error);
+      alert("Failed to upload photo. Please try again.");
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const handleRemovePhoto = (photoId: string) => {
@@ -267,12 +466,57 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
   // --- Handlers: General ---
 
-  const handleStatusChange = (newStatus: "In Progress" | "Completed") => {
+  const handleStatusChange = async (newStatus: "In Progress" | "Completed") => {
     setStatus(newStatus);
+    
+    if (inspectionId) {
+      try {
+        await updateInspection(inspectionId, { status: newStatus });
+      } catch (error) {
+        console.error("Failed to update status:", error);
+      }
+    }
   };
 
-  const handleDueDateChange = (newDate: Date | string | null) => {
+  const handleDueDateChange = async (newDate: Date | string | null) => {
     setInspectionDueDate(newDate);
+    
+    if (inspectionId) {
+      try {
+        const dueDateISO = newDate instanceof Date ? newDate.toISOString() : newDate;
+        await updateInspection(inspectionId, { due_date: dueDateISO });
+      } catch (error) {
+        console.error("Failed to update due date:", error);
+      }
+    }
+  };
+
+  const handleSaveChecklist = async () => {
+    if (!checklistId) {
+      alert("No checklist ID found. Cannot save.");
+      return;
+    }
+
+    // Convert nodes back to backend format
+    const backendFormat = convertNodesToBackendChecklist(nodes);
+    
+    console.log("Saving checklist with ID:", checklistId);
+    console.log("Checklist data being sent:", backendFormat);
+    
+    try {
+      const updated = await updateChecklist(checklistId, backendFormat);
+      console.log("Checklist saved successfully:", updated);
+      
+      // Update the local state with the saved data
+      const convertedNodes = convertBackendChecklistToNodes(updated);
+      setNodes(convertedNodes);
+      
+      setIsEditing(false);
+      alert("Checklist saved successfully!");
+    } catch (error) {
+      console.error("Failed to save checklist:", error);
+      alert("Failed to save checklist. Please try again.");
+    }
   };
 
   const handleExportInspection = async () => {
@@ -449,6 +693,17 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     <div className="flex flex-col gap-6 w-full font-['Geist',sans-serif] bg-white rounded-lg">
 
 
+      {/* Back Button (only shown when inline) */}
+      {isInline && onBack && (
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-[#2463EB] hover:text-[#1e4fc4] transition-colors mb-4 text-sm font-medium"
+        >
+          <ArrowBackIcon width={16} height={16} />
+          <span>Back to Inspections</span>
+        </button>
+      )}
+
       {/* Page Title + Controls */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex flex-col gap-2">
@@ -470,7 +725,13 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
             Export
           </button>
           <BlueButton
-            onClick={() => setIsEditing(!isEditing)}
+            onClick={() => {
+              if (isEditing) {
+                handleSaveChecklist();
+              } else {
+                setIsEditing(true);
+              }
+            }}
             icon={<EditIcon width={16} height={16} />}
           >
             {isEditing ? "Done Editing" : "Edit Checklist"}
@@ -530,13 +791,19 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
               </div>
 
               <div className="flex flex-col gap-1">
-                {nodes.length === 0 && (
+                {isLoadingChecklist && (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    Loading checklist...
+                  </div>
+                )}
+
+                {!isLoadingChecklist && nodes.length === 0 && (
                   <div className="text-center py-8 text-gray-500 text-sm">
                     Checklist is empty. Click "Edit Checklist" to add items.
                   </div>
                 )}
 
-                {nodes.map((node, index) => (
+                {!isLoadingChecklist && nodes.map((node, index) => (
                   <div
                     key={node.id}
                     className={cn(
@@ -658,7 +925,15 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
               {
                 id: inspection.inspector.id,
                 name: inspection.inspector.name,
-                initials: inspection.inspector.initials,
+                initials: inspection.inspector.initials || (() => {
+                  // Fallback: compute initials from name if not present
+                  const name = inspection.inspector.name || "";
+                  const parts = name.trim().split(/\s+/);
+                  if (parts.length === 1) {
+                    return parts[0].substring(0, 2).toUpperCase();
+                  }
+                  return parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : "?";
+                })(),
                 email: inspection.inspector.email || "",
                 title: "Field Manager",
                 type: "fieldManager",
@@ -775,6 +1050,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         title="Add Photo"
         submitLabel="Upload Photo"
         initialFile={pendingPhotoFile}
+        isLoading={isUploadingPhoto}
       />
 
       {/* Photo Viewer Modal */}
@@ -804,6 +1080,81 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 }
 
 // --- Helper Components ---
+
+interface PhotoCommentModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (file: File, comment: string) => Promise<void>;
+  title: string;
+  submitLabel: string;
+  initialFile: File | null;
+  isLoading?: boolean;
+}
+
+function PhotoCommentModal({
+  open,
+  onOpenChange,
+  onSubmit,
+  title,
+  submitLabel,
+  initialFile,
+  isLoading = false,
+}: PhotoCommentModalProps) {
+  const [comment, setComment] = React.useState("");
+
+  React.useEffect(() => {
+    if (!open) {
+      setComment("");
+    }
+  }, [open]);
+
+  const handleConfirm = async () => {
+    if (!initialFile) return;
+    await onSubmit(initialFile, comment);
+  };
+
+  const handleCancel = () => {
+    if (!isLoading) {
+      onOpenChange(false);
+    }
+  };
+
+  return (
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      size="sm"
+      footer={
+        <ModalButtons
+          onCancel={handleCancel}
+          onConfirm={handleConfirm}
+          cancelLabel="Cancel"
+          confirmLabel={isLoading ? "Uploading..." : submitLabel}
+          confirmDisabled={!initialFile || isLoading}
+        />
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <div className="text-sm text-gray-600">
+          <strong>File:</strong> {initialFile ? initialFile.name : "No file selected"}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Comment (optional)
+          </label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Add a comment or note for this photo..."
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            rows={3}
+          />
+        </div>
+      </div>
+    </ModalTemplate>
+  );
+}
 
 interface PhotoViewerModalProps {
   open: boolean;

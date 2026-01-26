@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { TextField } from "@/components/forms/TextField";
 import { SelectField } from "@/components/forms/SelectField";
 import { DateField } from "@/components/forms/DateField";
 import { ComboboxFieldWithCustomInput } from "@/components/forms/ComboboxFieldWithCustomInput";
 import { DEFAULT_INSPECTION_TEMPLATES } from "@/data/inspections";
+import { BackendInspectionChecklist } from "@/api/inspections";
 import { FieldManager } from "./Inspections";
 
 interface ScheduleInspectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   fieldManagers: FieldManager[];
+  templates: BackendInspectionChecklist[];
   onConfirm: (fieldManager: FieldManager, dueDate: string, templateName: string, inspectionName: string) => void;
 }
 
@@ -18,6 +20,7 @@ export default function ScheduleInspectionModal({
   open,
   onOpenChange,
   fieldManagers,
+  templates,
   onConfirm,
 }: ScheduleInspectionModalProps) {
   const [inspectionName, setInspectionName] = useState<string>("");
@@ -74,10 +77,22 @@ export default function ScheduleInspectionModal({
     label: fm.name,
   }));
 
-  const templateOptions = DEFAULT_INSPECTION_TEMPLATES.map((template) => ({
-    value: template.id,
-    label: template.name,
-  }));
+  // Show all templates from the database
+  const templateOptions = useMemo(() => 
+    templates.map((template) => ({
+      value: template.name,
+      label: template.name,
+    })),
+    [templates]
+  );
+  
+  // Debug: Log templates to console
+  useEffect(() => {
+    if (open) {
+      console.log('[ScheduleInspectionModal] Templates received:', templates);
+      console.log('[ScheduleInspectionModal] Template options:', templateOptions);
+    }
+  }, [open, templates, templateOptions]);
 
   return (
     <ModalTemplate
@@ -124,7 +139,6 @@ export default function ScheduleInspectionModal({
           }}
           placeholder="Select or create a template"
           customInputPlaceholder="Enter new template name"
-          customButtonLabel="+ Create new template"
           error={errors.template}
         />
 
