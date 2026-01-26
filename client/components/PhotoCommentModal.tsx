@@ -48,15 +48,26 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
   subsections = [],
   currentSubsectionIndex = 0,
   onSubsectionChange,
+  lineItems = [],
+  currentLineItemIndex = 0,
+  onLineItemChange,
 }) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [comment, setComment] = useState("");
   const [validateForm, setValidateForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const hasNavigation = subsections && subsections.length > 0;
-  const canGoNext = hasNavigation && currentSubsectionIndex < subsections.length - 1;
-  const canGoPrev = hasNavigation && currentSubsectionIndex > 0;
+  // Determine which navigation level is active: line items (depth 2) or subsections (depth 1)
+  const hasLineItemNavigation = lineItems && lineItems.length > 0;
+  const hasSubsectionNavigation = !hasLineItemNavigation && subsections && subsections.length > 0;
+
+  // Line item navigation
+  const canGoNextLineItem = hasLineItemNavigation && currentLineItemIndex < lineItems.length - 1;
+  const canGoPrevLineItem = hasLineItemNavigation && currentLineItemIndex > 0;
+
+  // Subsection navigation (fallback if no line items)
+  const canGoNextSubsection = hasSubsectionNavigation && currentSubsectionIndex < subsections.length - 1;
+  const canGoPrevSubsection = hasSubsectionNavigation && currentSubsectionIndex > 0;
 
   useEffect(() => {
     if (open) {
