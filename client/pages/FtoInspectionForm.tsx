@@ -659,6 +659,9 @@ export default function FtoInspectionForm() {
         subsections={currentSectionSubsections.map(s => ({ id: s.id, text: s.text }))}
         currentSubsectionIndex={currentSubsectionIndex}
         onSubsectionChange={handleSubsectionChange}
+        lineItems={currentSubsectionLineItems.map(li => ({ id: li.id, text: li.text }))}
+        currentLineItemIndex={currentLineItemIndex}
+        onLineItemChange={handleLineItemChange}
       />
 
       <PhotoGalleryModal
