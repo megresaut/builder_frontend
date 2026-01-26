@@ -199,13 +199,14 @@ const PhotoCommentModal: React.FC<PhotoCommentModalProps> = ({
             </div>
           )}
           <div className="flex items-center justify-end gap-2">
-            <ModalButtons
-              onCancel={handleCancel}
-              onConfirm={handleSubmit}
-              cancelLabel="Cancel"
-              confirmLabel={submitLabel}
-              confirmDisabled={uploadedFiles.length === 0 || isSubmitting}
-            />
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={uploadedFiles.length === 0 || isSubmitting}
+              className="px-6 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {submitLabel}
+            </button>
           </div>
         </div>
       }
