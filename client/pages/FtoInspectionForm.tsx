@@ -186,6 +186,8 @@ export default function FtoInspectionForm() {
       sectionName: sectionName,
       subsectionNodeId: selectedSubsectionId,
       subsectionName: selectedSubsectionName,
+      lineItemNodeId: selectedLineItemId || undefined,
+      lineItemText: selectedLineItemText || undefined,
     };
     setPhotos((prev) => [...prev, newPhoto]);
     setPendingPhotoFile(null);
