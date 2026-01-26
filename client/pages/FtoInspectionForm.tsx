@@ -60,6 +60,8 @@ export default function FtoInspectionForm() {
   const [selectedSectionId, setSelectedSectionId] = useState<string>("");
   const [selectedSubsectionId, setSelectedSubsectionId] = useState<string>("");
   const [selectedSubsectionName, setSelectedSubsectionName] = useState<string>("");
+  const [selectedLineItemId, setSelectedLineItemId] = useState<string>("");
+  const [selectedLineItemText, setSelectedLineItemText] = useState<string>("");
 
   // UI State
   const [isPhotoCommentModalOpen, setIsPhotoCommentModalOpen] = useState(false);
