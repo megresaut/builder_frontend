@@ -37,10 +37,7 @@ function PopoverActionsDropdownContent({
   highlightedIndex: number;
   setHighlightedIndex: (index: number) => void;
 }) {
-  // #region agent log
   const popover = usePopoverContext();
-  fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PopoverActionsDropdown.tsx:32',message:'usePopoverContext returned',data:{popoverKeys:Object.keys(popover||{}),hasSetOpen:typeof(popover?.setOpen)==='function',hasSetHighlightedIndex:typeof(popover?.setHighlightedIndex)==='function',hasIsOpen:'isOpen' in (popover||{}),receivedOpen:open,receivedSetOpen:typeof setOpen==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  // #endregion
   const actionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const items = useMemo(
@@ -86,9 +83,6 @@ function PopoverActionsDropdownContent({
             type="button"
             role="menuitem"
             onClick={(e) => {
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PopoverActionsDropdown.tsx:95',message:'onClick handler called',data:{actionLabel:resolvedLabel,setOpenType:typeof setOpen,willCallSetOpen:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-              // #endregion
               e.preventDefault();
               e.stopPropagation();
               setOpen(false);
@@ -102,9 +96,6 @@ function PopoverActionsDropdownContent({
               }
             }}
             onMouseEnter={() => {
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PopoverActionsDropdown.tsx:105',message:'onMouseEnter handler called',data:{index,setHighlightedIndexType:typeof setHighlightedIndex,willCallSetHighlightedIndex:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-              // #endregion
               setHighlightedIndex(index);
             }}
             data-highlighted={isHighlighted ? "true" : "false"}

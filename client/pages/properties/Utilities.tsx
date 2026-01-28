@@ -120,23 +120,33 @@ const removeStoredJob = (accountId: number) => {
 
 
 /**
+ * Check if an error message indicates a duplicate bill.
+ */
+const isDuplicateBillError = (msg: string | null | undefined): boolean => {
+  if (!msg) return false;
+  const lower = msg.toLowerCase();
+  
+  // Check for duplicate key constraint violations related to bills
+  const hasDuplicateKey = lower.includes("duplicate key") || lower.includes("duplicate");
+  const hasBillConstraint = 
+    lower.includes("bills_utility_account_id_provider_id_statement_date_amount__key") ||
+    lower.includes("insert bill failed");
+  
+  // Also check for common duplicate bill error patterns
+  return (
+    lower.includes("already exists") ||
+    (hasDuplicateKey && hasBillConstraint)
+  );
+};
+
+/**
  * Turn a raw job error string into a friendly message.
- * - If it's the duplicate-bill unique constraint → "Bill already scraped and pushed to Buildium."
+ * - If it's the duplicate-bill unique constraint → "The bill for this cycle has already been pulled"
  * - Otherwise → generic scrape failure message.
  */
 const prettifyImportError = (msg: string | null | undefined): string => {
-  if (msg) {
-    const lower = msg.toLowerCase();
-
-    const isDuplicate =
-      lower.includes("duplicate key value violates unique constraint") &&
-      lower.includes(
-        "bills_utility_account_id_provider_id_statement_date_amount__key".toLowerCase(),
-      );
-
-    if (isDuplicate) {
-      return "Bill already scraped and pushed to Buildium.";
-    }
+  if (isDuplicateBillError(msg)) {
+    return "The bill for this cycle has already been pulled";
   }
 
   return "Scrape failed. Please try again. If you’ve already tried this twice, contact support.";
@@ -1771,16 +1781,55 @@ useEffect(() => {
                     {/* FAILED */}
                     {accountImportStatus[account.id]?.state === "failed" && (
                       <div className="flex items-start gap-3 max-w-[400px]">
-                        {/* Small red pill */}
-                        <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-sm font-medium whitespace-nowrap">
-                          ✕ Failed
-                        </span>
+                        {/* Badge - blue for duplicates, red for errors */}
+                        {(() => {
+                          const errorMsg = accountImportStatus[account.id]?.message || "";
+                          const isDuplicate = isDuplicateBillError(errorMsg);
+                          
+                          if (isDuplicate) {
+                            return (
+                              <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                                ℹ Already pulled
+                              </span>
+                            );
+                          }
+                          
+                          return (
+                            <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                              ✕ Failed
+                            </span>
+                          );
+                        })()}
 
                         {/* Multi-line message — cleaner formatting */}
                         <div className="flex flex-col leading-snug mt-[2px]">
-                          <span className="text-xs text-red-600 font-medium">
-                            Scrape failed
-                          </span>
+                          {(() => {
+                            const errorMsg = accountImportStatus[account.id]?.message || "";
+                            const isDuplicate = isDuplicateBillError(errorMsg);
+                            
+                            if (isDuplicate) {
+                              return (
+                                <span className="text-xs text-blue-600 font-medium">
+                                  {errorMsg || "The bill for this cycle has already been pulled"}
+                                </span>
+                              );
+                            }
+                            
+                            return (
+                              <>
+                                <span className="text-xs text-red-600 font-medium">
+                                  {errorMsg || "Scrape failed"}
+                                </span>
+                                {!errorMsg && (
+                                  <>
+                                    <span className="text-xs text-red-600">Please try again.</span>
+                                    <span className="text-xs text-red-600">If you've already tried this twice,</span>
+                                    <span className="text-xs text-red-600">contact support.</span>
+                                  </>
+                                )}
+                              </>
+                            );
+                          })()}
                           <span className="text-xs text-red-600">
                             Please try again.
                           </span>

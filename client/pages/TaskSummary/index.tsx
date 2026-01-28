@@ -1129,7 +1129,7 @@ export default function TaskSummary() {
               file_type: uploadResponse.file_type,
               file_size: uploadResponse.file_size,
               storage_path: uploadResponse.temp_object_key,
-              uploaded_by_type: "property_manager",
+              uploaded_by_type: "user",
               uploaded_by: userId,
               label: category || null,
               description: description || null,
