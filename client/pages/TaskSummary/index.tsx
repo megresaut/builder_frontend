@@ -447,13 +447,10 @@ export default function TaskSummary() {
     navigationState?.task || 
     existingTask;
 
-  // Log taskData when component opens (only once per taskId change)
+  // Track taskId changes (debugging logs removed)
   const lastLoggedTaskIdRef = useRef<string | null>(null);
   useEffect(() => {
-    // Only log when taskId changes, not on every taskData update
     if (taskId && lastLoggedTaskIdRef.current !== taskId) {
-      console.log("TaskSummary taskData:", taskData);
-      console.log("TaskSummary requested_by:", taskData?.requested_by);
       lastLoggedTaskIdRef.current = taskId;
     }
   }, [taskId, taskData]);
@@ -3038,8 +3035,7 @@ export default function TaskSummary() {
                 // Use the same pattern as ApproveFtoPage
                 // Use http://localhost:8080 instead of /api as requested
                 // The file.id should be the attachment ID from the API response (e.g., 47)
-                console.log("onViewFile called with file:", file);
-                console.log("file.id:", file.id, "type:", typeof file.id);
+                // Debugging logs removed
                 
                 if (!file.id) {
                   console.warn("File has no ID:", file);
@@ -3055,7 +3051,7 @@ export default function TaskSummary() {
                 
                 // const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;  
                 const url = `/api/maintenance/attachments/${attachmentId}`;
-                console.log("Opening PDF with URL:", url);
+                // Debugging log removed
                 
                 pdfViewer.openPdf(url, file.name);
               }}

@@ -230,10 +230,7 @@ const patchSubmission = async (
     materials_json?: any[];
   }
 ) => {
-  console.group(`[PATCH submission ${submissionId}]`);
-  console.log("payload object:", payload);
-  console.log("payload JSON:", JSON.stringify(payload, null, 2));
-  console.groupEnd();
+  // Debugging logs removed
 
   const res = await fetch(
     `/api/maintenance/submissions/${submissionId}`,
@@ -264,9 +261,7 @@ const createSubmissionForAssignee = async (
   hoursJSON: any[],
   materialsJSON: any[]
 ): Promise<number> => {
-  console.group(`[CREATE submission] ftoId=${ftoId} techId=${techId}`);
-  console.log("hours:", hoursJSON);
-  console.log("materials:", materialsJSON);
+  // Debugging logs removed
   console.groupEnd();
 
   // Helper to convert date string (YYYY-MM-DD) to ISO format
@@ -863,7 +858,6 @@ export default function ApproveFTOPage() {
 
         if (submissionId) {
           // Existing submission - PATCH it
-          console.log(`[handleApprove] PATCH existing submission ${submissionId} for assignee ${assigneeId}`);
           await patchSubmission(submissionId, {
             hours_json: hoursJSON,
             materials_json: materialsJSON,
@@ -873,20 +867,18 @@ export default function ApproveFTOPage() {
           if (!ftoIdNum) {
             throw new Error("Cannot create submission: FTO ID is missing");
           }
-          console.log(`[handleApprove] CREATE new submission for assignee ${assigneeId}`);
           submissionId = await createSubmissionForAssignee(
             ftoIdNum,
             assigneeId,
             hoursJSON,
             materialsJSON
           );
-          console.log(`[handleApprove] Created submission ${submissionId}`);
         }
 
         submissionIdsToApprove.push(submissionId);
       }
 
-      console.log("All submissions created/patched successfully");
+      // All submissions created/patched successfully
 
       // Update field_team_orders.amount_cents with FTO Total (from hours + expenses) before approving
       const amountCents = Math.round(grandTotal * 100);
@@ -899,7 +891,7 @@ export default function ApproveFTOPage() {
         await approveSubmission(submissionId);
       }
 
-      console.log("All submissions approved");
+      // All submissions approved
 
       navigate(-1);
     } catch (err) {
@@ -926,7 +918,7 @@ export default function ApproveFTOPage() {
         await rejectSubmission(submissionId);
       }
   
-      console.log("All submissions rejected");
+      // All submissions rejected
   
       navigate(-1);
     } catch (err) {
