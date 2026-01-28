@@ -56,6 +56,8 @@ interface WorkOrder {
 interface FieldTeamOrder {
   id: number;
   taskId: number;
+  /** Real task FK (nullable). Use for modal/update, not taskId. */
+  task_id?: number | null;
   property: string;
   description: string;
   dueDate: string;
@@ -144,6 +146,7 @@ const transformAPIToFieldTeamOrders = (
     return {
       id: row.id,
       taskId: row.task_id ?? row.id,
+      task_id: row.task_id ?? null,
       property: row.property_name ?? "",
       description: row.description,
       dueDate: row.due_date ? toDateOnly(row.due_date) : "",
@@ -2267,7 +2270,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   status: order.originalStatus as "new" | "dispatched" | "completed" | "cancelled",
                   due_date: order.due_date || order.dueDate,
                   property_id: propertyId!,
-                  task_id: order.taskId,
+                  task_id: order.task_id ?? undefined,
                   field_team_member_ids: order.field_team_member_ids ?? [],
                   pm_assignee_ids: order.pm_assignee_ids ?? [],
                 };
