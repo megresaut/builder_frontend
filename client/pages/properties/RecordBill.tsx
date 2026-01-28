@@ -257,37 +257,19 @@ const loadAttachmentIntoViewer = async (
   >
 ) => {
   try {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:259',message:'loadAttachmentIntoViewer called',data:{storagePath:a.StoragePath,fileName:a.FileName,contentType:a.ContentType,sizeBytes:a.SizeBytes},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     const storagePath = a.StoragePath.startsWith("http")
       ? a.StoragePath
       : `${API_BASE}${a.StoragePath}`;
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:263',message:'Fetching PDF file',data:{storagePath,fullPath:storagePath},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
 
     const res = await fetch(storagePath, {
       credentials: "include",
     });
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:268',message:'PDF fetch response',data:{status:res.status,statusText:res.statusText,contentType:res.headers.get('content-type'),ok:res.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
-
     if (!res.ok) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:271',message:'PDF fetch failed',data:{status:res.status,statusText:res.statusText,storagePath},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       throw new Error(`Failed to fetch PDF: ${res.status} ${res.statusText}`);
     }
 
     const blob = await res.blob();
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:279',message:'Blob created',data:{blobSize:blob.size,blobType:blob.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
 
     // ✅ FORCE PDF TYPE WHEN BACKEND RETURNS OCTET-STREAM
     const inferredType =
@@ -308,10 +290,6 @@ const loadAttachmentIntoViewer = async (
     );
     (file as any).preview = previewUrl;
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:295',message:'File created with preview URL',data:{fileName:file.name,fileType:file.type,previewUrl,fileSize:file.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
-
     setUploadedFiles([
       {
         name: a.FileName,
@@ -319,14 +297,7 @@ const loadAttachmentIntoViewer = async (
         file,
       },
     ]);
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:303',message:'setUploadedFiles called',data:{fileName:a.FileName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
   } catch (err) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:305',message:'loadAttachmentIntoViewer error',data:{error:err instanceof Error ? err.message : String(err)},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     console.error("Failed to load attachment PDF", err);
   }
 };
@@ -882,21 +853,12 @@ export const RecordBill = () => {
         // APPROVED BILL (read-only)
         // ============================
         if (draft.ApprovedBill && billId) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:851',message:'Fetching attachment for approved bill',data:{billId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
           const attachment: BillAttachment | null = await fetchJSON(
             `/utilities/bills/${billId}/attachment`
           ).catch((err) => {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:853',message:'Attachment fetch failed',data:{billId,error:err?.message||String(err)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
             return null;
           });
           
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:860',message:'Attachment response received',data:{billId,attachment:attachment?{StoragePath:attachment.StoragePath,FileName:attachment.FileName,ContentType:attachment.ContentType,SizeBytes:attachment.SizeBytes}:null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
           if (attachment?.StoragePath) {
             await loadAttachmentIntoViewer(attachment, setUploadedFiles);
           }
@@ -1316,25 +1278,12 @@ export const RecordBill = () => {
 
   // Auto-open PDF in read-only mode if there's only one file
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:1319',message:'Auto-open effect triggered',data:{isReadOnly,uploadedFilesCount:uploadedFiles.length,viewingFileUrl:!!viewingFileUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     if (isReadOnly && uploadedFiles.length === 1 && !viewingFileUrl) {
       const file = uploadedFiles[0].file;
       const preview = (file as any).preview;
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:1322',message:'Checking file preview',data:{hasPreview:!!preview,fileName:file.name,fileType:file.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       if (preview) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:1324',message:'Setting viewingFileUrl',data:{preview},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         setViewingFileUrl(preview);
         setViewingFileIndex(0);
-      } else {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:1328',message:'No preview URL found on file',data:{fileName:file.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
       }
     }
   }, [isReadOnly, uploadedFiles, viewingFileUrl]);

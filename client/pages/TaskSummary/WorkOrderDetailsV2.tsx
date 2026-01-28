@@ -947,7 +947,7 @@ export default function WorkOrderDetailsV2({
               file_type: uploadData.file_type,
               file_size: uploadData.file_size,
               storage_path: uploadData.temp_object_key,
-              uploaded_by_type: "property_manager",
+              uploaded_by_type: "user",
               uploaded_by: userId,
               label: category || null,
               description: description || null,
