@@ -89,8 +89,7 @@ export default function ScheduleInspectionModal({
   // Debug: Log templates to console
   useEffect(() => {
     if (open) {
-      console.log('[ScheduleInspectionModal] Templates received:', templates);
-      console.log('[ScheduleInspectionModal] Template options:', templateOptions);
+      // Debugging logs removed
     }
   }, [open, templates, templateOptions]);
 

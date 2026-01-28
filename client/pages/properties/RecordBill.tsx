@@ -1572,14 +1572,7 @@ export const RecordBill = () => {
     if (!firstPropertyId) {
       throw new Error("Patch failed: missing property_id");
     }
-    console.log("LINE ITEM PROPERTY LOOKUP", {
-      lineItems,
-      propertyMap,
-      mapped: lineItems.map(li => ({
-        property: li.property,
-        id: propertyMap[li.property]
-      }))
-    });
+    // Debugging log removed
     return {
       vendor_id: selectedVendor ? selectedVendor.id : null,
       property_id: Number(firstPropertyId), // not per-line — backend ignores this for line items

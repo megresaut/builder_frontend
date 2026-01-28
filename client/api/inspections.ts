@@ -125,8 +125,7 @@ export async function updateChecklist(
   id: number,
   checklistJSON: any
 ): Promise<BackendInspectionChecklist> {
-  console.log(`[API] PATCH /inspections/checklists/${id}`);
-  console.log("[API] Payload:", { checklist_json: checklistJSON });
+  // Debugging logs removed
   
   return fetchJSON(`/inspections/checklists/${id}`, {
     method: "PATCH",

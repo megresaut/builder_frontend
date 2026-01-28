@@ -679,20 +679,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         }
         
         // Extract city, state, zip for property location
-        // Log property object to help debug field names
-        console.log("Property data for location:", {
-          city: property.city,
-          state: property.state,
-          zip: property.zip,
-          zipcode: property.zipcode,
-          zip_code: property.zip_code,
-          postal_code: property.postal_code,
-          location: property.location,
-          address2: property.address2,
-          address_line_2: property.address_line_2,
-          allKeys: Object.keys(property)
-        });
-        
         // Check various possible field names for zip code
         const zip = property.zip || property.zipcode || property.zip_code || 
                     property.postal_code || property.postalCode || property.Zip ||
@@ -914,11 +900,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         }
       );
       
-      console.log("uploadRes.status:", uploadRes.status);
-      
       // ⚠️ Read raw text first
       const uploadText = await uploadRes.text();
-      console.log("upload raw response:", uploadText);
       
       // Then parse JSON safely
       let uploadJson;
@@ -928,12 +911,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         throw new Error("Upload response is not valid JSON");
       }
       
-      console.log("upload parsed JSON:", uploadJson);
-      
       const { pdf_object_key, sha256_pdf } = uploadJson;
-      
-      console.log("pdf_object_key:", pdf_object_key);
-      console.log("sha256_pdf:", sha256_pdf);
       
       if (!pdf_object_key || !sha256_pdf) {
         throw new Error("Upload did not return pdf_object_key or sha256_pdf");

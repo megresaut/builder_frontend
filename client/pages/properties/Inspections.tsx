@@ -238,7 +238,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
 
         // Fetch available templates/checklists
         const checklistsData = await listChecklists(Number(propertyId));
-        console.log('[Inspections] Fetched checklists from API:', checklistsData);
+        // Debugging log removed
         setTemplates(checklistsData);
 
         // Transform backend inspections to UI format

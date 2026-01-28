@@ -378,7 +378,7 @@ export default function TaskFieldTeamOrders({
           ? location.pathname
           : `${location.pathname}/fieldteam`;
 
-      navigate(`/fto/approve/${order.id}`, {
+      navigate(`/field-team-orders/approve/${order.id}`, {
         state: {
           ftoId: order.id,
           ftoName: order.description,

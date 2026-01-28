@@ -2457,7 +2457,7 @@ useEffect(() => {
         onSave={async (payload) => {
           if (!editingUtilityAccount || !propertyId) return;
         
-          console.log("[PATCH utility account]", editingUtilityAccount.id, payload);
+          // Debugging log removed
         
           await fetchJSON(`/utilities/accounts/${editingUtilityAccount.id}`, {
             method: "PATCH",
