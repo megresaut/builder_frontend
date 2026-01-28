@@ -192,7 +192,7 @@ export default function CreateFTOModal({
     setSelectedPropertyId(editingFTO.property_id);
     setSelectedUnitId(editingFTO.unit_id ?? null);
   
-    setSelectedTaskId(editingFTO.task_id || null);
+    setSelectedTaskId(editingFTO.task_id ?? null);
     setPmAssigneeIds(editingFTO.pm_assignee_ids);
     setFieldTeamMemberIds(editingFTO.field_team_member_ids);
 
@@ -375,6 +375,11 @@ export default function CreateFTOModal({
   const handleSubmit = async () => {
     if (!validateForm()) return;
   
+    // Update: always send task_id (0 = no task). Create: omit when no task.
+    const taskIdPayload = editingFTO
+      ? (selectedTaskId ?? 0)
+      : (selectedTaskId || undefined);
+
     const payload = {
       name: ftoName.trim(),
       description: description.trim(),
@@ -382,7 +387,7 @@ export default function CreateFTOModal({
       status,
       due_date: dueDate!.toISOString(),
       property_id: selectedPropertyId!,
-      task_id: selectedTaskId || undefined,
+      ...(taskIdPayload !== undefined && { task_id: taskIdPayload }),
       unit_id: selectedUnitId !== null ? selectedUnitId : undefined,
       field_team_member_ids: fieldTeamMemberIds,
       pm_assignee_ids: pmAssigneeIds,

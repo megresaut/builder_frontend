@@ -28,6 +28,8 @@ import {
 export interface FieldTeamOrder {
   id: number;
   taskId: number;
+  /** Real task FK (nullable). Use this for modal/update, not taskId. */
+  task_id?: number | null;
   property: string;
   description: string;
   dueDate: string;
@@ -175,6 +177,7 @@ export const transformAPIToFieldTeamOrders = (
     return {
       id: fto.id,
       taskId: fto.task_id || fto.id,
+      task_id: fto.task_id ?? null,
       property: fto.property_name || "Unknown Property",
       description: displayName,
       dueDate,
@@ -597,7 +600,7 @@ export default function TaskFieldTeamOrders({
                 due_date: editingOrder.dueDateISO || editingOrder.dueDate,
                 property_id: editingOrder.propertyId || 1,
                 property_name: editingOrder.property,
-                task_id: editingOrder.taskId,
+                task_id: editingOrder.task_id ?? undefined,
                 field_team_member_ids: editingOrder.fieldTeamMemberIds || [],
                 pm_assignee_ids: editingOrder.pmAssigneeIds || [],
                 unit_id: editingOrder.unitId ?? null,

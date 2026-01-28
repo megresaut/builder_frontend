@@ -31,6 +31,8 @@ import {
 interface FieldTeamOrder {
   id: number;
   taskId: number;
+  /** Real task FK (nullable). Use for modal/update, not taskId. */
+  task_id?: number | null;
   property: string;
   property_id: number;
   description: string;
@@ -404,6 +406,7 @@ const transformAPIToFieldTeamOrder = (
       id: fto.id,
       pm_assignee_ids: fto.pm_assignee_ids ?? [],
       taskId: fto.task_id || fto.id,
+      task_id: fto.task_id ?? null,
       name: fto.name,
       property: fto.property_name,
       property_id: fto.property_id,
@@ -906,7 +909,7 @@ export default function FieldTeamOrders() {
 
                   // relational IDs (what selects actually need)
                   property_id: order.property_id,
-                  task_id: order.taskId,
+                  task_id: order.task_id ?? undefined,
                   field_team_member_ids: order.field_team_member_ids,
                   pm_assignee_ids: order.pm_assignee_ids,
 
