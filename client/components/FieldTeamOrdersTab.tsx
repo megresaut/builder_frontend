@@ -5,6 +5,7 @@ import GlobalTable from "./GlobalTable";
 import ColumnFilterModal from "./ColumnFilterModal";
 import CreateFTOModal from "./CreateFTOModal";
 import FTOApprovalModal from "./FTOApprovalModal";
+import { DocumentIcon } from "@/components/icons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -560,6 +561,15 @@ export default function FieldTeamOrdersTab({
                 <circle cx="8" cy="8" r="1.5" fill="#303030"/>
                 <circle cx="8" cy="13" r="1.5" fill="#303030"/>
               </svg>
+            </button>
+            <button
+              onClick={() => window.open("/fto", "_blank")}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-[#303030]"
+            >
+              <DocumentIcon width={20} height={20} />
+              <span className="font-medium text-base leading-normal whitespace-nowrap">
+                Submission Portal
+              </span>
             </button>
             <button
               onClick={() => {

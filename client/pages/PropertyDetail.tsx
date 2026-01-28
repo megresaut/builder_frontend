@@ -8,6 +8,7 @@ import { Units } from "./properties/Units";
 import { Utilities } from "./properties/Utilities";
 import { Maintenance } from "./properties/Maintenance";
 import { Tasks } from "./properties/Tasks";
+import Inspections from "./properties/Inspections";
 import { Vendors } from "./properties/Vendors";
 import { Bills } from "./properties/Bills";
 import { Notes } from "./properties/Notes";
@@ -124,6 +125,16 @@ export default function PropertyDetail() {
       case "Maintenance":
         return (
           <Maintenance
+            propertyAddress={propertyAddress}
+            propertyType={propertyType}
+            propertyUnits={propertyUnits}
+            propertyId={property.id}
+          />
+        );
+
+      case "Inspections":
+        return (
+          <Inspections
             propertyAddress={propertyAddress}
             propertyType={propertyType}
             propertyUnits={propertyUnits}

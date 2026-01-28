@@ -48,6 +48,9 @@ interface TaskSummaryModalsProps {
   editingNote: Note | undefined;
   editingFile: File | undefined;
   taskId?: string;
+  userId?: number;
+  onRefetchTaskData?: () => Promise<void>;
+  onRefetchUpdates?: () => Promise<void>;
   onNotesChange: (notes: Note[]) => void;
   onCreateNote: (body: string, isVisibleToClient?: boolean) => Promise<void>;
   onUpdateNote: (noteId: number, body: string, isVisibleToClient?: boolean) => Promise<void>;
@@ -102,6 +105,9 @@ export default function TaskSummaryModals({
   editingNote,
   editingFile,
   taskId,
+  userId,
+  onRefetchTaskData,
+  onRefetchUpdates,
   onNotesChange,
   onCreateNote,
   onUpdateNote,
@@ -279,11 +285,81 @@ export default function TaskSummaryModals({
           if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "linkTask" });
         }}
         availableTasks={availableTasksForLinking}
-        onSubmit={(linkedTask) => {
-          if (!uiState.linkedTasks.some((t: any) => t.id === linkedTask.id)) {
-            uiDispatch({ type: "ADD_LINKED_TASK", payload: linkedTask });
-          } else {
+        currentTaskId={taskId}
+        alreadyLinkedTaskIds={uiState.linkedTasks.map((t: any) => t.id)}
+        onSubmit={async (linkedTask) => {
+          if (!taskId) {
+            console.error("Task ID is required to link tasks");
+            return;
+          }
+
+          // Check if already linked
+          if (uiState.linkedTasks.some((t: any) => t.id === linkedTask.id)) {
             uiDispatch({ type: "CLOSE_MODAL", payload: "linkTask" });
+            return;
+          }
+
+          try {
+            // Call API to create the link
+            await fetchJSON(`/maintenance/tasks/id/${taskId}/links`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                linked_task_id: Number(linkedTask.id),
+              }),
+            });
+
+            // Update local state
+            uiDispatch({ type: "ADD_LINKED_TASK", payload: linkedTask });
+            uiDispatch({ type: "CLOSE_MODAL", payload: "linkTask" });
+
+            // Refresh linked tasks from API to ensure consistency
+            if (onRefetchTaskData) {
+              // Trigger a refetch of linked tasks
+              const refreshedLinkedTasks = await fetchJSON(`/maintenance/tasks/id/${taskId}/links`);
+              const mappedLinkedTasks: any[] = refreshedLinkedTasks.map((task: any) => {
+                const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+                  open: "not_started",
+                  not_started: "not_started",
+                  in_progress: "in_progress",
+                  pending_vendor: "in_progress",
+                  scheduled: "in_progress",
+                  completed: "completed",
+                  closed: "completed",
+                  cancelled: "completed",
+                };
+                
+                const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
+                
+                const updatedDate = task.created_at
+                  ? new Date(task.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : "Unknown";
+                
+                return {
+                  id: task.id,
+                  name: task.name,
+                  status: frontendStatus,
+                  updatedDate,
+                  updatedBy: "System",
+                };
+              });
+              uiDispatch({ type: "SET_LINKED_TASKS", payload: mappedLinkedTasks });
+            }
+          } catch (error: any) {
+            console.error("Error linking task:", error);
+            // Show error to user (you might want to add a toast notification here)
+            const errorMessage = error.message || "Failed to link task";
+            if (errorMessage.includes("already exists")) {
+              alert("This task is already linked.");
+            } else if (errorMessage.includes("cannot link task to itself")) {
+              alert("Cannot link a task to itself.");
+            } else {
+              alert(`Failed to link task: ${errorMessage}`);
+            }
           }
         }}
       />
@@ -304,16 +380,61 @@ export default function TaskSummaryModals({
           property_id: currentPropertyId,
           unit_id: currentUnitId,
         }}
-        onSubmit={(data: EditTaskDetailsData) => {
-          onCurrentTitleChange(data.title);
-          onCurrentDescriptionChange(data.description || "");
-          onCurrentPropertyChange(data.property);
-          onCurrentUnitChange(data.unit);
-          onCurrentCategoryChange(data.category);
-          // Note: property_id and unit_id are handled internally by the modal
-          // and returned in the data, but we don't have setters for them here
-          // They will be updated when the task is saved via the backend
-          uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
+        onSubmit={async (data: EditTaskDetailsData) => {
+          if (!taskId || !userId) {
+            console.error("Missing taskId or userId");
+            return;
+          }
+
+          // Use property_id from data, fallback to currentPropertyId if not provided
+          const propertyId = data.property_id || currentPropertyId;
+          if (!propertyId) {
+            console.error("Property ID is required");
+            return;
+          }
+
+          try {
+            // Call the edit-final endpoint
+            await fetchJSON(`/maintenance/tasks/${taskId}/edit-final`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                actor_id: userId,
+                name: data.title,
+                description: data.description || "",
+                property_id: propertyId,
+                unit_id: data.unit_id || null,
+                category: data.category || "",
+              }),
+            });
+
+            // Close modal first
+            uiDispatch({ type: "CLOSE_MODAL", payload: "editTaskDetails" });
+
+            // Refresh the all tasks page in the background
+            window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+
+            // Refresh the current task summary page data first (this will update all state via useEffect)
+            if (onRefetchTaskData) {
+              await onRefetchTaskData();
+            }
+
+            // Refresh the updates feed to show the edit in the timeline
+            if (onRefetchUpdates) {
+              await onRefetchUpdates();
+            }
+
+            // Update local state after refetch to ensure consistency
+            // The refetch should have updated taskData, but we update these immediately for responsiveness
+            onCurrentTitleChange(data.title);
+            onCurrentDescriptionChange(data.description || "");
+            onCurrentPropertyChange(data.property);
+            onCurrentUnitChange(data.unit);
+            onCurrentCategoryChange(data.category);
+          } catch (error) {
+            console.error("Failed to save task details:", error);
+            // Optionally show error toast/notification here
+          }
         }}
       />
 
@@ -326,7 +447,15 @@ export default function TaskSummaryModals({
         variant="withMessageAndAttachments"
         editData={modalEditData}
         onTaskUpdated={async (taskId: number) => {
-          // Fetch updated task data from API
+          // Refresh the all tasks page in the background
+          window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+          
+          // Refresh the current task summary page data to show updated values
+          if (onRefetchTaskData) {
+            await onRefetchTaskData();
+          }
+          
+          // Fetch updated task data from API for local state updates
           try {
             const updatedTask = await fetchJSON(`/maintenance/tasks/${taskId}`);
             

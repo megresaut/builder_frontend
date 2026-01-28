@@ -22,6 +22,11 @@ import { FormSection } from "@/components/ui/form-section";
 import { fetchJSON } from "@/api/fetchJSON";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { useAuth } from "@/auth/useAuth";
+import {
+  PROPERTY_LEVEL_LABEL,
+  PROPERTY_LEVEL_SHORT_LABEL,
+  PROPERTY_LEVEL_UNIT_ID,
+} from "@/utils/unitLabel";
 
 interface SimpleProperty {
   id: number;
@@ -68,6 +73,8 @@ interface CreateTaskModalProps {
   onSubmit?: (form: any) => void;
   onTaskUpdated?: (taskId: number) => void;
   variant?: "compact" | "withMessageAndAttachments";
+  /** When opening for create (no editData), preselect this property (e.g. from property page). */
+  defaultPropertyId?: number;
 }
 
 const renderPropertyLabel = (p: SimpleProperty) =>
@@ -82,6 +89,7 @@ export default function CreateTaskModal({
   onSubmit,
   onTaskUpdated,
   variant = "withMessageAndAttachments",
+  defaultPropertyId,
 }: CreateTaskModalProps) {
   const { userId } = useAuth();
   const hasHydratedRef = useRef(false);
@@ -373,6 +381,12 @@ export default function CreateTaskModal({
     }
   }, [open, editData]);
 
+  useEffect(() => {
+    if (open && !editData && defaultPropertyId != null) {
+      setSelectedPropertyId(defaultPropertyId);
+    }
+  }, [open, editData, defaultPropertyId]);
+
   const hasChanges = (): boolean => {
     if (!isEditing) return true;
 
@@ -472,10 +486,17 @@ export default function CreateTaskModal({
     label: renderPropertyLabel(p),
   }));
 
-  const unitOptions = units.map((u) => ({
-    value: String(u.id),
-    label: u.unit_name || `Unit #${u.id}`,
-  }));
+  const unitOptions = [
+    {
+      value: String(PROPERTY_LEVEL_UNIT_ID),
+      label: PROPERTY_LEVEL_LABEL,
+      displayLabel: PROPERTY_LEVEL_SHORT_LABEL,
+    },
+    ...units.map((u) => ({
+      value: String(u.id),
+      label: u.unit_name || `Unit #${u.id}`,
+    })),
+  ];
 
   const assigneeOptions: MultiSelectOption[] = availableAssignees.map((u) => ({
     id: String(u.id),
@@ -531,6 +552,11 @@ export default function CreateTaskModal({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const dispatchTasksRefresh = (propertyId?: number | null) => {
+    const detail = propertyId ? { propertyId } : {};
+    window.dispatchEvent(new CustomEvent("refreshAllTasks", { detail }));
   };
 
   const handleSubmit = async () => {
@@ -655,7 +681,7 @@ export default function CreateTaskModal({
         payload.requested_by = userId;
       }
 
-      if (selectedUnitId) {
+      if (selectedUnitId !== null) {
         payload.unit_id = selectedUnitId;
       }
 
@@ -704,8 +730,7 @@ export default function CreateTaskModal({
           method: "PATCH",
           body: JSON.stringify(payload),
         });
-        // Trigger refresh of all tasks page
-        window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+        dispatchTasksRefresh(editData.property_id);
         // Call onTaskUpdated callback if provided
         if (onTaskUpdated) {
           onTaskUpdated(editData.id);
@@ -715,8 +740,7 @@ export default function CreateTaskModal({
           method: "PATCH",
           body: JSON.stringify(payload),
         });
-        // Trigger refresh of all tasks page
-        window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+        dispatchTasksRefresh(editData.property_id);
         // Call onTaskUpdated callback if provided
         if (onTaskUpdated) {
           onTaskUpdated(editData.id);
@@ -728,8 +752,7 @@ export default function CreateTaskModal({
           method: "POST",
           body: JSON.stringify(payload),
         });
-        // Trigger refresh of all tasks page
-        window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+        dispatchTasksRefresh(selectedPropertyId);
       } catch (error) {
         console.error("Failed to create task:", error);
         setErrors({ submit: "Failed to create task" });
@@ -750,7 +773,7 @@ export default function CreateTaskModal({
           formData.append("file", file.file);
 
           try {
-            const response = await fetch("http://localhost:8080/maintenance/uploads", {
+            const response = await fetch("/api/maintenance/uploads", {
               method: "POST",
               body: formData,
             });
@@ -788,7 +811,7 @@ export default function CreateTaskModal({
           formData.append("file", file.file);
 
           try {
-            const response = await fetch("http://localhost:8080/maintenance/tasks/attachments/upload", {
+            const response = await fetch("/api/maintenance/tasks/attachments/upload", {
               method: "POST",
               body: formData,
             });
@@ -928,6 +951,19 @@ export default function CreateTaskModal({
                 placeholder="Add a message..."
                 rows={4}
               />
+
+              {/* Attachments section commented out for now
+              <FileUploadField
+                label="Attachments"
+                files={files}
+                onFilesAdded={handleFilesAdded}
+                onFileRemoved={handleFileRemoved}
+                onViewFile={handleViewFile}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+                maxFiles={10}
+                maxSize={10 * 1024 * 1024}
+              />
+              */}
             </div>
           ) : (
             <>
@@ -972,7 +1008,9 @@ export default function CreateTaskModal({
                   <FieldRowItem>
                     <SelectField
                       label="Unit"
-                      value={String(selectedUnitId || "")}
+                      value={
+                        selectedUnitId === null ? "" : String(selectedUnitId)
+                      }
                       onChange={(value) => {
                         setSelectedUnitId(value ? Number(value) : null);
                       }}

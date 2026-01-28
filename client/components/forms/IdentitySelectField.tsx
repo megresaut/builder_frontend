@@ -284,11 +284,12 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
   removeItem,
 }) => {
   const popoverContext = usePopoverContext();
-  const { highlightedIndex } = popoverContext;
+  const highlightedIndex = (popoverContext as any).highlightedIndex ?? 0;
+  const filteredItems = (popoverContext as any).filteredItems ?? options.map((opt) => ({ value: opt.id, label: opt.label }));
 
   useEffect(() => {
-    if (open) {
-      popoverContext.setSearchableItems(
+    if (open && (popoverContext as any).setSearchableItems) {
+      (popoverContext as any).setSearchableItems(
         options.map((opt) => ({ value: opt.id, label: opt.label }))
       );
     }
@@ -296,8 +297,8 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
 
   // Set up Enter key handler for selecting from type-ahead results
   useEffect(() => {
-    if (open && popoverContext.onEnterSelect) {
-      popoverContext.onEnterSelect((item) => {
+    if (open && (popoverContext as any).onEnterSelect) {
+      (popoverContext as any).onEnterSelect((item) => {
         if (item) {
           const option = options.find((opt) => opt.id === item.value);
           if (option) {
@@ -412,7 +413,7 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
             padding: "4px 0",
           }}
         >
-          {popoverContext.filteredItems.length === 0 ? (
+          {(!filteredItems || filteredItems.length === 0) ? (
             <div
               style={{
                 padding: "8px 12px",
@@ -420,12 +421,12 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
                 fontSize: "14px",
               }}
             >
-              {popoverContext.filteredItems.length === 0 && options.length > 0
+              {(!filteredItems || filteredItems.length === 0) && options.length > 0
                 ? "No matching options"
                 : "No options"}
             </div>
           ) : (
-            popoverContext.filteredItems.map((item, index) => {
+            filteredItems.map((item, index) => {
               const option = options.find((opt) => opt.id === item.value);
               if (!option) return null;
               const isSelected = multiple
@@ -454,7 +455,9 @@ const IdentitySelectFieldContent: React.FC<IdentitySelectFieldContentProps> = ({
                     transition: "background-color 0.15s",
                   }}
                   onMouseEnter={() => {
-                    popoverContext.setHighlightedIndex(index);
+                    if ((popoverContext as any).setHighlightedIndex) {
+                      (popoverContext as any).setHighlightedIndex(index);
+                    }
                   }}
                   onMouseLeave={() => {
                     // Don't reset on mouse leave, keep arrow nav state

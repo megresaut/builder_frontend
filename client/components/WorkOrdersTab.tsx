@@ -1,76 +1,109 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import CreateWorkOrderModal from "./CreateWorkOrderModal";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "./ColumnFilterModal";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import GlobalTable from "./GlobalTable";
+import { fetchJSON } from "@/api/fetchJSON";
 
-interface Assignee {
+// API response interface
+interface ApiWorkOrder {
   id: number;
+  task_id: number;
+  property_id: number;
+  vendor_id?: number;
   name: string;
-  initials: string;
-  color: string;
+  description?: string;
+  status: string;
+  priority: string;
+  due_date?: string;
+  created_at: string;
+  updated_at: string;
+  bill_id?: number;
+  bill_total_cents?: number;
+  // ... other fields from API
 }
 
+// Table display interface
 interface WorkOrder {
   id: number;
-  task: string;
+  name: string;
+  priority: string;
+  status: string;
   dueDate: string;
   updatedDate: string;
   age: string;
-  priority: "High" | "Low" | "Normal";
-  status: "In progress" | "Completed";
-  billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
-  billTotal: string;
-  assignees: Assignee[];
+  billTotal?: number; // bill_total_cents from API
 }
 
-const mockWorkOrders: WorkOrder[] = [
-  {
-    id: 1,
-    task: "Doors need to be repaired",
-    dueDate: "Oct 2, 2025",
-    updatedDate: "Oct 2, 2025",
-    age: "6 days 5 hours",
-    priority: "High",
-    status: "In progress",
-    billStatus: "Paid",
-    billTotal: "$420",
-    assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
-    ],
-  },
-  {
-    id: 2,
-    task: "Doors need to be repaired",
-    dueDate: "Sep 29, 2025",
-    updatedDate: "Sep 29, 2025",
-    age: "6 days 5 hours",
-    priority: "Low",
-    status: "In progress",
-    billStatus: "Awaiting Invoice",
-    billTotal: "No invoice",
-    assignees: [
-      { id: 3, name: "Jane Smith", initials: "JMS", color: "bg-green-500" },
-    ],
-  },
-  {
-    id: 3,
-    task: "Doors need to be repaired",
-    dueDate: "Sep 10, 2025",
-    updatedDate: "Sep 10, 2025",
-    age: "6 days 5 hours",
-    priority: "Normal",
-    status: "Completed",
-    billStatus: "Unpaid",
-    billTotal: "$95",
-    assignees: [
-      { id: 1, name: "Jerry Sanchez", initials: "JS", color: "bg-blue-500" },
-    ],
-  },
-];
+// Helper function to format date from ISO string (e.g., "2026-01-20T21:47:54.146693-05:00")
+function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return "—";
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+// Helper function to calculate age from created_at
+function calculateAge(createdAt: string): string {
+  try {
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - created.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) {
+      const remainingHours = diffHours % 24;
+      return `${diffDays} day${diffDays !== 1 ? "s" : ""} ${remainingHours} hour${remainingHours !== 1 ? "s" : ""}`;
+    } else if (diffHours > 0) {
+      return `${diffHours} hour${diffHours !== 1 ? "s" : ""}`;
+    } else if (diffMinutes > 0) {
+      return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""}`;
+    } else {
+      return "just now";
+    }
+  } catch {
+    return "—";
+  }
+}
+
+// Helper function to format bill total from cents
+function formatBillTotal(billTotalCents: number | null | undefined): string {
+  if (!billTotalCents || billTotalCents === 0) {
+    return "No invoice";
+  }
+  const dollars = billTotalCents / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(dollars);
+}
+
+// Map API response to table format
+function mapApiWorkOrderToTable(apiWorkOrder: ApiWorkOrder): WorkOrder {
+  return {
+    id: apiWorkOrder.id,
+    name: apiWorkOrder.name,
+    priority: apiWorkOrder.priority,
+    status: apiWorkOrder.status,
+    dueDate: formatDate(apiWorkOrder.due_date),
+    updatedDate: formatDate(apiWorkOrder.updated_at),
+    age: calculateAge(apiWorkOrder.created_at),
+    billTotal: apiWorkOrder.bill_total_cents,
+  };
+}
 
 interface WorkOrdersTabProps {
   taskId?: string;
@@ -84,10 +117,13 @@ export default function WorkOrdersTab({
   onWorkOrderSelect,
 }: WorkOrdersTabProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<number | null>(
     initialSelectedWorkOrderId,
   );
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
@@ -98,6 +134,39 @@ export default function WorkOrdersTab({
   useEffect(() => {
     setSelectedWorkOrderId(initialSelectedWorkOrderId ?? null);
   }, [initialSelectedWorkOrderId]);
+
+  // Fetch work orders from API
+  useEffect(() => {
+    const fetchWorkOrders = async () => {
+      if (!taskId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetchJSON(
+          `/maintenance/work-orders?task_id=${taskId}`
+        );
+        const apiWorkOrders: ApiWorkOrder[] = Array.isArray(response)
+          ? response
+          : [];
+        const mappedWorkOrders = apiWorkOrders.map(mapApiWorkOrderToTable);
+        setWorkOrders(mappedWorkOrders);
+      } catch (err) {
+        console.error("Failed to fetch work orders:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load work orders"
+        );
+        setWorkOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkOrders();
+  }, [taskId]);
 
   const {
     columnOrder,
@@ -116,14 +185,12 @@ export default function WorkOrdersTab({
     handleColumnDrop,
   } = useColumnManagement([
     "priority",
-    "task",
+    "name",
     "updatedDate",
     "age",
     "status",
     "dueDate",
-    "billStatus",
     "billTotal",
-    "assignees",
   ]);
 
   const columns = [
@@ -140,7 +207,7 @@ export default function WorkOrdersTab({
       ),
     },
     {
-      key: "task",
+      key: "name",
       label: "Work Order",
       icon: (
         <img
@@ -194,39 +261,13 @@ export default function WorkOrdersTab({
       ),
     },
     {
-      key: "billStatus",
-      label: "Bill Status",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
-    },
-    {
       key: "billTotal",
-      label: "Bill Total",
+      label: "$ Bill Total",
       icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
-    },
-    {
-      key: "assignees",
-      label: "Assignees",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <line x1="12" x2="12" y1="2" y2="22" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
       ),
     },
   ];
@@ -234,14 +275,10 @@ export default function WorkOrdersTab({
   const filteredWorkOrders = workOrders.filter((order) => {
     const searchLower = searchValue.toLowerCase();
     return (
-      order.task.toLowerCase().includes(searchLower) ||
+      order.name.toLowerCase().includes(searchLower) ||
       order.dueDate.toLowerCase().includes(searchLower) ||
       order.status.toLowerCase().includes(searchLower) ||
-      order.priority.toLowerCase().includes(searchLower) ||
-      order.billStatus.toLowerCase().includes(searchLower) ||
-      order.assignees.some((member) =>
-        member.name.toLowerCase().includes(searchLower)
-      )
+      order.priority.toLowerCase().includes(searchLower)
     );
   });
 
@@ -256,10 +293,18 @@ export default function WorkOrdersTab({
   const handleEditWorkOrder = useCallback(
     (workOrder: WorkOrder) => {
       if (taskId) {
-        navigate(`/tasks/${taskId}/workorders/${workOrder.id}`);
+        // Preserve navigation state when navigating to work order details
+        const currentState = (location.state as any) || {};
+        navigate(`/tasks/${taskId}/workorders/${workOrder.id}`, {
+          state: {
+            ...currentState,
+            taskData: currentState.taskData || currentState.task,
+            task: currentState.task || currentState.taskData,
+          },
+        });
       }
     },
-    [taskId, navigate]
+    [taskId, navigate, location.state]
   );
 
   const handleDeleteWorkOrder = useCallback(
@@ -283,6 +328,26 @@ export default function WorkOrdersTab({
     );
   }
 
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6 w-full">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-gray-500">Loading work orders...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-6 w-full">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-red-500">Error: {error}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 w-full">
       <GlobalTable
@@ -294,15 +359,16 @@ export default function WorkOrdersTab({
         onSearchChange={setSearchValue}
         renderCell={(workOrder: WorkOrder, columnKey: string) => {
           if (columnKey === "priority") {
+            const priorityLower = workOrder.priority.toLowerCase();
             return (
               <div className="flex items-center gap-2">
                 <div
                   className="w-2 h-2 rounded-full"
                   style={{
                     backgroundColor:
-                      workOrder.priority === "High"
+                      priorityLower === "high"
                         ? "#D97706"
-                        : workOrder.priority === "Low"
+                        : priorityLower === "low"
                           ? "#059669"
                           : "#2463EB",
                   }}
@@ -313,10 +379,10 @@ export default function WorkOrdersTab({
               </div>
             );
           }
-          if (columnKey === "task") {
+          if (columnKey === "name") {
             return (
               <span className="text-gray-900 font-normal text-sm truncate">
-                {workOrder.task}
+                {workOrder.name}
               </span>
             );
           }
@@ -335,13 +401,14 @@ export default function WorkOrdersTab({
             );
           }
           if (columnKey === "status") {
+            const statusLower = workOrder.status.toLowerCase();
             return (
               <div className="flex items-center gap-2">
                 <div
                   className="w-2 h-2 rounded-full"
                   style={{
                     backgroundColor:
-                      workOrder.status === "Completed"
+                      statusLower === "completed" || statusLower === "closed"
                         ? "#059669"
                         : "#2463EB",
                   }}
@@ -359,37 +426,11 @@ export default function WorkOrdersTab({
               </span>
             );
           }
-          if (columnKey === "billStatus") {
-            return (
-              <span className="text-gray-900 font-normal text-sm truncate">
-                {workOrder.billStatus}
-              </span>
-            );
-          }
           if (columnKey === "billTotal") {
             return (
-              <span className="text-gray-900 font-normal text-sm">
-                {workOrder.billTotal}
+              <span className="text-gray-900 font-normal text-sm truncate">
+                {formatBillTotal(workOrder.billTotal)}
               </span>
-            );
-          }
-          if (columnKey === "assignees") {
-            return (
-              <div className="flex items-center gap-2">
-                {workOrder.assignees.map((assignee, idx) => (
-                  <div key={idx} className="relative group">
-                    <div
-                      className={`w-7 h-7 rounded-full ${assignee.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer flex-shrink-0`}
-                      title={assignee.name}
-                    >
-                      {assignee.initials}
-                    </div>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                      {assignee.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
             );
           }
           return null;

@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import FtoTopNav from "@/components/FtoTopNav";
+import { ToastProvider } from "@/components/Toast/ToastContainer";
 
 const FULLSCREEN_KEY = "app-fullscreen-mode";
 
@@ -79,41 +80,45 @@ export default function FtoShellLayout({ children }: FtoShellLayoutProps) {
   // Mobile/Tablet layout
   if (!isDesktop) {
     return (
-      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-        <FtoTopNav />
-        <main className="flex-1 overflow-auto bg-white">
-          <div
-            ref={mainContentRef}
-            data-testid="main-content"
-            className="h-full"
-            style={{ paddingBottom: "150px" }}
-          >
-            <div key={location.pathname}>{children}</div>
-          </div>
-        </main>
-      </div>
+      <ToastProvider>
+        <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+          <FtoTopNav />
+          <main className="flex-1 overflow-auto bg-white">
+            <div
+              ref={mainContentRef}
+              data-testid="main-content"
+              className="h-full"
+              style={{ paddingBottom: "150px" }}
+            >
+              <div key={location.pathname}>{children}</div>
+            </div>
+          </main>
+        </div>
+      </ToastProvider>
     );
   }
 
   // Desktop layout with sidebar and header
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar forceCollapse={forceCollapse} mode="fto" />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <Header forceCollapse={forceCollapse} showTabs={false} />
-        <div
-          ref={mainContentRef}
-          data-testid="main-content"
-          className="flex-1 overflow-auto bg-white"
-          style={{
-            paddingBottom: "150px",
-            borderLeftWidth: "1px",
-            borderLeftColor: "#d2d1cf",
-          }}
-        >
-          <div key={location.pathname}>{children}</div>
-        </div>
-      </main>
-    </div>
+    <ToastProvider>
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <Sidebar forceCollapse={forceCollapse} mode="fto" />
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <Header forceCollapse={forceCollapse} showTabs={false} />
+          <div
+            ref={mainContentRef}
+            data-testid="main-content"
+            className="flex-1 overflow-auto bg-white"
+            style={{
+              paddingBottom: "150px",
+              borderLeftWidth: "1px",
+              borderLeftColor: "#d2d1cf",
+            }}
+          >
+            <div key={location.pathname}>{children}</div>
+          </div>
+        </main>
+      </div>
+    </ToastProvider>
   );
 }

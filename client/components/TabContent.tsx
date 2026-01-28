@@ -40,7 +40,7 @@ export default function TabContent() {
         sectionId: "work-orders",
         route: path,
       });
-    } else if (path === "/all-properties") {
+    } else if (path === "/") {
       setSelectedTab("properties");
     }
   }, [location.pathname, tabContext, navigate]);

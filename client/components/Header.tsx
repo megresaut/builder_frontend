@@ -94,7 +94,7 @@ export default function Header() {
       }
     } else if (path === "/blank") {
       return { label: "New Tab", path, id: "blank" };
-    } else if (path === "/all-properties") {
+    } else if (path === "/") {
       return { label: "All Properties", path, id: "all-properties" };
     } else if (path === "/all-tasks") {
       return { label: "All Tasks", path, id: "all-tasks" };
@@ -127,8 +127,6 @@ export default function Header() {
         }
       }
       return { label: "Record Bill", path, id: pageId };
-    } else if (path === "/") {
-      return { label: "All Tasks", path, id: "all-tasks" };
     }
 
     return null;
@@ -163,7 +161,7 @@ export default function Header() {
       if (match) {
         const propertyId = match[1];
         const tab = match[2];
-        items.push({ label: "Properties", href: "/all-properties" });
+        items.push({ label: "Properties", href: "/" });
 
 
         items.push({
@@ -174,7 +172,7 @@ export default function Header() {
           items.push({ label: tab });
         }
       }
-    } else if (path === "/all-properties") {
+    } else if (path === "/") {
       items.push({ label: "All Properties" });
     } else if (path === "/all-tasks") {
       items.push({ label: "All Tasks" });

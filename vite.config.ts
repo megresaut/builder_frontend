@@ -29,4 +29,9 @@ export default defineConfig({
     },
     extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"],
   },
+
+  optimizeDeps: {
+    include: ["jspdf"],
+    exclude: [],
+  },
 });

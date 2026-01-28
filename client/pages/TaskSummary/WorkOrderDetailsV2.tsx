@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ArrowLeft, Bell, Share2, Mail, ChevronDown, Plus } from "lucide-react";
 import { EditIcon } from "@/components/icons";
 import SectionCard from "@/components/SectionCard";
@@ -29,6 +29,8 @@ import {
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import type { Note, File } from "@/components/templates";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import { fetchJSON } from "@/api/fetchJSON";
+import { useAuth } from "@/auth/useAuth";
 
 interface WorkOrder {
   id: number;
@@ -122,11 +124,141 @@ const getVendorPhone = (vendorName?: string): string => {
   return vendorMasterData[vendorName]?.phone || "";
 };
 
-const getVendorHref = (vendorName?: string): string | undefined => {
-  if (!vendorName) return undefined;
-  const vendorId = vendorMasterData[vendorName]?.id;
-  return vendorId ? `/vendors/${vendorId}` : undefined;
+// Helper function to get vendor href from vendor ID
+const getVendorHref = (vendorId?: number): string | undefined => {
+  if (!vendorId) return undefined;
+  return `/vendors/${vendorId}`;
 };
+
+// API response interface
+interface ApiWorkOrder {
+  id: number;
+  task_id: number;
+  property_id: number;
+  vendor_id?: number;
+  name: string;
+  description?: string;
+  vendor_notes?: string;
+  internal_notes?: string;
+  status: string;
+  priority: string;
+  due_date?: string;
+  entry_preference?: string;
+  assignee?: string;
+  estimated_cost?: number;
+  actual_cost?: number;
+  dispatched_at?: string;
+  completed_at?: string;
+  completed_by?: number;
+  created_at: string;
+  updated_at: string;
+  attachments?: Array<{
+    id: number;
+    work_order_id: number;
+    file_name: string;
+    file_type: string;
+    file_size: number;
+    storage_path: string;
+    uploaded_by_type: string;
+    uploaded_by: number;
+    label?: string;
+    description?: string;
+    created_at: string;
+  }>;
+  bill_id?: number;
+  bill_total_cents?: number;
+  bill_vendor_name?: string;
+  bill_invoice_number?: string;
+  bill_statement_date?: string;
+  bill_updated_at?: string;
+  vendor_name?: string;
+  vendor_email?: string;
+  vendor_phone?: string;
+  property_name?: string;
+  created_by_name?: string;
+  created_by_email?: string;
+  created_by_role?: string;
+  estimate_total?: number;
+  work_order_total?: number;
+  last_updated?: string;
+}
+
+/**
+ * API response shape for work order notes
+ */
+interface ApiWorkOrderNote {
+  id: number;
+  work_order_id: number;
+  author_type: string;
+  author_id: number;
+  body: string;
+  is_visible_to_client: boolean;
+  created_at: string;
+  updated_at: string | null;
+}
+
+/**
+ * API response shape for work order attachments
+ */
+interface ApiWorkOrderAttachment {
+  id: number;
+  work_order_id: number;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  storage_path: string;
+  uploaded_by_type: string;
+  uploaded_by: number;
+  label: string | null;
+  description: string | null;
+  created_at: string;
+}
+
+interface PropertyManagerRecord {
+  id: number;
+  name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+}
+
+/**
+ * Transform API note to UI Note format
+ */
+function transformApiNoteToUiNote(
+  apiNote: ApiWorkOrderNote,
+  propertyManagers?: Map<number, string>,
+): Note {
+  // Format date to "MM/DD/YYYY HH:MM AM/PM" format
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // Look up property manager name by author_id, fallback to "User" if not found
+  const authorName =
+    propertyManagers?.get(apiNote.author_id) || "User";
+
+  return {
+    id: apiNote.id,
+    text: apiNote.body,
+    date: formatDate(apiNote.created_at),
+    author: authorName,
+    // Store API fields for potential future use
+    author_type: apiNote.author_type,
+    author_id: apiNote.author_id,
+    is_visible_to_client: apiNote.is_visible_to_client,
+    created_at: apiNote.created_at,
+    updated_at: apiNote.updated_at,
+  };
+}
 
 export default function WorkOrderDetailsV2({
   workOrder,
@@ -138,29 +270,288 @@ export default function WorkOrderDetailsV2({
   onBillAdded,
 }: WorkOrderDetailsV2Props) {
   const navigate = useNavigate();
-  const { taskId } = useParams<{ taskId: string }>();
+  const location = useLocation();
+  const { taskId, workOrderId: routeWorkOrderId } = useParams<{ taskId: string; workOrderId?: string }>();
+  const { userId } = useAuth();
 
-  // Field state
-  const [status, setStatus] = useState(() => workOrder?.status || "completed");
-  const [priority, setPriority] = useState(
-    () => workOrder?.priority || "normal",
+  // API work order data state
+  const [apiWorkOrder, setApiWorkOrder] = useState<ApiWorkOrder | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Property managers map for author names
+  const [propertyManagers, setPropertyManagers] = useState<Map<number, string>>(new Map());
+
+  // Determine the work order ID to use - prefer route param, fall back to workOrder prop id
+  const workOrderId = routeWorkOrderId || (workOrder?.id ? String(workOrder.id) : null);
+
+  // Fetch work order from API - extracted to useCallback so it can be reused
+  const fetchWorkOrder = useCallback(async (silent = false) => {
+    if (!workOrderId) {
+      if (!silent) {
+        setLoading(false);
+      }
+      return;
+    }
+
+    try {
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      }
+      const data = await fetchJSON(`/maintenance/work-orders/${workOrderId}`);
+      setApiWorkOrder(data);
+    } catch (err) {
+      console.error("Failed to fetch work order:", err);
+      if (!silent) {
+        setError(err instanceof Error ? err.message : "Failed to load work order");
+      }
+    } finally {
+      if (!silent) {
+        setLoading(false);
+      }
+    }
+  }, [workOrderId]);
+
+  // Fetch work order on mount and when workOrderId changes
+  useEffect(() => {
+    fetchWorkOrder();
+  }, [fetchWorkOrder]);
+
+  // Fetch property managers for author names
+  useEffect(() => {
+    const fetchPropertyManagers = async () => {
+      try {
+        const users = await fetchJSON("/users/property-managers") as PropertyManagerRecord[];
+        const pmMap = new Map<number, string>();
+        users.forEach((user) => {
+          if (user.id && user.name) {
+            pmMap.set(user.id, user.name);
+          }
+        });
+        setPropertyManagers(pmMap);
+      } catch (err) {
+        console.error("Failed to fetch property managers:", err);
+        // Continue without property managers - will use "User" as fallback
+      }
+    };
+
+    fetchPropertyManagers();
+  }, []);
+
+  // Fetch notes from API
+  useEffect(() => {
+    const fetchNotes = async () => {
+      if (!workOrderId) {
+        return;
+      }
+
+      try {
+        setNotesLoading(true);
+        const apiNotes = await fetchJSON(`/maintenance/work-orders/id/${workOrderId}/notes`) as ApiWorkOrderNote[];
+        const transformedNotes = apiNotes.map((note) => transformApiNoteToUiNote(note, propertyManagers));
+        setNotes(transformedNotes);
+      } catch (err) {
+        console.error("Failed to fetch notes:", err);
+        // Don't set error state - just log it, notes will remain empty
+      } finally {
+        setNotesLoading(false);
+      }
+    };
+
+    fetchNotes();
+  }, [workOrderId, propertyManagers]);
+
+  // Map backend status to frontend status
+  const mapBackendStatusToFrontend = (
+    backendStatus: string | null | undefined
+  ): "not_started" | "in_progress" | "completed" => {
+    if (!backendStatus) return "not_started";
+    
+    const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+      new: "not_started",
+      sent: "not_started",
+      scheduled: "in_progress",
+      in_progress: "in_progress",
+      completed: "completed",
+      cancelled: "not_started", // Cancelled maps to not_started since frontend doesn't have cancelled
+    };
+    
+    return statusMap[backendStatus.toLowerCase()] || "not_started";
+  };
+
+  // Map backend priority to frontend priority
+  const mapBackendPriorityToFrontend = (
+    backendPriority: string | null | undefined
+  ): "normal" | "low" | "high" | "urgent" => {
+    if (!backendPriority) return "normal";
+    
+    const priorityMap: Record<string, "normal" | "low" | "high" | "urgent"> = {
+      low: "low",
+      medium: "normal", // medium maps to normal
+      high: "high",
+      urgent: "urgent",
+    };
+    
+    return priorityMap[backendPriority.toLowerCase()] || "normal";
+  };
+
+  // Normalize role display (e.g., property_manager -> Property Manager)
+  const normalizeRole = (role: string | null | undefined): string => {
+    if (!role) return "";
+    
+    // Replace underscores with spaces and capitalize words
+    return role
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
+  // Helper function to format date
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  // Helper function to format datetime for "Last Updated"
+  const formatDateTime = (dateString: string | null | undefined): string => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString("en-US", {
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  // Helper function to format created date
+  const formatCreatedDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  /**
+   * Transform API attachment to UI File format
+   */
+  const transformApiAttachmentToUiFile = (
+    apiAttachment: ApiWorkOrderAttachment,
+  ): File => {
+    return {
+      id: apiAttachment.id,
+      name: apiAttachment.file_name,
+      url: undefined,
+      uploadedAt: formatCreatedDate(apiAttachment.created_at),
+      category: apiAttachment.label || "",
+      description: apiAttachment.description || "",
+      file_type: apiAttachment.file_type,
+      file_size: apiAttachment.file_size,
+      storage_path: apiAttachment.storage_path,
+      uploaded_by_type: apiAttachment.uploaded_by_type,
+      uploaded_by: apiAttachment.uploaded_by,
+    };
+  };
+
+  // Field state - use API data if available, otherwise fall back to prop
+  // Cast to proper types for the select fields
+  const [status, setStatus] = useState<"completed" | "not_started" | "in_progress">(() => {
+    const s = apiWorkOrder?.status || workOrder?.status || "completed";
+    return s as "completed" | "not_started" | "in_progress";
+  });
+  const [priority, setPriority] = useState<"normal" | "low" | "high" | "urgent">(
+    () => {
+      const p = apiWorkOrder?.priority || workOrder?.priority || "normal";
+      return p as "normal" | "low" | "high" | "urgent";
+    },
   );
   const [dueDate, setDueDate] = useState<Date | string | null>(() => {
-    if (!workOrder?.dueDate) return null;
+    const dateStr = apiWorkOrder?.due_date || workOrder?.dueDate;
+    if (!dateStr) return null;
     // If it's already a Date object, use it directly
-    if (workOrder.dueDate instanceof Date) {
-      return workOrder.dueDate;
+    if (dateStr instanceof Date) {
+      return dateStr;
     }
     // Try to parse string dates (may be ISO or formatted)
-    const parsed = new Date(workOrder.dueDate);
-    return !isNaN(parsed.getTime()) ? parsed : workOrder.dueDate;
+    const parsed = new Date(dateStr);
+    return !isNaN(parsed.getTime()) ? parsed : dateStr;
   });
 
-  // Sync workOrder prop changes to local state
+  // Sync API work order data to local state
   useEffect(() => {
-    if (workOrder) {
-      setStatus(workOrder.status || "completed");
-      setPriority(workOrder.priority || "normal");
+    if (apiWorkOrder) {
+      setStatus(mapBackendStatusToFrontend(apiWorkOrder.status));
+      setPriority(mapBackendPriorityToFrontend(apiWorkOrder.priority));
+      if (apiWorkOrder.due_date) {
+        const parsed = new Date(apiWorkOrder.due_date);
+        setDueDate(!isNaN(parsed.getTime()) ? parsed : null);
+      } else {
+        setDueDate(null);
+      }
+      // Set last updated
+      if (apiWorkOrder.updated_at || apiWorkOrder.last_updated) {
+        setLastUpdated(formatDateTime(apiWorkOrder.updated_at || apiWorkOrder.last_updated));
+      }
+      // Set estimate total
+      if (apiWorkOrder.estimated_cost !== undefined || apiWorkOrder.estimate_total !== undefined) {
+        setEstimateTotal(apiWorkOrder.estimated_cost || apiWorkOrder.estimate_total || 0);
+      }
+      // Map attachments to files
+      if (apiWorkOrder.attachments && apiWorkOrder.attachments.length > 0) {
+        const mappedFiles: File[] =
+          apiWorkOrder.attachments.map(transformApiAttachmentToUiFile);
+        setFiles(mappedFiles);
+      }
+      
+      // Initialize snapshot after state is updated
+      // Use setTimeout to ensure state updates have been applied
+      setTimeout(() => {
+        if (!topBarSnapshotRef.current) {
+          syncTopBarSnapshot();
+        }
+      }, 0);
+    } else if (workOrder) {
+      // Fallback to prop data - map if needed
+      const frontendStatuses: ("completed" | "not_started" | "in_progress")[] = ["completed", "not_started", "in_progress"];
+      if (workOrder.status && frontendStatuses.includes(workOrder.status as any)) {
+        setStatus(workOrder.status as "completed" | "not_started" | "in_progress");
+      } else {
+        setStatus(mapBackendStatusToFrontend(workOrder.status));
+      }
+      
+      const frontendPriorities: ("normal" | "low" | "high" | "urgent")[] = ["normal", "low", "high", "urgent"];
+      if (workOrder.priority && frontendPriorities.includes(workOrder.priority as any)) {
+        setPriority(workOrder.priority as "normal" | "low" | "high" | "urgent");
+      } else {
+        setPriority(mapBackendPriorityToFrontend(workOrder.priority));
+      }
       if (workOrder.dueDate) {
         if (workOrder.dueDate instanceof Date) {
           setDueDate(workOrder.dueDate);
@@ -179,6 +570,7 @@ export default function WorkOrderDetailsV2({
       }
     }
   }, [
+    apiWorkOrder,
     workOrder?.id,
     workOrder?.status,
     workOrder?.priority,
@@ -203,8 +595,10 @@ export default function WorkOrderDetailsV2({
   ]);
 
   const [notes, setNotes] = useState<Note[]>(() => workOrder?.notes || []);
+  const [notesLoading, setNotesLoading] = useState(false);
 
   const [files, setFiles] = useState<File[]>(() => workOrder?.files || []);
+  const [filesLoading, setFilesLoading] = useState(false);
 
   interface BillItem {
     id: string;
@@ -218,11 +612,43 @@ export default function WorkOrderDetailsV2({
 
   const [bills, setBills] = useState<BillItem[]>([]);
 
-  // Calculate work order total from bills
-  const workOrderTotal = bills.reduce((sum, bill) => {
-    const amount = parseFloat(bill.amount.replace("$", "").replace(",", ""));
-    return sum + (isNaN(amount) ? 0 : amount);
-  }, 0);
+  // Initialize bills from API data
+  useEffect(() => {
+    if (apiWorkOrder && apiWorkOrder.bill_id && apiWorkOrder.bill_invoice_number) {
+      // Convert bill_total_cents to dollars
+      const billAmount = apiWorkOrder.bill_total_cents 
+        ? (apiWorkOrder.bill_total_cents / 100).toFixed(2)
+        : "0.00";
+      
+      const billDate = apiWorkOrder.bill_statement_date 
+        ? formatDate(apiWorkOrder.bill_statement_date)
+        : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      
+      const billTime = apiWorkOrder.bill_updated_at
+        ? new Date(apiWorkOrder.bill_updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      setBills([{
+        id: String(apiWorkOrder.bill_id),
+        date: billDate,
+        time: billTime,
+        invoiceNumber: apiWorkOrder.bill_invoice_number,
+        vendorName: apiWorkOrder.bill_vendor_name || apiWorkOrder.vendor_name || "Unknown Vendor",
+        amount: `$${billAmount}`,
+        status: "Unpaid", // Default status, could be enhanced with additional API field
+      }]);
+    } else {
+      setBills([]);
+    }
+  }, [apiWorkOrder]);
+
+  // Calculate work order total from bills or use API value
+  const workOrderTotal = apiWorkOrder?.bill_total_cents 
+    ? apiWorkOrder.bill_total_cents / 100
+    : bills.reduce((sum, bill) => {
+        const amount = parseFloat(bill.amount.replace("$", "").replace(",", ""));
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
 
   // Modal states
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
@@ -231,9 +657,10 @@ export default function WorkOrderDetailsV2({
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [viewingFileName, setViewingFileName] = useState<string>("");
-  const [lastUpdated, setLastUpdated] = useState<string>(() =>
-    new Date().toLocaleString(),
-  );
+  const [lastUpdated, setLastUpdated] = useState<string>(() => {
+    // Will be set from API data in useEffect
+    return new Date().toLocaleString();
+  });
   const [isEstimateTotalModalOpen, setIsEstimateTotalModalOpen] =
     useState(false);
   const [estimateTotal, setEstimateTotal] = useState<number>(0);
@@ -248,9 +675,52 @@ export default function WorkOrderDetailsV2({
     setIsEstimateTotalModalOpen(true);
   };
 
-  const handleSaveEstimateTotal = () => {
-    setEstimateTotal(draftEstimateTotal);
-    setIsEstimateTotalModalOpen(false);
+  const handleSaveEstimateTotal = async () => {
+    if (!workOrderId) {
+      console.error("Work order ID is required to update estimate total");
+      return;
+    }
+
+    if (!userId) {
+      console.error("User ID is required to update estimate total");
+      return;
+    }
+
+    try {
+      // Update the estimate cost via PATCH endpoint
+      await fetchJSON(`/maintenance/work-orders/${workOrderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estimated_cost: draftEstimateTotal,
+          updated_by: userId,
+        }),
+      });
+
+      // Update local state
+      setEstimateTotal(draftEstimateTotal);
+      
+      // Refresh work order data to get updated timestamp
+      try {
+        const refreshedData = await fetchJSON(`/maintenance/work-orders/${workOrderId}`);
+        setApiWorkOrder(refreshedData);
+        if (refreshedData.updated_at || refreshedData.last_updated) {
+          setLastUpdated(formatDateTime(refreshedData.updated_at || refreshedData.last_updated));
+        }
+        // Update estimate total from refreshed data
+        if (refreshedData.estimated_cost !== undefined || refreshedData.estimate_total !== undefined) {
+          setEstimateTotal(refreshedData.estimated_cost || refreshedData.estimate_total || 0);
+        }
+      } catch (err) {
+        console.error("Failed to refresh work order after update:", err);
+      }
+
+      // Close the modal
+      setIsEstimateTotalModalOpen(false);
+    } catch (err) {
+      console.error("Failed to update estimate total:", err);
+      alert("Failed to update estimate total. Please try again.");
+    }
   };
 
   // Reset estimate total modal when it closes
@@ -273,8 +743,8 @@ export default function WorkOrderDetailsV2({
     files?: UploadedFile[];
   }) => {
     // Update local state
-    if (formData.status !== undefined) setStatus(formData.status);
-    if (formData.priority !== undefined) setPriority(formData.priority);
+    if (formData.status !== undefined) setStatus(formData.status as "completed" | "not_started" | "in_progress");
+    if (formData.priority !== undefined) setPriority(formData.priority as "normal" | "low" | "high" | "urgent");
     if (formData.dueDate !== undefined) setDueDate(formData.dueDate);
     setLastUpdated(new Date().toLocaleString());
 
@@ -297,7 +767,7 @@ export default function WorkOrderDetailsV2({
       const newFiles: File[] = formData.files.map((uf, idx) => ({
         id: Math.max(0, ...files.map((f) => f.id)) + idx + 1,
         name: uf.name,
-        url: uf.url || "#",
+        url: uf.file ? URL.createObjectURL(uf.file) : undefined,
         uploadedAt: new Date().toLocaleString(),
         category: "Work Order",
         description: "",
@@ -343,105 +813,424 @@ export default function WorkOrderDetailsV2({
     onUpdateWorkOrderModalOpenChange?.(false);
   };
 
-  const handleAddNote = (text: string) => {
-    if (editingNoteId) {
-      setNotes(
-        notes.map((n) =>
-          n.id === editingNoteId
-            ? { ...n, text, date: new Date().toLocaleString() }
-            : n,
-        ),
-      );
-    } else {
-      const newNote: Note = {
-        id: Math.max(0, ...notes.map((n) => n.id)) + 1,
-        text,
-        date: new Date().toLocaleString(),
-        author: "Julia LoSchiavo",
-      };
-      setNotes([...notes, newNote]);
+  const handleAddNote = async (text: string) => {
+    if (!workOrderId) {
+      console.error("Work order ID is required to create a note");
+      return;
     }
-    setIsAddNoteModalOpen(false);
-    setEditingNoteId(null);
+
+    if (!userId) {
+      console.error("User ID is required to create a note");
+      return;
+    }
+
+    try {
+      if (editingNoteId) {
+        // Update existing note
+        const updatedNote = await fetchJSON(`/maintenance/work-orders/notes/${editingNoteId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            body: text,
+            is_visible_to_client: false, // Default to false, can be made configurable later
+          }),
+        }) as ApiWorkOrderNote;
+
+        const transformedNote = transformApiNoteToUiNote(updatedNote, propertyManagers);
+        setNotes(notes.map((n) => (n.id === editingNoteId ? transformedNote : n)));
+      } else {
+        // Create new note
+        const newNote = await fetchJSON(`/maintenance/work-orders/id/${workOrderId}/notes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            author_type: "property_manager",
+            author_id: userId,
+            body: text,
+            is_visible_to_client: false, // Default to false, can be made configurable later
+          }),
+        }) as ApiWorkOrderNote;
+
+        const transformedNote = transformApiNoteToUiNote(newNote, propertyManagers);
+        setNotes([...notes, transformedNote]);
+      }
+      setIsAddNoteModalOpen(false);
+      setEditingNoteId(null);
+    } catch (err) {
+      console.error("Error saving note:", err);
+      // Optionally show an error message to the user
+      alert("Failed to save note. Please try again.");
+    }
   };
 
-  const handleAddFile = (
+  const handleAddFile = async (
     uploadedFiles: UploadedFile[],
     category: string,
     description: string,
   ) => {
-    if (editingFileId) {
-      setFiles(
-        files.map((f) =>
-          f.id === editingFileId
-            ? {
-                ...f,
-                name: uploadedFiles[0]?.name || f.name,
-                category,
-                description,
-              }
-            : f,
-        ),
-      );
-    } else {
-      const newFiles: File[] = uploadedFiles.map((uf, idx) => ({
-        id: Math.max(0, ...files.map((f) => f.id)) + idx + 1,
-        name: uf.name,
-        url: uf.url || "#",
-        uploadedAt: new Date().toLocaleString(),
-        category,
-        description,
-      }));
-      setFiles([...files, ...newFiles]);
+    if (!workOrderId) {
+      console.error("Work order ID is required to create a file");
+      return;
     }
-    setIsAddFileModalOpen(false);
-    setEditingFileId(null);
+    if (!userId) {
+      console.error("User ID is required to create a file");
+      return;
+    }
+    if (uploadedFiles.length === 0 || !uploadedFiles[0].file) {
+      alert("File is required");
+      return;
+    }
+
+    try {
+      if (editingFileId) {
+        const updateData: any = {};
+        if (category !== undefined) {
+          updateData.label = category || null;
+        }
+        if (description !== undefined) {
+          updateData.description = description || null;
+        }
+
+        const updatedAttachment = await fetchJSON(
+          `/maintenance/work-orders/attachments/${editingFileId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updateData),
+          },
+        );
+
+        const transformedFile =
+          transformApiAttachmentToUiFile(updatedAttachment);
+        setFiles((prev) =>
+          prev.map((f) => (f.id === editingFileId ? transformedFile : f)),
+        );
+      } else {
+        const file = uploadedFiles[0].file!;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // const API_BASE = "http://localhost:8080";
+        const API_BASE = "/api";
+        const uploadRes = await fetch(
+          `${API_BASE}/maintenance/tasks/attachments/upload`,
+          {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+            // Don't set Content-Type - browser will set it with boundary
+          },
+        );
+
+        if (!uploadRes.ok) {
+          const text = await uploadRes.text();
+          throw new Error(`Upload failed ${uploadRes.status}: ${text}`);
+        }
+
+        const uploadData: {
+          ok: boolean;
+          temp_object_key: string;
+          original_name: string;
+          file_type: string;
+          file_size: number;
+          sha256: string;
+        } = await uploadRes.json();
+
+        const newAttachment = await fetchJSON(
+          `/maintenance/work-orders/id/${workOrderId}/attachments`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              file_name: uploadData.original_name,
+              file_type: uploadData.file_type,
+              file_size: uploadData.file_size,
+              storage_path: uploadData.temp_object_key,
+              uploaded_by_type: "property_manager",
+              uploaded_by: userId,
+              label: category || null,
+              description: description || null,
+            }),
+          },
+        );
+
+        const transformedFile = transformApiAttachmentToUiFile(newAttachment);
+        setFiles((prev) => [transformedFile, ...prev]);
+      }
+
+      setIsAddFileModalOpen(false);
+      setEditingFileId(null);
+    } catch (err) {
+      console.error("Error saving file:", err);
+      alert("Failed to save file. Please try again.");
+    }
+  };
+
+  const handleDeleteFile = async (fileId: number) => {
+    try {
+      await fetchJSON(`/maintenance/work-orders/attachments/${fileId}`, {
+        method: "DELETE",
+      });
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+    } catch (err) {
+      console.error("Error deleting file:", err);
+      alert("Failed to delete file. Please try again.");
+    }
   };
 
   const editingNote = notes.find((n) => n.id === editingNoteId);
   const editingFile = files.find((f) => f.id === editingFileId);
 
-  // Synchronize local field state with parent workOrder updates
-  const handleStatusChange = (newStatus: string) => {
-    setStatus(newStatus);
-    setLastUpdated(new Date().toLocaleString());
-    if (onWorkOrderUpdate) {
-      onWorkOrderUpdate({ ...workOrder, status: newStatus, notes, files });
+  // Load attachments from API
+  useEffect(() => {
+    const loadFiles = async () => {
+      if (!workOrderId) return;
+
+      try {
+        setFilesLoading(true);
+        const apiAttachments: ApiWorkOrderAttachment[] = await fetchJSON(
+          `/maintenance/work-orders/id/${workOrderId}/attachments`,
+        );
+        const transformedFiles = apiAttachments.map(
+          transformApiAttachmentToUiFile,
+        );
+        setFiles(transformedFiles);
+      } catch (err) {
+        console.error("Error loading files:", err);
+        setFiles([]);
+      } finally {
+        setFilesLoading(false);
+      }
+    };
+
+    loadFiles();
+  }, [workOrderId]);
+
+  // --- Auto-save top-bar fields (status/priority/due date) ---
+  const topBarSnapshotRef = useRef<{
+    status: string;
+    priority: string;
+    dueDateISO: string | null;
+  } | null>(null);
+  const topBarSavingRef = useRef(false);
+
+  // Convert frontend status to backend status
+  const toBackendStatus = useCallback((uiStatus: string): string => {
+    const map: Record<string, string> = {
+      not_started: "new",
+      in_progress: "in_progress",
+      completed: "completed",
+      new: "new",
+    };
+    return map[uiStatus] || "new";
+  }, []);
+
+  // Convert frontend priority to backend priority
+  const toBackendPriority = useCallback((uiPriority: string): string => {
+    const map: Record<string, string> = {
+      low: "low",
+      normal: "medium",
+      high: "high",
+      urgent: "urgent",
+      medium: "medium",
+    };
+    return map[uiPriority] || "medium";
+  }, []);
+
+  // Sync snapshot with current field values
+  const syncTopBarSnapshot = useCallback(() => {
+    const statusValue = typeof status === "string" ? status : "not_started";
+    const priorityValue = typeof priority === "string" ? priority : "normal";
+    const dueDateValue = dueDate instanceof Date 
+      ? dueDate.toISOString() 
+      : dueDate 
+        ? (typeof dueDate === "string" ? dueDate : new Date(dueDate).toISOString())
+        : null;
+    
+    topBarSnapshotRef.current = {
+      status: statusValue,
+      priority: priorityValue,
+      dueDateISO: dueDateValue,
+    };
+  }, [status, priority, dueDate]);
+
+  // Initialize snapshot when data loads (fallback if not initialized in sync effect)
+  useEffect(() => {
+    if (apiWorkOrder && status && priority && !topBarSnapshotRef.current) {
+      // Wait a tick to ensure state is set
+      setTimeout(() => {
+        syncTopBarSnapshot();
+      }, 0);
     }
+  }, [apiWorkOrder, status, priority, syncTopBarSnapshot]);
+
+  // Auto-save when fields change
+  useEffect(() => {
+    if (!workOrderId) return;
+    if (!userId) return;
+
+    const snap = topBarSnapshotRef.current;
+    if (!snap) return;
+
+    const statusValue = typeof status === "string" ? status : "not_started";
+    const priorityValue = typeof priority === "string" ? priority : "normal";
+    const dueDateValue = dueDate instanceof Date 
+      ? dueDate.toISOString() 
+      : dueDate 
+        ? (typeof dueDate === "string" ? dueDate : new Date(dueDate).toISOString())
+        : null;
+
+    const next = {
+      status: statusValue,
+      priority: priorityValue,
+      dueDateISO: dueDateValue,
+    };
+
+    const changed =
+      snap.status !== next.status ||
+      snap.priority !== next.priority ||
+      snap.dueDateISO !== next.dueDateISO;
+
+    if (!changed) return;
+    if (topBarSavingRef.current) return;
+
+    const run = async () => {
+      try {
+        topBarSavingRef.current = true;
+
+        const payload: any = {
+          updated_by: userId,
+        };
+
+        if (snap.status !== next.status) {
+          payload.status = toBackendStatus(next.status);
+        }
+        if (snap.priority !== next.priority) {
+          payload.priority = toBackendPriority(next.priority);
+        }
+        if (snap.dueDateISO !== next.dueDateISO) {
+          if (next.dueDateISO) {
+            payload.due_date = next.dueDateISO;
+          } else {
+            payload.due_date = null;
+          }
+        }
+
+        // If for some reason nothing to send, just update snapshot and bail
+        const keys = Object.keys(payload).filter((k) => k !== "updated_by");
+        if (keys.length === 0) {
+          syncTopBarSnapshot();
+          return;
+        }
+
+        await fetchJSON(`/maintenance/work-orders/${workOrderId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        // Update snapshot to current values after successful save
+        syncTopBarSnapshot();
+
+        // Refresh work order data to get updated timestamp
+        try {
+          const refreshedData = await fetchJSON(`/maintenance/work-orders/${workOrderId}`);
+          setApiWorkOrder(refreshedData);
+          if (refreshedData.updated_at || refreshedData.last_updated) {
+            setLastUpdated(formatDateTime(refreshedData.updated_at || refreshedData.last_updated));
+          }
+        } catch (err) {
+          console.error("Failed to refresh work order after update:", err);
+        }
+      } catch (err) {
+        console.error("Failed to auto-save top bar fields:", err);
+        // Keep snapshot as-is so we can retry on next change
+      } finally {
+        topBarSavingRef.current = false;
+      }
+    };
+
+    run();
+  }, [
+    status,
+    priority,
+    dueDate,
+    workOrderId,
+    userId,
+    syncTopBarSnapshot,
+    toBackendStatus,
+    toBackendPriority,
+  ]);
+
+  // Simple handlers that just update state (triggers auto-save useEffect)
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus as "completed" | "not_started" | "in_progress");
   };
 
   const handlePriorityChange = (newPriority: string) => {
-    setPriority(newPriority);
-    setLastUpdated(new Date().toLocaleString());
-    if (onWorkOrderUpdate) {
-      onWorkOrderUpdate({ ...workOrder, priority: newPriority, notes, files });
-    }
+    setPriority(newPriority as "normal" | "low" | "high" | "urgent");
   };
 
   const handleDueDateChange = (newDate: Date | string | null) => {
     setDueDate(newDate);
-    setLastUpdated(new Date().toLocaleString());
-    if (onWorkOrderUpdate) {
-      let dateValue: string | null = null;
-      if (newDate) {
-        dateValue =
-          newDate instanceof Date
-            ? newDate.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })
-            : String(newDate);
-      }
-      onWorkOrderUpdate({ ...workOrder, dueDate: dateValue, notes, files });
-    }
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex flex-col w-full gap-6 bg-white min-h-0 font-['Geist',sans-serif]">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-gray-500">Loading work order...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex flex-col w-full gap-6 bg-white min-h-0 font-['Geist',sans-serif]">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-red-500">Error: {error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Use API data if available, otherwise fall back to prop
+  const displayWorkOrder = apiWorkOrder || workOrder;
+  const displayName = apiWorkOrder?.name || workOrder?.task || "Work Order";
+  const displayProperty = apiWorkOrder?.property_name || workOrder?.property || "Unknown Property";
+  const displayUnit = workOrder?.unit || "";
+  const displayDescription = apiWorkOrder?.description || workOrder?.description || "No description provided";
+  const displayInvoiceNumber = apiWorkOrder?.bill_invoice_number || workOrder?.invoiceNumber || "";
+  const displayVendorName = apiWorkOrder?.vendor_name || workOrder?.vendorName || "Unassigned";
+  const displayCreatedBy = apiWorkOrder?.created_by_name || "Julia LoSchiavo";
+  const displayCreatedByEmail = apiWorkOrder?.created_by_email || "julia.loschiavo@company.com";
+  const displayCreatedByRole = normalizeRole(apiWorkOrder?.created_by_role) || "Property manager";
+  const displayCreatedAt = apiWorkOrder?.created_at 
+    ? formatCreatedDate(apiWorkOrder.created_at)
+    : "11/12/2025 9:22 PM";
 
   return (
     <div className="flex flex-col w-full gap-6 bg-white min-h-0 font-['Geist',sans-serif]">
       {/* Back Button */}
       <button
-        onClick={() => navigate(`/tasks/${taskId}/workorders`)}
+        onClick={() => {
+          // Preserve navigation state when going back, but clear the selected work order ID
+          const currentState = (location.state as any) || {};
+          // Navigate to workorders tab and clear selected work order to show the table
+          navigate(`/tasks/${taskId}/workorders`, {
+            replace: false,
+            state: {
+              ...currentState,
+              taskData: currentState.taskData || currentState.task,
+              task: currentState.task || currentState.taskData,
+              preservedWorkOrderId: null, // Clear the selected work order to show the table
+            },
+          });
+        }}
         className="flex items-center gap-2 text-[#2463eb] font-medium text-sm hover:opacity-80 transition-opacity w-fit"
       >
         <ArrowLeft width={16} height={16} />
@@ -504,7 +1293,7 @@ export default function WorkOrderDetailsV2({
                 <div className="flex flex-col items-start gap-4 w-full">
                   <div className="flex justify-between items-start gap-2 w-full">
                     <h2 className="text-[#303030] text-[22px] font-semibold leading-[30px] flex-1">
-                      {workOrder.task} - #{workOrder.id}
+                      {displayName} - #{displayWorkOrder?.id || workOrder?.id}
                     </h2>
                     <button
                       onClick={() => onUpdateWorkOrderModalOpenChange?.(true)}
@@ -516,15 +1305,15 @@ export default function WorkOrderDetailsV2({
                   </div>
                   <div className="flex flex-col items-start gap-2 w-full">
                     <div className="text-[#717179] text-sm font-medium leading-4">
-                      Created by Julia LoSchiavo for
+                      Created by {displayCreatedBy} for
                     </div>
                     <div className="text-[#2463eb] text-sm font-bold leading-4">
-                      (C) {workOrder.property}{" "}
-                      {workOrder.unit && `- ${workOrder.unit}`}
+                      {displayProperty}{" "}
+                      {displayUnit && `- ${displayUnit}`}
                     </div>
                     <div className="flex items-center gap-1 text-sm font-normal leading-[140%] tracking-[-0.28px] capitalize">
                       <span className="text-[#717179]">Created</span>
-                      <span className="text-[#717179]">11/12/2025 9:22 PM</span>
+                      <span className="text-[#717179]">{displayCreatedAt}</span>
                     </div>
                   </div>
                 </div>
@@ -535,15 +1324,7 @@ export default function WorkOrderDetailsV2({
                       Invoice Number:
                     </span>
                     <span className="text-[#717179] text-sm font-medium leading-4">
-                      {workOrder.invoiceNumber || ""}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[#717179] text-sm font-semibold leading-4">
-                      Vendor:
-                    </span>
-                    <span className="text-[#717179] text-sm font-medium leading-4">
-                      {workOrder.vendorName || "Unassigned"}
+                      {displayInvoiceNumber}
                     </span>
                   </div>
 
@@ -553,9 +1334,7 @@ export default function WorkOrderDetailsV2({
                       Description:
                     </div>
                     <div className="text-[#303030] text-sm font-normal leading-5 whitespace-pre-wrap">
-                      {workOrder.description ||
-                        notes[0]?.text ||
-                        "No description provided"}
+                      {displayDescription}
                     </div>
                   </div>
                 </div>
@@ -608,7 +1387,17 @@ export default function WorkOrderDetailsV2({
                 setEditingNoteId(note.id);
                 setIsAddNoteModalOpen(true);
               }}
-              onDelete={(id) => setNotes(notes.filter((n) => n.id !== id))}
+              onDelete={async (id) => {
+                try {
+                  await fetchJSON(`/maintenance/work-orders/notes/${id}`, {
+                    method: "DELETE",
+                  });
+                  setNotes(notes.filter((n) => n.id !== id));
+                } catch (err) {
+                  console.error("Error deleting note:", err);
+                  alert("Failed to delete note. Please try again.");
+                }
+              }}
             />
           </SectionCard>
 
@@ -624,10 +1413,34 @@ export default function WorkOrderDetailsV2({
                 setEditingFileId(file.id);
                 setIsAddFileModalOpen(true);
               }}
-              onDelete={(id) => setFiles(files.filter((f) => f.id !== id))}
+            onDelete={handleDeleteFile}
               onView={(file) => {
-                setViewingFileUrl(file.url || "#");
+              if (file.id) {
+                const attachmentId =
+                  typeof file.id === "number"
+                    ? file.id
+                    : parseInt(String(file.id), 10);
+                if (!isNaN(attachmentId)) {
+                  // const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;
+                  const url = `/api/maintenance/attachments/${attachmentId}`;
+                  setViewingFileUrl(url);
+                  setViewingFileName(file.name);
+                  return;
+                }
+              }
+              if (file.storage_path) {
+                // const url = `http://localhost:8080/api/files?key=${encodeURIComponent(
+                const url = `/api/files?key=${encodeURIComponent(
+                  file.storage_path,
+                )}`;
+                setViewingFileUrl(url);
                 setViewingFileName(file.name);
+                return;
+              }
+              if (file.url) {
+                setViewingFileUrl(file.url);
+                setViewingFileName(file.name);
+              }
               }}
             />
           </SectionCard>
@@ -638,111 +1451,50 @@ export default function WorkOrderDetailsV2({
           {/* Bills Card */}
           <BillsCard
             bills={bills}
-            workOrderId={workOrder.id}
+            workOrderId={displayWorkOrder?.id || workOrder?.id}
+            vendorId={apiWorkOrder?.vendor_id}
             onBillSelected={(bill) => {
               setBills([...bills, bill]);
               if (onBillAdded) {
                 onBillAdded(bill);
               }
             }}
+            onWorkOrderRefresh={fetchWorkOrder}
           />
 
           {/* Assignees Card */}
           <PeopleCard
-            title="Assignees"
             variant="white"
-            tabs={["Vendors", "Staff"]}
-            defaultTab={0}
             footerActions={[]}
             subsections={[
               {
                 label: "Vendor",
                 mode: "rows",
-                people: workOrder.vendorName
-                  ? [
+                people: (() => {
+                  const vendorId = apiWorkOrder?.vendor_id;
+                  if (displayVendorName && displayVendorName !== "Unassigned" && vendorId) {
+                    return [
                       {
-                        id: "vendor-1",
-                        name: workOrder.vendorName,
-                        initials: workOrder.vendorName
+                        id: vendorId,
+                        name: displayVendorName,
+                        initials: displayVendorName
                           .split(" ")
                           .map((w) => w[0])
                           .join("")
                           .toUpperCase()
                           .slice(0, 2),
                         roleLabel: "Vendor Company",
-                        email: getVendorEmail(workOrder.vendorName),
-                        phone: "",
-                        href: getVendorHref(workOrder.vendorName),
+                        email: apiWorkOrder?.vendor_email || getVendorEmail(displayVendorName),
+                        phone: apiWorkOrder?.vendor_phone || getVendorPhone(displayVendorName),
+                        href: getVendorHref(vendorId),
                       },
-                    ]
-                  : [],
+                    ];
+                  }
+                  return [];
+                })(),
                 showRoleLabel: true,
-                showPhone: true,
-                showDivider: false,
-                tabIndex: 0,
-                hideHeaderOnTab: 0,
-              },
-              {
-                label: "Assigned to",
-                mode: "rows",
-                people: currentAssignees.map((assignee) => {
-                  const name = assignee.name || assignee.label || "Unknown";
-                  return {
-                    id: assignee.id,
-                    name,
-                    initials:
-                      assignee.initials ||
-                      (name
-                        ? name
-                            .split(" ")
-                            .slice(0, 2)
-                            .map((w: string) => w[0])
-                            .join("")
-                            .toUpperCase()
-                        : "?"),
-                    roleLabel: assignee.title || "Property manager",
-                    email: assignee.email || "",
-                    phone: "",
-                  };
-                }),
-                showRoleLabel: true,
-                showPhone: true,
+                showPhone: false,
                 showDivider: true,
-                tabIndex: 1,
-                onAction: () => onUpdateWorkOrderModalOpenChange?.(true),
-                actionLabel: "Edit",
-              },
-              {
-                label: "Collaborators",
-                mode: "rows",
-                people: currentCollaborators.map((collaborator) => {
-                  const name =
-                    collaborator.name || collaborator.label || "Unknown";
-                  return {
-                    id: collaborator.id,
-                    name,
-                    initials:
-                      collaborator.initials ||
-                      (name
-                        ? name
-                            .split(" ")
-                            .slice(0, 2)
-                            .map((w: string) => w[0])
-                            .join("")
-                            .toUpperCase()
-                        : "?"),
-                    roleLabel: collaborator.title || "Property manager",
-                    email: collaborator.email || "",
-                    phone: "",
-                  };
-                }),
-                showRoleLabel: true,
-                showPhone: true,
-                showDivider: true,
-                tabIndex: 1,
-                type: "collaborator",
-                onAction: () => onUpdateWorkOrderModalOpenChange?.(true),
-                actionLabel: "Edit",
               },
             ]}
           />
@@ -757,10 +1509,15 @@ export default function WorkOrderDetailsV2({
                 people: [
                   {
                     id: 4,
-                    name: "Julia LoSchiavo",
-                    initials: "JL",
-                    roleLabel: "Property manager",
-                    email: "julia.loschiavo@company.com",
+                    name: displayCreatedBy,
+                    initials: displayCreatedBy
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2),
+                    roleLabel: displayCreatedByRole,
+                    email: displayCreatedByEmail,
                     phone: "",
                   },
                 ],
@@ -819,17 +1576,61 @@ export default function WorkOrderDetailsV2({
         mode="edit"
         hideTaskSelection={true}
         hideSubheader={true}
+        workOrderId={apiWorkOrder?.id || (workOrder?.id ? Number(workOrder.id) : undefined) || (workOrderId ? Number(workOrderId) : undefined)}
         initialData={{
-          task: workOrder.task,
-          workOrderName: workOrder.task,
-          vendor: workOrder.vendorName || "",
-          status: workOrder.status,
-          priority: workOrder.priority,
-          dueDate: workOrder.dueDate ? new Date(workOrder.dueDate) : null,
-          notes: "",
+          task: apiWorkOrder?.name || workOrder?.task || "",
+          workOrderName: apiWorkOrder?.name || workOrder?.task || "",
+          vendorId: apiWorkOrder?.vendor_id || undefined,
+          vendor: apiWorkOrder?.vendor_name || workOrder?.vendorName || "",
+          status: apiWorkOrder ? mapBackendStatusToFrontend(apiWorkOrder.status) : (workOrder?.status as "not_started" | "in_progress" | "completed" || "not_started"),
+          priority: apiWorkOrder ? mapBackendPriorityToFrontend(apiWorkOrder.priority) : (workOrder?.priority as "low" | "normal" | "high" | "urgent" || "normal"),
+          dueDate: apiWorkOrder?.due_date ? new Date(apiWorkOrder.due_date) : (workOrder?.dueDate ? (workOrder.dueDate instanceof Date ? workOrder.dueDate : new Date(workOrder.dueDate)) : null),
+          notes: apiWorkOrder?.description || workOrder?.description || "",
           files: [],
         }}
         onDataUpdate={handleWorkOrderUpdate}
+        onWorkOrderUpdated={async (updatedWorkOrder) => {
+          // Refresh the work order data from API
+          if (workOrderId) {
+            try {
+              const refreshedData = await fetchJSON(`/maintenance/work-orders/${workOrderId}`);
+              setApiWorkOrder(refreshedData);
+              
+              // Update local state with new values
+              if (refreshedData.status) {
+                setStatus(mapBackendStatusToFrontend(refreshedData.status));
+              }
+              if (refreshedData.priority) {
+                setPriority(mapBackendPriorityToFrontend(refreshedData.priority));
+              }
+              if (refreshedData.due_date) {
+                const parsed = new Date(refreshedData.due_date);
+                setDueDate(!isNaN(parsed.getTime()) ? parsed : null);
+              }
+            } catch (err) {
+              console.error("Failed to refresh work order after update:", err);
+            }
+          }
+          
+          // Call the parent callback if provided
+          if (onWorkOrderUpdate) {
+            // Transform API work order to WorkOrder format for parent
+            const transformedWorkOrder: WorkOrder = {
+              id: updatedWorkOrder.id,
+              task: updatedWorkOrder.name,
+              property: updatedWorkOrder.property_name || "",
+              unit: workOrder?.unit || "",
+              status: mapBackendStatusToFrontend(updatedWorkOrder.status),
+              priority: mapBackendPriorityToFrontend(updatedWorkOrder.priority),
+              dueDate: updatedWorkOrder.due_date ? new Date(updatedWorkOrder.due_date) : null,
+              vendorName: updatedWorkOrder.vendor_name || "",
+              description: updatedWorkOrder.description || "",
+              notes: notes,
+              files: files,
+            };
+            onWorkOrderUpdate(transformedWorkOrder);
+          }
+        }}
       />
 
       <ModalTemplate
@@ -848,12 +1649,12 @@ export default function WorkOrderDetailsV2({
       >
         <ModalField label="Estimate Total">
           <CurrencyField
+            label=""
             value={draftEstimateTotal}
-            onChange={(value) =>
-              setDraftEstimateTotal(
-                typeof value === "string" ? parseFloat(value) || 0 : value,
-              )
-            }
+            onChange={(value) => {
+              // CurrencyInput always passes a number, so we can directly use it
+              setDraftEstimateTotal(value);
+            }}
             showCurrencySymbol={true}
             currencySymbol="$"
             decimalPlaces={2}

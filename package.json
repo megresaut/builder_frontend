@@ -21,10 +21,13 @@
   },
   "dependencies": {
     "dotenv": "^17.2.1",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "heic2any": "^0.0.4",
     "html2pdf.js": "^0.12.1",
+    "jspdf": "^3.0.4",
     "pdf-lib": "^1.17.1",
+    "xlsx": "^0.18.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {

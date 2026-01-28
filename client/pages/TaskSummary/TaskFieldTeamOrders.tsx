@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import { formatUnitLabel } from "@/utils/unitLabel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -9,6 +10,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PersonAvatars from "@/components/PersonAvatars";
 import HeaderV1 from "@/components/HeaderV1";
+import { fetchJSON } from "@/api/fetchJSON";
 import {
   EditIcon,
   DeleteIcon,
@@ -23,7 +25,7 @@ import {
   PlusIcon,
 } from "@/components/icons";
 
-interface FieldTeamOrder {
+export interface FieldTeamOrder {
   id: number;
   taskId: number;
   property: string;
@@ -52,10 +54,11 @@ interface FieldTeamOrder {
   fieldTeamMemberIds?: number[];
   pmAssigneeIds?: number[];
   propertyId?: number;
+  unitId?: number;
   dueDateISO?: string;
 }
 
-interface APIFTOResponse {
+export interface APIFTOResponse {
   id: number;
   name: string;
   description: string;
@@ -75,48 +78,17 @@ interface APIFTOResponse {
   total_amount: number;
   created_at: string;
   updated_at?: string;
+  unit_id?: number;
+  unit_name?: string;
 }
 
-const mockUsers: Record<
-  number,
-  { id: number; name: string; email: string; phone: string; title: string }
-> = {
-  1: {
-    id: 1,
-    name: "Christopher Harris",
-    email: "christopher.harris@company.com",
-    phone: "(555) 111-2222",
-    title: "Field Lead",
-  },
-  2: {
-    id: 2,
-    name: "Cassandra Smith",
-    email: "cassandra.smith@company.com",
-    phone: "(555) 222-3333",
-    title: "Field Technician",
-  },
-  3: {
-    id: 3,
-    name: "David Chen",
-    email: "david.chen@company.com",
-    phone: "(555) 333-4444",
-    title: "Field Specialist",
-  },
-  4: {
-    id: 4,
-    name: "Emma Rodriguez",
-    email: "emma.rodriguez@company.com",
-    phone: "(555) 444-5555",
-    title: "Field Technician",
-  },
-  5: {
-    id: 5,
-    name: "James Wilson",
-    email: "james.wilson@company.com",
-    phone: "(555) 555-6666",
-    title: "Field Lead",
-  },
-};
+export interface UserDirectoryEntry {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  title?: string;
+}
 
 const getInitials = (name: string): string => {
   return name
@@ -129,6 +101,7 @@ const getInitials = (name: string): string => {
 
 const resolveFieldTeamMembers = (
   memberIds: number[],
+  usersById: Record<number, UserDirectoryEntry>,
 ): Array<{
   id: number;
   initials: string;
@@ -139,33 +112,30 @@ const resolveFieldTeamMembers = (
   title: string;
 }> => {
   return memberIds.map((id) => {
-    const user = mockUsers[id] || {
-      id,
-      name: "Unknown User",
-      email: "",
-      phone: "",
-      title: "Field Team",
-    };
+    const user = usersById[id];
+    const name = user?.name || "Unknown User";
     return {
-      id: user.id,
-      initials: getInitials(user.name),
+      id,
+      initials: getInitials(name),
       color: "bg-blue-500",
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      title: user.title,
+      name,
+      email: user?.email || "",
+      phone: user?.phone || "",
+      title: user?.title || "Field Team",
     };
   });
 };
 
 const mapFormSubmissionToTimesheetStatus = (
-  formStatus: "none" | "partial" | "complete",
+  formStatus: "none" | "partial" | "complete" | "rejected",
 ): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
   switch (formStatus) {
     case "none":
       return "awaiting-submission";
     case "partial":
       return "submitted";
+    case "rejected":
+      return "rejected";
     case "complete":
       return "approved";
     default:
@@ -173,267 +143,61 @@ const mapFormSubmissionToTimesheetStatus = (
   }
 };
 
-const mockFetchFTOs = async (params: {
-  field_team_member_id: number;
-  status?: string;
-  limit?: number;
-}): Promise<APIFTOResponse[]> => {
-  await new Promise((resolve) => setTimeout(resolve, 100));
-
-  const mockData: APIFTOResponse[] = [
-    {
-      id: 1,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [1, 2],
-      pm_assignee_ids: [101, 102],
-      status: "dispatched",
-      priority: "high",
-      due_date: "2025-10-02T00:00:00Z",
-      approval_status: "pending",
-      form_submission_status: "none",
-      is_visible_to_client: true,
-      hours_decimal: 8.5,
-      total_amount: 420,
-      created_at: "2025-09-20T10:00:00Z",
-      updated_at: "2025-09-25T14:30:00Z",
-    },
-    {
-      id: 2,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [1, 2],
-      pm_assignee_ids: [101, 102],
-      status: "approved",
-      priority: "normal",
-      due_date: "2025-09-29T00:00:00Z",
-      approval_status: "approved",
-      form_submission_status: "complete",
-      is_visible_to_client: true,
-      hours_decimal: 6.0,
-      total_amount: 95,
-      created_at: "2025-09-18T09:15:00Z",
-      updated_at: "2025-09-26T11:00:00Z",
-    },
-    {
-      id: 3,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [1, 2],
-      pm_assignee_ids: [101, 102],
-      status: "pending-approval",
-      priority: "low",
-      due_date: "2025-09-10T00:00:00Z",
-      approval_status: "pending",
-      form_submission_status: "partial",
-      is_visible_to_client: true,
-      hours_decimal: 4.5,
-      total_amount: 95,
-      created_at: "2025-09-08T08:00:00Z",
-      updated_at: "2025-09-24T16:45:00Z",
-    },
-    {
-      id: 4,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [1, 2],
-      pm_assignee_ids: [101, 102],
-      status: "dispatched",
-      priority: "high",
-      due_date: "2025-09-06T00:00:00Z",
-      approval_status: "pending",
-      form_submission_status: "none",
-      is_visible_to_client: true,
-      hours_decimal: 7.0,
-      total_amount: 112,
-      created_at: "2025-09-05T07:30:00Z",
-      updated_at: "2025-09-23T13:20:00Z",
-    },
-    {
-      id: 5,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [1, 2],
-      pm_assignee_ids: [101, 102],
-      status: "dispatched",
-      priority: "normal",
-      due_date: "2025-09-05T00:00:00Z",
-      approval_status: "pending",
-      form_submission_status: "complete",
-      is_visible_to_client: true,
-      hours_decimal: 5.5,
-      total_amount: 93,
-      created_at: "2025-09-03T06:00:00Z",
-      updated_at: "2025-09-22T15:10:00Z",
-    },
-    {
-      id: 6,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [1, 2],
-      pm_assignee_ids: [101, 102],
-      status: "dispatched",
-      priority: "low",
-      due_date: "2025-09-04T00:00:00Z",
-      approval_status: "pending",
-      form_submission_status: "none",
-      is_visible_to_client: true,
-      hours_decimal: 4.0,
-      total_amount: 75,
-      created_at: "2025-09-02T05:45:00Z",
-      updated_at: "2025-09-21T12:00:00Z",
-    },
-    {
-      id: 7,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [3, 4],
-      pm_assignee_ids: [101, 102],
-      status: "dispatched",
-      priority: "high",
-      due_date: "2025-09-04T00:00:00Z",
-      approval_status: "pending",
-      form_submission_status: "partial",
-      is_visible_to_client: true,
-      hours_decimal: 6.5,
-      total_amount: 101,
-      created_at: "2025-09-01T04:30:00Z",
-      updated_at: "2025-09-20T14:15:00Z",
-    },
-    {
-      id: 8,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [1, 2],
-      pm_assignee_ids: [101, 102],
-      status: "dispatched",
-      priority: "normal",
-      due_date: "2025-09-03T00:00:00Z",
-      approval_status: "pending",
-      form_submission_status: "none",
-      is_visible_to_client: true,
-      hours_decimal: 8.0,
-      total_amount: 124,
-      created_at: "2025-08-31T03:15:00Z",
-      updated_at: "2025-09-19T11:30:00Z",
-    },
-    {
-      id: 9,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [5],
-      pm_assignee_ids: [101, 102],
-      status: "dispatched",
-      priority: "low",
-      due_date: "2025-09-01T00:00:00Z",
-      approval_status: "pending",
-      form_submission_status: "complete",
-      is_visible_to_client: true,
-      hours_decimal: 3.5,
-      total_amount: 67,
-      created_at: "2025-08-30T02:00:00Z",
-      updated_at: "2025-09-18T09:45:00Z",
-    },
-    {
-      id: 10,
-      name: "Door Repair",
-      description: "Doors Need To Be Repaired",
-      property_id: 1,
-      property_name: "22 Indian Chase Dr",
-      property_address: "22 Indian Chase Dr, Springfield, IL 62701",
-      task_id: 6,
-      field_team_member_ids: [1, 2],
-      pm_assignee_ids: [101, 102],
-      status: "dispatched",
-      priority: "high",
-      due_date: "2025-09-01T00:00:00Z",
-      approval_status: "pending",
-      form_submission_status: "none",
-      is_visible_to_client: true,
-      hours_decimal: 7.5,
-      total_amount: 118,
-      created_at: "2025-08-29T01:30:00Z",
-      updated_at: "2025-09-17T10:20:00Z",
-    },
-  ];
-
-  if (params.status) {
-    return mockData.filter((fto) => fto.status === params.status);
-  }
-
-  return mockData.slice(0, params.limit || 100);
+const normalizeFTOStatus = (status: string) => {
+  if (status === "completed") return "approved";
+  if (status === "new") return "pending-approval";
+  return status;
 };
 
-const transformAPIToFieldTeamOrder = (
+export const transformAPIToFieldTeamOrders = (
   apiData: APIFTOResponse[],
+  usersById: Record<number, UserDirectoryEntry>,
 ): FieldTeamOrder[] => {
   return apiData.map((fto) => {
-    const dateObj = new Date(fto.due_date);
-    const dueDate = dateObj.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    const dueDateISO = fto.due_date;
+    const dueDate = dueDateISO
+      ? new Date(dueDateISO).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : "No due date";
 
-    const timesheetStatus = mapFormSubmissionToTimesheetStatus(
-      fto.form_submission_status,
-    );
+    const timesheetStatus =
+      fto.approval_status === "rejected"
+        ? "rejected"
+        : fto.approval_status === "approved"
+          ? "approved"
+          : mapFormSubmissionToTimesheetStatus(fto.form_submission_status);
+
+    const displayName = fto.name || fto.description || "Untitled FTO";
 
     return {
       id: fto.id,
       taskId: fto.task_id || fto.id,
-      property: fto.property_name,
-      description: fto.description,
+      property: fto.property_name || "Unknown Property",
+      description: displayName,
       dueDate,
       priority:
         (fto.priority.toLowerCase() as "low" | "normal" | "high") || "normal",
-      fieldTeam: resolveFieldTeamMembers(fto.field_team_member_ids),
+      fieldTeam: resolveFieldTeamMembers(fto.field_team_member_ids, usersById),
       status:
-        (fto.status as "dispatched" | "approved" | "pending-approval") ||
-        "pending-approval",
+        (normalizeFTOStatus(fto.status) as
+          | "dispatched"
+          | "approved"
+          | "pending-approval") || "pending-approval",
       timesheetStatus,
       amount: fto.total_amount,
-      unit: "Unit",
+      unit: formatUnitLabel({
+        unitId: fto.unit_id,
+        unitName: fto.unit_name,
+        fallback: "Unit",
+      }),
       fieldTeamMemberIds: fto.field_team_member_ids,
       pmAssigneeIds: fto.pm_assignee_ids,
       propertyId: fto.property_id,
-      dueDateISO: fto.due_date,
+      unitId: fto.unit_id,
+      dueDateISO,
     };
   });
 };
@@ -441,16 +205,31 @@ const transformAPIToFieldTeamOrder = (
 interface TaskFieldTeamOrdersProps {
   orders: FieldTeamOrder[];
   onOrdersChange: (orders: FieldTeamOrder[]) => void;
+  isLoading?: boolean;
+  lockedPropertyId?: number;
+  lockedPropertyLabel?: string;
+  lockedUnitId?: number | null;
+  lockedUnitLabel?: string;
+  lockedTaskId?: number;
+  lockedTaskLabel?: string;
+  onRefetchFieldTeamOrders?: () => Promise<any>; // Refetch function for auto-refresh
 }
 
 export default function TaskFieldTeamOrders({
   orders,
   onOrdersChange,
+  isLoading = false,
+  lockedPropertyId,
+  lockedPropertyLabel,
+  lockedUnitId,
+  lockedUnitLabel,
+  lockedTaskId,
+  lockedTaskLabel,
+  onRefetchFieldTeamOrders,
 }: TaskFieldTeamOrdersProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { taskId } = useParams<{ taskId: string }>();
-  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -564,8 +343,19 @@ export default function TaskFieldTeamOrders({
   ];
 
   const handleDeleteOrder = useCallback(
-    (order: FieldTeamOrder) => {
-      onOrdersChange(orders.filter((o) => o.id !== order.id));
+    async (order: FieldTeamOrder) => {
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${order.description}"?\nThis cannot be undone.`
+      );
+      if (!confirmed) return;
+
+      try {
+        await fetchJSON(`/maintenance/ftos?id=${order.id}`, { method: "DELETE" });
+        onOrdersChange(orders.filter((o) => o.id !== order.id));
+      } catch (err) {
+        console.error("Delete FTO failed", err);
+        alert("Failed to delete Field Team Order. Please try again.");
+      }
     },
     [orders, onOrdersChange],
   );
@@ -614,9 +404,14 @@ export default function TaskFieldTeamOrders({
         actionIcon={<PlusIcon width={20} height={20} />}
         onActionClick={() => setShowFTOModal(true)}
       >
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-gray-500">Loading field team orders...</div>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <p className="text-[#71717A] text-sm font-medium">No field team orders yet</p>
+            <p className="text-[#A1A1A9] text-sm mt-1">FTOs you create or dispatch for this task will appear here.</p>
           </div>
         ) : (
           <GlobalTable
@@ -780,6 +575,12 @@ export default function TaskFieldTeamOrders({
             setEditingOrder(null);
           }
         }}
+        lockedPropertyId={lockedPropertyId}
+        lockedPropertyLabel={lockedPropertyLabel}
+        lockedUnitId={lockedUnitId}
+        lockedUnitLabel={lockedUnitLabel}
+        lockedTaskId={lockedTaskId}
+        lockedTaskLabel={lockedTaskLabel}
         editingFTO={
           editingOrder
             ? {
@@ -795,13 +596,26 @@ export default function TaskFieldTeamOrders({
                       : "dispatched",
                 due_date: editingOrder.dueDateISO || editingOrder.dueDate,
                 property_id: editingOrder.propertyId || 1,
+                property_name: editingOrder.property,
                 task_id: editingOrder.taskId,
                 field_team_member_ids: editingOrder.fieldTeamMemberIds || [],
                 pm_assignee_ids: editingOrder.pmAssigneeIds || [],
+                unit_id: editingOrder.unitId ?? null,
+                unit_name: editingOrder.unit,
               }
             : null
         }
-        onFTOCreated={(ftoData) => {
+        onFTOCreated={async (ftoData) => {
+          // Refresh field team orders list in the background
+          if (onRefetchFieldTeamOrders) {
+            try {
+              await onRefetchFieldTeamOrders();
+            } catch (error) {
+              console.error("Error refetching field team orders:", error);
+            }
+          }
+          
+          // Keep the local state update for immediate UI feedback (optional, will be replaced by refetch)
           const fieldTeamMasterData: Record<
             string,
             { email: string; phone: string; title: string }
@@ -871,6 +685,8 @@ export default function TaskFieldTeamOrders({
             timesheetStatus: "awaiting-submission",
             amount: 0,
           };
+          // Note: The refetch will update the orders, but we keep this for immediate feedback
+          // The refetch will replace this with the actual data from the server
           onOrdersChange([newFTO, ...orders]);
         }}
       />

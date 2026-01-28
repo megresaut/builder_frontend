@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useCallback } from "react";
+import React, { forwardRef, useState, useCallback, useRef } from "react";
 
 interface CurrencyInputProps
   extends Omit<
@@ -53,6 +53,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   ) => {
     const [isFocused, setIsFocused] = useState(false);
     const [draftValue, setDraftValue] = useState<string>("");
+    const isTypingRef = useRef(false);
 
     /**
      * Format a numeric value as currency for display (when NOT focused)
@@ -154,12 +155,20 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       // Sanitize input (no formatting, no padding)
       const sanitized = sanitizeInput(input);
 
+      // Mark that we're typing to prevent value prop from interfering
+      isTypingRef.current = true;
+
       // Update draft value for display while typing
       setDraftValue(sanitized);
 
       // Parse and emit numeric value immediately
       const numValue = parseInputValue(sanitized);
       onChange?.(numValue);
+      
+      // Reset typing flag after a short delay to allow re-renders to complete
+      setTimeout(() => {
+        isTypingRef.current = false;
+      }, 0);
     };
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -226,7 +235,10 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     };
 
     // Determine what to display
-    const displayValue = isFocused
+    // When focused, always use draftValue (what user is typing)
+    // When not focused, show formatted value
+    // If we're currently typing, always use draftValue to prevent value prop from interfering
+    const displayValue = (isFocused || isTypingRef.current)
       ? draftValue
       : formatForDisplay(parseInputValue(draftValue || (value as string)));
 

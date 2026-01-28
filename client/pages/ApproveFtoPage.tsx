@@ -68,6 +68,7 @@ interface ExpenseLine {
   note?: string;
   is_avm_expense: boolean;
   amount_cents: number;
+  upcharge_cents?: number;
   expense_type?: "personal-expense" | "avm-expense" | "client-expense";
 }
 
@@ -84,7 +85,8 @@ interface BackendSubmission {
     no_charge: boolean;
     emergency: boolean;
     amount_cents?: number;
-  }[];
+    upcharge_cents?: number;
+  }[] | null;
 }
 
 interface Attachment {
@@ -107,6 +109,7 @@ const fetchAttachmentsForExpense = async (
 ): Promise<Attachment[]> => {
   const res = await fetch(
     `/api/maintenance/attachments?submission_id=${submissionId}&material_index=${materialIndex}`,
+    // `http://localhost:8080/maintenance/attachments?submission_id=${submissionId}&material_index=${materialIndex}`,
     {
       headers: { Accept: "application/json" },
     },
@@ -122,12 +125,18 @@ const fetchAttachmentsForExpense = async (
 const fetchAttachmentsByFto = async (ftoId: number): Promise<AttachmentSummary[]> => {
   const res = await fetch(
     `/api/maintenance/attachments/by-fto?fto_id=${ftoId}`,
+    // `http://localhost:8080/maintenance/attachments/by-fto?fto_id=${ftoId}`,
     { headers: { Accept: "application/json" } }
   );
 
   if (!res.ok) throw new Error("Failed to load attachments (by fto)");
 
   const raw = await res.json();
+
+  // Handle null or non-array responses (e.g., when there are no materials/attachments)
+  if (!raw || !Array.isArray(raw)) {
+    return [];
+  }
 
   return raw.map((a: any) => ({
     id: a.ID,
@@ -141,7 +150,7 @@ const fetchAttachmentsByFto = async (ftoId: number): Promise<AttachmentSummary[]
 const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]> => {
   const res = await fetch(
     `/api/maintenance/submissions/by-fto?fto_id=${ftoId}`,
-    // `/api/maintenance/submissions/by-fto?fto_id=${ftoId}`,
+    // `http://localhost:8080/maintenance/submissions/by-fto?fto_id=${ftoId}`,
     {
       headers: { Accept: "application/json" },
     },
@@ -167,25 +176,35 @@ const parseMoneyToCents = (value: string): number => {
 };
 
 const buildHoursJSON = (hourRows: HourRow[]) => {
-  return hourRows.map((row, index) => ({
-    date_of_work: row.date,
-    hours_decimal: parseFloat(row.hours) || 0,
-    note: row.note || "",
-    no_charge: row.noFee,
-    emergency: row.emergency,
-    hour_index: index,
-  }));
+  return hourRows.map((row, index) => {
+    const upchargeCents = parseMoneyToCents(row.upcharge);
+    const out: Record<string, unknown> = {
+      date_of_work: row.date,
+      hours_decimal: parseFloat(row.hours) || 0,
+      note: row.note || "",
+      no_charge: row.noFee,
+      emergency: row.emergency,
+      hour_index: index,
+    };
+    if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
+    return out;
+  });
 };
 
 const buildMaterialsJSON = (expenseRows: ExpenseRow[]) => {
-  return expenseRows.map((row, index) => ({
-    date_of_work: row.date,
-    vendor_name: row.vendor,
-    note: row.receiptNote || "",
-    is_avm_expense: row.chargeType === "avm",
-    amount_cents: parseMoneyToCents(row.amount),
-    material_index: row.materialIndex,
-  }));
+  return expenseRows.map((row, index) => {
+    const upchargeCents = parseMoneyToCents(row.upcharge);
+    const out: Record<string, unknown> = {
+      date_of_work: row.date,
+      vendor_name: row.vendor,
+      note: row.receiptNote || "",
+      is_avm_expense: row.chargeType === "avm",
+      amount_cents: parseMoneyToCents(row.amount),
+      material_index: row.materialIndex,
+    };
+    if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
+    return out;
+  });
 };
 
 
@@ -218,7 +237,7 @@ const patchSubmission = async (
 
   const res = await fetch(
     `/api/maintenance/submissions/${submissionId}`,
-    // `/api/maintenance/submissions/${submissionId}`,
+    // `http://localhost:8080/maintenance/submissions/${submissionId}`,
     {
       method: "PATCH",
       headers: {
@@ -235,6 +254,72 @@ const patchSubmission = async (
   }
 };
 
+
+/**
+ * Create a new submission for a specific assignee (field team member)
+ */
+const createSubmissionForAssignee = async (
+  ftoId: number,
+  techId: number,
+  hoursJSON: any[],
+  materialsJSON: any[]
+): Promise<number> => {
+  console.group(`[CREATE submission] ftoId=${ftoId} techId=${techId}`);
+  console.log("hours:", hoursJSON);
+  console.log("materials:", materialsJSON);
+  console.groupEnd();
+
+  // Helper to convert date string (YYYY-MM-DD) to ISO format
+  const toISODate = (dateStr: string): string => {
+    return new Date(dateStr).toISOString();
+  };
+
+  // Build hour entries for the request
+  const hourEntries = hoursJSON.map((h) => ({
+    fto_id: ftoId,
+    date_of_work: toISODate(h.date_of_work),
+    hours_decimal: h.hours_decimal,
+    note: h.note || "",
+    no_charge: h.no_charge || false,
+    emergency: h.emergency || false,
+  }));
+
+  // Build expense entries for the request
+  const expenseEntries = materialsJSON.map((m) => ({
+    fto_id: ftoId,
+    date_of_work: toISODate(m.date_of_work),
+    amount: (m.amount_cents || 0) / 100,
+    is_avm_expense: m.is_avm_expense || false,
+    note: m.note || "",
+    vendor_name: m.vendor_name || "",
+    attachments: [],
+  }));
+
+  const res = await fetch(
+    // `http://localhost:8080/maintenance/ftos/${ftoId}/submissions`,
+    `/api/maintenance/ftos/${ftoId}/submissions`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        tech_id: techId,
+        hours: hourEntries,
+        expenses: expenseEntries,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to create submission");
+  }
+
+  const data = await res.json();
+  return data.submission_id;
+};
 
 
 const extractSubmissionIds = (rows: { id: string }[]): number[] => {
@@ -278,19 +363,9 @@ const formatVendorName = (raw: string): string => {
     .join(" ");
 };
 
-const expenseTypeToChargeType = (
-  expenseType?: string,
-): "personal" | "avm" | "client" => {
-  switch (expenseType) {
-    case "avm-expense":
-      return "avm";
-    case "client-expense":
-      return "client";
-    case "personal-expense":
-    default:
-      return "personal";
-  }
-};
+/** Map backend is_avm_expense to UI chargeType. false → client, true → avm. */
+const isAvmExpenseToChargeType = (isAvm: boolean): "avm" | "client" =>
+  isAvm ? "avm" : "client";
 
 
 // const parseDueDate = (dateStr: string | undefined): Date | null => {
@@ -332,8 +407,8 @@ const parseDueDate = (dateStr: string | undefined): Date | null => {
 
 const approveSubmission = async (submissionId: number) => {
   const res = await fetch(
+    // `http://localhost:8080/maintenance/submissions/${submissionId}/approve`,
     `/api/maintenance/submissions/${submissionId}/approve`,
-    // `/api/maintenance/submissions/${submissionId}/approve`,
     {
       method: "POST",
       headers: {
@@ -350,8 +425,8 @@ const approveSubmission = async (submissionId: number) => {
 
 const rejectSubmission = async (submissionId: number) => {
   const res = await fetch(
+    // `http://localhost:8080/maintenance/submissions/${submissionId}/reject`,
     `/api/maintenance/submissions/${submissionId}/reject`,
-    // `/api/maintenance/submissions/${submissionId}/reject`,
     {
       method: "POST",
       headers: {
@@ -363,6 +438,26 @@ const rejectSubmission = async (submissionId: number) => {
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || "Failed to reject submission");
+  }
+};
+
+const updateFtoAmountCents = async (ftoId: number, amountCents: number) => {
+  const res = await fetch(
+    // `http://localhost:8080/maintenance/ftos/${ftoId}`,
+    `/api/maintenance/ftos/${ftoId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ amount_cents: amountCents }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to update FTO amount");
   }
 };
 
@@ -403,7 +498,11 @@ export default function ApproveFTOPage() {
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(true);
   const [assigneeById, setAssigneeById] = useState<Record<number, string>>({});
   const [hasNoSubmissions, setHasNoSubmissions] = useState(false);
+  const [rateError, setRateError] = useState<string | null>(null);
   // const [attachmentsByKey, setAttachmentsByKey] = useState<Record<string, AttachmentSummary[]>>({});
+  
+  // Track submissions by assignee ID so we know which assignees already have submissions
+  const [submissionByAssignee, setSubmissionByAssignee] = useState<Record<number, number>>({});
 
 
 
@@ -413,7 +512,7 @@ export default function ApproveFTOPage() {
   useEffect(() => {
     async function loadAssignees() {
       try {
-        const data = await fetchJSON("/users/field-team");
+        const data = await fetchJSON("/users/all");
   
         const map: Record<number, string> = {};
         data.forEach((u: any) => {
@@ -422,7 +521,7 @@ export default function ApproveFTOPage() {
   
         setAssigneeById(map);
       } catch (err) {
-        console.error("Failed to load field team members:", err);
+        console.error("Failed to load users for assignee dropdown:", err);
       }
     }
   
@@ -438,6 +537,50 @@ export default function ApproveFTOPage() {
     [assigneeById]
   );
   
+  /**
+   * Load FTO details from API when ftoId is available
+   */
+  useEffect(() => {
+    const loadFTODetails = async () => {
+      if (!ftoIdNum) return;
+
+      try {
+        const res = await fetch(
+          // `http://localhost:8080/maintenance/ftos/${ftoIdNum}`,
+          `/api/maintenance/ftos/${ftoIdNum}`,
+          {
+            headers: { Accept: "application/json" },
+          }
+        );
+
+        if (!res.ok) {
+          console.error("Failed to load FTO details");
+          return;
+        }
+
+        const fto = await res.json();
+        
+        // Update FTO details from API response
+        if (fto.name) setFtoName(fto.name);
+        if (fto.property_name || fto.property_address) {
+          setProperty(fto.property_name || fto.property_address || "");
+        }
+        if (fto.unit_name) setUnit(fto.unit_name);
+        if (fto.description) setDescription(fto.description);
+        if (fto.due_date) {
+          const parsedDate = parseDueDate(fto.due_date);
+          if (parsedDate) setDueDate(parsedDate);
+        }
+        if (fto.priority) {
+          setPriority(fto.priority.toLowerCase());
+        }
+      } catch (err) {
+        console.error("Error loading FTO details:", err);
+      }
+    };
+
+    loadFTODetails();
+  }, [ftoIdNum]);
   
   /**
    * Load submissions from mock API and populate hours/expenses tables
@@ -446,6 +589,7 @@ export default function ApproveFTOPage() {
     const loadSubmissions = async () => {
       try {
         setIsLoadingSubmissions(true);
+        setRateError(null); // Clear any previous rate errors
         const submissions = await fetchSubmissionsByFto(ftoIdNum);
         // 🚨 HANDLE null / empty explicitly
         if (!submissions || !Array.isArray(submissions) || submissions.length === 0) {
@@ -468,20 +612,23 @@ export default function ApproveFTOPage() {
 
         submissions.forEach((submission) => {
           // Map HoursJSON to HourRow[]
-          submission.HoursJSON.forEach((hourLine, index) => {
-            allHourLines.push({
-              id: `hour-${submission.ID}-${index}`,
-              date: formatDate(new Date(hourLine.date_of_work)),
-              hours: hourLine.hours_decimal.toString(),
-              note: hourLine.note || "",
-              noFee: hourLine.no_charge,
-              emergency: hourLine.emergency,
-              amount: `$${(hourLine.amount_cents / 100).toFixed(2)}`, // Will be populated by user
-              upcharge: "$0", // Will be populated by user
-              assignee: assigneeById[submission.FieldTeamMemberID] || "", // Default to first assignee or use FieldTeamMemberID mapping
-              assigneeId: submission.FieldTeamMemberID,
+          if (submission.HoursJSON) {
+            submission.HoursJSON.forEach((hourLine, index) => {
+              const upchargeCents = hourLine.upcharge_cents ?? 0;
+              allHourLines.push({
+                id: `hour-${submission.ID}-${index}`,
+                date: formatDate(new Date(hourLine.date_of_work)),
+                hours: hourLine.hours_decimal.toString(),
+                note: hourLine.note || "",
+                noFee: hourLine.no_charge,
+                emergency: hourLine.emergency,
+                amount: `$${((hourLine.amount_cents ?? 0) / 100).toFixed(2)}`,
+                upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
+                assignee: assigneeById[submission.FieldTeamMemberID] || "",
+                assigneeId: submission.FieldTeamMemberID,
+              });
             });
-          });
+          }
 
           // Decode MaterialsJSON and map to ExpenseRow[]
           if (submission.MaterialsJSON) {
@@ -489,28 +636,30 @@ export default function ApproveFTOPage() {
               const decodedJson = atob(submission.MaterialsJSON);
               const expenses: ExpenseLine[] = JSON.parse(decodedJson);
 
-              expenses.forEach((expense, index) => {
-                const key = `${submission.ID}-${index}`;
-              
-                allExpenseLines.push({
-                  id: `expense-${submission.ID}-${index}`,
-                  submissionId: submission.ID,
-                  materialIndex: index,
-              
-                  attachmentIds: attachmentIndex[key] ?? [],
-              
-                  date: formatDate(new Date(expense.date_of_work)),
-                  vendor: formatVendorName(expense.vendor_name),
-                  receiptNote: expense.note || "",
-                  avmExpense: expense.is_avm_expense,
-                  chargeType: expenseTypeToChargeType(expense.expense_type),
-                  amount: `$${(expense.amount_cents / 100).toFixed(2)}`,
-                  upcharge: "$0",
-                  assignee: assigneeById[submission.FieldTeamMemberID] || "",
-                  assigneeId: submission.FieldTeamMemberID,
+              // Handle null or non-array expenses (e.g., when materials are empty)
+              if (expenses && Array.isArray(expenses)) {
+                expenses.forEach((expense, index) => {
+                  const key = `${submission.ID}-${index}`;
+                  const upchargeCents = expense.upcharge_cents ?? 0;
+                  allExpenseLines.push({
+                    id: `expense-${submission.ID}-${index}`,
+                    submissionId: submission.ID,
+                    materialIndex: index,
+
+                    attachmentIds: attachmentIndex[key] ?? [],
+
+                    date: formatDate(new Date(expense.date_of_work)),
+                    vendor: formatVendorName(expense.vendor_name),
+                    receiptNote: expense.note || "",
+                    avmExpense: expense.is_avm_expense,
+                    chargeType: isAvmExpenseToChargeType(expense.is_avm_expense ?? false),
+                    amount: `$${((expense.amount_cents ?? 0) / 100).toFixed(2)}`,
+                    upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
+                    assignee: assigneeById[submission.FieldTeamMemberID] || "",
+                    assigneeId: submission.FieldTeamMemberID,
+                  });
                 });
-              });
-              
+              }
               
             } catch (e) {
               console.warn("Failed to decode MaterialsJSON:", e);
@@ -518,10 +667,35 @@ export default function ApproveFTOPage() {
           }
         });
 
+        // Build mapping of assigneeId -> submissionId for existing submissions
+        const assigneeToSubmission: Record<number, number> = {};
+        submissions.forEach((submission) => {
+          assigneeToSubmission[submission.FieldTeamMemberID] = submission.ID;
+        });
+        setSubmissionByAssignee(assigneeToSubmission);
+
         setHourRows(allHourLines);
         setExpenseRows(allExpenseLines);
       } catch (error) {
         console.error("Failed to load submissions:", error);
+        
+        // Check if error is related to missing rates
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const lowerError = errorMessage.toLowerCase();
+        
+        if (lowerError.includes("emergency") && lowerError.includes("rate")) {
+          setRateError("emergency");
+        } else if (lowerError.includes("hourly") && lowerError.includes("rate")) {
+          setRateError("hourly");
+        } else if (lowerError.includes("scan") && (lowerError.includes("null") || lowerError.includes("emergency") || lowerError.includes("hourly"))) {
+          // Generic scan error - try to determine which rate
+          if (lowerError.includes("emergency")) {
+            setRateError("emergency");
+          } else {
+            setRateError("hourly");
+          }
+        }
+        
         setHourRows([]);
         setExpenseRows([]);
       } finally {
@@ -610,7 +784,7 @@ export default function ApproveFTOPage() {
         vendor: "",
         receiptNote: "",
         avmExpense: false,
-        chargeType: "personal",
+        chargeType: "client",
         amount: "$0",
         upcharge: "$0",
         assignee: "",
@@ -635,36 +809,98 @@ export default function ApproveFTOPage() {
   const handleApprove = async () => {
     try {
       setAttemptedSubmit(true);
-  
-      const submissionIds = extractSubmissionIds([
-        ...hourRows,
-        ...expenseRows,
+
+      // Validate that all rows have an assignee selected
+      const rowsWithoutAssignee = [
+        ...hourRows.filter((r) => !r.assigneeId || r.assigneeId === 0),
+        ...expenseRows.filter((r) => !r.assigneeId || r.assigneeId === 0),
+      ];
+      if (rowsWithoutAssignee.length > 0) {
+        throw new Error("All rows must have an assignee selected");
+      }
+
+      // Group hour rows by assigneeId
+      const hoursByAssignee: Record<number, HourRow[]> = {};
+      hourRows.forEach((row) => {
+        if (!hoursByAssignee[row.assigneeId]) {
+          hoursByAssignee[row.assigneeId] = [];
+        }
+        hoursByAssignee[row.assigneeId].push(row);
+      });
+
+      // Group expense rows by assigneeId
+      const expensesByAssignee: Record<number, ExpenseRow[]> = {};
+      expenseRows.forEach((row) => {
+        if (!expensesByAssignee[row.assigneeId]) {
+          expensesByAssignee[row.assigneeId] = [];
+        }
+        expensesByAssignee[row.assigneeId].push(row);
+      });
+
+      // Get all unique assignee IDs
+      const allAssigneeIds = new Set<number>([
+        ...Object.keys(hoursByAssignee).map(Number),
+        ...Object.keys(expensesByAssignee).map(Number),
       ]);
-  
-      if (submissionIds.length === 0) {
-        throw new Error("No submissions found to approve");
+
+      if (allAssigneeIds.size === 0) {
+        throw new Error("No hours or expenses to approve");
       }
-  
-      const hoursJSON = buildHoursJSON(hourRows);
-      const materialsJSON = buildMaterialsJSON(expenseRows);
-  
-      // 1️⃣ PATCH all submissions
-      for (const submissionId of submissionIds) {
-        await patchSubmission(submissionId, {
-          hours_json: hoursJSON,
-          materials_json: materialsJSON,
-        });
+
+      // Track all submission IDs we need to approve
+      const submissionIdsToApprove: number[] = [];
+
+      // Process each assignee
+      for (const assigneeId of allAssigneeIds) {
+        const assigneeHours = hoursByAssignee[assigneeId] || [];
+        const assigneeExpenses = expensesByAssignee[assigneeId] || [];
+
+        const hoursJSON = buildHoursJSON(assigneeHours);
+        const materialsJSON = buildMaterialsJSON(assigneeExpenses);
+
+        // Check if this assignee already has a submission
+        let submissionId = submissionByAssignee[assigneeId];
+
+        if (submissionId) {
+          // Existing submission - PATCH it
+          console.log(`[handleApprove] PATCH existing submission ${submissionId} for assignee ${assigneeId}`);
+          await patchSubmission(submissionId, {
+            hours_json: hoursJSON,
+            materials_json: materialsJSON,
+          });
+        } else {
+          // No existing submission - create one
+          if (!ftoIdNum) {
+            throw new Error("Cannot create submission: FTO ID is missing");
+          }
+          console.log(`[handleApprove] CREATE new submission for assignee ${assigneeId}`);
+          submissionId = await createSubmissionForAssignee(
+            ftoIdNum,
+            assigneeId,
+            hoursJSON,
+            materialsJSON
+          );
+          console.log(`[handleApprove] Created submission ${submissionId}`);
+        }
+
+        submissionIdsToApprove.push(submissionId);
       }
-  
-      console.log("All PATCH calls successful");
-  
-      // 2️⃣ APPROVE all submissions
-      for (const submissionId of submissionIds) {
+
+      console.log("All submissions created/patched successfully");
+
+      // Update field_team_orders.amount_cents with FTO Total (from hours + expenses) before approving
+      const amountCents = Math.round(grandTotal * 100);
+      if (ftoIdNum) {
+        await updateFtoAmountCents(ftoIdNum, amountCents);
+      }
+
+      // Approve all submissions
+      for (const submissionId of submissionIdsToApprove) {
         await approveSubmission(submissionId);
       }
-  
+
       console.log("All submissions approved");
-  
+
       navigate(-1);
     } catch (err) {
       console.error("Approve failed:", err);
@@ -679,13 +915,11 @@ export default function ApproveFTOPage() {
 
   const handleReject = async () => {
     try {
-      const submissionIds = extractSubmissionIds([
-        ...hourRows,
-        ...expenseRows,
-      ]);
+      // Only reject existing submissions (from submissionByAssignee)
+      const submissionIds = Object.values(submissionByAssignee);
   
       if (submissionIds.length === 0) {
-        throw new Error("No submissions found to reject");
+        throw new Error("No existing submissions found to reject");
       }
   
       for (const submissionId of submissionIds) {
@@ -744,6 +978,11 @@ export default function ApproveFTOPage() {
     const requiredFields = ['date', 'hours', 'assignee', 'amount'];
     if (!requiredFields.includes(field)) return false;
 
+    // Special case: 'assignee' field should check assigneeId (the numeric value)
+    if (field === 'assignee') {
+      return !row.assigneeId || row.assigneeId === 0;
+    }
+
     const value = row[field];
     if (field === 'amount') {
       return value === '$0' || !value;
@@ -752,8 +991,13 @@ export default function ApproveFTOPage() {
   };
 
   const isExpensesCellInvalid = (row: ExpenseRow, field: keyof ExpenseRow) => {
-    const requiredFields = ['date', 'vendor', 'amount'];
+    const requiredFields = ['date', 'vendor', 'assignee', 'amount'];
     if (!requiredFields.includes(field)) return false;
+
+    // Special case: 'assignee' field should check assigneeId (the numeric value)
+    if (field === 'assignee') {
+      return !row.assigneeId || row.assigneeId === 0;
+    }
 
     const value = row[field];
     if (field === 'amount') {
@@ -1030,6 +1274,44 @@ export default function ApproveFTOPage() {
           }}
         >
           <div style={{ minWidth: "100%" }}>
+          {rateError && (
+            <div
+              className="
+                mb-8
+                rounded-lg
+                border border-red-300
+                bg-red-50
+                px-4 py-3
+                text-sm
+                text-red-900
+                flex items-start gap-2
+              "
+            >
+              <svg
+                className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                  clipRule="evenodd"
+                />
+              </svg>
+
+              <div className="flex-1">
+                <div className="font-medium">
+                  Cannot compute amount for hours
+                </div>
+                <div className="mt-1 text-red-800">
+                  {rateError === "emergency"
+                    ? "There is no emergency rate configured for this property. Please configure the emergency hourly rate to calculate amounts for emergency hours."
+                    : "There is no hourly rate configured for this property. Please configure the hourly rate to calculate amounts for hours."}
+                </div>
+              </div>
+            </div>
+          )}
+
           {hasNoSubmissions && (
             <div
               className="
@@ -1189,15 +1471,15 @@ export default function ApproveFTOPage() {
                     className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
                     style={{
                       overflowX: "auto",
-                      width: "84.3%",
+                      width: "100%",
                     }}
                   >
-                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
+                    <div className="flex flex-col border border-[#DADADA]/50 bg-white" style={{ width: "max-content", minWidth: "100%" }}>
                       {/* Table Header */}
-                      <div className="flex items-center w-full">
+                      <div className="flex items-center" style={{ width: "100%" }}>
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "150px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          style={{ width: "160px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Date <span className="text-red-600">*</span>
@@ -1213,7 +1495,7 @@ export default function ApproveFTOPage() {
                         </div>
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "200px", maxWidth: "260px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          style={{ minWidth: "300px", maxWidth: "380px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Note
@@ -1251,14 +1533,14 @@ export default function ApproveFTOPage() {
                             Amount <span className="text-red-600">*</span>
                           </span>
                         </div>
-                        {/* <div
+                        <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
                           style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Upcharge
                           </span>
-                        </div> */}
+                        </div>
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
                           style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
@@ -1276,12 +1558,12 @@ export default function ApproveFTOPage() {
 
                       {/* Table Rows */}
                       {hourRows.map((row) => (
-                        <div key={row.id} className="flex items-start">
+                        <div key={row.id} className="flex items-start" style={{ width: "100%" }}>
                           {/* Date Cell */}
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "150px",
+                              width: "160px",
                               borderBottom: "1px solid #DADADA",
                               borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
@@ -1325,8 +1607,8 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              minWidth: "200px",
-                              maxWidth: "260px",
+                              minWidth: "300px",
+                              maxWidth: "380px",
                               whiteSpace: "normal",
                               overflowWrap: "anywhere",
                               wordBreak: "break-word",
@@ -1435,9 +1717,9 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* Upcharge Cell - Currency */}
-                          {/* <div
+                          <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{style={{ width: "790px" }}
+                            style={{
                               width: "140px",
                               borderBottom: "1px solid #DADADA",
                               borderRight: "1px solid #DADADA",
@@ -1454,7 +1736,7 @@ export default function ApproveFTOPage() {
                               disabled={row.noFee}
                               placeholder="$0"
                             />
-                          </div> */}
+                          </div>
 
                           {/* Total Cell - Display only */}
                           <div
@@ -1478,17 +1760,21 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* Actions Cell */}
-                          <div className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
+                          <div
+                            className="flex items-center justify-center gap-2 px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{
+                              width: "80px",
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
+                            }}
+                          >
+                            {/* 🗑 Delete */}
                             <button
                               onClick={() => deleteHourRow(row.id)}
                               className="text-[#525252] hover:text-[#303030] transition-colors"
                               title="Delete row"
                             >
-                              <DeleteIcon
-                                width={16}
-                                height={16}
-                                color="currentColor"
-                              />
+                              <DeleteIcon width={16} height={16} color="currentColor" />
                             </button>
                           </div>
                         </div>
@@ -1526,12 +1812,12 @@ export default function ApproveFTOPage() {
                       width: "100%",
                     }}
                   >
-                    <div className="flex flex-col border border-[#DADADA]/50 shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] bg-white">
+                    <div className="flex flex-col border border-[#DADADA]/50 bg-white" style={{ width: "max-content", minWidth: "100%" }}>
                       {/* Table Header */}
-                      <div className="flex items-center" style={{ minWidth: "fit-content" }}>
+                      <div className="flex items-center" style={{ width: "100%" }}>
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "180px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          style={{ width: "160px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Date <span className="text-red-600">*</span>
@@ -1547,7 +1833,7 @@ export default function ApproveFTOPage() {
                         </div>
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "220px", maxWidth: "340px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          style={{ minWidth: "240px", maxWidth: "300px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
                             Receipt Note
@@ -1558,7 +1844,7 @@ export default function ApproveFTOPage() {
                           style={{ minWidth: "180px", maxWidth: "240px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Assignee
+                            Assignee <span className="text-red-600">*</span>
                           </span>
                         </div>
                         <div
@@ -1602,12 +1888,12 @@ export default function ApproveFTOPage() {
 
                       {/* Table Rows */}
                       {expenseRows.map((row) => (
-                        <div key={row.id} className="flex items-start">
+                        <div key={row.id} className="flex items-start" style={{ width: "100%" }}>
                           {/* Date Cell */}
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "180px",
+                              width: "160px",
                               borderBottom: "1px solid #DADADA",
                               borderRight: "1px solid #DADADA",
                               whiteSpace: "nowrap",
@@ -1656,8 +1942,8 @@ export default function ApproveFTOPage() {
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              minWidth: "220px",
-                              maxWidth: "340px",
+                              minWidth: "240px",
+                              maxWidth: "300px",
                               whiteSpace: "normal",
                               overflowWrap: "anywhere",
                               wordBreak: "break-word",
@@ -1693,6 +1979,7 @@ export default function ApproveFTOPage() {
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'assignee') ? "inset 0 0 0 2px #dc2626" : "none",
                             }}
                             title={row.assignee}
                           >
@@ -1954,6 +2241,12 @@ export default function ApproveFTOPage() {
             </div>
           </div>
           <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => navigate(-1)}
+              className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-medium tracking-[-0.32px] leading-[1.4] transition-colors bg-white border border-[#DADADA] hover:bg-gray-50"
+            >
+              <span>Cancel</span>
+            </button>
             <button
               onClick={handleReject}
               className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-white font-medium tracking-[-0.32px] leading-[1.4] transition-colors bg-red-600 hover:bg-red-700"

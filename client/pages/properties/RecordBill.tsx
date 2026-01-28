@@ -11,7 +11,7 @@ import {
 import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
 
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import glAccounts from "@/data/gl_accounts.json";
 
 import AddVendorModal from "@/components/AddVendorModal";
@@ -257,15 +257,37 @@ const loadAttachmentIntoViewer = async (
   >
 ) => {
   try {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:259',message:'loadAttachmentIntoViewer called',data:{storagePath:a.StoragePath,fileName:a.FileName,contentType:a.ContentType,sizeBytes:a.SizeBytes},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     const storagePath = a.StoragePath.startsWith("http")
       ? a.StoragePath
-      : `/api${a.StoragePath}`;
+      : `${API_BASE}${a.StoragePath}`;
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:263',message:'Fetching PDF file',data:{storagePath,fullPath:storagePath},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     const res = await fetch(storagePath, {
       credentials: "include",
     });
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:268',message:'PDF fetch response',data:{status:res.status,statusText:res.statusText,contentType:res.headers.get('content-type'),ok:res.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+
+    if (!res.ok) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:271',message:'PDF fetch failed',data:{status:res.status,statusText:res.statusText,storagePath},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      throw new Error(`Failed to fetch PDF: ${res.status} ${res.statusText}`);
+    }
+
     const blob = await res.blob();
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:279',message:'Blob created',data:{blobSize:blob.size,blobType:blob.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     // ✅ FORCE PDF TYPE WHEN BACKEND RETURNS OCTET-STREAM
     const inferredType =
@@ -279,11 +301,16 @@ const loadAttachmentIntoViewer = async (
     });
 
     // Required for iframe viewer
-    (file as any).preview = URL.createObjectURL(
+    const previewUrl = URL.createObjectURL(
       inferredType === "application/pdf"
         ? file
         : new Blob([blob], { type: "application/pdf" })
     );
+    (file as any).preview = previewUrl;
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:295',message:'File created with preview URL',data:{fileName:file.name,fileType:file.type,previewUrl,fileSize:file.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     setUploadedFiles([
       {
@@ -292,7 +319,14 @@ const loadAttachmentIntoViewer = async (
         file,
       },
     ]);
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:303',message:'setUploadedFiles called',data:{fileName:a.FileName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
   } catch (err) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:305',message:'loadAttachmentIntoViewer error',data:{error:err instanceof Error ? err.message : String(err)},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     console.error("Failed to load attachment PDF", err);
   }
 };
@@ -444,10 +478,14 @@ export const RecordBill = () => {
 >([]);
 
 
+  const vendorPageSize = 50;
+  const vendorRequestIdRef = useRef(0);
   const [vendorSearch, setVendorSearch] = useState("");
-  const filteredVendors = vendors.filter((v) =>
-    v.name.toLowerCase().includes(vendorSearch.toLowerCase())
-  );
+  const [vendorOffset, setVendorOffset] = useState(0);
+  const [vendorHasMore, setVendorHasMore] = useState(true);
+  const [vendorLoading, setVendorLoading] = useState(false);
+  const [isVendorDropdownOpen, setIsVendorDropdownOpen] = useState(false);
+  const filteredVendors = vendors;
 
 
   const [propertySearch, setPropertySearch] = useState("");
@@ -584,9 +622,6 @@ export const RecordBill = () => {
   useEffect(() => {
     async function loadDropdowns() {
       try {
-        const vendorList = await fetchJSON("/vendors");
-        setVendors(vendorList);
-  
         const propList = await fetchJSON("/properties");
   
         // 🔥 Print raw response EXACTLY as received
@@ -620,6 +655,74 @@ export const RecordBill = () => {
   
     loadDropdowns();
   }, []);
+
+  const fetchVendorsPage = useCallback(
+    async (search: string, offset: number, append: boolean) => {
+      const requestId = ++vendorRequestIdRef.current;
+      setVendorLoading(true);
+
+      try {
+        const params = new URLSearchParams();
+        params.set("limit", vendorPageSize.toString());
+        if (offset > 0) params.set("offset", offset.toString());
+
+        const trimmed = search.trim();
+        if (trimmed) params.set("search", trimmed);
+
+        const vendorList = await fetchJSON(`/vendors?${params.toString()}`);
+
+        if (requestId !== vendorRequestIdRef.current) return;
+
+        setVendors((prev) => (append ? [...prev, ...vendorList] : vendorList));
+        setVendorHasMore(vendorList.length === vendorPageSize);
+        setVendorOffset(offset + vendorList.length);
+      } catch (err) {
+        if (requestId !== vendorRequestIdRef.current) return;
+        console.error("Failed loading vendors", err);
+        if (!append) {
+          setVendors([]);
+        }
+        setVendorHasMore(false);
+      } finally {
+        if (requestId === vendorRequestIdRef.current) {
+          setVendorLoading(false);
+        }
+      }
+    },
+    [vendorPageSize],
+  );
+
+  useEffect(() => {
+    if (!isVendorDropdownOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      fetchVendorsPage(vendorSearch, 0, false);
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [vendorSearch, isVendorDropdownOpen, fetchVendorsPage]);
+
+  useEffect(() => {
+    if (!selectedVendor || vendorSearch.trim()) return;
+    setVendors((prev) => {
+      if (prev.some((vendor) => vendor.id === selectedVendor.id)) {
+        return prev;
+      }
+      return [selectedVendor, ...prev];
+    });
+  }, [selectedVendor, vendorSearch]);
+
+  const handleVendorScroll = useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      if (!vendorHasMore || vendorLoading) return;
+
+      const target = event.currentTarget;
+      if (target.scrollTop + target.clientHeight >= target.scrollHeight - 24) {
+        fetchVendorsPage(vendorSearch, vendorOffset, true);
+      }
+    },
+    [vendorHasMore, vendorLoading, vendorSearch, vendorOffset, fetchVendorsPage],
+  );
   
   
   
@@ -779,10 +882,21 @@ export const RecordBill = () => {
         // APPROVED BILL (read-only)
         // ============================
         if (draft.ApprovedBill && billId) {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:851',message:'Fetching attachment for approved bill',data:{billId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+          // #endregion
           const attachment: BillAttachment | null = await fetchJSON(
             `/utilities/bills/${billId}/attachment`
-          ).catch(() => null);
+          ).catch((err) => {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:853',message:'Attachment fetch failed',data:{billId,error:err?.message||String(err)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
+            return null;
+          });
           
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:860',message:'Attachment response received',data:{billId,attachment:attachment?{StoragePath:attachment.StoragePath,FileName:attachment.FileName,ContentType:attachment.ContentType,SizeBytes:attachment.SizeBytes}:null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+          // #endregion
           if (attachment?.StoragePath) {
             await loadAttachmentIntoViewer(attachment, setUploadedFiles);
           }
@@ -1202,12 +1316,25 @@ export const RecordBill = () => {
 
   // Auto-open PDF in read-only mode if there's only one file
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:1319',message:'Auto-open effect triggered',data:{isReadOnly,uploadedFilesCount:uploadedFiles.length,viewingFileUrl:!!viewingFileUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     if (isReadOnly && uploadedFiles.length === 1 && !viewingFileUrl) {
       const file = uploadedFiles[0].file;
       const preview = (file as any).preview;
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:1322',message:'Checking file preview',data:{hasPreview:!!preview,fileName:file.name,fileType:file.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       if (preview) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:1324',message:'Setting viewingFileUrl',data:{preview},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
         setViewingFileUrl(preview);
         setViewingFileIndex(0);
+      } else {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/4cc75d86-6eb2-42ba-acc0-ef40553fa640',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RecordBill.tsx:1328',message:'No preview URL found on file',data:{fileName:file.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
       }
     }
   }, [isReadOnly, uploadedFiles, viewingFileUrl]);
@@ -1305,6 +1432,8 @@ export const RecordBill = () => {
     if (!files || files.length === 0) return;
   
     const file = files[0];
+    const preview = URL.createObjectURL(file);
+    (file as any).preview = preview;
   
     // -------------------------
     // UI preview (existing)
@@ -1326,6 +1455,7 @@ export const RecordBill = () => {
         formData.append("file", file);
   
         const res = await fetch(
+          // "/api/vendors/bills/upload-pdf", 
           "/api/vendors/bills/upload-pdf", 
           {
             method: "POST",
@@ -1944,6 +2074,7 @@ minHeight: 0,
                             }
                           }}
                           onOpenChange={(open) => {
+                            setIsVendorDropdownOpen(open);
                             if (!open) setVendorSearch(""); // ✅ reset on close
                           }}
                           disabled={isReadOnly}
@@ -1973,8 +2104,16 @@ minHeight: 0,
                             </div>
 
                             {/* Scrollable list */}
-                            <div className="max-h-[240px] overflow-y-auto">
-                              {filteredVendors.length === 0 && (
+                            <div
+                              className="max-h-[240px] overflow-y-auto"
+                              onScroll={handleVendorScroll}
+                            >
+                              {vendorLoading && filteredVendors.length === 0 && (
+                                <div className="px-3 py-2 text-sm text-gray-400">
+                                  Loading vendors…
+                                </div>
+                              )}
+                              {!vendorLoading && filteredVendors.length === 0 && (
                                 <div className="px-3 py-2 text-sm text-gray-400">
                                   No vendors found
                                 </div>
@@ -1985,6 +2124,16 @@ minHeight: 0,
                                   {v.name}
                                 </SelectItem>
                               ))}
+                              {vendorLoading && filteredVendors.length > 0 && (
+                                <div className="px-3 py-2 text-xs text-gray-400">
+                                  Loading more…
+                                </div>
+                              )}
+                              {!vendorLoading && vendorHasMore && filteredVendors.length > 0 && (
+                                <div className="px-3 py-2 text-xs text-gray-400">
+                                  Scroll to load more
+                                </div>
+                              )}
                             </div>
                           </SelectContent>
                           

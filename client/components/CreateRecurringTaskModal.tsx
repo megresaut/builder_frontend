@@ -1,498 +1,715 @@
-import { useState, useRef, useEffect } from "react";
-import { Dialog, DialogTitle } from "@/components/ui/dialog";
-import { Modal } from "@/components/ui/Modal";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect } from "react";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
-import { format, getDaysInMonth, getDay, startOfMonth } from "date-fns";
-import { ChevronDown } from "lucide-react";
-import { MultiSelectField, type MultiSelectOption } from "@/components/forms";
+  TextField,
+  SelectField,
+  TextAreaField,
+  DateField,
+  MultiSelectField,
+  NumberField,
+  type MultiSelectOption,
+  PrioritySelectField,
+} from "@/components/forms";
+import { fetchJSON } from "@/api/fetchJSON";
+import { useAuth } from "@/auth/useAuth";
 
 interface CreateRecurringTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editData?: {
+    id: number;
     task: string;
-    nextDate: string;
-    priority: string;
-    category: string;
+    series: RecurringSeriesDetail;
   };
+  /** When opening for create (no editData), preselect this property (e.g. from property page). */
+  defaultPropertyId?: number;
 }
 
-const AVAILABLE_ASSIGNEES: MultiSelectOption[] = [
-  { id: "1", label: "David Harris", initials: "DH" },
-  { id: "2", label: "Sarah Johnson", initials: "SJ" },
-  { id: "3", label: "Michael Chen", initials: "MC" },
-  { id: "4", label: "Emily Rodriguez", initials: "ER" },
-  { id: "5", label: "James Wilson", initials: "JW" },
-];
+interface SimpleProperty {
+  id: number;
+  name?: string | null;
+  address_line1?: string | null;
+  city?: string | null;
+  state?: string | null;
+}
+
+interface SimpleUnit {
+  id: number;
+  unit_name: string;
+}
+
+interface Assignee {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+interface AssigneeInfo {
+  id: number;
+  name: string;
+  initials: string;
+}
+
+interface RecurringSeriesDetail {
+  id: number;
+  property_id: number;
+  unit_id: number | null;
+  assignees: AssigneeInfo[];
+  collaborators: AssigneeInfo[];
+  priority: string | null;
+  category: string | null;
+  frequency: string;
+  interval: number;
+  by_day: string[];
+  day_of_month: number | null;
+  week_of_month: number | null;
+  weekday_of_month: string | null;
+  start_date: string;
+  end_date: string | null;
+  due_after_days: number;
+  active: boolean;
+}
 
 export default function CreateRecurringTaskModal({
   open,
   onOpenChange,
   editData,
+  defaultPropertyId,
 }: CreateRecurringTaskModalProps) {
+  const { userId } = useAuth();
   const [taskName, setTaskName] = useState("");
-  const [priority, setPriority] = useState("normal");
-  const [category, setCategory] = useState("");
-  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
-  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
+  const [description, setDescription] = useState("");
+  const [collaborators, setCollaborators] = useState<MultiSelectOption[]>([]);
+  const [property, setProperty] = useState("");
+  const [unit, setUnit] = useState("");
+  const [dueAfterValue, setDueAfterValue] = useState("");
+  const [dueAfterUnit, setDueAfterUnit] = useState("days");
+  const [repeat, setRepeat] = useState("monthly");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endCondition, setEndCondition] = useState("never");
+  const [endAfterTimes, setEndAfterTimes] = useState("");
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedAssignees, setSelectedAssignees] = useState<
     MultiSelectOption[]
-  >([AVAILABLE_ASSIGNEES[0], AVAILABLE_ASSIGNEES[0]]);
-  const [errors, setErrors] = useState<{
-    taskName?: boolean;
-    startDate?: boolean;
-    selectedAssignees?: boolean;
-  }>({});
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [showStartCalendar, setShowStartCalendar] = useState(false);
-  const [showEndCalendar, setShowEndCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [startCalendarPos, setStartCalendarPos] = useState({ top: 0, left: 0 });
-  const [endCalendarPos, setEndCalendarPos] = useState({ top: 0, left: 0 });
-  const startDateInputRef = useRef<HTMLInputElement>(null);
-  const endDateInputRef = useRef<HTMLInputElement>(null);
+  >([]);
+  const [priority, setPriority] = useState("normal");
+  const [category, setCategory] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [properties, setProperties] = useState<SimpleProperty[]>([]);
+  const [units, setUnits] = useState<SimpleUnit[]>([]);
+  const [availableAssignees, setAvailableAssignees] = useState<Assignee[]>([]);
+  const [unitsLoading, setUnitsLoading] = useState(false);
+
+  const splitDueAfterDays = (days: number) => {
+    if (!days || days <= 0) {
+      return { value: "", unit: "days" };
+    }
+    if (days % 30 === 0) {
+      return { value: String(days / 30), unit: "months" };
+    }
+    if (days % 7 === 0) {
+      return { value: String(days / 7), unit: "weeks" };
+    }
+    return { value: String(days), unit: "days" };
+  };
+
+  const resolveRepeatValue = (frequency: string, interval: number) => {
+    if (frequency === "daily") {
+      return "daily";
+    }
+    if (frequency === "weekly") {
+      return interval === 2 ? "biweekly" : "weekly";
+    }
+    if (frequency === "monthly") {
+      if (interval === 2) return "bimonthly";
+      if (interval === 3) return "quarterly";
+      if (interval === 6) return "semiannual";
+      return "monthly";
+    }
+    if (frequency === "yearly") {
+      return "yearly";
+    }
+    return "monthly";
+  };
 
   useEffect(() => {
-    if (editData) {
-      setTaskName(editData.task);
-      setStartDate(editData.nextDate);
-      setPriority(editData.priority.toLowerCase());
-      setCategory(editData.category);
+    if (!open) {
+      setTaskName("");
+      setDescription("");
+      setCollaborators([]);
+      setProperty("");
+      setUnit("");
+      setDueAfterValue("");
+      setDueAfterUnit("days");
+      setRepeat("monthly");
+      setStartDate(null);
+      setEndCondition("never");
+      setEndAfterTimes("");
+      setEndDate(null);
+      setSelectedAssignees([]);
+      setPriority("normal");
+      setCategory("");
+      setErrors({});
+      setIsSubmitting(false);
     }
-  }, [editData]);
+  }, [open]);
+
+  useEffect(() => {
+    if (open && !editData && defaultPropertyId != null) {
+      setProperty(String(defaultPropertyId));
+    }
+  }, [open, editData, defaultPropertyId]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+
+    async function loadOptions() {
+      try {
+        const [propsRes, assigneesRes] = await Promise.all([
+          fetchJSON("/properties").catch(() => []),
+          fetchJSON("/users/property-managers").catch(() => []),
+        ]);
+
+        if (cancelled) return;
+
+        setProperties(propsRes || []);
+        setAvailableAssignees(
+          (assigneesRes || []).map((u: any) => ({
+            id: Number(u.id),
+            name: u.name || u.email,
+            email: u.email,
+          }))
+        );
+      } catch (err) {
+        console.error("Failed to load options:", err);
+      }
+    }
+
+    loadOptions();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !property) {
+      setUnits([]);
+      setUnit(""); // Reset unit when property changes
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadUnits() {
+      try {
+        setUnitsLoading(true);
+        const propertyId = Number(property);
+        const data = await fetchJSON(`/properties/${propertyId}/units`).catch(() => []);
+
+        if (!cancelled) {
+          setUnits(data || []);
+        }
+      } catch (err) {
+        console.error("Failed to load units:", err);
+      } finally {
+        if (!cancelled) {
+          setUnitsLoading(false);
+        }
+      }
+    }
+
+    loadUnits();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, property]);
+
+  useEffect(() => {
+    if (editData && availableAssignees.length > 0) {
+      const series = editData.series;
+      setTaskName(editData.task || "Recurring Task");
+      setDescription("");
+      setProperty(String(series.property_id));
+      setUnit(series.unit_id ? String(series.unit_id) : "");
+
+      const dueAfter = splitDueAfterDays(series.due_after_days);
+      setDueAfterValue(dueAfter.value);
+      setDueAfterUnit(dueAfter.unit);
+
+      setRepeat(resolveRepeatValue(series.frequency, series.interval));
+      setStartDate(series.start_date ? new Date(series.start_date) : null);
+
+      if (series.end_date) {
+        setEndCondition("onDate");
+        setEndDate(new Date(series.end_date));
+        setEndAfterTimes("");
+      } else {
+        setEndCondition("never");
+        setEndDate(null);
+        setEndAfterTimes("");
+      }
+
+      // Match assignees from editData with availableAssignees by ID
+      const assigneeOptions: MultiSelectOption[] = (series.assignees || [])
+        .map((a) => {
+          const available = availableAssignees.find((av) => av.id === a.id);
+          if (available) {
+            return {
+              id: String(available.id),
+              label: available.name,
+              initials: available.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2),
+            };
+          }
+          // Fallback to API data if not found in availableAssignees
+          return {
+            id: String(a.id),
+            label: a.name,
+            initials: a.initials,
+          };
+        })
+        .filter((opt) => opt !== null) as MultiSelectOption[];
+      setSelectedAssignees(assigneeOptions);
+
+      // Match collaborators from editData with availableAssignees by ID
+      const collaboratorOptions: MultiSelectOption[] = (series.collaborators || [])
+        .map((c) => {
+          const available = availableAssignees.find((av) => av.id === c.id);
+          if (available) {
+            return {
+              id: String(available.id),
+              label: available.name,
+              initials: available.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2),
+            };
+          }
+          // Fallback to API data if not found in availableAssignees
+          return {
+            id: String(c.id),
+            label: c.name,
+            initials: c.initials,
+          };
+        })
+        .filter((opt) => opt !== null) as MultiSelectOption[];
+      setCollaborators(collaboratorOptions);
+
+      // Map backend priority to frontend priority (medium -> normal)
+      const backendPriority = series.priority?.toLowerCase() ?? "medium";
+      const reversePriorityMap: Record<"low" | "medium" | "high" | "urgent", "normal" | "low" | "high" | "urgent"> = {
+        low: "low",
+        medium: "normal",
+        high: "high",
+        urgent: "urgent",
+      };
+      setPriority(reversePriorityMap[backendPriority as keyof typeof reversePriorityMap] || "normal");
+      setCategory(series.category || "");
+    }
+  }, [editData, availableAssignees]);
+
+  // Auto-set end condition for "once" repeat
+  useEffect(() => {
+    if (repeat === "once") {
+      setEndCondition("after");
+      setEndAfterTimes("1");
+    }
+  }, [repeat]);
 
   const validateForm = (): boolean => {
-    const newErrors: {
-      taskName?: boolean;
-      startDate?: boolean;
-      selectedAssignees?: boolean;
-    } = {};
+    const newErrors: Record<string, string> = {};
     if (!taskName.trim()) {
-      newErrors.taskName = true;
+      newErrors.taskName = "Task Name is required";
     }
-    if (!startDate.trim()) {
-      newErrors.startDate = true;
+    if (!property) {
+      newErrors.property = "Property is required";
     }
-    if (selectedAssignees.length === 0) {
-      newErrors.selectedAssignees = true;
+    if (!startDate) {
+      newErrors.startDate = "Start Date is required";
+    }
+    if (endCondition === "after" && (!endAfterTimes || Number(endAfterTimes) < 1)) {
+      newErrors.endAfterTimes = "Number of occurrences must be at least 1";
+    }
+    if (endCondition === "onDate" && !endDate) {
+      newErrors.endDate = "End date is required";
+    }
+    if (endCondition === "onDate" && endDate && startDate && endDate <= startDate) {
+      newErrors.endDate = "End date must be after start date";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      // Handle submit logic here
-      console.log("Form submitted", {
-        taskName,
-        startDate,
-        priority,
-        category,
+  // Helper to map repeat value to frequency, interval, and optional fields
+  const parseRepeatValue = (repeatValue: string) => {
+    switch (repeatValue) {
+      case "daily":
+        return { frequency: "daily", interval: 1, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+      case "weekly":
+        return { frequency: "weekly", interval: 1, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+      case "biweekly":
+        return { frequency: "weekly", interval: 2, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+      case "monthly":
+        return { frequency: "monthly", interval: 1, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+      case "bimonthly":
+        return { frequency: "monthly", interval: 2, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+      case "quarterly":
+        return { frequency: "monthly", interval: 3, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+      case "semiannual":
+        return { frequency: "monthly", interval: 6, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+      case "yearly":
+        return { frequency: "yearly", interval: 1, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+      case "once":
+        return { frequency: "daily", interval: 1, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+      default:
+        return { frequency: "monthly", interval: 1, byDay: [], dayOfMonth: null, weekOfMonth: null, weekdayOfMonth: null };
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const propertyId = Number(property);
+      const unitId = unit ? Number(unit) : null;
+      const repeatConfig = parseRepeatValue(repeat);
+
+      // For monthly, we need to set day_of_month from start_date if not already set
+      let dayOfMonth = repeatConfig.dayOfMonth;
+      if (repeatConfig.frequency === "monthly" && !dayOfMonth && startDate) {
+        dayOfMonth = startDate.getDate();
+      }
+
+      // For weekly, we need to set by_day from start_date if not already set
+      let byDay = repeatConfig.byDay;
+      if (repeatConfig.frequency === "weekly" && byDay.length === 0 && startDate) {
+        const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        byDay = [dayNames[startDate.getDay()]];
+      }
+
+      // Map end condition to end_mode
+      let endMode = "never";
+      if (endCondition === "after") {
+        endMode = "after_n_times";
+      } else if (endCondition === "onDate") {
+        endMode = "on_date";
+      } else if (repeat === "once") {
+        endMode = "after_n_times";
+      }
+
+      // Build due_after object if value is provided
+      const dueAfter = dueAfterValue && Number(dueAfterValue) > 0
+        ? {
+            count: Number(dueAfterValue),
+            period: dueAfterUnit,
+          }
+        : null;
+
+      // Map frontend priority to backend priority (normal -> medium)
+      const priorityMap: Record<"normal" | "low" | "high" | "urgent", "low" | "medium" | "high" | "urgent"> = {
+        low: "low",
+        normal: "medium",
+        high: "high",
+        urgent: "urgent",
+      };
+      const backendPriority = priorityMap[priority as keyof typeof priorityMap] || "medium";
+      const assigneeIds = selectedAssignees
+        .map((a) => Number(a.id))
+        .filter((id) => !Number.isNaN(id));
+      const collaboratorIds = collaborators
+        .map((c) => Number(c.id))
+        .filter((id) => !Number.isNaN(id));
+
+      // Build request payload
+      const payload: any = {
+        property_id: propertyId,
+        name: taskName.trim(),
+        description: description.trim() || "",
+        category: category || "",
+        priority: backendPriority,
+        assignees: assigneeIds,
+        collaborators: collaboratorIds,
+        tags: [],
+        frequency: repeatConfig.frequency,
+        interval: repeatConfig.interval,
+        by_day: byDay,
+        day_of_month: dayOfMonth,
+        week_of_month: repeatConfig.weekOfMonth,
+        weekday_of_month: repeatConfig.weekdayOfMonth,
+        start_date: startDate!.toISOString(),
+        end_mode: endMode,
+        requested_by: userId || 1, // Fallback to 1 if userId not available
+      };
+
+      if (unitId) {
+        payload.unit_id = unitId;
+      }
+
+      if (dueAfter) {
+        payload.due_after = dueAfter;
+      }
+
+      if (endMode === "on_date" && endDate) {
+        payload.end_date = endDate.toISOString();
+      } else if (endMode === "after_n_times") {
+        const occurrences = repeat === "once" ? 1 : (endAfterTimes ? Number(endAfterTimes) : null);
+        if (occurrences && occurrences > 0) {
+          payload.end_after_occurrences = occurrences;
+        }
+      }
+
+      await fetchJSON("/maintenance/recurring", {
+        method: "POST",
+        body: JSON.stringify(payload),
       });
+
+      const refreshPropertyId = property ? Number(property) : defaultPropertyId;
+      window.dispatchEvent(
+        new CustomEvent("refreshRecurringTasks", {
+          detail: refreshPropertyId ? { propertyId: refreshPropertyId } : {},
+        })
+      );
       onOpenChange(false);
+    } catch (error: any) {
+      console.error("Failed to create recurring task:", error);
+      setErrors({
+        submit: error.message || "Failed to create recurring task. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updatePositions = () => {
-      if (showStartCalendar && startDateInputRef.current) {
-        const rect = startDateInputRef.current.getBoundingClientRect();
-        setStartCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showEndCalendar && endDateInputRef.current) {
-        const rect = endDateInputRef.current.getBoundingClientRect();
-        setEndCalendarPos({
-          top: rect.bottom + 8,
-          left: rect.left,
-        });
-      }
-
-      if (showStartCalendar || showEndCalendar) {
-        animationFrameId = requestAnimationFrame(updatePositions);
-      }
-    };
-
-    if (showStartCalendar || showEndCalendar) {
-      updatePositions();
-    }
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showStartCalendar, showEndCalendar]);
-
-  const getPriorityIcon = (priorityLevel: string = priority) => {
-    const colors: Record<string, string> = {
-      low: "#059669",
-      normal: "#2463EB",
-      high: "#D97706",
-    };
-    return (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 14 14"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M2.91602 7H11.0827"
-          stroke={colors[priorityLevel] || colors.normal}
-          strokeWidth="1.3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  };
-
-  const getPriorityLabel = () => {
-    const labels: Record<string, string> = {
-      low: "Low",
-      normal: "Normal",
-      high: "High",
-    };
-    return labels[priority] || "Normal";
-  };
-
-  const getPriorityBgColor = () => {
-    const colors: Record<string, string> = {
-      low: "#d1fae5",
-      normal: "#dbe9fe",
-      high: "#fef3c7",
-    };
-    return colors[priority] || colors.normal;
-  };
-
-  const getPriorityTextColor = () => {
-    const colors: Record<string, string> = {
-      low: "#059669",
-      normal: "#2463eb",
-      high: "#d97706",
-    };
-    return colors[priority] || colors.normal;
-  };
-
-  const handleStartDateSelect = (day: number) => {
-    const selected = new Date(
-      calendarMonth.getFullYear(),
-      calendarMonth.getMonth(),
-      day,
-    );
-    setSelectedStartDate(selected);
-    const formatted = format(selected, "MM/dd/yyyy");
-    setStartDate(formatted);
-    if (errors.startDate) {
-      setErrors((prev) => ({ ...prev, startDate: false }));
-    }
-    setShowStartCalendar(false);
-  };
-
-  const handleEndDateSelect = (day: number) => {
-    const selected = new Date(
-      calendarMonth.getFullYear(),
-      calendarMonth.getMonth(),
-      day,
-    );
-    setSelectedEndDate(selected);
-    const formatted = format(selected, "MM/dd/yyyy");
-    setEndDate(formatted);
-    if (errors.endDate) {
-      setErrors((prev) => ({ ...prev, endDate: false }));
-    }
-    setShowEndCalendar(false);
-  };
-
-  const getCalendarDays = () => {
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
-    const daysInMonth = getDaysInMonth(new Date(year, month, 1));
-    const firstDay = getDay(startOfMonth(new Date(year, month, 1)));
-
-    const days: (number | null)[] = [];
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-    return days;
-  };
-
-  const previousMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1),
-    );
-  };
-
-  const nextMonth = () => {
-    setCalendarMonth(
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1),
-    );
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <Modal size="lg">
-        <div className="flex flex-col gap-4">
-          {/* Title */}
-          <DialogTitle className="text-[#303030] font-semibold text-2xl leading-[30px]">
-            {editData ? "Edit Recurring Task" : "Create Recurring Task"}
-          </DialogTitle>
-
-          {/* Task Name */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-5">
-              Task Name <span className="text-red-600">*</span>
-            </label>
-            <div className="relative">
-              <Input
-                value={taskName}
-                onChange={(e) => {
-                  setTaskName(e.target.value);
-                  if (errors.taskName && e.target.value.trim()) {
-                    setErrors((prev) => ({ ...prev, taskName: false }));
-                  }
-                }}
-                placeholder="Type Task Name"
-                className={`h-11 rounded-lg bg-[#F7F7F7] placeholder:text-[#A1A1A9] placeholder:normal-case pr-10 ${
-                  errors.taskName
-                    ? "border-red-500 border-2"
-                    : "border-[#E5E5E5]"
-                }`}
-              />
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
-            </div>
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title={editData ? "Edit Recurring Task" : "Create Recurring Task"}
+      size="lg"
+      footer={
+        <ModalButtons
+          onCancel={() => !isSubmitting && onOpenChange(false)}
+          onConfirm={handleSubmit}
+          cancelLabel="Cancel"
+          confirmLabel={
+            isSubmitting
+              ? "Creating..."
+              : editData
+              ? "Update Recurring Task"
+              : "Create Recurring Task"
+          }
+          confirmDisabled={isSubmitting}
+        />
+      }
+    >
+      <FormLayout>
+        {errors.submit && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+            {errors.submit}
           </div>
+        )}
+        <FormSection showDivider={false}>
+          <TextField
+            label="Task Name"
+            required
+            value={taskName ?? ""}
+            onChange={(e) => setTaskName(e.target.value)}
+            error={errors.taskName}
+            placeholder="Type Task Name"
+          />
+          <TextAreaField
+            label="Description"
+            value={description ?? ""}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Insert Description Here"
+            rows={4}
+          />
+        </FormSection>
 
-          {/* Description */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#303030] font-medium text-sm leading-5">
-              Description
-            </label>
-            <Textarea
-              placeholder="Insert Description Here"
-              className="min-h-[169px] rounded-lg bg-[#F7F7F7] border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:normal-case resize-none"
+        <FormSection title="Property & Scheduling">
+          {/* Property and Unit in same row */}
+          <div className="grid grid-cols-2 gap-4">
+            <SelectField
+              label="Property"
+              required
+              value={property ?? ""}
+              onChange={(value) => setProperty(Array.isArray(value) ? value[0] : value)}
+              placeholder="Select Property"
+              error={errors.property}
+              options={properties.map((p) => ({
+                value: String(p.id),
+                label: p.name || p.address_line1 || `Property #${p.id}`,
+              }))}
+            />
+            <SelectField
+              label="Unit"
+              value={unit ?? ""}
+              onChange={(value) => setUnit(Array.isArray(value) ? value[0] : value)}
+              placeholder={unitsLoading ? "Loading..." : "Select Unit"}
+              disabled={!property || unitsLoading}
+              options={units.map((u) => ({
+                value: String(u.id),
+                label: u.unit_name,
+              }))}
             />
           </div>
 
-          {/* Property and Unit Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Property
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Select Property"
-                    className="text-[#A1A1A9] normal-case"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="property1">22 Indian Chase Dr</SelectItem>
-                  <SelectItem value="property2">Property 2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Unit
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Select Unit If Applicable"
-                    className="text-[#A1A1A9] normal-case"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unit1">Unit 1</SelectItem>
-                  <SelectItem value="unit2">Unit 2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Due After with days/weeks/months selector */}
+          <div className="grid grid-cols-2 gap-4">
+            <NumberField
+              label="Due After"
+              value={dueAfterValue ?? ""}
+              onChange={(e) => setDueAfterValue(e.target.value)}
+              placeholder="Enter number"
+            />
+            <SelectField
+              label="Period"
+              value={dueAfterUnit ?? "days"}
+              onChange={(value) => setDueAfterUnit(Array.isArray(value) ? value[0] : value)}
+              options={[
+                { value: "days", label: "days" },
+                { value: "weeks", label: "weeks" },
+                { value: "months", label: "months" },
+              ]}
+            />
           </div>
 
-          {/* Due After and Repeat Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Due After
-              </label>
-              <Input
-                placeholder="Insert Number Of Days"
-                type="number"
-                className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5] placeholder:text-[#A1A1A9] placeholder:normal-case"
-              />
-            </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Repeat
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Daily, Monthly, Or Yearly, Etc"
-                    className="text-[#A1A1A9] normal-case"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Repeat field */}
+          <SelectField
+            label="Repeat"
+            value={repeat ?? "monthly"}
+            onChange={(value) => setRepeat(Array.isArray(value) ? value[0] : value)}
+            options={[
+              { value: "daily", label: "Daily" },
+              { value: "weekly", label: "Weekly" },
+              { value: "biweekly", label: "Every two weeks" },
+              { value: "monthly", label: "Monthly" },
+              { value: "bimonthly", label: "Every two months" },
+              { value: "quarterly", label: "Quarterly" },
+              { value: "semiannual", label: "Every six months" },
+              { value: "yearly", label: "Yearly" },
+              { value: "once", label: "One time" },
+            ]}
+          />
+
+          {/* Start Date and End Condition in same row */}
+          <div className="grid grid-cols-2 gap-4">
+            <DateField
+              label="Start Date"
+              required
+              value={startDate}
+              onChange={(date) => setStartDate(date instanceof Date ? date : date ? new Date(date) : null)}
+              error={errors.startDate}
+              placeholder="mm/dd/yyyy"
+            />
+            <SelectField
+              label="End"
+              value={endCondition ?? "never"}
+              onChange={(value) => setEndCondition(Array.isArray(value) ? value[0] : value)}
+              disabled={repeat === "once"}
+              options={[
+                { value: "never", label: "Never" },
+                { value: "after", label: "After" },
+                { value: "onDate", label: "On date" },
+              ]}
+            />
           </div>
 
-          {/* Start Date and End Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Start Date <span className="text-red-600">*</span>
-              </label>
-              <DatePicker
-                value={selectedStartDate}
-                onChange={(date) => {
-                  setSelectedStartDate(date);
-                  if (errors.startDate && date) {
-                    setErrors((prev) => ({ ...prev, startDate: false }));
-                  }
-                }}
-                error={errors.startDate}
-                placeholder="MM/DD/YYYY"
-              />
-            </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                End
-              </label>
-              <DatePicker
-                value={selectedEndDate}
-                onChange={setSelectedEndDate}
-                placeholder="MM/DD/YYYY"
-              />
-            </div>
-          </div>
+          {/* Conditional End Date or After Times fields */}
+          {endCondition === "after" && (
+            <NumberField
+              label="After"
+              value={endAfterTimes ?? ""}
+              onChange={(e) => setEndAfterTimes(e.target.value)}
+              placeholder="Enter number"
+              description="time(s)"
+              error={errors.endAfterTimes}
+            />
+          )}
 
-          {/* Assignees */}
-          <div className="flex flex-col gap-2">
+          {endCondition === "onDate" && (
+            <DateField
+              label="End Date"
+              value={endDate}
+              onChange={(date) => setEndDate(date instanceof Date ? date : date ? new Date(date) : null)}
+              placeholder="mm/dd/yyyy"
+              error={errors.endDate}
+            />
+          )}
+        </FormSection>
+
+        <FormSection title="Assignment & Priority">
+          {/* Assignees and Collaborators in same row */}
+          <div className="grid grid-cols-2 gap-4">
             <MultiSelectField
               label="Assignees"
-              required
               value={selectedAssignees}
-              onChange={(newAssignees) => {
-                setSelectedAssignees(newAssignees);
-                if (errors.selectedAssignees && newAssignees.length > 0) {
-                  setErrors((prev) => ({ ...prev, selectedAssignees: false }));
-                }
-              }}
-              error={
-                errors.selectedAssignees
-                  ? "At least one assignee is required"
-                  : undefined
-              }
+              onChange={setSelectedAssignees}
+              error={errors.selectedAssignees}
               placeholder="Select assignees"
-              options={AVAILABLE_ASSIGNEES}
+              options={availableAssignees.map((a) => ({
+                id: String(a.id),
+                label: a.name,
+                initials: a.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2),
+              }))}
+            />
+            <MultiSelectField
+              label="Collaborators"
+              value={collaborators}
+              onChange={setCollaborators}
+              placeholder="Select collaborators"
+              options={availableAssignees.map((a) => ({
+                id: String(a.id),
+                label: a.name,
+                initials: a.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2),
+              }))}
             />
           </div>
 
-          {/* Priority and Category Row */}
-          <div className="flex gap-3 w-full">
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Priority
-              </label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: getPriorityTextColor() }}
-                    />
-                    <span className="text-sm tracking-[-0.28px] leading-[1.4] text-[#303030]">
-                      {getPriorityLabel()}
-                    </span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#059669]" />
-                      <span>Low</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="normal">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#2463eb]" />
-                      <span>Normal</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="high">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#d97706]" />
-                      <span>High</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2 flex-1 min-w-[240px]">
-              <label className="text-[#303030] font-medium text-sm leading-5">
-                Category
-              </label>
-              <Select>
-                <SelectTrigger className="h-11 rounded-lg bg-[#F7F7F7] border-[#E5E5E5]">
-                  <SelectValue
-                    placeholder="Select Category"
-                    className="text-[#A1A1A9] normal-case"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="category1">Maintenance</SelectItem>
-                  <SelectItem value="category2">Repair</SelectItem>
-                  <SelectItem value="category3">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Priority and Category in same row */}
+          <div className="grid grid-cols-2 gap-4">
+            <PrioritySelectField
+              label="Priority"
+              value={(priority ?? "normal") as "normal" | "low" | "high" | "urgent"}
+              onChange={(value) => setPriority(value)}
+            />
+            <SelectField
+              label="Category"
+              value={category ?? ""}
+              onChange={(value) => setCategory(Array.isArray(value) ? value[0] : value)}
+              placeholder="Select Category"
+              options={[
+                { value: "maintenance", label: "Maintenance" },
+                { value: "repair", label: "Repair" },
+                { value: "other", label: "Other" },
+              ]}
+            />
           </div>
-
-          {/* Create/Update Recurring Task Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={
-              !taskName.trim() ||
-              !startDate.trim() ||
-              selectedAssignees.length === 0
-            }
-            className="flex h-9 justify-center items-center gap-2 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors mt-0 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="text-white font-medium text-base">
-              {editData ? "Update Recurring Task" : "Create Recurring Task"}
-            </span>
-          </button>
-        </div>
-      </Modal>
-    </Dialog>
+        </FormSection>
+      </FormLayout>
+    </ModalTemplate>
   );
 }

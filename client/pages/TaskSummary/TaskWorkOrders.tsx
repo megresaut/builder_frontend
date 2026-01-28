@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Plus } from "lucide-react";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
 import type { Note, File } from "@/components/templates";
@@ -12,6 +12,7 @@ import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import HeaderV1 from "@/components/HeaderV1";
 import PersonAvatars from "@/components/PersonAvatars";
+import { fetchJSON } from "@/api/fetchJSON";
 import {
   EditIcon,
   DeleteIcon,
@@ -426,7 +427,10 @@ interface TaskWorkOrdersProps {
   defaultTask?: string;
   defaultUnit?: string;
   taskId: string;
+  propertyId?: number; // Property ID for creating work orders
+  requestedBy?: number; // User ID of the requester (optional)
   onWorkOrderSelect?: (woId: number) => void;
+  onRefetchWorkOrders?: () => Promise<any>; // Refetch function for auto-refresh
 }
 
 export default function TaskWorkOrders({
@@ -436,9 +440,13 @@ export default function TaskWorkOrders({
   defaultTask,
   defaultUnit,
   taskId,
+  propertyId,
+  requestedBy,
   onWorkOrderSelect,
+  onRefetchWorkOrders,
 }: TaskWorkOrdersProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -476,15 +484,16 @@ export default function TaskWorkOrders({
     handleColumnDrop,
   } = useColumnManagement([
     "priority",
+    "vendorName",
     "task",
     "updatedDate",
     "age",
     "status",
     "dueDate",
-    "billStatus",
+    // "billStatus",
     "billTotal",
-    "assignees",
-    "collaborators",
+    // "assignees",
+    // "collaborators",
     // Note: "property" and "unit" are defined in columns array but not included here,
     // so they default to hidden in the column filter modal
   ]);
@@ -500,6 +509,28 @@ export default function TaskWorkOrders({
           className="w-3.5 h-3.5"
           alt=""
         />
+      ),
+    },
+    {
+      key: "vendorName",
+      label: "Vendor Name",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M8 8C10.2091 8 12 6.20914 12 4C12 1.79086 10.2091 0 8 0C5.79086 0 4 1.79086 4 4C4 6.20914 5.79086 8 8 8Z"
+            fill="#525252"
+          />
+          <path
+            d="M8 9.33333C4.3181 9.33333 1.33333 12.3181 1.33333 16H14.6667C14.6667 12.3181 11.6819 9.33333 8 9.33333Z"
+            fill="#525252"
+          />
+        </svg>
       ),
     },
     {
@@ -600,18 +631,18 @@ export default function TaskWorkOrders({
         </svg>
       ),
     },
-    {
-      key: "billStatus",
-      label: "Bill Status",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
-    },
+    // {
+    //   key: "billStatus",
+    //   label: "Bill Status",
+    //   icon: (
+    //     <img
+    //       loading="lazy"
+    //       src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true"
+    //       style={{ width: "16px", height: "16px" }}
+    //       alt=""
+    //     />
+    //   ),
+    // },
     {
       key: "billTotal",
       label: "Bill Total",
@@ -624,96 +655,125 @@ export default function TaskWorkOrders({
         />
       ),
     },
-    {
-      key: "assignees",
-      label: "Assignees",
-      icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M11.4048 10.2586C11.5701 9.92957 11.9708 9.79684 12.2998 9.96212C13.3894 10.5095 14.3105 11.3809 14.9771 12.4547C15.0781 12.6174 15.2251 12.8346 15.2707 13.129C15.3196 13.4442 15.234 13.7456 15.1066 13.9748C14.9791 14.204 14.7681 14.4357 14.4745 14.5604C14.1954 14.679 13.8918 14.6666 13.6672 14.6666C13.299 14.6666 13.0005 14.3681 13.0005 13.9999C13.0005 13.6317 13.299 13.3333 13.6672 13.3333C13.8107 13.3333 13.8861 13.3328 13.9399 13.3292L13.9413 13.3267C13.9541 13.3038 13.8572 13.1788 13.8443 13.158C13.2961 12.2749 12.5529 11.5814 11.7013 11.1536C11.3723 10.9883 11.2395 10.5876 11.4048 10.2586Z"
-            fill="#525252"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M10.0702 2.01507C10.2341 1.68535 10.6342 1.55089 10.9639 1.71475C12.1696 2.31394 13.0005 3.55928 13.0005 4.99992C13.0005 6.44056 12.1696 7.6859 10.9639 8.28509C10.6342 8.44895 10.2341 8.31449 10.0702 7.98477C9.90635 7.65505 10.0408 7.25493 10.3705 7.09107C11.1404 6.70845 11.6672 5.91509 11.6672 4.99992C11.6672 4.08474 11.1404 3.29138 10.3705 2.90877C10.0408 2.74491 9.90635 2.34479 10.0702 2.01507Z"
-            fill="#525252"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M2.66722 4.99992C2.66722 2.97487 4.30884 1.33325 6.33388 1.33325C8.35893 1.33325 10.0005 2.97487 10.0005 4.99992C10.0005 7.02496 8.35893 8.66659 6.33388 8.66659C4.30884 8.66659 2.6672 7.02496 2.6672 4.99992ZM6.33388 2.66659C5.04329 2.66659 3.99388 3.71600 3.99388 4.99992C3.99388 6.28383 5.04329 7.33325 6.33388 7.33325C7.62447 7.33325 8.67388 6.28383 8.67388 4.99992C8.67388 3.71600 7.62447 2.66659 6.33388 2.66659Z"
-            fill="#525252"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M0.627876 12.5294C0.929752 11.0968 2.02832 10.0099 3.37879 9.98838C3.70161 9.98353 3.96906 10.2426 3.97391 10.5655C3.9793 10.8883 3.72017 11.1558 3.39734 11.1606C2.45699 11.1739 1.6467 11.7951 1.44281 12.6622C1.26924 13.3463 1.44826 14.0404 1.91496 14.5339C2.39069 15.0334 3.11181 15.2592 3.82835 15.1408C4.14462 15.0932 4.42827 15.3233 4.475 15.6396C4.52173 15.9558 4.29168 16.2395 3.9754 16.2871C2.84859 16.4595 1.66273 16.1396 0.91265 15.3648C0.175929 14.6078 -0.155717 13.5563 0.627876 12.5294Z"
-            fill="#525252"
-          />
-        </svg>
-      ),
-    },
-    {
-      key: "collaborators",
-      label: "Collaborators",
-      icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M11.4048 10.2586C11.5701 9.92957 11.9708 9.79684 12.2998 9.96212C13.3894 10.5095 14.3105 11.3809 14.9771 12.4547C15.0781 12.6174 15.2251 12.8346 15.2707 13.129C15.3196 13.4442 15.234 13.7456 15.1066 13.9748C14.9791 14.204 14.7681 14.4357 14.4745 14.5604C14.1954 14.679 13.8918 14.6666 13.6672 14.6666C13.299 14.6666 13.0005 14.3681 13.0005 13.9999C13.0005 13.6317 13.299 13.3333 13.6672 13.3333C13.8107 13.3333 13.8861 13.3328 13.9399 13.3292L13.9413 13.3267C13.9541 13.3038 13.8572 13.1788 13.8443 13.158C13.2961 12.2749 12.5529 11.5814 11.7013 11.1536C11.3723 10.9883 11.2395 10.5876 11.4048 10.2586Z"
-            fill="#525252"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M10.0702 2.01507C10.2341 1.68535 10.6342 1.55089 10.9639 1.71475C12.1696 2.31394 13.0005 3.55928 13.0005 4.99992C13.0005 6.44056 12.1696 7.6859 10.9639 8.28509C10.6342 8.44895 10.2341 8.31449 10.0702 7.98477C9.90635 7.65505 10.0408 7.25493 10.3705 7.09107C11.1404 6.70845 11.6672 5.91509 11.6672 4.99992C11.6672 4.08474 11.1404 3.29138 10.3705 2.90877C10.0408 2.74491 9.90635 2.34479 10.0702 2.01507Z"
-            fill="#525252"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M2.66722 4.99992C2.66722 2.97487 4.30884 1.33325 6.33388 1.33325C8.35893 1.33325 10.0005 2.97487 10.0005 4.99992C10.0005 7.02496 8.35893 8.66659 6.33388 8.66659C4.30884 8.66659 2.6672 7.02496 2.6672 4.99992ZM6.33388 2.66659C5.04329 2.66659 3.99388 3.71600 3.99388 4.99992C3.99388 6.28383 5.04329 7.33325 6.33388 7.33325C7.62447 7.33325 8.67388 6.28383 8.67388 4.99992C8.67388 3.71600 7.62447 2.66659 6.33388 2.66659Z"
-            fill="#525252"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M0.627876 12.5294C0.929752 11.0968 2.02832 10.0099 3.37879 9.98838C3.70161 9.98353 3.96906 10.2426 3.97391 10.5655C3.9793 10.8883 3.72017 11.1558 3.39734 11.1606C2.45699 11.1739 1.6467 11.7951 1.44281 12.6622C1.26924 13.3463 1.44826 14.0404 1.91496 14.5339C2.39069 15.0334 3.11181 15.2592 3.82835 15.1408C4.14462 15.0932 4.42827 15.3233 4.475 15.6396C4.52173 15.9558 4.29168 16.2395 3.9754 16.2871C2.84859 16.4595 1.66273 16.1396 0.91265 15.3648C0.175929 14.6078 -0.155717 13.5563 0.627876 12.5294Z"
-            fill="#525252"
-          />
-        </svg>
-      ),
-    },
+    // {
+    //   key: "assignees",
+    //   label: "Assignees",
+    //   icon: (
+    //     <svg
+    //       width="16"
+    //       height="16"
+    //       viewBox="0 0 16 16"
+    //       fill="none"
+    //       xmlns="http://www.w3.org/2000/svg"
+    //     >
+    //       <path
+    //         fillRule="evenodd"
+    //         clipRule="evenodd"
+    //         d="M11.4048 10.2586C11.5701 9.92957 11.9708 9.79684 12.2998 9.96212C13.3894 10.5095 14.3105 11.3809 14.9771 12.4547C15.0781 12.6174 15.2251 12.8346 15.2707 13.129C15.3196 13.4442 15.234 13.7456 15.1066 13.9748C14.9791 14.204 14.7681 14.4357 14.4745 14.5604C14.1954 14.679 13.8918 14.6666 13.6672 14.6666C13.299 14.6666 13.0005 14.3681 13.0005 13.9999C13.0005 13.6317 13.299 13.3333 13.6672 13.3333C13.8107 13.3333 13.8861 13.3328 13.9399 13.3292L13.9413 13.3267C13.9541 13.3038 13.8572 13.1788 13.8443 13.158C13.2961 12.2749 12.5529 11.5814 11.7013 11.1536C11.3723 10.9883 11.2395 10.5876 11.4048 10.2586Z"
+    //         fill="#525252"
+    //       />
+    //       <path
+    //         fillRule="evenodd"
+    //         clipRule="evenodd"
+    //         d="M10.0702 2.01507C10.2341 1.68535 10.6342 1.55089 10.9639 1.71475C12.1696 2.31394 13.0005 3.55928 13.0005 4.99992C13.0005 6.44056 12.1696 7.6859 10.9639 8.28509C10.6342 8.44895 10.2341 8.31449 10.0702 7.98477C9.90635 7.65505 10.0408 7.25493 10.3705 7.09107C11.1404 6.70845 11.6672 5.91509 11.6672 4.99992C11.6672 4.08474 11.1404 3.29138 10.3705 2.90877C10.0408 2.74491 9.90635 2.34479 10.0702 2.01507Z"
+    //         fill="#525252"
+    //       />
+    //       <path
+    //         fillRule="evenodd"
+    //         clipRule="evenodd"
+    //         d="M2.66722 4.99992C2.66722 2.97487 4.30884 1.33325 6.33388 1.33325C8.35893 1.33325 10.0005 2.97487 10.0005 4.99992C10.0005 7.02496 8.35893 8.66659 6.33388 8.66659C4.30884 8.66659 2.6672 7.02496 2.6672 4.99992ZM6.33388 2.66659C5.04329 2.66659 3.99388 3.71600 3.99388 4.99992C3.99388 6.28383 5.04329 7.33325 6.33388 7.33325C7.62447 7.33325 8.67388 6.28383 8.67388 4.99992C8.67388 3.71600 7.62447 2.66659 6.33388 2.66659Z"
+    //         fill="#525252"
+    //       />
+    //       <path
+    //         fillRule="evenodd"
+    //         clipRule="evenodd"
+    //         d="M0.627876 12.5294C0.929752 11.0968 2.02832 10.0099 3.37879 9.98838C3.70161 9.98353 3.96906 10.2426 3.97391 10.5655C3.9793 10.8883 3.72017 11.1558 3.39734 11.1606C2.45699 11.1739 1.6467 11.7951 1.44281 12.6622C1.26924 13.3463 1.44826 14.0404 1.91496 14.5339C2.39069 15.0334 3.11181 15.2592 3.82835 15.1408C4.14462 15.0932 4.42827 15.3233 4.475 15.6396C4.52173 15.9558 4.29168 16.2395 3.9754 16.2871C2.84859 16.4595 1.66273 16.1396 0.91265 15.3648C0.175929 14.6078 -0.155717 13.5563 0.627876 12.5294Z"
+    //         fill="#525252"
+    //       />
+    //     </svg>
+    //   ),
+    // },
+    // {
+    //   key: "collaborators",
+    //   label: "Collaborators",
+    //   icon: (
+    //     <svg
+    //       width="16"
+    //       height="16"
+    //       viewBox="0 0 16 16"
+    //       fill="none"
+    //       xmlns="http://www.w3.org/2000/svg"
+    //     >
+    //       <path
+    //         fillRule="evenodd"
+    //         clipRule="evenodd"
+    //         d="M11.4048 10.2586C11.5701 9.92957 11.9708 9.79684 12.2998 9.96212C13.3894 10.5095 14.3105 11.3809 14.9771 12.4547C15.0781 12.6174 15.2251 12.8346 15.2707 13.129C15.3196 13.4442 15.234 13.7456 15.1066 13.9748C14.9791 14.204 14.7681 14.4357 14.4745 14.5604C14.1954 14.679 13.8918 14.6666 13.6672 14.6666C13.299 14.6666 13.0005 14.3681 13.0005 13.9999C13.0005 13.6317 13.299 13.3333 13.6672 13.3333C13.8107 13.3333 13.8861 13.3328 13.9399 13.3292L13.9413 13.3267C13.9541 13.3038 13.8572 13.1788 13.8443 13.158C13.2961 12.2749 12.5529 11.5814 11.7013 11.1536C11.3723 10.9883 11.2395 10.5876 11.4048 10.2586Z"
+    //         fill="#525252"
+    //       />
+    //       <path
+    //         fillRule="evenodd"
+    //         clipRule="evenodd"
+    //         d="M10.0702 2.01507C10.2341 1.68535 10.6342 1.55089 10.9639 1.71475C12.1696 2.31394 13.0005 3.55928 13.0005 4.99992C13.0005 6.44056 12.1696 7.6859 10.9639 8.28509C10.6342 8.44895 10.2341 8.31449 10.0702 7.98477C9.90635 7.65505 10.0408 7.25493 10.3705 7.09107C11.1404 6.70845 11.6672 5.91509 11.6672 4.99992C11.6672 4.08474 11.1404 3.29138 10.3705 2.90877C10.0408 2.74491 9.90635 2.34479 10.0702 2.01507Z"
+    //         fill="#525252"
+    //       />
+    //       <path
+    //         fillRule="evenodd"
+    //         clipRule="evenodd"
+    //         d="M2.66722 4.99992C2.66722 2.97487 4.30884 1.33325 6.33388 1.33325C8.35893 1.33325 10.0005 2.97487 10.0005 4.99992C10.0005 7.02496 8.35893 8.66659 6.33388 8.66659C4.30884 8.66659 2.6672 7.02496 2.6672 4.99992ZM6.33388 2.66659C5.04329 2.66659 3.99388 3.71600 3.99388 4.99992C3.99388 6.28383 5.04329 7.33325 6.33388 7.33325C7.62447 7.33325 8.67388 6.28383 8.67388 4.99992C8.67388 3.71600 7.62447 2.66659 6.33388 2.66659Z"
+    //         fill="#525252"
+    //       />
+    //       <path
+    //         fillRule="evenodd"
+    //         clipRule="evenodd"
+    //         d="M0.627876 12.5294C0.929752 11.0968 2.02832 10.0099 3.37879 9.98838C3.70161 9.98353 3.96906 10.2426 3.97391 10.5655C3.9793 10.8883 3.72017 11.1558 3.39734 11.1606C2.45699 11.1739 1.6467 11.7951 1.44281 12.6622C1.26924 13.3463 1.44826 14.0404 1.91496 14.5339C2.39069 15.0334 3.11181 15.2592 3.82835 15.1408C4.14462 15.0932 4.42827 15.3233 4.475 15.6396C4.52173 15.9558 4.29168 16.2395 3.9754 16.2871C2.84859 16.4595 1.66273 16.1396 0.91265 15.3648C0.175929 14.6078 -0.155717 13.5563 0.627876 12.5294Z"
+    //         fill="#525252"
+    //       />
+    //     </svg>
+    //   ),
+    // },
   ];
 
   const handleDeleteWorkOrder = useCallback(
-    (workOrder: WorkOrder) => {
-      onWorkOrdersChange(workOrders.filter((wo) => wo.id !== workOrder.id));
+    async (workOrder: WorkOrder) => {
+      try {
+        // Call the delete endpoint - same as in MaintenanceWorkOrders page
+        await fetchJSON(`/maintenance/work-orders?id=${workOrder.id}`, {
+          method: "DELETE",
+        });
+        
+        // Update local state
+        onWorkOrdersChange(workOrders.filter((wo) => wo.id !== workOrder.id));
+        
+        // Refetch work orders if refetch function is available
+        if (onRefetchWorkOrders) {
+          try {
+            await onRefetchWorkOrders();
+          } catch (error) {
+            console.error("Error refetching work orders after delete:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error deleting work order:", error);
+        // Optionally show an error message to the user
+        alert("Failed to delete work order. Please try again.");
+      }
     },
-    [workOrders, onWorkOrdersChange],
+    [workOrders, onWorkOrdersChange, onRefetchWorkOrders],
   );
 
   const handleEditWorkOrder = useCallback(
     (workOrder: WorkOrder) => {
-      navigate(`/tasks/${workOrder.taskId}/workorders/${workOrder.id}`);
+      // Preserve navigation state when navigating to work order details
+      const currentState = (location.state as any) || {};
+      navigate(`/tasks/${taskId}/workorders/${workOrder.id}`, {
+        state: {
+          ...currentState,
+          taskData: currentState.taskData || currentState.task,
+          task: currentState.task || currentState.taskData,
+        },
+      });
     },
-    [navigate],
+    [navigate, taskId, location.state],
   );
 
   return (
@@ -725,7 +785,12 @@ export default function TaskWorkOrders({
         actionIcon={<Plus className="w-5 h-5" />}
         onActionClick={() => setIsCreateWorkOrderModalOpen(true)}
       >
-        {/* Work Orders Table - Using GlobalTable Component */}
+        {workOrders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <p className="text-[#71717A] text-sm font-medium">No work orders yet</p>
+            <p className="text-[#A1A1A9] text-sm mt-1">Work orders you create or link to this task will appear here.</p>
+          </div>
+        ) : (
         <GlobalTable
           columns={columns}
           data={workOrders}
@@ -733,6 +798,13 @@ export default function TaskWorkOrders({
           renderCell={(workOrder, columnKey) => {
             if (columnKey === "priority") {
               return <TaskPriorityBadge priority={workOrder.priority as any} />;
+            }
+            if (columnKey === "vendorName") {
+              return (
+                <span className="text-gray-900 font-normal text-sm truncate">
+                  {workOrder.vendorName || "—"}
+                </span>
+              );
             }
             if (columnKey === "task") {
               return (
@@ -779,26 +851,26 @@ export default function TaskWorkOrders({
                 </span>
               );
             }
-            if (columnKey === "billStatus") {
-              return (
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{
-                      backgroundColor:
-                        workOrder.billStatus === "Paid"
-                          ? "#059669"
-                          : workOrder.billStatus === "Unpaid"
-                            ? "#DC2626"
-                            : "#D97706",
-                    }}
-                  />
-                  <span className="text-gray-900 font-normal text-sm capitalize">
-                    {workOrder.billStatus}
-                  </span>
-                </div>
-              );
-            }
+            // if (columnKey === "billStatus") {
+            //   return (
+            //     <div className="flex items-center gap-2">
+            //       <div
+            //         className="w-2 h-2 rounded-full"
+            //         style={{
+            //           backgroundColor:
+            //             workOrder.billStatus === "Paid"
+            //               ? "#059669"
+            //               : workOrder.billStatus === "Unpaid"
+            //                 ? "#DC2626"
+            //                 : "#D97706",
+            //         }}
+            //       />
+            //       <span className="text-gray-900 font-normal text-sm capitalize">
+            //         {workOrder.billStatus}
+            //       </span>
+            //     </div>
+            //   );
+            // }
             if (columnKey === "billTotal") {
               return (
                 <span className="text-gray-900 font-normal text-sm">
@@ -806,26 +878,26 @@ export default function TaskWorkOrders({
                 </span>
               );
             }
-            if (columnKey === "assignees") {
-              return (
-                <PersonAvatars
-                  people={workOrder.assignees}
-                  type="assignee"
-                  fallback="None"
-                  size="sm"
-                />
-              );
-            }
-            if (columnKey === "collaborators") {
-              return (
-                <PersonAvatars
-                  people={workOrder.collaborators}
-                  type="collaborator"
-                  fallback="None"
-                  size="sm"
-                />
-              );
-            }
+            // if (columnKey === "assignees") {
+            //   return (
+            //     <PersonAvatars
+            //       people={workOrder.assignees}
+            //       type="assignee"
+            //       fallback="None"
+            //       size="sm"
+            //     />
+            //   );
+            // }
+            // if (columnKey === "collaborators") {
+            //   return (
+            //     <PersonAvatars
+            //       people={workOrder.collaborators}
+            //       type="collaborator"
+            //       fallback="None"
+            //       size="sm"
+            //     />
+            //   );
+            // }
             return null;
           }}
           sortingHook={{
@@ -893,12 +965,20 @@ export default function TaskWorkOrders({
             },
           ]}
           onRowClick={(workOrder) => {
-            // Navigate to work order details - the URL change will drive state updates via effects
-            navigate(`/tasks/${taskId}/workorders/${workOrder.id}`);
+            // Navigate to work order details - preserve navigation state
+            const currentState = (location.state as any) || {};
+            navigate(`/tasks/${taskId}/workorders/${workOrder.id}`, {
+              state: {
+                ...currentState,
+                taskData: currentState.taskData || currentState.task,
+                task: currentState.task || currentState.taskData,
+              },
+            });
           }}
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
         />
+        )}
       </HeaderV1>
 
       {/* Create Work Order Modal */}
@@ -912,8 +992,22 @@ export default function TaskWorkOrders({
         }}
         hideTaskSelection={true}
         hideSubheader={true}
+        taskId={taskId ? parseInt(taskId) : undefined}
+        propertyId={propertyId}
+        requestedBy={requestedBy}
         initialData={{
           task: defaultTask,
+        }}
+        onWorkOrderCreated={async (workOrder) => {
+          // Refresh work orders list in the background
+          console.log("Work order created:", workOrder);
+          if (onRefetchWorkOrders) {
+            try {
+              await onRefetchWorkOrders();
+            } catch (error) {
+              console.error("Error refetching work orders:", error);
+            }
+          }
         }}
         onDataUpdate={(data) => {
           const newId =
@@ -988,10 +1082,15 @@ export default function TaskWorkOrders({
           }
           // Close the modal
           setIsCreateWorkOrderModalOpen(false);
-          // Navigate to the new work order details, passing the work order data through state
-          // Keep the Date object in navigation state so it renders correctly immediately
-          navigate(`/tasks/${taskId}/workorders/${newId}`, {
-            state: { newWorkOrder },
+          // Navigate to the work orders list page
+          // Preserve existing navigation state (task data)
+          const currentState = (location.state as any) || {};
+          navigate(`/tasks/${taskId}/workorders`, {
+            state: {
+              ...currentState,
+              taskData: currentState.taskData || currentState.task,
+              task: currentState.task || currentState.taskData,
+            },
           });
         }}
       />

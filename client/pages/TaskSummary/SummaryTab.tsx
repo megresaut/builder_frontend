@@ -16,22 +16,10 @@ import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
 import type { File } from "@/components/templates";
 
-const vendorMasterData: Record<string, { id: number }> = {
-  "ABC Doors & Hardware": { id: 1 },
-  "Elite HVAC Services": { id: 2 },
-  "Glass & Frames Inc": { id: 3 },
-  "Pro Roofing Solutions": { id: 4 },
-  "Dolce Plumbing & Heating LLC": { id: 5 },
-  "Spark Electrical": { id: 6 },
-  "Premium Painters Co": { id: 7 },
-  "Quality Flooring LLC": { id: 8 },
-  "Green Lawn Services": { id: 9 },
-  "Outdoor Construction Corp": { id: 10 },
-};
-
-const getVendorHref = (vendorName: string): string | undefined => {
-  const vendorId = vendorMasterData[vendorName]?.id;
-  return vendorId ? `/vendors/${vendorId}` : undefined;
+// Helper function to get vendor href from vendor ID
+const getVendorHref = (vendorId: number | string): string | undefined => {
+  if (!vendorId) return undefined;
+  return `/vendors/${vendorId}`;
 };
 
 // Helper function to format role from snake_case to Title Case
@@ -157,14 +145,12 @@ export default function SummaryTab({
   const calculateTotalExpense = () => {
     let total = 0;
 
-    // Sum work order bill totals
+    // Sum work order bill totals (from bill_total_cents)
     workOrders.forEach((wo) => {
-      if (wo.billTotal) {
-        // Parse billTotal string like "$420" or "$0.00"
-        const amount = parseFloat(wo.billTotal.replace(/[$,]/g, ""));
-        if (!isNaN(amount)) {
-          total += amount;
-        }
+      // Check if bill_total_cents exists and is a number
+      if (wo.bill_total_cents != null && typeof wo.bill_total_cents === "number" && wo.bill_total_cents > 0) {
+        // Convert cents to dollars
+        total += wo.bill_total_cents / 100;
       }
     });
 
@@ -366,6 +352,7 @@ export default function SummaryTab({
                 type: "collaborator",
                 onAction: onEditTask,
                 actionLabel: "Edit",
+                emptyMessage: "No collaborators assigned yet.",
               },
               {
                 label: "Vendors",
@@ -376,9 +363,9 @@ export default function SummaryTab({
                   initials: vendor.initials,
                   email: vendor.email,
                   roleLabel: vendor.title || "Vendor Company",
-                  phone: "",
+                  phone: vendor.phone,
                   type: "vendor",
-                  href: getVendorHref(vendor.name),
+                  href: getVendorHref(vendor.id),
                 })),
                 showRoleLabel: true,
                 showPhone: true,

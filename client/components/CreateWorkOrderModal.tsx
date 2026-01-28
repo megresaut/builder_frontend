@@ -29,6 +29,9 @@ interface CreateWorkOrderModalProps {
     priority: string;
     status: string;
   };
+  /** When opening for create, preselect this property (e.g. from property page). */
+  defaultPropertyId?: number;
+  defaultPropertyLabel?: string;
 }
 
 const AVAILABLE_ASSIGNEES: Assignee[] = [
@@ -43,6 +46,8 @@ export default function CreateWorkOrderModal({
   open,
   onOpenChange,
   editData,
+  defaultPropertyId,
+  defaultPropertyLabel,
 }: CreateWorkOrderModalProps) {
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [property, setProperty] = useState("");
@@ -120,6 +125,12 @@ export default function CreateWorkOrderModal({
       setStatus(editData.status === "In progress" ? "inprogress" : "completed");
     }
   }, [editData]);
+
+  useEffect(() => {
+    if (open && !editData && defaultPropertyId != null && defaultPropertyLabel) {
+      setProperty(`default-${defaultPropertyId}`);
+    }
+  }, [open, editData, defaultPropertyId, defaultPropertyLabel]);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -304,6 +315,11 @@ export default function CreateWorkOrderModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
+                    {defaultPropertyId != null && defaultPropertyLabel && (
+                      <SelectItem value={`default-${defaultPropertyId}`}>
+                        {defaultPropertyLabel}
+                      </SelectItem>
+                    )}
                     <SelectItem value="property1">
                       22 Indian Chase Dr
                     </SelectItem>

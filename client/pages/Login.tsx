@@ -88,7 +88,7 @@ export const Login = () => {
       if (result.role === "field_team_member") {
         navigate("/fto", { replace: true });
       } else {
-        navigate("/all-properties", { replace: true });
+        navigate("/", { replace: true });
       }
       console.log("LOGIN RESULT:", result);
     } catch (err: any) {

@@ -31,6 +31,7 @@ interface PeopleSubsectionProps {
   activeTab?: number;
   hideHeaderOnTab?: number | number[];
   type?: "assignee" | "collaborator";
+  emptyMessage?: string;
 }
 
 /**
@@ -60,10 +61,10 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
   actionNode,
   density = "default",
   alignBody = "left",
-  showSecondaryMetaColumn = false,
   activeTab = 0,
   hideHeaderOnTab,
   type = "assignee",
+  emptyMessage,
 }) => {
   const navigate = useNavigate();
 
@@ -125,7 +126,10 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
             "gap-2": density === "compact",
           })}
         >
-          {filteredPeople.map((person, idx) => (
+          {filteredPeople.length === 0 && emptyMessage ? (
+            <p className="text-sm text-[#71717A] mt-1">{emptyMessage}</p>
+          ) : (
+          filteredPeople.map((person, idx) => (
             <div
               key={`${person.id}-${idx}`}
               className="flex items-center justify-between gap-3 flex-wrap group/row relative"
@@ -194,7 +198,7 @@ export const PeopleSubsection: React.FC<PeopleSubsectionProps> = ({
                 </div>
               </div>
             </div>
-          ))}
+          ))) }
         </div>
       )}
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import {
   EditIcon,
@@ -13,7 +14,12 @@ import { SectionActionTemplate } from "@/components/templates";
 import PageTemplate from "@/layout/PageTemplate";
 import WorkOrders from "../WorkOrders";
 import TaskWorkOrders from "./TaskWorkOrders";
-import TaskFieldTeamOrders from "./TaskFieldTeamOrders";
+import TaskFieldTeamOrders, {
+  APIFTOResponse,
+  FieldTeamOrder,
+  UserDirectoryEntry,
+  transformAPIToFieldTeamOrders,
+} from "./TaskFieldTeamOrders";
 import WorkOrderDetailsV2 from "./WorkOrderDetailsV2";
 import SummaryTab from "./SummaryTab";
 import TaskSummaryModals from "./TaskSummaryModals";
@@ -30,6 +36,7 @@ import PersonAvatars from "@/components/PersonAvatars";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import CreateTaskModal from "@/components/CreateTaskModal";
+import { formatUnitLabel } from "@/utils/unitLabel";
 import {
   AddNoteModal,
   AddFileModal,
@@ -361,15 +368,95 @@ export default function TaskSummary() {
     return MOCK_TASKS.find((t) => String(t.id) === taskId);
   }, [taskId]);
 
-  // Use either provided task data or find it from MOCK_TASKS
-  const taskData =
-    navigationState?.taskData || navigationState?.task || existingTask;
+  // State for fetched task data
+  const [fetchedTaskData, setFetchedTaskData] = useState<any>(null);
+  const [isFetchingTaskData, setIsFetchingTaskData] = useState(false);
+  
+  // Ref to track the last fetched taskId to prevent duplicate fetches
+  const lastFetchedTaskIdRef = useRef<string | null>(null);
 
-  // Log taskData when component opens
+  // Function to fetch task data from API (can be called manually to refresh)
+  const refetchTaskData = useCallback(async () => {
+    if (!taskId) return;
+    
+    try {
+      setIsFetchingTaskData(true);
+      const apiTask = await fetchJSON(`/maintenance/tasks/${taskId}`);
+      if (apiTask) {
+        // Format property display string (same format as used in EditTaskDetailsModal)
+        // The modal uses: property_name || [address_line1, city, state].filter(Boolean).join(", ") || `Property #${id}`
+        const propertyDisplay = apiTask.property_name || 
+          (apiTask.property_address ? apiTask.property_address : `Property #${apiTask.property_id}`);
+        
+        // Transform API response to match expected format
+        const refreshedData = {
+          id: apiTask.id,
+          title: apiTask.name || apiTask.title,
+          name: apiTask.name,
+          description: apiTask.description,
+          status: apiTask.status,
+          priority: apiTask.priority,
+          category: apiTask.category,
+          property_id: apiTask.property_id,
+          property_name: apiTask.property_name,
+          property_address: apiTask.property_address,
+          property: propertyDisplay, // Add property field for display
+          unit_id: apiTask.unit_id,
+          unit: formatUnitLabel({
+            unitId: apiTask.unit_id ?? apiTask.unit,
+            unitName: apiTask.unit_name ?? apiTask.unit,
+            fallback: "",
+          }),
+          dueDate: apiTask.due_date,
+          due_date: apiTask.due_date,
+          createdAt: apiTask.date_requested,
+          updated: apiTask.last_updated,
+          requested_by: apiTask.requested_by,
+          assignees: apiTask.assignees || [],
+          collaborators: apiTask.collaborators || [],
+          attachments: apiTask.attachments || [],
+        };
+        
+        setFetchedTaskData(refreshedData);
+        lastFetchedTaskIdRef.current = taskId;
+      }
+    } catch (error) {
+      console.error("Failed to fetch task data:", error);
+      // If API fetch fails, we'll fall back to existingTask or MOCK_TASKS
+    } finally {
+      setIsFetchingTaskData(false);
+    }
+  }, [taskId]);
+
+  // Always fetch fresh task data from API on mount/route change to ensure we have latest data
   useEffect(() => {
-    console.log("TaskSummary taskData:", taskData);
-    console.log("TaskSummary requested_by:", taskData?.requested_by);
-  }, [taskData]);
+    // Only fetch if:
+    // 1. taskId exists
+    // 2. We're not already fetching
+    // 3. We haven't already fetched this taskId (or taskId changed)
+    if (taskId && !isFetchingTaskData && lastFetchedTaskIdRef.current !== taskId) {
+      refetchTaskData();
+    }
+  }, [taskId, refetchTaskData]); // Removed isFetchingTaskData from dependencies to prevent loop
+
+  // Use either provided task data, fetched data, or find it from MOCK_TASKS
+  // Prefer fetchedTaskData if it exists (after manual refetch) to ensure fresh data
+  const taskData =
+    fetchedTaskData ||
+    navigationState?.taskData || 
+    navigationState?.task || 
+    existingTask;
+
+  // Log taskData when component opens (only once per taskId change)
+  const lastLoggedTaskIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    // Only log when taskId changes, not on every taskData update
+    if (taskId && lastLoggedTaskIdRef.current !== taskId) {
+      console.log("TaskSummary taskData:", taskData);
+      console.log("TaskSummary requested_by:", taskData?.requested_by);
+      lastLoggedTaskIdRef.current = taskId;
+    }
+  }, [taskId, taskData]);
 
   // Ref for tracking blob URLs created during task initialization
   const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
@@ -384,21 +471,33 @@ export default function TaskSummary() {
 
   // Initialize activeTab and selectedWorkOrderId from URL params on mount and when URL changes
   useEffect(() => {
-    const tabValue =
-      (tab as "summary" | "workorders" | "fieldteam") || "summary";
+    // If workOrderId is present but tab is not, we're on the workorders tab
+    // Also check if the path ends with /workorders to determine the tab
+    const pathEndsWithWorkorders = location.pathname.endsWith('/workorders') && !workOrderId;
+    const tabValue = workOrderId && !tab
+      ? "workorders"
+      : pathEndsWithWorkorders
+      ? "workorders"
+      : (tab as "summary" | "workorders" | "fieldteam") || "summary";
     if (tabValue !== uiState.activeTab) {
       uiDispatch({ type: "SET_ACTIVE_TAB", payload: tabValue });
     }
 
     // Use URL workOrderId if available (on workorders tab with a selection)
     // Otherwise use preserved ID from location state (when returning from other tabs)
-    const urlId = workOrderId
-      ? parseInt(workOrderId)
-      : navigationState?.preservedWorkOrderId || null;
+    // If preservedWorkOrderId is explicitly null in navigation state, clear the selection
+    let urlId: number | null = null;
+    if (workOrderId) {
+      urlId = parseInt(workOrderId);
+    } else if (navigationState?.preservedWorkOrderId !== undefined) {
+      // If preservedWorkOrderId is explicitly set (including null), use it
+      urlId = navigationState.preservedWorkOrderId;
+    }
+    
     if (urlId !== uiState.selectedWorkOrderId) {
       uiDispatch({ type: "SET_SELECTED_WORK_ORDER_ID", payload: urlId });
     }
-  }, [tab, workOrderId, navigationState?.preservedWorkOrderId, uiDispatch]);
+  }, [tab, workOrderId, navigationState?.preservedWorkOrderId, uiDispatch, location.pathname, uiState.selectedWorkOrderId]);
 
   // Sync state to URL when tab changes (from user clicking tab button)
   // This happens when handleTabChange calls navigate, then this ensures state is synced
@@ -410,13 +509,20 @@ export default function TaskSummary() {
     We only need to handle the case where no tab is selected (redirect to summary).
   */
   useEffect(() => {
-    if (!tab && taskId) {
+    // Don't redirect if we have a workOrderId (we're on workorders tab) or if tab is already set
+    if (!tab && !workOrderId && taskId) {
+      // Preserve task data when redirecting
+      const preservedState = {
+        ...navigationState,
+        taskData: taskData || navigationState?.taskData || navigationState?.task || fetchedTaskData,
+        task: taskData || navigationState?.task || navigationState?.taskData || fetchedTaskData,
+      };
       navigate(`/tasks/${taskId}/summary`, {
         replace: true,
-        state: navigationState, // Preserve the navigation state when redirecting
+        state: preservedState, // Preserve the navigation state when redirecting
       });
     }
-  }, [tab, taskId, navigate, navigationState]);
+  }, [tab, workOrderId, taskId, navigate, navigationState, taskData, fetchedTaskData]);
 
   // Handle FTO approval/rejection return state
   useEffect(() => {
@@ -996,7 +1102,8 @@ export default function TaskSummary() {
         // For multipart/form-data, we need to use fetch directly (not fetchJSON)
         // because fetchJSON sets Content-Type: application/json, but we need the browser
         // to set Content-Type with boundary for multipart/form-data
-        const API_BASE = "http://localhost:8080";
+        // const API_BASE = "http://localhost:8080";
+        const API_BASE = "/api";
         const uploadRes = await fetch(`${API_BASE}/maintenance/tasks/attachments/upload`, {
           method: "POST",
           credentials: "include",
@@ -1372,7 +1479,13 @@ export default function TaskSummary() {
   const [currentPropertyId, setCurrentPropertyId] = useState<number | undefined>(
     taskData?.property_id,
   );
-  const [currentUnit, setCurrentUnit] = useState<string>(taskData?.unit || "");
+  const [currentUnit, setCurrentUnit] = useState<string>(
+    formatUnitLabel({
+      unitId: taskData?.unit_id ?? taskData?.unit,
+      unitName: taskData?.unit_name ?? taskData?.unit,
+      fallback: "",
+    }),
+  );
   const [currentUnitId, setCurrentUnitId] = useState<number | undefined>(
     taskData?.unit_id,
   );
@@ -1431,13 +1544,7 @@ export default function TaskSummary() {
       if (taskData?.collaborators && taskData.collaborators.length > 0) {
         return taskData.collaborators;
       }
-      return isNewTask
-        ? []
-        : [
-            hydratePerson({ id: 2, name: "Chris Henry", initials: "CH" }),
-            hydratePerson({ id: 3, name: "Connor Smith", initials: "CS" }),
-            hydratePerson({ id: 8, name: "Sarah Martinez", initials: "SM" }),
-          ];
+      return [];
     },
   );
 
@@ -1449,7 +1556,49 @@ export default function TaskSummary() {
     if (typeof taskData?.priority === "string") {
       setCurrentPriority(normalizePriorityForBadge(taskData.priority));
     }
-  }, [taskData?.status, taskData?.priority, normalizeStatusForBadge, normalizePriorityForBadge]);
+    // Sync title and other fields when taskData changes (to preserve live task info)
+    if (taskData?.title && taskData.title !== currentTitle) {
+      setCurrentTitle(taskData.title);
+    }
+    if (taskData?.description !== undefined && taskData.description !== currentDescription) {
+      setCurrentDescription(taskData.description);
+    }
+    if (taskData?.category !== undefined && taskData.category !== currentCategory) {
+      setCurrentCategory(taskData.category);
+    }
+    if (taskData?.property !== undefined && taskData.property !== currentProperty) {
+      setCurrentProperty(taskData.property);
+    }
+    if (taskData?.property_id !== undefined && taskData.property_id !== currentPropertyId) {
+      setCurrentPropertyId(taskData.property_id);
+    }
+    if (taskData?.unit !== undefined || taskData?.unit_id !== undefined) {
+      const nextUnitLabel = formatUnitLabel({
+        unitId: taskData?.unit_id ?? taskData?.unit,
+        unitName: taskData?.unit_name ?? taskData?.unit,
+        fallback: "",
+      });
+      if (nextUnitLabel !== currentUnit) {
+        setCurrentUnit(nextUnitLabel);
+      }
+    }
+    if (taskData?.unit_id !== undefined && taskData.unit_id !== currentUnitId) {
+      setCurrentUnitId(taskData.unit_id);
+    }
+    // Sync due date when taskData changes
+    if (taskData?.dueDate || taskData?.due_date) {
+      const rawDueDate = taskData.dueDate || taskData.due_date;
+      if (rawDueDate) {
+        const date = new Date(rawDueDate);
+        if (!isNaN(date.getTime())) {
+          setCurrentDueDate(date);
+        }
+      }
+    } else if (taskData && !taskData.dueDate && !taskData.due_date) {
+      // Clear due date if it's not in the refreshed data
+      setCurrentDueDate(null);
+    }
+  }, [taskData?.status, taskData?.priority, taskData, currentTitle, currentDescription, currentCategory, currentProperty, currentPropertyId, currentUnit, currentUnitId, normalizeStatusForBadge, normalizePriorityForBadge]);
 
   const loadUpdatesFromDb = useCallback(async () => {
     if (!taskId) return;
@@ -1579,7 +1728,7 @@ export default function TaskSummary() {
     if (taskData?.assignees && taskData.assignees.length > 0) {
       setCurrentAssignees(taskData.assignees);
     }
-    if (taskData?.collaborators && taskData.collaborators.length > 0) {
+    if (taskData?.collaborators !== undefined) {
       setCurrentCollaborators(taskData.collaborators);
     }
   }, [taskData?.assignees, taskData?.collaborators]);
@@ -1604,394 +1753,271 @@ export default function TaskSummary() {
     status: string;
     billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
     billTotal: string;
+    bill_total_cents?: number;
     assignees: Assignee[];
     collaborators: Assignee[];
     vendorName?: string;
+    vendorId?: number;
+    vendorEmail?: string;
+    vendorPhone?: string;
   }
 
-  // Mock work orders data - memoized to ensure hydratePerson is available
-  const mockWorkOrders: WorkOrder[] = useMemo(
-    () => [
-      {
-        id: 1,
-        task: "Doors need to be repaired",
-        taskId: 1,
-        property: "Downtown Building",
-        unit: "Unit 101",
-        dueDate: "Oct 2, 2025",
-        updatedDate: "Oct 2, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "in_progress",
-        billStatus: "Paid",
-        billTotal: "$420",
-        assignees: [
-          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-        ],
-        vendorName: "ABC Doors & Hardware",
+  // Helper function to calculate age from dates
+  const calculateAge = (date: Date | string | null): string => {
+    if (!date) return "Unknown";
+    try {
+      const now = new Date();
+      const then = typeof date === "string" ? new Date(date) : date;
+      
+      if (isNaN(then.getTime())) {
+        return "Unknown";
+      }
+      
+      const diffMs = now.getTime() - then.getTime();
+      if (diffMs < 0) return "Just now";
+      
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      
+      if (diffDays > 0) {
+        return `${diffDays} day${diffDays !== 1 ? "s" : ""}`;
+      }
+      if (diffHours > 0) {
+        return `${diffHours} hour${diffHours !== 1 ? "s" : ""}`;
+      }
+      return "Just now";
+    } catch (error) {
+      console.warn('Error calculating age:', error);
+      return "Unknown";
+    }
+  };
+
+  // Helper function to format date
+  const formatDate = (date: Date | string | null): string => {
+    if (!date) return "No date";
+    try {
+      const d = typeof date === "string" ? new Date(date) : date;
+      if (isNaN(d.getTime())) {
+        return "No date";
+      }
+      return d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch (error) {
+      console.warn('Error formatting date:', error);
+      return "No date";
+    }
+  };
+
+  const formatBillTotal = (billTotalCents?: number | null): string => {
+    if (typeof billTotalCents !== "number" || billTotalCents <= 0) {
+      return "No invoice";
+    }
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(billTotalCents / 100);
+  };
+
+  // Map API work order response to WorkOrder interface
+  const mapApiWorkOrderToWorkOrder = (apiWo: any, taskUnit?: string): WorkOrder => {
+    if (!apiWo || typeof apiWo !== 'object') {
+      throw new Error('Invalid work order data');
+    }
+
+    // Safely parse and format dates
+    const dueDateStr = formatDate(apiWo.due_date);
+    const updatedDateStr = formatDate(apiWo.updated_at);
+    
+    // Safely get age
+    const ageDate = apiWo.created_at || apiWo.updated_at;
+    const age = ageDate ? calculateAge(ageDate) : "Unknown";
+    
+    const mapped = {
+      id: Number(apiWo.id) || 0,
+      task: String(apiWo.name || "Untitled Work Order"),
+      taskId: Number(apiWo.task_id) || 0,
+      property: String(apiWo.property_name || "Unknown Property"),
+      unit: String(taskUnit || "N/A"),
+      dueDate: dueDateStr,
+      updatedDate: updatedDateStr,
+      age: age,
+      priority: String(apiWo.priority || "normal"),
+      status: String(apiWo.status || "not_started"),
+      billStatus: "Awaiting Invoice" as const,
+      billTotal: formatBillTotal(apiWo.bill_total_cents),
+      bill_total_cents:
+        typeof apiWo.bill_total_cents === "number"
+          ? apiWo.bill_total_cents
+          : undefined,
+      assignees: [], // TODO: Fetch assignees if available in API
+      collaborators: [], // TODO: Fetch collaborators if available in API
+      vendorName: apiWo.vendor_name ? String(apiWo.vendor_name) : undefined,
+      vendorId: apiWo.vendor_id ? Number(apiWo.vendor_id) : undefined,
+      vendorEmail: apiWo.vendor_email ? String(apiWo.vendor_email) : undefined,
+      vendorPhone: apiWo.vendor_phone ? String(apiWo.vendor_phone) : undefined,
+    };
+    return mapped;
+  };
+
+  // Fetch work orders by task ID
+  const {
+    data: apiWorkOrders,
+    isLoading: isLoadingWorkOrders,
+    error: workOrdersError,
+    refetch: refetchWorkOrders,
+  } = useQuery({
+    queryKey: ["workOrders", taskId],
+    queryFn: async () => {
+      if (!taskId) return [];
+      try {
+        const response = await fetchJSON(`/maintenance/work-orders?task_id=${taskId}`);
+        return Array.isArray(response) ? response : [];
+      } catch (error) {
+        console.error('Error fetching work orders:', error);
+        return [];
+      }
+    },
+    enabled: !!taskId && !isNaN(Number(taskId)),
+    retry: 1,
+  });
+
+  // Fetch field team orders by task ID
+  const { 
+    data: apiFieldTeamOrders, 
+    isLoading: isLoadingFieldTeamOrders,
+    refetch: refetchFieldTeamOrders,
+  } =
+    useQuery<APIFTOResponse[]>({
+      queryKey: ["fieldTeamOrders", taskId],
+      queryFn: async () => {
+        if (!taskId) return [];
+        try {
+          const response = await fetchJSON(
+            `/maintenance/ftos?task_id=${taskId}`,
+          );
+          return Array.isArray(response)
+            ? response
+            : response?.data ?? response?.items ?? response?.results ?? [];
+        } catch (error) {
+          console.error("Error fetching field team orders:", error);
+          return [];
+        }
       },
-      {
-        id: 2,
-        task: "HVAC maintenance needed",
-        taskId: 2,
-        property: "Riverside Complex",
-        unit: "Unit 205",
-        dueDate: "Sep 29, 2025",
-        updatedDate: "Sep 29, 2025",
-        age: "6 days 5 hours",
-        priority: "low",
-        status: "in_progress",
-        billStatus: "Awaiting Invoice",
-        billTotal: "No invoice",
-        assignees: [
-          hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
-        ],
-        vendorName: "Elite HVAC Services",
-      },
-      {
-        id: 3,
-        task: "Window replacement",
-        taskId: 3,
-        property: "Central Plaza",
-        unit: "Unit 312",
-        dueDate: "Sep 10, 2025",
-        updatedDate: "Sep 10, 2025",
-        age: "6 days 5 hours",
-        priority: "normal",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$95",
-        assignees: [
-          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-        ],
-        collaborators: [],
-        vendorName: "Glass & Frames Inc",
-      },
-      {
-        id: 4,
-        task: "Roof inspection",
-        taskId: 4,
-        property: "Highland Towers",
-        unit: "Roof Level",
-        dueDate: "Sep 6, 2025",
-        updatedDate: "Sep 6, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$112",
-        assignees: [hydratePerson({ id: 2, name: "John Doe", initials: "JD" })],
-        collaborators: [
-          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-        ],
-        vendorName: "Pro Roofing Solutions",
-      },
-      {
-        id: 5,
-        task: "Plumbing repair",
-        taskId: 5,
-        property: "Market Street Apt",
-        unit: "Unit 404",
-        dueDate: "Sep 5, 2025",
-        updatedDate: "Sep 5, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$93",
-        assignees: [
-          hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-        ],
-        vendorName: "Dolce Plumbing & Heating LLC",
-      },
-      {
-        id: 6,
-        task: "Electrical work",
-        taskId: 6,
-        property: "Oak Ridge Manor",
-        unit: "Unit 501",
-        dueDate: "Sep 4, 2025",
-        updatedDate: "Sep 4, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$75",
-        assignees: [
-          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
-          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-        ],
-        vendorName: "Spark Electrical",
-      },
-      {
-        id: 7,
-        task: "Painting job",
-        taskId: 7,
-        property: "Park Avenue Building",
-        unit: "Unit 102",
-        dueDate: "Sep 4, 2025",
-        updatedDate: "Sep 4, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$101",
-        assignees: [
-          hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
-        ],
-        collaborators: [],
-        vendorName: "Premium Painters Co",
-      },
-      {
-        id: 8,
-        task: "Carpet replacement",
-        taskId: 8,
-        property: "Westside Residences",
-        unit: "Unit 203",
-        dueDate: "Sep 3, 2025",
-        updatedDate: "Sep 3, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$124",
-        assignees: [hydratePerson({ id: 2, name: "John Doe", initials: "JD" })],
-        collaborators: [
-          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-        ],
-        vendorName: "Quality Flooring LLC",
-      },
-      {
-        id: 9,
-        task: "Landscaping work",
-        taskId: 9,
-        property: "Spring Valley Complex",
-        unit: "Common Area",
-        dueDate: "Sep 1, 2025",
-        updatedDate: "Sep 1, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$67",
-        assignees: [
-          hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
-        ],
-        vendorName: "Green Lawn Services",
-      },
-      {
-        id: 10,
-        task: "Fence repair",
-        taskId: 10,
-        property: "Lakeside Gardens",
-        unit: "Unit 606",
-        dueDate: "Sep 1, 2025",
-        updatedDate: "Sep 1, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$118",
-        assignees: [
-          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-        ],
-        vendorName: "Outdoor Construction Corp",
-      },
-    ],
-    [],
-  );
+      enabled: !!taskId && !isNaN(Number(taskId)),
+      retry: 1,
+    });
+
+  // Map API work orders to WorkOrder interface
+  const mappedWorkOrders = useMemo(() => {
+    if (!apiWorkOrders || apiWorkOrders.length === 0) {
+      return [];
+    }
+    const unit = formatUnitLabel({
+      unitId: taskData?.unit_id ?? taskData?.unit,
+      unitName: taskData?.unit_name ?? taskData?.unit,
+      fallback: "",
+    });
+    try {
+      return apiWorkOrders
+        .map((apiWo) => {
+          try {
+            return mapApiWorkOrderToWorkOrder(apiWo, unit);
+          } catch (error) {
+            console.error('Error mapping work order:', error, apiWo);
+            return null;
+          }
+        })
+        .filter((wo): wo is WorkOrder => wo !== null);
+    } catch (error) {
+      console.error('Error mapping work orders:', error);
+      return [];
+    }
+  }, [apiWorkOrders, taskData?.unit_id, taskData?.unit_name, taskData?.unit]);
 
   // Work orders and field team orders state
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mappedWorkOrders);
   const [isUpdateWorkOrderModalOpen, setIsUpdateWorkOrderModalOpen] =
     useState(false);
 
-  // Mock field team orders data - memoized to ensure hydratePerson is available
-  const mockFieldTeamOrders = useMemo(
-    () => [
-      {
-        id: 1,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Oct 2, 2025",
-        priority: "high",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 420,
-        unit: "Unit",
-      },
-      {
-        id: 2,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 29, 2025",
-        priority: "normal",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "approved",
-        timesheetStatus: "approved",
-        amount: 95,
-        unit: "Unit",
-      },
-      {
-        id: 3,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 10, 2025",
-        priority: "low",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "pending-approval",
-        timesheetStatus: "submitted",
-        amount: 95,
-        unit: "Unit",
-      },
-      {
-        id: 4,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 6, 2025",
-        priority: "high",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 112,
-        unit: "Unit",
-      },
-      {
-        id: 5,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 5, 2025",
-        priority: "normal",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "approved",
-        amount: 93,
-        unit: "Unit",
-      },
-      {
-        id: 6,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 4, 2025",
-        priority: "low",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 75,
-        unit: "Unit",
-      },
-      {
-        id: 7,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 4, 2025",
-        priority: "high",
-        fieldTeam: [
-          hydratePerson({ initials: "DC", name: "David Chen" }),
-          hydratePerson({ initials: "ER", name: "Emma Rodriguez" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "submitted",
-        amount: 101,
-        unit: "Unit",
-      },
-      {
-        id: 8,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 3, 2025",
-        priority: "normal",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 124,
-        unit: "Unit",
-      },
-      {
-        id: 9,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 1, 2025",
-        priority: "low",
-        fieldTeam: [hydratePerson({ initials: "JW", name: "James Wilson" })],
-        status: "dispatched",
-        timesheetStatus: "approved",
-        amount: 67,
-        unit: "Unit",
-      },
-      {
-        id: 10,
-        taskId: 6,
-        property: "22 Indian Chase Dr",
-        description: "Door Repair",
-        dueDate: "Sep 1, 2025",
-        priority: "high",
-        fieldTeam: [
-          hydratePerson({ initials: "CH", name: "Christopher Harris" }),
-          hydratePerson({ initials: "CS", name: "Cassandra Smith" }),
-        ],
-        status: "dispatched",
-        timesheetStatus: "awaiting-submission",
-        amount: 118,
-        unit: "Unit",
-      },
-    ],
-    [],
-  );
+  // Update work orders when API data changes
+  useEffect(() => {
+    setWorkOrders(mappedWorkOrders);
+  }, [mappedWorkOrders]);
 
-  const [fieldTeamOrders, setFieldTeamOrders] =
-    useState<any[]>(mockFieldTeamOrders);
+  const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
+  const [isLoadingFieldTeamMembers, setIsLoadingFieldTeamMembers] =
+    useState(false);
+
+  const fetchUsersByIds = async (
+    ids: number[],
+  ): Promise<Record<number, UserDirectoryEntry>> => {
+    const uniqueIds = Array.from(new Set(ids));
+    if (uniqueIds.length === 0) {
+      return {};
+    }
+
+    const users = await Promise.all(
+      uniqueIds.map(async (id) => {
+        const user = await fetchJSON(`/users/${id}`);
+        return user;
+      }),
+    );
+
+    return users.reduce((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {} as Record<number, UserDirectoryEntry>);
+  };
+
+  useEffect(() => {
+    if (!apiFieldTeamOrders) {
+      setFieldTeamOrders([]);
+      return;
+    }
+
+    if (apiFieldTeamOrders.length === 0) {
+      setFieldTeamOrders([]);
+      return;
+    }
+
+    let isActive = true;
+
+    const hydrateFieldTeamOrders = async () => {
+      setIsLoadingFieldTeamMembers(true);
+      try {
+        const allFieldTeamIds = apiFieldTeamOrders.flatMap(
+          (fto) => fto.field_team_member_ids ?? [],
+        );
+        const usersById = await fetchUsersByIds(allFieldTeamIds);
+        const mappedOrders = transformAPIToFieldTeamOrders(
+          apiFieldTeamOrders,
+          usersById,
+        );
+
+        if (isActive) {
+          setFieldTeamOrders(mappedOrders);
+        }
+      } catch (error) {
+        console.error("Error mapping field team orders:", error);
+        if (isActive) {
+          setFieldTeamOrders([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingFieldTeamMembers(false);
+        }
+      }
+    };
+
+    hydrateFieldTeamOrders();
+
+    return () => {
+      isActive = false;
+    };
+  }, [apiFieldTeamOrders]);
 
   useEffect(() => {
     return () => {
@@ -2016,15 +2042,139 @@ export default function TaskSummary() {
     ? files.find((f) => f.id === uiState.editingFileId)
     : null;
 
-  // Map MOCK_TASKS to LinkedTaskData for default availability, excluding current task
-  const availableTasksForLinking = useMemo(() => {
-    return MOCK_TASKS.filter((t) => String(t.id) !== taskId).map((task) => ({
-      id: task.id,
-      name: task.title,
-      status: task.status.toLowerCase().replace(" ", "_") as any,
-      updatedDate: task.updated,
-      updatedBy: task.assignees[0]?.name || "Unknown",
-    }));
+  // Fetch linked tasks from API
+  useEffect(() => {
+    if (!taskId) return;
+
+    let isCancelled = false;
+
+    const fetchLinkedTasks = async () => {
+      try {
+        const linkedTasks = await fetchJSON(`/maintenance/tasks/id/${taskId}/links`);
+        
+        // Don't update state if component unmounted or taskId changed
+        if (isCancelled) return;
+        
+        // Map API response to LinkedTaskData format
+        const mappedLinkedTasks: LinkedTaskData[] = linkedTasks.map((task: any) => {
+          // Map backend status to frontend status
+          const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+            open: "not_started",
+            not_started: "not_started",
+            in_progress: "in_progress",
+            pending_vendor: "in_progress",
+            scheduled: "in_progress",
+            completed: "completed",
+            closed: "completed",
+            cancelled: "completed",
+          };
+          
+          const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
+          
+          // Format date
+          const updatedDate = task.created_at
+            ? new Date(task.created_at).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "Unknown";
+          
+          return {
+            id: task.id,
+            name: task.name,
+            status: frontendStatus,
+            updatedDate,
+            updatedBy: "System", // LinkedTaskPreview doesn't include updated_by
+          };
+        });
+        
+        uiDispatch({ type: "SET_LINKED_TASKS", payload: mappedLinkedTasks });
+      } catch (error) {
+        // Don't update state if component unmounted or taskId changed
+        if (isCancelled) return;
+        
+        console.error("Error fetching linked tasks:", error);
+        // Set empty array on error
+        uiDispatch({ type: "SET_LINKED_TASKS", payload: [] });
+      }
+    };
+
+    fetchLinkedTasks();
+
+    // Cleanup function to prevent state updates after unmount or taskId change
+    return () => {
+      isCancelled = true;
+    };
+  }, [taskId]); // Removed uiDispatch from dependencies - it's stable from useReducer
+
+  // Fetch available tasks for linking (all tasks except current)
+  const [availableTasksForLinking, setAvailableTasksForLinking] = useState<LinkedTaskData[]>([]);
+  
+  useEffect(() => {
+    if (!taskId) return;
+
+    let isCancelled = false;
+
+    const fetchAvailableTasks = async () => {
+      try {
+        const allTasks = await fetchJSON("/maintenance/tasks");
+        
+        // Don't update state if component unmounted or taskId changed
+        if (isCancelled) return;
+        
+        // Filter out current task and map to LinkedTaskData format
+        const mappedTasks: LinkedTaskData[] = allTasks
+          .filter((task: any) => String(task.id) !== String(taskId))
+          .map((task: any) => {
+            // Map backend status to frontend status
+            const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+              open: "not_started",
+              not_started: "not_started",
+              in_progress: "in_progress",
+              pending_vendor: "in_progress",
+              scheduled: "in_progress",
+              completed: "completed",
+              closed: "completed",
+              cancelled: "completed",
+            };
+            
+            const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
+            
+            // Format date
+            const updatedDate = task.last_updated
+              ? new Date(task.last_updated).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "Unknown";
+            
+            return {
+              id: task.id,
+              name: task.name,
+              status: frontendStatus,
+              updatedDate,
+              updatedBy: task.assignees?.[0]?.name || "Unknown",
+            };
+          });
+        
+        setAvailableTasksForLinking(mappedTasks);
+      } catch (error) {
+        // Don't update state if component unmounted or taskId changed
+        if (isCancelled) return;
+        
+        console.error("Error fetching available tasks:", error);
+        setAvailableTasksForLinking([]);
+      }
+    };
+
+    fetchAvailableTasks();
+
+    // Cleanup function to prevent state updates after unmount or taskId change
+    return () => {
+      isCancelled = true;
+    };
   }, [taskId]);
 
   // Helper function to sync file names across files and updates states
@@ -2056,17 +2206,25 @@ export default function TaskSummary() {
   };
 
   const handleTabChange = (newTab: "summary" | "workorders" | "fieldteam") => {
-    // Navigate to the new tab and preserve the selected work order ID in state
+    // Navigate to the new tab and preserve the full navigation state (including live task data)
     // The URL will only include workOrderId when on the workorders tab
+    // Always include taskData in the preserved state to maintain context
+    const preservedState = {
+      ...navigationState, // Preserve all existing navigation state (taskData, task, etc.)
+      taskData: taskData || navigationState?.taskData || navigationState?.task || fetchedTaskData, // Ensure task data is always included
+      task: taskData || navigationState?.task || navigationState?.taskData || fetchedTaskData, // Also set as 'task' for compatibility
+      preservedWorkOrderId: uiState.selectedWorkOrderId,
+    };
+    
     if (newTab === "workorders" && uiState.selectedWorkOrderId) {
-      navigate(`/tasks/${taskId}/${newTab}/${uiState.selectedWorkOrderId}`, {
+      navigate(`/tasks/${taskId}/workorders/${uiState.selectedWorkOrderId}`, {
         replace: false,
-        state: { preservedWorkOrderId: uiState.selectedWorkOrderId },
+        state: preservedState,
       });
     } else {
       navigate(`/tasks/${taskId}/${newTab}`, {
         replace: false,
-        state: { preservedWorkOrderId: uiState.selectedWorkOrderId },
+        state: preservedState,
       });
     }
   };
@@ -2201,6 +2359,12 @@ export default function TaskSummary() {
           body: JSON.stringify(payload),
         });
 
+        // Refresh the all tasks page in the background
+        window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+
+        // Refresh the current task summary page data to show updated values
+        await refetchTaskData();
+
         // update snapshot to current values after successful save
         syncTopBarSnapshot();
 
@@ -2220,6 +2384,7 @@ export default function TaskSummary() {
     currentPriority,
     currentStatus,
     loadUpdatesFromDb,
+    refetchTaskData,
     syncTopBarSnapshot,
     taskId,
     toBackendPriority,
@@ -2340,19 +2505,19 @@ export default function TaskSummary() {
   };
 
   const getUnitDisplayLabel = (unitValue: string): string => {
-    const unitLabels: Record<string, string> = {
-      unit1: "Unit 1",
-      unit2: "Unit 2",
-    };
-    return unitLabels[unitValue] || "";
+    return formatUnitLabel({
+      unitId: unitValue,
+      unitName: unitValue,
+      fallback: "",
+    });
   };
 
   // Extract unique vendors from work orders
   const vendorsFromWorkOrders = useMemo(() => {
     const uniqueVendors = new Map<
-      string,
+      number | string,
       {
-        id: string;
+        id: number | string;
         name: string;
         initials: string;
         email: string;
@@ -2361,22 +2526,23 @@ export default function TaskSummary() {
       }
     >();
     workOrders.forEach((wo) => {
-      if (wo.vendorName && wo.vendorName.trim()) {
-        if (!uniqueVendors.has(wo.vendorName)) {
+      // Use vendor_id if available, otherwise fall back to vendorName for uniqueness
+      const vendorKey = wo.vendorId || wo.vendorName;
+      if (vendorKey && wo.vendorName && wo.vendorName.trim()) {
+        if (!uniqueVendors.has(vendorKey)) {
           const initials = wo.vendorName
             .split(" ")
             .slice(0, 2)
             .map((word) => word[0])
             .join("")
             .toUpperCase();
-          const vendorInfo = vendorMasterData[wo.vendorName];
-          uniqueVendors.set(wo.vendorName, {
-            id: `vendor-${uniqueVendors.size + 1}`,
+          uniqueVendors.set(vendorKey, {
+            id: wo.vendorId || `vendor-${uniqueVendors.size + 1}`,
             name: wo.vendorName,
             initials: initials || "V",
-            email: vendorInfo?.email || "",
-            phone: vendorInfo?.phone || "",
-            title: vendorInfo?.title || "Vendor Company",
+            email: wo.vendorEmail || "",
+            phone: wo.vendorPhone || "",
+            title: "Vendor Company",
           });
         }
       }
@@ -2461,7 +2627,7 @@ export default function TaskSummary() {
       status: backendStatus,
       category: currentCategory || "",
       property_id: currentPropertyId || taskData?.property_id,
-      unit_id: currentUnitId || taskData?.unit_id || null,
+      unit_id: currentUnitId ?? taskData?.unit_id ?? null,
       due_date: currentDueDate ? currentDueDate.toISOString() : null,
       assignees: currentAssignees.map((a) => a.id),
       collaborators: currentCollaborators?.map((c) => c.id) || [],
@@ -2556,9 +2722,13 @@ export default function TaskSummary() {
       <PageHeader
         title={
           currentTitle ||
+          taskData?.title ||
+          taskData?.name ||
           navigationState?.task?.title ||
           navigationState?.taskData?.title ||
-          "Edgerton - Quote"
+          fetchedTaskData?.title ||
+          fetchedTaskData?.name ||
+          "Loading..."
         }
         subtitle={
           <div className="flex items-center gap-3">
@@ -2775,9 +2945,14 @@ export default function TaskSummary() {
                 isUpdateWorkOrderModalOpen={isUpdateWorkOrderModalOpen}
                 onUpdateWorkOrderModalOpenChange={setIsUpdateWorkOrderModalOpen}
               />
-            ) : isLoadingWorkOrder ? (
+            ) : isLoadingWorkOrder || isLoadingWorkOrders ? (
               <div className="flex flex-col items-center justify-center w-full h-[300px] bg-white rounded-lg border border-[#e5e5e5]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <p className="mt-4 text-gray-500">Loading work orders...</p>
+              </div>
+            ) : workOrdersError ? (
+              <div className="flex flex-col items-center justify-center w-full h-[300px] bg-white rounded-lg border border-[#e5e5e5]">
+                <p className="text-red-500">Error loading work orders.</p>
               </div>
             ) : (
               <TaskWorkOrders
@@ -2787,7 +2962,9 @@ export default function TaskSummary() {
                 defaultTask={currentTitle}
                 defaultUnit={currentUnit}
                 taskId={taskId || "0"}
+                propertyId={currentPropertyId || taskData?.property_id}
                 onWorkOrderSelect={handleWorkOrderSelect}
+                onRefetchWorkOrders={refetchWorkOrders}
               />
             ))}
 
@@ -2876,7 +3053,8 @@ export default function TaskSummary() {
                   return;
                 }
                 
-                const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;
+                // const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;  
+                const url = `/api/maintenance/attachments/${attachmentId}`;
                 console.log("Opening PDF with URL:", url);
                 
                 pdfViewer.openPdf(url, file.name);
@@ -2884,9 +3062,59 @@ export default function TaskSummary() {
               onLinkTasks={() =>
                 uiDispatch({ type: "OPEN_MODAL", payload: "linkTask" })
               }
-              onUnlinkTask={(taskId) =>
-                uiDispatch({ type: "REMOVE_LINKED_TASK", payload: taskId })
-              }
+              onUnlinkTask={async (linkedTaskId) => {
+                if (!taskId) {
+                  console.error("Task ID is required to unlink tasks");
+                  return;
+                }
+
+                try {
+                  // Call API to delete the link
+                  await fetchJSON(`/maintenance/tasks/id/${taskId}/links/${linkedTaskId}`, {
+                    method: "DELETE",
+                  });
+
+                  // Update local state
+                  uiDispatch({ type: "REMOVE_LINKED_TASK", payload: linkedTaskId });
+
+                  // Refresh linked tasks from API to ensure consistency
+                  const refreshedLinkedTasks = await fetchJSON(`/maintenance/tasks/id/${taskId}/links`);
+                  const mappedLinkedTasks: LinkedTaskData[] = refreshedLinkedTasks.map((task: any) => {
+                    const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+                      open: "not_started",
+                      not_started: "not_started",
+                      in_progress: "in_progress",
+                      pending_vendor: "in_progress",
+                      scheduled: "in_progress",
+                      completed: "completed",
+                      closed: "completed",
+                      cancelled: "completed",
+                    };
+                    
+                    const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
+                    
+                    const updatedDate = task.created_at
+                      ? new Date(task.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "Unknown";
+                    
+                    return {
+                      id: task.id,
+                      name: task.name,
+                      status: frontendStatus,
+                      updatedDate,
+                      updatedBy: "System",
+                    };
+                  });
+                  uiDispatch({ type: "SET_LINKED_TASKS", payload: mappedLinkedTasks });
+                } catch (error: any) {
+                  console.error("Error unlinking task:", error);
+                  alert(`Failed to unlink task: ${error.message || "Unknown error"}`);
+                }
+              }}
               onTaskClick={(linkedTaskId) => {
                 const tabId = `task-${linkedTaskId}`;
                 setSelectedTab(tabId);
@@ -2917,6 +3145,30 @@ export default function TaskSummary() {
           {uiState.activeTab === "fieldteam" && (
             <TaskFieldTeamOrders
               orders={fieldTeamOrders}
+              isLoading={isLoadingFieldTeamOrders || isLoadingFieldTeamMembers}
+              lockedPropertyId={currentPropertyId || taskData?.property_id}
+              lockedPropertyLabel={
+                taskData?.property_name ||
+                currentProperty ||
+                taskData?.property_address ||
+                ""
+              }
+              lockedUnitId={currentUnitId ?? taskData?.unit_id ?? null}
+              lockedUnitLabel={
+                currentUnit ||
+                  formatUnitLabel({
+                    unitId: taskData?.unit_id ?? taskData?.unit,
+                    unitName: taskData?.unit_name ?? taskData?.unit,
+                    fallback: "N/A",
+                  })
+              }
+              lockedTaskId={taskId ? Number(taskId) : undefined}
+              lockedTaskLabel={
+                taskData?.title ||
+                taskData?.name ||
+                (taskId ? `Task #${taskId}` : "")
+              }
+              onRefetchFieldTeamOrders={refetchFieldTeamOrders}
               onOrdersChange={(newOrders) => {
                 // Check for timesheet status changes and create updates
                 newOrders.forEach((newOrder, idx) => {
@@ -2982,6 +3234,9 @@ export default function TaskSummary() {
         editingNote={editingNote}
         editingFile={editingFile}
         taskId={taskId}
+        userId={userId}
+        onRefetchTaskData={refetchTaskData}
+        onRefetchUpdates={loadUpdatesFromDb}
         onNotesChange={setNotes}
         onCreateNote={handleCreateNote}
         onUpdateNote={handleUpdateNote}

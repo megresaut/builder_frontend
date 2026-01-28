@@ -10,11 +10,12 @@ interface Column {
   icon?: ReactNode;
 }
 
-interface ActionItem {
+export interface ActionItem {
   label: string | ((row: any) => string);
   icon: ReactNode | ((row: any) => ReactNode);
   onClick: (row: any) => void;
   className?: string;
+  hidden?: boolean | ((row: any) => boolean);
 }
 
 interface GlobalTableProps {
@@ -401,29 +402,41 @@ export default function GlobalTable({
                         {renderCell(row, colKey)}
                       </td>
                     ))}
-                  {actions.length > 0 && (
-                    <td
-                      data-global-table-actions-cell="true"
-                      className={cn(
-                        "ra-table-actions-cell sticky right-0 px-2 py-3 flex items-center justify-center",
-                        getCellClassName?.(row, "__actions__"),
-                      )}
-                      style={{
-                        borderLeftWidth: "2px",
-                        width: "80px",
-                        borderLeftColor: "transparent",
-                        backgroundColor: "white",
-                      }}
-                    >
-                      <GlobalActionsDropdown
-                        row={row}
-                        rowKey={rowKey}
-                        actions={actions}
-                        openMenuId={openMenuId}
-                        setOpenMenuId={onOpenMenuIdChange}
-                      />
-                    </td>
-                  )}
+                  {actions.length > 0 && (() => {
+                    // Filter actions that are visible for this row
+                    const visibleActions = actions.filter((action) => {
+                      if (action.hidden === undefined) return true;
+                      if (typeof action.hidden === "boolean") return !action.hidden;
+                      return !action.hidden(row);
+                    });
+                    
+                    // Only render actions cell if there are visible actions
+                    if (visibleActions.length === 0) return null;
+                    
+                    return (
+                      <td
+                        data-global-table-actions-cell="true"
+                        className={cn(
+                          "ra-table-actions-cell sticky right-0 px-2 py-3 flex items-center justify-center",
+                          getCellClassName?.(row, "__actions__"),
+                        )}
+                        style={{
+                          borderLeftWidth: "2px",
+                          width: "80px",
+                          borderLeftColor: "transparent",
+                          backgroundColor: "white",
+                        }}
+                      >
+                        <GlobalActionsDropdown
+                          row={row}
+                          rowKey={rowKey}
+                          actions={visibleActions}
+                          openMenuId={openMenuId}
+                          setOpenMenuId={onOpenMenuIdChange}
+                        />
+                      </td>
+                    );
+                  })()}
                 </tr>
               );
             })}

@@ -10,6 +10,8 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
+import { formatUnitLabel } from "@/utils/unitLabel";
+import HoursSummaryDrawer from "@/components/HoursSummaryDrawer";
 import {
   EditIcon,
   DeleteIcon,
@@ -23,6 +25,7 @@ import {
   DollarIcon,
   UserIcon,
   FlagIcon,
+  HamburgerIcon,
 } from "@/components/icons";
 
 interface FieldTeamOrder {
@@ -42,7 +45,7 @@ interface FieldTeamOrder {
   }>;
   
   field_team_member_ids: number[];
-  status: "dispatched" | "approved" | "pending-approval";
+  status: "Dispatched" | "Completed" | "New" | "pending-approval";
   originalStatus: string; // Original API status for modal
   timesheetStatus:
     | "awaiting-submission"
@@ -55,6 +58,7 @@ interface FieldTeamOrder {
   task?: string;
   name: string;
   pm_assignee_ids: number[];
+  hours?: number;
 }
 
 interface APIFTOResponse {
@@ -81,8 +85,9 @@ interface APIFTOResponse {
   unit_name?: string;
 }
 const normalizeFTOStatus = (status: string) => {
-  if (status === "completed") return "approved";
-  if (status === "new") return "pending-approval";
+  if (status === "completed") return "Completed";
+  if (status === "new") return "New";
+  if (status === "dispatched") return "Dispatched";
   return status;
 };
 
@@ -120,22 +125,32 @@ const resolveFieldTeamMembers = (
   });
 };
 
-// Map form_submission_status to timesheetStatus
+// Map form_submission_status and approval_status to timesheetStatus
 const mapFormSubmissionToTimesheetStatus = (
-  formStatus: "none" | "partial" | "complete" | "rejected"
+  formStatus: "none" | "partial" | "complete",
+  approvalStatus?: string
 ): "awaiting-submission" | "submitted" | "rejected" | "approved" => {
-  switch (formStatus) {
-    case "none":
-      return "awaiting-submission";
-    case "partial":
-      return "submitted";
-    case "rejected":
-      return "rejected";
-    case "complete":
-      return "approved";
-    default:
-      return "awaiting-submission";
+  // If rejected, always show rejected
+  if (approvalStatus === "rejected") {
+    return "rejected";
   }
+  
+  // If approved and form is complete, show approved
+  if (approvalStatus === "approved" && formStatus === "complete") {
+    return "approved";
+  }
+  
+  // If form is complete or partial and not approved/rejected, show submitted
+  if (formStatus === "complete" || formStatus === "partial") {
+    return "submitted";
+  }
+  
+  // If form is none, show awaiting submission
+  if (formStatus === "none") {
+    return "awaiting-submission";
+  }
+  
+  return "awaiting-submission";
 };
 
 const mockFetchFTOs = async (params: {
@@ -378,12 +393,10 @@ const transformAPIToFieldTeamOrder = (
     });
 
     const due_date = fto.due_date;
-    const timesheetStatus =
-    fto.approval_status === "rejected"
-      ? "rejected"
-      : fto.approval_status === "approved"
-        ? "approved"
-        : mapFormSubmissionToTimesheetStatus(fto.form_submission_status);
+    const timesheetStatus = mapFormSubmissionToTimesheetStatus(
+      fto.form_submission_status,
+      fto.approval_status
+    );
   
   
 
@@ -408,14 +421,20 @@ const transformAPIToFieldTeamOrder = (
         };
       }),
       status: normalizeFTOStatus(fto.status) as
-        | "dispatched"
-        | "approved"
+        | "Dispatched"
+        | "Completed"
+        | "New"
         | "pending-approval",
       originalStatus: fto.status, // Keep original for modal
       timesheetStatus,
       amount: fto.total_amount,
-      unit: fto.unit_name ?? "N/A",
+      unit: formatUnitLabel({
+        unitId: fto.unit_id,
+        unitName: fto.unit_name,
+        fallback: "N/A",
+      }),
       field_team_member_ids: fto.field_team_member_ids ?? [],
+      hours: fto.hours_decimal,
     };
   });
 };
@@ -438,6 +457,7 @@ export default function FieldTeamOrders() {
   const [editingFTOId, setEditingFTOId] = useState<number | null>(null);
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
+  const [showHoursSummaryDrawer, setShowHoursSummaryDrawer] = useState(false);
 
   async function fetchUsersByIds(
     ids: number[]
@@ -458,43 +478,55 @@ export default function FieldTeamOrders() {
   }
   
 
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const raw = await fetchJSON(
+        `/maintenance/ftos?limit=100`
+      );
+      
+      const apiData: APIFTOResponse[] = Array.isArray(raw)
+        ? raw
+        : raw?.data ?? raw?.items ?? raw?.results ?? [];
+      
+      // collect all field team IDs
+      const allFieldTeamIds = apiData.flatMap(
+        (fto) => fto.field_team_member_ids ?? []
+      );
+      
+      // fetch users
+      const usersById = await fetchUsersByIds(allFieldTeamIds);
+      
+      // transform
+      const transformedOrders = transformAPIToFieldTeamOrder(
+        apiData,
+        usersById
+      );
+      
+      setOrders(transformedOrders);
+      
+    } catch (error) {
+      console.error("Error fetching FTOs:", error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const raw = await fetchJSON(
-          `/maintenance/ftos?limit=100`
-        );
-        
-        const apiData: APIFTOResponse[] = Array.isArray(raw)
-          ? raw
-          : raw?.data ?? raw?.items ?? raw?.results ?? [];
-        
-        // collect all field team IDs
-        const allFieldTeamIds = apiData.flatMap(
-          (fto) => fto.field_team_member_ids ?? []
-        );
-        
-        // fetch users
-        const usersById = await fetchUsersByIds(allFieldTeamIds);
-        
-        // transform
-        const transformedOrders = transformAPIToFieldTeamOrder(
-          apiData,
-          usersById
-        );
-        
-        setOrders(transformedOrders);
-        
-      } catch (error) {
-        console.error("Error fetching FTOs:", error);
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
+    fetchOrders();
+  }, []);
+
+  // Listen for refresh events
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchOrders();
     };
 
-    fetchOrders();
+    window.addEventListener("refreshFieldTeamOrders", handleRefresh);
+    return () => {
+      window.removeEventListener("refreshFieldTeamOrders", handleRefresh);
+    };
   }, []);
 
   const filteredOrders = orders.filter((order) => {
@@ -641,15 +673,51 @@ export default function FieldTeamOrders() {
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
-        <PageHeader
-          title="All Field Team Orders"
-          subtitle="All your field team orders, in one place"
-          action={{
-            label: "Create FTO",
-            onClick: () => setShowFTOModal(true),
-            icon: <PlusIcon width={20} height={20} />,
-          }}
-        />
+        <div className="flex items-center gap-10 justify-between flex-wrap">
+          {/* Title and Description */}
+          <div className="flex flex-col gap-1 min-w-[240px]">
+            <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+              All Field Team Orders
+            </h1>
+            <span
+              className="text-[#717179] font-medium text-base leading-4 block"
+              style={{ marginTop: "4px" }}
+            >
+              All your field team orders, in one place
+            </span>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => window.open("/fto", "_blank")}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-[#303030]"
+            >
+              <DocumentIcon width={20} height={20} />
+              <span className="font-medium text-base leading-normal">
+                Submission Portal
+              </span>
+            </button>
+            <button
+              onClick={() => setShowHoursSummaryDrawer(true)}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-[#303030]"
+            >
+              <HamburgerIcon width={20} height={20} />
+              <span className="font-medium text-base leading-normal">
+                Hours Summary
+              </span>
+            </button>
+            <button
+              onClick={() => setShowFTOModal(true)}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+            >
+              <PlusIcon width={20} height={20} />
+              <span className="text-white font-medium text-base leading-normal">
+                Create FTO
+              </span>
+            </button>
+          </div>
+        </div>
 
         <div className="flex flex-col gap-6">
           {loading ? (
@@ -862,6 +930,11 @@ export default function FieldTeamOrders() {
         onToggleColumn={toggleColumnVisibility}
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
+      />
+      <HoursSummaryDrawer
+        isOpen={showHoursSummaryDrawer}
+        onClose={() => setShowHoursSummaryDrawer(false)}
+        orders={orders}
       />
     </PageTemplate>
   );

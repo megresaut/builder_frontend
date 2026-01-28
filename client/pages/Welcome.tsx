@@ -20,9 +20,9 @@ export const Welcome = () => {
       setIsFadingOut(true);
     }, 4000);
 
-    // Navigate to all-properties after fade out completes
+    // Navigate to properties (/) after fade out completes
     const navigationTimer = setTimeout(() => {
-      navigate("/all-properties");
+      navigate("/");
     }, 6500);
 
     return () => {

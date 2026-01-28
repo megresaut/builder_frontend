@@ -22,6 +22,7 @@ import {
   UserIcon,
 } from "@/components/icons";
 import { fetchJSON } from "@/api/fetchJSON";
+import { formatUnitLabel } from "@/utils/unitLabel";
 
 import type { Task } from "@/data/tasks";
 
@@ -104,6 +105,27 @@ function transformApiTaskToUiTask(apiTask: ApiTask, sequentialNumber?: number): 
     return priorityMap[backendPriority.toLowerCase()] || "normal";
   };
 
+  // Map backend status values to frontend values
+  const mapStatus = (backendStatus: string): string => {
+    const statusMap: Record<string, string> = {
+      open: "not_started",
+      not_started: "not_started",
+      in_progress: "in_progress",
+      pending_vendor: "in_progress",
+      scheduled: "in_progress",
+      completed: "completed",
+      closed: "completed",
+      cancelled: "completed",
+    };
+    return statusMap[backendStatus.toLowerCase()] || "not_started";
+  };
+
+  const unitLabel = formatUnitLabel({
+    unitId: apiTask.unit_id,
+    unitName: apiTask.unit_name,
+    fallback: "",
+  });
+
   return {
     id: apiTask.id,
     title: apiTask.name,
@@ -112,9 +134,9 @@ function transformApiTaskToUiTask(apiTask: ApiTask, sequentialNumber?: number): 
     property_id: apiTask.property_id,
     property_name: apiTask.property_name,
     property_address: apiTask.property_address,
-    unit: apiTask.unit_name || undefined,
-    unit_id: apiTask.unit_id || undefined,
-    status: apiTask.status,
+    unit: unitLabel || undefined,
+    unit_id: apiTask.unit_id ?? undefined,
+    status: mapStatus(apiTask.status),
     priority: mapPriority(apiTask.priority),
     category: apiTask.category || "",
     due: formatDate(apiTask.due_date),

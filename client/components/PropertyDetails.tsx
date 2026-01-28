@@ -22,7 +22,7 @@ import {
   NotesTemplate,
   FilesTemplate,
 } from "@/components/templates";
-import { fetchJSON } from "@/api/fetchJSON";
+import { API_BASE, fetchJSON } from "@/api/fetchJSON";
 import { useParams } from "react-router-dom";
 
 import type { RecentNote } from "@/hooks/usePropertyDetailsState";
@@ -356,7 +356,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
   const handleDeleteFile = async (id: number) => {
     try {
-      await fetchJSON(`/properties/${propertyId}/files/${id}`, {
+      await fetchJSON(`/properties/files/${propertyId}/files/${id}`, {
         method: "DELETE",
       });
       setRecentFiles((prev) => {
@@ -443,8 +443,8 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     // -----------------------------
     if (selectedFile) {
       try {
-        const updatedFile = await fetchJSON(
-          `/properties/post-files/${propertyId}/files/${selectedFile.id}`,
+        await fetchJSON(
+          `/properties/files/${propertyId}/files/${selectedFile.id}`,
           {
             method: "PATCH",
             body: JSON.stringify({
@@ -453,54 +453,77 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             }),
           }
         );
-  
         setRecentFiles((prev) =>
           prev.map((f) =>
-            f.id === selectedFile.id ? transformFile(updatedFile) : f
+            f.id === selectedFile.id
+              ? { ...f, category, description }
+              : f
           )
         );
+        setSelectedFile(null);
+        setShowAddFileModal(false);
       } catch (error) {
         console.error("Failed to update file:", error);
       }
-    } else {
-      // -----------------------------
-      // ADD MODE
-      // -----------------------------
-      const uploaded = uploadedFiles[0];
-      const rawFile: File | undefined = uploaded?.file;
-  
-      if (!rawFile) {
-        console.error("No file provided");
-        return;
-      }
-  
-      // TEMP preview URL (safe to stringify)
-      const blobUrl = URL.createObjectURL(rawFile);
-  
-      try {
-        const newFile = await fetchJSON(
-          `/properties/post-files/${propertyId}/files`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              name: rawFile.name,
-              type: rawFile.name.split(".").pop() || "file",
-              category,
-              description,
-              object_key: blobUrl, // placeholder until real upload
-              author: "System",
-            }),
-          }
-        );
-  
-        setRecentFiles((prev) => [...prev, transformFile(newFile)]);
-      } catch (error) {
-        console.error("Failed to add file:", error);
-      }
+      return;
     }
-  
-    setSelectedFile(null);
-    setShowAddFileModal(false);
+
+    // -----------------------------
+    // ADD MODE
+    // -----------------------------
+    const uploaded = uploadedFiles[0];
+    const rawFile: File | undefined = uploaded?.file;
+
+    if (!rawFile) {
+      console.error("No file provided");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", rawFile);
+
+      const uploadRes = await fetch(
+        `${API_BASE}/properties/files/${propertyId}/upload`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        },
+      );
+
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text();
+        throw new Error(`Upload failed: ${errText}`);
+      }
+
+      const uploadData = await uploadRes.json();
+      const objectKey = uploadData?.object_key;
+      if (!objectKey) {
+        throw new Error("Upload did not return object_key");
+      }
+
+      const newFile = await fetchJSON(
+        `/properties/post-files/${propertyId}/files`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: rawFile.name,
+            type: rawFile.name.split(".").pop() || "file",
+            category,
+            description,
+            object_key: objectKey,
+            author: "System",
+          }),
+        },
+      );
+
+      setRecentFiles((prev) => [...prev, transformFile(newFile)]);
+      setSelectedFile(null);
+      setShowAddFileModal(false);
+    } catch (error) {
+      console.error("Failed to add file:", error);
+    }
   };
   
 
@@ -806,7 +829,13 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               if (!open) setSelectedFile(null);
             }}
             title={selectedFile?.name || "File Preview"}
-            url={selectedFile?.url}
+            url={
+              selectedFile?.url
+                ? selectedFile.url.startsWith("/")
+                  ? `${API_BASE}${selectedFile.url}`
+                  : selectedFile.url
+                : undefined
+            }
           />
 
           {/* Legacy View File Modal */}

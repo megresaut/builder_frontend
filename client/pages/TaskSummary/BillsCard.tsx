@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SectionCard from "@/components/SectionCard";
 import { Calendar, Clock } from "lucide-react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { SelectField } from "@/components/forms/SelectField";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import { fetchJSON } from "@/api/fetchJSON";
 
 interface BillItem {
   id: string;
@@ -17,76 +18,76 @@ interface BillItem {
 
 interface AvailableBill {
   id: number;
-  vendor: string;
-  invoiceNumber: string;
-  amount: number;
-  status: "pushed" | "push-failed";
+  vendorName: string;
+  referenceNumber: string;
+  amountCents: number;
 }
 
 interface BillsCardProps {
   bills: BillItem[];
   workOrderId?: number;
+  vendorId?: number;
   onBillSelected?: (bill: BillItem) => void;
+  onWorkOrderRefresh?: (silent?: boolean) => void;
 }
 
-// Mock bills from the Bills page
-const AVAILABLE_BILLS: AvailableBill[] = [
-  {
-    id: 1,
-    vendor: "Elite HVAC",
-    invoiceNumber: "REF-2024-934",
-    amount: 234,
-    status: "pushed",
-  },
-  {
-    id: 2,
-    vendor: "ABC Plumbing",
-    invoiceNumber: "REF-2024-582",
-    amount: 287,
-    status: "push-failed",
-  },
-  {
-    id: 3,
-    vendor: "Elite HVAC",
-    invoiceNumber: "REF-2024-195",
-    amount: 156,
-    status: "pushed",
-  },
-  {
-    id: 4,
-    vendor: "Elite HVAC",
-    invoiceNumber: "REF-2024-732",
-    amount: 234,
-    status: "push-failed",
-  },
-  {
-    id: 5,
-    vendor: "David Smith",
-    invoiceNumber: "REF-2024-445",
-    amount: 420,
-    status: "pushed",
-  },
-  {
-    id: 6,
-    vendor: "Green Lawn Services",
-    invoiceNumber: "REF-2024-556",
-    amount: 95,
-    status: "push-failed",
-  },
-];
+const formatCurrency = (amountCents: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amountCents / 100);
 
-export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBillSelected }) => {
+export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendorId, onBillSelected, onWorkOrderRefresh }) => {
   const navigate = useNavigate();
   const [isSelectBillModalOpen, setIsSelectBillModalOpen] = useState(false);
   const [selectedBillId, setSelectedBillId] = useState<string>("");
+  const [availableBills, setAvailableBills] = useState<AvailableBill[]>([]);
+
+  useEffect(() => {
+    const loadBills = async () => {
+      try {
+        const data = await fetchJSON("/utilities/bills/all");
+        const rows = Array.isArray(data) ? data : [];
+        const vendorBills = rows
+          .filter((bill: any) => {
+            // Only vendor bills (not utility bills)
+            if (!bill?.vendor_id || bill?.utility_id || bill?.provider_id) {
+              return false;
+            }
+            // If vendorId is provided, only show bills for that vendor
+            if (vendorId !== undefined && bill.vendor_id !== vendorId) {
+              return false;
+            }
+            return true;
+          })
+          .map((bill: any) => ({
+            id: bill.id,
+            vendorName: bill.vendor_name || "Unknown vendor",
+            referenceNumber: bill.reference_number || bill.invoice_number || "",
+            amountCents:
+              typeof bill.amount_cents === "number"
+                ? bill.amount_cents
+                : typeof bill.amount === "number"
+                  ? Math.round(bill.amount * 100)
+                  : 0,
+          }));
+        setAvailableBills(vendorBills);
+      } catch (err) {
+        console.error("Failed to load vendor bills:", err);
+        setAvailableBills([]);
+      }
+    };
+
+    loadBills();
+  }, [vendorId]);
 
   const billOptions = useMemo(
     () =>
-      AVAILABLE_BILLS.map((bill) => ({
+      availableBills.map((bill) => ({
         value: String(bill.id),
-        label: `${bill.invoiceNumber} - ${bill.vendor} ($${bill.amount})`,
+        label: `${bill.vendorName} - ${bill.referenceNumber} - ${formatCurrency(bill.amountCents)}`,
       })),
-    []
+    [availableBills]
   );
 
   const handleEnterBill = () => {
@@ -94,20 +95,38 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBill
     setSelectedBillId("");
   };
 
-  const handleConfirmBill = () => {
+  const handleConfirmBill = async () => {
     if (selectedBillId) {
-      const selectedBill = AVAILABLE_BILLS.find(
+      const selectedBill = availableBills.find(
         (b) => String(b.id) === selectedBillId
       );
       if (selectedBill) {
+        if (workOrderId) {
+          try {
+            await fetchJSON(`/maintenance/work-orders/id/${workOrderId}/bill`, {
+              method: "POST",
+              body: JSON.stringify({ bill_id: selectedBill.id }),
+            });
+            
+            // Refresh the work order data to reflect status change (silent background refresh)
+            if (onWorkOrderRefresh) {
+              onWorkOrderRefresh(true);
+            }
+          } catch (err) {
+            console.error("Failed to link bill to work order:", err);
+            alert("Failed to add bill to work order. Please try again.");
+            return;
+          }
+        }
+
         // Create a new bill item and add to the bills list
         const newBill: BillItem = {
           id: String(selectedBill.id),
           date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
           time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          invoiceNumber: selectedBill.invoiceNumber,
-          vendorName: selectedBill.vendor,
-          amount: `$${selectedBill.amount}`,
+          invoiceNumber: selectedBill.referenceNumber,
+          vendorName: selectedBill.vendorName,
+          amount: formatCurrency(selectedBill.amountCents),
         };
 
         // Call the parent callback to add this bill
@@ -140,7 +159,7 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, onBill
             return (
               <button
                 key={bill.id}
-                onClick={() => navigate(`/bills/record?billId=${bill.id}`)}
+                onClick={() => navigate(`/bills/record?readOnly=true&billId=${bill.id}`)}
                 className="flex flex-col gap-0 rounded-lg bg-[#f9f9f9] border border-[#dadada] p-4 hover:bg-[#f0f0f0] transition-colors text-left"
               >
                 <div className="flex items-start gap-6 text-sm text-[#71717A] font-normal tracking-[-0.28px] leading-[1.14]">

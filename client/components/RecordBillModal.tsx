@@ -135,7 +135,7 @@ export default function RecordBillModal({
     [lineItems],
   );
 
-  const title = isView ? "Bill Details" : "Record Bill";
+  const title = isView ? "Bill " : "Record Bill";
   const description = isView
     ? ""
     : "Record a new bill to automatically upload to Buildium";
