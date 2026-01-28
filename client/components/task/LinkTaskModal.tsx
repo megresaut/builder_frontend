@@ -5,8 +5,7 @@ import {
 } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { ComboboxField } from "@/components/forms";
-
-import { MOCK_TASKS } from "@/data/tasks";
+import { fetchJSON } from "@/api/fetchJSON";
 
 export interface LinkedTaskData {
   id: string | number;
@@ -21,24 +20,95 @@ interface LinkTaskModalProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (linkedTask: LinkedTaskData) => void;
   availableTasks?: LinkedTaskData[];
+  currentTaskId?: string | number;
+  alreadyLinkedTaskIds?: (string | number)[];
 }
 
-const DEFAULT_AVAILABLE_TASKS: LinkedTaskData[] = MOCK_TASKS.map((task) => ({
-  id: task.id,
-  name: task.title,
-  status: task.status.toLowerCase().replace(" ", "_") as any,
-  updatedDate: task.updated,
-  updatedBy: task.assignees[0]?.name || "Unknown",
-}));
+interface ApiTask {
+  id: number;
+  name: string;
+  status: string;
+  priority: string;
+  last_updated: string;
+  assignees: Array<{ id: number; name: string; email: string }>;
+}
 
 export const LinkTaskModal: React.FC<LinkTaskModalProps> = ({
   open,
   onOpenChange,
   onSubmit,
-  availableTasks = DEFAULT_AVAILABLE_TASKS,
+  availableTasks,
+  currentTaskId,
+  alreadyLinkedTaskIds = [],
 }) => {
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const [selectedTask, setSelectedTask] = useState<LinkedTaskData | null>(null);
+  const [tasks, setTasks] = useState<LinkedTaskData[]>([]);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
+
+  // Fetch tasks from API when modal opens
+  useEffect(() => {
+    if (open && !availableTasks) {
+      setIsLoadingTasks(true);
+      fetchJSON("/maintenance/tasks")
+        .then((apiTasks: ApiTask[]) => {
+          // Filter out current task and already linked tasks, then map to LinkedTaskData format
+          const alreadyLinkedIdsSet = new Set(alreadyLinkedTaskIds.map(id => String(id)));
+          const mappedTasks = apiTasks
+            .filter((task) => 
+              String(task.id) !== String(currentTaskId) && 
+              !alreadyLinkedIdsSet.has(String(task.id))
+            )
+            .map((task) => {
+              // Map backend status to frontend status
+              const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+                open: "not_started",
+                not_started: "not_started",
+                in_progress: "in_progress",
+                pending_vendor: "in_progress",
+                scheduled: "in_progress",
+                completed: "completed",
+                closed: "completed",
+                cancelled: "completed",
+              };
+              
+              const frontendStatus = statusMap[task.status.toLowerCase()] || "not_started";
+              
+              // Format date
+              const updatedDate = task.last_updated
+                ? new Date(task.last_updated).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "Unknown";
+              
+              return {
+                id: task.id,
+                name: task.name,
+                status: frontendStatus,
+                updatedDate,
+                updatedBy: task.assignees?.[0]?.name || "Unknown",
+              };
+            });
+          setTasks(mappedTasks);
+        })
+        .catch((error) => {
+          console.error("Error fetching tasks:", error);
+          setTasks([]);
+        })
+        .finally(() => {
+          setIsLoadingTasks(false);
+        });
+    } else if (availableTasks) {
+      // Filter out already linked tasks from availableTasks
+      const alreadyLinkedIdsSet = new Set(alreadyLinkedTaskIds.map(id => String(id)));
+      const filteredTasks = availableTasks.filter(
+        (task) => !alreadyLinkedIdsSet.has(String(task.id))
+      );
+      setTasks(filteredTasks);
+    }
+  }, [open, availableTasks, currentTaskId, alreadyLinkedTaskIds]);
 
   useEffect(() => {
     if (open) {
@@ -49,14 +119,14 @@ export const LinkTaskModal: React.FC<LinkTaskModalProps> = ({
 
   useEffect(() => {
     if (selectedTaskId) {
-      const task = availableTasks.find(
+      const task = tasks.find(
         (t) => String(t.id) === selectedTaskId
       );
       setSelectedTask(task || null);
     } else {
       setSelectedTask(null);
     }
-  }, [selectedTaskId, availableTasks]);
+  }, [selectedTaskId, tasks]);
 
   const handleSave = () => {
     if (!selectedTask) return;
@@ -72,7 +142,7 @@ export const LinkTaskModal: React.FC<LinkTaskModalProps> = ({
     onOpenChange(false);
   };
 
-  const taskOptions = availableTasks.map((task) => ({
+  const taskOptions = tasks.map((task) => ({
     value: String(task.id),
     label: task.name,
   }));
@@ -101,13 +171,20 @@ export const LinkTaskModal: React.FC<LinkTaskModalProps> = ({
     >
       <FormLayout>
         <FormSection showDivider={false}>
-          <ComboboxField
-            label="Select a task"
-            value={selectedTaskId}
-            onChange={setSelectedTaskId}
-            options={taskOptions}
-            placeholder="Search tasks..."
-          />
+          {isLoadingTasks ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+              <span className="ml-2 text-sm text-gray-600">Loading tasks...</span>
+            </div>
+          ) : (
+            <ComboboxField
+              label="Select a task"
+              value={selectedTaskId}
+              onChange={setSelectedTaskId}
+              options={taskOptions}
+              placeholder="Search tasks..."
+            />
+          )}
 
           {selectedTask && (
             <div className="mt-4 p-3 bg-[#f9f9f9] border border-[#e5e5e5] rounded-lg">

@@ -245,6 +245,29 @@ const getCategoryIcon = (category: string | null | undefined) => {
   }
 };
 
+// Helper to render message with clickable links
+const renderMessageWithLinks = (message: string) => {
+  return message.split('https://').map((part, index) => {
+    if (index === 0) return <span key={index}>{part}</span>;
+    const url = 'https://' + part.split(' ')[0];
+    const rest = part.substring(part.split(' ')[0].length);
+    return (
+      <span key={index}>
+        {' '}
+        <a 
+          href={url} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-blue-600 underline hover:text-blue-800"
+        >
+          {url}
+        </a>
+        {rest}
+      </span>
+    );
+  });
+};
+
 // Provider type for dropdown
 type ProviderDTO = {
   id: number;
@@ -674,6 +697,9 @@ const [batchErrors, setBatchErrors] = useState<
   { accountId: number; provider: string; message: string }[]
 >([]);
 
+// Track if Frontier import was attempted
+const [showFrontierBanner, setShowFrontierBanner] = useState(false);
+
 // ----------------------
 // LOAD DATA
 // ----------------------
@@ -798,6 +824,14 @@ const inactiveAccounts = mappedAccounts.filter(
   (a) => a.status === "inactive",
 ).length;
 
+// Check for Frontier accounts
+const frontierAccounts = safeAccounts.filter(
+  (ua: any) => ua.provider_name?.toLowerCase() === "frontier" && ua.active
+);
+const hasFrontierAccounts = frontierAccounts.length > 0;
+const frontierImportMessage =
+  "Automated import unavailable for Frontier. Please go to frontier.com to complete billing.";
+
 const totalSpendCents = filteredBills.reduce(
   (sum: number, b: any) => sum + (b.amount_cents || 0),
   0,
@@ -811,6 +845,20 @@ const queryClient = useQueryClient();
 
 const handleImportAccount = async (utilityAccountId: number) => {
   if (!utilityAccountId) return;
+
+  // Check if provider is Frontier
+  const account = safeAccounts.find((ua: any) => ua.id === utilityAccountId);
+  if (account && account.provider_name?.toLowerCase() === "frontier") {
+    setShowFrontierBanner(true);
+    setAccountImportStatus(prev => ({
+      ...prev,
+      [utilityAccountId]: { 
+        state: "failed", 
+        message: frontierImportMessage
+      }
+    }));
+    return;
+  }
 
   // inline row status
   setAccountImportStatus(prev => {
@@ -895,6 +943,32 @@ const handleImportAccount = async (utilityAccountId: number) => {
 
 const handleBatchImport = async () => {
   if (!propertyId) return;
+
+  // Check for Frontier accounts and filter them out
+  const frontierAccounts = safeAccounts.filter(
+    (ua: any) => ua.provider_name?.toLowerCase() === "frontier" && ua.active
+  );
+
+  if (frontierAccounts.length > 0) {
+    // Show banner when Frontier import is attempted
+    setShowFrontierBanner(true);
+    
+    // Show message about Frontier accounts
+    const frontierMessage = frontierImportMessage;
+    
+    // Set error state for Frontier accounts
+    frontierAccounts.forEach((ua: any) => {
+      setAccountImportStatus(prev => ({
+        ...prev,
+        [ua.id]: { 
+          state: "failed", 
+          message: frontierMessage
+        }
+      }));
+    });
+
+    return;
+  }
 
   try {
     setBatchImporting(true);
@@ -1143,14 +1217,80 @@ useEffect(() => {
 }, []);
 
 
+
   return (
     <div className="flex flex-col gap-6">
-      {/* High Usage Insight Banner */}
-        {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-            {error}
+      {/* Frontier Banner - Only show when import is attempted */}
+      {showFrontierBanner && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+          <div className="flex items-start gap-2">
+            <svg
+              className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            <div className="flex-1">
+              <p className="font-medium text-amber-800 mb-1">
+                Automated import unavailable for Frontier
+              </p>
+              <p className="text-amber-700">
+                Please go to{" "}
+                <a
+                  href="https://frontier.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800 font-medium"
+                >
+                  frontier.com
+                </a>{" "}
+                to complete billing.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowFrontierBanner(false)}
+              className="text-amber-600 hover:text-amber-800 ml-2"
+              aria-label="Close banner"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {error.split('https://').map((part, index) => {
+            if (index === 0) return <span key={index}>{part}</span>;
+            const url = 'https://' + part.split(' ')[0];
+            const rest = part.substring(part.split(' ')[0].length);
+            return (
+              <span key={index}>
+                {' '}
+                <a 
+                  href={url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  {url}
+                </a>
+                {rest}
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* <div
         className="flex justify-between items-center self-stretch rounded-2xl border border-[#E5E5FF] px-4 py-3"
@@ -1630,7 +1770,7 @@ useEffect(() => {
 
                     {/* FAILED */}
                     {accountImportStatus[account.id]?.state === "failed" && (
-                      <div className="flex items-start gap-3 max-w-[340px]">
+                      <div className="flex items-start gap-3 max-w-[400px]">
                         {/* Small red pill */}
                         <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-sm font-medium whitespace-nowrap">
                           ✕ Failed

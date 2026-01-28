@@ -27,6 +27,9 @@ import {
   CHARGE_TYPES,
   TASKS,
   YES_NO_OPTIONS,
+  BILLING_OPTIONS,
+  billingToNoCharge,
+  noChargeToBilling,
 } from "@/data/fto/properties";
 import { VENDORS } from "@/data/fto/vendors";
 import { fetchJSON } from "@/api/fetchJSON";
@@ -51,7 +54,7 @@ interface HourEntry {
   customTaskName: string;
   hours: number | string;
   emergencyRate: string | null;
-  nonBillableHours: string | null;
+  billing: string | null; // "billable" or "non-billable" - maps to backend no_charge field
   note: string;
 }
 
@@ -86,7 +89,7 @@ interface HourEntryErrors {
     taskId?: string;
     hours?: string;
     emergencyRate?: string;
-    nonBillableHours?: string;
+    billing?: string;
     note?: string;
   };
 }
@@ -331,7 +334,7 @@ export default function FtoSubmissionForm() {
       customTaskName: "",
       hours: "",
       emergencyRate: "no",
-      nonBillableHours: "no",
+      billing: "billable",
       note: "",
     },
   ]);
@@ -361,28 +364,35 @@ export default function FtoSubmissionForm() {
 
     const state = (location.state ?? {}) as Partial<{
       property: string;
+      property_id: number;
       unit: string;
+      unit_id: number | null;
+      fto_id: number;
       task: string;
       description: string;
     }>;
 
-    if (!state.property && !state.unit && !state.task && !state.description)
+    // Check if we have any data to prefill
+    if (!state.property && !state.property_id && !state.unit && !state.task && !state.description && !state.fto_id)
       return;
 
     const normalize = (value: string) => value.trim().toLowerCase();
 
-    const propertyId = state.property
-      ? (PROPERTIES.find(
-          (p) => normalize(p.name) === normalize(state.property!),
-        )?.id ?? null)
-      : null;
+    // Use property_id if provided (from FTO data), otherwise try to match by name
+    const propertyId = state.property_id
+      ? String(state.property_id)
+      : state.property
+        ? (PROPERTIES.find(
+            (p) => normalize(p.name) === normalize(state.property!),
+          )?.id ?? null)
+        : null;
 
-    const unitsForProperty = propertyId
-      ? (PROPERTIES.find((p) => p.id === propertyId)?.units ?? [])
-      : [];
-
+    // Use unit_id if provided (from FTO data), otherwise try to match by name
     const unitId = (() => {
+      if (state.unit_id) return String(state.unit_id);
       if (!propertyId) return null;
+      
+      const unitsForProperty = PROPERTIES.find((p) => p.id === propertyId)?.units ?? [];
       if (!state.unit)
         return unitsForProperty.find((u) => u.id === "na")?.id ?? null;
       const found = unitsForProperty.find(
@@ -393,7 +403,9 @@ export default function FtoSubmissionForm() {
       );
     })();
 
+    // Use fto_id if provided (from FTO data), otherwise try to match by task name
     const taskId = (() => {
+      if (state.fto_id) return String(state.fto_id);
       const taskLabel = state.task ?? state.description;
       if (!taskLabel) return null;
       const found = TASKS.find(
@@ -402,6 +414,15 @@ export default function FtoSubmissionForm() {
       return found?.value ?? null;
     })();
 
+    // Load units and FTOs for the property if property_id is provided
+    // IMPORTANT: Load FTOs so the dropdown has options - the useEffect below will set taskId once FTOs load
+    if (propertyId) {
+      loadUnitsForProperty(propertyId);
+      loadFtosForProperty(propertyId);
+    }
+
+    // Set initial values immediately
+    // Note: taskId will be set from state.fto_id if available, but will be updated once FTOs load
     setHourEntries((prev) =>
       prev.map((entry, idx) => {
         if (idx !== 0) return entry;
@@ -555,7 +576,7 @@ export default function FtoSubmissionForm() {
     
         hours: h.hours_decimal,
         emergencyRate: h.emergency ? "yes" : "no",
-        nonBillableHours: h.no_charge ? "yes" : "no",
+        billing: noChargeToBilling(h.no_charge),
     
         note: h.note ?? "",
       };
@@ -577,17 +598,17 @@ export default function FtoSubmissionForm() {
       return {
         id: `expense-${idx}`,
         isExpanded: true,
-  
+
         date: m.date_of_work?.split("T")[0] ?? null,
         propertyId: entryPropertyId,
         unitId: entryUnitId, // Will be mapped to ID later if it's a name
         taskId: entryTaskId,
-  
+
         amount: m.amount_cents / 100,
-        chargeType: "client-expense",
+        chargeType: m.is_avm_expense ? "avm-expense" : "client-expense",
         vendorId: null,
         note: m.note ?? "",
-  
+
         files: filesForMaterial.map((a) => ({
           id: String(a.id),
           name: a.file_name,
@@ -731,6 +752,69 @@ export default function FtoSubmissionForm() {
   }, [apiSubmission]);
   
   
+  // Match FTO ID from location state to loaded FTOs and set taskId for NEW submissions
+  // This handles the case when opening a new submission from FTO portal with property and fto_id prefilled
+  useEffect(() => {
+    if (isViewingExistingSubmission) return; // Skip for existing submissions (handled below)
+    if (!didApplyPrefillRef.current) return; // Wait for initial prefill to complete
+    
+    const state = (location.state ?? {}) as Partial<{
+      property_id: number;
+      fto_id: number;
+    }>;
+    
+    // Only proceed if we have both property_id and fto_id from state
+    if (!state.property_id || !state.fto_id) return;
+    
+    const propertyIdStr = String(state.property_id);
+    const ftoIdToUse = String(state.fto_id);
+    
+    // Wait for FTOs to be loaded for this property
+    const ftos = ftosByProperty[propertyIdStr];
+    if (!ftos || ftos.length === 0) {
+      // FTOs haven't loaded yet, but they should be loading from the initial prefill
+      // This useEffect will run again once ftosByProperty updates
+      return;
+    }
+    
+    // Check if the FTO ID exists in the loaded FTOs
+    const ftoExists = ftos.some((f) => String(f.id) === ftoIdToUse);
+    if (!ftoExists) {
+      console.warn(`FTO ${ftoIdToUse} not found in loaded FTOs for property ${propertyIdStr}`, {
+        loadedFtoIds: ftos.map(f => String(f.id)),
+        lookingFor: ftoIdToUse,
+        propertyId: propertyIdStr
+      });
+      return;
+    }
+    
+    // Update hour entries that match the property - set taskId for all entries with this property
+    setHourEntries((prev) => {
+      let updated = false;
+      const newEntries = prev.map((entry) => {
+        if (entry.propertyId === propertyIdStr && entry.taskId !== ftoIdToUse) {
+          updated = true;
+          return { ...entry, taskId: ftoIdToUse };
+        }
+        return entry;
+      });
+      return updated ? newEntries : prev;
+    });
+    
+    // Update expense entries that match the property - set taskId for all entries with this property
+    setExpenseEntries((prev) => {
+      let updated = false;
+      const newEntries = prev.map((entry) => {
+        if (entry.propertyId === propertyIdStr && entry.taskId !== ftoIdToUse) {
+          updated = true;
+          return { ...entry, taskId: ftoIdToUse };
+        }
+        return entry;
+      });
+      return updated ? newEntries : prev;
+    });
+  }, [location.state, ftosByProperty, isViewingExistingSubmission]);
+
   // Match FTO name from location state or FTO ID from submission to loaded FTOs and set taskId
   useEffect(() => {
     if (!isViewingExistingSubmission) return;
@@ -898,7 +982,7 @@ export default function FtoSubmissionForm() {
         customTaskName: "",
         hours: "",
         emergencyRate: "no",
-        nonBillableHours: "no",
+        billing: "billable",
         note: "",
       },
     ]);
@@ -1042,8 +1126,8 @@ export default function FtoSubmissionForm() {
         errors.emergencyRate = "Emergency Rate is required";
         isValid = false;
       }
-      if (!entry.nonBillableHours) {
-        errors.nonBillableHours = "Non-Billable Hours is required";
+      if (!entry.billing) {
+        errors.billing = "Billing is required";
         isValid = false;
       }
       if (Object.keys(errors).length > 0) {
@@ -1071,7 +1155,7 @@ export default function FtoSubmissionForm() {
         errors.taskId = "Task is required";
         isValid = false;
       }
-      if (!entry.amount) {
+      if (entry.amount == null || entry.amount === "") {
         errors.amount = "Amount is required";
         isValid = false;
       }
@@ -1227,7 +1311,7 @@ export default function FtoSubmissionForm() {
         date_of_work: formatDate(h.date),
         hours_decimal: Number(h.hours) || 0,
         note: h.note ?? "",
-        no_charge: h.nonBillableHours === "yes",
+        no_charge: billingToNoCharge(h.billing),
         emergency: h.emergencyRate === "yes",
         hour_index: idx,
         unit_id: getUnitIdAsNumber(h.unitId),
@@ -1266,7 +1350,7 @@ export default function FtoSubmissionForm() {
       hours_decimal: Number(h.hours),
     
       emergency: h.emergencyRate === "yes",
-      no_charge: h.nonBillableHours === "yes",
+      no_charge: billingToNoCharge(h.billing),
     
       note: h.note ?? "",
     }));
@@ -1640,23 +1724,23 @@ export default function FtoSubmissionForm() {
                         />
 
                         <SelectField
-                          label="Non-Billable?"
+                          label="Billing"
                           required
-                          error={hourErrors[entry.id]?.nonBillableHours}
-                          options={YES_NO_OPTIONS}
-                          value={entry.nonBillableHours || "no"}
+                          error={hourErrors[entry.id]?.billing}
+                          options={BILLING_OPTIONS}
+                          value={entry.billing || "billable"}
                           onChange={(value) => {
                             if (isApproved) return;
                             setHourErrors((prev) => {
                               const newErrors = { ...prev };
                               if (newErrors[entry.id]) {
-                                delete newErrors[entry.id].nonBillableHours;
+                                delete newErrors[entry.id].billing;
                               }
                               return newErrors;
                             });
                             updateHourEntry(
                               entry.id,
-                              "nonBillableHours",
+                              "billing",
                               value,
                             );
                           }}
@@ -2040,6 +2124,7 @@ export default function FtoSubmissionForm() {
                                   formData.append("file", pdfFile, pdfFile.name);
                           
                                   const res = await fetch(
+                                    // "http://localhost:8080/vendors/bills/upload-pdf",
                                     "/api/vendors/bills/upload-pdf",
                                     {
                                       method: "POST",
@@ -2106,6 +2191,7 @@ export default function FtoSubmissionForm() {
                               (async () => {
                                 try {
                                   const res = await fetch(
+                                    // `http://localhost:8080/maintenance/attachments/${attachmentId}`,
                                     `/api/maintenance/attachments/${attachmentId}`,
                                     { credentials: "include" }
                                   );                                

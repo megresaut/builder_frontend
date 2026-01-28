@@ -7,6 +7,7 @@ export interface UploadedFile {
   size: number;
   type: string;
   file?: File;
+  url?: string; // URL for existing photos or object URLs for new files
 
   // Backend-stored file (PDFs, etc.)
   storage_path?: string;
@@ -92,6 +93,11 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isViewableFile = (file: UploadedFile): boolean => {
+    // If file has a URL, it's likely an image and viewable
+    if (file.url) {
+      return true;
+    }
+    
     const viewableTypes = [
       "application/pdf",
       "image/jpeg",

@@ -10,7 +10,8 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import BlueButton from "@/components/BlueButton";
 import { useToastNotification } from "@/hooks/useToastNotification";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/auth/useAuth";
+import { fetchJSON } from "@/api/fetchJSON";
 import {
   CalendarIcon,
   BuildingIcon,
@@ -18,8 +19,6 @@ import {
   PlusIcon,
   DotsIcon,
   EditIcon,
-  UserIcon,
-  ApproveIcon,
 } from "@/components/icons";
 
 interface InspectionRecord {
@@ -33,6 +32,19 @@ interface InspectionRecord {
   documentName?: string;
   lastUpdated?: string;
   inspectionName?: string;
+}
+
+interface BackendInspection {
+  id: number;
+  property_id: number;
+  property_name?: string | null;
+  unit_id: number | null;
+  checklist_id: number;
+  assigned_field_team_member_id: number | null;
+  status: string;
+  due_date: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 const getMonthFromDate = (dateStr: string): string => {
@@ -53,62 +65,44 @@ const formatDate = (dateStr: string): string => {
   }
 };
 
-const mockInspections: InspectionRecord[] = [
-  {
-    id: 1,
-    property: "22 Indian Chase Dr",
-    unit: "Unit A",
-    date: "2025-10-15",
-    month: getMonthFromDate("2025-10-15"),
-    inspector: "John Doe",
-    status: "Completed",
-    documentName: "Q4 Inspection.docx",
-    lastUpdated: "2025-10-15",
-    inspectionName: "Q4 2025 Property Inspection",
-  },
-  {
-    id: 2,
-    property: "22 Indian Chase Dr",
-    unit: "Unit B",
-    date: "2025-10-10",
-    month: getMonthFromDate("2025-10-10"),
-    inspector: "Jane Smith",
-    status: "Completed",
-    documentName: "HVAC Inspection.docx",
-    lastUpdated: "2025-10-10",
-    inspectionName: "HVAC System Inspection",
-  },
-];
+// Map backend inspection to frontend format
+const mapBackendInspectionToRecord = (backend: BackendInspection): InspectionRecord => {
+  const dueDate = backend.due_date || backend.created_at;
+  const status = backend.status === "submitted" || backend.status === "reviewed" 
+    ? "Completed" 
+    : "Draft";
+  
+  return {
+    id: backend.id,
+    property: backend.property_name || `Property ${backend.property_id}`,
+    unit: backend.unit_id ? `Unit ${backend.unit_id}` : "N/A",
+    date: dueDate,
+    month: getMonthFromDate(dueDate),
+    inspector: "N/A", // TODO: Fetch inspector name from user ID
+    status: status as "Completed" | "Draft",
+    lastUpdated: backend.updated_at,
+    inspectionName: `Inspection ${backend.id}`, // TODO: Fetch checklist name
+  };
+};
 
 export default function FtoInspections() {
   const navigate = useNavigate();
   const toast = useToastNotification();
-  const [inspections, setInspections] = useState<InspectionRecord[]>(() => {
-    // Load submitted inspections from localStorage
-    const submissions = JSON.parse(
-      localStorage.getItem("ftoSubmissions") || "[]",
-    ) as InspectionRecord[];
-
-    // Add month and lastUpdated fields to submissions if missing
-    const submissionsWithMonth = submissions.map((inspection) => ({
-      ...inspection,
-      month: inspection.month || getMonthFromDate(inspection.date),
-      lastUpdated: inspection.lastUpdated || inspection.date,
-    }));
-
-    // Combine mock data with submitted inspections
-    const allInspections = [...mockInspections, ...submissionsWithMonth];
-
-    // Remove duplicates by ID (in case of re-submissions)
-    const uniqueMap = new Map<number, InspectionRecord>();
-    allInspections.forEach((inspection) => {
-      uniqueMap.set(inspection.id, inspection);
-    });
-
-    // Sort by ID descending to show newest first
-    return Array.from(uniqueMap.values()).sort((a, b) => b.id - a.id);
-  });
-  const [loading, setLoading] = useState(false);
+  const { userId } = useAuth();
+  const resolvedUserId = useMemo(() => {
+    if (userId) {
+      return userId;
+    }
+    const storedUserId = localStorage.getItem("avm_user_id");
+    if (!storedUserId) {
+      return null;
+    }
+    const parsed = Number(storedUserId);
+    return Number.isFinite(parsed) ? parsed : null;
+  }, [userId]);
+  const [inspections, setInspections] = useState<InspectionRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Sorting hook
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
@@ -141,31 +135,63 @@ export default function FtoInspections() {
     "status",
   ]);
 
-  // Refresh inspections when page is focused or mounted
+  // Fetch inspections from API
   useEffect(() => {
-    const loadInspections = () => {
-      const submissions = JSON.parse(
-        localStorage.getItem("ftoSubmissions") || "[]",
-      ) as InspectionRecord[];
+    const loadInspections = async () => {
+      if (!resolvedUserId) {
+        setError("Missing field team member ID");
+        setLoading(false);
+        return;
+      }
 
-      // Add month and lastUpdated fields to submissions if missing
-      const submissionsWithMonth = submissions.map((inspection) => ({
-        ...inspection,
-        month: inspection.month || getMonthFromDate(inspection.date),
-        lastUpdated: inspection.lastUpdated || inspection.date,
-      }));
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch inspections assigned to this user
+        const response = await fetchJSON(
+          `/inspections?assigned_field_team_member_id=${resolvedUserId}`
+        );
+        if (!Array.isArray(response)) {
+          throw new Error("Unexpected inspections response");
+        }
+        const backendInspections = response as BackendInspection[];
 
-      // Combine mock data with submitted inspections
-      const allInspections = [...mockInspections, ...submissionsWithMonth];
+        // Map backend data to frontend format
+        const mappedInspections = backendInspections.map(mapBackendInspectionToRecord);
 
-      // Remove duplicates by ID
-      const uniqueMap = new Map<number, InspectionRecord>();
-      allInspections.forEach((inspection) => {
-        uniqueMap.set(inspection.id, inspection);
-      });
+        // Also load any localStorage submissions (for backward compatibility)
+        const submissions = JSON.parse(
+          localStorage.getItem("ftoSubmissions") || "[]",
+        ) as InspectionRecord[];
 
-      // Sort by ID descending to show newest first
-      setInspections(Array.from(uniqueMap.values()).sort((a, b) => b.id - a.id));
+        const submissionsWithMonth = submissions.map((inspection) => ({
+          ...inspection,
+          month: inspection.month || getMonthFromDate(inspection.date),
+          lastUpdated: inspection.lastUpdated || inspection.date,
+        }));
+
+        // Combine API data with localStorage submissions
+        const allInspections = [...mappedInspections, ...submissionsWithMonth];
+
+        // Remove duplicates by ID (localStorage might have duplicates)
+        const uniqueMap = new Map<number, InspectionRecord>();
+        allInspections.forEach((inspection) => {
+          // Prefer API data over localStorage if same ID
+          if (!uniqueMap.has(inspection.id)) {
+            uniqueMap.set(inspection.id, inspection);
+          }
+        });
+
+        // Sort by ID descending to show newest first
+        setInspections(Array.from(uniqueMap.values()).sort((a, b) => b.id - a.id));
+      } catch (err) {
+        console.error("Failed to load inspections:", err);
+        setError(err instanceof Error ? err.message : "Failed to load inspections");
+        toast.showError("Failed to load inspections");
+      } finally {
+        setLoading(false);
+      }
     };
 
     // Load on mount
@@ -174,7 +200,8 @@ export default function FtoInspections() {
     // Listen for focus events to reload when user comes back to the tab
     window.addEventListener("focus", loadInspections);
     return () => window.removeEventListener("focus", loadInspections);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedUserId]); // toast is stable (methods reference addToast from context)
 
   // Pagination state
   const [currentPage, setCurrentPage] = usePageState("inspectionsPage", 1);
@@ -258,8 +285,22 @@ export default function FtoInspections() {
           }
         />
 
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-8 text-gray-500 text-sm">
+            Loading inspections...
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="text-center py-8 text-red-500 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Desktop Table View */}
-        {!isMobile && (
+        {!loading && !error && !isMobile && (
           <>
             <GlobalTable
               columns={columns}
@@ -362,7 +403,7 @@ export default function FtoInspections() {
         )}
 
         {/* Mobile Card View */}
-        {isMobile && (
+        {!loading && !error && isMobile && (
           <div className="grid grid-cols-1 gap-3">
             {inspections.length > 0 ? (
               inspections.map((inspection) => (

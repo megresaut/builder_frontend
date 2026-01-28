@@ -352,6 +352,7 @@ export default function SummaryTab({
                 type: "collaborator",
                 onAction: onEditTask,
                 actionLabel: "Edit",
+                emptyMessage: "No collaborators assigned yet.",
               },
               {
                 label: "Vendors",

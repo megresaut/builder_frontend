@@ -12,6 +12,7 @@ import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import HeaderV1 from "@/components/HeaderV1";
 import PersonAvatars from "@/components/PersonAvatars";
+import { fetchJSON } from "@/api/fetchJSON";
 import {
   EditIcon,
   DeleteIcon,
@@ -429,6 +430,7 @@ interface TaskWorkOrdersProps {
   propertyId?: number; // Property ID for creating work orders
   requestedBy?: number; // User ID of the requester (optional)
   onWorkOrderSelect?: (woId: number) => void;
+  onRefetchWorkOrders?: () => Promise<any>; // Refetch function for auto-refresh
 }
 
 export default function TaskWorkOrders({
@@ -441,6 +443,7 @@ export default function TaskWorkOrders({
   propertyId,
   requestedBy,
   onWorkOrderSelect,
+  onRefetchWorkOrders,
 }: TaskWorkOrdersProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -731,10 +734,31 @@ export default function TaskWorkOrders({
   ];
 
   const handleDeleteWorkOrder = useCallback(
-    (workOrder: WorkOrder) => {
-      onWorkOrdersChange(workOrders.filter((wo) => wo.id !== workOrder.id));
+    async (workOrder: WorkOrder) => {
+      try {
+        // Call the delete endpoint - same as in MaintenanceWorkOrders page
+        await fetchJSON(`/maintenance/work-orders?id=${workOrder.id}`, {
+          method: "DELETE",
+        });
+        
+        // Update local state
+        onWorkOrdersChange(workOrders.filter((wo) => wo.id !== workOrder.id));
+        
+        // Refetch work orders if refetch function is available
+        if (onRefetchWorkOrders) {
+          try {
+            await onRefetchWorkOrders();
+          } catch (error) {
+            console.error("Error refetching work orders after delete:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error deleting work order:", error);
+        // Optionally show an error message to the user
+        alert("Failed to delete work order. Please try again.");
+      }
     },
-    [workOrders, onWorkOrdersChange],
+    [workOrders, onWorkOrdersChange, onRefetchWorkOrders],
   );
 
   const handleEditWorkOrder = useCallback(
@@ -761,7 +785,12 @@ export default function TaskWorkOrders({
         actionIcon={<Plus className="w-5 h-5" />}
         onActionClick={() => setIsCreateWorkOrderModalOpen(true)}
       >
-        {/* Work Orders Table - Using GlobalTable Component */}
+        {workOrders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <p className="text-[#71717A] text-sm font-medium">No work orders yet</p>
+            <p className="text-[#A1A1A9] text-sm mt-1">Work orders you create or link to this task will appear here.</p>
+          </div>
+        ) : (
         <GlobalTable
           columns={columns}
           data={workOrders}
@@ -949,6 +978,7 @@ export default function TaskWorkOrders({
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
         />
+        )}
       </HeaderV1>
 
       {/* Create Work Order Modal */}
@@ -968,11 +998,16 @@ export default function TaskWorkOrders({
         initialData={{
           task: defaultTask,
         }}
-        onWorkOrderCreated={(workOrder) => {
-          // Refresh work orders list or add the new work order
-          // For now, we'll still use onDataUpdate for backward compatibility
-          // but the API call has already been made
+        onWorkOrderCreated={async (workOrder) => {
+          // Refresh work orders list in the background
           console.log("Work order created:", workOrder);
+          if (onRefetchWorkOrders) {
+            try {
+              await onRefetchWorkOrders();
+            } catch (error) {
+              console.error("Error refetching work orders:", error);
+            }
+          }
         }}
         onDataUpdate={(data) => {
           const newId =
@@ -1047,14 +1082,12 @@ export default function TaskWorkOrders({
           }
           // Close the modal
           setIsCreateWorkOrderModalOpen(false);
-          // Navigate to the new work order details, passing the work order data through state
-          // Keep the Date object in navigation state so it renders correctly immediately
+          // Navigate to the work orders list page
           // Preserve existing navigation state (task data)
           const currentState = (location.state as any) || {};
-          navigate(`/tasks/${taskId}/workorders/${newId}`, {
+          navigate(`/tasks/${taskId}/workorders`, {
             state: {
               ...currentState,
-              newWorkOrder,
               taskData: currentState.taskData || currentState.task,
               task: currentState.task || currentState.taskData,
             },

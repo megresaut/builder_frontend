@@ -2,12 +2,7 @@ import { useState, useRef, useEffect, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
-interface ActionItem {
-  label: string | ((row: any) => string);
-  icon: ReactNode | ((row: any) => ReactNode);
-  onClick: (row: any) => void;
-  className?: string;
-}
+import { ActionItem } from "./GlobalTable";
 
 interface GlobalActionsDropdownProps {
   row: any;
@@ -173,7 +168,13 @@ export default function GlobalActionsDropdown({
               setOpenMenuId(null);
             }}
           >
-            {actions.map((action, idx) => {
+            {actions
+              .filter((action) => {
+                if (action.hidden === undefined) return true;
+                if (typeof action.hidden === "boolean") return !action.hidden;
+                return !action.hidden(row);
+              })
+              .map((action, idx) => {
               const resolvedLabel =
                 typeof action.label === "function" ? action.label(row) : action.label;
               const resolvedIcon =

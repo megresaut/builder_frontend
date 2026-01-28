@@ -4,10 +4,11 @@ import { fetchJSON, API_BASE } from "./fetchJSON";
 export interface BackendInspection {
   id: number;
   property_id: number;
+  property_name?: string | null;
   unit_id?: number | null;
   checklist_id: number;
   assigned_field_team_member_id?: number | null;
-  status: string; // "In Progress" | "Completed"
+  status: string; // "draft" | "in_progress" | "submitted" | "reviewed" | "cancelled"
   due_date?: string | null; // ISO8601
   created_at: string;
   updated_at: string;
@@ -33,7 +34,14 @@ export interface BackendInspectionPhoto {
   file_size: number;
   storage_path: string;
   comment?: string;
+  condition?: "good" | "fair" | "poor";
   created_at: string;
+}
+
+export interface BackendInspectionFull {
+  inspection: BackendInspection;
+  checklist: BackendInspectionChecklist | null;
+  photos: BackendInspectionPhoto[];
 }
 
 // API calls
@@ -50,6 +58,13 @@ export async function listInspections(): Promise<BackendInspection[]> {
  */
 export async function getInspection(id: number): Promise<BackendInspection> {
   return fetchJSON(`/inspections/${id}`);
+}
+
+/**
+ * Get a full inspection payload (inspection + checklist + photos)
+ */
+export async function getInspectionFull(id: number): Promise<BackendInspectionFull> {
+  return fetchJSON(`/inspections/${id}/full`);
 }
 
 /**
@@ -126,11 +141,13 @@ export async function addInspectionPhotos(
   inspectionId: number,
   sectionId: string,
   comment: string,
-  files: File[]
+  files: File[],
+  condition?: "good" | "fair" | "poor"
 ): Promise<{ uploaded: number }> {
   const formData = new FormData();
   formData.append("section_id", sectionId);
   formData.append("comment", comment);
+  if (condition) formData.append("condition", condition);
   files.forEach((file) => formData.append("file", file));
 
   const res = await fetch(
@@ -157,4 +174,21 @@ export async function listInspectionPhotos(
   inspectionId: number
 ): Promise<BackendInspectionPhoto[]> {
   return fetchJSON(`/inspections/${inspectionId}/photos`);
+}
+
+/**
+ * Update a photo's condition and/or comment
+ */
+export async function updateInspectionPhoto(
+  inspectionId: number,
+  photoId: number,
+  updates: {
+    condition?: "good" | "fair" | "poor" | null;
+    comment?: string | null;
+  }
+): Promise<BackendInspectionPhoto> {
+  return fetchJSON(`/inspections/${inspectionId}/photos/${photoId}`, {
+    method: "PATCH",
+    body: JSON.stringify(updates),
+  });
 }

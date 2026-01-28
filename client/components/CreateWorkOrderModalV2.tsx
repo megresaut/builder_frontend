@@ -28,14 +28,22 @@ import { fetchJSON } from "@/api/fetchJSON";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { useAuth } from "@/auth/useAuth";
 
+/** When provided (e.g. property-level create), task dropdown shows only these tasks and selection supplies taskId for create. */
+export interface TaskOption {
+  id: number;
+  label: string;
+}
+
 interface CreateWorkOrderModalV2Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode?: "create" | "edit";
   hideTaskSelection?: boolean;
   hideSubheader?: boolean;
-  taskId?: number; // Task ID for creating work order
+  taskId?: number; // Task ID for creating work order (used when taskOptions not provided)
   propertyId?: number; // Property ID for creating work order
+  /** Property-scoped tasks for dropdown. When set, task field is not autofilled and only these tasks are shown. */
+  taskOptions?: TaskOption[];
   workOrderId?: number; // Work Order ID for updating work order (required in edit mode)
   requestedBy?: number; // User ID of the requester (optional)
   initialData?: {
@@ -174,7 +182,8 @@ const uploadFile = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const API_BASE = "http://localhost:8080";
+  // const API_BASE = "http://localhost:8080";
+  const API_BASE = "/api";
   const response = await fetch(`${API_BASE}/maintenance/uploads`, {
     method: "POST",
     credentials: "include",
@@ -199,6 +208,7 @@ export default function CreateWorkOrderModalV2({
   hideSubheader = false,
   taskId,
   propertyId,
+  taskOptions,
   workOrderId,
   requestedBy,
   initialData,
@@ -242,6 +252,7 @@ export default function CreateWorkOrderModalV2({
   const [vendorHasMore, setVendorHasMore] = useState(true);
   const [vendorLoading, setVendorLoading] = useState(false);
   const [isVendorDropdownOpen, setIsVendorDropdownOpen] = useState(false);
+  const vendorSearchInputRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -303,6 +314,14 @@ export default function CreateWorkOrderModalV2({
   }, [vendorSearch, isVendorDropdownOpen, fetchVendorsPage]);
 
   useEffect(() => {
+    if (!isVendorDropdownOpen) return;
+    const timeoutId = window.setTimeout(() => {
+      vendorSearchInputRef.current?.focus();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [isVendorDropdownOpen]);
+
+  useEffect(() => {
     if (!initialData?.vendor || vendorSearch.trim()) return;
     setVendors((prev) => {
       if (prev.some((vendor) => vendor.name === initialData.vendor)) {
@@ -362,7 +381,7 @@ export default function CreateWorkOrderModalV2({
         });
       } else {
         setFormData({
-          task: initialData?.task ?? "",
+          task: taskOptions ? "" : (initialData?.task ?? ""),
           workOrderName: initialData?.workOrderName ?? "",
           vendorId: "",
           status: "not_started",
@@ -481,8 +500,15 @@ export default function CreateWorkOrderModalV2({
 
     // For create mode, require taskId and propertyId
     if (mode === "create") {
-      if (!taskId) {
-        newErrors.task = "Task ID is required";
+      if (taskOptions) {
+        // Property-scoped: taskId comes from dropdown selection
+        if (!formData.task.trim()) {
+          newErrors.task = "Task is required";
+        }
+      } else {
+        if (!taskId) {
+          newErrors.task = "Task ID is required";
+        }
       }
       if (!propertyId) {
         newErrors.property = "Property ID is required";
@@ -635,9 +661,13 @@ export default function CreateWorkOrderModalV2({
         const backendStatus = convertStatusToBackend(frontendStatus);
         const backendPriority = convertPriorityToBackend(frontendPriority);
 
+        const effectiveTaskId = taskOptions
+          ? (formData.task ? parseInt(formData.task, 10) : undefined)
+          : taskId;
+
         // Prepare the request body
         const requestBody: any = {
-          task_id: taskId,
+          task_id: effectiveTaskId,
           property_id: propertyId,
           name: formData.workOrderName,
           description: formData.notes || "",
@@ -678,6 +708,14 @@ export default function CreateWorkOrderModalV2({
         // Call success callback if provided
         if (onWorkOrderCreated) {
           onWorkOrderCreated(workOrder);
+        }
+
+        if (propertyId) {
+          window.dispatchEvent(
+            new CustomEvent("refreshWorkOrders", {
+              detail: { propertyId },
+            })
+          );
         }
 
         // Also call onDataUpdate for backward compatibility
@@ -733,7 +771,14 @@ export default function CreateWorkOrderModalV2({
                 value={formData.task}
                 onChange={handleTaskChange}
                 placeholder="Select Task"
-                options={buildTaskOptions(initialData?.task)}
+                options={
+                  taskOptions
+                    ? taskOptions.map((t) => ({
+                        value: t.id.toString(),
+                        label: t.label,
+                      }))
+                    : buildTaskOptions(initialData?.task)
+                }
                 error={errors.task}
               />
               <button
@@ -786,12 +831,24 @@ export default function CreateWorkOrderModalV2({
                     </SelectTrigger>
                     <SelectContent 
                       className="bg-white border border-[#E5E7EB] shadow-md p-0 !z-[9999]"
-                      style={{ zIndex: 9999 }}
+                      style={{
+                        zIndex: 9999,
+                        width: "var(--radix-select-trigger-width)",
+                        minHeight: "320px",
+                      }}
                       position="popper"
+                      side="bottom"
+                      align="start"
+                      avoidCollisions={false}
+                      onOpenAutoFocus={(event) => {
+                        event.preventDefault();
+                        vendorSearchInputRef.current?.focus();
+                      }}
                     >
                       {/* Search input - outside Viewport */}
                       <div className="p-2 border-b border-[#E5E7EB] sticky top-0 bg-white z-10">
                         <input
+                          ref={vendorSearchInputRef}
                           autoFocus
                           placeholder="Type to search…"
                           value={vendorSearch}
@@ -807,7 +864,7 @@ export default function CreateWorkOrderModalV2({
 
                       {/* Scrollable list - inside Viewport */}
                       <div
-                        className="max-h-[240px] overflow-y-auto"
+                        className="h-[240px] overflow-y-auto"
                         onScroll={handleVendorScroll}
                       >
                         {vendorLoading && filteredVendors.length === 0 && (

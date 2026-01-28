@@ -911,7 +911,8 @@ export default function WorkOrderDetailsV2({
         const formData = new FormData();
         formData.append("file", file);
 
-        const API_BASE = "http://localhost:8080";
+        // const API_BASE = "http://localhost:8080";
+        const API_BASE = "/api";
         const uploadRes = await fetch(
           `${API_BASE}/maintenance/tasks/attachments/upload`,
           {
@@ -1420,14 +1421,16 @@ export default function WorkOrderDetailsV2({
                     ? file.id
                     : parseInt(String(file.id), 10);
                 if (!isNaN(attachmentId)) {
-                  const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;
+                  // const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;
+                  const url = `/api/maintenance/attachments/${attachmentId}`;
                   setViewingFileUrl(url);
                   setViewingFileName(file.name);
                   return;
                 }
               }
               if (file.storage_path) {
-                const url = `http://localhost:8080/api/files?key=${encodeURIComponent(
+                // const url = `http://localhost:8080/api/files?key=${encodeURIComponent(
+                const url = `/api/files?key=${encodeURIComponent(
                   file.storage_path,
                 )}`;
                 setViewingFileUrl(url);

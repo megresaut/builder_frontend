@@ -2,6 +2,8 @@ import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
+import { useAuth } from "@/auth/useAuth";
+import { fetchJSON } from "@/api/fetchJSON";
 import {
   PropertiesIcon,
   BillsIcon,
@@ -43,6 +45,42 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
   const { favorites, removeFavorite } = useFavorites();
   const navigate = useNavigate();
   const location = useLocation();
+  const { userId, role } = useAuth();
+  const [userName, setUserName] = useState<string>("");
+
+  // Format role name: property_manager -> Property Manager, field_team_member -> Field Manager
+  const formatRole = (roleName: string | null): string => {
+    if (!roleName) return "User";
+    
+    // Handle specific role mappings
+    if (roleName === "property_manager") return "Property Manager";
+    if (roleName === "field_team_member") return "Field Manager";
+    
+    // General formatting: replace underscores with spaces and capitalize words
+    return roleName
+      .split("_")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
+  // Fetch user name when userId is available
+  useEffect(() => {
+    if (userId) {
+      const token = localStorage.getItem("avm_token");
+      fetchJSON(`/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((user: any) => {
+          setUserName(user.name || "");
+        })
+        .catch(() => {
+          // Fallback to empty string if fetch fails
+          setUserName("");
+        });
+    }
+  }, [userId]);
 
   // Determine if we're in FTO mode based on current route or prop
   const isFtoMode = mode === "fto" || location.pathname.startsWith("/fto");
@@ -71,9 +109,10 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     const path = location.pathname;
     if (isFtoMode) {
       if (path === "/fto" || path === "/fto/") return "fto-home";
+      if (path.startsWith("/fto/inspections")) return "fto-inspections";
       return null;
     }
-    if (path === "/all-properties" || path === "/") return "properties";
+    if (path === "/") return "properties";
     if (path === "/bills") return "accounting";
     if (
       path.includes("/all-tasks") ||
@@ -148,6 +187,89 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
               />
               <path
                 d="M7.5 18V11.6667H12.5V18"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ),
+        },
+        {
+          id: "fto-inspections",
+          label: "Property Inspections",
+          iconLight: (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"
+                stroke="#717179"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"
+                stroke="#717179"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"
+                stroke="#717179"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10 6h4M10 10h4M10 14h4M10 18h4"
+                stroke="#717179"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ),
+          iconDark: (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"
+                fill="#303030"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"
+                fill="#303030"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"
+                fill="#303030"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10 6h4M10 10h4M10 14h4M10 18h4"
                 stroke="white"
                 strokeWidth="1.5"
                 strokeLinecap="round"
@@ -299,10 +421,11 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
   > = {
     dashboard: [],
     "fto-home": [{ label: "Home", path: "/fto", sectionId: "fto-home" }],
+    "fto-inspections": [{ label: "Property Inspections", path: "/fto/inspections", sectionId: "fto-inspections" }],
     properties: [
       {
         label: "All Properties",
-        path: "/all-properties",
+        path: "/",
         sectionId: "all-properties",
       },
     ],
@@ -673,16 +796,39 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
               style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
             >
               <div className="flex items-center gap-2">
-                <img
-                  alt="User avatar"
-                  src="https://api.builder.io/api/v1/image/assets/TEMP/2566780a27c3990d201697798765d924dce1c93a?width=80"
-                  className="w-10 h-10 rounded"
-                />
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                      stroke="#9CA3AF"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="12"
+                      cy="7"
+                      r="4"
+                      stroke="#9CA3AF"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-gray-900">
-                    Roger Botosh
+                    {userName || "User"}
                   </span>
-                  <span className="text-xs text-gray-600">Admin</span>
+                  <span className="text-xs text-gray-600">
+                    {formatRole(role)}
+                  </span>
                 </div>
               </div>
               <svg
@@ -977,16 +1123,39 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
               style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
             >
               <div className="flex items-center gap-2">
-                <img
-                  alt="User avatar"
-                  src="https://api.builder.io/api/v1/image/assets/TEMP/2566780a27c3990d201697798765d924dce1c93a?width=80"
-                  className="w-10 h-10 rounded"
-                />
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                      stroke="#9CA3AF"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="12"
+                      cy="7"
+                      r="4"
+                      stroke="#9CA3AF"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-gray-900">
-                    Roger Botosh
+                    {userName || "User"}
                   </span>
-                  <span className="text-xs text-gray-600">Admin</span>
+                  <span className="text-xs text-gray-600">
+                    {formatRole(role)}
+                  </span>
                 </div>
               </div>
               <svg
@@ -1279,16 +1448,39 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
           style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
         >
           <div className="flex items-center gap-2">
-            <img
-              alt="User avatar"
-              src="https://api.builder.io/api/v1/image/assets/TEMP/2566780a27c3990d201697798765d924dce1c93a?width=80"
-              className="w-10 h-10 rounded"
-            />
+            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                  stroke="#9CA3AF"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                  stroke="#9CA3AF"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-gray-900">
-                Roger Botosh
+                {userName || "User"}
               </span>
-              <span className="text-xs text-gray-600">Admin</span>
+              <span className="text-xs text-gray-600">
+                {formatRole(role)}
+              </span>
             </div>
           </div>
           <svg

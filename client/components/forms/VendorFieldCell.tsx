@@ -39,6 +39,11 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Sync inputValue when value prop changes externally
+  useEffect(() => {
+    setInputValue(value || "");
+  }, [value]);
+
   usePopoverAutoClose({
     open,
     onOpenChange: setOpen,
@@ -130,6 +135,12 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
+                onBlur={() => {
+                  // Commit the typed value when the input loses focus
+                  if (inputValue && inputValue !== value) {
+                    onChange?.(inputValue);
+                  }
+                }}
                 placeholder={placeholder}
                 className="w-full px-2 py-1 border border-[#DADADA] rounded text-[13px] outline-none"
                 style={{

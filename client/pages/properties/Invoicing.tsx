@@ -400,6 +400,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     description: string;
     amount: string;
     source: string;
+    sourceId?: number; // submission ID for FTO items
     status: InvoiceItemStatus;
     statusColor: string;
     statusBg: string;
@@ -476,6 +477,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const [currentInvoiceId, setCurrentInvoiceId] = useState<number | null>(null);
   const [loadingInvoice, setLoadingInvoice] = useState(false);
+  const [propertyOwnerName, setPropertyOwnerName] = useState<string>("");
+  const [fetchedPropertyLocation, setFetchedPropertyLocation] = useState<string>("");
 
   const loadInvoiceForProperty = async () => {
     if (!propertyId) return;
@@ -486,6 +489,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       // 1️⃣ Generate (or regenerate) invoice
       const generateRes = await fetch(
         "/api/invoicing/generate",
+        // "http://localhost:8080/invoicing/generate",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -496,27 +500,40 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         }
       );
 
+      let invoiceId: number;
+
       if (!generateRes.ok) {
         if (generateRes.status === 400) {
-          // 👇 clean, user-facing message
-          setGenerateInvoiceError("Invoice already generated for this month.");
-          return; // ⛔ stop here, do NOT throw
+          // 👇 Invoice already exists, fetch the current draft invoice
+          setGenerateInvoiceError(null);
+          
+          const draftRes = await fetch(
+            `/api/invoicing/current-draft?property_id=${propertyId}`
+          );
+          
+          if (!draftRes.ok) {
+            setGenerateInvoiceError("Invoice already generated for this month, but could not load it.");
+            return;
+          }
+          
+          const draftData = await draftRes.json();
+          invoiceId = draftData.id;
+          setCurrentInvoiceId(invoiceId);
+        } else {
+          throw new Error("Failed to generate invoice");
         }
-
-        throw new Error("Failed to generate invoice");
+      } else {
+        // ✅ success path - invoice was just generated
+        setGenerateInvoiceError(null);
+        const generateData = await generateRes.json();
+        invoiceId = generateData.invoice.id;
+        setCurrentInvoiceId(invoiceId);
       }
-
-      // ✅ success path
-      setGenerateInvoiceError(null);
-
-      const generateData = await generateRes.json();
-      const invoiceId = generateData.invoice.id;
-      setCurrentInvoiceId(invoiceId);
 
   
       // 2️⃣ Fetch expanded line items
       const itemsRes = await fetch(
-        `/api/invoicing/line-items-expanded?id=${invoiceId}`
+        `/api/invoicing/line-items-expanded?id=${invoiceId}`,
       );
   
       if (!itemsRes.ok) {
@@ -552,6 +569,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       // 3️⃣ Transform API → UI table shape
       const mappedItems: InvoiceItem[] = apiItems.map((li: any) => {
         const avatar = getVendorAvatar(li.vendor_name || "");
+        
+        // Normalize FTO source values to "FTO Submission" for consistency
+        let normalizedSource = li.source;
+        if (li.source === "Field Team Hours" || li.source === "Field Team Expense") {
+          normalizedSource = "FTO Submission";
+        }
       
         return {
           id: li.id,
@@ -562,7 +585,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           glAccount: getGlAccountName(li.gl_account_id),
           description: li.description || "",
           amount: `$${li.amount.toFixed(2)}`,
-          source: li.source,
+          source: normalizedSource,
+          sourceId: li.source_id, // Store source_id (submission ID for FTO items)
           status: li.status === "approved" ? "Approved" : "Pending Approval",
           statusColor:
             li.status === "approved" ? "#059669" : "#D97706",
@@ -626,6 +650,75 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   useEffect(() => {
     loadInvoiceForProperty();
     loadInvoiceHistory();
+  }, [propertyId]);
+
+  // Fetch property owner name and location (city, state, zip)
+  useEffect(() => {
+    const fetchPropertyDetails = async () => {
+      if (!propertyId) return;
+      
+      try {
+        const res = await fetch(`/api/properties/${propertyId}`);
+        if (!res.ok) return;
+        
+        const property = await res.json();
+        
+        // Extract owner name
+        if (property.owners) {
+          try {
+            const owners = JSON.parse(property.owners);
+            if (Array.isArray(owners) && owners.length > 0 && owners[0].name) {
+              setPropertyOwnerName(owners[0].name);
+            }
+          } catch (e) {
+            // If owners is already parsed or invalid JSON, try direct access
+            if (typeof property.owners === 'object' && property.owners.length > 0 && property.owners[0].name) {
+              setPropertyOwnerName(property.owners[0].name);
+            }
+          }
+        }
+        
+        // Extract city, state, zip for property location
+        // Log property object to help debug field names
+        console.log("Property data for location:", {
+          city: property.city,
+          state: property.state,
+          zip: property.zip,
+          zipcode: property.zipcode,
+          zip_code: property.zip_code,
+          postal_code: property.postal_code,
+          location: property.location,
+          address2: property.address2,
+          address_line_2: property.address_line_2,
+          allKeys: Object.keys(property)
+        });
+        
+        // Check various possible field names for zip code
+        const zip = property.zip || property.zipcode || property.zip_code || 
+                    property.postal_code || property.postalCode || property.Zip ||
+                    property.ZipCode || property.postal || "";
+        
+        const city = property.city || property.City || "";
+        const state = property.state || property.State || "";
+        
+        if (city || state || zip) {
+          // Format as "City, State Zip" or just what's available
+          if (city && state) {
+            setFetchedPropertyLocation(`${city}, ${state}${zip ? " " + zip : ""}`);
+          } else if (city && zip) {
+            setFetchedPropertyLocation(`${city} ${zip}`);
+          } else if (state && zip) {
+            setFetchedPropertyLocation(`${state} ${zip}`);
+          } else {
+            setFetchedPropertyLocation([city, state, zip].filter(Boolean).join(" "));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch property details:", err);
+      }
+    };
+    
+    fetchPropertyDetails();
   }, [propertyId]);
 
   const formatInvoiceMonth = (dateStr: string) => {
@@ -736,9 +829,35 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     navigate(basePath);
   };
 
-  const openViewFTO = (ftoId: number) => {
-    setSelectedFTOId(ftoId);
-    setShowFTOApprovalModal(true);
+  const openViewFTO = async (submissionId: number) => {
+    try {
+      // Fetch the submission to get the FTO ID
+      const res = await fetch(
+        `/api/maintenance/submissions/${submissionId}`,
+        {
+          headers: { Accept: "application/json" },
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch submission");
+      }
+
+      const data = await res.json();
+      // Handle both possible response structures: direct submission or wrapped in SubmissionWithAttachments
+      const submission = data.submission || data;
+      const ftoId = submission.fto_id || submission.FTOID || submission.ftoId;
+
+      if (!ftoId) {
+        throw new Error("FTO ID not found in submission");
+      }
+
+      // Navigate to the approve page (same as the approve button in all field team orders)
+      navigate(`/field-team-orders/approve/${ftoId}`);
+    } catch (err) {
+      console.error("Failed to open FTO:", err);
+      alert("Failed to load FTO details");
+    }
   };
 
   const buildPreviewLineItemsFromInvoiceItem = (
@@ -823,6 +942,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   
       // 2️⃣ Finalize invoice WITH PDF
       const finalizeRes = await fetch(
+        // `/api/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
         `/api/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
         {
           method: "POST",
@@ -1091,13 +1211,30 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     />
                   </svg>
                 ),
-                onClick: (item: any) => {
+                onClick: async (item: any) => {
                   const isFTO = item?.source === "FTO Submission";
                   if (isFTO) {
-                    openViewFTO(item.id);
+                    // Use sourceId (submission ID) to get FTO ID
+                    if (item.sourceId) {
+                      await openViewFTO(item.sourceId);
+                    } else {
+                      console.error("No sourceId found for FTO item");
+                      alert("Unable to load FTO details");
+                    }
                     return;
                   }
 
+                  // For vendor bills, navigate to the same route as "View Bill" in all bills
+                  const isVendorBill = item?.source === "Vendor-Import" || item?.source === "Vendor Bill";
+                  if (isVendorBill && item.sourceId) {
+                    const basePath = propertyId
+                      ? `/property/${propertyId}/bills/record`
+                      : "/bills/record";
+                    navigate(`${basePath}?readOnly=true&billId=${item.sourceId}`);
+                    return;
+                  }
+
+                  // For other sources (Manual, etc.), use the modal
                   const data = buildRecordBillModalDataFromInvoiceItem(item);
                   if (item?.status === "Approved") {
                     setRecordBillModalMode("view");
@@ -1110,6 +1247,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   setRecordBillModalData(data);
                   setRecordBillModalOpen(true);
                 },
+                // Hide action for Management Fee items
+                hidden: (item: any) => item?.source === "Management Fee",
               },
             ]}
             
@@ -1330,9 +1469,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         open={showInvoicePreview}
         onOpenChange={setShowInvoicePreview}
         propertyAddress={propertyAddress}
-        propertyLocation={propertyLocation || ""}
+        propertyLocation={fetchedPropertyLocation || propertyLocation || ""}
         billTo="Jason Pascal"
-        rentalOwner="Eunice Bae"
+        rentalOwner={propertyOwnerName || "Eunice Bae"}
         invoiceDate={invoicePreviewInvoiceDate || currentInvoiceMonth}
         lineItems={
           invoicePreviewLineItems.length > 0

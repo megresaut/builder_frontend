@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import html2pdf from "html2pdf.js";
+import ExcelJS from "exceljs";
 
 export interface InvoiceLineItem {
   id: number;
@@ -202,6 +203,416 @@ export default function InvoicePreviewModal({
     } catch (error) {
       console.error("Error generating PDF:", error);
     }
+  };
+
+  const handleExportToExcel = async () => {
+    // Create workbook and worksheet matching the "Concierge Billing Invoice Template.xlsx" exactly
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("CURRENT MONTH", {
+      views: [{ showGridLines: false }], // Hide gridlines to match template
+    });
+
+    // Define colors matching the template
+    const darkBlueHex = "FF002060";
+    const goldHex = "FFBF8F00";
+    const lightGreyHex = "FFF2F2F2";
+    const emailBlueHex = "FF0563C1";
+
+    // Set column widths to match template layout exactly
+    // Template has columns A (narrow), B (vendor/company), C (description), D (amount/property)
+    worksheet.getColumn(1).width = 2.5;   // Column A - very narrow margin
+    worksheet.getColumn(2).width = 22;    // Column B - Company info / Bill To / Vendors
+    worksheet.getColumn(3).width = 50;    // Column C - Description (wider for merged content)
+    worksheet.getColumn(4).width = 20;    // Column D - Invoice / Property / Amount
+
+    // Helper function to set cell style
+    const setCellStyle = (
+      cell: ExcelJS.Cell,
+      options: {
+        bold?: boolean;
+        fontSize?: number;
+        color?: string;
+        alignment?: Partial<ExcelJS.Alignment>;
+        fill?: string;
+        underline?: boolean;
+        numFmt?: string;
+        italic?: boolean;
+      }
+    ) => {
+      cell.font = {
+        name: "Calibri",
+        bold: options.bold ?? false,
+        size: options.fontSize ?? 11,
+        color: options.color ? { argb: options.color } : { argb: darkBlueHex },
+        underline: options.underline ? "single" : undefined,
+        italic: options.italic ?? false,
+      };
+      if (options.alignment) {
+        cell.alignment = { vertical: "middle", ...options.alignment };
+      } else {
+        cell.alignment = { vertical: "middle" };
+      }
+      if (options.fill) {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: options.fill },
+        };
+      }
+      if (options.numFmt) {
+        cell.numFmt = options.numFmt;
+      }
+    };
+
+    // Set row heights to match template spacing
+    worksheet.getRow(1).height = 21;  // Company name row
+    worksheet.getRow(2).height = 15;  // Address line 1
+    worksheet.getRow(3).height = 15;  // Address line 2
+    worksheet.getRow(4).height = 15;  // City/State/Zip
+    worksheet.getRow(5).height = 15;  // Phone
+    worksheet.getRow(6).height = 10;  // Empty spacer
+    worksheet.getRow(7).height = 10;  // Empty spacer
+    worksheet.getRow(8).height = 18;  // Bill To / Property labels
+    worksheet.getRow(9).height = 15;  // Name / Address line 1
+    worksheet.getRow(10).height = 15; // Name / Address line 2
+    worksheet.getRow(11).height = 10; // Empty spacer
+    worksheet.getRow(12).height = 20; // Table headers
+
+    // ========== ROW 1: Company Name & Invoice Title ==========
+    // Merge B1:C1 for company name
+    worksheet.mergeCells("B1:C1");
+    worksheet.getCell("B1").value = "AVMRE LLC";
+    setCellStyle(worksheet.getCell("B1"), {
+      bold: true,
+      fontSize: 18,
+      color: darkBlueHex,
+      alignment: { horizontal: "left" },
+    });
+
+    // D1: INVOICE
+    worksheet.getCell("D1").value = "INVOICE";
+    setCellStyle(worksheet.getCell("D1"), {
+      bold: true,
+      fontSize: 18,
+      color: darkBlueHex,
+      alignment: { horizontal: "right" },
+    });
+
+    // ========== ROW 2: Address Line 1 & Date ==========
+    // Merge B2:C2 for address
+    worksheet.mergeCells("B2:C2");
+    worksheet.getCell("B2").value = "11 LARGO DRIVE SOUTH";
+    setCellStyle(worksheet.getCell("B2"), { fontSize: 11, color: darkBlueHex });
+
+    // D2: DATE: [Invoice Date]
+    worksheet.getCell("D2").value = `DATE: ${invoiceDate}`;
+    setCellStyle(worksheet.getCell("D2"), {
+      fontSize: 11,
+      color: darkBlueHex,
+      alignment: { horizontal: "right" },
+    });
+
+    // ========== ROW 3: Address Line 2 ==========
+    // Merge B3:C3 for address
+    worksheet.mergeCells("B3:C3");
+    worksheet.getCell("B3").value = "SUITE 200";
+    setCellStyle(worksheet.getCell("B3"), { fontSize: 11, color: darkBlueHex });
+
+    // ========== ROW 4: City/State/Zip ==========
+    // Merge B4:C4 for address
+    worksheet.mergeCells("B4:C4");
+    worksheet.getCell("B4").value = "STAMFORD, CT 06907";
+    setCellStyle(worksheet.getCell("B4"), { fontSize: 11, color: darkBlueHex });
+
+    // ========== ROW 5: Phone ==========
+    // Merge B5:C5 for phone
+    worksheet.mergeCells("B5:C5");
+    worksheet.getCell("B5").value = "203-987-7050";
+    setCellStyle(worksheet.getCell("B5"), {
+      bold: true,
+      fontSize: 11,
+      color: darkBlueHex,
+    });
+
+    // ========== ROW 6-7: Empty spacer rows ==========
+
+    // ========== ROW 8: Bill To & Property Labels ==========
+    // Merge B8:C8 for BILL TO label
+    worksheet.mergeCells("B8:C8");
+    worksheet.getCell("B8").value = "BILL TO:";
+    setCellStyle(worksheet.getCell("B8"), {
+      bold: true,
+      fontSize: 11,
+      color: darkBlueHex,
+    });
+
+    // D8: PROPERTY:
+    worksheet.getCell("D8").value = "PROPERTY:";
+    setCellStyle(worksheet.getCell("D8"), {
+      bold: true,
+      fontSize: 11,
+      color: darkBlueHex,
+      alignment: { horizontal: "right" },
+    });
+
+    // ========== ROW 9: Bill To Name Line 1 / Property Address ==========
+    const ownerName = rentalOwner || billTo;
+    // Split name if it contains "&" or comma for two-line display
+    const ownerLines = ownerName.includes("&") 
+      ? ownerName.split("&").map(s => s.trim())
+      : ownerName.includes(",")
+        ? ownerName.split(",").map(s => s.trim())
+        : [ownerName];
+    
+    // Merge B9:C9 for name
+    worksheet.mergeCells("B9:C9");
+    worksheet.getCell("B9").value = ownerLines[0] + (ownerLines.length > 1 ? " &" : "");
+    setCellStyle(worksheet.getCell("B9"), { fontSize: 11, color: darkBlueHex });
+
+    // D9: Property Address
+    worksheet.getCell("D9").value = propertyAddress;
+    setCellStyle(worksheet.getCell("D9"), {
+      fontSize: 11,
+      color: darkBlueHex,
+      alignment: { horizontal: "right" },
+    });
+
+    // ========== ROW 10: Bill To Name Line 2 / Property Location ==========
+    // Merge B10:C10 for name continuation
+    worksheet.mergeCells("B10:C10");
+    if (ownerLines.length > 1) {
+      worksheet.getCell("B10").value = ownerLines[1];
+      setCellStyle(worksheet.getCell("B10"), { fontSize: 11, color: darkBlueHex });
+    }
+
+    // D10: Property Location (City, State Zip)
+    if (propertyLocation) {
+      worksheet.getCell("D10").value = propertyLocation;
+      setCellStyle(worksheet.getCell("D10"), {
+        fontSize: 11,
+        color: darkBlueHex,
+        alignment: { horizontal: "right" },
+      });
+    }
+
+    // ========== ROW 11: Empty spacer ==========
+
+    // ========== ROW 12: Table Headers ==========
+    // B12: Vendor
+    worksheet.getCell("B12").value = "Vendor";
+    setCellStyle(worksheet.getCell("B12"), {
+      bold: true,
+      fontSize: 11,
+      color: darkBlueHex,
+    });
+    worksheet.getCell("B12").border = {
+      bottom: { style: "medium", color: { argb: goldHex } },
+    };
+
+    // C12: Description
+    worksheet.getCell("C12").value = "Description";
+    setCellStyle(worksheet.getCell("C12"), {
+      bold: true,
+      fontSize: 11,
+      color: darkBlueHex,
+    });
+    worksheet.getCell("C12").border = {
+      bottom: { style: "medium", color: { argb: goldHex } },
+    };
+
+    // D12: AMOUNT
+    worksheet.getCell("D12").value = "AMOUNT";
+    setCellStyle(worksheet.getCell("D12"), {
+      bold: true,
+      fontSize: 11,
+      color: darkBlueHex,
+      alignment: { horizontal: "right" },
+    });
+    worksheet.getCell("D12").border = {
+      bottom: { style: "medium", color: { argb: goldHex } },
+    };
+
+    // ========== ROWS 13+: Line Items ==========
+    let currentRow = 13;
+    lineItems.forEach((item) => {
+      // Set row height for line items
+      worksheet.getRow(currentRow).height = 18;
+      
+      // Parse amount as number (remove $ and commas)
+      const amount = parseFloat(item.amount.replace(/[^\d.]/g, "")) || 0;
+
+      // Column B: Vendor
+      worksheet.getCell(`B${currentRow}`).value = item.vendor;
+      setCellStyle(worksheet.getCell(`B${currentRow}`), {
+        fontSize: 11,
+        color: darkBlueHex,
+      });
+      worksheet.getCell(`B${currentRow}`).border = {
+        bottom: { style: "thin", color: { argb: goldHex } },
+      };
+
+      // Column C: Description
+      worksheet.getCell(`C${currentRow}`).value = item.description;
+      setCellStyle(worksheet.getCell(`C${currentRow}`), {
+        fontSize: 11,
+        color: darkBlueHex,
+      });
+      worksheet.getCell(`C${currentRow}`).border = {
+        bottom: { style: "thin", color: { argb: goldHex } },
+      };
+
+      // Column D: Amount (as number with currency format)
+      worksheet.getCell(`D${currentRow}`).value = amount;
+      setCellStyle(worksheet.getCell(`D${currentRow}`), {
+        fontSize: 11,
+        color: darkBlueHex,
+        alignment: { horizontal: "right" },
+        fill: lightGreyHex,
+        numFmt: '"$"#,##0.00',
+      });
+      worksheet.getCell(`D${currentRow}`).border = {
+        bottom: { style: "thin", color: { argb: goldHex } },
+      };
+
+      currentRow++;
+    });
+
+    // ========== SEPARATOR ROW: Gold line after last line item ==========
+    const separatorRow = currentRow;
+    worksheet.getRow(separatorRow).height = 8; // Short separator row
+    // Add a thick gold border spanning B to D (like in the template)
+    worksheet.getCell(`B${separatorRow}`).border = {
+      top: { style: "medium", color: { argb: goldHex } },
+    };
+    worksheet.getCell(`C${separatorRow}`).border = {
+      top: { style: "medium", color: { argb: goldHex } },
+    };
+    worksheet.getCell(`D${separatorRow}`).border = {
+      top: { style: "medium", color: { argb: goldHex } },
+    };
+
+    // ========== Empty row before total ==========
+    const emptyRow = separatorRow + 1;
+    worksheet.getRow(emptyRow).height = 12;
+
+    // ========== TOTAL ROW ==========
+    const totalRow = emptyRow + 1;
+    worksheet.getRow(totalRow).height = 22;
+
+    // C[totalRow]: TOTAL:
+    worksheet.getCell(`C${totalRow}`).value = "TOTAL:";
+    setCellStyle(worksheet.getCell(`C${totalRow}`), {
+      bold: true,
+      fontSize: 11,
+      color: darkBlueHex,
+      alignment: { horizontal: "right" },
+    });
+
+    // D[totalRow]: Total Amount (as number with gold border box)
+    const total = calculateTotal();
+    worksheet.getCell(`D${totalRow}`).value = total;
+    setCellStyle(worksheet.getCell(`D${totalRow}`), {
+      bold: true,
+      fontSize: 11,
+      color: darkBlueHex,
+      alignment: { horizontal: "right" },
+      fill: lightGreyHex,
+      numFmt: '"$"#,##0.00',
+    });
+    worksheet.getCell(`D${totalRow}`).border = {
+      top: { style: "medium", color: { argb: goldHex } },
+      bottom: { style: "medium", color: { argb: goldHex } },
+      left: { style: "medium", color: { argb: goldHex } },
+      right: { style: "medium", color: { argb: goldHex } },
+    };
+
+    // ========== FOOTER ROWS ==========
+    const footerStartRow = totalRow + 1;
+
+    // Footer row 1: Please make all checks payable...
+    worksheet.getRow(footerStartRow).height = 18;
+    worksheet.mergeCells(`B${footerStartRow}:D${footerStartRow}`);
+    worksheet.getCell(`B${footerStartRow}`).value = "Please make all checks payable to AVMRE LLC";
+    setCellStyle(worksheet.getCell(`B${footerStartRow}`), {
+      bold: true,
+      fontSize: 10,
+      color: darkBlueHex,
+    });
+
+    // Footer row 2: If you have any questions...
+    worksheet.getRow(footerStartRow + 1).height = 18;
+    worksheet.mergeCells(`B${footerStartRow + 1}:D${footerStartRow + 1}`);
+    worksheet.getCell(`B${footerStartRow + 1}`).value =
+      "If you have any questions concerning this invoice, use the following contact information:";
+    setCellStyle(worksheet.getCell(`B${footerStartRow + 1}`), {
+      fontSize: 10,
+      color: darkBlueHex,
+    });
+
+    // Footer row 3: Phone
+    worksheet.getRow(footerStartRow + 2).height = 18;
+    worksheet.mergeCells(`B${footerStartRow + 2}:D${footerStartRow + 2}`);
+    worksheet.getCell(`B${footerStartRow + 2}`).value = "203-987-7050";
+    setCellStyle(worksheet.getCell(`B${footerStartRow + 2}`), {
+      fontSize: 10,
+      color: darkBlueHex,
+    });
+
+    // Footer row 4: Email (with hyperlink style)
+    worksheet.getRow(footerStartRow + 3).height = 18;
+    worksheet.mergeCells(`B${footerStartRow + 3}:D${footerStartRow + 3}`);
+    worksheet.getCell(`B${footerStartRow + 3}`).value = {
+      text: "STAFF@AVMRE.COM",
+      hyperlink: "mailto:STAFF@AVMRE.COM",
+    };
+    setCellStyle(worksheet.getCell(`B${footerStartRow + 3}`), {
+      fontSize: 10,
+      color: emailBlueHex,
+      underline: true,
+    });
+
+    // Footer row 5: Thank you
+    worksheet.getRow(footerStartRow + 4).height = 18;
+    worksheet.mergeCells(`B${footerStartRow + 4}:D${footerStartRow + 4}`);
+    worksheet.getCell(`B${footerStartRow + 4}`).value = "THANK YOU FOR YOUR BUSINESS!";
+    setCellStyle(worksheet.getCell(`B${footerStartRow + 4}`), {
+      bold: true,
+      fontSize: 10,
+      color: darkBlueHex,
+    });
+
+    // ========== PAGE SETUP ==========
+    // Set print area and page margins to match template
+    worksheet.pageSetup = {
+      paperSize: 9, // A4
+      orientation: "portrait",
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+      margins: {
+        left: 0.5,
+        right: 0.5,
+        top: 0.5,
+        bottom: 0.5,
+        header: 0.3,
+        footer: 0.3,
+      },
+    };
+
+    // Generate filename
+    const fileName = `invoice_${invoiceDate.replace(/\s+/g, "_")}.xlsx`;
+
+    // Write file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const generatePdfBlob = async (): Promise<Blob> => {
@@ -797,6 +1208,16 @@ export default function InvoicePreviewModal({
             >
               <span className="text-white font-medium text-base">
                 Download PDF
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportToExcel}
+              className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
+            >
+              <span className="text-white font-medium text-base">
+                Export to Excel
               </span>
             </button>
           </div>

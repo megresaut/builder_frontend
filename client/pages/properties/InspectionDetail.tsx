@@ -5,7 +5,6 @@ import SectionCard from "@/components/SectionCard";
 import BlueButton from "@/components/BlueButton";
 import InspectionAssignees from "@/components/InspectionAssignees";
 import InspectionDetailsBarTemplate from "@/components/templates/InspectionDetailsBarTemplate";
-import PersonAvatarTag from "@/components/templates/PersonAvatarTag";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   PlusIcon,
@@ -16,7 +15,7 @@ import {
   ChevronDownIcon,
 } from "@/components/icons";
 import { DownloadIcon } from "@/components/icons/DownloadIcon";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Maximize2, Minimize2, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectField } from "@/components/forms/SelectField";
 import {
@@ -26,9 +25,10 @@ import {
 } from "@/data/inspection-checklist";
 import { DEFAULT_INSPECTION_TEMPLATES, ChecklistSectionTemplate } from "@/data/inspections";
 import html2canvas from "html2canvas";
-import { jsPDF } from "jsPDF";
+import { jsPDF } from "jspdf";
 import {
   updateInspection,
+  getInspection,
   listChecklists,
   createChecklist,
   updateChecklist,
@@ -146,6 +146,255 @@ function convertNodesToBackendChecklist(nodes: ChecklistNode[]): { sections: Che
   return { sections };
 }
 
+// NestedChecklistSelect component for cascading dropdowns
+interface NestedChecklistSelectProps {
+  label: string;
+  value?: string;
+  onChange?: (value: string) => void;
+  placeholder?: string;
+  checklist: ChecklistNode[];
+  getNodePath: (nodeId: string) => string;
+}
+
+function NestedChecklistSelect({
+  label,
+  value,
+  onChange,
+  placeholder = "Select a checklist item...",
+  checklist,
+  getNodePath,
+}: NestedChecklistSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [navigationStack, setNavigationStack] = useState<string[]>([]); // Stack of node IDs for breadcrumb navigation
+
+  // Build tree structure
+  const buildTree = () => {
+    const tree: Record<string, ChecklistNode[]> = {};
+    const rootNodes: ChecklistNode[] = [];
+
+    checklist.forEach((node) => {
+      if (node.depth === 0) {
+        rootNodes.push(node);
+        tree[node.id] = [];
+      } else if (node.parentId) {
+        if (!tree[node.parentId]) {
+          tree[node.parentId] = [];
+        }
+        tree[node.parentId].push(node);
+      }
+    });
+
+    return { tree, rootNodes };
+  };
+
+  const { tree, rootNodes } = buildTree();
+
+  // Get current level nodes based on navigation stack
+  const getCurrentLevelNodes = (): ChecklistNode[] => {
+    if (navigationStack.length === 0) {
+      return rootNodes;
+    }
+    const currentParentId = navigationStack[navigationStack.length - 1];
+    return tree[currentParentId] || [];
+  };
+
+  const currentNodes = getCurrentLevelNodes();
+  const selectedNode = checklist.find((n) => n.id === value);
+  const displayValue = selectedNode ? getNodePath(selectedNode.id) : placeholder;
+
+  const toggleNode = (nodeId: string) => {
+    setExpandedNodes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  };
+
+  const navigateToNode = (nodeId: string) => {
+    setNavigationStack((prev) => [...prev, nodeId]);
+    setExpandedNodes((prev) => new Set(prev).add(nodeId));
+  };
+
+  const navigateBack = () => {
+    setNavigationStack((prev) => prev.slice(0, -1));
+  };
+
+  const handleSelect = (nodeId: string) => {
+    onChange?.(nodeId);
+    setOpen(false);
+    setNavigationStack([]);
+    setExpandedNodes(new Set());
+  };
+
+  const hasChildren = (nodeId: string) => {
+    return tree[nodeId] && tree[nodeId].length > 0;
+  };
+
+  return (
+    <div className="relative">
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        {label}
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && open) {
+              setOpen(false);
+              setNavigationStack([]);
+              setExpandedNodes(new Set());
+            }
+          }}
+          className={cn(
+            "w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer",
+            open
+              ? "border-black"
+              : "border-[var(--color-border-light)]"
+          )}
+          style={{
+            fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+            lineHeight: 1.43,
+            minHeight: "44px",
+            color: value ? "var(--color-text-primary)" : "#303030",
+          }}
+        >
+          <span className="truncate text-left flex-1">{displayValue}</span>
+          <ChevronDownIcon
+            width={16}
+            height={16}
+            className={cn(
+              "ml-2 flex-shrink-0 transition-transform",
+              open && "rotate-180"
+            )}
+          />
+        </button>
+
+        {open && (
+          <>
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => {
+                setOpen(false);
+                setNavigationStack([]);
+                setExpandedNodes(new Set());
+              }}
+            />
+            <div
+              className="absolute z-20 w-full mt-1 rounded-lg border border-[var(--color-border-light)] bg-white shadow-lg"
+              style={{ maxHeight: "400px", overflow: "hidden", display: "flex", flexDirection: "column" }}
+            >
+              {/* Breadcrumb Navigation */}
+              {navigationStack.length > 0 && (
+                <div className="flex items-center gap-1 px-3 py-2 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setNavigationStack([])}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    All Sections
+                  </button>
+                  {navigationStack.map((nodeId, index) => {
+                    const node = checklist.find((n) => n.id === nodeId);
+                    if (!node) return null;
+                    return (
+                      <React.Fragment key={nodeId}>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setNavigationStack((prev) => prev.slice(0, index + 1))
+                          }
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium truncate max-w-[150px]"
+                        >
+                          {node.text}
+                        </button>
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Options List */}
+              <div
+                className="overflow-y-auto flex-1"
+                style={{ maxHeight: "350px" }}
+              >
+                {currentNodes.length === 0 ? (
+                  <div className="px-3 py-4 text-sm text-gray-500 text-center">
+                    No items
+                  </div>
+                ) : (
+                  <div className="py-1">
+                    {currentNodes.map((node) => {
+                      const nodeHasChildren = hasChildren(node.id);
+                      const isSelected = value === node.id;
+                      const isExpanded = expandedNodes.has(node.id);
+
+                      return (
+                        <div key={node.id}>
+                          <div
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2 hover:bg-blue-50 cursor-pointer transition-colors",
+                              isSelected && "bg-blue-100"
+                            )}
+                          >
+                            {nodeHasChildren ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleNode(node.id);
+                                  navigateToNode(node.id);
+                                }}
+                                className="flex-shrink-0 p-0.5 hover:bg-blue-100 rounded"
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="w-4 h-4 text-gray-600" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                                )}
+                              </button>
+                            ) : (
+                              <div className="w-5" /> // Spacer for alignment
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleSelect(node.id)}
+                              className="flex-1 text-left text-sm"
+                              style={{
+                                color: "var(--color-text-primary)",
+                                fontFamily:
+                                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                              }}
+                            >
+                              {node.text}
+                            </button>
+                            {isSelected && (
+                              <div className="flex-shrink-0 text-blue-600">
+                                ✓
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const {
     isNew,
@@ -164,26 +413,79 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [photos, setPhotos] = useState<InspectionPhoto[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isChecklistFullScreen, setIsChecklistFullScreen] = useState(false);
-  const [status, setStatus] = useState<"In Progress" | "Completed">("In Progress");
-  const [inspectionDueDate, setInspectionDueDate] = useState<Date | string | null>(
-    inspection?.inspectionDate ? new Date(inspection.inspectionDate) : new Date()
-  );
+  
+  // Initialize status from inspection prop if available, otherwise default
+  const getInitialStatus = (): "In Progress" | "Completed" => {
+    if (inspection?.status) {
+      // Map various status formats to our frontend format
+      const statusLower = inspection.status.toLowerCase();
+      if (statusLower === "completed" || statusLower === "reviewed") {
+        return "Completed";
+      }
+    }
+    return "In Progress";
+  };
+  
+  const [status, setStatus] = useState<"In Progress" | "Completed">(getInitialStatus());
+  const [inspectionDueDate, setInspectionDueDate] = useState<Date | string | null>(null);
   const [isLoadingChecklist, setIsLoadingChecklist] = useState(true);
   const [checklistId, setChecklistId] = useState<number | null>(inspection?.checklist_id || null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  // Helper function to map backend status to frontend status
+  const mapBackendStatusToFrontend = (backendStatus: string): "In Progress" | "Completed" => {
+    // Backend statuses: draft, scheduled, in_progress, submitted, reviewed, cancelled
+    if (backendStatus === "reviewed") {
+      return "Completed";
+    }
+    // Default to "In Progress" for all other statuses
+    return "In Progress";
+  };
+
+  // Helper function to map frontend status to backend status
+  const mapFrontendStatusToBackend = (frontendStatus: "In Progress" | "Completed"): string => {
+    if (frontendStatus === "Completed") {
+      return "reviewed";
+    }
+    return "in_progress";
+  };
+
+  // Fetch inspection data when inspectionId changes
+  useEffect(() => {
+    const fetchInspectionData = async () => {
+      if (!inspectionId) return;
+
+      try {
+        const backendInspection = await getInspection(inspectionId);
+        
+        // Update status from backend
+        const frontendStatus = mapBackendStatusToFrontend(backendInspection.status);
+        setStatus(frontendStatus);
+        
+        // Update due date from backend
+        if (backendInspection.due_date) {
+          setInspectionDueDate(new Date(backendInspection.due_date));
+        } else {
+          setInspectionDueDate(null);
+        }
+        
+        // Update checklist ID
+        if (backendInspection.checklist_id) {
+          setChecklistId(backendInspection.checklist_id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch inspection:", error);
+      }
+    };
+
+    fetchInspectionData();
+  }, [inspectionId]);
 
   // Metadata State
   const [uploadedBy] = useState<string>("John Doe");
   const [uploadedAt] = useState<string>(new Date().toLocaleString());
   const [lastUpdated] = useState<string>(new Date().toLocaleString());
   const [lastUpdatedBy] = useState<string>("Jerry Sanchez");
-
-  // Update checklistId when inspection prop changes
-  useEffect(() => {
-    if (inspection?.checklist_id) {
-      setChecklistId(inspection.checklist_id);
-    }
-  }, [inspection?.checklist_id]);
 
   // --- Fetch photos from backend ---
   useEffect(() => {
@@ -201,6 +503,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           fileRef: `${API_BASE}/uploads/${bp.storage_path}`,
           uploadedAt: bp.created_at,
           comment: bp.comment,
+          condition: bp.condition,
         }));
 
         setPhotos(frontendPhotos);
@@ -251,7 +554,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   }, [checklistId, propertyId]);
 
   // Photo Upload State
-  const [selectedSectionId, setSelectedSectionId] = useState<string>("");
+  const [selectedNodeId, setSelectedNodeId] = useState<string>("");
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Photo Comment Modal State
@@ -262,23 +565,68 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [selectedPhotoForModal, setSelectedPhotoForModal] = useState<InspectionPhoto | null>(null);
   const [isPhotoViewerOpen, setIsPhotoViewerOpen] = useState(false);
   const [photoNotes, setPhotoNotes] = useState<Record<string, string>>({});
+  const [expandedPhotoNodes, setExpandedPhotoNodes] = useState<Set<string>>(new Set());
+
+  // Input refs for focus management
+  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [newlyAddedNodeId, setNewlyAddedNodeId] = useState<string | null>(null);
 
   // --- Derived Data ---
   const sections = useMemo(() => nodes.filter((n) => n.depth === 0), [nodes]);
 
-  const photosBySection = useMemo(() => {
+  const photosByNode = useMemo(() => {
     const grouped: Record<string, InspectionPhoto[]> = {};
-    sections.forEach(s => grouped[s.id] = []);
-
     photos.forEach((p) => {
-      if (grouped[p.sectionNodeId]) {
-        grouped[p.sectionNodeId].push(p);
+      const nodeId = p.sectionNodeId || 'uncategorized';
+      if (!grouped[nodeId]) {
+        grouped[nodeId] = [];
       }
+      grouped[nodeId].push(p);
     });
     return grouped;
-  }, [nodes, photos, sections]);
+  }, [photos]);
 
   const allPhotos = useMemo(() => photos, [photos]);
+
+  // Helper to get the full hierarchy path for a node
+  const getNodePath = (nodeId: string): string => {
+    const node = nodes.find((n) => n.id === nodeId);
+    if (!node) return "";
+
+    const path: string[] = [node.text];
+    let currentNode = node;
+
+    while (currentNode.parentId) {
+      const parent = nodes.find((n) => n.id === currentNode.parentId);
+      if (!parent) break;
+      path.unshift(parent.text);
+      currentNode = parent;
+    }
+
+    return path.join(" → ");
+  };
+
+  // Helper to check if a node has photos
+  const hasPhotoForNode = (nodeId: string) => {
+    return photos.some((p) => p.sectionNodeId === nodeId);
+  };
+
+  // Helper to get photo count for a node
+  const getNodePhotoCount = (nodeId: string): number => {
+    return photos.filter((p) => p.sectionNodeId === nodeId).length;
+  };
+
+  const togglePhotoNode = (nodeId: string) => {
+    setExpandedPhotoNodes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  };
 
   // --- Handlers: Checklist Editing ---
 
@@ -286,6 +634,157 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     setNodes((prev) =>
       prev.map((n) => (n.id === id ? { ...n, text: newText } : n))
     );
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, nodeId: string, index: number) => {
+    // Arrow Up: Move row up
+    if (e.key === "ArrowUp" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      if (index > 0) {
+        const prevNodeId = nodes[index - 1].id;
+        handleMove(index, "up");
+        // Focus the moved row after state update
+        setTimeout(() => {
+          const input = inputRefs.current[nodeId];
+          if (input) {
+            input.focus();
+            const length = input.value.length;
+            input.setSelectionRange(length, length);
+          }
+        }, 0);
+      }
+      return;
+    }
+
+    // Arrow Down: Move row down
+    if (e.key === "ArrowDown" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      if (index < nodes.length - 1) {
+        const nextNodeId = nodes[index + 1].id;
+        handleMove(index, "down");
+        // Focus the moved row after state update
+        setTimeout(() => {
+          const input = inputRefs.current[nodeId];
+          if (input) {
+            input.focus();
+            const length = input.value.length;
+            input.setSelectionRange(length, length);
+          }
+        }, 0);
+      }
+      return;
+    }
+
+    // Tab: Indent (or Shift+Tab: Outdent)
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const node = nodes[index];
+      if (e.shiftKey) {
+        // Shift+Tab: Outdent
+        if (node.depth > 0) {
+          handleIndent(nodeId, "out");
+        }
+      } else {
+        // Tab: Indent
+        handleIndent(nodeId, "in");
+      }
+      // Keep focus on the same input after indent/outdent
+      setTimeout(() => {
+        const input = inputRefs.current[nodeId];
+        if (input) {
+          input.focus();
+          const length = input.value.length;
+          input.setSelectionRange(length, length);
+        }
+      }, 0);
+      return;
+    }
+
+    // Arrow Right: Indent (when at start of input)
+    if (e.key === "ArrowRight" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      const input = e.currentTarget;
+      if (input.selectionStart === 0 && input.value.length === 0) {
+        e.preventDefault();
+        handleIndent(nodeId, "in");
+        setTimeout(() => {
+          const focusedInput = inputRefs.current[nodeId];
+          if (focusedInput) {
+            focusedInput.focus();
+          }
+        }, 0);
+        return;
+      }
+    }
+
+    // Arrow Left: Outdent (when at start of input)
+    if (e.key === "ArrowLeft" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      const input = e.currentTarget;
+      if (input.selectionStart === 0 && input.value.length === 0) {
+        e.preventDefault();
+        if (nodes[index].depth > 0) {
+          handleIndent(nodeId, "out");
+        }
+        setTimeout(() => {
+          const focusedInput = inputRefs.current[nodeId];
+          if (focusedInput) {
+            focusedInput.focus();
+          }
+        }, 0);
+        return;
+      }
+    }
+
+    // Enter: Add new line item below
+    if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      const currentNode = nodes[index];
+      const newNodeId = `node-${Date.now()}`;
+      const newNode: ChecklistNode = {
+        id: newNodeId,
+        parentId: currentNode.parentId,
+        orderIndex: 0,
+        type: currentNode.depth === 0 ? "section" : "item",
+        text: "",
+        depth: currentNode.depth,
+      };
+      
+      setNodes((prev) => {
+        const newNodes = [...prev];
+        newNodes.splice(index + 1, 0, newNode);
+        return newNodes;
+      });
+      
+      setNewlyAddedNodeId(newNodeId);
+      
+      // Focus the new input after a brief delay to ensure DOM update
+      setTimeout(() => {
+        const input = inputRefs.current[newNodeId];
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 0);
+      return;
+    }
+
+    // Backspace on empty line: delete line and move focus to previous
+    if (e.key === "Backspace" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      const input = e.currentTarget;
+      if (input.value.length === 0 && index > 0) {
+        e.preventDefault();
+        const prevNodeId = nodes[index - 1].id;
+        setNodes((prev) => prev.filter((n) => n.id !== nodeId));
+        setTimeout(() => {
+          const prevInput = inputRefs.current[prevNodeId];
+          if (prevInput) {
+            prevInput.focus();
+            const len = prevInput.value.length;
+            prevInput.setSelectionRange(len, len);
+          }
+        }, 0);
+        return;
+      }
+    }
   };
 
   const handleIndent = (id: string, direction: "in" | "out") => {
@@ -327,10 +826,12 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     if (direction === "up" && index === 0) return;
     if (direction === "down" && index === nodes.length - 1) return;
 
-    const newNodes = [...nodes];
-    const swapIndex = direction === "up" ? index - 1 : index + 1;
-    [newNodes[index], newNodes[swapIndex]] = [newNodes[swapIndex], newNodes[index]];
-    setNodes(newNodes);
+    setNodes((prev) => {
+      const newNodes = [...prev];
+      const swapIndex = direction === "up" ? index - 1 : index + 1;
+      [newNodes[index], newNodes[swapIndex]] = [newNodes[swapIndex], newNodes[index]];
+      return newNodes;
+    });
   };
 
   const handleDeleteNode = (id: string) => {
@@ -342,8 +843,9 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const handleAddNode = (index: number) => {
     // Get the current node to replicate its depth and type
     const currentNode = nodes[index];
+    const newNodeId = `node-${Date.now()}`;
     const newNode: ChecklistNode = {
-      id: `node-${Date.now()}`,
+      id: newNodeId,
       parentId: currentNode?.parentId || null,
       orderIndex: 0,
       type: currentNode?.type || "section",
@@ -353,13 +855,51 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     const newNodes = [...nodes];
     newNodes.splice(index + 1, 0, newNode);
     setNodes(newNodes);
+    setNewlyAddedNodeId(newNodeId);
+    
+    // Focus the new input after a brief delay to ensure DOM update
+    setTimeout(() => {
+      const input = inputRefs.current[newNodeId];
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }, 0);
+  };
+
+  const handleAddNodeToEnd = () => {
+    if (nodes.length === 0) {
+      // If no nodes, add a section
+      const newNodeId = `node-${Date.now()}`;
+      const newNode: ChecklistNode = {
+        id: newNodeId,
+        parentId: null,
+        orderIndex: 0,
+        type: "section",
+        text: "",
+        depth: 0,
+      };
+      setNodes([newNode]);
+      setNewlyAddedNodeId(newNodeId);
+      setTimeout(() => {
+        const input = inputRefs.current[newNodeId];
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 0);
+      return;
+    }
+    
+    // Add after the last node
+    handleAddNode(nodes.length - 1);
   };
 
   // --- Handlers: Photos ---
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!selectedSectionId) {
-      alert("Please select a section first.");
+    if (!selectedNodeId) {
+      alert("Please select a checklist item first.");
       if (photoInputRef.current) photoInputRef.current.value = "";
       return;
     }
@@ -372,7 +912,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     }
   };
 
-  const handlePhotoCommentSubmit = async (file: File, comment: string) => {
+  const handlePhotoCommentSubmit = async (file: File, comment: string, condition?: string) => {
     if (!inspectionId) {
       alert("No inspection ID found");
       return;
@@ -381,12 +921,17 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     try {
       setIsUploadingPhoto(true);
 
+      const cond = condition && ["good", "fair", "poor"].includes(condition)
+        ? (condition as "good" | "fair" | "poor")
+        : undefined;
+
       // Upload photo to backend
       const result = await addInspectionPhotos(
         inspectionId,
-        selectedSectionId,
+        selectedNodeId,
         comment,
-        [file]
+        [file],
+        cond
       );
 
       if (result.uploaded > 0) {
@@ -401,6 +946,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           fileRef: `${API_BASE}/uploads/${bp.storage_path}`,
           uploadedAt: bp.created_at,
           comment: bp.comment,
+          condition: bp.condition,
         }));
 
         setPhotos(frontendPhotos);
@@ -467,27 +1013,55 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   // --- Handlers: General ---
 
   const handleStatusChange = async (newStatus: "In Progress" | "Completed") => {
+    if (!inspectionId) return;
+    
+    // Don't update if status hasn't changed
+    if (status === newStatus) return;
+    
+    // Map frontend status to backend status
+    const backendStatus = mapFrontendStatusToBackend(newStatus);
+    
+    // Store previous status for error recovery
+    const previousStatus = status;
     setStatus(newStatus);
     
-    if (inspectionId) {
-      try {
-        await updateInspection(inspectionId, { status: newStatus });
-      } catch (error) {
-        console.error("Failed to update status:", error);
-      }
+    try {
+      await updateInspection(inspectionId, { status: backendStatus });
+      console.log("Status updated successfully");
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      // Revert on error
+      setStatus(previousStatus);
+      alert("Failed to update status. Please try again.");
     }
   };
 
   const handleDueDateChange = async (newDate: Date | string | null) => {
+    if (!inspectionId) return;
+    
+    // Check if date actually changed
+    const currentDateISO = inspectionDueDate instanceof Date 
+      ? inspectionDueDate.toISOString() 
+      : inspectionDueDate;
+    const newDateISO = newDate instanceof Date 
+      ? newDate.toISOString() 
+      : newDate;
+    
+    // Don't update if date hasn't changed
+    if (currentDateISO === newDateISO) return;
+    
+    const previousDate = inspectionDueDate;
     setInspectionDueDate(newDate);
     
-    if (inspectionId) {
-      try {
-        const dueDateISO = newDate instanceof Date ? newDate.toISOString() : newDate;
-        await updateInspection(inspectionId, { due_date: dueDateISO });
-      } catch (error) {
-        console.error("Failed to update due date:", error);
-      }
+    try {
+      const dueDateISO = newDate instanceof Date ? newDate.toISOString() : newDate;
+      await updateInspection(inspectionId, { due_date: dueDateISO });
+      console.log("Due date updated successfully");
+    } catch (error) {
+      console.error("Failed to update due date:", error);
+      // Revert on error
+      setInspectionDueDate(previousDate);
+      alert("Failed to update due date. Please try again.");
     }
   };
 
@@ -772,24 +1346,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
             }
           >
             <div className={cn("flex flex-col gap-4", isChecklistFullScreen && "h-[calc(100vh-80px)] overflow-y-auto px-4 pb-4")}>
-              <div className="flex items-center gap-3 text-xs text-gray-600 pb-3 border-b border-gray-200">
-                <span className="font-medium text-gray-500">Last updated:</span>
-                <PersonAvatarTag
-                  person={{
-                    name: lastUpdatedBy,
-                    initials: "JS",
-                    id: "manager",
-                    email: "jerry.sanchez@example.com",
-                    phone: "(555) 123-4567",
-                    title: "Field Manager"
-                  }}
-                  type="assignee"
-                  size="sm"
-                  className="mt-0"
-                />
-                <span className="text-gray-500">{lastUpdated}</span>
-              </div>
-
               <div className="flex flex-col gap-1">
                 {isLoadingChecklist && (
                   <div className="text-center py-8 text-gray-500 text-sm">
@@ -825,27 +1381,74 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                     <div className="flex-1 min-w-0">
                       {isEditing ? (
                         <input
+                          ref={(el) => {
+                            inputRefs.current[node.id] = el;
+                            // Auto-focus newly added items
+                            if (newlyAddedNodeId === node.id && el) {
+                              el.focus();
+                              el.select();
+                              setNewlyAddedNodeId(null);
+                            }
+                          }}
                           type="text"
                           value={node.text}
                           onChange={(e) => handleTextChange(node.id, e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(e, node.id, index)}
                           className={cn(
-                            "w-full bg-transparent border-none p-0 focus:ring-0 text-sm",
+                            "w-full bg-transparent border-none p-0 focus:ring-0 text-sm outline-none",
                             node.depth === 0 ? "font-bold text-gray-900" : "text-gray-700"
                           )}
                           placeholder={node.depth === 0 ? "Section Title" : "Checklist Item"}
-                          autoFocus={node.text === ""}
                         />
                       ) : (
                         <div
+                          onClick={() => {
+                            // If item has photo(s), open photo viewer
+                            if (node.depth >= 1 && hasPhotoForNode(node.id)) {
+                              const nodePhotos = photos.filter(p => p.sectionNodeId === node.id);
+                              if (nodePhotos.length > 0) {
+                                setSelectedPhotoForModal(nodePhotos[0]);
+                                setIsPhotoViewerOpen(true);
+                              }
+                            }
+                          }}
                           className={cn(
                             "text-sm whitespace-pre-wrap",
-                            node.depth === 0 ? "font-bold text-gray-900" : "text-gray-700"
+                            node.depth === 0 ? "font-bold text-gray-900" : "text-gray-700",
+                            node.depth >= 1 && hasPhotoForNode(node.id) ? "cursor-pointer hover:underline text-blue-600" : ""
                           )}
                         >
                           {node.text}
                         </div>
                       )}
                     </div>
+
+                    {/* Photo count indicator for items that have photos */}
+                    {!isEditing && node.depth >= 1 && hasPhotoForNode(node.id) && (
+                      <div className="flex-shrink-0 flex items-center gap-1 text-green-600 text-xs font-medium" title={`${getNodePhotoCount(node.id)} photo(s) attached`}>
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                        </svg>
+                        <span>{getNodePhotoCount(node.id)}</span>
+                      </div>
+                    )}
+
+                    {/* Camera Icon for All Items (depth >= 1) - Hidden when editing */}
+                    {!isEditing && node.depth >= 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedNodeId(node.id);
+                          photoInputRef.current?.click();
+                        }}
+                        className="flex-shrink-0 p-1.5 text-blue-600 bg-white border border-blue-600 hover:bg-blue-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                        title="Add photo to this item"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
 
                     {/* Edit Controls */}
                     {isEditing && (
@@ -903,8 +1506,8 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                 {isEditing && (
                   <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
                     <button
-                      onClick={() => handleAddNode(nodes.length - 1)}
-                      className="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1"
+                      onClick={handleAddNodeToEnd}
+                      className="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1 transition-colors hover:text-blue-700"
                     >
                       <PlusIcon width={14} height={14} /> Add Item to End
                     </button>
@@ -947,26 +1550,23 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
               {/* Upload Controls - Always visible */}
               <div className="p-4 bg-white border border-gray-200 rounded-lg flex flex-col gap-3">
-                <SelectField
-                  label="Associate with Section"
-                  value={selectedSectionId}
-                  onChange={(value) => setSelectedSectionId(value as string)}
-                  options={sections.map((s) => ({
-                    value: s.id,
-                    label: s.text,
-                  }))}
-                  placeholder="Select a section..."
-                  compact
+                <NestedChecklistSelect
+                  label="Associate with Checklist Item"
+                  value={selectedNodeId}
+                  onChange={(value) => setSelectedNodeId(value)}
+                  placeholder="Select a checklist item..."
+                  checklist={nodes}
+                  getNodePath={getNodePath}
                 />
 
                 <div
                   className={cn(
                     "border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
-                    !selectedSectionId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-gray-50 bg-white"
+                    !selectedNodeId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-gray-50 bg-white"
                   )}
                   onClick={() => {
-                    if (selectedSectionId) photoInputRef.current?.click();
-                    else alert("Please select a section first");
+                    if (selectedNodeId) photoInputRef.current?.click();
+                    else alert("Please select a checklist item first");
                   }}
                 >
                   <div className="text-gray-400">
@@ -980,51 +1580,70 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                     accept="image/*"
                     className="hidden"
                     onChange={handlePhotoUpload}
-                    disabled={!selectedSectionId}
+                    disabled={!selectedNodeId}
                   />
                 </div>
               </div>
 
-              {/* Photos Grid - Compact Display (Last 3 photos only) */}
-              <div className="grid grid-cols-3 gap-2">
-                {photos.slice(-3).map((photo) => {
-                  const section = sections.find(s => s.id === photo.sectionNodeId);
-                  const displayText = photo.subsectionName ? `${photo.subsectionName}` : section?.text || "Photo";
-                  return (
-                    <div
-                      key={photo.id}
-                      className="relative group cursor-pointer rounded-lg overflow-hidden bg-gray-100 aspect-square"
-                      onClick={() => handleOpenPhotoModal(photo)}
-                      title={displayText}
-                    >
-                      <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-end justify-start p-1">
-                        <div className="text-[10px] font-medium text-white bg-black bg-opacity-60 px-1.5 py-0.5 rounded line-clamp-1">
-                          {displayText}
-                        </div>
+              {/* Photos Grouped by Checklist Node */}
+              {photos.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  {Object.entries(photosByNode).map(([nodeId, nodePhotos]) => {
+                    const nodePath = getNodePath(nodeId);
+                    const isNodeExpanded = expandedPhotoNodes.has(nodeId);
+
+                    return (
+                      <div key={nodeId} className="border border-gray-200 rounded-lg bg-white overflow-hidden">
+                        {/* Node Header */}
+                        <button
+                          onClick={() => togglePhotoNode(nodeId)}
+                          className={cn(
+                            "w-full flex items-center justify-between p-2 transition-colors text-left",
+                            isNodeExpanded ? "bg-blue-50 hover:bg-blue-100" : "bg-gray-50 hover:bg-gray-100"
+                          )}
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <ChevronDownIcon
+                              width={12}
+                              height={12}
+                              className={cn(
+                                "text-gray-600 transition-transform flex-shrink-0",
+                                isNodeExpanded ? "rotate-180" : ""
+                              )}
+                            />
+                            <span className="text-xs font-medium text-gray-900 truncate">{nodePath}</span>
+                          </div>
+                          <span className="text-[10px] text-gray-600 font-medium flex-shrink-0 ml-2">
+                            {nodePhotos.length}
+                          </span>
+                        </button>
+
+                        {/* Photos Grid */}
+                        {isNodeExpanded && (
+                          <div className="p-2 bg-white border-t border-gray-200">
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {nodePhotos.map((photo) => (
+                                <div
+                                  key={photo.id}
+                                  className="relative group cursor-pointer rounded-md overflow-hidden bg-gray-100 aspect-square border border-gray-200"
+                                  onClick={() => handleOpenPhotoModal(photo)}
+                                >
+                                  <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
+                                  {photo.comment && (
+                                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-[8px] px-1 py-0.5 line-clamp-1">
+                                      {photo.comment}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Show all photos link if more than 3 */}
-              {photos.length > 3 && (
-                <div className="text-center">
-                  <button
-                    onClick={() => {
-                      if (photos.length > 0) {
-                        handleOpenPhotoModal(photos[0]);
-                      }
-                    }}
-                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    View all {photos.length} photos
-                  </button>
+                    );
+                  })}
                 </div>
-              )}
-
-              {photos.length === 0 && (
+              ) : (
                 <div className="text-center py-6 text-gray-400 text-xs italic">
                   No photos yet
                 </div>
@@ -1047,7 +1666,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         open={isPhotoCommentModalOpen}
         onOpenChange={setIsPhotoCommentModalOpen}
         onSubmit={handlePhotoCommentSubmit}
-        title="Add Photo"
+        title={selectedNodeId ? getNodePath(selectedNodeId) : "Add Photo"}
         submitLabel="Upload Photo"
         initialFile={pendingPhotoFile}
         isLoading={isUploadingPhoto}
@@ -1065,8 +1684,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           totalPhotos={allPhotos.length}
           note={photoNotes[selectedPhotoForModal.id] || ""}
           onNoteChange={(note) => handleUpdatePhotoNote(selectedPhotoForModal.id, note)}
-          sectionName={sections.find(s => s.id === selectedPhotoForModal.sectionNodeId)?.text}
-          subsectionName={selectedPhotoForModal.subsectionName}
+          nodePath={selectedPhotoForModal.sectionNodeId ? getNodePath(selectedPhotoForModal.sectionNodeId) : "Unknown Item"}
         />
       )}
     </>
@@ -1081,10 +1699,17 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
 // --- Helper Components ---
 
+const CONDITION_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Select condition (optional)" },
+  { value: "good", label: "Good" },
+  { value: "fair", label: "Fair" },
+  { value: "poor", label: "Poor" },
+];
+
 interface PhotoCommentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (file: File, comment: string) => Promise<void>;
+  onSubmit: (file: File, comment: string, condition?: string) => Promise<void>;
   title: string;
   submitLabel: string;
   initialFile: File | null;
@@ -1101,16 +1726,18 @@ function PhotoCommentModal({
   isLoading = false,
 }: PhotoCommentModalProps) {
   const [comment, setComment] = React.useState("");
+  const [condition, setCondition] = React.useState("");
 
   React.useEffect(() => {
     if (!open) {
       setComment("");
+      setCondition("");
     }
   }, [open]);
 
   const handleConfirm = async () => {
     if (!initialFile) return;
-    await onSubmit(initialFile, comment);
+    await onSubmit(initialFile, comment, condition || undefined);
   };
 
   const handleCancel = () => {
@@ -1139,6 +1766,13 @@ function PhotoCommentModal({
         <div className="text-sm text-gray-600">
           <strong>File:</strong> {initialFile ? initialFile.name : "No file selected"}
         </div>
+        <SelectField
+          label="Condition"
+          value={condition}
+          onChange={(v) => setCondition(v as string)}
+          options={CONDITION_OPTIONS}
+          placeholder="Select condition (optional)"
+        />
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Comment (optional)
@@ -1166,8 +1800,7 @@ interface PhotoViewerModalProps {
   totalPhotos: number;
   note: string;
   onNoteChange: (note: string) => void;
-  sectionName?: string;
-  subsectionName?: string;
+  nodePath: string;
 }
 
 function PhotoViewerModal({
@@ -1180,8 +1813,7 @@ function PhotoViewerModal({
   totalPhotos,
   note,
   onNoteChange,
-  sectionName,
-  subsectionName,
+  nodePath,
 }: PhotoViewerModalProps) {
   if (!open) return null;
 
@@ -1199,19 +1831,14 @@ function PhotoViewerModal({
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="flex-1">
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            <div className="flex items-center gap-3">
               <h2 className="text-lg font-semibold text-gray-900">Photo Viewer</h2>
-              {subsectionName && (
-                <p className="text-sm text-gray-600 mt-1">Item: <span className="font-medium text-blue-600">{subsectionName}</span></p>
-              )}
-              {!subsectionName && sectionName && (
-                <p className="text-sm text-gray-600 mt-1">Section: <span className="font-medium text-blue-600">{sectionName}</span></p>
-              )}
+              <span className="text-sm text-gray-500 flex-shrink-0">
+                {photoIndex + 1} of {totalPhotos}
+              </span>
             </div>
-            <span className="text-sm text-gray-500 flex-shrink-0 ml-auto">
-              {photoIndex + 1} of {totalPhotos}
-            </span>
+            <p className="text-sm text-blue-600 truncate">{nodePath}</p>
           </div>
           <button
             onClick={() => onOpenChange(false)}
@@ -1228,6 +1855,16 @@ function PhotoViewerModal({
             alt="Inspection"
             className="max-h-full max-w-full object-contain shadow-sm"
           />
+        </div>
+
+        {/* Condition Section */}
+        <div className="border-t border-gray-200 px-4 pt-4 pb-1 bg-white">
+          <label className="text-sm font-semibold text-gray-900 mb-1 block">Condition</label>
+          <p className="text-sm text-gray-700">
+            {photo.condition
+              ? photo.condition.charAt(0).toUpperCase() + photo.condition.slice(1)
+              : "—"}
+          </p>
         </div>
 
         {/* Notes Section */}

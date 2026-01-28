@@ -10,6 +10,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PersonAvatars from "@/components/PersonAvatars";
 import HeaderV1 from "@/components/HeaderV1";
+import { fetchJSON } from "@/api/fetchJSON";
 import {
   EditIcon,
   DeleteIcon,
@@ -211,6 +212,7 @@ interface TaskFieldTeamOrdersProps {
   lockedUnitLabel?: string;
   lockedTaskId?: number;
   lockedTaskLabel?: string;
+  onRefetchFieldTeamOrders?: () => Promise<any>; // Refetch function for auto-refresh
 }
 
 export default function TaskFieldTeamOrders({
@@ -223,6 +225,7 @@ export default function TaskFieldTeamOrders({
   lockedUnitLabel,
   lockedTaskId,
   lockedTaskLabel,
+  onRefetchFieldTeamOrders,
 }: TaskFieldTeamOrdersProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -340,8 +343,19 @@ export default function TaskFieldTeamOrders({
   ];
 
   const handleDeleteOrder = useCallback(
-    (order: FieldTeamOrder) => {
-      onOrdersChange(orders.filter((o) => o.id !== order.id));
+    async (order: FieldTeamOrder) => {
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${order.description}"?\nThis cannot be undone.`
+      );
+      if (!confirmed) return;
+
+      try {
+        await fetchJSON(`/maintenance/ftos?id=${order.id}`, { method: "DELETE" });
+        onOrdersChange(orders.filter((o) => o.id !== order.id));
+      } catch (err) {
+        console.error("Delete FTO failed", err);
+        alert("Failed to delete Field Team Order. Please try again.");
+      }
     },
     [orders, onOrdersChange],
   );
@@ -393,6 +407,11 @@ export default function TaskFieldTeamOrders({
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-gray-500">Loading field team orders...</div>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <p className="text-[#71717A] text-sm font-medium">No field team orders yet</p>
+            <p className="text-[#A1A1A9] text-sm mt-1">FTOs you create or dispatch for this task will appear here.</p>
           </div>
         ) : (
           <GlobalTable
@@ -586,7 +605,17 @@ export default function TaskFieldTeamOrders({
               }
             : null
         }
-        onFTOCreated={(ftoData) => {
+        onFTOCreated={async (ftoData) => {
+          // Refresh field team orders list in the background
+          if (onRefetchFieldTeamOrders) {
+            try {
+              await onRefetchFieldTeamOrders();
+            } catch (error) {
+              console.error("Error refetching field team orders:", error);
+            }
+          }
+          
+          // Keep the local state update for immediate UI feedback (optional, will be replaced by refetch)
           const fieldTeamMasterData: Record<
             string,
             { email: string; phone: string; title: string }
@@ -656,6 +685,8 @@ export default function TaskFieldTeamOrders({
             timesheetStatus: "awaiting-submission",
             amount: 0,
           };
+          // Note: The refetch will update the orders, but we keep this for immediate feedback
+          // The refetch will replace this with the actual data from the server
           onOrdersChange([newFTO, ...orders]);
         }}
       />

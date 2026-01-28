@@ -92,7 +92,6 @@ export const LinkedTasksList: React.FC<LinkedTasksListProps> = ({
                     </span>
                     <div className="flex items-center gap-8 text-xs text-[#71717A]">
                       <span>{task.updatedDate}</span>
-                      <span>{task.updatedBy}</span>
                     </div>
                   </div>
                 </div>

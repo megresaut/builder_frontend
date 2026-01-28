@@ -35,6 +35,8 @@ import FtoShellLayout from "./layout/FTOShellLayout";
 import FTOHome from "./pages/FTOHome";
 import FtoSubmissionForm from "./pages/FtoSubmissionForm";
 import ApproveFtoPage from "./pages/ApproveFtoPage";
+import FtoInspections from "./pages/FtoInspections";
+import FtoInspectionForm from "./pages/FtoInspectionForm";
 
 const queryClient = new QueryClient();
 
@@ -61,7 +63,7 @@ const RequireAuth = ({
 
   if (allowedRoles && !allowedRoles.includes(role || "")) {
     // Logged in but wrong role
-    return <Navigate to="/all-properties" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -73,7 +75,7 @@ export default function App() {
   const [tabMetadata, setTabMetadataState] = useState<
     Record<string, TabMetadata>
   >({
-    properties: { label: "Properties", route: "/all-properties" },
+    properties: { label: "Properties", route: "/" },
     portfolio: { label: "Portfolio", sectionId: "portfolio" },
     screening: { label: "Screening", sectionId: "screening" },
     bills: { label: "Bills", sectionId: "bills" },
@@ -115,11 +117,13 @@ export default function App() {
                   element={
                     <RequireAuth>
                       <ShellLayout>
-                        <AllTasks />
+                        <AllProperties />
                       </ShellLayout>
                     </RequireAuth>
                   }
                 />
+
+                <Route path="/all-properties" element={<Navigate to="/" replace />} />
 
                 <Route
                   path="/all-tasks"
@@ -204,17 +208,6 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <RecordBill />
-                      </ShellLayout>
-                    </RequireAuth>
-                  }
-                />
-
-                <Route
-                  path="/all-properties"
-                  element={
-                    <RequireAuth>
-                      <ShellLayout>
-                        <AllProperties />
                       </ShellLayout>
                     </RequireAuth>
                   }
@@ -358,6 +351,26 @@ export default function App() {
 
                   {/* Edit / View */}
                   <Route path=":submissionId" element={<FtoSubmissionForm />} />
+                </Route>
+
+                <Route
+                  path="/fto/inspections"
+                  element={
+                    <RequireAuth>
+                      <FtoShellLayout>
+                        <Outlet />
+                      </FtoShellLayout>
+                    </RequireAuth>
+                  }
+                >
+                  {/* List */}
+                  <Route index element={<FtoInspections />} />
+
+                  {/* Create */}
+                  <Route path="new" element={<FtoInspectionForm />} />
+
+                  {/* Edit / View */}
+                  <Route path=":inspectionId" element={<FtoInspectionForm />} />
                 </Route>
 
                 {/* ---------- FALLBACK ---------- */}

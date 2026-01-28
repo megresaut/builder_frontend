@@ -162,7 +162,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
           <TextAreaField
             label="Description"
             value={fileDescription}
-            onChange={setFileDescription}
+            onChange={(e) => setFileDescription(e.target.value)}
             placeholder="Enter file description (optional)"
             rows={3}
           />

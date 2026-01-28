@@ -1456,7 +1456,7 @@ export const RecordBill = () => {
   
         const res = await fetch(
           // "/api/vendors/bills/upload-pdf", 
-          "http://localhost:8080/vendors/bills/upload-pdf", 
+          "/api/vendors/bills/upload-pdf", 
           {
             method: "POST",
             body: formData,

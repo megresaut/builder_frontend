@@ -285,11 +285,81 @@ export default function TaskSummaryModals({
           if (!open) uiDispatch({ type: "CLOSE_MODAL", payload: "linkTask" });
         }}
         availableTasks={availableTasksForLinking}
-        onSubmit={(linkedTask) => {
-          if (!uiState.linkedTasks.some((t: any) => t.id === linkedTask.id)) {
-            uiDispatch({ type: "ADD_LINKED_TASK", payload: linkedTask });
-          } else {
+        currentTaskId={taskId}
+        alreadyLinkedTaskIds={uiState.linkedTasks.map((t: any) => t.id)}
+        onSubmit={async (linkedTask) => {
+          if (!taskId) {
+            console.error("Task ID is required to link tasks");
+            return;
+          }
+
+          // Check if already linked
+          if (uiState.linkedTasks.some((t: any) => t.id === linkedTask.id)) {
             uiDispatch({ type: "CLOSE_MODAL", payload: "linkTask" });
+            return;
+          }
+
+          try {
+            // Call API to create the link
+            await fetchJSON(`/maintenance/tasks/id/${taskId}/links`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                linked_task_id: Number(linkedTask.id),
+              }),
+            });
+
+            // Update local state
+            uiDispatch({ type: "ADD_LINKED_TASK", payload: linkedTask });
+            uiDispatch({ type: "CLOSE_MODAL", payload: "linkTask" });
+
+            // Refresh linked tasks from API to ensure consistency
+            if (onRefetchTaskData) {
+              // Trigger a refetch of linked tasks
+              const refreshedLinkedTasks = await fetchJSON(`/maintenance/tasks/id/${taskId}/links`);
+              const mappedLinkedTasks: any[] = refreshedLinkedTasks.map((task: any) => {
+                const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+                  open: "not_started",
+                  not_started: "not_started",
+                  in_progress: "in_progress",
+                  pending_vendor: "in_progress",
+                  scheduled: "in_progress",
+                  completed: "completed",
+                  closed: "completed",
+                  cancelled: "completed",
+                };
+                
+                const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
+                
+                const updatedDate = task.created_at
+                  ? new Date(task.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : "Unknown";
+                
+                return {
+                  id: task.id,
+                  name: task.name,
+                  status: frontendStatus,
+                  updatedDate,
+                  updatedBy: "System",
+                };
+              });
+              uiDispatch({ type: "SET_LINKED_TASKS", payload: mappedLinkedTasks });
+            }
+          } catch (error: any) {
+            console.error("Error linking task:", error);
+            // Show error to user (you might want to add a toast notification here)
+            const errorMessage = error.message || "Failed to link task";
+            if (errorMessage.includes("already exists")) {
+              alert("This task is already linked.");
+            } else if (errorMessage.includes("cannot link task to itself")) {
+              alert("Cannot link a task to itself.");
+            } else {
+              alert(`Failed to link task: ${errorMessage}`);
+            }
           }
         }}
       />
@@ -377,7 +447,15 @@ export default function TaskSummaryModals({
         variant="withMessageAndAttachments"
         editData={modalEditData}
         onTaskUpdated={async (taskId: number) => {
-          // Fetch updated task data from API
+          // Refresh the all tasks page in the background
+          window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+          
+          // Refresh the current task summary page data to show updated values
+          if (onRefetchTaskData) {
+            await onRefetchTaskData();
+          }
+          
+          // Fetch updated task data from API for local state updates
           try {
             const updatedTask = await fetchJSON(`/maintenance/tasks/${taskId}`);
             

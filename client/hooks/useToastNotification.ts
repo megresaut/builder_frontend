@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useToastContext } from "@/components/Toast/ToastContainer";
 
 interface ToastOptions {
@@ -32,61 +33,65 @@ interface ToastOptions {
 export const useToastNotification = () => {
   const { addToast } = useToastContext();
 
-  return {
-    /**
-     * Show a success notification
-     * @param title - Main message
-     * @param options - Optional message and duration
-     */
-    showSuccess: (title: string, options?: ToastOptions) => {
-      return addToast({
-        type: "success",
-        title,
-        message: options?.message,
-        duration: options?.duration || 3000,
-      });
-    },
+  // Memoize the return object so it only changes when addToast changes
+  return useMemo(
+    () => ({
+      /**
+       * Show a success notification
+       * @param title - Main message
+       * @param options - Optional message and duration
+       */
+      showSuccess: (title: string, options?: ToastOptions) => {
+        return addToast({
+          type: "success",
+          title,
+          message: options?.message,
+          duration: options?.duration || 3000,
+        });
+      },
 
-    /**
-     * Show an error notification
-     * @param title - Main message
-     * @param options - Optional message and duration
-     */
-    showError: (title: string, options?: ToastOptions) => {
-      return addToast({
-        type: "error",
-        title,
-        message: options?.message,
-        duration: options?.duration || 3000,
-      });
-    },
+      /**
+       * Show an error notification
+       * @param title - Main message
+       * @param options - Optional message and duration
+       */
+      showError: (title: string, options?: ToastOptions) => {
+        return addToast({
+          type: "error",
+          title,
+          message: options?.message,
+          duration: options?.duration || 3000,
+        });
+      },
 
-    /**
-     * Show a warning notification
-     * @param title - Main message
-     * @param options - Optional message and duration
-     */
-    showWarning: (title: string, options?: ToastOptions) => {
-      return addToast({
-        type: "warning",
-        title,
-        message: options?.message,
-        duration: options?.duration || 3000,
-      });
-    },
+      /**
+       * Show a warning notification
+       * @param title - Main message
+       * @param options - Optional message and duration
+       */
+      showWarning: (title: string, options?: ToastOptions) => {
+        return addToast({
+          type: "warning",
+          title,
+          message: options?.message,
+          duration: options?.duration || 3000,
+        });
+      },
 
-    /**
-     * Show an info notification
-     * @param title - Main message
-     * @param options - Optional message and duration
-     */
-    showInfo: (title: string, options?: ToastOptions) => {
-      return addToast({
-        type: "info",
-        title,
-        message: options?.message,
-        duration: options?.duration || 3000,
-      });
-    },
-  };
+      /**
+       * Show an info notification
+       * @param title - Main message
+       * @param options - Optional message and duration
+       */
+      showInfo: (title: string, options?: ToastOptions) => {
+        return addToast({
+          type: "info",
+          title,
+          message: options?.message,
+          duration: options?.duration || 3000,
+        });
+      },
+    }),
+    [addToast]
+  );
 };

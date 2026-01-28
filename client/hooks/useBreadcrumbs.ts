@@ -95,7 +95,7 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
       if (match) {
         const propertyId = match[1];
         const tab = match[2];
-        items.push({ label: "Properties", href: "/all-properties" });
+        items.push({ label: "Properties", href: "/" });
 
         const propertyAddresses: Record<string, string> = {
           "1": "22 Indian Chase Dr, Greenwich, CT",
@@ -130,7 +130,7 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
           }
         }
       }
-    } else if (path === "/all-properties") {
+    } else if (path === "/") {
       items.push({ label: "All Properties" });
     } else if (path === "/all-tasks") {
       items.push({ label: "All Tasks" });

@@ -139,6 +139,7 @@ export default function ScheduleInspectionModal({
           }}
           placeholder="Select or create a template"
           customInputPlaceholder="Enter new template name"
+          customButtonLabel="template"
           error={errors.template}
         />
 

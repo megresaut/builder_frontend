@@ -22,6 +22,8 @@ interface CreateRecurringTaskModalProps {
     task: string;
     series: RecurringSeriesDetail;
   };
+  /** When opening for create (no editData), preselect this property (e.g. from property page). */
+  defaultPropertyId?: number;
 }
 
 interface SimpleProperty {
@@ -73,6 +75,7 @@ export default function CreateRecurringTaskModal({
   open,
   onOpenChange,
   editData,
+  defaultPropertyId,
 }: CreateRecurringTaskModalProps) {
   const { userId } = useAuth();
   const [taskName, setTaskName] = useState("");
@@ -152,6 +155,12 @@ export default function CreateRecurringTaskModal({
       setIsSubmitting(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (open && !editData && defaultPropertyId != null) {
+      setProperty(String(defaultPropertyId));
+    }
+  }, [open, editData, defaultPropertyId]);
 
   useEffect(() => {
     if (!open) return;
@@ -467,8 +476,12 @@ export default function CreateRecurringTaskModal({
         body: JSON.stringify(payload),
       });
 
-      // Trigger refresh event for recurring tasks list
-      window.dispatchEvent(new CustomEvent("refreshRecurringTasks"));
+      const refreshPropertyId = property ? Number(property) : defaultPropertyId;
+      window.dispatchEvent(
+        new CustomEvent("refreshRecurringTasks", {
+          detail: refreshPropertyId ? { propertyId: refreshPropertyId } : {},
+        })
+      );
       onOpenChange(false);
     } catch (error: any) {
       console.error("Failed to create recurring task:", error);

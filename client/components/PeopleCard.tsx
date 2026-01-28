@@ -19,6 +19,8 @@ export interface PeopleSubsectionProps {
   type?: "assignee" | "collaborator";
   activeTab?: number;
   hideHeaderOnTab?: number | number[];
+  /** When people is empty, show this message instead of hiding the subsection. */
+  emptyMessage?: string;
 }
 
 interface PeopleCardProps {
@@ -96,14 +98,18 @@ export const PeopleCard: React.FC<PeopleCardProps> = ({
               if (!indices.includes(activeTab)) return false;
             }
 
-            // Hide subsection if it has no people
-            if (
-              (subsection.label === "Collaborators" ||
+            // Hide subsection if it has no people (except Collaborators with emptyMessage)
+            const noPeople = !subsection.people || subsection.people.length === 0;
+            if (noPeople) {
+              if (subsection.label === "Collaborators" && subsection.emptyMessage)
+                return true;
+              if (
+                subsection.label === "Collaborators" ||
                 subsection.label === "Assigned to" ||
-                subsection.label === "Vendor") &&
-              (!subsection.people || subsection.people.length === 0)
-            ) {
-              return false;
+                subsection.label === "Vendor" ||
+                subsection.label === "Vendors"
+              )
+                return false;
             }
 
             return true;

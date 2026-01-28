@@ -13,11 +13,49 @@ interface StatusBadgeProps {
     | "inactive"
     | "Dispatched"
     | "New"
-    | "Cancelled";
+    | "Completed"
+    | "Cancelled"
+    | "awaiting-submission"
+    | "submitted"
+    | "rejected";
+  variant?: "fto-status" | "timesheet-status";
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  const getStatusColor = (status: StatusBadgeProps["status"]): string => {
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, variant }) => {
+  const getStatusColor = (status: StatusBadgeProps["status"], variant?: string): string => {
+    // Timesheet status colors
+    if (variant === "timesheet-status") {
+      switch (status) {
+        case "awaiting-submission":
+          return "rgb(214, 133, 10)"; // Orange
+        case "submitted":
+          return "rgb(36, 99, 235)"; // Blue
+        case "approved":
+          return "rgb(39, 176, 125)"; // Green
+        case "rejected":
+          return "rgb(215, 42, 29)"; // Red
+        default:
+          return "rgb(100, 100, 100)";
+      }
+    }
+    
+    // FTO status colors
+    if (variant === "fto-status") {
+      switch (status) {
+        case "New":
+          return "rgb(36, 99, 235)"; // Blue
+        case "Dispatched":
+          return "rgb(36, 99, 235)"; // Blue
+        case "Completed":
+          return "rgb(39, 176, 125)"; // Green
+        case "pending-approval":
+          return "rgb(214, 133, 10)"; // Orange
+        default:
+          return "rgb(100, 100, 100)";
+      }
+    }
+    
+    // Default status colors
     switch (status) {
       case "Paid":
         return "rgb(39, 176, 125)";
@@ -39,14 +77,35 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
         return "rgb(36, 99, 235)";
       case "New":
         return "rgb(36, 99, 235)";
+      case "Completed":
+        return "rgb(39, 176, 125)";
       case "Cancelled":
         return "rgb(100, 100, 100)";
       default:
         return "rgb(100, 100, 100)";
     }
   };
+  
+  const getDisplayLabel = (status: StatusBadgeProps["status"]): string => {
+    if (variant === "timesheet-status") {
+      switch (status) {
+        case "awaiting-submission":
+          return "Awaiting Submission";
+        case "submitted":
+          return "Submitted";
+        case "approved":
+          return "Approved";
+        case "rejected":
+          return "Rejected";
+        default:
+          return status;
+      }
+    }
+    return status;
+  };
 
-  const dotColor = getStatusColor(status);
+  const dotColor = getStatusColor(status, variant);
+  const displayLabel = getDisplayLabel(status);
 
   return (
     <div
@@ -59,7 +118,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
         fontWeight: "400",
         letterSpacing: "-0.32px",
         lineHeight: "22.4px",
-        textTransform: "capitalize",
+        textTransform: variant === "timesheet-status" ? "none" : "capitalize",
         width: "fit-content",
       }}
     >
@@ -72,7 +131,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
           flexShrink: 0,
         }}
       />
-      {status}
+      {displayLabel}
     </div>
   );
 };

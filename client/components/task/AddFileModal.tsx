@@ -178,49 +178,34 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
                 );
               }}
               onViewFile={(file) => {
-                const attachmentId = file.id ? parseInt(file.id, 10) : null;
-                if (attachmentId && !isNaN(attachmentId)) {
+                // Prefer local file first: works before "Add" (not yet uploaded) and after
+                if (file.file) {
+                  const url = URL.createObjectURL(file.file);
+                  setViewingFileUrl(url);
+                  setViewingFile(file);
+                  return;
+                }
+                const fileWithUrl = file as UploadedFile & { url?: string };
+                if (fileWithUrl.url) {
+                  setViewingFileUrl(fileWithUrl.url);
+                  setViewingFile(file);
+                  return;
+                }
+                if (file.storage_path) {
                   (async () => {
                     try {
                       const res = await fetch(
-                        `http://localhost:8080/maintenance/attachments/${attachmentId}`,
-                        { credentials: "include" }
-                      );
-                    
-                      if (!res.ok) {
-                        alert("Failed to load attachment");
-                        return;
-                      }
-                    
-                      const blob = await res.blob();
-                      const url = URL.createObjectURL(blob);
-                    
-                      setViewingFileUrl(url);
-                      setViewingFile(file);
-                    } catch (error) {
-                      console.error("Error loading attachment:", error);
-                      alert("Failed to load attachment");
-                    }
-                  })();
-                } else if (file.storage_path) {
-                  // Fallback to old endpoint if attachment ID is not available
-                  (async () => {
-                    try {
-                      const res = await fetch(
-                        `http://localhost:8080/api/files?key=${encodeURIComponent(
+                        `/api/files?key=${encodeURIComponent(
                           file.storage_path
                         )}`,
                         { credentials: "include" }
                       );
-                    
                       if (!res.ok) {
                         alert("Failed to load PDF");
                         return;
                       }
-                    
                       const blob = await res.blob();
                       const url = URL.createObjectURL(blob);
-                    
                       setViewingFileUrl(url);
                       setViewingFile(file);
                     } catch (error) {
@@ -228,15 +213,29 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
                       alert("Failed to load PDF");
                     }
                   })();
-                } else if (file.file) {
-                  // For newly uploaded files, use the file object directly
-                  const url = URL.createObjectURL(file.file);
-                  setViewingFileUrl(url);
-                  setViewingFile(file);
-                } else if (file.url) {
-                  // For files with existing URLs
-                  setViewingFileUrl(file.url);
-                  setViewingFile(file);
+                  return;
+                }
+                const attachmentId = file.id ? parseInt(file.id, 10) : null;
+                if (attachmentId && !isNaN(attachmentId)) {
+                  (async () => {
+                    try {
+                      const res = await fetch(
+                        `/api/maintenance/attachments/${attachmentId}`,
+                        { credentials: "include" }
+                      );
+                      if (!res.ok) {
+                        alert("Failed to load attachment");
+                        return;
+                      }
+                      const blob = await res.blob();
+                      const url = URL.createObjectURL(blob);
+                      setViewingFileUrl(url);
+                      setViewingFile(file);
+                    } catch (error) {
+                      console.error("Error loading attachment:", error);
+                      alert("Failed to load attachment");
+                    }
+                  })();
                 }
               }}
               onFileRenamed={(fileId, newName) => {
@@ -286,7 +285,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
           }
         }}
         title={viewingFile?.name || "File Preview"}
-        url={viewingFileUrl || (viewingFile?.file ? URL.createObjectURL(viewingFile.file) : viewingFile?.url) || null}
+        url={viewingFileUrl || (viewingFile?.file ? URL.createObjectURL(viewingFile.file) : (viewingFile as UploadedFile & { url?: string })?.url) || null}
         onRenameClick={handleStartRenaming}
         isRenaming={isRenamingFile}
         renamingFileName={renamingFileName}

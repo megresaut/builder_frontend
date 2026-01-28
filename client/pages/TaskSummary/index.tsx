@@ -371,6 +371,9 @@ export default function TaskSummary() {
   // State for fetched task data
   const [fetchedTaskData, setFetchedTaskData] = useState<any>(null);
   const [isFetchingTaskData, setIsFetchingTaskData] = useState(false);
+  
+  // Ref to track the last fetched taskId to prevent duplicate fetches
+  const lastFetchedTaskIdRef = useRef<string | null>(null);
 
   // Function to fetch task data from API (can be called manually to refresh)
   const refetchTaskData = useCallback(async () => {
@@ -415,6 +418,7 @@ export default function TaskSummary() {
         };
         
         setFetchedTaskData(refreshedData);
+        lastFetchedTaskIdRef.current = taskId;
       }
     } catch (error) {
       console.error("Failed to fetch task data:", error);
@@ -424,13 +428,16 @@ export default function TaskSummary() {
     }
   }, [taskId]);
 
-  // Fetch task data from API if navigation state is missing
+  // Always fetch fresh task data from API on mount/route change to ensure we have latest data
   useEffect(() => {
-    // Only fetch if we don't have task data from navigation state and we have a taskId
-    if (!navigationState?.taskData && !navigationState?.task && !existingTask && taskId && !isFetchingTaskData) {
+    // Only fetch if:
+    // 1. taskId exists
+    // 2. We're not already fetching
+    // 3. We haven't already fetched this taskId (or taskId changed)
+    if (taskId && !isFetchingTaskData && lastFetchedTaskIdRef.current !== taskId) {
       refetchTaskData();
     }
-  }, [taskId, navigationState?.taskData, navigationState?.task, existingTask, isFetchingTaskData, refetchTaskData]);
+  }, [taskId, refetchTaskData]); // Removed isFetchingTaskData from dependencies to prevent loop
 
   // Use either provided task data, fetched data, or find it from MOCK_TASKS
   // Prefer fetchedTaskData if it exists (after manual refetch) to ensure fresh data
@@ -440,11 +447,16 @@ export default function TaskSummary() {
     navigationState?.task || 
     existingTask;
 
-  // Log taskData when component opens
+  // Log taskData when component opens (only once per taskId change)
+  const lastLoggedTaskIdRef = useRef<string | null>(null);
   useEffect(() => {
-    console.log("TaskSummary taskData:", taskData);
-    console.log("TaskSummary requested_by:", taskData?.requested_by);
-  }, [taskData]);
+    // Only log when taskId changes, not on every taskData update
+    if (taskId && lastLoggedTaskIdRef.current !== taskId) {
+      console.log("TaskSummary taskData:", taskData);
+      console.log("TaskSummary requested_by:", taskData?.requested_by);
+      lastLoggedTaskIdRef.current = taskId;
+    }
+  }, [taskId, taskData]);
 
   // Ref for tracking blob URLs created during task initialization
   const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
@@ -1090,7 +1102,8 @@ export default function TaskSummary() {
         // For multipart/form-data, we need to use fetch directly (not fetchJSON)
         // because fetchJSON sets Content-Type: application/json, but we need the browser
         // to set Content-Type with boundary for multipart/form-data
-        const API_BASE = "http://localhost:8080";
+        // const API_BASE = "http://localhost:8080";
+        const API_BASE = "/api";
         const uploadRes = await fetch(`${API_BASE}/maintenance/tasks/attachments/upload`, {
           method: "POST",
           credentials: "include",
@@ -1531,13 +1544,7 @@ export default function TaskSummary() {
       if (taskData?.collaborators && taskData.collaborators.length > 0) {
         return taskData.collaborators;
       }
-      return isNewTask
-        ? []
-        : [
-            hydratePerson({ id: 2, name: "Chris Henry", initials: "CH" }),
-            hydratePerson({ id: 3, name: "Connor Smith", initials: "CS" }),
-            hydratePerson({ id: 8, name: "Sarah Martinez", initials: "SM" }),
-          ];
+      return [];
     },
   );
 
@@ -1577,6 +1584,19 @@ export default function TaskSummary() {
     }
     if (taskData?.unit_id !== undefined && taskData.unit_id !== currentUnitId) {
       setCurrentUnitId(taskData.unit_id);
+    }
+    // Sync due date when taskData changes
+    if (taskData?.dueDate || taskData?.due_date) {
+      const rawDueDate = taskData.dueDate || taskData.due_date;
+      if (rawDueDate) {
+        const date = new Date(rawDueDate);
+        if (!isNaN(date.getTime())) {
+          setCurrentDueDate(date);
+        }
+      }
+    } else if (taskData && !taskData.dueDate && !taskData.due_date) {
+      // Clear due date if it's not in the refreshed data
+      setCurrentDueDate(null);
     }
   }, [taskData?.status, taskData?.priority, taskData, currentTitle, currentDescription, currentCategory, currentProperty, currentPropertyId, currentUnit, currentUnitId, normalizeStatusForBadge, normalizePriorityForBadge]);
 
@@ -1708,7 +1728,7 @@ export default function TaskSummary() {
     if (taskData?.assignees && taskData.assignees.length > 0) {
       setCurrentAssignees(taskData.assignees);
     }
-    if (taskData?.collaborators && taskData.collaborators.length > 0) {
+    if (taskData?.collaborators !== undefined) {
       setCurrentCollaborators(taskData.collaborators);
     }
   }, [taskData?.assignees, taskData?.collaborators]);
@@ -1847,6 +1867,7 @@ export default function TaskSummary() {
     data: apiWorkOrders,
     isLoading: isLoadingWorkOrders,
     error: workOrdersError,
+    refetch: refetchWorkOrders,
   } = useQuery({
     queryKey: ["workOrders", taskId],
     queryFn: async () => {
@@ -1864,7 +1885,11 @@ export default function TaskSummary() {
   });
 
   // Fetch field team orders by task ID
-  const { data: apiFieldTeamOrders, isLoading: isLoadingFieldTeamOrders } =
+  const { 
+    data: apiFieldTeamOrders, 
+    isLoading: isLoadingFieldTeamOrders,
+    refetch: refetchFieldTeamOrders,
+  } =
     useQuery<APIFTOResponse[]>({
       queryKey: ["fieldTeamOrders", taskId],
       queryFn: async () => {
@@ -1885,222 +1910,10 @@ export default function TaskSummary() {
       retry: 1,
     });
 
-  // Mock work orders data - memoized to ensure hydratePerson is available
-  const mockWorkOrders: WorkOrder[] = useMemo(
-    () => [
-      {
-        id: 1,
-        task: "Doors need to be repaired",
-        taskId: 1,
-        property: "Downtown Building",
-        unit: "Unit 101",
-        dueDate: "Oct 2, 2025",
-        updatedDate: "Oct 2, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "in_progress",
-        billStatus: "Paid",
-        billTotal: "$420",
-        assignees: [
-          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-        ],
-        vendorName: "ABC Doors & Hardware",
-      },
-      {
-        id: 2,
-        task: "HVAC maintenance needed",
-        taskId: 2,
-        property: "Riverside Complex",
-        unit: "Unit 205",
-        dueDate: "Sep 29, 2025",
-        updatedDate: "Sep 29, 2025",
-        age: "6 days 5 hours",
-        priority: "low",
-        status: "in_progress",
-        billStatus: "Awaiting Invoice",
-        billTotal: "No invoice",
-        assignees: [
-          hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
-        ],
-        vendorName: "Elite HVAC Services",
-      },
-      {
-        id: 3,
-        task: "Window replacement",
-        taskId: 3,
-        property: "Central Plaza",
-        unit: "Unit 312",
-        dueDate: "Sep 10, 2025",
-        updatedDate: "Sep 10, 2025",
-        age: "6 days 5 hours",
-        priority: "normal",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$95",
-        assignees: [
-          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-        ],
-        collaborators: [],
-        vendorName: "Glass & Frames Inc",
-      },
-      {
-        id: 4,
-        task: "Roof inspection",
-        taskId: 4,
-        property: "Highland Towers",
-        unit: "Roof Level",
-        dueDate: "Sep 6, 2025",
-        updatedDate: "Sep 6, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$112",
-        assignees: [hydratePerson({ id: 2, name: "John Doe", initials: "JD" })],
-        collaborators: [
-          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-        ],
-        vendorName: "Pro Roofing Solutions",
-      },
-      {
-        id: 5,
-        task: "Plumbing repair",
-        taskId: 5,
-        property: "Market Street Apt",
-        unit: "Unit 404",
-        dueDate: "Sep 5, 2025",
-        updatedDate: "Sep 5, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$93",
-        assignees: [
-          hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-        ],
-        vendorName: "Dolce Plumbing & Heating LLC",
-      },
-      {
-        id: 6,
-        task: "Electrical work",
-        taskId: 6,
-        property: "Oak Ridge Manor",
-        unit: "Unit 501",
-        dueDate: "Sep 4, 2025",
-        updatedDate: "Sep 4, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$75",
-        assignees: [
-          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
-          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-        ],
-        vendorName: "Spark Electrical",
-      },
-      {
-        id: 7,
-        task: "Painting job",
-        taskId: 7,
-        property: "Park Avenue Building",
-        unit: "Unit 102",
-        dueDate: "Sep 4, 2025",
-        updatedDate: "Sep 4, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$101",
-        assignees: [
-          hydratePerson({ id: 3, name: "Jane Smith", initials: "JMS" }),
-        ],
-        collaborators: [],
-        vendorName: "Premium Painters Co",
-      },
-      {
-        id: 8,
-        task: "Carpet replacement",
-        taskId: 8,
-        property: "Westside Residences",
-        unit: "Unit 203",
-        dueDate: "Sep 3, 2025",
-        updatedDate: "Sep 3, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$124",
-        assignees: [hydratePerson({ id: 2, name: "John Doe", initials: "JD" })],
-        collaborators: [
-          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-        ],
-        vendorName: "Quality Flooring LLC",
-      },
-      {
-        id: 9,
-        task: "Landscaping work",
-        taskId: 9,
-        property: "Spring Valley Complex",
-        unit: "Common Area",
-        dueDate: "Sep 1, 2025",
-        updatedDate: "Sep 1, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$67",
-        assignees: [
-          hydratePerson({ id: 4, name: "Mike Johnson", initials: "MJ" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 5, name: "Sarah Wilson", initials: "SW" }),
-          hydratePerson({ id: 7, name: "Lisa Brown", initials: "LB" }),
-        ],
-        vendorName: "Green Lawn Services",
-      },
-      {
-        id: 10,
-        task: "Fence repair",
-        taskId: 10,
-        property: "Lakeside Gardens",
-        unit: "Unit 606",
-        dueDate: "Sep 1, 2025",
-        updatedDate: "Sep 1, 2025",
-        age: "6 days 5 hours",
-        priority: "high",
-        status: "completed",
-        billStatus: "Unpaid",
-        billTotal: "$118",
-        assignees: [
-          hydratePerson({ id: 1, name: "Jerry Sanchez", initials: "JS" }),
-        ],
-        collaborators: [
-          hydratePerson({ id: 6, name: "Tom Davis", initials: "TD" }),
-        ],
-        vendorName: "Outdoor Construction Corp",
-      },
-    ],
-    [],
-  );
-
   // Map API work orders to WorkOrder interface
   const mappedWorkOrders = useMemo(() => {
     if (!apiWorkOrders || apiWorkOrders.length === 0) {
-      return mockWorkOrders; // Fallback to mock data if no API data
+      return [];
     }
     const unit = formatUnitLabel({
       unitId: taskData?.unit_id ?? taskData?.unit,
@@ -2120,21 +1933,18 @@ export default function TaskSummary() {
         .filter((wo): wo is WorkOrder => wo !== null);
     } catch (error) {
       console.error('Error mapping work orders:', error);
-      return mockWorkOrders; // Fallback to mock data on error
+      return [];
     }
   }, [apiWorkOrders, taskData?.unit_id, taskData?.unit_name, taskData?.unit]);
 
   // Work orders and field team orders state
-  // Use fetched work orders if available, otherwise fallback to mock data
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mappedWorkOrders);
   const [isUpdateWorkOrderModalOpen, setIsUpdateWorkOrderModalOpen] =
     useState(false);
 
   // Update work orders when API data changes
   useEffect(() => {
-    if (mappedWorkOrders.length > 0) {
-      setWorkOrders(mappedWorkOrders);
-    }
+    setWorkOrders(mappedWorkOrders);
   }, [mappedWorkOrders]);
 
   const [fieldTeamOrders, setFieldTeamOrders] = useState<FieldTeamOrder[]>([]);
@@ -2232,15 +2042,139 @@ export default function TaskSummary() {
     ? files.find((f) => f.id === uiState.editingFileId)
     : null;
 
-  // Map MOCK_TASKS to LinkedTaskData for default availability, excluding current task
-  const availableTasksForLinking = useMemo(() => {
-    return MOCK_TASKS.filter((t) => String(t.id) !== taskId).map((task) => ({
-      id: task.id,
-      name: task.title,
-      status: task.status.toLowerCase().replace(" ", "_") as any,
-      updatedDate: task.updated,
-      updatedBy: task.assignees[0]?.name || "Unknown",
-    }));
+  // Fetch linked tasks from API
+  useEffect(() => {
+    if (!taskId) return;
+
+    let isCancelled = false;
+
+    const fetchLinkedTasks = async () => {
+      try {
+        const linkedTasks = await fetchJSON(`/maintenance/tasks/id/${taskId}/links`);
+        
+        // Don't update state if component unmounted or taskId changed
+        if (isCancelled) return;
+        
+        // Map API response to LinkedTaskData format
+        const mappedLinkedTasks: LinkedTaskData[] = linkedTasks.map((task: any) => {
+          // Map backend status to frontend status
+          const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+            open: "not_started",
+            not_started: "not_started",
+            in_progress: "in_progress",
+            pending_vendor: "in_progress",
+            scheduled: "in_progress",
+            completed: "completed",
+            closed: "completed",
+            cancelled: "completed",
+          };
+          
+          const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
+          
+          // Format date
+          const updatedDate = task.created_at
+            ? new Date(task.created_at).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "Unknown";
+          
+          return {
+            id: task.id,
+            name: task.name,
+            status: frontendStatus,
+            updatedDate,
+            updatedBy: "System", // LinkedTaskPreview doesn't include updated_by
+          };
+        });
+        
+        uiDispatch({ type: "SET_LINKED_TASKS", payload: mappedLinkedTasks });
+      } catch (error) {
+        // Don't update state if component unmounted or taskId changed
+        if (isCancelled) return;
+        
+        console.error("Error fetching linked tasks:", error);
+        // Set empty array on error
+        uiDispatch({ type: "SET_LINKED_TASKS", payload: [] });
+      }
+    };
+
+    fetchLinkedTasks();
+
+    // Cleanup function to prevent state updates after unmount or taskId change
+    return () => {
+      isCancelled = true;
+    };
+  }, [taskId]); // Removed uiDispatch from dependencies - it's stable from useReducer
+
+  // Fetch available tasks for linking (all tasks except current)
+  const [availableTasksForLinking, setAvailableTasksForLinking] = useState<LinkedTaskData[]>([]);
+  
+  useEffect(() => {
+    if (!taskId) return;
+
+    let isCancelled = false;
+
+    const fetchAvailableTasks = async () => {
+      try {
+        const allTasks = await fetchJSON("/maintenance/tasks");
+        
+        // Don't update state if component unmounted or taskId changed
+        if (isCancelled) return;
+        
+        // Filter out current task and map to LinkedTaskData format
+        const mappedTasks: LinkedTaskData[] = allTasks
+          .filter((task: any) => String(task.id) !== String(taskId))
+          .map((task: any) => {
+            // Map backend status to frontend status
+            const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+              open: "not_started",
+              not_started: "not_started",
+              in_progress: "in_progress",
+              pending_vendor: "in_progress",
+              scheduled: "in_progress",
+              completed: "completed",
+              closed: "completed",
+              cancelled: "completed",
+            };
+            
+            const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
+            
+            // Format date
+            const updatedDate = task.last_updated
+              ? new Date(task.last_updated).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "Unknown";
+            
+            return {
+              id: task.id,
+              name: task.name,
+              status: frontendStatus,
+              updatedDate,
+              updatedBy: task.assignees?.[0]?.name || "Unknown",
+            };
+          });
+        
+        setAvailableTasksForLinking(mappedTasks);
+      } catch (error) {
+        // Don't update state if component unmounted or taskId changed
+        if (isCancelled) return;
+        
+        console.error("Error fetching available tasks:", error);
+        setAvailableTasksForLinking([]);
+      }
+    };
+
+    fetchAvailableTasks();
+
+    // Cleanup function to prevent state updates after unmount or taskId change
+    return () => {
+      isCancelled = true;
+    };
   }, [taskId]);
 
   // Helper function to sync file names across files and updates states
@@ -2425,6 +2359,12 @@ export default function TaskSummary() {
           body: JSON.stringify(payload),
         });
 
+        // Refresh the all tasks page in the background
+        window.dispatchEvent(new CustomEvent("refreshAllTasks"));
+
+        // Refresh the current task summary page data to show updated values
+        await refetchTaskData();
+
         // update snapshot to current values after successful save
         syncTopBarSnapshot();
 
@@ -2444,6 +2384,7 @@ export default function TaskSummary() {
     currentPriority,
     currentStatus,
     loadUpdatesFromDb,
+    refetchTaskData,
     syncTopBarSnapshot,
     taskId,
     toBackendPriority,
@@ -3011,7 +2952,7 @@ export default function TaskSummary() {
               </div>
             ) : workOrdersError ? (
               <div className="flex flex-col items-center justify-center w-full h-[300px] bg-white rounded-lg border border-[#e5e5e5]">
-                <p className="text-red-500">Error loading work orders. Using fallback data.</p>
+                <p className="text-red-500">Error loading work orders.</p>
               </div>
             ) : (
               <TaskWorkOrders
@@ -3023,6 +2964,7 @@ export default function TaskSummary() {
                 taskId={taskId || "0"}
                 propertyId={currentPropertyId || taskData?.property_id}
                 onWorkOrderSelect={handleWorkOrderSelect}
+                onRefetchWorkOrders={refetchWorkOrders}
               />
             ))}
 
@@ -3111,7 +3053,8 @@ export default function TaskSummary() {
                   return;
                 }
                 
-                const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;
+                // const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;  
+                const url = `/api/maintenance/attachments/${attachmentId}`;
                 console.log("Opening PDF with URL:", url);
                 
                 pdfViewer.openPdf(url, file.name);
@@ -3119,9 +3062,59 @@ export default function TaskSummary() {
               onLinkTasks={() =>
                 uiDispatch({ type: "OPEN_MODAL", payload: "linkTask" })
               }
-              onUnlinkTask={(taskId) =>
-                uiDispatch({ type: "REMOVE_LINKED_TASK", payload: taskId })
-              }
+              onUnlinkTask={async (linkedTaskId) => {
+                if (!taskId) {
+                  console.error("Task ID is required to unlink tasks");
+                  return;
+                }
+
+                try {
+                  // Call API to delete the link
+                  await fetchJSON(`/maintenance/tasks/id/${taskId}/links/${linkedTaskId}`, {
+                    method: "DELETE",
+                  });
+
+                  // Update local state
+                  uiDispatch({ type: "REMOVE_LINKED_TASK", payload: linkedTaskId });
+
+                  // Refresh linked tasks from API to ensure consistency
+                  const refreshedLinkedTasks = await fetchJSON(`/maintenance/tasks/id/${taskId}/links`);
+                  const mappedLinkedTasks: LinkedTaskData[] = refreshedLinkedTasks.map((task: any) => {
+                    const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+                      open: "not_started",
+                      not_started: "not_started",
+                      in_progress: "in_progress",
+                      pending_vendor: "in_progress",
+                      scheduled: "in_progress",
+                      completed: "completed",
+                      closed: "completed",
+                      cancelled: "completed",
+                    };
+                    
+                    const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
+                    
+                    const updatedDate = task.created_at
+                      ? new Date(task.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "Unknown";
+                    
+                    return {
+                      id: task.id,
+                      name: task.name,
+                      status: frontendStatus,
+                      updatedDate,
+                      updatedBy: "System",
+                    };
+                  });
+                  uiDispatch({ type: "SET_LINKED_TASKS", payload: mappedLinkedTasks });
+                } catch (error: any) {
+                  console.error("Error unlinking task:", error);
+                  alert(`Failed to unlink task: ${error.message || "Unknown error"}`);
+                }
+              }}
               onTaskClick={(linkedTaskId) => {
                 const tabId = `task-${linkedTaskId}`;
                 setSelectedTab(tabId);
@@ -3175,6 +3168,7 @@ export default function TaskSummary() {
                 taskData?.name ||
                 (taskId ? `Task #${taskId}` : "")
               }
+              onRefetchFieldTeamOrders={refetchFieldTeamOrders}
               onOrdersChange={(newOrders) => {
                 // Check for timesheet status changes and create updates
                 newOrders.forEach((newOrder, idx) => {

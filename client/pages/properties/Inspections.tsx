@@ -6,8 +6,9 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import GlobalTable from "@/components/GlobalTable";
 import BlueButton from "@/components/BlueButton";
 import PersonAvatars from "@/components/PersonAvatars";
-import InspectionDetail from "./InspectionDetail";  
+import InspectionDetail from "./InspectionDetail";
 import ScheduleInspectionModal from "./ScheduleInspectionModal";
+import AddTemplateModal from "./AddTemplateModal";
 import {
   listInspections,
   createInspection,
@@ -142,6 +143,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
   const [inspectionsList, setInspectionsList] = useState<Inspection[]>([]);
   const [selectedInspectionId, setSelectedInspectionId] = useState<number | null>(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showAddTemplateModal, setShowAddTemplateModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fieldManagers, setFieldManagers] = useState<FieldManager[]>(mockFieldManagers);
   const [templates, setTemplates] = useState<BackendInspectionChecklist[]>([]);
@@ -438,16 +440,28 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     },
   ];
 
+  /** Format backend status (e.g. in_progress) to display (e.g. "In Progress"). */
+  const formatInspectionStatus = (status: string): string => {
+    return status
+      .split("_")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+  };
+
   const getStatusColor = (status: string): string => {
     switch (status) {
-      case "Completed":
-        return "#059669";
-      case "Outstanding":
-        return "#d97706";
-      case "Submitted":
-        return "#2463eb";
-      case "Upcoming":
+      case "draft":
+        return "#6b7280";
+      case "scheduled":
         return "#8b5cf6";
+      case "in_progress":
+        return "#2463eb";
+      case "submitted":
+        return "#2463eb";
+      case "reviewed":
+        return "#059669";
+      case "cancelled":
+        return "#9ca3af";
       default:
         return "#525252";
     }
@@ -481,6 +495,19 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
         onConfirm={handleScheduleInspection}
       />
 
+      {/* Add Template Modal */}
+      {propertyId && userId != null && (
+        <AddTemplateModal
+          open={showAddTemplateModal}
+          onOpenChange={setShowAddTemplateModal}
+          propertyId={Number(propertyId)}
+          userId={userId}
+          onConfirm={(created) => {
+            setTemplates((prev) => [...prev, created]);
+          }}
+        />
+      )}
+
       <div className="flex items-center gap-10 justify-between flex-wrap">
         {/* Title and Description */}
         <div className="flex flex-col gap-1 min-w-[240px]">
@@ -497,8 +524,15 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
           </div>
         </div>
 
-        {/* Action Button */}
+        {/* Action Buttons */}
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowAddTemplateModal(true)}
+            disabled={!propertyId || userId == null}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Add Template
+          </button>
           <BlueButton
             icon={<PlusIcon width={20} height={20} />}
             onClick={() => setShowScheduleModal(true)}
@@ -552,8 +586,8 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: getStatusColor(inspection.status) }}
                   />
-                  <span className="text-gray-900 font-normal text-sm capitalize">
-                    {inspection.status}
+                  <span className="text-gray-900 font-normal text-sm">
+                    {formatInspectionStatus(inspection.status)}
                   </span>
                 </div>
               );

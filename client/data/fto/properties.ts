@@ -48,3 +48,20 @@ export const YES_NO_OPTIONS = [
   { value: "no", label: "No" },
   { value: "yes", label: "Yes" },
 ];
+
+// Billing options for hour entries
+// Maps to backend "no_charge" field: billable = false, non-billable = true
+export const BILLING_OPTIONS = [
+  { value: "billable", label: "Billable" },
+  { value: "non-billable", label: "Non-Billable" },
+];
+
+// Helper to convert billing option to backend no_charge value
+export const billingToNoCharge = (billing: string | null): boolean => {
+  return billing === "non-billable";
+};
+
+// Helper to convert backend no_charge to billing option
+export const noChargeToBilling = (noCharge: boolean): string => {
+  return noCharge ? "non-billable" : "billable";
+};

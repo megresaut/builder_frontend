@@ -26,6 +26,7 @@ interface ComboboxFieldWithCustomInputProps {
   options: ComboboxOption[];
   emptyMessage?: string;
   customInputPlaceholder?: string;
+  customButtonLabel?: string;
 }
 
 /**
@@ -59,6 +60,7 @@ interface ComboboxFieldWithCustomInputProps {
  * @param options - Array of {value, label} options
  * @param emptyMessage - Message when no options match search (default: "No results found")
  * @param customInputPlaceholder - Placeholder for custom input field
+ * @param customButtonLabel - Label for the "Add custom" button (default: "vendor")
  *
  * Example:
  * ```tsx
@@ -89,6 +91,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
   options,
   emptyMessage = "No results found",
   customInputPlaceholder = "Or enter a new value",
+  customButtonLabel = "vendor",
 }) => {
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -229,7 +232,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
                   (e.currentTarget.style.backgroundColor = "transparent")
                 }
               >
-                + Add custom vendor
+                + Add custom {customButtonLabel}
               </button>
             )}
 

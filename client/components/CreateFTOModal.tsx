@@ -11,6 +11,7 @@ import {
   TextAreaField,
   DateField,
   MultiSelectField,
+  ComboboxField,
 } from "@/components/forms";
 
 import type { MultiSelectOption } from "@/components/forms";
@@ -96,7 +97,7 @@ export default function CreateFTOModal({
   // console.log( "editingFTO:", editingFTO )
 
   
-  const hasHydratedRef = useRef(false);
+  const hasHydratedRef = useRef<number | null>(null);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
     null
   );
@@ -130,15 +131,11 @@ export default function CreateFTOModal({
         setOptionsLoading(true);
         setOptionsError(null);
   
-        const [propsRes, tasksRes] = await Promise.all([
-          fetchJSON("/properties").catch(() => []),
-          fetchJSON("/maintenance/tasks?limit=200").catch(() => []),
-        ]);
+        const propsRes = await fetchJSON("/properties").catch(() => []);
   
         if (cancelled) return;
   
         setProperties(propsRes || []);
-        setTasks(tasksRes || []);
       } catch (err: any) {
         if (!cancelled) {
           setOptionsError(err?.message || "Failed to load options");
@@ -174,9 +171,11 @@ export default function CreateFTOModal({
   // Hydrate form from editingFTO when provided
   useEffect(() => {
     if (!open || !editingFTO) return;
-    if (hasHydratedRef.current) return; // 🔒 BLOCK re-hydration
+    // Allow re-hydration if editingFTO.id changes (data was refreshed)
+    // If the same ID is already hydrated, skip (unless modal was closed and reopened)
+    if (hasHydratedRef.current === editingFTO.id) return;
   
-    hasHydratedRef.current = true;
+    hasHydratedRef.current = editingFTO.id;
   
     setEditingUnitLabel(
       formatUnitLabel({
@@ -215,7 +214,7 @@ export default function CreateFTOModal({
 
   useEffect(() => {
     if (!open) {
-      hasHydratedRef.current = false;
+      hasHydratedRef.current = null;
     }
   }, [open]);
 
@@ -244,32 +243,28 @@ export default function CreateFTOModal({
 
   useEffect(() => {
     if (!open) return;
-  
-    fetchJSON("/users/field-team")
-      .then((data) =>
-        setAvailableAssignees(
-          data.map((u: any) => ({
-            id: Number(u.id),
-            name: u.name || u.email,
-          }))
-        )
-      )
-      .catch(() => {});
-  }, [open]);
-  
-  useEffect(() => {
-    if (!open) return;
-  
-    fetchJSON("/users/property-managers")
-      .then((data) =>
-        setPmAssignees(
-          data.map((u: any) => ({
-            id: Number(u.id),
-            name: u.name || u.email,
-          }))
-        )
-      )
-      .catch(() => {});
+
+    const toAssignee = (u: { id: number; name?: string; email?: string }) => ({
+      id: Number(u.id),
+      name: u.name || u.email || "",
+    });
+
+    Promise.all([
+      fetchJSON("/users/field-team").catch(() => []),
+      fetchJSON("/users/property-managers").catch(() => []),
+    ]).then(([fieldTeam, propertyManagers]) => {
+      setPmAssignees(propertyManagers.map((u: any) => toAssignee(u)));
+
+      const seen = new Set<number>();
+      const merged: Assignee[] = [];
+      for (const u of [...fieldTeam, ...propertyManagers]) {
+        const a = toAssignee(u);
+        if (seen.has(a.id)) continue;
+        seen.add(a.id);
+        merged.push(a);
+      }
+      setAvailableAssignees(merged);
+    });
   }, [open]);
 
   
@@ -406,6 +401,13 @@ export default function CreateFTOModal({
         });
       }
   
+      const refreshPropertyId =
+        selectedPropertyId ?? editingFTO?.property_id ?? lockedPropertyId ?? null;
+      window.dispatchEvent(
+        new CustomEvent("refreshFieldTeamOrders", {
+          detail: refreshPropertyId ? { propertyId: refreshPropertyId } : {},
+        })
+      );
       onOpenChange(false);
     } catch (err) {
       console.error("Failed to save FTO:", err);
@@ -451,6 +453,45 @@ export default function CreateFTOModal({
       cancelled = true;
     };
   }, [open, selectedPropertyId, isEditing]);
+
+  // Load tasks when property is selected (or when editing with a property)
+  useEffect(() => {
+    const propertyId = selectedPropertyId || editingFTO?.property_id;
+    
+    if (!open || !propertyId) {
+      setTasks([]);
+      return;
+    }
+    let cancelled = false;
+  
+    async function loadTasks() {
+      try {
+        setOptionsLoading(true);
+        setOptionsError(null);
+  
+        const data = await fetchJSON(
+          `/maintenance/tasks?property_id=${propertyId}&limit=200`
+        );
+  
+        if (!cancelled) {
+          setTasks(data || []);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          console.error("Failed to load tasks:", err);
+          setOptionsError(err?.message || "Failed to load tasks");
+          setTasks([]);
+        }
+      } finally {
+        if (!cancelled) setOptionsLoading(false);
+      }
+    }
+  
+    loadTasks();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, selectedPropertyId, editingFTO?.property_id]);
 
   const propertyLabel = isEditing
     ? editingFTO?.property_name || ""
@@ -548,7 +589,7 @@ export default function CreateFTOModal({
                 disabled
               />
             ) : (
-              <SelectField
+              <ComboboxField
                 label="Property"
                 required
                 value={String(selectedPropertyId || "")}
@@ -560,6 +601,7 @@ export default function CreateFTOModal({
                 }}
                 error={errors.property}
                 placeholder="Select Property"
+                searchPlaceholder="Search properties..."
                 options={propertyOptions}
                 disabled={readOnly}
               />
@@ -597,9 +639,15 @@ export default function CreateFTOModal({
                 onChange={(value) => {
                   setSelectedTaskId(value ? Number(value) : null);
                 }}
-                placeholder="Select Task"
+                placeholder={
+                  !selectedPropertyId && !editingFTO?.property_id
+                    ? "Select property first"
+                    : optionsLoading
+                    ? "Loading tasks…"
+                    : "Select Task"
+                }
                 options={taskOptions}
-                disabled={readOnly || optionsLoading}
+                disabled={(!selectedPropertyId && !editingFTO?.property_id) || readOnly || optionsLoading}
               />
             )}
           </div>

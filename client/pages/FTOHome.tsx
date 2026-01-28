@@ -1016,42 +1016,24 @@ export default function FtoHome() {
           }
           showSearchBar={true}
           actions={[
-            {
-              label: (row) => {
-                if (activeTab === "open") return "Submit";
-                const submission = row as SubmissionRecord;
-                return submission.status === "pending" ||
-                  submission.status === "rejected"
-                  ? "Edit Submission"
-                  : "View Submission";
-              },
-              icon: () =>
-                activeTab === "open" ? (
-                  <ApproveIcon
-                    width={18}
-                    height={18}
-                    color="var(--color-text-secondary)"
-                  />
-                ) : (
+            // Commented out submit button for open orders - only show for submissions tab
+            ...(activeTab !== "open" ? [
+              {
+                label: (row) => {
+                  const submission = row as SubmissionRecord;
+                  return submission.status === "pending" ||
+                    submission.status === "rejected"
+                    ? "Edit Submission"
+                    : "View Submission";
+                },
+                icon: () => (
                   <EyeIcon
                     width={18}
                     height={18}
                     color="var(--color-text-secondary)"
                   />
                 ),
-              onClick: (row) => {
-                if (activeTab === "open") {
-                  const order = row as FieldTeamOrder;
-                  navigate(`/fto/submission/${order.id}`, {
-                    state: {
-                      property: order.property,
-                      unit: order.unit,
-                      task: order.name,
-                      description: order.description,
-                      isApproved: order.approvalStatus === "approved",
-                    },
-                  });
-                } else {
+                onClick: (row) => {
                   const submission = row as SubmissionRecord;
                   const canEdit =
                     submission.status === "pending" ||
@@ -1066,9 +1048,67 @@ export default function FtoHome() {
                       description: submission.description,
                     },
                   });
-                }
+                },
               },
-            },
+            ] : []),
+            // Original submit action for open orders - COMMENTED OUT
+            // {
+            //   label: (row) => {
+            //     if (activeTab === "open") return "Submit";
+            //     const submission = row as SubmissionRecord;
+            //     return submission.status === "pending" ||
+            //       submission.status === "rejected"
+            //       ? "Edit Submission"
+            //       : "View Submission";
+            //   },
+            //   icon: () =>
+            //     activeTab === "open" ? (
+            //       <ApproveIcon
+            //         width={18}
+            //         height={18}
+            //         color="var(--color-text-secondary)"
+            //       />
+            //     ) : (
+            //       <EyeIcon
+            //         width={18}
+            //         height={18}
+            //         color="var(--color-text-secondary)"
+            //       />
+            //     ),
+            //   onClick: (row) => {
+            //     if (activeTab === "open") {
+            //       const order = row as FieldTeamOrder;
+            //       // Navigate to new submission form (no ID) with FTO data to pre-fill
+            //       navigate("/fto/submission", {
+            //         state: {
+            //           property: order.property,
+            //           property_id: order.property_id,
+            //           unit: order.unit,
+            //           unit_id: order.unit_id,
+            //           fto_id: order.id, // FTO ID to pre-select as task
+            //           task: order.name,
+            //           description: order.description,
+            //           isApproved: order.approvalStatus === "approved",
+            //         },
+            //       });
+            //     } else {
+            //       const submission = row as SubmissionRecord;
+            //       const canEdit =
+            //         submission.status === "pending" ||
+            //         submission.status === "rejected";
+            //       navigate(`/fto/submission/${submission.id}`, {
+            //         state: {
+            //           isApproved: submission.status === "approved",
+            //           canEdit,
+            //           property: submission.property,
+            //           unit: submission.unit,
+            //           task: submission.name,
+            //           description: submission.description,
+            //         },
+            //       });
+            //     }
+            //   },
+            // },
             {
               label: () => "View Task",
               icon: () => (
