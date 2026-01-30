@@ -34,6 +34,7 @@ interface HourRow {
   upcharge: string;
   assignee: string;
   assigneeId: number;
+  submissionId: number;
 }
 
 interface ExpenseRow {
@@ -634,6 +635,7 @@ export default function ApproveFTOPage() {
                 upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
                 assignee: assigneeById[submission.FieldTeamMemberID] || "",
                 assigneeId: submission.FieldTeamMemberID,
+                submissionId: submission.ID,
               });
             });
           }
@@ -777,6 +779,7 @@ export default function ApproveFTOPage() {
         upcharge: "$0",
         assignee: "",
         assigneeId: 0,
+        submissionId: 0,
       },
     ]);
   };
@@ -865,18 +868,24 @@ export default function ApproveFTOPage() {
         const hoursJSON = buildHoursJSON(assigneeHours);
         const materialsJSON = buildMaterialsJSON(assigneeExpenses);
 
-        // Check if this assignee already has a submission
-        let submissionId = submissionByAssignee[assigneeId];
+        // Find if any row in this group has an existing submission ID
+        // (indicates these rows came from an existing submission that should be patched)
+        const existingHourSubmissionId = assigneeHours.find((r) => r.submissionId > 0)?.submissionId;
+        const existingExpenseSubmissionId = assigneeExpenses.find((r) => r.submissionId > 0)?.submissionId;
+        const existingSubmissionId = existingHourSubmissionId || existingExpenseSubmissionId;
 
-        if (submissionId) {
+        let submissionId: number;
+
+        if (existingSubmissionId) {
           // Existing submission - PATCH it (include assignee ID in case it changed)
-          await patchSubmission(submissionId, {
+          await patchSubmission(existingSubmissionId, {
             hours_json: hoursJSON,
             materials_json: materialsJSON,
             field_team_member_id: assigneeId,
           });
+          submissionId = existingSubmissionId;
         } else {
-          // No existing submission - create one
+          // All rows are new - create a new submission
           if (!ftoIdNum) {
             throw new Error("Cannot create submission: FTO ID is missing");
           }
