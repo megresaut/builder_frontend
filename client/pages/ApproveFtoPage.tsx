@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
@@ -21,6 +21,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { useParams } from "react-router-dom";
 import { fetchJSON } from "@/api/fetchJSON";
 import { cn } from "@/lib/utils";
+import { AlertBanner } from "@/components/AlertBanner";
 
 interface HourRow {
   id: string;
@@ -163,7 +164,17 @@ const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]
   }
 
   if (!res.ok) {
-    throw new Error("Failed to fetch submissions");
+    let errMsg = "Failed to fetch submissions";
+    const text = await res.text();
+    if (text) {
+      try {
+        const body = JSON.parse(text);
+        if (body && typeof body.error === "string") errMsg = body.error;
+      } catch {
+        errMsg = text;
+      }
+    }
+    throw new Error(errMsg);
   }
 
   return res.json();
@@ -462,7 +473,6 @@ export default function ApproveFTOPage() {
   const location = useLocation();
   // const { id } = useParams<{ id?: string }>();
   const state = (location.state || {}) as ApproveFTOPageProps;
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfViewer = usePdfViewer();
 
   // const ftoId = id ? Number(id) : null;
@@ -485,15 +495,12 @@ export default function ApproveFTOPage() {
   const [hourRows, setHourRows] = useState<HourRow[]>([]);
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([]);
 
-  const [uploadedFiles, setUploadedFiles] = useState<
-    Array<{ name: string; size: number; file: File }>
-  >([]);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
-  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false); // Default: PDF viewer collapsed
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(true);
   const [assigneeById, setAssigneeById] = useState<Record<number, string>>({});
   const [hasNoSubmissions, setHasNoSubmissions] = useState(false);
-  const [rateError, setRateError] = useState<string | null>(null);
+  const [rateError, setRateError] = useState<"hourly" | "emergency" | null>(null);
+  const [propertyId, setPropertyId] = useState<number | null>(null);
   // const [attachmentsByKey, setAttachmentsByKey] = useState<Record<string, AttachmentSummary[]>>({});
   
   // Track submissions by assignee ID so we know which assignees already have submissions
@@ -557,6 +564,11 @@ export default function ApproveFTOPage() {
         
         // Update FTO details from API response
         if (fto.name) setFtoName(fto.name);
+        const resolvedPropertyId =
+          fto.property_id ?? fto.propertyId ?? fto.PropertyID ?? null;
+        if (resolvedPropertyId != null) {
+          setPropertyId(Number(resolvedPropertyId));
+        }
         if (fto.property_name || fto.property_address) {
           setProperty(fto.property_name || fto.property_address || "");
         }
@@ -674,17 +686,16 @@ export default function ApproveFTOPage() {
       } catch (error) {
         console.error("Failed to load submissions:", error);
         
-        // Check if error is related to missing rates
+        // Check if error is related to missing rates (e.g. "cannot scan NULL into *int64" for hourly_rate_cents / emergency_hourly_rate_cents)
         const errorMessage = error instanceof Error ? error.message : String(error);
         const lowerError = errorMessage.toLowerCase();
         
-        if (lowerError.includes("emergency") && lowerError.includes("rate")) {
+        if (lowerError.includes("emergency_hourly_rate") || (lowerError.includes("emergency") && lowerError.includes("rate"))) {
           setRateError("emergency");
-        } else if (lowerError.includes("hourly") && lowerError.includes("rate")) {
+        } else if (lowerError.includes("hourly_rate") || (lowerError.includes("hourly") && lowerError.includes("rate"))) {
           setRateError("hourly");
         } else if (lowerError.includes("scan") && (lowerError.includes("null") || lowerError.includes("emergency") || lowerError.includes("hourly"))) {
-          // Generic scan error - try to determine which rate
-          if (lowerError.includes("emergency")) {
+          if (lowerError.includes("emergency_hourly_rate_cents") || lowerError.includes("emergency")) {
             setRateError("emergency");
           } else {
             setRateError("hourly");
@@ -932,39 +943,6 @@ export default function ApproveFTOPage() {
   };
   
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.currentTarget.files;
-    if (files) {
-      const newFiles = Array.from(files).map((file) => ({
-        name: file.name,
-        size: file.size,
-        file,
-      }));
-      setUploadedFiles([...uploadedFiles, ...newFiles]);
-    }
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
-  };
-
-  const handleViewFile = (file: { name: string; file: File }) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      pdfViewer.openPdf(dataUrl, file.name);
-    };
-    reader.readAsDataURL(file.file);
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-  };
-
   // Helper to check if a cell is required but empty
   const isHoursCellInvalid = (row: HourRow, field: keyof HourRow) => {
     const requiredFields = ['date', 'hours', 'assignee', 'amount'];
@@ -1026,238 +1004,15 @@ export default function ApproveFTOPage() {
         minHeight: "100vh",
       }}
     >
-      {/* Main Content Area - Grid Layout */}
+      {/* Main Content Area */}
       <div
         style={{
           flex: 1,
-          display: "grid",
-          gridTemplateColumns: isLeftPanelOpen ? "1fr 1fr" : "1fr",
-          alignItems: "stretch",
+          display: "flex",
+          flexDirection: "column",
           minHeight: 0,
-          gap: 0,
-          position: "relative",
         }}
       >
-        {/* Toggle Button - Middle Divider */}
-        <button
-          onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
-          style={{
-            position: "absolute",
-            right: "32px",
-            top: "24px",
-            width: "32px",
-            height: "32px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "white",
-            border: "1px solid #DADADA",
-            borderRadius: "8px",
-            cursor: "pointer",
-            zIndex: 50,
-            transition: "all 0.2s ease",
-          }}
-          title={isLeftPanelOpen ? "Close PDF panel" : "Open PDF panel"}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            {isLeftPanelOpen ? (
-              <path
-                d="M10 12L6 8L10 4"
-                stroke="#525252"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            ) : (
-              <path
-                d="M6 12L10 8L6 4"
-                stroke="#525252"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            )}
-          </svg>
-        </button>
-
-        {/* Left Column - File Upload/Viewer */}
-        {isLeftPanelOpen && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              padding: "24px 32px",
-              borderRight: "1px solid #E5E7EB",
-              height: "100%",
-              overflow: "hidden",
-            }}
-          >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              flex: 1,
-            }}
-          >
-            {/* File Upload Section */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                flex: 1,
-              }}
-            >
-              {uploadedFiles.length === 0 ? (
-                <div
-                  className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden justify-center flex-1"
-                  style={{ padding: "16px 24px" }}
-                >
-                  <div className="self-center flex flex-col items-center">
-                    <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
-                      <div>Choose a file or drag & drop it here</div>
-                      <div className="mt-2">
-                        JPEG, PNG and PDF formats, up to 50 MB.
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="rounded-lg bg-[#FBFBFB] border border-[#DADADA] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex mt-3 min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] tracking-[-0.32px] leading-[1.4] justify-center hover:bg-gray-100 transition-colors"
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M11.3333 5.33333L8 2M8 2L4.66667 5.33333M8 2V10"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span>Browse Files</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    flex: 1,
-                    paddingTop: "24px",
-                  }}
-                >
-                  <div className="text-sm text-[#A1A1A9] mb-4">
-                    Limited to 10 files. Max file size is 20MB.
-                  </div>
-                  <div className="text-sm text-[#303030] mb-4">
-                    Drag & drop files here or{" "}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-blue-600 hover:underline"
-                    >
-                      browse
-                    </button>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                      marginBottom: "24px",
-                    }}
-                  >
-                    {uploadedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-[#E5E7EB]"
-                      >
-                        <div className="flex items-center gap-3 flex-1">
-                          <svg
-                            className="w-5 h-5 text-red-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm text-[#303030] truncate">
-                              {file.name}{" "}
-                              <span className="text-[#A1A1A9]">
-                                ({formatFileSize(file.size)})
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 ml-4">
-                          <button
-                            onClick={() => handleViewFile(file)}
-                            className="text-[#A1A1A9] hover:text-[#303030] transition-colors flex-shrink-0"
-                            title="View file"
-                          >
-                            <EyeIcon width={16} height={16} />
-                          </button>
-                          <button
-                            onClick={() => handleRemoveFile(index)}
-                            className="text-[#A1A1A9] hover:text-[#303030] transition-colors flex-shrink-0"
-                            title="Remove file"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-blue-600 hover:underline text-sm font-medium text-center"
-                  >
-                    Add more files
-                  </button>
-                </div>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </div>
-          </div>
-        </div>
-        )}
-
-        {/* Right Column (scroll container) */}
         <div
           style={{
             flex: 1,
@@ -1266,41 +1021,24 @@ export default function ApproveFTOPage() {
           }}
         >
           <div style={{ minWidth: "100%" }}>
-          {rateError && (
-            <div
-              className="
-                mb-8
-                rounded-lg
-                border border-red-300
-                bg-red-50
-                px-4 py-3
-                text-sm
-                text-red-900
-                flex items-start gap-2
-              "
-            >
-              <svg
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                  clipRule="evenodd"
-                />
-              </svg>
-
-              <div className="flex-1">
-                <div className="font-medium">
-                  Cannot compute amount for hours
-                </div>
-                <div className="mt-1 text-red-800">
-                  {rateError === "emergency"
-                    ? "There is no emergency rate configured for this property. Please configure the emergency hourly rate to calculate amounts for emergency hours."
-                    : "There is no hourly rate configured for this property. Please configure the hourly rate to calculate amounts for hours."}
-                </div>
-              </div>
+          {rateError === "hourly" && (
+            <div className="mb-6">
+              <AlertBanner
+                title="No hourly rate"
+                message="This property doesn't have an hourly rate set. Set it on the property to calculate amounts for hours "
+                messageLinkText={propertyId != null ? "here." : undefined}
+                messageLinkOnClick={propertyId != null ? () => navigate(`/property/${propertyId}`) : undefined}
+              />
+            </div>
+          )}
+          {rateError === "emergency" && (
+            <div className="mb-6">
+              <AlertBanner
+                title="No emergency hourly rate"
+                message="This property doesn't have an emergency hourly rate set. Set it on the property to calculate amounts for emergency hours "
+                messageLinkText={propertyId != null ? "here." : undefined}
+                messageLinkOnClick={propertyId != null ? () => navigate(`/property/${propertyId}`) : undefined}
+              />
             </div>
           )}
 
