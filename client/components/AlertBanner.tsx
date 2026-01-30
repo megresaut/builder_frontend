@@ -3,6 +3,10 @@ import React from "react";
 interface AlertBannerProps {
   title: string;
   message: string;
+  /** Optional link text (e.g. "here") shown inline after the message; requires messageLinkOnClick */
+  messageLinkText?: string;
+  /** When set with messageLinkText, renders a clickable link inline after the message */
+  messageLinkOnClick?: () => void;
   actionText?: string;
   onAction?: () => void;
 }
@@ -10,9 +14,12 @@ interface AlertBannerProps {
 export const AlertBanner: React.FC<AlertBannerProps> = ({
   title,
   message,
+  messageLinkText,
+  messageLinkOnClick,
   actionText = "View",
   onAction,
 }) => {
+  const showMessageLink = messageLinkText && messageLinkOnClick;
   return (
     <div
       style={
@@ -139,33 +146,62 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({
           >
             {" "}
             - {message}
+            {showMessageLink && (
+              <>
+                {" "}
+                <button
+                  type="button"
+                  onClick={messageLinkOnClick}
+                  style={
+                    {
+                      display: "inline",
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      font: "inherit",
+                      fontWeight: "500",
+                      color: "rgb(1, 55, 100)",
+                      textDecoration: "underline",
+                      textDecorationLine: "underline",
+                      cursor: "pointer",
+                      WebkitBackgroundClip: "unset",
+                      WebkitTextFillColor: "rgb(1, 55, 100)",
+                    } as React.CSSProperties
+                  }
+                >
+                  {messageLinkText}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
-      <button
-        onClick={onAction}
-        style={
-          {
-            color: "rgb(1, 55, 100)",
-            display: "block",
-            fontWeight: "500",
-            letterSpacing: "-0.32px",
-            textDecoration: "underline",
-            textDecorationLine: "underline",
-            textTransform: "capitalize",
-            whiteSpace: "nowrap",
-            backgroundColor: "rgba(0, 0, 0, 0)",
-            borderColor: "rgba(0, 0, 0, 0)",
-            border: "none",
-            padding: "0",
-            cursor: "pointer",
-            transition:
-              "color 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
-          } as React.CSSProperties
-        }
-      >
-        {actionText}
-      </button>
+      {onAction && (
+        <button
+          onClick={onAction}
+          style={
+            {
+              color: "rgb(1, 55, 100)",
+              display: "block",
+              fontWeight: "500",
+              letterSpacing: "-0.32px",
+              textDecoration: "underline",
+              textDecorationLine: "underline",
+              textTransform: "capitalize",
+              whiteSpace: "nowrap",
+              backgroundColor: "rgba(0, 0, 0, 0)",
+              borderColor: "rgba(0, 0, 0, 0)",
+              border: "none",
+              padding: "0",
+              cursor: "pointer",
+              transition:
+                "color 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+            } as React.CSSProperties
+          }
+        >
+          {actionText ?? "View"}
+        </button>
+      )}
     </div>
   );
 };
