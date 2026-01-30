@@ -239,6 +239,7 @@ const patchSubmission = async (
   payload: {
     hours_json?: any[];
     materials_json?: any[];
+    field_team_member_id?: number;
   }
 ) => {
   // Debugging logs removed
@@ -868,10 +869,11 @@ export default function ApproveFTOPage() {
         let submissionId = submissionByAssignee[assigneeId];
 
         if (submissionId) {
-          // Existing submission - PATCH it
+          // Existing submission - PATCH it (include assignee ID in case it changed)
           await patchSubmission(submissionId, {
             hours_json: hoursJSON,
             materials_json: materialsJSON,
+            field_team_member_id: assigneeId,
           });
         } else {
           // No existing submission - create one
