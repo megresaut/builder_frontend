@@ -367,6 +367,7 @@ export default function Bills() {
   const [newlyAddedBillIds, setNewlyAddedBillIds] = useState<Set<number>>(
     new Set(),
   );
+  const [searchValue, setSearchValue] = useState("");
 
   const markBillAsNew = (billId: number) => {
     setNewlyAddedBillIds((prev) => new Set(prev).add(billId));
@@ -384,8 +385,30 @@ export default function Bills() {
   const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
   const tabBills = selectedTab === "approved" ? approvedBills : draftBills;
 
+  const searchLower = searchValue.trim().toLowerCase();
+  const filteredTabBills = searchLower
+    ? tabBills.filter((bill) => {
+        const vendor = (bill.vendor ?? "").toLowerCase();
+        const property = (bill.property ?? "").toLowerCase();
+        const memo = (bill.memo ?? "").toLowerCase();
+        const invoiceNumber = (bill.invoiceNumber ?? "").toLowerCase();
+        const amountStr = String(bill.amount ?? "");
+        const statementDate = (bill.statementDate ?? "").toLowerCase();
+        const dueDate = (bill.dueDate ?? "").toLowerCase();
+        return (
+          vendor.includes(searchLower) ||
+          property.includes(searchLower) ||
+          memo.includes(searchLower) ||
+          invoiceNumber.includes(searchLower) ||
+          amountStr.includes(searchLower) ||
+          statementDate.includes(searchLower) ||
+          dueDate.includes(searchLower)
+        );
+      })
+    : tabBills;
+
   const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(tabBills);
+    useSortingTable(filteredTabBills);
   const {
     columnOrder,
     visibleColumns,
@@ -402,14 +425,14 @@ export default function Bills() {
     handleColumnDragLeave,
     handleColumnDrop,
   } = useColumnManagement([
-    "vendor",
-    "statementDate",
     "dueDate",
-    "status",
-    "exportedAt",
-    "memo",
+    "vendor",
+    "property",
     "invoiceNumber",
+    "memo",
     "amount",
+    "exportedAt",
+    "status",
   ]);
 
   useEffect(() => {
@@ -440,20 +463,8 @@ export default function Bills() {
 
   const columns = [
     {
-      key: "vendor",
-      label: "Vendor",
-      icon: (
-        <img
-          loading="lazy"
-          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
-          style={{ width: "16px", height: "16px" }}
-          alt=""
-        />
-      ),
-    },
-    {
-      key: "statementDate",
-      label: "Statement Date",
+      key: "dueDate",
+      label: "Due Date",
       icon: (
         <svg
           width="16"
@@ -471,8 +482,20 @@ export default function Bills() {
       ),
     },
     {
-      key: "dueDate",
-      label: "Due Date",
+      key: "vendor",
+      label: "Vendor",
+      icon: (
+        <img
+          loading="lazy"
+          src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
+          style={{ width: "16px", height: "16px" }}
+          alt=""
+        />
+      ),
+    },
+    {
+      key: "property",
+      label: "Property",
       icon: (
         <svg
           width="16"
@@ -482,10 +505,8 @@ export default function Bills() {
           stroke="currentColor"
           strokeWidth="2"
         >
-          <path d="M8 2v4" />
-          <path d="M16 2v4" />
-          <rect width="18" height="18" x="3" y="4" rx="2" />
-          <path d="M3 10h18" />
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
       ),
     },
@@ -978,7 +999,7 @@ export default function Bills() {
               }
               return true;
             })}
-            data={tabBills}
+            data={getSortedData()}
             rowKey="id"
             renderCell={(bill, columnKey) => {
               if (columnKey === "vendor") {
@@ -991,17 +1012,17 @@ export default function Bills() {
                   </div>
                 );
               }
-              if (columnKey === "statementDate") {
-                return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {bill.statementDate}
-                  </span>
-                );
-              }
               if (columnKey === "dueDate") {
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
                     {bill.dueDate}
+                  </span>
+                );
+              }
+              if (columnKey === "property") {
+                return (
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {bill.property}
                   </span>
                 );
               }
@@ -1129,6 +1150,11 @@ export default function Bills() {
               </button>
             }
             showSearchBar={true}
+            searchValue={searchValue}
+            onSearchChange={(value) => {
+              setSearchValue(value);
+              setCurrentPage(1);
+            }}
             actions={
               selectedTab === "drafts"
                 ? [

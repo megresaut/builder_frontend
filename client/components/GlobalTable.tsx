@@ -262,16 +262,17 @@ export default function GlobalTable({
           <div className="flex items-center gap-2.5">
             {showSearchBar && (
               <div className="flex h-9 items-center gap-2 px-3 rounded-lg bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]" style={{ borderColor: "var(--color-border-default)", borderWidth: "1px" }}>
-                <Search className="w-5 h-5 text-gray-600" />
+                <Search className="w-5 h-5 text-gray-600 shrink-0" />
                 <input
                   type="text"
                   placeholder="Search..."
-                  value={searchValue}
+                  value={typeof searchValue === "string" ? searchValue : ""}
                   onChange={(e) => onSearchChange?.(e.target.value)}
-                  className="font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none w-32 sm:w-48"
+                  className="font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none w-32 sm:w-48 min-w-0"
                   style={{
                     color: "var(--color-text-primary)",
                   }}
+                  aria-label="Search"
                 />
               </div>
             )}
