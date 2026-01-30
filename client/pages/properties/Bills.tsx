@@ -278,19 +278,8 @@ const buildBillState = (bill: Bill) => ({
 });
 
 const billsColumnConfig: Record<string, { label: string; icon: React.ReactNode }> = {
-  vendor: {
-    label: "Vendor",
-    icon: (
-      <img
-        loading="lazy"
-        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
-        style={{ width: "16px", height: "16px" }}
-        alt=""
-      />
-    ),
-  },
-  statementDate: {
-    label: "Statement Date",
+  dueDate: {
+    label: "Due Date",
     icon: (
       <svg
         width="16"
@@ -307,8 +296,19 @@ const billsColumnConfig: Record<string, { label: string; icon: React.ReactNode }
       </svg>
     ),
   },
-  dueDate: {
-    label: "Due Date",
+  vendor: {
+    label: "Vendor",
+    icon: (
+      <img
+        loading="lazy"
+        src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/1bf3b3df8026becac5b0f8006e63c3cb79df6594?placeholderIfAbsent=true"
+        style={{ width: "16px", height: "16px" }}
+        alt=""
+      />
+    ),
+  },
+  property: {
+    label: "Property",
     icon: (
       <svg
         width="16"
@@ -318,10 +318,8 @@ const billsColumnConfig: Record<string, { label: string; icon: React.ReactNode }
         stroke="currentColor"
         strokeWidth="2"
       >
-        <path d="M8 2v4" />
-        <path d="M16 2v4" />
-        <rect width="18" height="18" x="3" y="4" rx="2" />
-        <path d="M3 10h18" />
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
       </svg>
     ),
   },
@@ -510,7 +508,7 @@ export const Bills: React.FC<BillsProps> = ({
           createdAt: parseValidTimestamp(b.created_at),
         
           memo: b.memo ?? "",
-          invoiceNumber: b.invoice_number ?? "",
+          invoiceNumber: b.reference_number ?? b.invoice_number ?? "",
           amount: (b.amount_cents ?? 0) / 100,
           glAccount: "",
         
@@ -892,7 +890,7 @@ export const Bills: React.FC<BillsProps> = ({
         dueDate: b.due_date ?? "",
         status: (b.push_status || "pushed") as "pushed" | "push-failed",
         memo: b.memo ?? "",
-        invoiceNumber: b.invoice_number ?? "",
+        invoiceNumber: b.reference_number ?? b.invoice_number ?? "",
         amount: (b.amount_cents ?? 0) / 100,
         glAccount: "",
         importedAt: b.created_at
@@ -987,13 +985,13 @@ export const Bills: React.FC<BillsProps> = ({
   };
 
   const billsColumnManagement = useColumnManagement([
-    "vendor",
-    "statementDate",
     "dueDate",
-    "exportedAt",
-    "memo",
+    "vendor",
+    "property",
     "invoiceNumber",
+    "memo",
     "amount",
+    "exportedAt",
   ]);
   
   const { handleSortClick, getSortIndicator, getSortedData } =
@@ -1196,16 +1194,16 @@ export const Bills: React.FC<BillsProps> = ({
                       </span>
                     </div>
                   );
-                case "statementDate":
-                  return (
-                    <span className="text-gray-900 font-normal text-sm">
-                      {bill.statementDate}
-                    </span>
-                  );
                 case "dueDate":
                   return (
                     <span className="text-gray-900 font-normal text-sm">
                       {bill.dueDate}
+                    </span>
+                  );
+                case "property":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.property}
                     </span>
                   );
                 case "exportedAt": {
