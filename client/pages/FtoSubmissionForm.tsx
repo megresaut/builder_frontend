@@ -42,6 +42,7 @@ import {
 } from "@/utils/unitLabel";
 
 const CUSTOM_FTO_TASK_VALUE = "__custom_fto__";
+const MISC_EXPENSE_TASK_VALUE = "0"; // Miscellaneous expense - no FTO
 
 
 interface HourEntry {
@@ -593,7 +594,12 @@ export default function FtoSubmissionForm() {
       // Use submission-level unit_id if this entry matches the submission property and doesn't have a unit
       const entryUnitId = m.unit ?? (submissionUnitId && entryPropertyId === String(submissionPropertyId) ? String(submissionUnitId) : null);
       // Use submission-level fto_id if material doesn't have a task_id, otherwise use material's task_id
-      const entryTaskId = m.task_id ? String(m.task_id) : (submissionFtoId ? String(submissionFtoId) : null);
+      // For misc submissions (fto_id is null or 0), use "0" as the taskId
+      const entryTaskId = m.task_id 
+        ? String(m.task_id) 
+        : (submissionFtoId && submissionFtoId > 0 
+            ? String(submissionFtoId) 
+            : MISC_EXPENSE_TASK_VALUE);
       
       return {
         id: `expense-${idx}`,
@@ -1974,12 +1980,29 @@ export default function FtoSubmissionForm() {
                         <SelectField
                             label="Task"
                             required
-                            error={hourErrors[entry.id]?.taskId}
-                            options={(ftosByProperty[entry.propertyId ?? ""] ?? []).map((fto) => ({
-                              value: String(fto.id),
-                              label: fto.name,
-                            }))}
+                            error={expenseErrors[entry.id]?.taskId}
+                            options={[
+                              // Add "Misc" option at the top for miscellaneous expenses
+                              { value: MISC_EXPENSE_TASK_VALUE, label: "Misc (No FTO)" },
+                              ...(ftosByProperty[entry.propertyId ?? ""] ?? []).map((fto) => ({
+                                value: String(fto.id),
+                                label: fto.name,
+                              })),
+                            ]}
                             value={(() => {
+                              // Check if this is a misc expense (taskId === "0" or null fto_id in submission)
+                              if (entry.taskId === MISC_EXPENSE_TASK_VALUE) {
+                                return MISC_EXPENSE_TASK_VALUE;
+                              }
+
+                              // For existing misc submissions, check if fto_id is null/0
+                              if (isViewingExistingSubmission && apiSubmission) {
+                                const submissionFtoId = apiSubmission.submission.fto_id;
+                                if (!submissionFtoId || submissionFtoId === 0) {
+                                  return MISC_EXPENSE_TASK_VALUE;
+                                }
+                              }
+
                               // Priority: Use FTO name from location state if available, otherwise use entry.taskId or submission fto_id
                               let taskIdToCheck = entry.taskId;
                               

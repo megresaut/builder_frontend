@@ -97,6 +97,33 @@ interface APIFTO {
   unit_name?: string;
 }
 
+// Misc submission (fto_id IS NULL) - for property-filtered misc expenses
+interface MiscSubmission {
+  id: number;
+  propertyId: number | null;
+  propertyName: string;
+  dateOfWork: string;
+  status: string;
+  techName: string;
+  amount: number;
+  description: string;
+}
+
+interface APIMiscSubmissionResponse {
+  ID: number;
+  FTOID: number | null;
+  FieldTeamMemberID: number;
+  DateOfWork: string;
+  Status: string;
+  MaterialsJSON: string | null;
+  HoursJSON: string | null;
+  Description?: string;
+  PropertyID?: number | null;
+  property_id?: number | null;
+  property_name?: string;
+  fto_name?: string; // repurposed for tech name in misc submissions
+}
+
 // Normalize FTO status from backend to display format
 const normalizeFTOStatus = (status: string) => {
   if (status === "completed") return "Completed";
@@ -176,6 +203,48 @@ const transformAPIToFieldTeamOrders = (
           };
         })
         .filter(Boolean),
+    };
+  });
+};
+
+// Calculate total amount from materials JSON (amount + upcharge per line, to match approve page)
+const calculateMiscAmount = (materialsJSON: string | null): number => {
+  if (!materialsJSON) return 0;
+  try {
+    const decoded = atob(materialsJSON);
+    const materials = JSON.parse(decoded);
+    if (!Array.isArray(materials)) return 0;
+    return (
+      materials.reduce(
+        (sum: number, m: { amount_cents?: number; upcharge_cents?: number }) =>
+          sum + (m.amount_cents || 0) + (m.upcharge_cents || 0),
+        0
+      ) / 100
+    );
+  } catch {
+    return 0;
+  }
+};
+
+const transformAPIMiscSubmission = (
+  apiData: APIMiscSubmissionResponse[]
+): MiscSubmission[] => {
+  return apiData.map((sub) => {
+    const dateObj = new Date(sub.DateOfWork);
+    const dateOfWork = dateObj.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+    return {
+      id: sub.ID,
+      propertyId: sub.property_id ?? sub.PropertyID ?? null,
+      propertyName: sub.property_name || "Unknown Property",
+      dateOfWork,
+      status: sub.Status || "submitted",
+      techName: sub.fto_name || "Unknown Tech",
+      amount: calculateMiscAmount(sub.MaterialsJSON),
+      description: sub.Description || "Miscellaneous expense",
     };
   });
 };
@@ -787,6 +856,17 @@ const fieldTeamColumnConfig: Record<
   },
 };
 
+const miscColumnConfig: Record<
+  string,
+  { label: string; icon: React.ReactNode }
+> = {
+  dateOfWork: { label: "Purchase Date", icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 6.66658H2M10.6667 1.33325V3.99992M5.33333 1.33325V3.99992M5.2 14.6666H10.8C11.9201 14.6666 12.4802 14.6666 12.908 14.4486C13.2843 14.2569 13.5903 13.9509 13.782 13.5746C14 13.1467 14 12.5867 14 11.4666V5.86659C14 4.74648 14 4.18643 13.782 3.7586C13.5903 3.38228 13.2843 3.07632 12.908 2.88457C12.4802 2.66659 11.9201 2.66659 10.8 2.66659H5.2C4.0799 2.66659 3.51984 2.66659 3.09202 2.88457C2.71569 3.07632 2.40973 3.38228 2.21799 3.7586C2 4.18643 2 4.74648 2 5.86658V11.4666C2 12.5867 2 13.1467 2.21799 13.5746C2.40973 13.9509 2.71569 14.2569 3.09202 14.4486C3.51984 14.6666 4.0799 14.6666 5.2 14.6666Z" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg> },
+  description: { label: "Description", icon: <img loading="lazy" src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/d5d01db2db718e32f4e620e7b1fc6ea705e115b1?placeholderIfAbsent=true" style={{ width: "16px", height: "16px" }} alt="" /> },
+  techName: { label: "Tech", icon: <img loading="lazy" src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3f6ece5f831bf0341b60fe742dd77e3f127dbd09?placeholderIfAbsent=true" style={{ width: "16px", height: "16px" }} alt="" /> },
+  status: { label: "Status", icon: <img loading="lazy" src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/137343a4a83566b73ded0282be168e468fbd729c?placeholderIfAbsent=true" style={{ width: "16px", height: "16px" }} alt="" /> },
+  amount: { label: "Amount", icon: <img loading="lazy" src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/3b8ec0fa6eb0ec8e711c3a23fefa8083d72c2a94?placeholderIfAbsent=true" style={{ width: "16px", height: "16px" }} alt="" /> },
+};
+
 interface ApiTask {
   id: number;
   name: string;
@@ -950,7 +1030,10 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [workOrdersLoading, setWorkOrdersLoading] = useState(false);
   const [fieldTeamOrdersList, setFieldTeamOrdersList] = useState<FieldTeamOrder[]>([]);
   const [fieldTeamLoading, setFieldTeamLoading] = useState(false);
-  
+  const [ftoSubTab, setFtoSubTab] = usePageState<"ftos" | "misc">("ftoSubTab", "ftos");
+  const [miscSubmissions, setMiscSubmissions] = useState<MiscSubmission[]>([]);
+  const [miscLoading, setMiscLoading] = useState(false);
+  const [miscSearchValue, setMiscSearchValue] = usePageState("miscSearchValue", "");
 
   // Column management hooks for each table
   const tasksColumnManagement = useColumnManagement([
@@ -985,12 +1068,32 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     "timesheetStatus",
     "amount",
   ]);
+  const miscColumnManagement = useColumnManagement([
+    "dateOfWork",
+    "description",
+    "techName",
+    "status",
+    "amount",
+  ]);
 
   // Sorting hooks for each table
   const { handleSortClick: handleTasksSortClick, getSortIndicator: getTasksSortIndicator, getSortedData: getTasksSortedData } = useSortingTable(tasksList);
   const { handleSortClick: handleRecurringSortClick, getSortIndicator: getRecurringSortIndicator, getSortedData: getRecurringSortedData } = useSortingTable(recurringTasksList);
   const { handleSortClick: handleWorkOrdersSortClick, getSortIndicator: getWorkOrdersSortIndicator, getSortedData: getWorkOrdersSortedData } = useSortingTable(workOrdersList);
   const { handleSortClick: handleFieldTeamSortClick, getSortIndicator: getFieldTeamSortIndicator, getSortedData: getFieldTeamSortedData } = useSortingTable(fieldTeamOrdersList);
+  const filteredMiscSubmissions = miscSubmissions.filter((sub) => {
+    if (propertyId != null && sub.propertyId != null && sub.propertyId !== propertyId) return false;
+    const searchLower = miscSearchValue.toLowerCase();
+    if (!searchLower) return true;
+    return (
+      sub.propertyName.toLowerCase().includes(searchLower) ||
+      sub.dateOfWork.toLowerCase().includes(searchLower) ||
+      sub.status.toLowerCase().includes(searchLower) ||
+      sub.techName.toLowerCase().includes(searchLower) ||
+      sub.description.toLowerCase().includes(searchLower)
+    );
+  });
+  const { handleSortClick: handleMiscSortClick, getSortIndicator: getMiscSortIndicator, getSortedData: getMiscSortedData } = useSortingTable(filteredMiscSubmissions);
 
   // Pagination state for each table
   const [tasksPage, setTasksPage] = usePageState<number>("tasksPage", 1);
@@ -1041,6 +1144,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     left: 0,
   });
 
+  const [miscPage, setMiscPage] = usePageState<number>("miscPage", 1);
+  const [miscItemsPerPage, setMiscItemsPerPage] =
+    usePageState<number>("miscItemsPerPage", 10);
+  const [miscShowDropdown, setMiscShowDropdown] = useState(false);
+
   const tasksSortedData = getTasksSortedData();
   const tasksTotalPages = Math.max(
     1,
@@ -1081,6 +1189,16 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     fieldteamPage * fieldteamItemsPerPage,
   );
 
+  const miscSortedData = getMiscSortedData();
+  const miscTotalPages = Math.max(
+    1,
+    Math.ceil(miscSortedData.length / miscItemsPerPage),
+  );
+  const paginatedMiscSubmissions = miscSortedData.slice(
+    (miscPage - 1) * miscItemsPerPage,
+    miscPage * miscItemsPerPage,
+  );
+
   useEffect(() => {
     if (tasksPage > tasksTotalPages) setTasksPage(tasksTotalPages);
     if (tasksPage < 1) setTasksPage(1);
@@ -1101,8 +1219,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     if (fieldteamPage < 1) setFieldteamPage(1);
   }, [fieldteamPage, fieldteamTotalPages, setFieldteamPage]);
 
+  useEffect(() => {
+    if (miscPage > miscTotalPages) setMiscPage(miscTotalPages);
+    if (miscPage < 1) setMiscPage(1);
+  }, [miscPage, miscTotalPages, setMiscPage]);
 
-  
   const tasksCanGoPrev = tasksPage > 1;
   const tasksCanGoNext = tasksPage < tasksTotalPages;
   const recurringCanGoPrev = recurringPage > 1;
@@ -1185,6 +1306,52 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     [propertyId, fieldTeamUsers]
   );
 
+  const fetchMiscSubmissions = useCallback(async (options?: { showLoading?: boolean }) => {
+    const showLoading = options?.showLoading ?? true;
+    if (showLoading) setMiscLoading(true);
+    try {
+      const raw = await fetchJSON(`/maintenance/submissions/misc`);
+      const apiData: APIMiscSubmissionResponse[] = Array.isArray(raw)
+        ? raw
+        : (raw as any)?.data ?? (raw as any)?.items ?? (raw as any)?.results ?? [];
+      const transformed = transformAPIMiscSubmission(apiData);
+      setMiscSubmissions(transformed);
+    } catch (err) {
+      console.error("Failed to fetch misc submissions", err);
+      setMiscSubmissions([]);
+    } finally {
+      if (showLoading) setMiscLoading(false);
+    }
+  }, []);
+
+  const handleViewMiscSubmission = useCallback(
+    (sub: MiscSubmission) => {
+      navigate(`/field-team-orders/approve/submission/${sub.id}`, {
+        state: {
+          propertyName: sub.propertyName,
+          propertyId: sub.propertyId,
+          dateOfWork: sub.dateOfWork,
+          description: sub.description,
+        },
+      });
+    },
+    [navigate]
+  );
+
+  const handleApproveMiscSubmission = useCallback(
+    (sub: MiscSubmission) => {
+      navigate(`/field-team-orders/approve/submission/${sub.id}`, {
+        state: {
+          propertyName: sub.propertyName,
+          propertyId: sub.propertyId,
+          dateOfWork: sub.dateOfWork,
+          description: sub.description,
+        },
+      });
+    },
+    [navigate]
+  );
+
   const fetchTasks = useCallback(
     async (options?: { showLoading?: boolean }) => {
       if (!propertyId) return;
@@ -1251,6 +1418,11 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   }, [activeTab, propertyId, fetchFTOs]);
 
   useEffect(() => {
+    if (activeTab !== "fieldteam" || ftoSubTab !== "misc") return;
+    if (miscSubmissions.length === 0) fetchMiscSubmissions();
+  }, [activeTab, ftoSubTab, miscSubmissions.length, fetchMiscSubmissions]);
+
+  useEffect(() => {
     if ((activeTab !== "tasks" && activeTab !== "workorders") || !propertyId) return;
     fetchTasks();
   }, [activeTab, propertyId, fetchTasks]);
@@ -1293,6 +1465,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         | undefined;
       if (!shouldHandlePropertyEvent(detail)) return;
       fetchFTOs({ showLoading: false });
+      if (ftoSubTab === "misc") fetchMiscSubmissions({ showLoading: false });
     };
 
     window.addEventListener("refreshAllTasks", handleTasksRefresh);
@@ -1311,6 +1484,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     fetchRecurring,
     fetchWorkOrders,
     fetchFTOs,
+    fetchMiscSubmissions,
+    ftoSubTab,
     shouldHandlePropertyEvent,
   ]);
 
@@ -1636,6 +1811,45 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         )}
 
       </div>
+
+      {/* Field Team Orders inner tabs (FTOs | Misc Expenses) */}
+      {activeTab === "fieldteam" && (
+        <div className="flex gap-1 border-b border-[#E5E5E5]">
+          <button
+            type="button"
+            onClick={() => {
+              setFtoSubTab("ftos");
+              setFieldteamPage(1);
+            }}
+            className={cn(
+              "px-4 py-2.5 text-sm font-medium transition-colors relative",
+              ftoSubTab === "ftos" ? "text-[#013764]" : "text-[#717179] hover:text-[#303030]"
+            )}
+          >
+            Field Team Orders
+            {ftoSubTab === "ftos" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setFtoSubTab("misc");
+              setMiscPage(1);
+              if (miscSubmissions.length === 0) fetchMiscSubmissions();
+            }}
+            className={cn(
+              "px-4 py-2.5 text-sm font-medium transition-colors relative",
+              ftoSubTab === "misc" ? "text-[#013764]" : "text-[#717179] hover:text-[#303030]"
+            )}
+          >
+            Misc Expenses
+            {ftoSubTab === "misc" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Tasks Table */}
       {activeTab === "tasks" &&
@@ -2001,7 +2215,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
 
 
       {/* Field Team Orders Table */}
-      {activeTab === "fieldteam" &&
+      {activeTab === "fieldteam" && ftoSubTab === "ftos" &&
         (fieldTeamLoading ? (
           <div className="flex items-center justify-center py-12 text-gray-500">
             Loading field team orders…
@@ -2208,6 +2422,147 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         )
       )}
 
+      {/* Misc Expenses Table (property-filtered) */}
+      {activeTab === "fieldteam" && ftoSubTab === "misc" &&
+        (miscLoading ? (
+          <div className="flex items-center justify-center py-12 text-gray-500">
+            Loading miscellaneous expenses…
+          </div>
+        ) : filteredMiscSubmissions.length === 0 ? (
+          <EmptyTableState
+            icon="inbox"
+            title="No misc expenses for this property"
+            description="Miscellaneous expenses for this property will appear here."
+          />
+        ) : (
+          <GlobalTable
+            columns={miscColumnManagement.columnOrder
+              .filter((k) => miscColumnManagement.visibleColumns.has(k))
+              .map((key) => ({
+                key,
+                label: miscColumnConfig[key]?.label ?? key,
+                icon: miscColumnConfig[key]?.icon,
+              }))}
+            data={filteredMiscSubmissions}
+            rowKey="id"
+            showSearchBar={true}
+            searchValue={miscSearchValue}
+            onSearchChange={setMiscSearchValue}
+            renderCell={(sub: MiscSubmission, columnKey: string) => {
+              switch (columnKey) {
+                case "dateOfWork":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {sub.dateOfWork}
+                    </span>
+                  );
+                case "description":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {sub.description}
+                    </span>
+                  );
+                case "techName":
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div className="relative group">
+                        <div
+                          className="w-7 h-7 rounded-full bg-[#2463EB] flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer"
+                          title={sub.techName}
+                        >
+                          {getInitials(sub.techName)}
+                        </div>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                          {sub.techName}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                case "status":
+                  return (
+                    <span
+                      className={`text-sm font-normal px-2 py-0.5 rounded-full ${
+                        sub.status === "approved"
+                          ? "bg-emerald-100 text-emerald-600"
+                          : sub.status === "rejected"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {sub.status}
+                    </span>
+                  );
+                case "amount":
+                  return (
+                    <span className="text-gray-900 font-normal text-sm">
+                      ${sub.amount.toFixed(2)}
+                    </span>
+                  );
+                default:
+                  return null;
+              }
+            }}
+            sortingHook={{
+              handleSortClick: handleMiscSortClick,
+              getSortIndicator: getMiscSortIndicator,
+              getSortedData: getMiscSortedData,
+            }}
+            columnManagementHook={miscColumnManagement}
+            currentPage={miscPage}
+            onPageChange={setMiscPage}
+            itemsPerPage={miscItemsPerPage}
+            onItemsPerPageChange={setMiscItemsPerPage}
+            showPageSizeDropdown={miscShowDropdown}
+            onShowPageSizeDropdownChange={setMiscShowDropdown}
+            openMenuId={openMenuId}
+            onOpenMenuIdChange={setOpenMenuId}
+            title="Misc Expenses"
+            showColumnModal={miscColumnManagement.showColumnModal}
+            onShowColumnModalChange={miscColumnManagement.setShowColumnModal}
+            onRowClick={(sub: MiscSubmission, _e: React.MouseEvent) => {
+              handleViewMiscSubmission(sub);
+            }}
+            actions={[
+              {
+                label: "View",
+                icon: (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 3C4.5 3 1.5 8 1.5 8C1.5 8 4.5 13 8 13C11.5 13 14.5 8 14.5 8C14.5 8 11.5 3 8 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                ),
+                onClick: handleViewMiscSubmission,
+              },
+              {
+                label: "Approve",
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.25 8.97L6.75 13.47L15.75 4.47" stroke="#0A7F2F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ),
+                onClick: handleApproveMiscSubmission,
+              },
+            ]}
+            headerActions={
+              <button
+                ref={miscColumnManagement.columnButtonRef}
+                onClick={() => {
+                  setMiscShowDropdown(false);
+                  setOpenMenuId(null);
+                  miscColumnManagement.setShowColumnModal((prev) => !prev);
+                }}
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+              >
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="3" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="8" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="13" r="1.5" fill="#303030" />
+                </svg>
+              </button>
+            }
+          />
+        )
+      )}
 
       {/* Create Task Modal */}
       <CreateTaskModal
@@ -2339,6 +2694,21 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         onToggleColumn={fieldteamColumnManagement.toggleColumnVisibility}
         onClose={() => fieldteamColumnManagement.setShowColumnModal(false)}
         buttonRef={fieldteamColumnManagement.columnButtonRef}
+      />
+
+      {/* Misc Expenses Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={miscColumnManagement.showColumnModal}
+        position={miscColumnManagement.columnMenuPos}
+        columns={miscColumnManagement.columnOrder.map((key) => ({
+          key,
+          label: miscColumnConfig[key]?.label || key,
+          icon: miscColumnConfig[key]?.icon,
+        }))}
+        visibleColumns={miscColumnManagement.visibleColumns}
+        onToggleColumn={miscColumnManagement.toggleColumnVisibility}
+        onClose={() => miscColumnManagement.setShowColumnModal(false)}
+        buttonRef={miscColumnManagement.columnButtonRef}
       />
     </div>
   );

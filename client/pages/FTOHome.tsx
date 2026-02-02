@@ -231,8 +231,21 @@ export default function FtoHome() {
       // For submissions, match the FTO from the stored allFTOs array
       const submission = row as SubmissionRecord;
       
+      // Handle misc submissions (no fto_id) - navigate to submission view
       if (!submission.fto_id) {
-        console.warn("Cannot open view modal for submission - missing fto_id");
+        const canEdit =
+          submission.status === "pending" ||
+          submission.status === "rejected";
+        navigate(`/fto/submission/${submission.id}`, {
+          state: {
+            isApproved: submission.status === "approved",
+            canEdit,
+            property: submission.property,
+            unit: submission.unit,
+            task: submission.name || "Miscellaneous Expense",
+            description: submission.description,
+          },
+        });
         return;
       }
 

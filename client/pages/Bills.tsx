@@ -13,7 +13,6 @@ import { Plus } from "lucide-react";
 import {
   PageHeader,
   type PageHeaderAction,
-  type PageHeaderTab,
 } from "@/components/BillsPageHeader";
 import { fetchJSON } from "@/api/fetchJSON";
 
@@ -873,11 +872,6 @@ export default function Bills() {
     setBillsList((prev) => prev.filter((b) => b.id !== bill.id));
   }, []);
 
-  const headerTabs: PageHeaderTab[] = [
-    { id: "approved", label: "Approved" },
-    { id: "drafts", label: "Drafts" },
-  ];
-
   const headerActions: PageHeaderAction[] = [
     {
       id: "add-vendor",
@@ -982,11 +976,48 @@ export default function Bills() {
           <PageHeader
             title="All Bills"
             description="All your bills, in one place"
-            tabs={headerTabs}
-            selectedTab={selectedTab}
-            onTabChange={setSelectedTab}
             actions={headerActions}
           />
+
+          {/* Tab Bar - same design as Field Team Orders */}
+          <div className="flex gap-1 border-b border-[#E5E5E5]">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTab("approved");
+                setCurrentPage(1);
+              }}
+              className={cn(
+                "px-4 py-2.5 text-sm font-medium transition-colors relative",
+                selectedTab === "approved"
+                  ? "text-[#013764]"
+                  : "text-[#717179] hover:text-[#303030]"
+              )}
+            >
+              Approved
+              {selectedTab === "approved" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTab("drafts");
+                setCurrentPage(1);
+              }}
+              className={cn(
+                "px-4 py-2.5 text-sm font-medium transition-colors relative",
+                selectedTab === "drafts"
+                  ? "text-[#013764]"
+                  : "text-[#717179] hover:text-[#303030]"
+              )}
+            >
+              Drafts
+              {selectedTab === "drafts" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
+              )}
+            </button>
+          </div>
 
           {/* Bills Table - Using GlobalTable Component */}
           <GlobalTable
