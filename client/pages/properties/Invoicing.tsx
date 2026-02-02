@@ -1,6 +1,6 @@
-import { useState, ReactNode } from "react";
+import { useState, useMemo, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -23,6 +23,7 @@ import RecordBillModal, {
   type RecordBillModalData,
   type RecordBillModalMode,
 } from "@/components/RecordBillModal";
+import { API_BASE, fetchJSON } from "@/api/fetchJSON";
 
 import glAccounts from "@/data/gl_accounts.json";  
 
@@ -479,6 +480,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [loadingInvoice, setLoadingInvoice] = useState(false);
   const [propertyOwnerName, setPropertyOwnerName] = useState<string>("");
   const [fetchedPropertyLocation, setFetchedPropertyLocation] = useState<string>("");
+  
+  // Initialize to previous month
+  const getDefaultInvoiceMonth = () => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return date;
+  };
+  
+  const [selectedInvoiceMonth, setSelectedInvoiceMonth] = useState<Date>(getDefaultInvoiceMonth());
 
   const loadInvoiceForProperty = async () => {
     if (!propertyId) return;
@@ -488,14 +498,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   
       // 1️⃣ Generate (or regenerate) invoice
       const generateRes = await fetch(
-        "/api/invoicing/generate",
-        // "http://localhost:8080/invoicing/generate",
+        `${API_BASE}/invoicing/generate`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             property_id: Number(propertyId),
-            month: new Date().toISOString().slice(0, 10),
+            month: selectedInvoiceMonth.toISOString().slice(0, 10),
           }),
         }
       );
@@ -508,7 +517,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           setGenerateInvoiceError(null);
           
           const draftRes = await fetch(
-            `/api/invoicing/current-draft?property_id=${propertyId}`
+            `${API_BASE}/invoicing/current-draft?property_id=${propertyId}`
           );
           
           if (!draftRes.ok) {
@@ -533,7 +542,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   
       // 2️⃣ Fetch expanded line items
       const itemsRes = await fetch(
-        `/api/invoicing/line-items-expanded?id=${invoiceId}`,
+        `${API_BASE}/invoicing/line-items-expanded?id=${invoiceId}`,
       );
   
       if (!itemsRes.ok) {
@@ -609,15 +618,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     if (!propertyId) return;
   
     try {
-      const res = await fetch(
-        `/api/invoicing/history?property_id=${propertyId}`
+      const apiItems: InvoiceHistoryApiItem[] = await fetchJSON(
+        `/invoicing/history?property_id=${propertyId}`
       );
-  
-      if (!res.ok) {
-        throw new Error("Failed to load invoice history");
-      }
-  
-      const apiItems: InvoiceHistoryApiItem[] = await res.json();
   
       const mapped: InvoiceHistoryItem[] = apiItems.map((inv) => {
         const created = new Date(inv.created_at);
@@ -650,7 +653,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   useEffect(() => {
     loadInvoiceForProperty();
     loadInvoiceHistory();
-  }, [propertyId]);
+  }, [propertyId, selectedInvoiceMonth]);
 
   // Fetch property owner name and location (city, state, zip)
   useEffect(() => {
@@ -658,10 +661,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       if (!propertyId) return;
       
       try {
-        const res = await fetch(`/api/properties/${propertyId}`);
-        if (!res.ok) return;
-        
-        const property = await res.json();
+        const property = await fetchJSON(`/properties/${propertyId}`);
         
         // Extract owner name
         if (property.owners) {
@@ -722,7 +722,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [invoiceHistory, setInvoiceHistory] =
   useState<InvoiceHistoryItem[]>([]);
 
-  const { handleSortClick: handleInvoiceSortClick, getSortIndicator: getInvoiceSortIndicator, getSortedData: getSortedInvoiceItems } = useSortingTable(invoiceItems, "invoiceItems");
+  // Management fee always first in table and preview
+  const invoiceItemsWithManagementFeeFirst = useMemo(
+    () =>
+      [...invoiceItems].sort((a, b) => {
+        if (a.source === "Management Fee" && b.source !== "Management Fee") return -1;
+        if (a.source !== "Management Fee" && b.source === "Management Fee") return 1;
+        return 0;
+      }),
+    [invoiceItems]
+  );
+
+  const { handleSortClick: handleInvoiceSortClick, getSortIndicator: getInvoiceSortIndicator, getSortedData: getSortedInvoiceItems } = useSortingTable(invoiceItemsWithManagementFeeFirst, "invoiceItems");
   const { handleSortClick: handleHistorySortClick, getSortIndicator: getHistorySortIndicator, getSortedData: getSortedHistoryItems } = useSortingTable(invoiceHistory, "invoiceHistory");
 
   const toIsoDateTime = (date: Date) => date.toISOString();
@@ -818,18 +829,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const openViewFTO = async (submissionId: number) => {
     try {
       // Fetch the submission to get the FTO ID
-      const res = await fetch(
-        `/api/maintenance/submissions/${submissionId}`,
-        {
-          headers: { Accept: "application/json" },
-        }
+      const data = await fetchJSON(
+        `/maintenance/submissions/${submissionId}`
       );
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch submission");
-      }
-
-      const data = await res.json();
       // Handle both possible response structures: direct submission or wrapped in SubmissionWithAttachments
       const submission = data.submission || data;
       const ftoId = submission.fto_id || submission.FTOID || submission.ftoId;
@@ -893,7 +895,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       formData.append("file", pdfBlob, "invoice.pdf");
   
       const uploadRes = await fetch(
-        "/api/vendors/bills/upload-pdf",
+        `${API_BASE}/vendors/bills/upload-pdf`,
         {
           method: "POST",
           body: formData,
@@ -920,8 +922,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   
       // 2️⃣ Finalize invoice WITH PDF
       const finalizeRes = await fetch(
-        // `/api/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
-        `/api/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
+        `${API_BASE}/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -958,7 +959,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     }
   
     // Static file served by backend
-    const url = `/api/files/${pdfObjectKey}`;
+    const url = `${API_BASE}/files/${pdfObjectKey}`;
   
     window.open(url, "_blank", "noopener,noreferrer");
   };
@@ -1057,14 +1058,26 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     setShowingPendingInsights(!showingPendingInsights);
   };
 
-  const invoiceNow = new Date();
   const currentInvoiceMonthName = new Intl.DateTimeFormat("en-US", {
     month: "long",
-  }).format(invoiceNow);
+  }).format(selectedInvoiceMonth);
+  const currentInvoiceYear = selectedInvoiceMonth.getFullYear();
   const currentInvoiceMonth = new Intl.DateTimeFormat("en-US", {
     month: "long",
     year: "numeric",
-  }).format(invoiceNow);
+  }).format(selectedInvoiceMonth);
+  
+  const handlePreviousMonth = () => {
+    const newDate = new Date(selectedInvoiceMonth);
+    newDate.setMonth(newDate.getMonth() - 1);
+    setSelectedInvoiceMonth(newDate);
+  };
+  
+  const handleNextMonth = () => {
+    const newDate = new Date(selectedInvoiceMonth);
+    newDate.setMonth(newDate.getMonth() + 1);
+    setSelectedInvoiceMonth(newDate);
+  };
 
   return (
     <div className="flex flex-col gap-0">
@@ -1133,9 +1146,29 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           <GlobalTable
             className="border-0 rounded-none"
             columns={invoiceTableColumns}
-            data={invoiceItems}
+            data={invoiceItemsWithManagementFeeFirst}
             rowKey="id"
-            title={`${currentInvoiceMonthName} Invoice`}
+            title={
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePreviousMonth}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-[#303030] font-medium text-lg">
+                  {currentInvoiceMonthName} {currentInvoiceYear} Invoice
+                </span>
+                <button
+                  onClick={handleNextMonth}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                  aria-label="Next month"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            }
             headerActions={
               <>
                 <button
@@ -1277,8 +1310,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             columnManagementHook={invoiceColumnsManagement}
             currentPage={1}
             onPageChange={noopPageChange}
-            itemsPerPage={invoiceItems.length || 10}
+            itemsPerPage={invoiceItemsWithManagementFeeFirst.length || 10}
             onItemsPerPageChange={noopItemsPerPageChange}
+            showPageSizeDropdown={false}
             openMenuId={invoiceOpenMenuId}
             onOpenMenuIdChange={setInvoiceOpenMenuId}
             showColumnModal={invoiceColumnsManagement.showColumnModal}
@@ -1311,7 +1345,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               <BlueButton
                 onClick={() =>
                   openInvoicePreview({
-                    lineItems: invoiceItems.map((item) => ({
+                    lineItems: invoiceItemsWithManagementFeeFirst.map((item) => ({
                       id: item.id,
                       vendor: item.vendor,
                       description: item.description,
@@ -1421,6 +1455,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             onPageChange={setCurrentPage}
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={handleHistoryItemsPerPageChange}
+            showPageSizeDropdown={false}
             openMenuId={historyOpenMenuId}
             onOpenMenuIdChange={setHistoryOpenMenuId}
             showColumnModal={historyColumnsManagement.showColumnModal}
@@ -1454,7 +1489,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         lineItems={
           invoicePreviewLineItems.length > 0
             ? invoicePreviewLineItems
-            : invoiceItems.map((item) => ({
+            : invoiceItemsWithManagementFeeFirst.map((item) => ({
                 id: item.id,
                 vendor: item.vendor,
                 description: item.description,

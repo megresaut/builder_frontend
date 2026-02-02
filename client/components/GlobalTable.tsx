@@ -36,7 +36,7 @@ interface GlobalTableProps {
   onShowPageSizeDropdownChange?: (show: boolean) => void;
   openMenuId: string | number | null;
   onOpenMenuIdChange: (id: string | number | null) => void;
-  title?: string;
+  title?: string | ReactNode;
   subtitle?: string;
   headerActions?: ReactNode;
   showColumnModal: boolean;
@@ -254,9 +254,15 @@ export default function GlobalTable({
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
             {title && (
-              <h2 className="font-medium text-[22px] leading-6" style={{ color: "var(--color-text-primary)" }}>
-                {title}
-              </h2>
+              typeof title === 'string' ? (
+                <h2 className="font-medium text-[22px] leading-6" style={{ color: "var(--color-text-primary)" }}>
+                  {title}
+                </h2>
+              ) : (
+                <div className="font-medium text-[22px] leading-6" style={{ color: "var(--color-text-primary)" }}>
+                  {title}
+                </div>
+              )
             )}
           </div>
           <div className="flex items-center gap-2.5">
