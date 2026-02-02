@@ -21,7 +21,9 @@ import {
   TextAreaField,
   FileUploadField,
   ComboboxFieldWithCustomInput,
+  MultiSelectField,
 } from "@/components/forms";
+import type { MultiSelectOption } from "@/components/forms";
 import {
   PROPERTIES,
   CHARGE_TYPES,
@@ -45,6 +47,9 @@ const CUSTOM_FTO_TASK_VALUE = "__custom_fto__";
 const MISC_EXPENSE_TASK_VALUE = "0"; // Miscellaneous expense - no FTO
 
 
+/** Collaborators for custom FTO: 'na' = no collaborators, number[] = user ids, null = not yet selected */
+type CollaboratorSelection = "na" | number[] | null;
+
 interface HourEntry {
   id: string;
   isExpanded: boolean;
@@ -53,6 +58,7 @@ interface HourEntry {
   unitId: string | null;
   taskId: string | null;
   customTaskName: string;
+  collaboratorIds: CollaboratorSelection;
   hours: number | string;
   emergencyRate: string | null;
   billing: string | null; // "billable" or "non-billable" - maps to backend no_charge field
@@ -333,6 +339,7 @@ export default function FtoSubmissionForm() {
       unitId: null,
       taskId: null,
       customTaskName: "",
+      collaboratorIds: null,
       hours: "",
       emergencyRate: "no",
       billing: "billable",
@@ -359,6 +366,26 @@ export default function FtoSubmissionForm() {
   const [hourErrors, setHourErrors] = useState<HourEntryErrors>({});
   const [expenseErrors, setExpenseErrors] = useState<ExpenseEntryErrors>({});
   const { userId } = useAuth();
+
+  // Same user list as Create FTO modal (field team + property managers) for Collaborators dropdown
+  const [availableCollaborators, setAvailableCollaborators] = useState<{ id: number; name: string }[]>([]);
+  useEffect(() => {
+    Promise.all([
+      fetchJSON("/users/field-team").catch(() => []),
+      fetchJSON("/users/property-managers").catch(() => []),
+    ]).then(([fieldTeam, propertyManagers]: any[]) => {
+      const toUser = (u: any) => ({ id: Number(u.id), name: u.name || u.email || "" });
+      const seen = new Set<number>();
+      const merged: { id: number; name: string }[] = [];
+      for (const u of [...fieldTeam, ...propertyManagers]) {
+        const a = toUser(u);
+        if (seen.has(a.id)) continue;
+        seen.add(a.id);
+        merged.push(a);
+      }
+      setAvailableCollaborators(merged);
+    });
+  }, []);
 
   useEffect(() => {
     if (didApplyPrefillRef.current) return;
@@ -568,17 +595,18 @@ export default function FtoSubmissionForm() {
       return {
         id: `hour-${idx}`,
         isExpanded: true,
-    
+
         date: h.date_of_work?.split("T")[0] ?? null,
         propertyId: entryPropertyId,
         unitId: entryUnitId, // Will be mapped to ID later if it's a name
         taskId: entryTaskId,
         customTaskName: "",
-    
+        collaboratorIds: null as CollaboratorSelection,
+
         hours: h.hours_decimal,
         emergencyRate: h.emergency ? "yes" : "no",
         billing: noChargeToBilling(h.no_charge),
-    
+
         note: h.note ?? "",
       };
     });
@@ -986,6 +1014,7 @@ export default function FtoSubmissionForm() {
         unitId: null,
         taskId: null,
         customTaskName: "",
+        collaboratorIds: null,
         hours: "",
         emergencyRate: "no",
         billing: "billable",
@@ -1191,25 +1220,29 @@ export default function FtoSubmissionForm() {
     return null;
   };
 
+  const isCollaboratorSelectionValid = (v: CollaboratorSelection): boolean =>
+    v === "na" || (Array.isArray(v) && v.length > 0);
+
   const canCreateCustomFtoFromHourEntry = (entry: HourEntry | null): boolean => {
     if (!entry) return false;
     if (!entry.propertyId) return false;
     if (!entry.date) return false;
     if (!entry.note?.trim()) return false;
     if (!entry.customTaskName?.trim()) return false;
+    if (!isCollaboratorSelectionValid(entry.collaboratorIds)) return false;
     const techIdNum = Number(userId);
     if (!techIdNum || Number.isNaN(techIdNum)) return false;
     return true;
   };
 
   const getMissingCustomFtoFields = (entry: HourEntry | null): string[] => {
-    if (!entry) return ["Property", "Task name", "Date", "Notes"];
+    if (!entry) return ["Property", "Task name", "Date", "Notes", "Collaborators"];
     const missing: string[] = [];
     if (!entry.propertyId) missing.push("Property");
     if (!entry.customTaskName?.trim()) missing.push("Task name");
     if (!entry.date) missing.push("Date");
     if (!entry.note?.trim()) missing.push("Notes");
-    // Include auth requirement if it ever becomes an issue
+    if (!isCollaboratorSelectionValid(entry.collaboratorIds)) missing.push("Collaborators");
     const techIdNum = Number(userId);
     if (!techIdNum || Number.isNaN(techIdNum)) missing.push("Logged in user");
     return missing;
@@ -1224,6 +1257,12 @@ export default function FtoSubmissionForm() {
     const propertyIdNum = Number(entry.propertyId);
     const unitIdNum = entry.unitId ? Number(entry.unitId) : null;
 
+    const collaboratorIds =
+      entry.collaboratorIds === "na" || !Array.isArray(entry.collaboratorIds)
+        ? []
+        : entry.collaboratorIds;
+    const field_team_member_ids = [techIdNum, ...collaboratorIds];
+
     const payload = {
       property_id: propertyIdNum,
       unit_id: unitIdNum && !Number.isNaN(unitIdNum) ? unitIdNum : undefined,
@@ -1232,7 +1271,7 @@ export default function FtoSubmissionForm() {
       status: "completed",
       due_date: new Date(entry.date!).toISOString(),
       priority: "normal",
-      field_team_member_ids: [techIdNum],
+      field_team_member_ids,
       pm_assignee_ids: [],
     };
 
@@ -1277,6 +1316,7 @@ export default function FtoSubmissionForm() {
 
       updateHourEntry(entry.id, "taskId", String(createdId));
       updateHourEntry(entry.id, "customTaskName", "");
+      updateHourEntry(entry.id, "collaboratorIds", null);
     } catch (err) {
       console.error("Failed to create FTO from submission form:", err);
       alert("Failed to create task (FTO).");
@@ -1655,6 +1695,7 @@ export default function FtoSubmissionForm() {
                                 } else {
                                   // Leaving custom mode
                                   updateHourEntry(entry.id, "customTaskName", "");
+                                  updateHourEntry(entry.id, "collaboratorIds", null);
                                 }
                             }}
                             placeholder={
@@ -1681,6 +1722,52 @@ export default function FtoSubmissionForm() {
                           />
                         )}
 
+                        {entry.taskId === CUSTOM_FTO_TASK_VALUE && (() => {
+                          const COLLABORATOR_NA: MultiSelectOption = { id: "na", label: "N/A" };
+                          const collaboratorOptions: MultiSelectOption[] = [
+                            COLLABORATOR_NA,
+                            ...availableCollaborators.map((u) => ({
+                              id: String(u.id),
+                              label: u.name,
+                            })),
+                          ];
+                          const selectedCollaborators: MultiSelectOption[] =
+                            entry.collaboratorIds === "na"
+                              ? [COLLABORATOR_NA]
+                              : Array.isArray(entry.collaboratorIds)
+                                ? entry.collaboratorIds
+                                    .map((id) => ({
+                                      id: String(id),
+                                      label: availableCollaborators.find((u) => u.id === id)?.name ?? String(id),
+                                    }))
+                                    .filter((o) => o.label)
+                                : [];
+                          return (
+                            <MultiSelectField
+                              label="Collaborators"
+                              required
+                              value={selectedCollaborators}
+                              onChange={(selected) => {
+                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                                const ids = selected
+                                  .filter((s) => s.id !== "na")
+                                  .map((s) => Number(s.id));
+                                const hasNa = selected.some((s) => s.id === "na");
+                                // If any users selected, use user list (ignore N/A); else if N/A selected use 'na'
+                                if (ids.length > 0) {
+                                  updateHourEntry(entry.id, "collaboratorIds", ids);
+                                } else if (hasNa) {
+                                  updateHourEntry(entry.id, "collaboratorIds", "na");
+                                } else {
+                                  updateHourEntry(entry.id, "collaboratorIds", null);
+                                }
+                              }}
+                              placeholder="Select collaborators or N/A"
+                              options={collaboratorOptions}
+                              disabled={isApproved || (isViewingExistingSubmission && !isApproved)}
+                            />
+                          );
+                        })()}
 
                         <NumberField
                           label="Hours"

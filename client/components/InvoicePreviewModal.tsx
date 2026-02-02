@@ -55,6 +55,8 @@ export default function InvoicePreviewModal({
     Record<number, string>
   >({});
   const [showCommitConfirm, setShowCommitConfirm] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const normalizeAmountDraft = (value: string): string => {
     const cleaned = value.replace(/[^\d.]/g, "");
@@ -121,6 +123,43 @@ export default function InvoicePreviewModal({
 
   const handleRemoveLineItem = (id: number) => {
     setLineItems(lineItems.filter((item) => item.id !== id));
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.setData("text/plain", String(index));
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setDragImage(e.currentTarget, 0, 0);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+    const dragIndex = draggedIndex;
+    if (dragIndex == null || dragIndex === dropIndex) return;
+    setLineItems((prev) => {
+      const next = [...prev];
+      const [removed] = next.splice(dragIndex, 1);
+      // Insert so the dropped row ends up exactly at the highlighted row's position
+      next.splice(dropIndex, 0, removed);
+      return next;
+    });
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleUpdateLineItem = (
@@ -847,8 +886,19 @@ export default function InvoicePreviewModal({
                   </tr>
                 </thead>
                 <tbody>
-                  {lineItems.map((item) => (
-                    <tr key={item.id}>
+                  {lineItems.map((item, index) => (
+                    <tr
+                      key={item.id}
+                      draggable={false}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, index)}
+                      style={{
+                        opacity: draggedIndex === index ? 0.5 : 1,
+                        backgroundColor: dragOverIndex === index ? "rgba(0, 45, 90, 0.06)" : undefined,
+                        transition: "background-color 0.15s ease",
+                      }}
+                    >
                       <td
                         style={{
                           fontSize: "11px",
@@ -856,8 +906,56 @@ export default function InvoicePreviewModal({
                           paddingBottom: "2px",
                           borderBottom: "1px solid #BF8F00",
                           verticalAlign: "middle",
+                          position: "relative",
                         }}
                       >
+                        <div
+                          className="no-print"
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, index)}
+                          onDragEnd={handleDragEnd}
+                          role="button"
+                          tabIndex={0}
+                          title="Drag to reorder row"
+                          style={{
+                            position: "absolute",
+                            left: "-28px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: "28px",
+                            height: "28px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: draggedIndex === index ? "grabbing" : "grab",
+                            color: "#002060",
+                            borderRadius: "6px",
+                            border: "none",
+                            background: "none",
+                            zIndex: 2,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "rgba(0, 45, 90, 0.08)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "";
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === " " || e.key === "Enter") {
+                              e.preventDefault();
+                              (e.currentTarget as HTMLDivElement).focus();
+                            }
+                          }}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                            <circle cx="9" cy="6" r="1.5" />
+                            <circle cx="15" cy="6" r="1.5" />
+                            <circle cx="9" cy="12" r="1.5" />
+                            <circle cx="15" cy="12" r="1.5" />
+                            <circle cx="9" cy="18" r="1.5" />
+                            <circle cx="15" cy="18" r="1.5" />
+                          </svg>
+                        </div>
                         <input
                           type="text"
                           value={item.vendor}
