@@ -158,6 +158,18 @@ export default function App() {
                   }
                 />
 
+                {/* Approve by submission ID (for misc expenses) */}
+                <Route
+                  path="/field-team-orders/approve/submission/:submissionId"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <ApproveFtoPage />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
                 <Route
                   path="/work-orders"
                   element={

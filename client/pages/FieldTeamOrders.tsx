@@ -12,6 +12,7 @@ import PageTemplate from "@/layout/PageTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
 import { formatUnitLabel } from "@/utils/unitLabel";
 import HoursSummaryDrawer from "@/components/HoursSummaryDrawer";
+import { cn } from "@/lib/utils";
 import {
   EditIcon,
   DeleteIcon,
@@ -26,6 +27,7 @@ import {
   UserIcon,
   FlagIcon,
   HamburgerIcon,
+  EyeIcon,
 } from "@/components/icons";
 
 interface FieldTeamOrder {
@@ -85,6 +87,33 @@ interface APIFTOResponse {
   updated_at?: string;
   unit_id?: number;
   unit_name?: string;
+}
+
+// Misc submission (fto_id IS NULL)
+interface MiscSubmission {
+  id: number;
+  propertyId: number | null;
+  propertyName: string;
+  dateOfWork: string;
+  status: string;
+  techName: string;
+  amount: number;
+  description: string;
+}
+
+interface APIMiscSubmissionResponse {
+  ID: number;
+  FTOID: number | null;
+  FieldTeamMemberID: number;
+  DateOfWork: string;
+  Status: string;
+  MaterialsJSON: string | null;
+  HoursJSON: string | null;
+  Description?: string;
+  PropertyID?: number | null;
+  property_id?: number | null;
+  property_name?: string;
+  fto_name?: string; // Repurposed for tech name in misc submissions
 }
 const normalizeFTOStatus = (status: string) => {
   if (status === "completed") return "Completed";
@@ -442,11 +471,52 @@ const transformAPIToFieldTeamOrder = (
   });
 };
 
+// Calculate total amount from materials JSON (amount + upcharge per line, to match approve page)
+const calculateMiscAmount = (materialsJSON: string | null): number => {
+  if (!materialsJSON) return 0;
+  try {
+    const decoded = atob(materialsJSON);
+    const materials = JSON.parse(decoded);
+    if (!Array.isArray(materials)) return 0;
+    return materials.reduce(
+      (sum: number, m: any) => sum + (m.amount_cents || 0) + (m.upcharge_cents || 0),
+      0
+    ) / 100;
+  } catch {
+    return 0;
+  }
+};
+
+const transformAPIMiscSubmission = (apiData: APIMiscSubmissionResponse[]): MiscSubmission[] => {
+  return apiData.map((sub) => {
+    const dateObj = new Date(sub.DateOfWork);
+    const dateOfWork = dateObj.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
+    return {
+      id: sub.ID,
+      propertyId: sub.property_id ?? sub.PropertyID ?? null,
+      propertyName: sub.property_name || "Unknown Property",
+      dateOfWork,
+      status: sub.Status || "submitted",
+      techName: sub.fto_name || "Unknown Tech", // fto_name is repurposed for tech name
+      amount: calculateMiscAmount(sub.MaterialsJSON),
+      description: sub.Description || "Miscellaneous expense",
+    };
+  });
+};
+
 
 export default function FieldTeamOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<FieldTeamOrder[]>([]);
+  const [miscSubmissions, setMiscSubmissions] = useState<MiscSubmission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [miscLoading, setMiscLoading] = useState(false);
+  const [selectedTab, setSelectedTab] = usePageState<"ftos" | "misc">("selectedTab", "ftos");
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -460,6 +530,7 @@ export default function FieldTeamOrders() {
   const [editingFTOId, setEditingFTOId] = useState<number | null>(null);
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
+  const [miscSearchValue, setMiscSearchValue] = usePageState("miscSearchValue", "");
   const [showHoursSummaryDrawer, setShowHoursSummaryDrawer] = useState(false);
 
   async function fetchUsersByIds(
@@ -516,21 +587,50 @@ export default function FieldTeamOrders() {
     }
   };
 
+  const fetchMiscSubmissions = async () => {
+    setMiscLoading(true);
+    try {
+      const raw = await fetchJSON(`/maintenance/submissions/misc`);
+      
+      const apiData: APIMiscSubmissionResponse[] = Array.isArray(raw)
+        ? raw
+        : raw?.data ?? raw?.items ?? raw?.results ?? [];
+      
+      const transformedMisc = transformAPIMiscSubmission(apiData);
+      setMiscSubmissions(transformedMisc);
+    } catch (error) {
+      console.error("Error fetching misc submissions:", error);
+      setMiscSubmissions([]);
+    } finally {
+      setMiscLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  // Fetch misc submissions when tab changes to misc
+  useEffect(() => {
+    if (selectedTab === "misc" && miscSubmissions.length === 0) {
+      fetchMiscSubmissions();
+    }
+  }, [selectedTab]);
 
   // Listen for refresh events
   useEffect(() => {
     const handleRefresh = () => {
       fetchOrders();
+      if (selectedTab === "misc") {
+        fetchMiscSubmissions();
+      }
     };
 
     window.addEventListener("refreshFieldTeamOrders", handleRefresh);
     return () => {
       window.removeEventListener("refreshFieldTeamOrders", handleRefresh);
     };
-  }, []);
+  }, [selectedTab]);
 
   const filteredOrders = orders.filter((order) => {
     const searchLower = searchValue.toLowerCase();
@@ -544,6 +644,17 @@ export default function FieldTeamOrders() {
       order.fieldTeam.some((member) =>
         member.name.toLowerCase().includes(searchLower)
       )
+    );
+  });
+
+  const filteredMiscSubmissions = miscSubmissions.filter((sub) => {
+    const searchLower = miscSearchValue.toLowerCase();
+    return (
+      sub.propertyName.toLowerCase().includes(searchLower) ||
+      sub.dateOfWork.toLowerCase().includes(searchLower) ||
+      sub.status.toLowerCase().includes(searchLower) ||
+      sub.techName.toLowerCase().includes(searchLower) ||
+      sub.description.toLowerCase().includes(searchLower)
     );
   });
 
@@ -573,6 +684,17 @@ export default function FieldTeamOrders() {
     "fieldTeam",
     "status",
     "timesheetStatus",
+    "amount",
+  ]);
+
+  // Misc table hooks
+  const miscSortingHook = useSortingTable(filteredMiscSubmissions);
+  const miscColumnManagement = useColumnManagement([
+    "propertyName",
+    "dateOfWork",
+    "description",
+    "techName",
+    "status",
     "amount",
   ]);
 
@@ -631,6 +753,39 @@ export default function FieldTeamOrders() {
     },
   ];
 
+  const miscColumns = [
+    {
+      key: "propertyName",
+      label: "Property",
+      icon: <BuildingIcon width={16} height={16} />,
+    },
+    {
+      key: "dateOfWork",
+      label: "Purchase Date",
+      icon: <CalendarIcon width={16} height={16} />,
+    },
+    {
+      key: "description",
+      label: "Description",
+      icon: <NoteIcon width={16} height={16} />,
+    },
+    {
+      key: "techName",
+      label: "Tech",
+      icon: <UserIcon width={16} height={16} />,
+    },
+    {
+      key: "status",
+      label: "Status",
+      icon: <ApproveIcon width={16} height={16} />,
+    },
+    {
+      key: "amount",
+      label: "Amount",
+      icon: <DollarIcon width={16} height={16} />,
+    },
+  ];
+
   const handleDeleteOrder = useCallback(
     (order: FieldTeamOrder) => {
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
@@ -667,6 +822,35 @@ export default function FieldTeamOrders() {
           description: order.description,
           dueDate: order.dueDate,
           priority: order.priority,
+        },
+      });
+    },
+    [navigate]
+  );
+
+  // Misc submission handlers
+  const handleViewMiscSubmission = useCallback(
+    (sub: MiscSubmission) => {
+      navigate(`/field-team-orders/approve/submission/${sub.id}`, {
+        state: {
+          propertyName: sub.propertyName,
+          propertyId: sub.propertyId,
+          dateOfWork: sub.dateOfWork,
+          description: sub.description,
+        },
+      });
+    },
+    [navigate]
+  );
+
+  const handleApproveMiscSubmission = useCallback(
+    (sub: MiscSubmission) => {
+      navigate(`/field-team-orders/approve/submission/${sub.id}`, {
+        state: {
+          propertyName: sub.propertyName,
+          propertyId: sub.propertyId,
+          dateOfWork: sub.dateOfWork,
+          description: sub.description,
         },
       });
     },
@@ -722,166 +906,342 @@ export default function FieldTeamOrders() {
           </div>
         </div>
 
+        {/* Tab Bar */}
+        <div className="flex gap-1 border-b border-[#E5E5E5]">
+          <button
+            onClick={() => {
+              setSelectedTab("ftos");
+              setCurrentPage(1);
+            }}
+            className={cn(
+              "px-4 py-2.5 text-sm font-medium transition-colors relative",
+              selectedTab === "ftos"
+                ? "text-[#013764]"
+                : "text-[#717179] hover:text-[#303030]"
+            )}
+          >
+            Field Team Orders
+            {selectedTab === "ftos" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
+            )}
+          </button>
+          <button
+            onClick={() => {
+              setSelectedTab("misc");
+              setCurrentPage(1);
+              if (miscSubmissions.length === 0) {
+                fetchMiscSubmissions();
+              }
+            }}
+            className={cn(
+              "px-4 py-2.5 text-sm font-medium transition-colors relative",
+              selectedTab === "misc"
+                ? "text-[#013764]"
+                : "text-[#717179] hover:text-[#303030]"
+            )}
+          >
+            Misc Expenses
+            {selectedTab === "misc" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
+            )}
+          </button>
+        </div>
+
         <div className="flex flex-col gap-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-gray-500">Loading field team orders...</div>
-            </div>
-          ) : (
-            <GlobalTable
-              columns={columns}
-              data={filteredOrders}
-              rowKey="id"
-              showSearchBar={true}
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              renderCell={(order, columnKey) => {
-                if (columnKey === "priority") {
-                  return (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{
-                          backgroundColor:
-                            order.priority === "low"
-                              ? "#059669"
-                              : order.priority === "normal"
-                                ? "#2463eb"
-                                : "#d97706",
-                        }}
-                      />
-                      <span className="text-gray-900 font-normal text-sm capitalize truncate">
-                        {order.priority}
-                      </span>
-                    </div>
-                  );
-                }
-                if (columnKey === "property") {
-                  return (
-                    <span className="text-gray-900 font-normal text-sm truncate">
-                      {order.property}
-                    </span>
-                  );
-                }
-                if (columnKey === "unit") {
-                  return (
-                    <span className="text-gray-900 font-normal text-sm truncate">
-                      {order.unit || "-"}
-                    </span>
-                  );
-                }
-                if (columnKey === "name") {
-                  return (
-                    <span className="text-gray-900 font-normal text-sm truncate">
-                      {order.name}
-                    </span>
-                  );
-                }
-                if (columnKey === "dueDate") {
-                  return (
-                    <span className="text-gray-900 font-normal text-sm truncate">
-                      {order.dueDate}
-                    </span>
-                  );
-                }
-                if (columnKey === "fieldTeam") {
-                  return (
-                    <div className="flex items-center gap-2">
-                      {order.fieldTeam.map((member, idx) => (
-                        <div key={idx} className="relative group">
+          {/* FTO Table */}
+          {selectedTab === "ftos" && (
+            <>
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-gray-500">Loading field team orders...</div>
+                </div>
+              ) : (
+                <GlobalTable
+                  columns={columns}
+                  data={filteredOrders}
+                  rowKey="id"
+                  showSearchBar={true}
+                  searchValue={searchValue}
+                  onSearchChange={setSearchValue}
+                  renderCell={(order, columnKey) => {
+                    if (columnKey === "priority") {
+                      return (
+                        <div className="flex items-center gap-2">
                           <div
-                            className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
-                            title={member.name}
-                          >
-                            {member.initials}
-                          </div>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                            {member.name}
+                            className="w-2 h-2 rounded-full"
+                            style={{
+                              backgroundColor:
+                                order.priority === "low"
+                                  ? "#059669"
+                                  : order.priority === "normal"
+                                    ? "#2463eb"
+                                    : "#d97706",
+                            }}
+                          />
+                          <span className="text-gray-900 font-normal text-sm capitalize truncate">
+                            {order.priority}
+                          </span>
+                        </div>
+                      );
+                    }
+                    if (columnKey === "property") {
+                      return (
+                        <span className="text-gray-900 font-normal text-sm truncate">
+                          {order.property}
+                        </span>
+                      );
+                    }
+                    if (columnKey === "unit") {
+                      return (
+                        <span className="text-gray-900 font-normal text-sm truncate">
+                          {order.unit || "-"}
+                        </span>
+                      );
+                    }
+                    if (columnKey === "name") {
+                      return (
+                        <span className="text-gray-900 font-normal text-sm truncate">
+                          {order.name}
+                        </span>
+                      );
+                    }
+                    if (columnKey === "dueDate") {
+                      return (
+                        <span className="text-gray-900 font-normal text-sm truncate">
+                          {order.dueDate}
+                        </span>
+                      );
+                    }
+                    if (columnKey === "fieldTeam") {
+                      return (
+                        <div className="flex items-center gap-2">
+                          {order.fieldTeam.map((member, idx) => (
+                            <div key={idx} className="relative group">
+                              <div
+                                className={`w-7 h-7 rounded-full ${member.color} flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer`}
+                                title={member.name}
+                              >
+                                {member.initials}
+                              </div>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                {member.name}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    if (columnKey === "status") {
+                      return <StatusBadge status={order.status} variant="fto-status" />;
+                    }
+                    if (columnKey === "timesheetStatus") {
+                      return <StatusBadge status={order.timesheetStatus} variant="timesheet-status" />;
+                    }
+                    if (columnKey === "amount") {
+                      return (
+                        <span className="text-gray-900 font-normal text-sm">
+                          ${order.amount}
+                        </span>
+                      );
+                    }
+                    return null;
+                  }}
+                  sortingHook={{
+                    handleSortClick,
+                    getSortIndicator,
+                    getSortedData,
+                  }}
+                  columnManagementHook={{
+                    columnOrder,
+                    visibleColumns,
+                    draggedColumn,
+                    dropTargetColumn,
+                    dropPosition,
+                    columnMenuPos,
+                    columnButtonRef,
+                    toggleColumnVisibility,
+                    handleColumnDragStart,
+                    handleColumnDragOver,
+                    handleColumnDragLeave,
+                    handleColumnDrop,
+                  }}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                  showPageSizeDropdown={showPageSizeDropdown}
+                  onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+                  openMenuId={openMenuId}
+                  onOpenMenuIdChange={setOpenMenuId}
+                  title="All Field Team Orders"
+                  headerActions={
+                    <button
+                      ref={columnButtonRef}
+                      onClick={() => {
+                        setShowPageSizeDropdown(false);
+                        setOpenMenuId(null);
+                        setShowColumnModal((prev) => !prev);
+                      }}
+                      className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                    >
+                      <DotsIcon width={18} height={18} color="#303030" />
+                    </button>
+                  }
+                  actions={[
+                    {
+                      label: "Approve",
+                      icon: <ApproveIcon width={16} height={16} />,
+                      onClick: handleApproveOrder,
+                    },
+                    {
+                      label: "Edit",
+                      icon: <EditIcon width={18} height={18} color="#525252" />,
+                      onClick: handleEditOrder,
+                    },
+                    {
+                      label: "Delete",
+                      icon: <DeleteIcon width={18} height={18} color="#982740" />,
+                      onClick: handleDeleteOrder,
+                    },
+                  ]}
+                  onRowClick={(order) => {
+                    openEditFTO(order);
+                  }}
+                  showColumnModal={showColumnModal}
+                  onShowColumnModalChange={setShowColumnModal}
+                />
+              )}
+            </>
+          )}
+
+          {/* Misc Expenses Table */}
+          {selectedTab === "misc" && (
+            <>
+              {miscLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-gray-500">Loading miscellaneous expenses...</div>
+                </div>
+              ) : (
+                <GlobalTable
+                  columns={miscColumns}
+                  data={filteredMiscSubmissions}
+                  rowKey="id"
+                  showSearchBar={true}
+                  searchValue={miscSearchValue}
+                  onSearchChange={setMiscSearchValue}
+                  renderCell={(sub: MiscSubmission, columnKey) => {
+                    if (columnKey === "propertyName") {
+                      return (
+                        <span className="text-gray-900 font-normal text-sm truncate">
+                          {sub.propertyName}
+                        </span>
+                      );
+                    }
+                    if (columnKey === "dateOfWork") {
+                      return (
+                        <span className="text-gray-900 font-normal text-sm truncate">
+                          {sub.dateOfWork}
+                        </span>
+                      );
+                    }
+                    if (columnKey === "description") {
+                      return (
+                        <span className="text-gray-900 font-normal text-sm truncate">
+                          {sub.description}
+                        </span>
+                      );
+                    }
+                    if (columnKey === "techName") {
+                      const initials = getInitials(sub.techName);
+                      return (
+                        <div className="flex items-center gap-2">
+                          <div className="relative group">
+                            <div
+                              className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-semibold border border-gray-300 cursor-pointer"
+                              title={sub.techName}
+                            >
+                              {initials}
+                            </div>
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                              {sub.techName}
+                            </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  );
-                }
-                if (columnKey === "status") {
-                  return <StatusBadge status={order.status} variant="fto-status" />;
-                }
-                if (columnKey === "timesheetStatus") {
-                  return <StatusBadge status={order.timesheetStatus} variant="timesheet-status" />;
-                }
-                if (columnKey === "amount") {
-                  return (
-                    <span className="text-gray-900 font-normal text-sm">
-                      ${order.amount}
-                    </span>
-                  );
-                }
-                return null;
-              }}
-              sortingHook={{
-                handleSortClick,
-                getSortIndicator,
-                getSortedData,
-              }}
-              columnManagementHook={{
-                columnOrder,
-                visibleColumns,
-                draggedColumn,
-                dropTargetColumn,
-                dropPosition,
-                columnMenuPos,
-                columnButtonRef,
-                toggleColumnVisibility,
-                handleColumnDragStart,
-                handleColumnDragOver,
-                handleColumnDragLeave,
-                handleColumnDrop,
-              }}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-              itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={setItemsPerPage}
-              showPageSizeDropdown={showPageSizeDropdown}
-              onShowPageSizeDropdownChange={setShowPageSizeDropdown}
-              openMenuId={openMenuId}
-              onOpenMenuIdChange={setOpenMenuId}
-              title="All Field Team Orders"
-              headerActions={
-                <button
-                  ref={columnButtonRef}
-                  onClick={() => {
-                    setShowPageSizeDropdown(false);
-                    setOpenMenuId(null);
-                    setShowColumnModal((prev) => !prev);
+                      );
+                    }
+                    if (columnKey === "status") {
+                      return <StatusBadge status={sub.status} variant="timesheet-status" />;
+                    }
+                    if (columnKey === "amount") {
+                      return (
+                        <span className="text-gray-900 font-normal text-sm">
+                          ${sub.amount.toFixed(2)}
+                        </span>
+                      );
+                    }
+                    return null;
                   }}
-                  className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-                >
-                  <DotsIcon width={18} height={18} color="#303030" />
-                </button>
-              }
-              actions={[
-                {
-                  label: "Approve",
-                  icon: <ApproveIcon width={16} height={16} />,
-                  onClick: handleApproveOrder,
-                },
-                {
-                  label: "Edit",
-                  icon: <EditIcon width={18} height={18} color="#525252" />,
-                  onClick: handleEditOrder,
-                },
-                {
-                  label: "Delete",
-                  icon: <DeleteIcon width={18} height={18} color="#982740" />,
-                  onClick: handleDeleteOrder,
-                },
-              ]}
-              onRowClick={(order) => {
-                openEditFTO(order);
-              }}
-              showColumnModal={showColumnModal}
-              onShowColumnModalChange={setShowColumnModal}
-            />
+                  sortingHook={{
+                    handleSortClick: miscSortingHook.handleSortClick,
+                    getSortIndicator: miscSortingHook.getSortIndicator,
+                    getSortedData: miscSortingHook.getSortedData,
+                  }}
+                  columnManagementHook={{
+                    columnOrder: miscColumnManagement.columnOrder,
+                    visibleColumns: miscColumnManagement.visibleColumns,
+                    draggedColumn: miscColumnManagement.draggedColumn,
+                    dropTargetColumn: miscColumnManagement.dropTargetColumn,
+                    dropPosition: miscColumnManagement.dropPosition,
+                    columnMenuPos: miscColumnManagement.columnMenuPos,
+                    columnButtonRef: miscColumnManagement.columnButtonRef,
+                    toggleColumnVisibility: miscColumnManagement.toggleColumnVisibility,
+                    handleColumnDragStart: miscColumnManagement.handleColumnDragStart,
+                    handleColumnDragOver: miscColumnManagement.handleColumnDragOver,
+                    handleColumnDragLeave: miscColumnManagement.handleColumnDragLeave,
+                    handleColumnDrop: miscColumnManagement.handleColumnDrop,
+                  }}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                  showPageSizeDropdown={showPageSizeDropdown}
+                  onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+                  openMenuId={openMenuId}
+                  onOpenMenuIdChange={setOpenMenuId}
+                  title="Miscellaneous Expenses"
+                  headerActions={
+                    <button
+                      ref={miscColumnManagement.columnButtonRef}
+                      onClick={() => {
+                        setShowPageSizeDropdown(false);
+                        setOpenMenuId(null);
+                        miscColumnManagement.setShowColumnModal((prev) => !prev);
+                      }}
+                      className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                    >
+                      <DotsIcon width={18} height={18} color="#303030" />
+                    </button>
+                  }
+                  actions={[
+                    {
+                      label: "View",
+                      icon: <EyeIcon width={16} height={16} />,
+                      onClick: handleViewMiscSubmission,
+                    },
+                    {
+                      label: "Approve",
+                      icon: <ApproveIcon width={16} height={16} />,
+                      onClick: handleApproveMiscSubmission,
+                    },
+                  ]}
+                  onRowClick={(sub: MiscSubmission) => {
+                    handleViewMiscSubmission(sub);
+                  }}
+                  showColumnModal={miscColumnManagement.showColumnModal}
+                  onShowColumnModalChange={miscColumnManagement.setShowColumnModal}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
@@ -933,6 +1293,19 @@ export default function FieldTeamOrders() {
         onToggleColumn={toggleColumnVisibility}
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
+      />
+      <ColumnFilterModal
+        isOpen={miscColumnManagement.showColumnModal}
+        position={miscColumnManagement.columnMenuPos}
+        columns={miscColumns.map((col) => ({
+          key: col.key,
+          label: col.label,
+          icon: col.icon || null,
+        }))}
+        visibleColumns={miscColumnManagement.visibleColumns}
+        onToggleColumn={miscColumnManagement.toggleColumnVisibility}
+        onClose={() => miscColumnManagement.setShowColumnModal(false)}
+        buttonRef={miscColumnManagement.columnButtonRef}
       />
       <HoursSummaryDrawer
         isOpen={showHoursSummaryDrawer}

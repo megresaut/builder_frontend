@@ -62,6 +62,10 @@ interface ApproveFTOPageProps {
   description?: string;
   dueDate?: string;
   priority?: string;
+  // Misc submission mode
+  propertyName?: string;
+  propertyId?: number;
+  dateOfWork?: string;
 }
 
 interface ExpenseLine {
@@ -179,6 +183,68 @@ const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]
   }
 
   return res.json();
+};
+
+// Fetch a single submission by ID (for misc expenses)
+const fetchSubmissionById = async (submissionId: number): Promise<{ submission: BackendSubmission; property_name?: string; property_id?: number }> => {
+  const res = await fetch(
+    `/api/maintenance/submissions/${submissionId}`,
+    // `http://localhost:8080/maintenance/submissions/${submissionId}`,
+    {
+      headers: { Accept: "application/json" },
+    },
+  );
+
+  if (!res.ok) {
+    let errMsg = "Failed to fetch submission";
+    const text = await res.text();
+    if (text) {
+      try {
+        const body = JSON.parse(text);
+        if (body && typeof body.error === "string") errMsg = body.error;
+      } catch {
+        errMsg = text;
+      }
+    }
+    throw new Error(errMsg);
+  }
+
+  const data = await res.json();
+  // The API returns { submission: {...}, attachments: [...] }
+  // We need to map the submission fields
+  const sub = data.submission || data;
+  return {
+    submission: {
+      ID: sub.ID || sub.id,
+      FTOID: sub.FTOID || sub.fto_id,
+      FieldTeamMemberID: sub.FieldTeamMemberID || sub.field_team_member_id,
+      MaterialsJSON: sub.MaterialsJSON || sub.materials,
+      HoursJSON: sub.HoursJSON || sub.hours,
+    },
+    property_name: sub.property_name,
+    property_id: sub.property_id || sub.PropertyID,
+  };
+};
+
+// Fetch attachments by submission ID (for misc expenses)
+const fetchAttachmentsBySubmission = async (submissionId: number): Promise<AttachmentSummary[]> => {
+  const res = await fetch(
+    `/api/maintenance/attachments/by-submission?submission_id=${submissionId}`,
+    // `http://localhost:8080/maintenance/attachments/by-submission?submission_id=${submissionId}`,
+    { headers: { Accept: "application/json" } }
+  );
+
+  if (!res.ok) return [];
+
+  const raw = await res.json();
+  if (!raw || !Array.isArray(raw)) return [];
+
+  return raw.map((a: any) => ({
+    id: a.ID || a.id,
+    file_name: a.FileName || a.file_name,
+    submission_id: a.SubmissionID ?? a.submission_id,
+    material_index: a.MaterialIndex ?? a.material_index,
+  }));
 };
 
 
@@ -479,8 +545,12 @@ export default function ApproveFTOPage() {
 
   // const ftoId = id ? Number(id) : null;
 
-  const { ftoId } = useParams<{ ftoId?: string }>();
+  const { ftoId, submissionId } = useParams<{ ftoId?: string; submissionId?: string }>();
   const ftoIdNum = ftoId ? Number(ftoId) : null;
+  const submissionIdNum = submissionId ? Number(submissionId) : null;
+  
+  // Determine if we're in "misc submission" mode (single submission by ID)
+  const isMiscMode = submissionIdNum !== null && ftoIdNum === null;
   // FTO Details - populated from props or state
   const [ftoName, setFtoName] = useState(state.ftoName || "");
   const [property, setProperty] = useState(state.property || "");
@@ -543,6 +613,7 @@ export default function ApproveFTOPage() {
   
   /**
    * Load FTO details from API when ftoId is available
+   * OR load submission details for misc mode
    */
   useEffect(() => {
     const loadFTODetails = async () => {
@@ -588,18 +659,67 @@ export default function ApproveFTOPage() {
       }
     };
 
-    loadFTODetails();
-  }, [ftoIdNum]);
+    const loadMiscSubmissionDetails = async () => {
+      if (!submissionIdNum) return;
+
+      // For misc mode, use details from location state if available
+      if (state.propertyName) {
+        setProperty(state.propertyName);
+      }
+      if (state.description) {
+        setDescription(state.description);
+      }
+      // Set FTO name to indicate this is a misc expense
+      setFtoName("Miscellaneous Expense");
+      setPriority("normal");
+    };
+
+    if (isMiscMode) {
+      loadMiscSubmissionDetails();
+    } else {
+      loadFTODetails();
+    }
+  }, [ftoIdNum, submissionIdNum, isMiscMode, state]);
   
   /**
-   * Load submissions from mock API and populate hours/expenses tables
+   * Load submissions from API and populate hours/expenses tables
+   * Handles both FTO mode (by fto_id) and misc mode (by submission_id)
    */
   useEffect(() => {
     const loadSubmissions = async () => {
       try {
         setIsLoadingSubmissions(true);
         setRateError(null); // Clear any previous rate errors
-        const submissions = await fetchSubmissionsByFto(ftoIdNum);
+
+        let submissions: BackendSubmission[] = [];
+        let attachmentIndex: Record<string, number[]> = {};
+
+        if (isMiscMode && submissionIdNum) {
+          // Misc mode: load single submission by ID
+          const { submission, property_name, property_id } = await fetchSubmissionById(submissionIdNum);
+          submissions = [submission];
+          
+          // Update property info from submission if not already set
+          if (property_name && !property) {
+            setProperty(property_name);
+          }
+          if (property_id) {
+            setPropertyId(property_id);
+          }
+
+          // Fetch attachments for this submission
+          const attachments = await fetchAttachmentsBySubmission(submissionIdNum);
+          attachmentIndex = buildAttachmentIndex(attachments);
+        } else if (ftoIdNum) {
+          // FTO mode: load all submissions for the FTO
+          submissions = await fetchSubmissionsByFto(ftoIdNum);
+          
+          if (submissions && submissions.length > 0) {
+            const attachments = await fetchAttachmentsByFto(ftoIdNum);
+            attachmentIndex = buildAttachmentIndex(attachments);
+          }
+        }
+
         // 🚨 HANDLE null / empty explicitly
         if (!submissions || !Array.isArray(submissions) || submissions.length === 0) {
           setHasNoSubmissions(true);
@@ -611,9 +731,6 @@ export default function ApproveFTOPage() {
 
         // otherwise, submissions exist
         setHasNoSubmissions(false);
-                
-        const attachments = await fetchAttachmentsByFto(ftoIdNum);
-        const attachmentIndex = buildAttachmentIndex(attachments);
 
         // Flatten all hour lines from all submissions into HourRow[]
         const allHourLines: HourRow[] = [];
@@ -622,33 +739,58 @@ export default function ApproveFTOPage() {
         submissions.forEach((submission) => {
           // Map HoursJSON to HourRow[]
           if (submission.HoursJSON) {
-            submission.HoursJSON.forEach((hourLine, index) => {
-              const upchargeCents = hourLine.upcharge_cents ?? 0;
-              allHourLines.push({
-                id: `hour-${submission.ID}-${index}`,
-                date: formatDate(new Date(hourLine.date_of_work)),
-                hours: hourLine.hours_decimal.toString(),
-                note: hourLine.note || "",
-                noFee: hourLine.no_charge,
-                emergency: hourLine.emergency,
-                amount: `$${((hourLine.amount_cents ?? 0) / 100).toFixed(2)}`,
-                upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
-                assignee: assigneeById[submission.FieldTeamMemberID] || "",
-                assigneeId: submission.FieldTeamMemberID,
-                submissionId: submission.ID,
+            // HoursJSON might be an array or need parsing
+            let hoursData = submission.HoursJSON;
+            if (typeof hoursData === 'string') {
+              try {
+                hoursData = JSON.parse(hoursData);
+              } catch {
+                hoursData = [];
+              }
+            }
+            
+            if (Array.isArray(hoursData)) {
+              hoursData.forEach((hourLine: any, index: number) => {
+                const upchargeCents = hourLine.upcharge_cents ?? 0;
+                allHourLines.push({
+                  id: `hour-${submission.ID}-${index}`,
+                  date: formatDate(new Date(hourLine.date_of_work)),
+                  hours: (hourLine.hours_decimal || 0).toString(),
+                  note: hourLine.note || "",
+                  noFee: hourLine.no_charge || false,
+                  emergency: hourLine.emergency || false,
+                  amount: `$${((hourLine.amount_cents ?? 0) / 100).toFixed(2)}`,
+                  upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
+                  assignee: assigneeById[submission.FieldTeamMemberID] || "",
+                  assigneeId: submission.FieldTeamMemberID,
+                  submissionId: submission.ID,
+                });
               });
-            });
+            }
           }
 
           // Decode MaterialsJSON and map to ExpenseRow[]
           if (submission.MaterialsJSON) {
             try {
-              const decodedJson = atob(submission.MaterialsJSON);
-              const expenses: ExpenseLine[] = JSON.parse(decodedJson);
+              let materialsData: ExpenseLine[];
+              
+              // MaterialsJSON might be base64 encoded or raw JSON
+              if (typeof submission.MaterialsJSON === 'string') {
+                try {
+                  // Try base64 decode first
+                  const decodedJson = atob(submission.MaterialsJSON);
+                  materialsData = JSON.parse(decodedJson);
+                } catch {
+                  // If base64 fails, try direct JSON parse
+                  materialsData = JSON.parse(submission.MaterialsJSON);
+                }
+              } else {
+                materialsData = submission.MaterialsJSON as unknown as ExpenseLine[];
+              }
 
               // Handle null or non-array expenses (e.g., when materials are empty)
-              if (expenses && Array.isArray(expenses)) {
-                expenses.forEach((expense, index) => {
+              if (materialsData && Array.isArray(materialsData)) {
+                materialsData.forEach((expense, index) => {
                   const key = `${submission.ID}-${index}`;
                   const upchargeCents = expense.upcharge_cents ?? 0;
                   allExpenseLines.push({
@@ -659,7 +801,7 @@ export default function ApproveFTOPage() {
                     attachmentIds: attachmentIndex[key] ?? [],
 
                     date: formatDate(new Date(expense.date_of_work)),
-                    vendor: formatVendorName(expense.vendor_name),
+                    vendor: formatVendorName(expense.vendor_name || ""),
                     receiptNote: expense.note || "",
                     avmExpense: expense.is_avm_expense,
                     chargeType: isAvmExpenseToChargeType(expense.is_avm_expense ?? false),
@@ -713,7 +855,7 @@ export default function ApproveFTOPage() {
     };
 
     loadSubmissions();
-  }, [ftoId]);
+  }, [ftoId, submissionId, isMiscMode]);
 
   // useEffect(() => {
   //   const loadAttachments = async () => {
@@ -997,6 +1139,7 @@ export default function ApproveFTOPage() {
   
     pdfViewer.openPdf(
       `/api/maintenance/attachments/${attachmentId}`,
+      // `http://localhost:8080/maintenance/attachments/${attachmentId}`,
       "Receipt"
     );
   };
@@ -1080,7 +1223,7 @@ export default function ApproveFTOPage() {
 
               <div>
                 <div className="font-medium">
-                  No FTO submissions received yet
+                  {isMiscMode ? "No expense data found" : "No FTO submissions received yet"}
                 </div>
                 <div className="mt-1 text-amber-800">
                   The field team hasn’t submitted any hours or expenses for this order yet.
@@ -1094,7 +1237,7 @@ export default function ApproveFTOPage() {
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {/* FTO Details Header */}
                 <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-                  <div>FTO Details</div>
+                  <div>{isMiscMode ? "Miscellaneous Expense Details" : "FTO Details"}</div>
                   <div
                     className="h-px bg-gray-200 mt-5"
                     style={{ width: "790px" }}
@@ -1111,10 +1254,10 @@ export default function ApproveFTOPage() {
                     width: "600px",
                   }}
                 >
-                  {/* FTO Name */}
+                  {/* FTO Name / Expense Type */}
                   <div>
                     <TextField
-                      label="FTO Name"
+                      label={isMiscMode ? "Expense Type" : "FTO Name"}
                       value={ftoName}
                       onChange={() => {}}
                       disabled={true}
@@ -1997,7 +2140,7 @@ export default function ApproveFTOPage() {
             <BlueButton
               onClick={handleApprove}
             >
-              Approve Field Team Order
+              {isMiscMode ? "Approve Expense" : "Approve Field Team Order"}
             </BlueButton>
           </div>
         </div>
