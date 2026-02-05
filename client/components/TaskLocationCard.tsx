@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SectionCard from "@/components/SectionCard";
+
+const PLACEHOLDER_IMAGE =
+  "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true";
 
 interface TaskLocationCardProps {
   propertyImage?: string;
@@ -26,6 +29,13 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
   variant = "default",
 }) => {
   const navigate = useNavigate();
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
+  const displayImage =
+    propertyImage && !imageLoadFailed ? propertyImage : PLACEHOLDER_IMAGE;
+
+  useEffect(() => {
+    setImageLoadFailed(false);
+  }, [propertyImage]);
 
   const handlePropertyNameClick = () => {
     if (propertyId) {
@@ -37,10 +47,11 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
     <SectionCard variant={variant} title="Location">
       <div className="flex flex-col w-full text-sm">
         {/* Property Image */}
-        {propertyImage && (
+        {displayImage && (
           <img
-            src={propertyImage}
+            src={displayImage}
             alt="Property"
+            onError={() => setImageLoadFailed(true)}
             className="w-full aspect-[1.8] rounded-lg object-cover"
           />
         )}
