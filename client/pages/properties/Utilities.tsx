@@ -709,6 +709,8 @@ const [batchErrors, setBatchErrors] = useState<
 
 // Track if Frontier import was attempted
 const [showFrontierBanner, setShowFrontierBanner] = useState(false);
+// Track if Starlink import was attempted
+const [showStarlinkBanner, setShowStarlinkBanner] = useState(false);
 
 // ----------------------
 // LOAD DATA
@@ -842,6 +844,13 @@ const hasFrontierAccounts = frontierAccounts.length > 0;
 const frontierImportMessage =
   "Automated import unavailable for Frontier. Please go to frontier.com to complete billing.";
 
+// Check for Starlink accounts
+const starlinkAccounts = safeAccounts.filter(
+  (ua: any) => ua.provider_name?.toLowerCase() === "starlink" && ua.active
+);
+const starlinkImportMessage =
+  "Automated import unavailable for Starlink. Please go to starlink.com to complete billing.";
+
 const totalSpendCents = filteredBills.reduce(
   (sum: number, b: any) => sum + (b.amount_cents || 0),
   0,
@@ -865,6 +874,19 @@ const handleImportAccount = async (utilityAccountId: number) => {
       [utilityAccountId]: { 
         state: "failed", 
         message: frontierImportMessage
+      }
+    }));
+    return;
+  }
+
+  // Check if provider is Starlink
+  if (account && account.provider_name?.toLowerCase() === "starlink") {
+    setShowStarlinkBanner(true);
+    setAccountImportStatus(prev => ({
+      ...prev,
+      [utilityAccountId]: { 
+        state: "failed", 
+        message: starlinkImportMessage
       }
     }));
     return;
@@ -955,24 +977,44 @@ const handleBatchImport = async () => {
   if (!propertyId) return;
 
   // Check for Frontier accounts and filter them out
-  const frontierAccounts = safeAccounts.filter(
+  const frontierAccountsBatch = safeAccounts.filter(
     (ua: any) => ua.provider_name?.toLowerCase() === "frontier" && ua.active
   );
 
-  if (frontierAccounts.length > 0) {
+  if (frontierAccountsBatch.length > 0) {
     // Show banner when Frontier import is attempted
     setShowFrontierBanner(true);
     
-    // Show message about Frontier accounts
-    const frontierMessage = frontierImportMessage;
-    
     // Set error state for Frontier accounts
-    frontierAccounts.forEach((ua: any) => {
+    frontierAccountsBatch.forEach((ua: any) => {
       setAccountImportStatus(prev => ({
         ...prev,
         [ua.id]: { 
           state: "failed", 
-          message: frontierMessage
+          message: frontierImportMessage
+        }
+      }));
+    });
+
+    return;
+  }
+
+  // Check for Starlink accounts and filter them out
+  const starlinkAccountsBatch = safeAccounts.filter(
+    (ua: any) => ua.provider_name?.toLowerCase() === "starlink" && ua.active
+  );
+
+  if (starlinkAccountsBatch.length > 0) {
+    // Show banner when Starlink import is attempted
+    setShowStarlinkBanner(true);
+    
+    // Set error state for Starlink accounts
+    starlinkAccountsBatch.forEach((ua: any) => {
+      setAccountImportStatus(prev => ({
+        ...prev,
+        [ua.id]: { 
+          state: "failed", 
+          message: starlinkImportMessage
         }
       }));
     });
@@ -1266,6 +1308,53 @@ useEffect(() => {
             </div>
             <button
               onClick={() => setShowFrontierBanner(false)}
+              className="text-amber-600 hover:text-amber-800 ml-2"
+              aria-label="Close banner"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Starlink Banner - Only show when import is attempted */}
+      {showStarlinkBanner && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+          <div className="flex items-start gap-2">
+            <svg
+              className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            <div className="flex-1">
+              <p className="font-medium text-amber-800 mb-1">
+                Automated import unavailable for Starlink
+              </p>
+              <p className="text-amber-700">
+                Please go to{" "}
+                <a
+                  href="https://www.starlink.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800 font-medium"
+                >
+                  starlink.com
+                </a>{" "}
+                to complete billing.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowStarlinkBanner(false)}
               className="text-amber-600 hover:text-amber-800 ml-2"
               aria-label="Close banner"
             >
