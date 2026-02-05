@@ -2544,16 +2544,29 @@ useEffect(() => {
             : null
         }
         onSave={async (payload) => {
-          if (!editingUtilityAccount || !propertyId) return;
-        
-          // Debugging log removed
-        
-          await fetchJSON(`/utilities/accounts/${editingUtilityAccount.id}`, {
-            method: "PATCH",
-            body: JSON.stringify(payload),
-          });
-        
-          // React Query refresh
+          if (!propertyId) return;
+
+          if (utilityModalMode === "add") {
+            await fetchJSON("/utilities/accounts", {
+              method: "POST",
+              body: JSON.stringify({
+                provider_id: payload.provider_id,
+                property_id: Number(propertyId),
+                account_number: payload.account_number,
+                service_address: payload.service_address,
+                username: payload.username,
+                password: payload.password ?? "",
+                active: payload.active,
+              }),
+            });
+          } else {
+            if (!editingUtilityAccount) return;
+            await fetchJSON(`/utilities/accounts/${editingUtilityAccount.id}`, {
+              method: "PATCH",
+              body: JSON.stringify(payload),
+            });
+          }
+
           await queryClient.invalidateQueries({
             queryKey: ["utility-accounts", propertyId],
           });
