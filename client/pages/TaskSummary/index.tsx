@@ -57,7 +57,7 @@ import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import RecordBillModal from "@/components/RecordBillModal";
 import { MOCK_TASKS } from "@/data/tasks";
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 
@@ -1476,6 +1476,7 @@ export default function TaskSummary() {
   const [currentPropertyId, setCurrentPropertyId] = useState<number | undefined>(
     taskData?.property_id,
   );
+  const [propertyImageUrl, setPropertyImageUrl] = useState<string | null>(null);
   const [currentUnit, setCurrentUnit] = useState<string>(
     formatUnitLabel({
       unitId: taskData?.unit_id ?? taskData?.unit,
@@ -1596,6 +1597,33 @@ export default function TaskSummary() {
       setCurrentDueDate(null);
     }
   }, [taskData?.status, taskData?.priority, taskData, currentTitle, currentDescription, currentCategory, currentProperty, currentPropertyId, currentUnit, currentUnitId, normalizeStatusForBadge, normalizePriorityForBadge]);
+
+  // Fetch property image when task has a property
+  const effectivePropertyId = currentPropertyId ?? taskData?.property_id;
+  useEffect(() => {
+    if (!effectivePropertyId) {
+      setPropertyImageUrl(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const prop = await fetchJSON(`/properties/${effectivePropertyId}`);
+        const path = prop?.image_url;
+        if (cancelled) return;
+        if (path && typeof path === "string" && path.trim() !== "") {
+          setPropertyImageUrl(`${API_BASE.replace(/\/$/, "")}/files/${path.replace(/^\//, "")}`);
+        } else {
+          setPropertyImageUrl(null);
+        }
+      } catch {
+        if (!cancelled) setPropertyImageUrl(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [effectivePropertyId]);
 
   const loadUpdatesFromDb = useCallback(async () => {
     if (!taskId) return;
@@ -2977,6 +3005,7 @@ export default function TaskSummary() {
               currentPropertyId={currentPropertyId}
               currentPropertyName={taskData?.property_name}
               currentPropertyAddress={taskData?.property_address}
+              currentPropertyImageUrl={propertyImageUrl}
               currentUnit={currentUnit}
               createdTimestamp={createdTimestamp}
               lastUpdatedTimestamp={lastUpdatedTimestamp}

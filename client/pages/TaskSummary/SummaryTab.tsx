@@ -42,6 +42,7 @@ interface SummaryTabProps {
   currentPropertyId?: number;
   currentPropertyName?: string;
   currentPropertyAddress?: string;
+  currentPropertyImageUrl?: string | null;
   currentUnit: string;
   createdTimestamp: string;
   lastUpdatedTimestamp: string;
@@ -99,6 +100,7 @@ export default function SummaryTab({
   currentPropertyId,
   currentPropertyName,
   currentPropertyAddress,
+  currentPropertyImageUrl,
   currentUnit,
   createdTimestamp,
   lastUpdatedTimestamp,
@@ -270,7 +272,10 @@ export default function SummaryTab({
         {/* Location Card - Only show when property is selected */}
         {currentProperty && currentProperty !== "Unassigned" && (
           <TaskLocationCard
-            propertyImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
+            propertyImage={
+              currentPropertyImageUrl ||
+              "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
+            }
             propertyName={`${currentPropertyName || getPropertyName(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`}
             propertyAddress={currentPropertyAddress || getPropertyAddress(currentProperty)}
             mapImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b2c68a80effe0893f444c93ea4b66f4db8c65123?placeholderIfAbsent=true"

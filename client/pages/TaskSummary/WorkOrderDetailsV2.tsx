@@ -29,7 +29,7 @@ import {
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import type { Note, File } from "@/components/templates";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 
 interface WorkOrder {
@@ -281,6 +281,9 @@ export default function WorkOrderDetailsV2({
   
   // Property managers map for author names
   const [propertyManagers, setPropertyManagers] = useState<Map<number, string>>(new Map());
+  // Property image URL for the work order's property
+  const [propertyImageUrl, setPropertyImageUrl] = useState<string | null>(null);
+  const [propertyImageLoadFailed, setPropertyImageLoadFailed] = useState(false);
 
   // Determine the work order ID to use - prefer route param, fall back to workOrder prop id
   const workOrderId = routeWorkOrderId || (workOrder?.id ? String(workOrder.id) : null);
@@ -317,6 +320,41 @@ export default function WorkOrderDetailsV2({
   useEffect(() => {
     fetchWorkOrder();
   }, [fetchWorkOrder]);
+
+  // Fetch property image when work order has property_id
+  useEffect(() => {
+    const pid = apiWorkOrder?.property_id;
+    if (!pid) {
+      setPropertyImageUrl(null);
+      setPropertyImageLoadFailed(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const prop = await fetchJSON(`/properties/${pid}`);
+        const path = prop?.image_url;
+        if (cancelled) return;
+        if (path && typeof path === "string" && path.trim() !== "") {
+          setPropertyImageUrl(`${API_BASE.replace(/\/$/, "")}/files/${path.replace(/^\//, "")}`);
+          setPropertyImageLoadFailed(false);
+        } else {
+          setPropertyImageUrl(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setPropertyImageUrl(null);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiWorkOrder?.property_id]);
+
+  useEffect(() => {
+    setPropertyImageLoadFailed(false);
+  }, [apiWorkOrder?.property_id, propertyImageUrl]);
 
   // Fetch property managers for author names
   useEffect(() => {
@@ -1279,13 +1317,13 @@ export default function WorkOrderDetailsV2({
           <SectionCard variant="white" padding="none">
             <div className="flex flex-col md:flex-row items-stretch gap-4 w-full p-5">
               <img
-                src="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
+                src={
+                  propertyImageUrl && !propertyImageLoadFailed
+                    ? propertyImageUrl
+                    : "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/067809472377195b06444da037ab0e0c9542bf94?placeholderIfAbsent=true"
+                }
                 alt="Property"
-                onError={(e) => {
-                  const img = e.target as HTMLImageElement;
-                  img.src =
-                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='251' height='400'%3E%3Crect fill='%23e5e5e5' width='251' height='400'/%3E%3Ctext x='50%25' y='50%25' font-family='Geist,sans-serif' font-size='16' fill='%23999' text-anchor='middle' dominant-baseline='middle'%3EProperty Image%3C/text%3E%3C/svg%3E";
-                }}
+                onError={() => setPropertyImageLoadFailed(true)}
                 className="w-full md:w-[251px] h-auto rounded-lg object-cover flex-shrink-0 bg-[#f0f0f0]"
               />
 

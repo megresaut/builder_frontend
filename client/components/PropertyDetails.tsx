@@ -48,6 +48,8 @@ type PropertyData = {
   created_at: string;
   manager_names: string[];
   owners?: { name: string }[];
+  image_url?: string;
+  image_storage_key?: string;
 };
 
 type BackendNote = {
@@ -177,6 +179,10 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [showMoreCustomFields, setShowMoreCustomFields] = useState(false);
   const [showMoreRates, setShowMoreRates] = useState(false);
   const [showPhotoUploadModal, setShowPhotoUploadModal] = useState(false);
+  const [photoUploadFile, setPhotoUploadFile] = useState<File | null>(null);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const photoFileInputRef = React.useRef<HTMLInputElement>(null);
   const [showEditPropertyModal, setShowEditPropertyModal] = useState(false);
   const [showEditCustomFieldsModal, setShowEditCustomFieldsModal] =
     useState(false);
@@ -322,8 +328,22 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const ownerNames = propertyData?.owners?.map(owner => owner.name) || [];
   const rentalOwner = ownerNames.length > 0 ? ownerNames.join(", ") : "----";
   const propertyManager = propertyData?.manager_names?.[0] || "";
-  const propertyImage =
+  const placeholderImage =
     "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b1dce1b4ec8292553f371f2747d334a444b1a4aa?placeholderIfAbsent=true";
+  const propertyImageUrl =
+    propertyData?.image_url != null && propertyData.image_url !== ""
+      ? `${API_BASE.replace(/\/$/, "")}/files/${propertyData.image_url.replace(/^\//, "")}`
+      : null;
+  const [propertyImageLoadFailed, setPropertyImageLoadFailed] = useState(false);
+  const propertyImage =
+    propertyImageUrl != null && !propertyImageLoadFailed
+      ? propertyImageUrl
+      : placeholderImage;
+
+  // Reset load-failed state when the property or image URL changes (e.g. after upload)
+  useEffect(() => {
+    setPropertyImageLoadFailed(false);
+  }, [propertyId, propertyData?.image_url]);
 
   const closeAddNote = () => {
     setNoteDraft("");
@@ -561,8 +581,13 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               <div className="flex flex-col items-start">
                 <img
                   loading="lazy"
-                  srcSet={`${propertyImage}&width=100 100w, ${propertyImage}&width=200 200w, ${propertyImage}&width=400 400w`}
+                  srcSet={
+                    propertyImage === placeholderImage
+                      ? undefined
+                      : `${propertyImage} 100w, ${propertyImage} 200w, ${propertyImage} 400w`
+                  }
                   src={propertyImage}
+                  onError={() => setPropertyImageLoadFailed(true)}
                   className="rounded-lg min-w-[240px] w-[251px] aspect-[1.57] object-cover"
                   alt="Property"
                 />
@@ -940,7 +965,11 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             createPortal(
               <div
                 className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4"
-                onClick={() => setShowPhotoUploadModal(false)}
+                onClick={() => {
+                  setShowPhotoUploadModal(false);
+                  setPhotoUploadFile(null);
+                  setPhotoUploadError(null);
+                }}
               >
                 <div
                   className="w-full max-w-[560px] rounded-xl bg-white shadow-lg border border-[#E5E5E5]"
@@ -951,7 +980,11 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       Upload Photo
                     </div>
                     <button
-                      onClick={() => setShowPhotoUploadModal(false)}
+                      onClick={() => {
+                        setShowPhotoUploadModal(false);
+                        setPhotoUploadFile(null);
+                        setPhotoUploadError(null);
+                      }}
                       className="h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
                     >
                       <svg
@@ -980,14 +1013,32 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   </div>
                   <div className="px-6 py-5 grid gap-5">
                     <input
+                      ref={photoFileInputRef}
                       type="file"
                       accept="image/*"
                       className="block w-full text-sm text-[#303030] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#013764] file:text-white hover:file:bg-[#003a73]"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        setPhotoUploadFile(file);
+                        setPhotoUploadError(null);
+                      }}
                     />
+                    {photoUploadFile && (
+                      <div className="text-sm text-[#71717A]">
+                        Selected: {photoUploadFile.name}
+                      </div>
+                    )}
+                    {photoUploadError && (
+                      <div className="text-sm text-red-600">{photoUploadError}</div>
+                    )}
                   </div>
                   <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
                     <button
-                      onClick={() => setShowPhotoUploadModal(false)}
+                      onClick={() => {
+                        setShowPhotoUploadModal(false);
+                        setPhotoUploadFile(null);
+                        setPhotoUploadError(null);
+                      }}
                       className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <span className="text-[#303030] font-normal text-base capitalize">
@@ -995,14 +1046,73 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       </span>
                     </button>
                     <button
-                      onClick={() => {
-                        alert("Photo uploaded successfully!");
-                        setShowPhotoUploadModal(false);
+                      disabled={!photoUploadFile || photoUploading}
+                      onClick={async () => {
+                        if (!photoUploadFile) return;
+                        setPhotoUploadError(null);
+                        setPhotoUploading(true);
+                        try {
+                          const formData = new FormData();
+                          formData.append("file", photoUploadFile);
+                          const uploadRes = await fetch(
+                            `${API_BASE}/properties/images/upload`,
+                            {
+                              method: "POST",
+                              credentials: "include",
+                              body: formData,
+                            }
+                          );
+                          if (!uploadRes.ok) {
+                            const errText = await uploadRes.text();
+                            throw new Error(
+                              `Upload failed: ${uploadRes.status} ${errText}`
+                            );
+                          }
+                          const uploadData = await uploadRes.json();
+                          const storagePath =
+                            uploadData?.storage_path ?? uploadData?.object_key;
+                          if (!storagePath) {
+                            throw new Error(
+                              "Upload did not return storage_path"
+                            );
+                          }
+                          const updated = await fetchJSON(
+                            `/properties/patch/${propertyId}`,
+                            {
+                              method: "PATCH",
+                              body: JSON.stringify({
+                                image_url: storagePath,
+                                image_storage_key: storagePath,
+                              }),
+                            }
+                          );
+                          setPropertyData((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  image_url: updated?.image_url ?? storagePath,
+                                  image_storage_key:
+                                    updated?.image_storage_key ?? storagePath,
+                                }
+                              : prev
+                          );
+                          setShowPhotoUploadModal(false);
+                          setPhotoUploadFile(null);
+                          if (photoFileInputRef.current) {
+                            photoFileInputRef.current.value = "";
+                          }
+                        } catch (err) {
+                          setPhotoUploadError(
+                            err instanceof Error ? err.message : "Upload failed"
+                          );
+                        } finally {
+                          setPhotoUploading(false);
+                        }
                       }}
-                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                      className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="text-white font-medium text-base">
-                        Upload
+                        {photoUploading ? "Uploading…" : "Upload"}
                       </span>
                     </button>
                   </div>
