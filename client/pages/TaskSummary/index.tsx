@@ -1596,6 +1596,25 @@ export default function TaskSummary() {
       // Clear due date if it's not in the refreshed data
       setCurrentDueDate(null);
     }
+    // Update top-bar snapshot to match taskData so the auto-save effect doesn't
+    // treat this programmatic sync as a user change and fire a spurious PATCH.
+    if (taskData) {
+      const status =
+        typeof taskData.status === "string"
+          ? normalizeStatusForBadge(taskData.status)
+          : topBarSnapshotRef.current?.status ?? "not_started";
+      const priority =
+        typeof taskData.priority === "string"
+          ? normalizePriorityForBadge(taskData.priority)
+          : topBarSnapshotRef.current?.priority ?? "normal";
+      let dueDateISO: string | null = null;
+      if (taskData.dueDate || taskData.due_date) {
+        const rawDueDate = taskData.dueDate || taskData.due_date;
+        const date = new Date(rawDueDate);
+        if (!isNaN(date.getTime())) dueDateISO = date.toISOString();
+      }
+      topBarSnapshotRef.current = { status, priority, dueDateISO };
+    }
   }, [taskData?.status, taskData?.priority, taskData, currentTitle, currentDescription, currentCategory, currentProperty, currentPropertyId, currentUnit, currentUnitId, normalizeStatusForBadge, normalizePriorityForBadge]);
 
   // Fetch property image when task has a property
