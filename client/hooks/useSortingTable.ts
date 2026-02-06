@@ -1,5 +1,34 @@
 import { usePageState } from "@/hooks/usePageState";
 
+/**
+ * Compare two values with natural (numeric-aware) ordering so that
+ * "1", "2", "10", "11" sort correctly instead of "1", "10", "11", "2".
+ * Handles pure numbers, numeric strings, and alphanumeric (e.g. "1A", "2B", "10").
+ */
+function naturalCompare(a: string, b: string): number {
+  const chunkRe = /(\d+|\D+)/g;
+  const aStr = a.toLowerCase();
+  const bStr = b.toLowerCase();
+  const aChunks = aStr.match(chunkRe) ?? [];
+  const bChunks = bStr.match(chunkRe) ?? [];
+
+  for (let i = 0; i < Math.max(aChunks.length, bChunks.length); i++) {
+    const ac = aChunks[i] ?? "";
+    const bc = bChunks[i] ?? "";
+    const aNum = parseInt(ac, 10);
+    const bNum = parseInt(bc, 10);
+    const aIsNum = !Number.isNaN(aNum) && String(aNum) === ac;
+    const bIsNum = !Number.isNaN(bNum) && String(bNum) === bc;
+
+    if (aIsNum && bIsNum) {
+      if (aNum !== bNum) return aNum - bNum;
+    } else {
+      if (ac !== bc) return ac < bc ? -1 : 1;
+    }
+  }
+  return 0;
+}
+
 export function useSortingTable<T extends Record<string, any>>(data: T[], namespace: string = "default") {
   const [sortBy, setSortBy] = usePageState<string>(`${namespace}_sortBy`, "");
   const [sortOrder, setSortOrder] = usePageState<"asc" | "desc">(`${namespace}_sortOrder`, "asc");
@@ -49,16 +78,13 @@ export function useSortingTable<T extends Record<string, any>>(data: T[], namesp
         bValue = formatArrayValue(bValue);
       }
 
-      if (typeof aValue === "string") {
-        aValue = aValue.toLowerCase();
-        bValue = String(bValue || "").toLowerCase();
-      }
+      const aStr = typeof aValue === "string" ? aValue : String(aValue ?? "");
+      const bStr = typeof bValue === "string" ? bValue : String(bValue ?? "");
 
-      if (aValue < bValue) {
-        return sortOrder === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortOrder === "asc" ? 1 : -1;
+      // Use natural sort so unit numbers order as 1, 2, 3, ... 9, 10, 11
+      const cmp = naturalCompare(aStr, bStr);
+      if (cmp !== 0) {
+        return sortOrder === "asc" ? cmp : -cmp;
       }
       return 0;
     });
