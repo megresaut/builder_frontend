@@ -17,6 +17,7 @@ interface Manager {
 
 interface Property {
   id: number;
+  name: string;
   address: string;
   location: string;
   manager: string;  
@@ -260,6 +261,7 @@ export default function AllProperties() {
 
         const mapped = data.map((p: any) => ({
           id: p.id,
+          name: p.name ?? "",
           address: p.address_line1,
           location: `${p.city}, ${p.state}`,
           manager: p.manager_names?.join(", ") ?? "",
@@ -281,15 +283,24 @@ export default function AllProperties() {
     load();
   }, []);
 
+  // Display value for the property column: name for HOA, address otherwise
+  const getPropertyColumnValue = (p: Property) =>
+    p.type?.toLowerCase() === "hoa" && p.name ? p.name : p.address;
+
   useEffect(() => {
     const term = searchTerm.toLowerCase();
   
-    const filtered = properties.filter((p) =>
-      p.address.toLowerCase().includes(term) ||
-      p.location.toLowerCase().includes(term) ||
-      p.type.toLowerCase().includes(term) ||
-      p.buildingId.toLowerCase().includes(term)
-    );
+    const filtered = properties.filter((p) => {
+      const propertyColumnValue = getPropertyColumnValue(p);
+      return (
+        propertyColumnValue.toLowerCase().includes(term) ||
+        p.address.toLowerCase().includes(term) ||
+        p.location.toLowerCase().includes(term) ||
+        p.type.toLowerCase().includes(term) ||
+        p.buildingId.toLowerCase().includes(term) ||
+        (p.name && p.name.toLowerCase().includes(term))
+      );
+    });
   
     setFilteredProperties(filtered);
     setCurrentPage(1); // reset pagination to page 1
@@ -539,7 +550,7 @@ export default function AllProperties() {
                           <path d="M10 18h4" />
                         </svg>
                         <span className="font-medium text-sm text-gray-700">
-                          Address
+                          Property
                         </span>
                       </div>
                     </th>
@@ -666,13 +677,16 @@ export default function AllProperties() {
                         // If the click came from the menu or the button, do nothing
                         if ((e.target as HTMLElement).closest(".action-menu")) return;
                         navigate(`/property/${property.id}`, {
-                          state: { address: property.address, location: property.location },
+                          state: {
+                            address: getPropertyColumnValue(property),
+                            location: property.location,
+                          },
                         });
                       }}
                     >
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">
-                          {property.address}
+                          {getPropertyColumnValue(property)}
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">

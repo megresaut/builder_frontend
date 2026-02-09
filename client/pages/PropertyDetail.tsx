@@ -85,8 +85,11 @@ export default function PropertyDetail() {
     );
   }
 
-  // Derived values for UI
+  // Derived values for UI: for HOAs show name in top bar, otherwise address
   const propertyAddress = property.address_line1;
+  const isHOA = property.property_type?.toLowerCase() === "hoa";
+  const propertyDisplayTitle =
+    isHOA && property.name ? property.name : property.address_line1;
   const propertyType = formatType(property.property_type);
   const propertyUnits = 1; // hardcoded for now
 
@@ -200,7 +203,7 @@ export default function PropertyDetail() {
 
   return (
     <PropertiesTemplate
-      propertyAddress={propertyAddress}
+      propertyAddress={propertyDisplayTitle}
       propertyType={propertyType}
       propertyUnits={propertyUnits}
       activeTab={tab || "Overview"}
