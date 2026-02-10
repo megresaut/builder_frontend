@@ -668,7 +668,7 @@ export default function FtoHome() {
                 setActiveTab(tabId as "open" | "submissionHistory")
               }
             />
-            {activeTab === "open" && (
+            {/* {activeTab === "open" && (
               <BlueButton
                 icon={
                   <PlusIcon
@@ -684,7 +684,7 @@ export default function FtoHome() {
               >
                 Create FTO
               </BlueButton>
-            )}
+            )} */}
           </div>
 
           <div className="flex flex-col gap-3">
@@ -813,7 +813,7 @@ export default function FtoHome() {
           rightContent={
             activeTab === "open" && (
               <div className="flex items-center gap-3">
-                <BlueButton
+                {/* <BlueButton
                   icon={
                     <PlusIcon
                       width={16}
@@ -827,7 +827,7 @@ export default function FtoHome() {
                   }}
                 >
                   Create FTO
-                </BlueButton>
+                </BlueButton> */}
                 <BlueButton
                   icon={
                     <ApproveIcon
