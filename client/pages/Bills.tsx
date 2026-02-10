@@ -23,6 +23,7 @@ interface Bill {
   property: string;
   statementDate: string;
   dueDate: string;
+  due_date?: string; // raw ISO date for filtering
 
   status: "pushed" | "push-failed";
   memo: string;
@@ -75,6 +76,7 @@ function mapUtilityRowToBill(row: any): Bill {
           year: "numeric",
         })
       : "—",
+    due_date: row.due_date ?? undefined,
     status: row.push_status === "pushed" ? "pushed" : "push-failed",
     memo: row.memo || "",
     invoiceNumber: row.reference_number || "",
@@ -119,6 +121,7 @@ function mapDraftRowToBill(row: any): Bill {
           year: "numeric",
         })
       : "—",
+    due_date: row.due_date ?? undefined,
 
     status: "push-failed",
 
@@ -367,6 +370,11 @@ export default function Bills() {
     new Set(),
   );
   const [searchValue, setSearchValue] = useState("");
+  const [showFilterBar, setShowFilterBar] = usePageState("billsShowFilterBar", false);
+  const [filterVendor, setFilterVendor] = usePageState("billsFilterVendor", "");
+  const [filterProperty, setFilterProperty] = usePageState("billsFilterProperty", "");
+  const [filterDateFrom, setFilterDateFrom] = usePageState("billsFilterDateFrom", "");
+  const [filterDateTo, setFilterDateTo] = usePageState("billsFilterDateTo", "");
 
   const markBillAsNew = (billId: number) => {
     setNewlyAddedBillIds((prev) => new Set(prev).add(billId));
@@ -384,27 +392,50 @@ export default function Bills() {
   const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
   const tabBills = selectedTab === "approved" ? approvedBills : draftBills;
 
+  const uniqueVendors = Array.from(
+    new Set(tabBills.map((b) => b.vendor).filter((v) => v && v !== "—"))
+  ).sort();
+  const uniqueProperties = Array.from(
+    new Set(tabBills.map((b) => b.property).filter((p) => p && p !== "—"))
+  ).sort();
+
   const searchLower = searchValue.trim().toLowerCase();
-  const filteredTabBills = searchLower
-    ? tabBills.filter((bill) => {
-        const vendor = (bill.vendor ?? "").toLowerCase();
-        const property = (bill.property ?? "").toLowerCase();
-        const memo = (bill.memo ?? "").toLowerCase();
-        const invoiceNumber = (bill.invoiceNumber ?? "").toLowerCase();
-        const amountStr = String(bill.amount ?? "");
-        const statementDate = (bill.statementDate ?? "").toLowerCase();
-        const dueDate = (bill.dueDate ?? "").toLowerCase();
-        return (
-          vendor.includes(searchLower) ||
-          property.includes(searchLower) ||
-          memo.includes(searchLower) ||
-          invoiceNumber.includes(searchLower) ||
-          amountStr.includes(searchLower) ||
-          statementDate.includes(searchLower) ||
-          dueDate.includes(searchLower)
-        );
-      })
-    : tabBills;
+  const filteredTabBills = tabBills.filter((bill) => {
+    const matchesSearch = !searchLower || (() => {
+      const vendor = (bill.vendor ?? "").toLowerCase();
+      const property = (bill.property ?? "").toLowerCase();
+      const memo = (bill.memo ?? "").toLowerCase();
+      const invoiceNumber = (bill.invoiceNumber ?? "").toLowerCase();
+      const amountStr = String(bill.amount ?? "");
+      const statementDate = (bill.statementDate ?? "").toLowerCase();
+      const dueDate = (bill.dueDate ?? "").toLowerCase();
+      return (
+        vendor.includes(searchLower) ||
+        property.includes(searchLower) ||
+        memo.includes(searchLower) ||
+        invoiceNumber.includes(searchLower) ||
+        amountStr.includes(searchLower) ||
+        statementDate.includes(searchLower) ||
+        dueDate.includes(searchLower)
+      );
+    })();
+
+    if (!matchesSearch) return false;
+
+    if (filterVendor && bill.vendor !== filterVendor) return false;
+    if (filterProperty && bill.property !== filterProperty) return false;
+
+    if (filterDateFrom || filterDateTo) {
+      const billDateStr = bill.due_date
+        ? new Date(bill.due_date).toISOString().slice(0, 10)
+        : null;
+      if (!billDateStr) return false;
+      if (filterDateFrom && billDateStr < filterDateFrom) return false;
+      if (filterDateTo && billDateStr > filterDateTo) return false;
+    }
+
+    return true;
+  });
 
   const { handleSortClick, getSortIndicator, getSortedData } =
     useSortingTable(filteredTabBills);
@@ -433,6 +464,10 @@ export default function Bills() {
     "exportedAt",
     "status",
   ]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterVendor, filterProperty, filterDateFrom, filterDateTo]);
 
   useEffect(() => {
     async function loadBills() {
@@ -670,6 +705,12 @@ export default function Bills() {
                 year: "numeric",
               },
             ),
+          due_date: (() => {
+            const d = billData.dueDate || existing?.dueDate;
+            if (!d) return undefined;
+            const parsed = new Date(d);
+            return isNaN(parsed.getTime()) ? undefined : parsed.toISOString().slice(0, 10);
+          })(),
           status: existing?.status ?? "push-failed",
           memo: billData.memo ?? existing?.memo ?? "",
           invoiceNumber:
@@ -765,6 +806,12 @@ export default function Bills() {
                 year: "numeric",
               },
             ),
+          due_date: (() => {
+            const d = billData.dueDate || existing?.dueDate;
+            if (!d) return undefined;
+            const parsed = new Date(d);
+            return isNaN(parsed.getTime()) ? undefined : parsed.toISOString().slice(0, 10);
+          })(),
           status: existing?.status ?? "push-failed",
           memo: billData.memo ?? existing?.memo ?? "",
           invoiceNumber:
@@ -1019,6 +1066,89 @@ export default function Bills() {
             </button>
           </div>
 
+          {/* Filter bar - toggled by Filter button */}
+          {showFilterBar && (
+            <div
+              className="flex flex-wrap items-center gap-4 px-6 py-4 border border-[#E5E5E5] rounded-lg bg-gray-50/80"
+              style={{ borderColor: "var(--color-border-light)" }}
+            >
+              <span className="text-sm font-medium text-[#303030] shrink-0">
+                Filter by
+              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Vendor
+                  </label>
+                  <select
+                    value={filterVendor}
+                    onChange={(e) => setFilterVendor(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    {uniqueVendors.map((v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Property
+                  </label>
+                  <select
+                    value={filterProperty}
+                    onChange={(e) => setFilterProperty(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    {uniqueProperties.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Due date from
+                  </label>
+                  <input
+                    type="date"
+                    value={filterDateFrom}
+                    onChange={(e) => setFilterDateFrom(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Due date to
+                  </label>
+                  <input
+                    type="date"
+                    value={filterDateTo}
+                    onChange={(e) => setFilterDateTo(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterVendor("");
+                  setFilterProperty("");
+                  setFilterDateFrom("");
+                  setFilterDateTo("");
+                  setCurrentPage(1);
+                }}
+                className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+
           {/* Bills Table - Using GlobalTable Component */}
           <GlobalTable
             columns={columns.filter((col) => {
@@ -1142,6 +1272,11 @@ export default function Bills() {
                 ? "Approved & Exported Bills"
                 : "Draft Bills"
             }
+            onFilterClick={() => {
+              setShowPageSizeDropdown(false);
+              setOpenMenuId(null);
+              setShowFilterBar((prev) => !prev);
+            }}
             headerActions={
               <button
                 ref={columnButtonRef}
