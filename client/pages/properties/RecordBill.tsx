@@ -13,6 +13,11 @@ import { StickyBottomBar } from "@/components/StickyBottomBar";
 
 import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import glAccounts from "@/data/gl_accounts.json";
+import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
+import MsgViewerModal from "@/components/MsgViewerModal";
+import { parseMsgFile } from "@/utils/parseMsgFile";
+import { parseEmlFile } from "@/utils/parseEmlFile";
+import type { ParsedMsg } from "@/utils/parseMsgFile";
 
 import AddVendorModal from "@/components/AddVendorModal";
 import { SelectField } from "@/components/forms/SelectField";
@@ -403,6 +408,13 @@ export const RecordBill = () => {
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [viewingFileIndex, setViewingFileIndex] = useState<number | null>(null);
+  const [msgViewer, setMsgViewer] = useState<{
+    isOpen: boolean;
+    title: string;
+    data: ParsedMsg | null;
+    loading: boolean;
+    error: string | null;
+  }>({ isOpen: false, title: "", data: null, loading: false, error: null });
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [lineItemErrors, setLineItemErrors] = useState<{
     [key: number]: Set<string>;
@@ -1392,31 +1404,57 @@ export const RecordBill = () => {
   } | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
 
-  const ACCEPTED_FILE_TYPES = [".pdf", ".jpg", ".jpeg", ".png"];
+  const ACCEPTED_FILE_TYPES = [".pdf", ".jpg", ".jpeg", ".png", ".msg", ".eml"];
   const isAcceptedFile = (file: File) => {
     const name = file.name.toLowerCase();
     return ACCEPTED_FILE_TYPES.some((ext) => name.endsWith(ext)) ||
-      ["application/pdf", "image/jpeg", "image/png"].includes(file.type);
+      ["application/pdf", "image/jpeg", "image/png", "application/vnd.ms-outlook", "message/rfc822"].includes(file.type);
+  };
+
+  const isImageFile = (file: File) => {
+    const name = file.name.toLowerCase();
+    return [".jpg", ".jpeg", ".png"].some((ext) => name.endsWith(ext)) ||
+      ["image/jpeg", "image/png"].includes(file.type);
+  };
+
+  const isMessageFile = (file: File) => {
+    const name = file.name.toLowerCase();
+    return name.endsWith(".msg") || name.endsWith(".eml");
   };
 
   const processFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const file = Array.from(files).find(isAcceptedFile) ?? files[0];
-    const preview = URL.createObjectURL(file);
-    (file as any).preview = preview;
+    const rawFile = Array.from(files).find(isAcceptedFile) ?? files[0];
+    let fileToStore = rawFile;
+    let fileToUpload = rawFile;
+
+    if (isImageFile(rawFile)) {
+      try {
+        fileToUpload = await convertFiletoPdf(rawFile);
+        fileToStore = rawFile;
+        (rawFile as any).preview = URL.createObjectURL(rawFile);
+      } catch (err) {
+        console.error("Failed to convert image to PDF:", err);
+        alert("Failed to convert image to PDF");
+        return;
+      }
+    } else {
+      const preview = URL.createObjectURL(rawFile);
+      (rawFile as any).preview = preview;
+    }
 
     setUploadedFiles([
       {
-        name: file.name.replace(/\.[^.]*$/, ""),
-        size: file.size,
-        file,
+        name: rawFile.name.replace(/\.[^.]*$/, ""),
+        size: rawFile.size,
+        file: fileToStore,
       },
     ]);
 
     if (!billId) {
       try {
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", fileToUpload);
 
         const res = await fetch("/api/vendors/bills/upload-pdf", {
           method: "POST",
@@ -1425,7 +1463,7 @@ export const RecordBill = () => {
 
         if (!res.ok) {
           const errText = await res.text();
-          throw new Error(errText || "PDF upload failed");
+          throw new Error(errText || "Upload failed");
         }
 
         const data = await res.json();
@@ -1434,8 +1472,8 @@ export const RecordBill = () => {
           sha256_pdf: data.sha256_pdf,
         });
       } catch (err) {
-        console.error("Failed to upload PDF:", err);
-        alert("PDF upload failed");
+        console.error("Upload failed:", err);
+        alert(err instanceof Error ? err.message : "Upload failed");
       }
     }
   };
@@ -1495,9 +1533,42 @@ export const RecordBill = () => {
 
   const handleViewFile = (file: File) => {
     const index = uploadedFiles.findIndex((f) => f.file === file);
+    const fileName = file.name || "";
+    const isMsg = fileName.toLowerCase().endsWith(".msg");
+    const isEml = fileName.toLowerCase().endsWith(".eml");
+    const isMessageFile = isMsg || isEml;
+    const parseMessage = isEml ? parseEmlFile : parseMsgFile;
+
+    if (isMessageFile) {
+      setMsgViewer({
+        isOpen: true,
+        title: fileName || "Message",
+        data: null,
+        loading: true,
+        error: null,
+      });
+      parseMessage(file)
+        .then((data) =>
+          setMsgViewer((prev) => ({
+            ...prev,
+            loading: false,
+            data,
+            error: null,
+          }))
+        )
+        .catch((err) =>
+          setMsgViewer((prev) => ({
+            ...prev,
+            loading: false,
+            error: err instanceof Error ? err.message : "Failed to load message",
+          }))
+        );
+      return;
+    }
+
     const preview = (file as any).preview;
     if (!preview) return;
-  
+
     setViewingFileUrl(preview);
     setViewingFileIndex(index);
   };
@@ -1684,11 +1755,12 @@ minHeight: 0,
                       onDrop={handleDrop}
                     >
                       <div className="self-center flex flex-col items-center">
-                        <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
+                        <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1.4] text-center">
                           <div>Choose a file or drag & drop it here</div>
-                          <div className="mt-2">
-                            JPEG, PNG and PDF formats, up to 50 MB.
+                          <div className="mt-2 max-w-[280px]">
+                            PDF, JPEG, PNG, .msg and .eml, up to 50 MB.
                           </div>
+                          <div className="mt-0.5">Images are converted to PDF for upload.</div>
                         </div>
                         <button
                           onClick={() => fileInputRef.current?.click()}
@@ -1822,7 +1894,7 @@ minHeight: 0,
                     ref={fileInputRef}
                     type="file"
                     multiple
-                    accept=".pdf,.jpg,.jpeg,.png"
+                    accept=".pdf,.jpg,.jpeg,.png,.msg,.eml"
                     onChange={handleFileUpload}
                     className="hidden"
                   />
@@ -2618,6 +2690,16 @@ minHeight: 0,
           });
           setShowAddVendorModal(false);
         }}
+      />
+      <MsgViewerModal
+        open={msgViewer.isOpen}
+        onOpenChange={(open) =>
+          setMsgViewer((prev) => ({ ...prev, isOpen: open }))
+        }
+        title={msgViewer.title}
+        data={msgViewer.data}
+        loading={msgViewer.loading}
+        error={msgViewer.error}
       />
     </div>
   );

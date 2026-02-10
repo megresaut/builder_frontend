@@ -331,11 +331,6 @@ export default function Header() {
     },
   ];
 
-  const [tabs, setTabs] = useState<Tab[]>(defaultTabs);
-  const [openTabs, setOpenTabs] = useState<Set<string>>(
-    new Set(["properties"]),
-  );
-  const [nextNewTabId, setNextNewTabId] = useState(1);
   const [isFullscreen, setIsFullscreenState] = useState(false);
   const tabContext = useContext(TabContext);
 
@@ -354,15 +349,26 @@ export default function Header() {
     throw new Error("Header must be used within TabContext provider");
   }
 
-  const { selectedTab, setSelectedTab, tabMetadata, setTabMetadata } =
-    tabContext;
+  const {
+    selectedTab,
+    setSelectedTab,
+    tabMetadata,
+    setTabMetadata,
+    tabs: tabEntries,
+    setTabs,
+    openTabs,
+    setOpenTabs,
+    nextNewTabId,
+    setNextNewTabId,
+  } = tabContext;
 
-  // Update the current tab's metadata when location changes (but don't change selected tab)
+  // When the user navigates (sidebar, links, etc.): update the CURRENT tab's label/route only.
+  // Do NOT add or switch tabs. The only way to get a second tab is by clicking the "+" (addNewTab) button.
+  // Update the current tab's metadata when location changes (same tab, in-tab navigation)
   useEffect(() => {
     const currentPageInfo = getCurrentPageLabel();
     if (currentPageInfo && selectedTab) {
       const metadata = tabMetadata[selectedTab];
-      // Only update route if it changed, keep other metadata
       if (metadata?.route !== currentPageInfo.path) {
         setTabMetadata(selectedTab, {
           ...metadata,
@@ -653,17 +659,6 @@ export default function Header() {
     }
   };
 
-  // Automatically open the selected tab if it exists and isn't open
-  useEffect(() => {
-    const tabExists = tabs.some((tab) => tab.id === selectedTab);
-    if (tabExists && !openTabs.has(selectedTab)) {
-      const newTabs = new Set(openTabs);
-      newTabs.add(selectedTab);
-      setOpenTabs(newTabs);
-      navigateToTabRoute(selectedTab);
-    }
-  }, [selectedTab, tabs, openTabs]);
-
   const toggleTab = (tabId: string, isClosing: boolean = false) => {
     const newTabs = new Set(openTabs);
     if (newTabs.has(tabId)) {
@@ -673,7 +668,7 @@ export default function Header() {
         if (isClosing && selectedTab === tabId) {
           saveScrollPosition();
           // Get the current order of open tabs
-          const openTabsArray = tabs.filter((tab) => openTabs.has(tab.id));
+          const openTabsArray = tabEntries.filter((tab) => openTabs.has(tab.id));
           const closedTabIndex = openTabsArray.findIndex(
             (tab) => tab.id === tabId,
           );
@@ -706,36 +701,32 @@ export default function Header() {
 
   const addNewTab = () => {
     const newTabId = `new-tab-${nextNewTabId}`;
-    const plusIcon = (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M12 5v14M5 12h14" />
-      </svg>
+    // Only add if this tab id doesn't exist (prevents double-tab on double-click or strict mode)
+    setTabs((prev) =>
+      prev.some((t) => t.id === newTabId) ? prev : [...prev, { id: newTabId, label: "New Tab" }]
     );
-    const newTab: Tab = {
-      id: newTabId,
-      label: "New Tab",
-      icon: plusIcon,
-    };
-
-    setTabs([...tabs, newTab]);
-    setOpenTabs(new Set([...openTabs, newTabId]));
+    setOpenTabs((prev) => new Set([...prev, newTabId]));
     setSelectedTab(newTabId);
-    // Initialize metadata for new tab with blank page route
     tabContext.setTabMetadata(newTabId, { label: "New Tab", route: "/blank" });
-    setNextNewTabId(nextNewTabId + 1);
-    // Navigate to blank page
+    setNextNewTabId((n) => n + 1);
     navigate("/blank");
   };
+
+  const newTabPlusIcon = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
 
   return (
     <header className="bg-white">
@@ -749,7 +740,7 @@ export default function Header() {
             borderLeftWidth: "0px",
           }}
         >
-          {tabs
+          {tabEntries
             .filter((tab) => openTabs.has(tab.id))
             .map((tab) => {
               const isSelected = tab.id === selectedTab;
@@ -760,7 +751,9 @@ export default function Header() {
                 metadata?.sectionId ||
                 (!tab.id.startsWith("new-tab-") ? tab.id : undefined);
               const sectionIcon = getIconForSection(sectionId, isSelected);
-              const displayIcon = sectionIcon || tab.icon;
+              const displayIcon =
+                sectionIcon ||
+                (tab.id.startsWith("new-tab-") ? newTabPlusIcon : null);
               return (
                 <div
                   key={tab.id}
