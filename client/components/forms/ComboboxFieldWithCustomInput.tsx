@@ -98,6 +98,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
   const [customInputMode, setCustomInputMode] = useState(false);
   const [customValue, setCustomValue] = useState("");
   const customInputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const fieldId = id || (label && typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, "-") : "combobox");
   const selectedOption = options.find((opt) => opt?.value === value);
@@ -151,7 +152,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={false}>
         <PopoverTrigger asChild>
           <button
             id={fieldId}
@@ -196,8 +197,15 @@ export const ComboboxFieldWithCustomInput: React.FC<
           style={{
             width: "var(--radix-popover-trigger-width)",
           }}
+          onInteractOutside={(e) => {
+            const target = e.target as Node;
+            if (contentRef.current?.contains(target)) {
+              e.preventDefault();
+            }
+          }}
         >
           <div
+            ref={contentRef}
             style={{
               display: "flex",
               flexDirection: "column",

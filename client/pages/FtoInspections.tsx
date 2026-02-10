@@ -66,23 +66,26 @@ const formatDate = (dateStr: string): string => {
   }
 };
 
-// Map backend inspection to frontend format
-const mapBackendInspectionToRecord = (backend: BackendInspection): InspectionRecord => {
-  const dueDate = backend.due_date || backend.created_at;
-  const status = backend.status === "submitted" || backend.status === "reviewed" 
-    ? "Completed" 
+// Map backend inspection to frontend format (date shown as formatted only; no redundant month; inspector = current user)
+const mapBackendInspectionToRecord = (
+  backend: BackendInspection,
+  currentUserName: string | null
+): InspectionRecord => {
+  const dueDateRaw = backend.due_date || backend.created_at;
+  const status = backend.status === "submitted" || backend.status === "reviewed"
+    ? "Completed"
     : "Draft";
-  
+
   return {
     id: backend.id,
     property: backend.property_name || `Property ${backend.property_id}`,
     unit: backend.unit_id ? `Unit ${backend.unit_id}` : UNIT_EMPTY_DISPLAY,
-    date: dueDate,
-    month: getMonthFromDate(dueDate),
-    inspector: "N/A", // TODO: Fetch inspector name from user ID
+    date: formatDate(dueDateRaw),
+    month: undefined, // date already includes full date; no need for redundant "• Month Year"
+    inspector: currentUserName ?? "N/A",
     status: status as "Completed" | "Draft",
     lastUpdated: backend.updated_at,
-    inspectionName: `Inspection ${backend.id}`, // TODO: Fetch checklist name
+    inspectionName: `Inspection ${backend.id}`,
   };
 };
 
@@ -148,7 +151,19 @@ export default function FtoInspections() {
       try {
         setLoading(true);
         setError(null);
-        
+
+        // Fetch current user's name for inspector display (list is filtered to this user's inspections)
+        let currentUserName: string | null = null;
+        try {
+          const token = localStorage.getItem("avm_token");
+          const user = await fetchJSON(`/users/${resolvedUserId}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          }) as { name?: string };
+          currentUserName = user?.name ?? null;
+        } catch {
+          // use null and mapper will show "N/A"
+        }
+
         // Fetch inspections assigned to this user
         const response = await fetchJSON(
           `/inspections?assigned_field_team_member_id=${resolvedUserId}`
@@ -158,8 +173,10 @@ export default function FtoInspections() {
         }
         const backendInspections = response as BackendInspection[];
 
-        // Map backend data to frontend format
-        const mappedInspections = backendInspections.map(mapBackendInspectionToRecord);
+        // Map backend data to frontend format (formatted date, no redundant month, current user as inspector)
+        const mappedInspections = backendInspections.map((b) =>
+          mapBackendInspectionToRecord(b, currentUserName)
+        );
 
         // Also load any localStorage submissions (for backward compatibility)
         const submissions = JSON.parse(
