@@ -498,6 +498,18 @@ const approveSubmission = async (submissionId: number) => {
   }
 };
 
+/** Approves the entire FTO: all submissions for this FTO and the FTO itself. */
+const approveFto = async (ftoId: number) => {
+  const res = await fetch(`/api/maintenance/ftos/${ftoId}/approve`, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to approve FTO");
+  }
+};
+
 const rejectSubmission = async (submissionId: number) => {
   const res = await fetch(
     // `http://localhost:8080/maintenance/submissions/${submissionId}/reject`,
@@ -1051,10 +1063,7 @@ export default function ApproveFTOPage() {
         throw new Error("No hours or expenses to approve");
       }
 
-      // Track all submission IDs we need to approve
-      const submissionIdsToApprove: number[] = [];
-
-      // Process each assignee
+      // Process each assignee (create or patch submissions)
       for (const assigneeId of allAssigneeIds) {
         const assigneeHours = hoursByAssignee[assigneeId] || [];
         const assigneeExpenses = expensesByAssignee[assigneeId] || [];
@@ -1068,8 +1077,6 @@ export default function ApproveFTOPage() {
         const existingExpenseSubmissionId = assigneeExpenses.find((r) => r.submissionId > 0)?.submissionId;
         const existingSubmissionId = existingHourSubmissionId || existingExpenseSubmissionId;
 
-        let submissionId: number;
-
         if (existingSubmissionId) {
           // Existing submission - PATCH it (include assignee ID in case it changed)
           await patchSubmission(existingSubmissionId, {
@@ -1077,21 +1084,18 @@ export default function ApproveFTOPage() {
             materials_json: materialsJSON,
             field_team_member_id: assigneeId,
           });
-          submissionId = existingSubmissionId;
         } else {
           // All rows are new - create a new submission
           if (!ftoIdNum) {
             throw new Error("Cannot create submission: FTO ID is missing");
           }
-          submissionId = await createSubmissionForAssignee(
+          await createSubmissionForAssignee(
             ftoIdNum,
             assigneeId,
             hoursJSON,
             materialsJSON
           );
         }
-
-        submissionIdsToApprove.push(submissionId);
       }
 
       // All submissions created/patched successfully
@@ -1102,12 +1106,11 @@ export default function ApproveFTOPage() {
         await updateFtoAmountCents(ftoIdNum, amountCents);
       }
 
-      // Approve all submissions
-      for (const submissionId of submissionIdsToApprove) {
-        await approveSubmission(submissionId);
+      // Approve entire FTO (all submissions for this FTO and the FTO itself)
+      if (!ftoIdNum) {
+        throw new Error("Cannot approve: FTO ID is missing");
       }
-
-      // All submissions approved
+      await approveFto(ftoIdNum);
 
       navigate(-1);
     } catch (err) {
