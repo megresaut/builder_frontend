@@ -90,6 +90,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
   const selectedOption = options.find((opt) => opt.value === value);
@@ -107,12 +108,12 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
     setHighlightedIndex(0);
   }, [searchTerm]);
 
-  // Focus search input when dropdown opens
+  // Focus search input when dropdown opens (slight delay on mobile so popover doesn't close on same tap)
   useEffect(() => {
     if (open && searchInputRef.current) {
       const timer = setTimeout(() => {
         searchInputRef.current?.focus();
-      }, 0);
+      }, 80);
       return () => clearTimeout(timer);
     }
   }, [open]);
@@ -162,7 +163,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={false}>
         <PopoverTrigger asChild>
           <button
             id={fieldId}
@@ -207,8 +208,15 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
           style={{
             width: "var(--radix-popover-trigger-width)",
           }}
+          onInteractOutside={(e) => {
+            const target = e.target as Node;
+            if (contentRef.current?.contains(target)) {
+              e.preventDefault();
+            }
+          }}
         >
           <div
+            ref={contentRef}
             style={{
               display: "flex",
               flexDirection: "column",
@@ -229,6 +237,8 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
               <input
                 ref={searchInputRef}
                 type="text"
+                inputMode="search"
+                autoComplete="off"
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}

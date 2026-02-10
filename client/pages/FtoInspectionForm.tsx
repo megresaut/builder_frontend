@@ -1187,11 +1187,11 @@ export default function FtoInspectionForm() {
                   <p className="text-sm text-gray-500 mt-1">
                     {inspectionStatus === "submitted" || inspectionStatus === "reviewed" 
                       ? "Viewing completed inspection" 
-                      : `Viewing ${inspectionStatus} inspection`}
+                      : `Viewing ${inspectionStatus.replace(/_/g, " ")} inspection`}
                   </p>
                 )}
                 {!isReadOnly && inspectionStatus && (
-                  <p className="text-sm text-gray-500 mt-1">Editing {inspectionStatus} inspection</p>
+                  <p className="text-sm text-gray-500 mt-1">Editing {inspectionStatus.replace(/_/g, " ")} inspection</p>
                 )}
               </div>
               <button

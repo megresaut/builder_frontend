@@ -47,7 +47,13 @@ import FtoInspectionForm from "./pages/FtoInspectionForm";
 import FtoWorkOrders from "./pages/FtoWorkOrders";
 import FtoWorkOrderDetail from "./pages/FtoWorkOrderDetail";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Simple auth gate (unchanged behavior)
 const RequireAuth = ({
