@@ -24,6 +24,7 @@ import RecordBillModal, {
   type RecordBillModalMode,
 } from "@/components/RecordBillModal";
 import { API_BASE, fetchJSON } from "@/api/fetchJSON";
+import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 
 import glAccounts from "@/data/gl_accounts.json";  
 
@@ -769,7 +770,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         {
           id: 1,
           property: propertyAddress,
-          unit: "N/A",
+          unit: UNIT_EMPTY_DISPLAY,
           workOrder: "N/A",
           description: item.description,
           glAccount: item.glAccount,
@@ -800,7 +801,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         {
           id: 1,
           property: address,
-          unit: "N/A",
+          unit: UNIT_EMPTY_DISPLAY,
           workOrder: "N/A",
           description: item.description,
           glAccount: item.glAccount,
@@ -1626,7 +1627,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         }}
         selectedFTOId={selectedFTOId}
         property={propertyAddress}
-        unit="N/A"
+        unit={UNIT_EMPTY_DISPLAY}
         fieldTeamAssignee="Field Team"
       />
     </div>

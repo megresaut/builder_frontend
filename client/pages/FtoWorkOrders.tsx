@@ -9,7 +9,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import { useAuth } from "@/auth/useAuth";
 import { fetchJSON } from "@/api/fetchJSON";
-import { formatUnitLabel } from "@/utils/unitLabel";
+import { formatUnitLabel, formatUnitDisplayForTable, UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import {
   CalendarIcon,
   BuildingIcon,
@@ -29,6 +29,7 @@ interface WorkOrderRow {
   due_date: string | null;
   status: string;
   priority: string;
+  bill_id?: number | null;
 }
 
 const formatDate = (dateStr: string | null): string => {
@@ -59,11 +60,6 @@ export default function FtoWorkOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
-    rows,
-    "ftoWorkOrders",
-  );
-
   const [currentPage, setCurrentPage] = usePageState("ftoWorkOrdersPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("ftoWorkOrdersPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -78,7 +74,124 @@ export default function FtoWorkOrders() {
     "ftoWorkOrdersColumnModal",
     false,
   );
+  const [showFilterBar, setShowFilterBar] = usePageState(
+    "ftoWorkOrdersShowFilterBar",
+    false,
+  );
+  const [filterDateFrom, setFilterDateFrom] = usePageState(
+    "ftoWorkOrdersFilterDateFrom",
+    "",
+  );
+  const [filterDateTo, setFilterDateTo] = usePageState(
+    "ftoWorkOrdersFilterDateTo",
+    "",
+  );
+  const [filterVendor, setFilterVendor] = usePageState(
+    "ftoWorkOrdersFilterVendor",
+    "",
+  );
+  const [filterProperty, setFilterProperty] = usePageState(
+    "ftoWorkOrdersFilterProperty",
+    "",
+  );
+  const [filterStatus, setFilterStatus] = usePageState(
+    "ftoWorkOrdersFilterStatus",
+    "",
+  );
+  const [filterPriority, setFilterPriority] = usePageState(
+    "ftoWorkOrdersFilterPriority",
+    "",
+  );
+  const [filterHasBill, setFilterHasBill] = usePageState(
+    "ftoWorkOrdersFilterHasBill",
+    "" as "" | "yes" | "no",
+  );
   const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+
+  const filteredRows = useMemo(() => {
+    return rows.filter((r) => {
+      if (filterVendor) {
+        const v = (r.vendor_name ?? "").trim() || "—";
+        if (v !== filterVendor) return false;
+      }
+      if (filterProperty) {
+        const p =
+          r.property_name != null && String(r.property_name).trim()
+            ? String(r.property_name).trim()
+            : "—";
+        if (p !== filterProperty) return false;
+      }
+      if (filterStatus && r.status !== filterStatus) return false;
+      if (filterPriority && r.priority !== filterPriority) return false;
+      if (filterDateFrom || filterDateTo) {
+        const d = r.due_date ?? null;
+        if (!d) return false;
+        const dateStr = d.slice(0, 10);
+        if (filterDateFrom && dateStr < filterDateFrom) return false;
+        if (filterDateTo && dateStr > filterDateTo) return false;
+      }
+      if (filterHasBill === "yes") {
+        if (!r.bill_id) return false;
+      } else if (filterHasBill === "no") {
+        if (r.bill_id) return false;
+      }
+      return true;
+    });
+  }, [
+    rows,
+    filterVendor,
+    filterProperty,
+    filterStatus,
+    filterPriority,
+    filterDateFrom,
+    filterDateTo,
+    filterHasBill,
+  ]);
+
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    filteredRows,
+    "ftoWorkOrders",
+  );
+
+  const uniqueVendors = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          rows
+            .map((r) =>
+              r.vendor_name != null && String(r.vendor_name).trim()
+                ? String(r.vendor_name).trim()
+                : null,
+            )
+            .filter((x): x is string => x != null && x !== ""),
+          ),
+        ).sort(),
+    [rows],
+  );
+  const uniqueProperties = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          rows
+            .map((r) =>
+              r.property_name != null && String(r.property_name).trim()
+                ? String(r.property_name).trim()
+                : null,
+            )
+            .filter((x): x is string => x != null && x !== ""),
+          ),
+        ).sort(),
+    [rows],
+  );
+  const uniqueStatuses = useMemo(
+    () => Array.from(new Set(rows.map((r) => r.status).filter(Boolean))).sort(),
+    [rows],
+  );
+  const uniquePriorities = useMemo(
+    () =>
+      Array.from(new Set(rows.map((r) => r.priority).filter(Boolean))).sort(),
+    [rows],
+  );
 
   const {
     columnOrder,
@@ -147,6 +260,7 @@ export default function FtoWorkOrders() {
               due_date: wo.due_date ?? wo.dueDate ?? null,
               status: wo.status || "—",
               priority: wo.priority || "—",
+              bill_id: wo.bill_id ?? null,
             };
           }),
         );
@@ -169,7 +283,19 @@ export default function FtoWorkOrders() {
     { key: "status", label: "Status", icon: <DocumentIcon width={16} height={16} /> },
   ];
 
-  const displayRows = getSortedData(rows).map((r) => ({
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    filterDateFrom,
+    filterDateTo,
+    filterVendor,
+    filterProperty,
+    filterStatus,
+    filterPriority,
+    filterHasBill,
+  ]);
+
+  const displayRows = getSortedData().map((r) => ({
     ...r,
     property:
       r.property_name != null && String(r.property_name).trim()
@@ -178,7 +304,7 @@ export default function FtoWorkOrders() {
     unit: formatUnitLabel({
       unitId: r.unit_id,
       unitName: r.unit_name,
-      fallback: "N/A",
+      fallback: UNIT_EMPTY_DISPLAY,
     }),
     vendor:
       r.vendor_name != null && String(r.vendor_name).trim()
@@ -214,6 +340,141 @@ export default function FtoWorkOrders() {
           <div className="text-center py-8 text-red-500 text-sm">{error}</div>
         )}
 
+        {!loading && !error && showFilterBar && !isMobile && (
+          <div
+            className="flex flex-wrap items-center gap-4 p-4 rounded-lg border border-[#E5E5E5] bg-gray-50/80"
+            style={{ borderColor: "var(--color-border-light)" }}
+          >
+            <span className="text-sm font-medium text-[#303030] shrink-0">
+              Filter by
+            </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Date from
+                </label>
+                <input
+                  type="date"
+                  value={filterDateFrom}
+                  onChange={(e) => setFilterDateFrom(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Date to
+                </label>
+                <input
+                  type="date"
+                  value={filterDateTo}
+                  onChange={(e) => setFilterDateTo(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Vendor
+                </label>
+                <select
+                  value={filterVendor}
+                  onChange={(e) => setFilterVendor(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                >
+                  <option value="">All</option>
+                  {uniqueVendors.map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Property
+                </label>
+                <select
+                  value={filterProperty}
+                  onChange={(e) => setFilterProperty(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                >
+                  <option value="">All</option>
+                  {uniqueProperties.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Status
+                </label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                >
+                  <option value="">All</option>
+                  {uniqueStatuses.map((s) => (
+                    <option key={s} value={s}>
+                      {(s || "").replace(/_/g, " ")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Priority
+                </label>
+                <select
+                  value={filterPriority}
+                  onChange={(e) => setFilterPriority(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[120px]"
+                >
+                  <option value="">All</option>
+                  {uniquePriorities.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Bill attached
+                </label>
+                <select
+                  value={filterHasBill}
+                  onChange={(e) =>
+                    setFilterHasBill(e.target.value as "" | "yes" | "no")
+                  }
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[120px]"
+                >
+                  <option value="">All</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setFilterDateFrom("");
+                setFilterDateTo("");
+                setFilterVendor("");
+                setFilterProperty("");
+                setFilterStatus("");
+                setFilterPriority("");
+                setFilterHasBill("");
+                setCurrentPage(1);
+              }}
+              className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+
         {!loading && !error && !isMobile && (
           <>
             <GlobalTable
@@ -225,13 +486,11 @@ export default function FtoWorkOrders() {
                   (row.vendor ?? row.vendor_name ?? "").trim() || "—";
                 const propertyDisplay =
                   (row.property ?? row.property_name ?? "").trim() || "—";
-                const unitDisplay =
-                  row.unit ??
-                  formatUnitLabel({
-                    unitId: row.unit_id,
-                    unitName: row.unit_name,
-                    fallback: "N/A",
-                  });
+                const unitDisplay = formatUnitDisplayForTable(
+                  row.unit,
+                  row.unit_id,
+                  row.unit_name,
+                );
                 switch (columnKey) {
                   case "name":
                     return <span className="text-gray-900 text-sm">{row.name}</span>;
@@ -252,7 +511,7 @@ export default function FtoWorkOrders() {
                   case "unit":
                     return (
                       <span className="text-gray-900 text-sm">
-                        {unitDisplay || "N/A"}
+                        {unitDisplay}
                       </span>
                     );
                   case "status":
@@ -301,13 +560,18 @@ export default function FtoWorkOrders() {
               openMenuId={openMenuId}
               onOpenMenuIdChange={setOpenMenuId}
               title="Work Orders"
+              onFilterClick={() => {
+                setShowPageSizeDropdown(false);
+                setOpenMenuId(null);
+                setShowFilterBar(!showFilterBar);
+              }}
               headerActions={
                 <button
                   ref={columnButtonRef}
                   onClick={() => {
                     setShowPageSizeDropdown(false);
                     setOpenMenuId(null);
-                    setShowColumnModal((prev) => !prev);
+                    setShowColumnModal(!showColumnModal);
                   }}
                   className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                 >
@@ -374,7 +638,7 @@ export default function FtoWorkOrders() {
                     <div className="flex items-center gap-2">
                       <BuildingIcon width={14} height={14} className="flex-shrink-0" />
                       <span className="truncate">{row.property}</span>
-                      <span className="truncate text-gray-500">• {row.unit}</span>
+                      <span className="truncate text-gray-500">• {formatUnitDisplayForTable(row.unit, row.unit_id, row.unit_name)}</span>
                     </div>
                   </div>
                 </div>

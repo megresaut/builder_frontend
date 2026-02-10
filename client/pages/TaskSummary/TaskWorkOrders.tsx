@@ -13,6 +13,7 @@ import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import HeaderV1 from "@/components/HeaderV1";
 import PersonAvatars from "@/components/PersonAvatars";
 import { fetchJSON } from "@/api/fetchJSON";
+import { formatUnitDisplayForTable, UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import {
   EditIcon,
   DeleteIcon,
@@ -825,7 +826,7 @@ export default function TaskWorkOrders({
             if (columnKey === "unit") {
               return (
                 <span className="text-gray-900 font-normal text-sm truncate">
-                  {workOrder.unit}
+                  {formatUnitDisplayForTable(workOrder.unit)}
                 </span>
               );
             }
@@ -1046,7 +1047,7 @@ export default function TaskWorkOrders({
             task: data.workOrderName || data.task || "New Work Order",
             taskId: parseInt(taskId),
             property: defaultProperty || "",
-            unit: defaultUnit || "",
+            unit: defaultUnit || UNIT_EMPTY_DISPLAY,
             dueDate: data.dueDate || null,
             updatedDate: new Date().toLocaleDateString("en-US", {
               month: "short",

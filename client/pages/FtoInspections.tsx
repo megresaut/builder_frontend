@@ -12,6 +12,7 @@ import BlueButton from "@/components/BlueButton";
 import { useToastNotification } from "@/hooks/useToastNotification";
 import { useAuth } from "@/auth/useAuth";
 import { fetchJSON } from "@/api/fetchJSON";
+import { formatUnitDisplayForTable, UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import {
   CalendarIcon,
   BuildingIcon,
@@ -75,7 +76,7 @@ const mapBackendInspectionToRecord = (backend: BackendInspection): InspectionRec
   return {
     id: backend.id,
     property: backend.property_name || `Property ${backend.property_id}`,
-    unit: backend.unit_id ? `Unit ${backend.unit_id}` : "N/A",
+    unit: backend.unit_id ? `Unit ${backend.unit_id}` : UNIT_EMPTY_DISPLAY,
     date: dueDate,
     month: getMonthFromDate(dueDate),
     inspector: "N/A", // TODO: Fetch inspector name from user ID
@@ -311,7 +312,7 @@ export default function FtoInspections() {
                   case "property":
                     return <span className="text-gray-900 text-sm">{row.property}</span>;
                   case "unit":
-                    return <span className="text-gray-900 text-sm">{row.unit}</span>;
+                    return <span className="text-gray-900 text-sm">{formatUnitDisplayForTable(row.unit)}</span>;
                   case "inspectionName":
                     return <span className="text-gray-900 text-sm">{row.inspectionName || "—"}</span>;
                   case "date":

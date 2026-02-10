@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
@@ -14,7 +14,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import { fetchJSON } from "@/api/fetchJSON";
-import { formatUnitLabel } from "@/utils/unitLabel";
+import { formatUnitLabel, formatUnitDisplayForTable, UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import {
   EditIcon,
   DeleteIcon,
@@ -39,6 +39,7 @@ interface WorkOrder {
   property: string;
   unit: string;
   dueDate: string;
+  due_date?: string | null;
   updatedDate: string;
   age: string;
   priority: "High" | "Low" | "Normal";
@@ -137,9 +138,10 @@ const mapAPIWorkOrderToWorkOrder = (apiWO: APIWorkOrder): WorkOrder => {
     unit: formatUnitLabel({
       unitId: apiWO.unit_id,
       unitName: apiWO.unit_name,
-      fallback: "",
+      fallback: UNIT_EMPTY_DISPLAY,
     }),
     dueDate,
+    due_date: apiWO.due_date ?? null,
     updatedDate,
     age,
     priority: normalizePriority(apiWO.priority),
@@ -545,8 +547,93 @@ export default function MaintenanceWorkOrders() {
   const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] =
     usePageState("isCreateWorkOrderModalOpen", false);
 
-  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+  const [showFilterBar, setShowFilterBar] = usePageState(
+    "maintenanceWorkOrdersShowFilterBar",
+    false,
+  );
+  const [filterDateFrom, setFilterDateFrom] = usePageState(
+    "maintenanceWorkOrdersFilterDateFrom",
+    "",
+  );
+  const [filterDateTo, setFilterDateTo] = usePageState(
+    "maintenanceWorkOrdersFilterDateTo",
+    "",
+  );
+  const [filterVendor, setFilterVendor] = usePageState(
+    "maintenanceWorkOrdersFilterVendor",
+    "",
+  );
+  const [filterProperty, setFilterProperty] = usePageState(
+    "maintenanceWorkOrdersFilterProperty",
+    "",
+  );
+  const [filterStatus, setFilterStatus] = usePageState(
+    "maintenanceWorkOrdersFilterStatus",
+    "",
+  );
+  const [filterPriority, setFilterPriority] = usePageState(
+    "maintenanceWorkOrdersFilterPriority",
+    "",
+  );
+  const [filterHasBill, setFilterHasBill] = usePageState(
+    "maintenanceWorkOrdersFilterHasBill",
+    "" as "" | "yes" | "no",
+  );
+
+  const uniqueVendors = useMemo(
+    () =>
+      Array.from(
+        new Set(workOrders.map((wo) => wo.vendorName).filter(Boolean)),
+      ).sort(),
+    [workOrders],
+  );
+  const uniqueProperties = useMemo(
+    () =>
+      Array.from(new Set(workOrders.map((wo) => wo.property).filter(Boolean))).sort(),
+    [workOrders],
+  );
+  const uniqueStatuses = useMemo(
+    () => ["In progress", "Completed"] as const,
+    [],
+  );
+  const uniquePriorities = useMemo(
+    () => ["High", "Low", "Normal"] as const,
+    [],
+  );
+
+  const filteredWorkOrders = useMemo(() => {
+    return workOrders.filter((wo) => {
+      if (filterVendor && (wo.vendorName || "") !== filterVendor) return false;
+      if (filterProperty && wo.property !== filterProperty) return false;
+      if (filterStatus && wo.status !== filterStatus) return false;
+      if (filterPriority && wo.priority !== filterPriority) return false;
+      if (filterDateFrom || filterDateTo) {
+        const d = wo.due_date ?? null;
+        if (!d) return false;
+        const dateStr = d.slice(0, 10);
+        if (filterDateFrom && dateStr < filterDateFrom) return false;
+        if (filterDateTo && dateStr > filterDateTo) return false;
+      }
+      if (filterHasBill === "yes") {
+        if (wo.billTotal === "No invoice") return false;
+      } else if (filterHasBill === "no") {
+        if (wo.billTotal !== "No invoice") return false;
+      }
+      return true;
+    });
+  }, [
     workOrders,
+    filterVendor,
+    filterProperty,
+    filterStatus,
+    filterPriority,
+    filterDateFrom,
+    filterDateTo,
+    filterHasBill,
+  ]);
+
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    filteredWorkOrders,
     "allWorkOrders",
   );
   const {
@@ -814,6 +901,18 @@ export default function MaintenanceWorkOrders() {
     fetchWorkOrders();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    filterDateFrom,
+    filterDateTo,
+    filterVendor,
+    filterProperty,
+    filterStatus,
+    filterPriority,
+    filterHasBill,
+  ]);
+
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
@@ -829,6 +928,141 @@ export default function MaintenanceWorkOrders() {
         />
 
         <div className="flex flex-col gap-6">
+          {showFilterBar && !loading && (
+            <div
+              className="flex flex-wrap items-center gap-4 p-4 rounded-lg border border-[#E5E5E5] bg-gray-50/80"
+              style={{ borderColor: "var(--color-border-light)" }}
+            >
+              <span className="text-sm font-medium text-[#303030] shrink-0">
+                Filter by
+              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Date from
+                  </label>
+                  <input
+                    type="date"
+                    value={filterDateFrom}
+                    onChange={(e) => setFilterDateFrom(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Date to
+                  </label>
+                  <input
+                    type="date"
+                    value={filterDateTo}
+                    onChange={(e) => setFilterDateTo(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Vendor
+                  </label>
+                  <select
+                    value={filterVendor}
+                    onChange={(e) => setFilterVendor(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    {uniqueVendors.map((v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Property
+                  </label>
+                  <select
+                    value={filterProperty}
+                    onChange={(e) => setFilterProperty(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    {uniqueProperties.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Status
+                  </label>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    {uniqueStatuses.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Priority
+                  </label>
+                  <select
+                    value={filterPriority}
+                    onChange={(e) => setFilterPriority(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[120px]"
+                  >
+                    <option value="">All</option>
+                    {uniquePriorities.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Bill attached
+                  </label>
+                  <select
+                    value={filterHasBill}
+                    onChange={(e) =>
+                      setFilterHasBill(e.target.value as "" | "yes" | "no")
+                    }
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[120px]"
+                  >
+                    <option value="">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterDateFrom("");
+                  setFilterDateTo("");
+                  setFilterVendor("");
+                  setFilterProperty("");
+                  setFilterStatus("");
+                  setFilterPriority("");
+                  setFilterHasBill("");
+                  setCurrentPage(1);
+                }}
+                className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+
           {/* Work Orders Table - Using GlobalTable Component */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -837,7 +1071,7 @@ export default function MaintenanceWorkOrders() {
           ) : (
           <GlobalTable
             columns={columns}
-            data={workOrders}
+            data={getSortedData()}
             rowKey="id"
             renderCell={(workOrder, columnKey) => {
               if (columnKey === "priority") {
@@ -871,7 +1105,7 @@ export default function MaintenanceWorkOrders() {
               if (columnKey === "unit") {
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {workOrder.unit}
+                    {formatUnitDisplayForTable(workOrder.unit)}
                   </span>
                 );
               }
@@ -956,13 +1190,18 @@ export default function MaintenanceWorkOrders() {
             openMenuId={openMenuId}
             onOpenMenuIdChange={setOpenMenuId}
             title="Work Orders"
+            onFilterClick={() => {
+              setShowPageSizeDropdown(false);
+              setOpenMenuId(null);
+              setShowFilterBar(!showFilterBar);
+            }}
             headerActions={
               <button
                 ref={columnButtonRef}
                 onClick={() => {
                   setShowPageSizeDropdown(false);
                   setOpenMenuId(null);
-                  setShowColumnModal((prev) => !prev);
+                  setShowColumnModal(!showColumnModal);
                 }}
                 className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
                 data-test="column-button"

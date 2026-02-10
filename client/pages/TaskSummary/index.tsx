@@ -38,7 +38,7 @@ import PersonAvatars from "@/components/PersonAvatars";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import CreateTaskModal from "@/components/CreateTaskModal";
-import { formatUnitLabel } from "@/utils/unitLabel";
+import { formatUnitLabel, UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import {
   AddNoteModal,
   AddFileModal,
@@ -2057,7 +2057,7 @@ export default function TaskSummary() {
       task: String(apiWo.name || "Untitled Work Order"),
       taskId: Number(apiWo.task_id) || 0,
       property: String(apiWo.property_name || "Unknown Property"),
-      unit: String(taskUnit || "N/A"),
+      unit: String(taskUnit || UNIT_EMPTY_DISPLAY),
       dueDate: dueDateStr,
       updatedDate: updatedDateStr,
       age: age,
@@ -3537,7 +3537,7 @@ export default function TaskSummary() {
                   formatUnitLabel({
                     unitId: taskData?.unit_id ?? taskData?.unit,
                     unitName: taskData?.unit_name ?? taskData?.unit,
-                    fallback: "N/A",
+                    fallback: UNIT_EMPTY_DISPLAY,
                   })
               }
               lockedTaskId={taskId ? Number(taskId) : undefined}

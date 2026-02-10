@@ -21,6 +21,8 @@ import {
   PROPERTY_LEVEL_SHORT_LABEL,
   PROPERTY_LEVEL_UNIT_ID,
   formatUnitLabel,
+  formatUnitDisplayForTable,
+  UNIT_EMPTY_DISPLAY,
 } from "@/utils/unitLabel";
 
 interface SimpleUnit {
@@ -181,7 +183,7 @@ export default function CreateFTOModal({
       formatUnitLabel({
         unitId: editingFTO.unit_id ?? null,
         unitName: editingFTO.unit_name ?? null,
-        fallback: "N/A",
+        fallback: UNIT_EMPTY_DISPLAY,
       }),
     );
     setFtoName(editingFTO.name);
@@ -510,12 +512,13 @@ export default function CreateFTOModal({
       })();
 
   const unitDisplayLabel = isEditing
-    ? editingUnitLabel || "N/A"
+    ? (editingUnitLabel || UNIT_EMPTY_DISPLAY)
     : formatUnitLabel({
         unitId: lockedUnitId ?? null,
         unitName: lockedUnitLabel ?? null,
-        fallback: "N/A",
+        fallback: UNIT_EMPTY_DISPLAY,
       });
+  const unitDisplayForField = formatUnitDisplayForTable(unitDisplayLabel);
 
   const taskDisplayLabel =
     lockedTaskLabel || (lockedTaskId != null ? `Task #${lockedTaskId}` : "");
@@ -614,7 +617,7 @@ export default function CreateFTOModal({
           </div>
           <div>
             {isEditing || isPropertyLocked ? (
-              <TextField label="Unit" value={unitDisplayLabel} disabled />
+              <TextField label="Unit" value={unitDisplayForField} disabled />
             ) : (
               <SelectField
                 label="Unit"

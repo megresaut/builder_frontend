@@ -10,7 +10,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
-import { formatUnitLabel } from "@/utils/unitLabel";
+import { formatUnitLabel, formatUnitDisplayForTable, UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import HoursSummaryDrawer from "@/components/HoursSummaryDrawer";
 import { cn } from "@/lib/utils";
 import {
@@ -463,7 +463,7 @@ const transformAPIToFieldTeamOrder = (
       unit: formatUnitLabel({
         unitId: fto.unit_id,
         unitName: fto.unit_name,
-        fallback: "N/A",
+        fallback: UNIT_EMPTY_DISPLAY,
       }),
       field_team_member_ids: fto.field_team_member_ids ?? [],
       hours: fto.hours_decimal,
@@ -532,6 +532,14 @@ export default function FieldTeamOrders() {
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
   const [miscSearchValue, setMiscSearchValue] = usePageState("miscSearchValue", "");
   const [showHoursSummaryDrawer, setShowHoursSummaryDrawer] = useState(false);
+  const [showFilterBar, setShowFilterBar] = usePageState("showFilterBar", false);
+  const [filterDateFrom, setFilterDateFrom] = usePageState("filterDateFrom", "");
+  const [filterDateTo, setFilterDateTo] = usePageState("filterDateTo", "");
+  const [filterProperty, setFilterProperty] = usePageState("filterProperty", "");
+  const [filterFieldTeamMember, setFilterFieldTeamMember] = usePageState("filterFieldTeamMember", "");
+  const [filterTimesheetStatus, setFilterTimesheetStatus] = usePageState("filterTimesheetStatus", "");
+  const [filterFtoStatus, setFilterFtoStatus] = usePageState("filterFtoStatus", "");
+  const [filterPriority, setFilterPriority] = usePageState("filterPriority", "");
 
   async function fetchUsersByIds(
     ids: number[]
@@ -632,9 +640,31 @@ export default function FieldTeamOrders() {
     };
   }, [selectedTab]);
 
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    filterDateFrom,
+    filterDateTo,
+    filterProperty,
+    filterFieldTeamMember,
+    filterTimesheetStatus,
+    filterFtoStatus,
+    filterPriority,
+  ]);
+
+  // Unique values for filter dropdowns (from current orders)
+  const uniqueProperties = Array.from(
+    new Set(orders.map((o) => o.property).filter(Boolean))
+  ).sort();
+  const uniqueFieldTeamMembers = Array.from(
+    new Set(orders.flatMap((o) => o.fieldTeam.map((m) => m.name)).filter(Boolean))
+  ).sort();
+
   const filteredOrders = orders.filter((order) => {
     const searchLower = searchValue.toLowerCase();
-    return (
+    const matchesSearch =
+      !searchLower ||
       order.name.toLowerCase().includes(searchLower) ||
       order.property.toLowerCase().includes(searchLower) ||
       order.description.toLowerCase().includes(searchLower) ||
@@ -643,8 +673,27 @@ export default function FieldTeamOrders() {
       order.priority.toLowerCase().includes(searchLower) ||
       order.fieldTeam.some((member) =>
         member.name.toLowerCase().includes(searchLower)
-      )
-    );
+      );
+    if (!matchesSearch) return false;
+
+    if (filterDateFrom || filterDateTo) {
+      const orderDate = order.due_date ? new Date(order.due_date) : null;
+      if (!orderDate) return false;
+      const orderDateStr = orderDate.toISOString().slice(0, 10);
+      if (filterDateFrom && orderDateStr < filterDateFrom) return false;
+      if (filterDateTo && orderDateStr > filterDateTo) return false;
+    }
+    if (filterProperty && order.property !== filterProperty) return false;
+    if (
+      filterFieldTeamMember &&
+      !order.fieldTeam.some((m) => m.name === filterFieldTeamMember)
+    )
+      return false;
+    if (filterTimesheetStatus && order.timesheetStatus !== filterTimesheetStatus)
+      return false;
+    if (filterFtoStatus && order.status !== filterFtoStatus) return false;
+    if (filterPriority && order.priority !== filterPriority) return false;
+    return true;
   });
 
   const filteredMiscSubmissions = miscSubmissions.filter((sub) => {
@@ -815,7 +864,7 @@ export default function FieldTeamOrders() {
         state: {
           ftoName: order.description,
           property: order.property,
-          unit: order.unit ?? "",
+          unit: order.unit ?? UNIT_EMPTY_DISPLAY,
           fieldTeamAssignee:
             order.fieldTeamAssignee ?? order.fieldTeam?.[0]?.name ?? "",
           task: order.task ?? "",
@@ -948,6 +997,145 @@ export default function FieldTeamOrders() {
         </div>
 
         <div className="flex flex-col gap-6">
+          {/* FTO Filter bar - toggled by Filter button */}
+          {selectedTab === "ftos" && showFilterBar && (
+            <div
+              className="flex flex-wrap items-center gap-4 p-4 rounded-lg border border-[#E5E5E5] bg-gray-50/80"
+              style={{ borderColor: "var(--color-border-light)" }}
+            >
+              <span className="text-sm font-medium text-[#303030] shrink-0">
+                Filter by
+              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Date from
+                  </label>
+                  <input
+                    type="date"
+                    value={filterDateFrom}
+                    onChange={(e) => setFilterDateFrom(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Date to
+                  </label>
+                  <input
+                    type="date"
+                    value={filterDateTo}
+                    onChange={(e) => setFilterDateTo(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Property
+                  </label>
+                  <select
+                    value={filterProperty}
+                    onChange={(e) => setFilterProperty(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    {uniqueProperties.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Field team
+                  </label>
+                  <select
+                    value={filterFieldTeamMember}
+                    onChange={(e) => setFilterFieldTeamMember(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    {uniqueFieldTeamMembers.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Timesheet
+                  </label>
+                  <select
+                    value={filterTimesheetStatus}
+                    onChange={(e) =>
+                      setFilterTimesheetStatus(
+                        e.target.value as "" | "awaiting-submission" | "submitted" | "rejected" | "approved"
+                      )
+                    }
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    <option value="awaiting-submission">Awaiting submission</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="approved">Approved</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    FTO status
+                  </label>
+                  <select
+                    value={filterFtoStatus}
+                    onChange={(e) => setFilterFtoStatus(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    <option value="New">New</option>
+                    <option value="Dispatched">Dispatched</option>
+                    <option value="Completed">Completed</option>
+                    <option value="pending-approval">Pending approval</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Priority
+                  </label>
+                  <select
+                    value={filterPriority}
+                    onChange={(e) =>
+                      setFilterPriority(e.target.value as "low" | "normal" | "high")
+                    }
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[120px]"
+                  >
+                    <option value="">All</option>
+                    <option value="low">Low</option>
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterDateFrom("");
+                  setFilterDateTo("");
+                  setFilterProperty("");
+                  setFilterFieldTeamMember("");
+                  setFilterTimesheetStatus("");
+                  setFilterFtoStatus("");
+                  setFilterPriority("");
+                  setCurrentPage(1);
+                }}
+                className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+
           {/* FTO Table */}
           {selectedTab === "ftos" && (
             <>
@@ -994,15 +1182,20 @@ export default function FieldTeamOrders() {
                     if (columnKey === "unit") {
                       return (
                         <span className="text-gray-900 font-normal text-sm truncate">
-                          {order.unit || "-"}
+                          {formatUnitDisplayForTable(order.unit)}
                         </span>
                       );
                     }
                     if (columnKey === "name") {
                       return (
-                        <span className="text-gray-900 font-normal text-sm truncate">
-                          {order.name}
-                        </span>
+                        <div
+                          className="min-w-0 max-w-[200px]"
+                          title={order.name}
+                        >
+                          <span className="text-gray-900 font-normal text-sm truncate block">
+                            {order.name}
+                          </span>
+                        </div>
                       );
                     }
                     if (columnKey === "dueDate") {
@@ -1046,6 +1239,9 @@ export default function FieldTeamOrders() {
                     }
                     return null;
                   }}
+                  getCellClassName={(_order, columnKey) =>
+                    columnKey === "name" ? "max-w-[200px] w-[200px]" : ""
+                  }
                   sortingHook={{
                     handleSortClick,
                     getSortIndicator,
@@ -1074,6 +1270,11 @@ export default function FieldTeamOrders() {
                   openMenuId={openMenuId}
                   onOpenMenuIdChange={setOpenMenuId}
                   title="All Field Team Orders"
+                  onFilterClick={() => {
+                    setShowPageSizeDropdown(false);
+                    setOpenMenuId(null);
+                    setShowFilterBar(!showFilterBar);
+                  }}
                   headerActions={
                     <button
                       ref={columnButtonRef}
@@ -1275,7 +1476,7 @@ export default function FieldTeamOrders() {
 
                   // optional display helpers
                   property_name: order.property,
-                  unit_name: order.unit ?? null,
+                  unit_name: order.unit && order.unit !== UNIT_EMPTY_DISPLAY ? order.unit : null,
                 };
               })()
             : null

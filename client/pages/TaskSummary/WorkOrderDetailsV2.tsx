@@ -35,6 +35,7 @@ import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
+import { formatUnitDisplayForTable } from "@/utils/unitLabel";
 
 interface WorkOrder {
   id: number;
@@ -1260,7 +1261,7 @@ export default function WorkOrderDetailsV2({
   const displayWorkOrder = apiWorkOrder || workOrder;
   const displayName = apiWorkOrder?.name || workOrder?.task || "Work Order";
   const displayProperty = apiWorkOrder?.property_name || workOrder?.property || "Unknown Property";
-  const displayUnit = workOrder?.unit || "";
+  const displayUnit = formatUnitDisplayForTable(workOrder?.unit);
   const displayDescription = apiWorkOrder?.description || workOrder?.description || "No description provided";
   const displayInvoiceNumber = apiWorkOrder?.bill_invoice_number || workOrder?.invoiceNumber || "";
   const displayVendorName = apiWorkOrder?.vendor_name || workOrder?.vendorName || "Unassigned";
@@ -1366,8 +1367,8 @@ export default function WorkOrderDetailsV2({
                       Created by {displayCreatedBy} for
                     </div>
                     <div className="text-[#2463eb] text-sm font-bold leading-4">
-                      {displayProperty}{" "}
-                      {displayUnit && `- ${displayUnit}`}
+                      {displayProperty}
+                      {displayUnit ? ` - ${displayUnit}` : ""}
                     </div>
                     <div className="flex items-center gap-1 text-sm font-normal leading-[140%] tracking-[-0.28px] capitalize">
                       <span className="text-[#717179]">Created</span>
@@ -1784,7 +1785,7 @@ export default function WorkOrderDetailsV2({
               id: updatedWorkOrder.id,
               task: updatedWorkOrder.name,
               property: updatedWorkOrder.property_name || "",
-              unit: workOrder?.unit || "",
+              unit: formatUnitDisplayForTable(workOrder?.unit),
               status: mapBackendStatusToFrontend(updatedWorkOrder.status),
               priority: mapBackendPriorityToFrontend(updatedWorkOrder.priority),
               dueDate: updatedWorkOrder.due_date ? new Date(updatedWorkOrder.due_date) : null,
