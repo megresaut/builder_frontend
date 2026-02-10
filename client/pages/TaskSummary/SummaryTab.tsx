@@ -22,10 +22,13 @@ const getVendorHref = (vendorId: number | string): string | undefined => {
   return `/vendors/${vendorId}`;
 };
 
-// Helper function to format role from snake_case to Title Case
-const formatRole = (role: string): string => {
+// Helper function to format assignee/collaborator role for display
+const formatAssigneeRole = (role: string | undefined): string => {
   if (!role) return "Property Manager";
-  // Replace underscores with spaces and capitalize each word
+  const normalized = role.trim().toLowerCase();
+  if (normalized === "property_manager") return "Property Manager";
+  if (normalized === "field_team_manager") return "Field Manager";
+  // Fallback: title-case other roles (e.g. field_team_member -> Field Team Member)
   return role
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -88,6 +91,9 @@ interface SummaryTabProps {
   getPropertyName: (property: string) => string;
   getPropertyAddress: (property: string) => string;
   getRentalOwnerByProperty: (property: string) => any;
+  /** For summary stat: subtasks left to complete (total - completed). Omit to hide. */
+  subtasksTotal?: number;
+  subtasksCompleted?: number;
 }
 
 export default function SummaryTab({
@@ -140,7 +146,10 @@ export default function SummaryTab({
   getPropertyName,
   getPropertyAddress,
   getRentalOwnerByProperty,
+  subtasksTotal = 0,
+  subtasksCompleted = 0,
 }: SummaryTabProps) {
+  const subtasksLeft = Math.max(0, (subtasksTotal ?? 0) - (subtasksCompleted ?? 0));
   const navigate = useNavigate();
 
   // Calculate total expense from work orders and field team orders
@@ -216,7 +225,7 @@ export default function SummaryTab({
             name: creatorDetails?.name || "Unknown",
             email: creatorDetails?.email || "",
             phone: creatorDetails?.phone || "",
-            title: formatRole(creatorDetails?.role || "Property Manager"),
+            title: formatAssigneeRole(creatorDetails?.role || "Property Manager"),
             property:
               currentProperty && currentProperty !== "Unassigned"
                 ? `${getPropertyDisplayLabel(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`
@@ -228,6 +237,7 @@ export default function SummaryTab({
             { label: "TOTAL EXPENSE", value: `$${totalExpense}` },
             { label: "WORK ORDERS", value: workOrders.length.toString() },
             { label: "FTOs", value: fieldTeamOrders.length.toString() },
+            { label: "SUBTASKS", value: subtasksLeft.toString() },
           ]}
           sequentialNumber={sequentialNumber}
           taskId={taskId}
@@ -311,7 +321,7 @@ export default function SummaryTab({
                             .join("")
                             .toUpperCase()
                         : "?"),
-                    roleLabel: assignee.title || "Property manager",
+                    roleLabel: formatAssigneeRole(assignee.role) || assignee.title || "Property Manager",
                     email: assignee.email || "",
                     phone: "",
                     type: "staff",
@@ -344,7 +354,7 @@ export default function SummaryTab({
                             .join("")
                             .toUpperCase()
                         : "?"),
-                    roleLabel: collaborator.title || "Property manager",
+                    roleLabel: formatAssigneeRole(collaborator.role) || collaborator.title || "Property Manager",
                     email: collaborator.email || "",
                     phone: "",
                     type: "staff",
@@ -418,7 +428,7 @@ export default function SummaryTab({
                             name: creatorDetails.name,
                             initials: creatorDetails.initials,
                             email: creatorDetails.email,
-                            roleLabel: formatRole(creatorDetails.role),
+                            roleLabel: formatAssigneeRole(creatorDetails.role),
                             phone: creatorDetails.phone || "",
                           },
                         ]

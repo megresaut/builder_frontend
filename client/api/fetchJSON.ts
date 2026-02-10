@@ -18,6 +18,11 @@ export async function fetchJSON(path: string, options: RequestInit = {}) {
     throw new Error(`API error ${res.status}: ${text}`);
   }
 
+  // 204 No Content (e.g. DELETE) has no body
+  if (res.status === 204 || res.status === 205) {
+    return null;
+  }
+
   // Check if response is actually JSON before parsing
   const contentType = res.headers.get("content-type");
   if (!contentType || !contentType.includes("application/json")) {

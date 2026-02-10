@@ -100,13 +100,14 @@ export const AttachmentUploader: React.FC<AttachmentUploaderProps> = ({
     
     const viewableTypes = [
       "application/pdf",
+      "application/vnd.ms-outlook",
       "image/jpeg",
       "image/jpg",
       "image/png",
       "image/gif",
       "image/webp",
     ];
-    const viewableExtensions = [".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp"];
+    const viewableExtensions = [".pdf", ".msg", ".eml", ".jpg", ".jpeg", ".png", ".gif", ".webp"];
 
     const isViewableType = viewableTypes.includes(file.type);
     const isViewableExt = viewableExtensions.some((ext) =>

@@ -148,31 +148,34 @@ export default function CreateTaskModal({
 
     let cancelled = false;
 
+    const toAssignee = (u: any) => ({
+      id: Number(u.id),
+      name: u.name || u.email,
+      email: u.email,
+    });
+
     async function loadOptions() {
       try {
-        const [propsRes, assigneesRes, collaboratorsRes] = await Promise.all([
+        const [propsRes, fieldTeamRes, propertyManagersRes] = await Promise.all([
           fetchJSON("/properties").catch(() => []),
-          fetchJSON("/users/property-managers").catch(() => []),
+          fetchJSON("/users/field-team").catch(() => []),
           fetchJSON("/users/property-managers").catch(() => []),
         ]);
 
         if (cancelled) return;
 
         setProperties(propsRes || []);
-        setAvailableAssignees(
-          (assigneesRes || []).map((u: any) => ({
-            id: Number(u.id),
-            name: u.name || u.email,
-            email: u.email,
-          }))
-        );
-        setAvailableCollaborators(
-          (collaboratorsRes || []).map((u: any) => ({
-            id: Number(u.id),
-            name: u.name || u.email,
-            email: u.email,
-          }))
-        );
+
+        const seen = new Set<number>();
+        const merged: Assignee[] = [];
+        for (const u of [...(fieldTeamRes || []), ...(propertyManagersRes || [])]) {
+          const a = toAssignee(u);
+          if (seen.has(a.id)) continue;
+          seen.add(a.id);
+          merged.push(a);
+        }
+        setAvailableAssignees(merged);
+        setAvailableCollaborators(merged);
       } catch (err) {
         console.error("Failed to load options:", err);
       }

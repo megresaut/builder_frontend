@@ -1,0 +1,216 @@
+/**
+ * Parse an .eml (RFC822/MIME) file and return displayable fields in the same shape as ParsedMsg.
+ */
+
+import type { ParsedMsg } from "@/utils/parseMsgFile";
+
+export async function parseEmlFile(input: File | Blob | ArrayBuffer): Promise<ParsedMsg> {
+  const text =
+    typeof input === "string"
+      ? input
+      : input instanceof ArrayBuffer
+        ? new TextDecoder("utf-8", { fatal: false }).decode(input)
+        : await (input as File | Blob).text();
+
+  const { headers, body: rawBody } = splitHeadersAndBody(text);
+  const subject = getHeader(headers, "subject") ?? "";
+  const from = formatAddress(getHeader(headers, "from")) || "—";
+  const to = formatAddressList(getHeader(headers, "to")) || "—";
+  const dateStr = getHeader(headers, "date");
+  const date = formatDate(dateStr ?? "");
+
+  const contentType = (getHeader(headers, "content-type") ?? "").toLowerCase();
+  const contentTransferEncoding = (getHeader(headers, "content-transfer-encoding") ?? "").toLowerCase();
+
+  let bodyHtml = "";
+  let bodyPlain = "";
+
+  if (contentType.includes("multipart/")) {
+    const boundaryMatch = contentType.match(/boundary\s*=\s*["']?([^"'\s;]+)["']?/i);
+    const boundary = boundaryMatch ? boundaryMatch[1].trim() : null;
+    if (boundary) {
+      const parts = splitMultipart(rawBody, boundary);
+      for (const part of parts) {
+        const { headers: partHeaders, body: partBody } = splitHeadersAndBody(part);
+        const partType = (getHeader(partHeaders, "content-type") ?? "").toLowerCase();
+        const partEncoding = (getHeader(partHeaders, "content-transfer-encoding") ?? "").toLowerCase();
+        const decoded = decodeBody(partBody, partEncoding);
+        if (partType.includes("text/html")) {
+          bodyHtml = decoded;
+        } else if (partType.includes("text/plain") && !bodyPlain) {
+          bodyPlain = decoded;
+        }
+      }
+    }
+    if (!bodyHtml && bodyPlain) bodyHtml = escapeHtml(bodyPlain);
+  } else {
+    const decoded = decodeBody(rawBody, contentTransferEncoding);
+    if (contentType.includes("text/html")) {
+      bodyHtml = decoded;
+      bodyPlain = stripHtml(decoded);
+    } else {
+      bodyPlain = decoded;
+      bodyHtml = escapeHtml(decoded);
+    }
+  }
+
+  return {
+    subject: decodeMimeWords(subject),
+    from: decodeMimeWords(from),
+    to: decodeMimeWords(to),
+    date,
+    bodyHtml: bodyHtml || bodyPlain || "",
+    bodyPlain: bodyPlain || undefined,
+  };
+}
+
+function splitHeadersAndBody(raw: string): { headers: string; body: string } {
+  const re = /\r?\n\r?\n/;
+  const idx = raw.search(re);
+  if (idx === -1) return { headers: raw, body: "" };
+  return {
+    headers: raw.slice(0, idx),
+    body: raw.slice(idx + (raw[idx + 1] === "\r" ? 4 : 2)),
+  };
+}
+
+function parseHeaders(headerSection: string): Map<string, string> {
+  const map = new Map<string, string>();
+  const lines = headerSection.split(/\r?\n/);
+  let currentKey: string | null = null;
+  let currentValue: string[] = [];
+
+  for (const line of lines) {
+    const folded = /^\s/.test(line);
+    if (folded && currentKey !== null) {
+      currentValue.push(line.trimStart());
+      continue;
+    }
+    if (currentKey !== null && currentValue.length > 0) {
+      map.set(currentKey.toLowerCase(), currentValue.join(" ").trim());
+    }
+    const colon = line.indexOf(":");
+    if (colon === -1) {
+      currentKey = null;
+      currentValue = [];
+      continue;
+    }
+    currentKey = line.slice(0, colon).trim();
+    currentValue = [line.slice(colon + 1).trim()];
+  }
+  if (currentKey !== null && currentValue.length > 0) {
+    map.set(currentKey.toLowerCase(), currentValue.join(" ").trim());
+  }
+  return map;
+}
+
+function getHeader(headerSection: string, name: string): string | null {
+  const map = parseHeaders(headerSection);
+  return map.get(name.toLowerCase()) ?? null;
+}
+
+function formatAddress(value: string | null): string {
+  if (!value || !value.trim()) return "";
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(.+?)\s*<([^>]+)>$/);
+  if (match) return `${match[1].trim()} <${match[2].trim()}>`;
+  return trimmed;
+}
+
+function formatAddressList(value: string | null): string {
+  if (!value || !value.trim()) return "";
+  return value
+    .split(/,\s*/)
+    .map((a) => formatAddress(a.trim()))
+    .filter(Boolean)
+    .join(", ");
+}
+
+function formatDate(value: string): string {
+  if (!value || !value.trim()) return "";
+  try {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  } catch {
+    return value;
+  }
+}
+
+function decodeBody(body: string, encoding: string): string {
+  const trimmed = body.replace(/\s+$/, "");
+  if (!trimmed) return "";
+  if (encoding.includes("base64")) {
+    try {
+      const binary = atob(trimmed.replace(/\s/g, ""));
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+    } catch {
+      return body;
+    }
+  }
+  if (encoding.includes("quoted-printable")) {
+    return decodeQuotedPrintable(trimmed);
+  }
+  return trimmed;
+}
+
+function decodeQuotedPrintable(str: string): string {
+  return str
+    .replace(/=\r?\n/g, "")
+    .replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+}
+
+function splitMultipart(body: string, boundary: string): string[] {
+  const b = boundary.replace(/^["']|["']$/g, "").trim();
+  const regex = new RegExp(`--${escapeRe(b)}\\r?\\n`, "g");
+  const parts = body.split(regex).map((p) => p.replace(/\r?\n$/, "").trim());
+  return parts.filter((p) => p.length > 0 && !p.startsWith("--"));
+}
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function decodeMimeWords(str: string): string {
+  return str.replace(/\=\?([^?]+)\?([BQbq])\?([^?]*)\?\=/g, (_, charset, enc, payload) => {
+    try {
+      if (enc.toUpperCase() === "B") {
+        const binary = atob(payload.replace(/\s/g, ""));
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return new TextDecoder(charset || "utf-8", { fatal: false }).decode(bytes);
+      }
+      if (enc.toUpperCase() === "Q") {
+        return decodeQuotedPrintable(payload.replace(/_/g, " "));
+      }
+    } catch {}
+    return payload;
+  });
+}
+
+function stripHtml(html: string): string {
+  const div = typeof document !== "undefined" ? document.createElement("div") : null;
+  if (div) {
+    div.innerHTML = html;
+    return (div.textContent || div.innerText || "").trim();
+  }
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function escapeHtml(text: string): string {
+  const div = typeof document !== "undefined" ? document.createElement("div") : null;
+  if (div) {
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}

@@ -337,6 +337,7 @@ export const RecordBill = () => {
 
 
   const billIdParam = searchParams.get("billId");
+  const returnTo = searchParams.get("returnTo");
 
   // billId is either a real number OR null
   const billId: number | null =
@@ -887,7 +888,11 @@ export const RecordBill = () => {
 
   const handleCancel = () => {
     closeViewer();
-    navigate(-1);
+    if (returnTo) {
+      navigate(returnTo);
+    } else {
+      navigate(-1);
+    }
   };
 
   const handleRecordBill = async () => {
@@ -904,7 +909,11 @@ export const RecordBill = () => {
   
     // 🔹 NEW BILL: Save is a no-op (Approve is what persists)
     if (!billId) {
-      navigate(-1);
+      if (returnTo) {
+        navigate(returnTo);
+      } else {
+        navigate(-1);
+      }
       return;
     }
   
@@ -918,7 +927,11 @@ export const RecordBill = () => {
         body: JSON.stringify(payload),
       });
   
-      navigate(-1);
+      if (returnTo) {
+        navigate(returnTo);
+      } else {
+        navigate(-1);
+      }
     } catch (err) {
       console.error("Failed to update bill draft:", err);
     }
@@ -1213,7 +1226,11 @@ export const RecordBill = () => {
       );
   
       // Close page
-      navigate(-1);
+      if (returnTo) {
+        navigate(returnTo);
+      } else {
+        navigate(-1);
+      }
   
     } catch (err) {
       console.error("Failed to approve and export bill:", err);
@@ -1373,20 +1390,21 @@ export const RecordBill = () => {
     pdf_object_key: string;
     sha256_pdf: string;
   } | null>(null);
+  const [isDragActive, setIsDragActive] = useState(false);
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
+  const ACCEPTED_FILE_TYPES = [".pdf", ".jpg", ".jpeg", ".png"];
+  const isAcceptedFile = (file: File) => {
+    const name = file.name.toLowerCase();
+    return ACCEPTED_FILE_TYPES.some((ext) => name.endsWith(ext)) ||
+      ["application/pdf", "image/jpeg", "image/png"].includes(file.type);
+  };
+
+  const processFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-  
-    const file = files[0];
+    const file = Array.from(files).find(isAcceptedFile) ?? files[0];
     const preview = URL.createObjectURL(file);
     (file as any).preview = preview;
-  
-    // -------------------------
-    // UI preview (existing)
-    // -------------------------
+
     setUploadedFiles([
       {
         name: file.name.replace(/\.[^.]*$/, ""),
@@ -1394,47 +1412,63 @@ export const RecordBill = () => {
         file,
       },
     ]);
-  
-    // -------------------------
-    // Upload to backend (NEW bills only)
-    // -------------------------
+
     if (!billId) {
       try {
         const formData = new FormData();
         formData.append("file", file);
-  
-        const res = await fetch(
-          // "/api/vendors/bills/upload-pdf", 
-          "/api/vendors/bills/upload-pdf", 
-          {
-            method: "POST",
-            body: formData,
-            // ❗ DO NOT set headers here
-          }
-        );
-  
+
+        const res = await fetch("/api/vendors/bills/upload-pdf", {
+          method: "POST",
+          body: formData,
+        });
+
         if (!res.ok) {
           const errText = await res.text();
           throw new Error(errText || "PDF upload failed");
         }
-  
+
         const data = await res.json();
-  
         setUploadedPdfMeta({
           pdf_object_key: data.pdf_object_key,
           sha256_pdf: data.sha256_pdf,
         });
-  
-        console.log("PDF uploaded:", data);
       } catch (err) {
         console.error("Failed to upload PDF:", err);
         alert("PDF upload failed");
       }
     }
-  
-    // Reset file input so same file can be re-uploaded
+  };
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    await processFiles(files);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+    const files = e.dataTransfer.files;
+    if (files?.length) {
+      await processFiles(files);
     }
   };
   
@@ -1615,7 +1649,7 @@ minHeight: 0,
               alignSelf: "stretch",
               display: "flex",
               flexDirection: "column",
-              padding: "24px 32px",
+              padding: "12px 32px 24px",
               position: "relative",
             }}
           >
@@ -1639,8 +1673,15 @@ minHeight: 0,
                 >
                   {uploadedFiles.length === 0 ? (
                     <div
-                      className="rounded-lg bg-white border border-dashed border-[#121212]/40 flex flex-col overflow-hidden justify-center flex-1"
+                      className={`rounded-lg bg-white border flex flex-col overflow-hidden justify-center flex-1 transition-colors ${
+                        isDragActive
+                          ? "border-[#2463eb] border-2 border-dashed bg-[#f0f7ff]"
+                          : "border-dashed border-[#121212]/40"
+                      }`}
                       style={{ padding: "16px 24px" }}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
                     >
                       <div className="self-center flex flex-col items-center">
                         <div className="flex flex-col items-center p-2.5 text-[#09090B] leading-[1]">
@@ -1674,13 +1715,18 @@ minHeight: 0,
                     </div>
                   ) : (
                     <div
-                      className="flex flex-col flex-1"
+                      className={`flex flex-col flex-1 rounded-lg transition-colors ${
+                        isDragActive ? "ring-2 ring-[#2463eb] ring-offset-2 bg-[#f0f7ff]/30" : ""
+                      }`}
                       style={{
                         padding: "24px 0",
                         overflow: "hidden",
                         display: "flex",
                         flexDirection: "column",
                       }}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
                     >
                       <div className="text-sm text-[#A1A1A9] mb-4">
                         Limited to 10 files. Max file size is 20MB.
@@ -1784,115 +1830,36 @@ minHeight: 0,
               </div>
             ) : (
               <div
-                className="flex flex-col flex-1 w-full h-full"
+                className="flex flex-col flex-1 w-full min-h-0 relative pt-10"
                 style={{ display: "flex", flexDirection: "column" }}
               >
-                {!isReadOnly && (
-                  <div className="flex items-center justify-between bg-gray-700 px-4 py-3 gap-2">
-                    <button
-                      onClick={() =>
-                        !isReadOnly && fileInputRef.current?.click()
-                      }
-                      disabled={isReadOnly}
-                      className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                        isReadOnly
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-white text-gray-900 hover:bg-gray-100"
-                      }`}
-                      title="Upload files"
-                    >
-                      Upload files
-                    </button>
-                    <button
-                      onClick={() => {}}
-                      disabled={isReadOnly}
-                      className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                        isReadOnly
-                          ? "bg-gray-400 text-gray-300 cursor-not-allowed"
-                          : "bg-gray-600 text-white hover:bg-gray-500"
-                      }`}
-                      title="Autofill from file"
-                    >
-                      Autofill from file
-                    </button>
-                    <div className="flex-1" />
-                    <button
-                      onClick={() => !isReadOnly && handleDownloadFile()}
-                      disabled={isReadOnly}
-                      className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
-                        isReadOnly
-                          ? "bg-gray-400 text-gray-300 cursor-not-allowed"
-                          : "bg-gray-600 text-white hover:bg-gray-500"
-                      }`}
-                      title="Download"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                        />
-                      </svg>
-                      Download
-                    </button>
-                    <button
-                      onClick={() => !isReadOnly && handleDeleteFile()}
-                      disabled={isReadOnly}
-                      className={`rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
-                        isReadOnly
-                          ? "bg-gray-400 text-gray-300 cursor-not-allowed"
-                          : "bg-red-600 text-white hover:bg-red-700"
-                      }`}
-                      title="Delete"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                      Delete
-                    </button>
-                    <button
-                      onClick={closeViewer}
-                      className="text-white hover:text-gray-300 transition-colors"
-                      title="Close"
-                    >
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                )}
-                <div className="flex-1 overflow-auto w-full">
+                <button
+                  onClick={closeViewer}
+                  className="absolute top-2 right-2 z-10 rounded-md p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200/80 transition-colors"
+                  title="Close"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+                <div className="flex-1 min-h-0 overflow-auto w-full flex flex-col">
                   <iframe
                     src={viewingFileUrl}
+                    className="flex-1 w-full min-h-[400px]"
                     style={{
                       width: "100%",
-                      height: "600px",
+                      height: "100%",
+                      minHeight: "400px",
                     }}
                   />
                 </div>

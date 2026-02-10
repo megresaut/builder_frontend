@@ -44,10 +44,25 @@ type EditPropertyDTO = {
 
   manager_ids: number[];
   manager_names: string[];
+  rental_owners?: string[];
 };
 
-
-
+/** Parse backend `owners` (JSON array of { name } or string) into array of owner names. */
+function parseOwnerNames(owners: unknown): string[] {
+  if (!owners) return [];
+  if (Array.isArray(owners)) {
+    return owners.map((o: any) => (o && typeof o.name === "string" ? o.name : String(o ?? ""))).filter(Boolean);
+  }
+  if (typeof owners === "string") {
+    try {
+      const parsed = JSON.parse(owners);
+      return Array.isArray(parsed) ? parsed.map((o: any) => (o && o.name) || "").filter(Boolean) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
 
 const ActionButton = ({
   property,
@@ -315,6 +330,8 @@ export default function AllProperties() {
     try {
       const full = await fetchJSON(`/properties/${property.id}`);
   
+      const rental_owners = parseOwnerNames(full.owners);
+
       const payload = {
         id: full.id,
         name: full.name,
@@ -331,6 +348,7 @@ export default function AllProperties() {
         hourly_rate_cents: full.hourly_rate_cents,
         emergency_hourly_rate_cents: full.emergency_hourly_rate_cents,
         management_fee_cents: full.management_fee_cents,
+        rental_owners,
       };
   
       // 🔍 DEBUG: print payload going into modal
