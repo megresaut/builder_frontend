@@ -110,6 +110,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     if (isFtoMode) {
       if (path === "/fto" || path === "/fto/") return "fto-home";
       if (path.startsWith("/fto/inspections")) return "fto-inspections";
+      if (path.startsWith("/fto/work-orders")) return "fto-work-orders";
       return null;
     }
     if (path === "/") return "properties";
@@ -278,6 +279,59 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
             </svg>
           ),
         },
+        {
+          id: "fto-work-orders",
+          label: "Work Orders",
+          iconLight: (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                stroke="#717179"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
+                stroke="#717179"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ),
+          iconDark: (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                fill="#303030"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ),
+        },
       ]
     : [
         {
@@ -422,6 +476,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     dashboard: [],
     "fto-home": [{ label: "Home", path: "/fto", sectionId: "fto-home" }],
     "fto-inspections": [{ label: "Property Inspections", path: "/fto/inspections", sectionId: "fto-inspections" }],
+    "fto-work-orders": [{ label: "Work Orders", path: "/fto/work-orders", sectionId: "fto-work-orders" }],
     properties: [
       {
         label: "All Properties",

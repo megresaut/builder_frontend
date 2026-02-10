@@ -37,6 +37,8 @@ import FtoSubmissionForm from "./pages/FtoSubmissionForm";
 import ApproveFtoPage from "./pages/ApproveFtoPage";
 import FtoInspections from "./pages/FtoInspections";
 import FtoInspectionForm from "./pages/FtoInspectionForm";
+import FtoWorkOrders from "./pages/FtoWorkOrders";
+import FtoWorkOrderDetail from "./pages/FtoWorkOrderDetail";
 
 const queryClient = new QueryClient();
 
@@ -383,6 +385,20 @@ export default function App() {
 
                   {/* Edit / View */}
                   <Route path=":inspectionId" element={<FtoInspectionForm />} />
+                </Route>
+
+                <Route
+                  path="/fto/work-orders"
+                  element={
+                    <RequireAuth>
+                      <FtoShellLayout>
+                        <Outlet />
+                      </FtoShellLayout>
+                    </RequireAuth>
+                  }
+                >
+                  <Route index element={<FtoWorkOrders />} />
+                  <Route path=":workOrderId" element={<FtoWorkOrderDetail />} />
                 </Route>
 
                 {/* ---------- FALLBACK ---------- */}
