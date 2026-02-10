@@ -394,9 +394,10 @@ export default function FtoHome() {
         // Store all FTOs for matching with submissions
         setAllFTOs(ftoResponse);
   
-        // Filter to only open/non-submitted FTOs for display
+        // Filter to only open/non-submitted FTOs for display (exclude cancelled)
         const openFTOs = ftoResponse.filter(
-          (fto: any) => fto.form_submission_status === "none",
+          (fto: any) =>
+            fto.form_submission_status === "none" && fto.status !== "cancelled",
         );
   
         setAllOrders(transformAPIData(openFTOs));

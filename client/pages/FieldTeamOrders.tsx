@@ -119,6 +119,7 @@ const normalizeFTOStatus = (status: string) => {
   if (status === "completed") return "Completed";
   if (status === "new") return "New";
   if (status === "dispatched") return "Dispatched";
+  if (status === "cancelled") return "Cancelled";
   return status;
 };
 
@@ -567,10 +568,11 @@ export default function FieldTeamOrders() {
         `/maintenance/ftos?limit=100`
       );
       
-      const apiData: APIFTOResponse[] = Array.isArray(raw)
+      const rawData: APIFTOResponse[] = Array.isArray(raw)
         ? raw
         : raw?.data ?? raw?.items ?? raw?.results ?? [];
-      
+      const apiData = rawData.filter((fto) => fto.status !== "cancelled");
+
       // collect all field team IDs
       const allFieldTeamIds = apiData.flatMap(
         (fto) => fto.field_team_member_ids ?? []
