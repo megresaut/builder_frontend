@@ -84,7 +84,8 @@ function useInitialTabState(): {
   return initial;
 }
 
-/** Syncs URL to the selected tab's route when we restored from sessionStorage (so refresh shows correct page). */
+/** Syncs URL to the selected tab's route when we restored from sessionStorage (so refresh shows correct page).
+ *  Only sync when current path is "/" so that direct navigations (e.g. /fto for Field Team Portal) are not overwritten. */
 function RestoreTabUrlSync({ didRestore }: { didRestore: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -92,6 +93,8 @@ function RestoreTabUrlSync({ didRestore }: { didRestore: boolean }) {
   const doneRef = useRef(false);
   useEffect(() => {
     if (!didRestore || doneRef.current) return;
+    // Only override URL when user landed on root; don't redirect away from /fto or other direct links
+    if (location.pathname !== "/" && location.pathname !== "") return;
     const route = tabMetadata[selectedTab]?.route;
     if (route && route !== location.pathname) {
       doneRef.current = true;

@@ -129,6 +129,7 @@ const normalizeFTOStatus = (status: string) => {
   if (status === "completed") return "Completed";
   if (status === "new") return "New";
   if (status === "dispatched") return "Dispatched";
+  if (status === "cancelled") return "Cancelled";
   return status;
 };
 
@@ -477,11 +478,13 @@ const getFTOStatusBadge = (status: string) => {
     "New": { label: "New", dotColor: "#1E40AF" },
     "Dispatched": { label: "Dispatched", dotColor: "#B45309" },
     "Completed": { label: "Completed", dotColor: "#166534" },
+    "Cancelled": { label: "Cancelled", dotColor: "#6B7280" },
     "pending-approval": { label: "New", dotColor: "#1E40AF" },
     // Handle lowercase versions for backwards compatibility
     "new": { label: "New", dotColor: "#1E40AF" },
     "dispatched": { label: "Dispatched", dotColor: "#B45309" },
     "completed": { label: "Completed", dotColor: "#166534" },
+    "cancelled": { label: "Cancelled", dotColor: "#6B7280" },
   };
 
   const config = statusConfig[status] || statusConfig["New"];
@@ -1294,7 +1297,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         const data: APIFTO[] = await fetchJSON(
           `/maintenance/ftos?property_id=${propertyId}&limit=200`
         );
-        const transformed = transformAPIToFieldTeamOrders(data, fieldTeamUsers);
+        const filteredData = data.filter((fto) => fto.status !== "cancelled");
+        const transformed = transformAPIToFieldTeamOrders(filteredData, fieldTeamUsers);
         setFieldTeamOrdersList(transformed);
       } catch (err) {
         console.error("Failed to fetch field team orders", err);
