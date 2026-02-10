@@ -808,9 +808,11 @@ export default function TaskWorkOrders({
             }
             if (columnKey === "task") {
               return (
-                <span className="text-gray-900 font-normal text-sm truncate">
-                  {workOrder.task}
-                </span>
+                <div className="min-w-0 max-w-[280px]" title={workOrder.task}>
+                  <span className="block truncate text-gray-900 font-normal text-sm">
+                    {workOrder.task}
+                  </span>
+                </div>
               );
             }
             if (columnKey === "property") {

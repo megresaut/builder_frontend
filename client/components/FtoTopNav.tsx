@@ -21,6 +21,8 @@ function ActionsMenuContent({
 
   const items = [
     { value: "home", label: "Home", onSelect: () => onNavigate("/fto") },
+    { value: "inspections", label: "Property Inspections", onSelect: () => onNavigate("/fto/inspections") },
+    { value: "work-orders", label: "Work Orders", onSelect: () => onNavigate("/fto/work-orders") },
     { value: "settings", label: "Settings", onSelect: () => onClose() },
   ];
 
@@ -69,6 +71,8 @@ export default function FtoTopNav() {
   const [open, setOpen] = useState(false);
 
   const isHome = location.pathname === "/fto" || location.pathname === "/fto/";
+  const isInspections = location.pathname.startsWith("/fto/inspections");
+  const isWorkOrders = location.pathname.startsWith("/fto/work-orders");
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -104,7 +108,17 @@ export default function FtoTopNav() {
               Home
             </span>
           )}
-          {!isHome && (
+          {isInspections && (
+            <span className="text-sm font-medium text-gray-900 truncate">
+              Property Inspections
+            </span>
+          )}
+          {isWorkOrders && (
+            <span className="text-sm font-medium text-gray-900 truncate">
+              Work Orders
+            </span>
+          )}
+          {!isHome && !isInspections && !isWorkOrders && (
             <span className="text-sm font-medium text-gray-900 truncate">
               Field Team Orders
             </span>
