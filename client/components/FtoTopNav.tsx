@@ -4,63 +4,75 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-  usePopoverContext,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
+const NAV_ITEMS = [
+  { value: "home", label: "Home", path: "/fto" },
+  { value: "inspections", label: "Property Inspections", path: "/fto/inspections" },
+  { value: "work-orders", label: "Work Orders", path: "/fto/work-orders" },
+] as const;
+
 function ActionsMenuContent({
   isHome,
+  isInspections,
+  isWorkOrders,
   onNavigate,
   onClose,
 }: {
   isHome: boolean;
+  isInspections: boolean;
+  isWorkOrders: boolean;
   onNavigate: (path: string) => void;
   onClose: () => void;
 }) {
-  const popover = usePopoverContext();
-
-  const items = [
-    { value: "home", label: "Home", onSelect: () => onNavigate("/fto") },
-    { value: "inspections", label: "Property Inspections", onSelect: () => onNavigate("/fto/inspections") },
-    { value: "work-orders", label: "Work Orders", onSelect: () => onNavigate("/fto/work-orders") },
-    { value: "settings", label: "Settings", onSelect: () => onClose() },
-  ];
-
-  // Register items for typeahead + Enter selection
-  React.useEffect(() => {
-    popover.setSearchableItems(
-      items.map(({ value, label }) => ({ value, label })),
-    );
-    popover.onEnterSelect?.((item) => {
-      if (!item) return;
-      const match = items.find((i) => i.value === item.value);
-      match?.onSelect();
-    });
-  }, [popover]);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
-    <div className="flex flex-col py-1 whitespace-nowrap">
-      {items.map((item, index) => {
-        const isSelected = item.value === "home" && isHome;
-        const isHighlighted = popover.highlightedIndex === index;
+    <div className="flex flex-col py-1 whitespace-nowrap" role="menu">
+      {NAV_ITEMS.map((item, index) => {
+        const isSelected =
+          (item.value === "home" && isHome) ||
+          (item.value === "inspections" && isInspections) ||
+          (item.value === "work-orders" && isWorkOrders);
+        const isHighlighted = hoveredIndex === index;
 
         return (
           <button
             key={item.value}
             type="button"
-            onClick={item.onSelect}
-            onMouseEnter={() => popover.setHighlightedIndex(index)}
-            data-selected={isSelected ? "true" : "false"}
-            data-highlighted={isHighlighted ? "true" : "false"}
+            role="menuitem"
+            onClick={() => {
+              onNavigate(item.path);
+            }}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
             className={cn(
-              "text-left px-4 py-2 text-sm",
-              isSelected ? "text-[#013764] font-medium" : "text-gray-700",
+              "text-left px-4 py-3 text-sm min-h-[44px] flex items-center touch-manipulation",
+              "active:bg-gray-100 transition-colors",
+              isSelected ? "text-[#013764] font-semibold bg-blue-50" : "text-gray-800",
+              isHighlighted && !isSelected && "bg-gray-50",
             )}
           >
             {item.label}
           </button>
         );
       })}
+      <div className="border-t border-gray-100 my-1" />
+      <button
+        type="button"
+        role="menuitem"
+        onClick={onClose}
+        onMouseEnter={() => setHoveredIndex(NAV_ITEMS.length)}
+        onMouseLeave={() => setHoveredIndex(null)}
+        className={cn(
+          "text-left px-4 py-3 text-sm min-h-[44px] flex items-center touch-manipulation",
+          "text-gray-600 active:bg-gray-100 transition-colors",
+          hoveredIndex === NAV_ITEMS.length && "bg-gray-50",
+        )}
+      >
+        Close menu
+      </button>
     </div>
   );
 }
@@ -78,6 +90,16 @@ export default function FtoTopNav() {
     navigate(path);
     setOpen(false);
   };
+
+  // Plus button: submission on Home, new inspection on Inspections; hidden on Work Orders
+  const handlePlusClick = () => {
+    if (isInspections) {
+      navigate("/fto/inspections/new");
+    } else {
+      navigate("/fto/submission");
+    }
+  };
+  const showPlusButton = !isWorkOrders;
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -127,24 +149,26 @@ export default function FtoTopNav() {
 
         {/* Right: Add Button & Menu */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button
-            onClick={() => navigate("/fto/submission")}
-            className="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-gray-700"
-            title="Add new order"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {showPlusButton && (
+            <button
+              onClick={handlePlusClick}
+              className="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-gray-700"
+              title={isInspections ? "New inspection" : "Add new order"}
             >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+          )}
 
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -175,6 +199,8 @@ export default function FtoTopNav() {
             >
               <ActionsMenuContent
                 isHome={isHome}
+                isInspections={isInspections}
+                isWorkOrders={isWorkOrders}
                 onNavigate={handleNavigate}
                 onClose={() => setOpen(false)}
               />
