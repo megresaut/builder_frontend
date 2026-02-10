@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-interface TabMetadata {
+export interface TabMetadata {
   label: string;
   sectionId?: string; // The section being viewed (e.g., "bills", "field-team-orders")
   route?: string; // Current route/page for this tab
@@ -27,11 +27,24 @@ interface TabMetadata {
   historyIndex?: number; // Current position in history
 }
 
+/** Serializable tab entry for persistence (no React nodes). */
+export interface TabEntry {
+  id: string;
+  label: string;
+}
+
 interface TabContextType {
   selectedTab: string;
   setSelectedTab: (tabId: string) => void;
   tabMetadata: Record<string, TabMetadata>;
   setTabMetadata: (tabId: string, metadata: TabMetadata) => void;
+  // Tab list state (persisted with tab state)
+  tabs: TabEntry[];
+  setTabs: (tabs: TabEntry[] | ((prev: TabEntry[]) => TabEntry[])) => void;
+  openTabs: string[];
+  setOpenTabs: (openTabs: string[] | Set<string> | ((prev: Set<string>) => Set<string>)) => void;
+  nextNewTabId: number;
+  setNextNewTabId: (n: number | ((prev: number) => number)) => void;
 }
 
 export const TabContext = createContext<TabContextType | undefined>(undefined);

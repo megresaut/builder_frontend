@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams } from "react-router-dom";
-import React, { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
 
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
@@ -17,8 +17,15 @@ import Vendors from "./pages/Vendors";
 import VendorDetail from "./pages/VendorDetail";
 import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
-import { TabContext } from "./hooks/useTabContext";
+import { TabContext, useTabContext } from "./hooks/useTabContext";
+import type { TabMetadata } from "./hooks/useTabContext";
 import { FavoritesProvider } from "./hooks/FavoritesContext";
+import {
+  loadTabState,
+  saveTabState,
+  getDefaultTabState,
+  type PersistedTabState,
+} from "./lib/tabPersistence";
 import Utilities from "./pages/Utilities_wrong";
 import PropertyDetail from "./pages/PropertyDetail";
 import BlankPage from "./pages/BlankPage";
@@ -41,12 +48,6 @@ import FtoWorkOrders from "./pages/FtoWorkOrders";
 import FtoWorkOrderDetail from "./pages/FtoWorkOrderDetail";
 
 const queryClient = new QueryClient();
-
-interface TabMetadata {
-  label: string;
-  sectionId?: string;
-  route?: string;
-}
 
 // Simple auth gate (unchanged behavior)
 const RequireAuth = ({
@@ -71,22 +72,42 @@ const RequireAuth = ({
   return <>{children}</>;
 };
 
+function useInitialTabState(): {
+  state: PersistedTabState;
+  didRestore: boolean;
+} {
+  const [initial] = useState(() => {
+    const loaded = loadTabState();
+    if (loaded) return { state: loaded, didRestore: true };
+    return { state: getDefaultTabState(), didRestore: false };
+  });
+  return initial;
+}
+
+/** Syncs URL to the selected tab's route when we restored from sessionStorage (so refresh shows correct page). */
+function RestoreTabUrlSync({ didRestore }: { didRestore: boolean }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { selectedTab, tabMetadata } = useTabContext();
+  const doneRef = useRef(false);
+  useEffect(() => {
+    if (!didRestore || doneRef.current) return;
+    const route = tabMetadata[selectedTab]?.route;
+    if (route && route !== location.pathname) {
+      doneRef.current = true;
+      navigate(route, { replace: true });
+    }
+  }, [didRestore, selectedTab, tabMetadata, location.pathname, navigate]);
+  return null;
+}
 
 export default function App() {
-  const [selectedTab, setSelectedTab] = useState<string>("properties");
-  const [tabMetadata, setTabMetadataState] = useState<
-    Record<string, TabMetadata>
-  >({
-    properties: { label: "Properties", route: "/" },
-    portfolio: { label: "Portfolio", sectionId: "portfolio" },
-    screening: { label: "Screening", sectionId: "screening" },
-    bills: { label: "Bills", sectionId: "bills" },
-    "field-team-orders": {
-      label: "Field Team Orders",
-      sectionId: "field-team-orders",
-    },
-    "work-orders": { label: "Work Orders", sectionId: "work-orders" },
-  });
+  const { state: initialState, didRestore } = useInitialTabState();
+  const [selectedTab, setSelectedTab] = useState<string>(initialState.selectedTab);
+  const [tabMetadata, setTabMetadataState] = useState<Record<string, TabMetadata>>(initialState.tabMetadata);
+  const [tabs, setTabsState] = useState<{ id: string; label: string }[]>(initialState.tabs);
+  const [openTabsSet, setOpenTabsSet] = useState<Set<string>>(() => new Set(initialState.openTabs));
+  const [nextNewTabId, setNextNewTabIdState] = useState(initialState.nextNewTabId);
 
   const setTabMetadata = (tabId: string, metadata: TabMetadata) => {
     setTabMetadataState((prev) => ({
@@ -95,16 +116,51 @@ export default function App() {
     }));
   };
 
+  const setOpenTabs = (
+    value: string[] | Set<string> | ((prev: Set<string>) => Set<string>)
+  ) => {
+    setOpenTabsSet((prev) => {
+      if (typeof value === "function") return value(prev);
+      const next = value instanceof Set ? value : new Set(value);
+      return next.size === prev.size && [...next].every((id) => prev.has(id))
+        ? prev
+        : next;
+    });
+  };
+
+  // Persist tab state whenever it changes (debounced would be possible but simple write is fine)
+  useEffect(() => {
+    saveTabState({
+      tabs,
+      openTabs: [...openTabsSet],
+      selectedTab,
+      tabMetadata,
+      nextNewTabId,
+    });
+  }, [tabs, openTabsSet, selectedTab, tabMetadata, nextNewTabId]);
+
+  const tabContextValue = {
+    selectedTab,
+    setSelectedTab,
+    tabMetadata,
+    setTabMetadata,
+    tabs,
+    setTabs: setTabsState,
+    openTabs: openTabsSet,
+    setOpenTabs,
+    nextNewTabId,
+    setNextNewTabId: setNextNewTabIdState,
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <FavoritesProvider>
-          <TabContext.Provider
-            value={{ selectedTab, setSelectedTab, tabMetadata, setTabMetadata }}
-          >
+          <TabContext.Provider value={tabContextValue}>
             <BrowserRouter>
+              <RestoreTabUrlSync didRestore={didRestore} />
               <Routes>
                 {/* ---------- PUBLIC ROUTES ---------- */}
                 <Route path="/login" element={<Login />} />

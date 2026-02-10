@@ -83,14 +83,17 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   const currentTabId = getCurrentTabId();
   const currentMetadata = tabMetadata[currentTabId];
 
-  // Save scroll position immediately when leaving a tab
+  // Keep a ref to latest tabMetadata so save-scroll effect doesn't depend on it (avoids re-runs on every metadata update)
+  const tabMetadataRef = useRef(tabMetadata);
+  tabMetadataRef.current = tabMetadata;
+
+  // Save scroll position immediately when leaving a tab (only when tab id changes)
   useEffect(() => {
     const prevTabId = lastTabIdRef.current;
     if (prevTabId && prevTabId !== currentTabId) {
       const mainContent = mainContentRef.current;
       if (mainContent) {
-        // Save scroll position for the previous tab immediately
-        const prevMetadata = tabMetadata[prevTabId];
+        const prevMetadata = tabMetadataRef.current[prevTabId];
         setTabMetadata(prevTabId, {
           ...prevMetadata,
           scrollPosition: mainContent.scrollTop,
@@ -98,7 +101,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
       }
     }
     lastTabIdRef.current = currentTabId;
-  }, [currentTabId, tabMetadata, setTabMetadata]);
+  }, [currentTabId, setTabMetadata]);
 
   // Save scroll position when scrolling (debounced)
   useEffect(() => {
