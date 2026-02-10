@@ -77,6 +77,7 @@ interface TaskSummaryModalsProps {
   onLastUpdatedChange: (timestamp: string) => void;
   syncFileNameAcrossStates: (fileId: string | number, newName: string) => void;
   getAttachmentData: (file: any, index?: number) => any;
+  onViewAttachment?: (file: { id: string | number; name?: string; url?: string; storage_path?: string }) => void;
   handleStartRenamingAttachment: () => void;
   handleSaveAttachmentFileName: () => void;
   handleCancelRenamingAttachment: () => void;
@@ -130,6 +131,7 @@ export default function TaskSummaryModals({
   onLastUpdatedChange,
   syncFileNameAcrossStates,
   getAttachmentData,
+  onViewAttachment,
   handleStartRenamingAttachment,
   handleSaveAttachmentFileName,
   handleCancelRenamingAttachment,
@@ -240,11 +242,16 @@ export default function TaskSummaryModals({
             ? [
                 {
                   id: editingFile.id.toString(),
-                  name: editingFile.name,
-                  size: 0,
+                  name: editingFile.name ?? (editingFile as any).file_name,
+                  size: (editingFile as any).file_size ?? 0,
                   type:
-                    editingFile.name.split(".").pop()?.toLowerCase() || "pdf",
+                    editingFile.name?.split(".").pop()?.toLowerCase() ||
+                    (editingFile as any).file_type?.split("/").pop() ||
+                    "pdf",
                   url: editingFile.url,
+                  storage_path: (editingFile as any).storage_path,
+                  file_name: (editingFile as any).file_name ?? editingFile.name,
+                  file_type: (editingFile as any).file_type,
                 },
               ]
             : []
@@ -684,14 +691,7 @@ export default function TaskSummaryModals({
                   attachments: taskData.files.map((f: any, idx: number) =>
                     getAttachmentData(f, idx),
                   ),
-                  onAttachmentClick: (file: any) => {
-                    uiDispatch({
-                      type: "SET_VIEWING_ATTACHMENT",
-                      payload: { id: file.id, name: file.name, url: file.url },
-                    });
-                    uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
-                    uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
-                  },
+                  onAttachmentClick: onViewAttachment ?? (() => {}),
                 }),
               icon: <FlagIcon width={16} height={16} />,
               isInitialCreation: true,
@@ -938,18 +938,7 @@ export default function TaskSummaryModals({
               ) : undefined,
             icon: updateIcon,
             attachments,
-            onAttachmentClick: (file: any) => {
-              uiDispatch({
-                type: "SET_VIEWING_ATTACHMENT",
-                payload: {
-                  id: String(file.id),
-                  name: file.name,
-                  url: file.url,
-                },
-              });
-              uiDispatch({ type: "OPEN_MODAL", payload: "pdfViewer" });
-              uiDispatch({ type: "CANCEL_RENAMING_ATTACHMENT" });
-            },
+            onAttachmentClick: onViewAttachment ?? (() => {}),
           };
           onUpdatesChange([newUpdate, ...updates]);
           uiDispatch({ type: "CLOSE_MODAL", payload: "editTask" });

@@ -8,6 +8,11 @@ interface PageHeaderProps {
     onClick: () => void;
     icon?: React.ReactNode;
   };
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+    icon?: React.ReactNode;
+  };
 }
 
 /**
@@ -38,6 +43,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
   action,
+  secondaryAction,
 }) => {
   return (
     <div className="flex items-center gap-10 justify-between flex-wrap">
@@ -56,18 +62,33 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         )}
       </div>
 
-      {/* Action Button */}
-      {action && (
+      {/* Action Buttons */}
+      {(action || secondaryAction) && (
         <div className="flex items-center gap-4">
-          <button
-            onClick={action.onClick}
-            className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
-          >
-            {action.icon && <div className="text-white">{action.icon}</div>}
-            <span className="text-white font-medium text-base leading-normal">
-              {action.label}
-            </span>
-          </button>
+          {action && (
+            <button
+              onClick={action.onClick}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
+            >
+              {action.icon && <div className="text-white">{action.icon}</div>}
+              <span className="text-white font-medium text-base leading-normal">
+                {action.label}
+              </span>
+            </button>
+          )}
+          {secondaryAction && (
+            <button
+              onClick={secondaryAction.onClick}
+              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#982740] bg-white text-[#982740] hover:bg-[#fef2f5] transition-colors"
+            >
+              {secondaryAction.icon && (
+                <div className="text-[#982740]">{secondaryAction.icon}</div>
+              )}
+              <span className="font-medium text-base leading-normal">
+                {secondaryAction.label}
+              </span>
+            </button>
+          )}
         </div>
       )}
     </div>

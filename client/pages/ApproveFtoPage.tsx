@@ -13,7 +13,8 @@ import { TextFieldCell } from "@/components/forms/TextFieldCell";
 import { VendorFieldCell } from "@/components/forms/VendorFieldCell";
 import { FieldCellShell } from "@/components/forms/FieldCellShell";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DeleteIcon, EyeIcon } from "@/components/icons";
+import { DeleteIcon, EyeIcon, EditIcon } from "@/components/icons";
+import CreateFTOModal from "@/components/CreateFTOModal";
 import BlueButton from "@/components/BlueButton";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
@@ -577,6 +578,9 @@ export default function ApproveFTOPage() {
   
   // Track submissions by assignee ID so we know which assignees already have submissions
   const [submissionByAssignee, setSubmissionByAssignee] = useState<Record<number, number>>({});
+  const [loadedFto, setLoadedFto] = useState<Record<string, any> | null>(null);
+  const [showEditFTOModal, setShowEditFTOModal] = useState(false);
+  const [ftoDetailsVersion, setFtoDetailsVersion] = useState(0);
 
 
 
@@ -610,7 +614,46 @@ export default function ApproveFTOPage() {
       })),
     [assigneeById]
   );
-  
+
+  // Shape expected by CreateFTOModal when editing (same as All Field Team Orders edit)
+  const editingFTO = useMemo(() => {
+    if (!loadedFto || !ftoIdNum) return null;
+    const statusRaw = (loadedFto.status ?? "").toString().toLowerCase();
+    const statusMap: Record<string, "new" | "dispatched" | "completed" | "cancelled"> = {
+      new: "new",
+      dispatched: "dispatched",
+      completed: "completed",
+      cancelled: "cancelled",
+    };
+    const status = statusMap[statusRaw] ?? "new";
+    const dueDateVal = loadedFto.due_date ?? loadedFto.dueDate;
+    const due_date =
+      typeof dueDateVal === "string"
+        ? dueDateVal
+        : dueDateVal && typeof (dueDateVal as any).toISOString === "function"
+          ? (dueDateVal as Date).toISOString().split("T")[0]
+          : "";
+    return {
+      id: Number(loadedFto.id ?? loadedFto.ID ?? ftoIdNum),
+      name: loadedFto.name ?? "",
+      description: loadedFto.description ?? "",
+      priority: (loadedFto.priority ?? "normal").toString().toLowerCase() as "low" | "normal" | "high",
+      status,
+      due_date,
+      property_id: Number(loadedFto.property_id ?? loadedFto.propertyId ?? loadedFto.PropertyID ?? 0),
+      property_name: loadedFto.property_name ?? loadedFto.property_address ?? undefined,
+      unit_id: loadedFto.unit_id ?? loadedFto.unitId ?? loadedFto.UnitID ?? null,
+      unit_name: loadedFto.unit_name ?? undefined,
+      task_id: loadedFto.task_id ?? loadedFto.taskId ?? loadedFto.TaskID ?? undefined,
+      field_team_member_ids: Array.isArray(loadedFto.field_team_member_ids)
+        ? loadedFto.field_team_member_ids.map(Number)
+        : [],
+      pm_assignee_ids: Array.isArray(loadedFto.pm_assignee_ids)
+        ? loadedFto.pm_assignee_ids.map(Number)
+        : [],
+    };
+  }, [loadedFto, ftoIdNum]);
+
   /**
    * Load FTO details from API when ftoId is available
    * OR load submission details for misc mode
@@ -634,7 +677,8 @@ export default function ApproveFTOPage() {
         }
 
         const fto = await res.json();
-        
+        setLoadedFto(fto);
+
         // Update FTO details from API response
         if (fto.name) setFtoName(fto.name);
         const resolvedPropertyId =
@@ -654,6 +698,12 @@ export default function ApproveFTOPage() {
         if (fto.priority) {
           setPriority(fto.priority.toLowerCase());
         }
+        const taskName = fto.task_name ?? fto.taskName ?? fto.TaskName ?? "";
+        if (taskName !== "") {
+          setTask(taskName);
+        } else {
+          setTask("N/A");
+        }
       } catch (err) {
         console.error("Error loading FTO details:", err);
       }
@@ -672,6 +722,8 @@ export default function ApproveFTOPage() {
       // Set FTO name to indicate this is a misc expense
       setFtoName("Miscellaneous Expense");
       setPriority("normal");
+      setTask("N/A");
+      setLoadedFto(null);
     };
 
     if (isMiscMode) {
@@ -679,7 +731,7 @@ export default function ApproveFTOPage() {
     } else {
       loadFTODetails();
     }
-  }, [ftoIdNum, submissionIdNum, isMiscMode, state]);
+  }, [ftoIdNum, submissionIdNum, isMiscMode, state, ftoDetailsVersion]);
   
   /**
    * Load submissions from API and populate hours/expenses tables
@@ -1235,13 +1287,25 @@ export default function ApproveFTOPage() {
 
               {/* FTO Details Section */}
               <div style={{ display: "flex", flexDirection: "column" }}>
-                {/* FTO Details Header */}
-                <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-                  <div>{isMiscMode ? "Miscellaneous Expense Details" : "FTO Details"}</div>
-                  <div
-                    className="h-px bg-gray-200 mt-5"
-                    style={{ width: "790px" }}
-                  />
+                {/* FTO Details Header + Edit FTO button */}
+                <div className="flex w-full items-start justify-between gap-4">
+                  <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
+                    <div>{isMiscMode ? "Miscellaneous Expense Details" : "FTO Details"}</div>
+                    <div
+                      className="h-px bg-gray-200 mt-5"
+                      style={{ width: "790px" }}
+                    />
+                  </div>
+                  {!isMiscMode && ftoIdNum && loadedFto && (
+                    <button
+                      type="button"
+                      onClick={() => setShowEditFTOModal(true)}
+                      className="flex items-center gap-2 shrink-0 rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm font-medium text-[#303030] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                    >
+                      <EditIcon width={16} height={16} color="#525252" />
+                      Edit FTO
+                    </button>
+                  )}
                 </div>
 
                 {/* Form Fields */}
@@ -1309,22 +1373,15 @@ export default function ApproveFTOPage() {
                     </div>
                   </div>
 
-                  {/* Associated Task Row - Commented Out */}
-                  {/* <div className="flex gap-5">
-                    <div className="flex-1">
-                      <SelectField
-                        label="Associated Task"
-                        value={task}
-                        onChange={() => {}}
-                        placeholder="Select task..."
-                        disabled={true}
-                        options={mockTasks.map((t) => ({
-                          value: t,
-                          label: t,
-                        }))}
-                      />
-                    </div>
-                  </div> */}
+                  {/* Task - from API (task_name) or N/A */}
+                  <div>
+                    <TextField
+                      label="Task"
+                      value={task || "N/A"}
+                      onChange={() => {}}
+                      disabled={true}
+                    />
+                  </div>
 
                   {/* Description */}
                   <TextAreaField
@@ -2155,6 +2212,18 @@ export default function ApproveFTOPage() {
         url={pdfViewer.url}
         title={pdfViewer.title}
       />
+
+      {/* Edit FTO Modal - same as All Field Team Orders edit */}
+      {!isMiscMode && ftoIdNum && (
+        <CreateFTOModal
+          open={showEditFTOModal}
+          onOpenChange={(open) => {
+            setShowEditFTOModal(open);
+            if (!open) setFtoDetailsVersion((v) => v + 1);
+          }}
+          editingFTO={editingFTO}
+        />
+      )}
     </div>
   );
 }

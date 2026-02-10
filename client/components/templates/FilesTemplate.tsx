@@ -63,18 +63,13 @@ export const FilesTemplate: React.FC<FilesTemplateProps> = ({
               isLast={idx === files.length - 1}
               leftSlot={
                 <div className="flex-1">
-                  {file.url ? (
-                    <button
-                      onClick={() => onView(file)}
-                      className="text-[#2463EB] text-sm font-medium leading-[1.29] hover:underline bg-none border-none cursor-pointer p-0 text-left"
-                    >
-                      {file.name}
-                    </button>
-                  ) : (
-                    <div className="text-[#303030] text-sm font-normal leading-[1.29]">
-                      {file.name}
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => onView(file)}
+                    className="text-[#2463EB] text-sm font-medium leading-[1.29] hover:underline bg-none border-none cursor-pointer p-0 text-left"
+                  >
+                    {file.name}
+                  </button>
                   <div className="text-[#71717A] text-xs mt-1">
                     {file.uploadedAt || (file as any).date}
                   </div>

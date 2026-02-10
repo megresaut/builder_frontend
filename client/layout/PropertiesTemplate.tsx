@@ -23,6 +23,26 @@ interface Property {
   rentalOwner?: string;
 }
 
+// Same shape as AddPropertyModal's editData (PropertyEditData)
+export interface PropertyEditData {
+  id: number;
+  name: string;
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  property_type: string;
+  buildium_property_id: string;
+  active: boolean;
+  management_fee_cents: number | null;
+  hourly_rate_cents: number | null;
+  emergency_hourly_rate_cents: number | null;
+  manager_ids: number[];
+  manager_names: string[];
+  rental_owners?: string[];
+}
+
 interface PropertiesTemplateProps {
   children: React.ReactNode;
   activeTab?: string;
@@ -30,6 +50,9 @@ interface PropertiesTemplateProps {
   propertyType?: string;
   propertyUnits?: number;
   property?: Property;
+  onDeactivate?: () => void;
+  /** When provided, Edit Property opens the modal pre-filled with this data (e.g. from property detail page). */
+  propertyEditData?: PropertyEditData;
 }
 
 export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
@@ -39,6 +62,8 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
   propertyType = "Single-Family",
   propertyUnits = 1,
   property,
+  onDeactivate,
+  propertyEditData,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,9 +93,10 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
 
   const currentActiveTab = determineActiveTab();
 
+  const isConcierge = propertyType?.toLowerCase() === "concierge";
   const tabs = [
     "Overview",
-    "Units",
+    ...(isConcierge ? [] : ["Units"]),
     "Utilities",
     "Maintenance",
     "Inspections",
@@ -135,11 +161,18 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
                 </button>
               </div>
             }
-            actionButton={{
+            action={{
               label: "Edit Property",
               onClick: () => setIsEditModalOpen(true),
             }}
-            moreOptions={{}}
+            secondaryAction={
+              onDeactivate
+                ? {
+                    label: "Deactivate",
+                    onClick: onDeactivate,
+                  }
+                : undefined
+            }
           />
 
           {/* Tab Navigation */}
@@ -164,22 +197,36 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
         </div>
       </PageTemplate>
 
-      {/* Edit Property Modal */}
-      {property && (
+      {/* Edit Property Modal – shown when Edit is clicked; prefilled when propertyEditData is passed (e.g. from property detail). */}
+      {(propertyEditData != null || property != null) && (
         <AddPropertyModal
           open={isEditModalOpen}
           onOpenChange={(open) => {
             setIsEditModalOpen(open);
           }}
-          editData={{
-            address: property.address,
-            location: property.location,
-            type: property.type,
-            buildingId: property.buildingId,
-            status: property.status,
-            managers: property.managers,
-            rentalOwner: property.rentalOwner,
-          }}
+          editData={
+            propertyEditData ??
+            (property
+              ? {
+                  id: property.id,
+                  name: property.address,
+                  address_line1: property.address,
+                  address_line2: "",
+                  city: property.location?.split(",")[0]?.trim() ?? "",
+                  state: property.location?.split(",")[1]?.trim() ?? "",
+                  postal_code: "",
+                  property_type: (property.type ?? "").toLowerCase(),
+                  buildium_property_id: property.buildingId ?? "",
+                  active: property.status === "active",
+                  management_fee_cents: null,
+                  hourly_rate_cents: null,
+                  emergency_hourly_rate_cents: null,
+                  manager_ids: property.managers?.map((m) => m.id) ?? [],
+                  manager_names: property.managers?.map((m) => m.name) ?? [],
+                  rental_owners: property.rentalOwner ? [property.rentalOwner] : [],
+                }
+              : undefined)
+          }
         />
       )}
     </div>

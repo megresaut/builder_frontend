@@ -12,6 +12,10 @@ import {
 } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import PdfViewerModal from "@/components/PdfViewerModal";
+import MsgViewerModal from "@/components/MsgViewerModal";
+import { parseMsgFile } from "@/utils/parseMsgFile";
+import { parseEmlFile } from "@/utils/parseEmlFile";
+import type { ParsedMsg } from "@/utils/parseMsgFile";
 
 interface AddFileModalProps {
   open: boolean;
@@ -47,7 +51,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
   initialDescription = "",
   title,
   submitLabel,
-  acceptedFormats = ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv",
+  acceptedFormats = ".pdf,.msg,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv,application/vnd.ms-outlook,.eml",
   maxSize = 10 * 1024 * 1024,
 }) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(initialFiles);
@@ -58,6 +62,13 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [isRenamingFile, setIsRenamingFile] = useState(false);
   const [renamingFileName, setRenamingFileName] = useState("");
+  const [msgViewer, setMsgViewer] = useState<{
+    isOpen: boolean;
+    title: string;
+    data: ParsedMsg | null;
+    loading: boolean;
+    error: string | null;
+  }>({ isOpen: false, title: "", data: null, loading: false, error: null });
 
   useEffect(() => {
     if (open) {
@@ -103,6 +114,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
       URL.revokeObjectURL(viewingFileUrl);
       setViewingFileUrl(null);
     }
+    setMsgViewer({ isOpen: false, title: "", data: null, loading: false, error: null });
   };
 
   const handleStartRenaming = () => {
@@ -178,26 +190,138 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
                 );
               }}
               onViewFile={(file) => {
-                // Prefer local file first: works before "Add" (not yet uploaded) and after
+                const fileWithMeta = file as UploadedFile & {
+                  url?: string;
+                  storage_path?: string;
+                  file_name?: string;
+                  file_type?: string;
+                };
+                const fileName =
+                  file.name ?? fileWithMeta.file_name ?? "";
+                const isMsgFile =
+                  fileName.toLowerCase().endsWith(".msg") ||
+                  fileWithMeta.file_type === "application/vnd.ms-outlook";
+                const isEmlFile =
+                  fileName.toLowerCase().endsWith(".eml") ||
+                  fileWithMeta.file_type === "message/rfc822";
+                const isMessageFile = isMsgFile || isEmlFile;
+
+                if (isMessageFile) {
+                  const displayTitle = fileName || "Message";
+                  const parseMessage = isEmlFile ? parseEmlFile : parseMsgFile;
+                  const openMsgViewer = async (blob: Blob) => {
+                    setMsgViewer({
+                      isOpen: true,
+                      title: displayTitle,
+                      data: null,
+                      loading: true,
+                      error: null,
+                    });
+                    try {
+                      const data = await parseMessage(blob);
+                      setMsgViewer((prev) => ({
+                        ...prev,
+                        loading: false,
+                        data,
+                        error: null,
+                      }));
+                    } catch (err) {
+                      setMsgViewer((prev) => ({
+                        ...prev,
+                        loading: false,
+                        error:
+                          err instanceof Error ? err.message : "Failed to parse message",
+                      }));
+                    }
+                  };
+                  if (file.file) {
+                    openMsgViewer(file.file);
+                    return;
+                  }
+                  if (fileWithMeta.url) {
+                    fetch(fileWithMeta.url, { credentials: "include" })
+                      .then((r) => r.blob())
+                      .then(openMsgViewer)
+                      .catch(() =>
+                        setMsgViewer((prev) => ({
+                          ...prev,
+                          loading: false,
+                          error: "Failed to load file",
+                        }))
+                      );
+                    return;
+                  }
+                  if (fileWithMeta.storage_path) {
+                    setMsgViewer({
+                      isOpen: true,
+                      title: displayTitle,
+                      data: null,
+                      loading: true,
+                      error: null,
+                    });
+                    fetch(
+                      `/api/files?key=${encodeURIComponent(fileWithMeta.storage_path)}`,
+                      { credentials: "include" }
+                    )
+                      .then((res) => {
+                        if (!res.ok) throw new Error("Failed to load");
+                        return res.blob();
+                      })
+                      .then(openMsgViewer)
+                      .catch(() =>
+                        setMsgViewer((prev) => ({
+                          ...prev,
+                          loading: false,
+                          error: "Failed to load file",
+                        }))
+                      );
+                    return;
+                  }
+                  const attachmentId = file.id ? parseInt(file.id, 10) : null;
+                  if (attachmentId && !isNaN(attachmentId)) {
+                    setMsgViewer({
+                      isOpen: true,
+                      title: displayTitle,
+                      data: null,
+                      loading: true,
+                      error: null,
+                    });
+                    fetch(`/api/maintenance/attachments/${attachmentId}`, {
+                      credentials: "include",
+                    })
+                      .then((res) => {
+                        if (!res.ok) throw new Error("Failed to load");
+                        return res.blob();
+                      })
+                      .then(openMsgViewer)
+                      .catch(() =>
+                        setMsgViewer((prev) => ({
+                          ...prev,
+                          loading: false,
+                          error: "Failed to load attachment",
+                        }))
+                      );
+                  }
+                  return;
+                }
+
+                // Non-message (.msg/.eml): use PDF / URL viewer
                 if (file.file) {
                   const url = URL.createObjectURL(file.file);
                   setViewingFileUrl(url);
                   setViewingFile(file);
                   return;
                 }
-                const fileWithUrl = file as UploadedFile & { url?: string };
-                if (fileWithUrl.url) {
-                  setViewingFileUrl(fileWithUrl.url);
+                if (fileWithMeta.url) {
+                  setViewingFileUrl(fileWithMeta.url);
                   setViewingFile(file);
                   return;
                 }
-                if (file.storage_path) {
+                if (fileWithMeta.storage_path) {
                   (async () => {
                     try {
                       const res = await fetch(
-                        `/api/files?key=${encodeURIComponent(
-                          file.storage_path
-                        )}`,
+                        `/api/files?key=${encodeURIComponent(fileWithMeta.storage_path)}`,
                         { credentials: "include" }
                       );
                       if (!res.ok) {
@@ -292,6 +416,17 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
         onRenamingFileNameChange={setRenamingFileName}
         onSaveFileName={handleSaveFileName}
         onCancelRenaming={handleCancelRenaming}
+      />
+
+      <MsgViewerModal
+        open={msgViewer.isOpen}
+        onOpenChange={(open) =>
+          setMsgViewer((prev) => ({ ...prev, isOpen: open }))
+        }
+        title={msgViewer.title}
+        data={msgViewer.data}
+        loading={msgViewer.loading}
+        error={msgViewer.error}
       />
     </ModalTemplate>
   );

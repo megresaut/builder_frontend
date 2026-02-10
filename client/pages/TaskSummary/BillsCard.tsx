@@ -29,6 +29,8 @@ interface BillsCardProps {
   vendorId?: number;
   onBillSelected?: (bill: BillItem) => void;
   onWorkOrderRefresh?: (silent?: boolean) => void;
+  /** When set, "Add Bill" is shown in Select Bill modal and Record Bill will return here after submit */
+  returnToUrl?: string;
 }
 
 const formatCurrency = (amountCents: number) =>
@@ -37,7 +39,7 @@ const formatCurrency = (amountCents: number) =>
     currency: "USD",
   }).format(amountCents / 100);
 
-export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendorId, onBillSelected, onWorkOrderRefresh }) => {
+export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendorId, onBillSelected, onWorkOrderRefresh, returnToUrl }) => {
   const navigate = useNavigate();
   const [isSelectBillModalOpen, setIsSelectBillModalOpen] = useState(false);
   const [selectedBillId, setSelectedBillId] = useState<string>("");
@@ -93,6 +95,14 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendor
   const handleEnterBill = () => {
     setIsSelectBillModalOpen(true);
     setSelectedBillId("");
+  };
+
+  const handleAddBill = () => {
+    setIsSelectBillModalOpen(false);
+    const recordUrl = returnToUrl
+      ? `/bills/record?returnTo=${encodeURIComponent(returnToUrl)}`
+      : "/bills/record";
+    navigate(recordUrl);
   };
 
   const handleConfirmBill = async () => {
@@ -195,13 +205,28 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendor
         title="Select Bill"
         size="sm"
         footer={
-          <ModalButtons
-            onCancel={() => setIsSelectBillModalOpen(false)}
-            onConfirm={handleConfirmBill}
-            cancelLabel="Cancel"
-            confirmLabel="Select"
-            disableConfirm={!selectedBillId}
-          />
+          <div className="flex w-full items-center justify-between gap-2.5">
+            <div className="flex items-center">
+              {returnToUrl ? (
+                <button
+                  type="button"
+                  onClick={handleAddBill}
+                  className="text-[#2463eb] text-sm font-medium hover:underline"
+                >
+                  Add Bill
+                </button>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2.5">
+              <ModalButtons
+                onCancel={() => setIsSelectBillModalOpen(false)}
+                onConfirm={handleConfirmBill}
+                cancelLabel="Cancel"
+                confirmLabel="Select"
+                disableConfirm={!selectedBillId}
+              />
+            </div>
+          </div>
         }
       >
         <FormLayout>

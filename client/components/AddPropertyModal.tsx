@@ -38,6 +38,8 @@ interface PropertyEditData {
   emergency_hourly_rate_cents: number | null;
   manager_ids: number[];
   manager_names: string[];
+  /** Names of rental owners to prefill the Rental Owners field */
+  rental_owners?: string[];
 }
 
 // Property type enum mapping utilities
@@ -273,6 +275,7 @@ export default function AddPropertyModal({
       // Map backend enum to UI value
       setPropertyType(BackendPropertyTypeToUI[editData.property_type] || "");
       setSelectedManagerIds(editData.manager_ids);
+      setRentalOwners(editData.rental_owners ?? []);
       setStatus(editData.active ? "active" : "inactive");
 
       // Convert cents to dollars for display

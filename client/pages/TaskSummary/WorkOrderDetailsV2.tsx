@@ -20,7 +20,10 @@ import { cn } from "@/lib/utils";
 import { AddNoteModal, AddFileModal } from "@/components/task";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import PdfViewerModal from "@/components/PdfViewerModal";
+import MsgViewerModal from "@/components/MsgViewerModal";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
+import { parseMsgFile } from "@/utils/parseMsgFile";
+import type { ParsedMsg } from "@/utils/parseMsgFile";
 import {
   ModalTemplate,
   ModalField,
@@ -31,6 +34,7 @@ import type { Note, File } from "@/components/templates";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
+import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 
 interface WorkOrder {
   id: number;
@@ -695,6 +699,13 @@ export default function WorkOrderDetailsV2({
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [viewingFileName, setViewingFileName] = useState<string>("");
+  const [msgViewer, setMsgViewer] = useState<{
+    isOpen: boolean;
+    title: string;
+    data: ParsedMsg | null;
+    loading: boolean;
+    error: string | null;
+  }>({ isOpen: false, title: "", data: null, loading: false, error: null });
   const [lastUpdated, setLastUpdated] = useState<string>(() => {
     // Will be set from API data in useEffect
     return new Date().toLocaleString();
@@ -944,10 +955,19 @@ export default function WorkOrderDetailsV2({
           prev.map((f) => (f.id === editingFileId ? transformedFile : f)),
         );
       } else {
-        const file = uploadedFiles[0].file!;
+        let fileToUpload: globalThis.File = uploadedFiles[0].file!;
+        // Convert images to PDF before upload; skip conversion for .msg (upload as-is)
+        const isMsg = /\.msg$/i.test(fileToUpload.name);
+        const isImage =
+          !isMsg &&
+          (fileToUpload.type.startsWith("image/") ||
+            /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(fileToUpload.name));
+        if (isImage) {
+          fileToUpload = await convertFiletoPdf(fileToUpload);
+        }
 
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", fileToUpload, fileToUpload.name);
 
         // const API_BASE = "http://localhost:8080";
         const API_BASE = "/api";
@@ -1453,13 +1473,103 @@ export default function WorkOrderDetailsV2({
               }}
             onDelete={handleDeleteFile}
               onView={(file) => {
+              const isMsgFile = (file.name ?? "")
+                .toLowerCase()
+                .endsWith(".msg");
+
+              if (isMsgFile) {
+                const openMsgViewer = async (blob: Blob) => {
+                  setMsgViewer({
+                    isOpen: true,
+                    title: file.name ?? "Message",
+                    data: null,
+                    loading: true,
+                    error: null,
+                  });
+                  try {
+                    const data = await parseMsgFile(blob);
+                    setMsgViewer((prev) => ({
+                      ...prev,
+                      loading: false,
+                      data,
+                      error: null,
+                    }));
+                  } catch (err) {
+                    setMsgViewer((prev) => ({
+                      ...prev,
+                      loading: false,
+                      error:
+                        err instanceof Error
+                          ? err.message
+                          : "Failed to parse message",
+                    }));
+                  }
+                };
+                if (file.id) {
+                  const attachmentId =
+                    typeof file.id === "number"
+                      ? file.id
+                      : parseInt(String(file.id), 10);
+                  if (!isNaN(attachmentId)) {
+                    setMsgViewer({
+                      isOpen: true,
+                      title: file.name ?? "Message",
+                      data: null,
+                      loading: true,
+                      error: null,
+                    });
+                    fetch(`/api/maintenance/attachments/${attachmentId}`, {
+                      credentials: "include",
+                    })
+                      .then((r) => {
+                        if (!r.ok) throw new Error("Failed to load");
+                        return r.blob();
+                      })
+                      .then(openMsgViewer)
+                      .catch(() =>
+                        setMsgViewer((prev) => ({
+                          ...prev,
+                          loading: false,
+                          error: "Failed to load attachment",
+                        }))
+                      );
+                    return;
+                  }
+                }
+                if (file.storage_path) {
+                  setMsgViewer({
+                    isOpen: true,
+                    title: file.name ?? "Message",
+                    data: null,
+                    loading: true,
+                    error: null,
+                  });
+                  fetch(
+                    `/api/files?key=${encodeURIComponent(file.storage_path)}`,
+                    { credentials: "include" }
+                  )
+                    .then((r) => {
+                      if (!r.ok) throw new Error("Failed to load");
+                      return r.blob();
+                    })
+                    .then(openMsgViewer)
+                    .catch(() =>
+                      setMsgViewer((prev) => ({
+                        ...prev,
+                        loading: false,
+                        error: "Failed to load file",
+                      }))
+                    );
+                }
+                return;
+              }
+
               if (file.id) {
                 const attachmentId =
                   typeof file.id === "number"
                     ? file.id
                     : parseInt(String(file.id), 10);
                 if (!isNaN(attachmentId)) {
-                  // const url = `http://localhost:8080/maintenance/attachments/${attachmentId}`;
                   const url = `/api/maintenance/attachments/${attachmentId}`;
                   setViewingFileUrl(url);
                   setViewingFileName(file.name);
@@ -1467,7 +1577,6 @@ export default function WorkOrderDetailsV2({
                 }
               }
               if (file.storage_path) {
-                // const url = `http://localhost:8080/api/files?key=${encodeURIComponent(
                 const url = `/api/files?key=${encodeURIComponent(
                   file.storage_path,
                 )}`;
@@ -1498,6 +1607,7 @@ export default function WorkOrderDetailsV2({
               }
             }}
             onWorkOrderRefresh={fetchWorkOrder}
+            returnToUrl={taskId && workOrderId ? `/tasks/${taskId}/workorders/${workOrderId}` : undefined}
           />
 
           {/* Assignees Card */}
@@ -1586,10 +1696,16 @@ export default function WorkOrderDetailsV2({
             ? [
                 {
                   id: String(editingFile.id),
-                  name: editingFile.name,
+                  name: editingFile.name ?? (editingFile as any).file_name,
                   url: editingFile.url,
-                  size: 0,
-                  type: "application/pdf",
+                  size: (editingFile as any).file_size ?? 0,
+                  type:
+                    editingFile.name?.split(".").pop()?.toLowerCase() ||
+                    (editingFile as any).file_type?.split("/").pop() ||
+                    "pdf",
+                  storage_path: (editingFile as any).storage_path,
+                  file_name: (editingFile as any).file_name ?? editingFile.name,
+                  file_type: (editingFile as any).file_type,
                 },
               ]
             : []
@@ -1606,6 +1722,17 @@ export default function WorkOrderDetailsV2({
         }}
         title={viewingFileName}
         url={viewingFileUrl || ""}
+      />
+
+      <MsgViewerModal
+        open={msgViewer.isOpen}
+        onOpenChange={(open) =>
+          setMsgViewer((prev) => ({ ...prev, isOpen: open }))
+        }
+        title={msgViewer.title}
+        data={msgViewer.data}
+        loading={msgViewer.loading}
+        error={msgViewer.error}
       />
 
       <CreateWorkOrderModalV2

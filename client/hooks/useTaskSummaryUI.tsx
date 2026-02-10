@@ -5,7 +5,7 @@ import type { LinkedTaskData } from "@/components/LinkTaskModal";
 
 export interface TaskSummaryUIState {
   // Tab state
-  activeTab: "summary" | "workorders" | "fieldteam";
+  activeTab: "summary" | "workorders" | "fieldteam" | "subtasks";
   selectedWorkOrderId: number | null;
 
   // Modal open/close states
@@ -35,7 +35,7 @@ export interface TaskSummaryUIState {
 }
 
 export type TaskSummaryUIAction =
-  | { type: "SET_ACTIVE_TAB"; payload: "summary" | "workorders" | "fieldteam" }
+  | { type: "SET_ACTIVE_TAB"; payload: "summary" | "workorders" | "fieldteam" | "subtasks" }
   | { type: "SET_SELECTED_WORK_ORDER_ID"; payload: number | null }
   | { type: "OPEN_MODAL"; payload: keyof TaskSummaryUIState["modals"] }
   | { type: "CLOSE_MODAL"; payload: keyof TaskSummaryUIState["modals"] }
@@ -208,7 +208,7 @@ const taskSummaryUIReducer = (
   }
 };
 
-export const useTaskSummaryUI = (initialActiveTab: "summary" | "workorders" | "fieldteam" = "summary") => {
+export const useTaskSummaryUI = (initialActiveTab: "summary" | "workorders" | "fieldteam" | "subtasks" = "summary") => {
   const [state, dispatch] = useReducer(taskSummaryUIReducer, {
     ...initialState,
     activeTab: initialActiveTab,

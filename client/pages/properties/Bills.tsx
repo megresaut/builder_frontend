@@ -508,7 +508,7 @@ export const Bills: React.FC<BillsProps> = ({
           createdAt: parseValidTimestamp(b.created_at),
         
           memo: b.memo ?? "",
-          invoiceNumber: b.reference_number ?? b.invoice_number ?? "",
+          invoiceNumber: b.reference_number || b.invoice_number || "",
           amount: (b.amount_cents ?? 0) / 100,
           glAccount: "",
         
@@ -890,7 +890,7 @@ export const Bills: React.FC<BillsProps> = ({
         dueDate: b.due_date ?? "",
         status: (b.push_status || "pushed") as "pushed" | "push-failed",
         memo: b.memo ?? "",
-        invoiceNumber: b.reference_number ?? b.invoice_number ?? "",
+        invoiceNumber: b.reference_number || b.invoice_number || "",
         amount: (b.amount_cents ?? 0) / 100,
         glAccount: "",
         importedAt: b.created_at

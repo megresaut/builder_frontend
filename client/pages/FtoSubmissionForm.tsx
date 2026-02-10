@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import PdfViewerModal from "@/components/PdfViewerModal";
+import MsgViewerModal from "@/components/MsgViewerModal";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import {
   ClockIcon,
@@ -37,6 +38,8 @@ import { VENDORS } from "@/data/fto/vendors";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
+import { parseMsgFile } from "@/utils/parseMsgFile";
+import type { ParsedMsg } from "@/utils/parseMsgFile";
 import {
   PROPERTY_LEVEL_LABEL,
   PROPERTY_LEVEL_SHORT_LABEL,
@@ -325,6 +328,20 @@ export default function FtoSubmissionForm() {
     isOpen: false,
     url: undefined,
     title: "",
+  });
+
+  const [msgViewer, setMsgViewer] = useState<{
+    isOpen: boolean;
+    title: string;
+    data: ParsedMsg | null;
+    loading: boolean;
+    error: string | null;
+  }>({
+    isOpen: false,
+    title: "",
+    data: null,
+    loading: false,
+    error: null,
   });
 
   const [isCreateFTOModalOpen, setIsCreateFTOModalOpen] = useState(false);
@@ -2220,21 +2237,28 @@ export default function FtoSubmissionForm() {
                           files={entry.files}
 
                           onFilesAdded={async (newFiles) => {
+                            const isMsg = (name: string) =>
+                              name.toLowerCase().endsWith(".msg");
+
                             const uploadedFiles = await Promise.all(
                               newFiles.map(async (item) => {
                                 if (!item.file) {
                                   return { ...item, error: "Missing file" };
                                 }
-                          
+
                                 try {
-                                  const pdfFile = await convertFiletoPdf(item.file);
-                                  console.log("pdfFile size", pdfFile.size, "type", pdfFile.type);
-                          
+                                  const fileToUpload = isMsg(item.file.name)
+                                    ? item.file
+                                    : await convertFiletoPdf(item.file);
+
                                   const formData = new FormData();
-                                  formData.append("file", pdfFile, pdfFile.name);
-                          
+                                  formData.append(
+                                    "file",
+                                    fileToUpload,
+                                    fileToUpload.name
+                                  );
+
                                   const res = await fetch(
-                                    // "http://localhost:8080/vendors/bills/upload-pdf",
                                     "/api/vendors/bills/upload-pdf",
                                     {
                                       method: "POST",
@@ -2242,17 +2266,17 @@ export default function FtoSubmissionForm() {
                                       body: formData,
                                     }
                                   );
-                          
+
                                   if (!res.ok) {
                                     throw new Error(`Upload failed (${res.status})`);
                                   }
-                          
+
                                   const data = await res.json();
-                          
+
                                   return {
                                     ...item,
-                                    name: pdfFile.name,
-                                    file: pdfFile,
+                                    name: fileToUpload.name,
+                                    file: fileToUpload,
                                     uploading: false,
                                     storage_path: data.pdf_object_key,
                                     sha256: data.sha256_pdf,
@@ -2282,38 +2306,134 @@ export default function FtoSubmissionForm() {
                           }
 
                           onViewFile={(file) => {
+                            const fileName =
+                              file.name ?? (file as { file?: File }).file?.name ?? "";
+                            const isMsgFile = fileName
+                              .toLowerCase()
+                              .endsWith(".msg");
+
+                            if (isMsgFile) {
+                              const openMsgViewer = async (blob: Blob) => {
+                                setMsgViewer((prev) => ({
+                                  ...prev,
+                                  isOpen: true,
+                                  title: file.name ?? "Message",
+                                  loading: true,
+                                  data: null,
+                                  error: null,
+                                }));
+                                try {
+                                  const data = await parseMsgFile(blob);
+                                  setMsgViewer((prev) => ({
+                                    ...prev,
+                                    loading: false,
+                                    data,
+                                    error: null,
+                                  }));
+                                } catch (err) {
+                                  setMsgViewer((prev) => ({
+                                    ...prev,
+                                    loading: false,
+                                    data: null,
+                                    error:
+                                      err instanceof Error
+                                        ? err.message
+                                        : "Failed to parse message",
+                                  }));
+                                }
+                              };
+
+                              if (file.file) {
+                                openMsgViewer(file.file);
+                                return;
+                              }
+                              const attachmentId = file.id
+                                ? parseInt(file.id, 10)
+                                : null;
+                              if (attachmentId && !isNaN(attachmentId)) {
+                                fetch(
+                                  `/api/maintenance/attachments/${attachmentId}`,
+                                  { credentials: "include" }
+                                )
+                                  .then((res) => {
+                                    if (!res.ok) throw new Error("Failed to load");
+                                    return res.blob();
+                                  })
+                                  .then(openMsgViewer)
+                                  .catch(() => {
+                                    setMsgViewer((prev) => ({
+                                      ...prev,
+                                      loading: false,
+                                      error: "Failed to load attachment",
+                                    }));
+                                  });
+                                setMsgViewer((prev) => ({
+                                  ...prev,
+                                  isOpen: true,
+                                  title: file.name ?? "Message",
+                                  loading: true,
+                                  data: null,
+                                  error: null,
+                                }));
+                                return;
+                              }
+                              if (file.storage_path) {
+                                fetch(
+                                  `/api/files?key=${encodeURIComponent(
+                                    file.storage_path
+                                  )}`,
+                                  { credentials: "include" }
+                                )
+                                  .then((res) => {
+                                    if (!res.ok) throw new Error("Failed to load");
+                                    return res.blob();
+                                  })
+                                  .then(openMsgViewer)
+                                  .catch(() => {
+                                    setMsgViewer((prev) => ({
+                                      ...prev,
+                                      loading: false,
+                                      error: "Failed to load file",
+                                    }));
+                                  });
+                                setMsgViewer((prev) => ({
+                                  ...prev,
+                                  isOpen: true,
+                                  title: file.name ?? "Message",
+                                  loading: true,
+                                  data: null,
+                                  error: null,
+                                }));
+                                return;
+                              }
+                            }
+
+                            // PDF (or other) viewer
                             if (file.file) {
-                              // Newly uploaded file (not yet saved to backend)
                               const url = URL.createObjectURL(file.file);
-                            
                               setPdfViewer({
                                 isOpen: true,
                                 url,
                                 title: file.name,
                               });
-                            
                               return;
                             }
-                            
-                            // Backend-stored file - use attachment ID to fetch
-                            const attachmentId = file.id ? parseInt(file.id, 10) : null;
+                            const attachmentId = file.id
+                              ? parseInt(file.id, 10)
+                              : null;
                             if (attachmentId && !isNaN(attachmentId)) {
                               (async () => {
                                 try {
                                   const res = await fetch(
-                                    // `http://localhost:8080/maintenance/attachments/${attachmentId}`,
                                     `/api/maintenance/attachments/${attachmentId}`,
                                     { credentials: "include" }
-                                  );                                
-                            
+                                  );
                                   if (!res.ok) {
                                     alert("Failed to load attachment");
                                     return;
                                   }
-                            
                                   const blob = await res.blob();
                                   const url = URL.createObjectURL(blob);
-                            
                                   setPdfViewer({
                                     isOpen: true,
                                     url,
@@ -2325,34 +2445,30 @@ export default function FtoSubmissionForm() {
                                 }
                               })();
                             } else if (file.storage_path) {
-                              // Fallback to old endpoint if attachment ID is not available
                               (async () => {
                                 const res = await fetch(
                                   `/api/files?key=${encodeURIComponent(
                                     file.storage_path
                                   )}`,
                                   { credentials: "include" }
-                                );                                
-                            
+                                );
                                 if (!res.ok) {
                                   alert("Failed to load PDF");
                                   return;
                                 }
-                            
                                 const blob = await res.blob();
                                 const url = URL.createObjectURL(blob);
-                            
                                 setPdfViewer({
                                   isOpen: true,
                                   url,
                                   title: file.name,
                                 });
                               })();
-                            }                            
+                            }
                           }}
 
                           disabled={isApproved}
-                          accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+                          accept=".pdf,.msg,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,application/vnd.ms-outlook"
                           maxFiles={10}
                           maxSize={10 * 1024 * 1024}
                           placeholder="Drag and drop files here, or click to browse"
@@ -2440,6 +2556,17 @@ export default function FtoSubmissionForm() {
         onOpenChange={(open) => setPdfViewer({ ...pdfViewer, isOpen: open })}
         title={pdfViewer.title}
         url={pdfViewer.url}
+      />
+
+      <MsgViewerModal
+        open={msgViewer.isOpen}
+        onOpenChange={(open) =>
+          setMsgViewer((prev) => ({ ...prev, isOpen: open }))
+        }
+        title={msgViewer.title}
+        data={msgViewer.data}
+        loading={msgViewer.loading}
+        error={msgViewer.error}
       />
 
       <CreateFTOModal
