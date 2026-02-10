@@ -250,6 +250,10 @@ export default function AllProperties() {
   const [error, setError] = useState<string | null>(null);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showFilterBar, setShowFilterBar] = usePageState("showFilterBar", false);
+  const [filterType, setFilterType] = usePageState("filterType", "");
+  const [filterLocation, setFilterLocation] = usePageState("filterLocation", "");
+  const [filterManager, setFilterManager] = usePageState("filterManager", "");
 
   const handlePropertyDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this property?")) return;
@@ -302,24 +306,41 @@ export default function AllProperties() {
   const getPropertyColumnValue = (p: Property) =>
     p.type?.toLowerCase() === "hoa" && p.name ? p.name : p.address;
 
+  // Unique values for filter dropdowns (from current properties)
+  const uniqueTypes = Array.from(
+    new Set(properties.map((p) => p.type).filter(Boolean))
+  ).sort();
+  const uniqueLocations = Array.from(
+    new Set(properties.map((p) => p.location).filter(Boolean))
+  ).sort();
+  const uniqueManagers = Array.from(
+    new Set(properties.map((p) => p.manager).filter(Boolean))
+  ).sort();
+
   useEffect(() => {
     const term = searchTerm.toLowerCase();
-  
+
     const filtered = properties.filter((p) => {
       const propertyColumnValue = getPropertyColumnValue(p);
-      return (
+      const matchesSearch =
+        !term ||
         propertyColumnValue.toLowerCase().includes(term) ||
         p.address.toLowerCase().includes(term) ||
         p.location.toLowerCase().includes(term) ||
         p.type.toLowerCase().includes(term) ||
         p.buildingId.toLowerCase().includes(term) ||
-        (p.name && p.name.toLowerCase().includes(term))
-      );
+        (p.name && p.name.toLowerCase().includes(term));
+      if (!matchesSearch) return false;
+
+      if (filterType && p.type !== filterType) return false;
+      if (filterLocation && p.location !== filterLocation) return false;
+      if (filterManager && p.manager !== filterManager) return false;
+      return true;
     });
-  
+
     setFilteredProperties(filtered);
-    setCurrentPage(1); // reset pagination to page 1
-  }, [searchTerm, properties]);
+    setCurrentPage(1); // reset pagination to page 1 when search changes
+  }, [searchTerm, properties, filterType, filterLocation, filterManager]);
   
   const [isAddPropertyModalOpen, setIsAddPropertyModalOpen] = usePageState(
     "isAddPropertyModalOpen",
@@ -521,7 +542,13 @@ export default function AllProperties() {
                     className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize bg-transparent border-none outline-none placeholder:text-[#303030] w-32 sm:w-48"
                   />
                 </div>
-                <button className="flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors">
+                <button
+                  onClick={() => setShowFilterBar(!showFilterBar)}
+                  className={cn(
+                    "flex h-9 justify-center items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors",
+                    showFilterBar && "ring-1 ring-[#013764] bg-gray-50/50"
+                  )}
+                >
                   <span className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] capitalize">
                     Filter
                   </span>
@@ -531,6 +558,7 @@ export default function AllProperties() {
                     viewBox="0 0 18 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    className={cn("transition-transform", showFilterBar && "rotate-180")}
                   >
                     <path
                       d="M4.5 6.75L9 11.25L13.5 6.75"
@@ -543,6 +571,83 @@ export default function AllProperties() {
                 </button>
               </div>
             </div>
+
+            {/* Filter bar - toggled by Filter button */}
+            {showFilterBar && (
+              <div
+                className="flex flex-wrap items-center gap-4 px-6 py-4 border-b border-[#E5E5E5] bg-gray-50/80"
+                style={{ borderColor: "var(--color-border-light)" }}
+              >
+                <span className="text-sm font-medium text-[#303030] shrink-0">
+                  Filter by
+                </span>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                      Type
+                    </label>
+                    <select
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
+                      className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                    >
+                      <option value="">All</option>
+                      {uniqueTypes.map((t) => (
+                        <option key={t} value={t}>
+                          {EnumToPropertyType[t] ?? t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                      Location
+                    </label>
+                    <select
+                      value={filterLocation}
+                      onChange={(e) => setFilterLocation(e.target.value)}
+                      className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                    >
+                      <option value="">All</option>
+                      {uniqueLocations.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                      Manager
+                    </label>
+                    <select
+                      value={filterManager}
+                      onChange={(e) => setFilterManager(e.target.value)}
+                      className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                    >
+                      <option value="">All</option>
+                      {uniqueManagers.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterType("");
+                    setFilterLocation("");
+                    setFilterManager("");
+                    setCurrentPage(1);
+                  }}
+                  className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"
+                >
+                  Clear filters
+                </button>
+              </div>
+            )}
 
             {/* Table Content */}
             <div className="overflow-x-auto">

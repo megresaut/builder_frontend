@@ -7,6 +7,7 @@ import {
   UserIcon,
   EyeIcon,
 } from "@/components/icons";
+import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 
 interface SubmissionHistoryCardProps {
   id: number;
@@ -136,7 +137,7 @@ export default function SubmissionHistoryCard({
         <div className="flex items-center gap-2 text-xs text-gray-600">
           <BuildingIcon width={14} height={14} />
           <span className="truncate">{property}</span>
-          {unit && unit !== "N/A" && (
+          {unit && unit !== UNIT_EMPTY_DISPLAY && (
             <>
               <span>•</span>
               <span className="truncate">{unit}</span>

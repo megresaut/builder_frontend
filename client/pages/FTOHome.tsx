@@ -27,7 +27,7 @@ import {
   PlusIcon,
 } from "@/components/icons";
 import { fetchJSON } from "@/api/fetchJSON";
-import { formatUnitLabel } from "@/utils/unitLabel";
+import { formatUnitLabel, formatUnitDisplayForTable, UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import { useAuth } from "@/auth/useAuth";
 
 interface FieldTeamOrder {
@@ -106,7 +106,7 @@ const transformAPIData = (apiData: any[]): FieldTeamOrder[] => {
     unit: formatUnitLabel({
       unitId: fto.unit_id,
       unitName: fto.unit_name,
-      fallback: "N/A",
+      fallback: UNIT_EMPTY_DISPLAY,
     }),
     unit_id: fto.unit_id ?? null,
     priority: fto.priority,
@@ -217,7 +217,7 @@ export default function FtoHome() {
         property_id: order.property_id,
         property_name: order.property,
         unit_id: order.unit_id ?? null,
-        unit_name: order.unit !== "N/A" ? order.unit : undefined,
+        unit_name: order.unit !== UNIT_EMPTY_DISPLAY ? order.unit : undefined,
         task_id: order.task_id,
         priority: order.priority as "low" | "normal" | "high",
         status: toFtoStatus(order.approvalStatus) as "new" | "dispatched" | "completed" | "cancelled",
@@ -886,7 +886,7 @@ export default function FtoHome() {
               case "unit":
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {row.unit}
+                    {formatUnitDisplayForTable(row.unit)}
                   </span>
                 );
               case "priority":

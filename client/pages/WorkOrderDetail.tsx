@@ -7,6 +7,7 @@ import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
+import { formatUnitDisplayForTable } from "@/utils/unitLabel";
 
 interface WorkOrderDetailData {
   id: number;
@@ -401,7 +402,7 @@ export default function WorkOrderDetail() {
                   Unit
                 </label>
                 <p className="text-[#303030] font-normal text-base">
-                  {workOrder.unit}
+                  {formatUnitDisplayForTable(workOrder.unit)}
                 </p>
               </div>
               <div className="flex flex-col gap-2">

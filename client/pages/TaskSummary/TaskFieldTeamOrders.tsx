@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
-import { formatUnitLabel } from "@/utils/unitLabel";
+import { formatUnitLabel, formatUnitDisplayForTable, UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -194,7 +194,7 @@ export const transformAPIToFieldTeamOrders = (
       unit: formatUnitLabel({
         unitId: fto.unit_id,
         unitName: fto.unit_name,
-        fallback: "Unit",
+        fallback: UNIT_EMPTY_DISPLAY,
       }),
       fieldTeamMemberIds: fto.field_team_member_ids,
       pmAssigneeIds: fto.pm_assignee_ids,
@@ -386,7 +386,7 @@ export default function TaskFieldTeamOrders({
           ftoId: order.id,
           ftoName: order.description,
           property: order.property,
-          unit: order.unit ?? "",
+          unit: order.unit ?? UNIT_EMPTY_DISPLAY,
           fieldTeamAssignee:
             order.fieldTeamAssignee ?? order.fieldTeam?.[0]?.name ?? "",
           task: order.task ?? "",
@@ -455,7 +455,7 @@ export default function TaskFieldTeamOrders({
               if (columnKey === "unit") {
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
-                    {order.unit || "-"}
+                    {formatUnitDisplayForTable(order.unit)}
                   </span>
                 );
               }

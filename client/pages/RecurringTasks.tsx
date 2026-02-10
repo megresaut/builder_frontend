@@ -12,6 +12,7 @@ import PageTemplate from "@/layout/PageTemplate";
 import PersonAvatars from "@/components/PersonAvatars";
 import { EditIcon, DeleteIcon, BuildingIcon } from "@/components/icons";
 import { fetchJSON } from "@/api/fetchJSON";
+import { formatUnitDisplayForTable } from "@/utils/unitLabel";
 
 interface Assignee {
   id: number;
@@ -436,7 +437,7 @@ export default function RecurringTasks() {
             if (columnKey === "unit") {
               return (
                 <span className="text-gray-900 font-normal text-sm truncate">
-                  {task.unit}
+                  {formatUnitDisplayForTable(task.unit)}
                 </span>
               );
             }

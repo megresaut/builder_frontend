@@ -22,7 +22,7 @@ import {
   UserIcon,
 } from "@/components/icons";
 import { fetchJSON } from "@/api/fetchJSON";
-import { formatUnitLabel } from "@/utils/unitLabel";
+import { formatUnitLabel, formatUnitDisplayForTable } from "@/utils/unitLabel";
 
 import type { Task } from "@/data/tasks";
 
@@ -178,13 +178,63 @@ export default function AllTasks() {
   );
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingApiTask, setEditingApiTask] = useState<ApiTask | null>(null);
+  const [apiTasks, setApiTasks] = useState<ApiTask[]>([]);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = usePageState(
     "isCreateTaskModalOpen",
     false,
   );
+  const [showFilterBar, setShowFilterBar] = usePageState("allTasksShowFilterBar", false);
+  const [filterDateFrom, setFilterDateFrom] = usePageState("allTasksFilterDateFrom", "");
+  const [filterDateTo, setFilterDateTo] = usePageState("allTasksFilterDateTo", "");
+  const [filterProperty, setFilterProperty] = usePageState("allTasksFilterProperty", "");
+  const [filterPriority, setFilterPriority] = usePageState("allTasksFilterPriority", "");
+  const [filterStatus, setFilterStatus] = usePageState("allTasksFilterStatus", "");
+  const [filterAssignee, setFilterAssignee] = usePageState("allTasksFilterAssignee", "");
+
+  const uniqueProperties = useMemo(
+    () => Array.from(new Set(tasksList.map((t) => t.property).filter(Boolean))).sort(),
+    [tasksList],
+  );
+  const uniqueAssignees = useMemo(
+    () =>
+      Array.from(
+        new Set(tasksList.flatMap((t) => t.assignees.map((a) => a.name)).filter(Boolean)),
+      ).sort(),
+    [tasksList],
+  );
+
+  const filteredTasks = useMemo(() => {
+    return tasksList.filter((task) => {
+      if (filterProperty && task.property !== filterProperty) return false;
+      if (filterPriority && task.priority !== filterPriority) return false;
+      if (filterStatus && task.status !== filterStatus) return false;
+      if (filterAssignee) {
+        const hasAssignee = task.assignees.some((a) => a.name === filterAssignee);
+        if (!hasAssignee) return false;
+      }
+      if (filterDateFrom || filterDateTo) {
+        const apiTask = apiTasks.find((t) => t.id === task.id);
+        const dueDate = apiTask?.due_date ?? null;
+        if (!dueDate) return false;
+        const dateStr = dueDate.slice(0, 10);
+        if (filterDateFrom && dateStr < filterDateFrom) return false;
+        if (filterDateTo && dateStr > filterDateTo) return false;
+      }
+      return true;
+    });
+  }, [
+    tasksList,
+    apiTasks,
+    filterProperty,
+    filterPriority,
+    filterStatus,
+    filterAssignee,
+    filterDateFrom,
+    filterDateTo,
+  ]);
 
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
-    tasksList,
+    filteredTasks,
     "allTasks",
   );
   const {
@@ -215,8 +265,6 @@ export default function AllTasks() {
     "assignees",
     "collaborators",
   ]);
-
-  const [apiTasks, setApiTasks] = useState<ApiTask[]>([]);
 
   // Function to load tasks from API
   const loadTasks = useCallback(async () => {
@@ -253,6 +301,17 @@ export default function AllTasks() {
       window.removeEventListener("refreshAllTasks", handleRefresh);
     };
   }, [loadTasks]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    filterDateFrom,
+    filterDateTo,
+    filterProperty,
+    filterPriority,
+    filterStatus,
+    filterAssignee,
+  ]);
 
   // Hide collaborators by default
   useEffect(() => {
@@ -499,9 +558,124 @@ export default function AllTasks() {
           }}
         />
 
+        {showFilterBar && (
+          <div
+            className="flex flex-wrap items-center gap-4 p-4 rounded-lg border border-[#E5E5E5] bg-gray-50/80"
+            style={{ borderColor: "var(--color-border-light)" }}
+          >
+            <span className="text-sm font-medium text-[#303030] shrink-0">
+              Filter by
+            </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Date from
+                </label>
+                <input
+                  type="date"
+                  value={filterDateFrom}
+                  onChange={(e) => setFilterDateFrom(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Date to
+                </label>
+                <input
+                  type="date"
+                  value={filterDateTo}
+                  onChange={(e) => setFilterDateTo(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Property
+                </label>
+                <select
+                  value={filterProperty}
+                  onChange={(e) => setFilterProperty(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                >
+                  <option value="">All</option>
+                  {uniqueProperties.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Priority
+                </label>
+                <select
+                  value={filterPriority}
+                  onChange={(e) => setFilterPriority(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[120px]"
+                >
+                  <option value="">All</option>
+                  <option value="low">Low</option>
+                  <option value="normal">Normal</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Status
+                </label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                >
+                  <option value="">All</option>
+                  <option value="not_started">Not started</option>
+                  <option value="in_progress">In progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                  Assignee
+                </label>
+                <select
+                  value={filterAssignee}
+                  onChange={(e) => setFilterAssignee(e.target.value)}
+                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
+                >
+                  <option value="">All</option>
+                  {uniqueAssignees.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setFilterDateFrom("");
+                setFilterDateTo("");
+                setFilterProperty("");
+                setFilterPriority("");
+                setFilterStatus("");
+                setFilterAssignee("");
+                setCurrentPage(1);
+              }}
+              className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+
         <GlobalTable
           columns={columns}
-          data={tasksList}
+          data={getSortedData()}
           rowKey="id"
           onRowClick={(task) => {
             navigate(`/tasks/${task.id}/summary`, {
@@ -549,10 +723,8 @@ export default function AllTasks() {
                 unit1: "1",
                 unit2: "2",
               };
-
-              const unitLabel = task.unit
-                ? unitLabels[task.unit] || task.unit
-                : "—";
+              const raw = task.unit ? unitLabels[task.unit] || task.unit : "";
+              const unitLabel = formatUnitDisplayForTable(raw);
 
               return (
                 <span className="text-gray-900 font-normal text-sm truncate">
@@ -632,6 +804,11 @@ export default function AllTasks() {
           onOpenMenuIdChange={setOpenMenuId}
           actions={actions}
           title="Task List"
+          onFilterClick={() => {
+            setShowPageSizeDropdown(false);
+            setOpenMenuId(null);
+            setShowFilterBar(!showFilterBar);
+          }}
           headerActions={
             <button
               ref={columnButtonRef}
