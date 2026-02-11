@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ModalTemplate,
   ModalButtons,
@@ -60,7 +60,9 @@ export function AddEditSubtaskModal({
   const [assignees, setAssignees] = useState<MultiSelectOption[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasSyncedForOpenRef = useRef(false);
 
+  // Only sync form state when the modal opens, not on every parent re-render (so typing isn't reset)
   useEffect(() => {
     if (!open) {
       setName("");
@@ -68,24 +70,28 @@ export function AddEditSubtaskModal({
       setStatus("pending");
       setAssignees([]);
       setError(null);
+      hasSyncedForOpenRef.current = false;
       return;
     }
-    if (editingSubtask) {
-      setName(editingSubtask.name || "");
-      setDescription(editingSubtask.description || "");
-      setStatus(editingSubtask.status || "pending");
-      setAssignees(
-        (editingSubtask.assignees || []).map((a) => ({
-          id: String(a.id),
-          label: a.name,
-          initials: a.initials,
-        }))
-      );
-    } else {
-      setName("");
-      setDescription("");
-      setStatus("pending");
-      setAssignees([]);
+    if (!hasSyncedForOpenRef.current) {
+      hasSyncedForOpenRef.current = true;
+      if (editingSubtask) {
+        setName(editingSubtask.name || "");
+        setDescription(editingSubtask.description || "");
+        setStatus(editingSubtask.status || "pending");
+        setAssignees(
+          (editingSubtask.assignees || []).map((a) => ({
+            id: String(a.id),
+            label: a.name,
+            initials: a.initials,
+          }))
+        );
+      } else {
+        setName("");
+        setDescription("");
+        setStatus("pending");
+        setAssignees([]);
+      }
     }
   }, [open, editingSubtask]);
 
