@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
@@ -107,6 +107,7 @@ export default function FtoInspections() {
   const [inspections, setInspections] = useState<InspectionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const focusRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sorting hook
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
@@ -215,9 +216,22 @@ export default function FtoInspections() {
     // Load on mount
     loadInspections();
 
-    // Listen for focus events to reload when user comes back to the tab
-    window.addEventListener("focus", loadInspections);
-    return () => window.removeEventListener("focus", loadInspections);
+    // Reload when user comes back to the tab, but only after a short delay so that
+    // an immediate click to navigate doesn't trigger a visible refresh of the current page first
+    const handleFocus = () => {
+      focusRefreshTimeoutRef.current = setTimeout(() => {
+        focusRefreshTimeoutRef.current = null;
+        loadInspections();
+      }, 400);
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      if (focusRefreshTimeoutRef.current) {
+        clearTimeout(focusRefreshTimeoutRef.current);
+        focusRefreshTimeoutRef.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedUserId]); // toast is stable (methods reference addToast from context)
 
