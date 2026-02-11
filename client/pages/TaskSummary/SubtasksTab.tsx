@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Plus } from "lucide-react";
 import HeaderV1 from "@/components/HeaderV1";
 import GlobalTable from "@/components/GlobalTable";
@@ -287,17 +287,19 @@ export default function SubtasksTab({
           setIsModalOpen(open);
         }}
         onSubmit={handleModalSubmit}
-        editingSubtask={
-          editingSubtask
-            ? {
-                id: editingSubtask.id,
-                name: editingSubtask.name,
-                description: editingSubtask.description || "",
-                status: editingSubtask.status,
-                assignees: editingSubtask.assignees || [],
-              }
-            : null
-        }
+        editingSubtask={useMemo(
+          () =>
+            editingSubtask
+              ? {
+                  id: editingSubtask.id,
+                  name: editingSubtask.name,
+                  description: editingSubtask.description || "",
+                  status: editingSubtask.status,
+                  assignees: editingSubtask.assignees || [],
+                }
+              : null,
+          [editingSubtask]
+        )}
         availableAssignees={availableAssignees}
       />
     </>

@@ -918,6 +918,50 @@ export default function TaskSummary() {
         );
       }
 
+      // Subtask created: show subtask name and assignees if present
+      if (row.update_type === "subtask_created") {
+        const name = newV.subtask_name ?? "Subtask";
+        const assignees: Array<{ id: number; name: string; email?: string }> =
+          Array.isArray(newV.assignees) ? newV.assignees : [];
+        const people = assignees.map((a: { id?: number; name?: string; email?: string }) => ({
+          id: Number(a.id ?? 0),
+          name: a.name ?? "",
+          initials: initialsFromName(a.name ?? ""),
+          email: a.email,
+        }));
+        return (
+          <div className="mt-3">
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+              Subtask
+            </div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">{name}</div>
+            {people.length > 0 && (
+              <div className="mt-2">
+                <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                  Assignees
+                </div>
+                <div className="mt-0.5">
+                  <PersonAvatars people={people} type="assignee" />
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // Subtask completed: show subtask name
+      if (row.update_type === "subtask_completed") {
+        const name = newV.subtask_name ?? "Subtask";
+        return (
+          <div className="mt-3">
+            <div className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+              Completed
+            </div>
+            <div className="text-sm text-[#303030] font-medium mt-0.5">{name}</div>
+          </div>
+        );
+      }
+
       // Generic fallback: if the row contains known fields in new_value, render them
       // (covers update_type like "general_update", "due_date_change", etc.)
       const hasStatus = typeof newV.status === "string";
@@ -1868,6 +1912,8 @@ export default function TaskSummary() {
           actionValue = newPr || undefined;
         } else if (row.update_type === "assignee_change") {
           action = "updated assignees";
+        } else if (row.update_type === "subtask_created" || row.update_type === "subtask_completed") {
+          action = row.message || action;
         }
 
         const attachmentIds = Array.isArray(row.attachment_ids)
@@ -1907,6 +1953,8 @@ export default function TaskSummary() {
           icon:
             row.update_type === "task_created" ? (
               <FlagIcon width={16} height={16} />
+            ) : row.update_type === "subtask_completed" ? (
+              <ApproveIcon width={16} height={16} />
             ) : (
               <EditIcon width={16} height={16} />
             ),
@@ -3485,8 +3533,10 @@ export default function TaskSummary() {
                     description: values.description || "",
                     status: values.status,
                     assignees: values.assignees.map((a) => Number(a.id)),
+                    ...(userId != null && { actor_id: userId }),
                   }),
                 });
+                await loadUpdatesFromDb();
               }}
               onUpdateSubtask={async (subtaskId, values) => {
                 if (!taskId) return;
@@ -3499,9 +3549,12 @@ export default function TaskSummary() {
                       description: values.description || "",
                       status: values.status,
                       assignees: values.assignees.map((a) => Number(a.id)),
+                      ...(userId != null && { actor_id: userId }),
                     }),
                   }
                 );
+                await loadUpdatesFromDb();
+                await refetchSubtasks();
               }}
               onDeleteSubtask={async (subtaskId) => {
                 if (!taskId) return;
