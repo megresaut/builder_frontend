@@ -298,10 +298,11 @@ function EstimateHistoryTimeline({
 }: {
   entries: Array<Pick<EstimateHistoryEntry, "id" | "changed_by_name" | "old_value" | "new_value" | "created_at">>;
 }) {
-  if (entries.length === 0) {
+  const safeEntries = Array.isArray(entries) ? entries : [];
+  if (safeEntries.length === 0) {
     return (
-      <p className="text-[#717179] text-sm py-4 text-center">
-        No estimate updates yet.
+      <p className="text-[#717179] text-sm py-6 text-center">
+        No estimate history yet. Please update the total to add the first entry.
       </p>
     );
   }
@@ -314,7 +315,7 @@ function EstimateHistoryTimeline({
           className="absolute left-[7px] top-2 bottom-2 w-px bg-[#e5e5e5]"
           aria-hidden
         />
-        {entries.map((entry) => {
+        {safeEntries.map((entry) => {
           const isInitial = entry.old_value === null || entry.old_value === undefined;
           return (
             <div
@@ -893,11 +894,12 @@ export default function WorkOrderDetailsV2({
 
     (async () => {
       try {
-        const data = (await fetchJSON(
+        const data = await fetchJSON(
           `/maintenance/work-orders/id/${workOrderId}/estimate-history`
-        )) as EstimateHistoryEntry[];
+        );
         if (!cancelled) {
-          setEstimateHistoryEntries(data);
+          const entries = Array.isArray(data) ? data : [];
+          setEstimateHistoryEntries(entries);
         }
       } catch (err) {
         if (!cancelled) {
