@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "./Utilities_wrong";
 import { fetchJSON } from "@/api/fetchJSON";
 import AddPropertyModal from "@/components/AddPropertyModal";
+import PersonAvatars from "@/components/PersonAvatars";
 import { usePageState } from "@/hooks/usePageState";
 import { EnumToPropertyType } from "@/utils/propertyTypeMap";
 
@@ -20,7 +21,8 @@ interface Property {
   name: string;
   address: string;
   location: string;
-  manager: string;  
+  manager: string;
+  manager_ids: number[];
   type: string;
   buildingId: string;
   status: "active" | "inactive";
@@ -254,6 +256,7 @@ export default function AllProperties() {
   const [filterType, setFilterType] = usePageState("filterType", "");
   const [filterLocation, setFilterLocation] = usePageState("filterLocation", "");
   const [filterManager, setFilterManager] = usePageState("filterManager", "");
+  const [managersById, setManagersById] = useState<Map<number, { name: string; email: string; initials: string }>>(new Map());
 
   const handlePropertyDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this property?")) return;
@@ -283,7 +286,8 @@ export default function AllProperties() {
           name: p.name ?? "",
           address: p.address_line1,
           location: `${p.city}, ${p.state}`,
-          manager: p.manager_names?.join(", ") ?? "",
+          manager: Array.isArray(p.manager_names) ? p.manager_names.join(", ") : (p.manager_names ?? ""),
+          manager_ids: Array.isArray(p.manager_ids) ? p.manager_ids.map(Number) : [],
           type: p.property_type,
           buildingId: p.buildium_property_id,
           status: p.active ? "active" : "inactive",
@@ -301,6 +305,68 @@ export default function AllProperties() {
 
     load();
   }, []);
+
+  const getInitials = (name: string) =>
+    name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+
+  useEffect(() => {
+    const loadManagers = async () => {
+      try {
+        const [pmData, ftData] = await Promise.all([
+          fetchJSON("/users/property-managers").catch(() => []),
+          fetchJSON("/users/field-team").catch(() => []),
+        ]);
+        const map = new Map<number, { name: string; email: string; initials: string }>();
+        [...pmData, ...ftData].forEach((u: any) => {
+          const id = Number(u.id);
+          if (map.has(id)) return;
+          const name = u.name || u.email || "";
+          map.set(id, {
+            name,
+            email: u.email || "",
+            initials: getInitials(name),
+          });
+        });
+        setManagersById(map);
+      } catch {
+        // ignore
+      }
+    };
+    loadManagers();
+  }, []);
+
+  // Build manager people for display: use manager_ids when present, else fall back to manager names
+  const getManagerPeople = (property: Property): Array<{ id: number | string; name: string; initials: string; email: string }> => {
+    if (property.manager_ids?.length > 0) {
+      return property.manager_ids
+        .map((id) => {
+          const m = managersById.get(id);
+          return m ? { id, name: m.name, initials: m.initials, email: m.email } : null;
+        })
+        .filter((p): p is { id: number; name: string; initials: string; email: string } => p != null);
+    }
+    const managerNames = (property.manager || "").split(",").map((s) => s.trim()).filter(Boolean);
+    return managerNames.map((name, i) => {
+      let email = "";
+      for (const m of managersById.values()) {
+        if (m.name === name) {
+          email = m.email;
+          break;
+        }
+      }
+      return {
+        id: `name-${i}-${name}`,
+        name,
+        initials: getInitials(name),
+        email,
+      };
+    });
+  };
 
   // Display value for the property column: name for HOA, address otherwise
   const getPropertyColumnValue = (p: Property) =>
@@ -818,9 +884,19 @@ export default function AllProperties() {
                         </span>
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                        <span className="text-gray-900 font-normal text-base">
-                          {property.manager}
-                        </span>
+                        {(() => {
+                          const managerPeople = getManagerPeople(property);
+                          return managerPeople.length > 0 ? (
+                            <PersonAvatars
+                              people={managerPeople}
+                              type="assignee"
+                              size="sm"
+                              fallback="—"
+                            />
+                          ) : (
+                            <span className="text-gray-900 font-normal text-base">—</span>
+                          );
+                        })()}
                       </td>
                       <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                         <span className="text-gray-900 font-normal text-base">

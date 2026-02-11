@@ -47,6 +47,7 @@ type PropertyData = {
   active: boolean;
   created_at: string;
   manager_names: string[];
+  manager_ids?: number[];
   owners?: { name: string }[];
   image_url?: string;
   image_storage_key?: string;
@@ -201,7 +202,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [fileCategoryDraft, setFileCategoryDraft] = useState("Uncategorized");
   const [managementAgreementDate, setManagementAgreementDate] = useState("");
   const [inspectionFrequency, setInspectionFrequency] = useState("Monthly");
-  
+
   // Editable rates state
   const [monthlyRate, setMonthlyRate] = useState("$0.00 / month");
   const [defaultRate, setDefaultRate] = useState("$0 / hour");
@@ -230,7 +231,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   
     fetchPropertyData();
   }, [propertyId, isValidPropertyId]);
-  
 
   // Fetch notes
   useEffect(() => {
@@ -327,7 +327,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const propertyType = propertyData?.property_type || "";
   const ownerNames = propertyData?.owners?.map(owner => owner.name) || [];
   const rentalOwner = ownerNames.length > 0 ? ownerNames.join(", ") : "----";
-  const propertyManager = propertyData?.manager_names?.[0] || "";
+  const propertyManager = propertyData?.manager_names?.join(", ") ?? "";
   const placeholderImage =
     "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b1dce1b4ec8292553f371f2747d334a444b1a4aa?placeholderIfAbsent=true";
   const propertyImageUrl =
@@ -617,7 +617,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
                 <div className="flex mt-5 w-full flex-col gap-3">
                   {/* Owners + Managers row */}
-                  <div className="flex w-full items-start gap-14">
+                  <div className="flex w-full items-baseline gap-14">
                     <div className="flex flex-col">
                       <div className="text-[#71717A] text-xs leading-[1.33]">
                         RENTAL OWNERS
@@ -635,10 +635,10 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
                     <div className="flex flex-col">
                       <div className="text-[#71717A] text-xs leading-[1.33]">
-                        PROPERTY MANAGERS
+                        MANAGER
                       </div>
                       <div className="text-[#303030] text-base leading-[1.13] mt-1">
-                        {propertyManager}
+                        {propertyManager || "—"}
                       </div>
                     </div>
                   </div>

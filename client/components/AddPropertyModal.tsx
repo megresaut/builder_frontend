@@ -221,26 +221,32 @@ export default function AddPropertyModal({
   const [status, setStatus] = useState("active");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load property managers on component mount
+  // Load property managers + field team managers on component mount
   useEffect(() => {
     const loadManagers = async () => {
       setLoadingManagers(true);
       try {
-        const data = await fetchJSON("/users/property-managers");
-  
-        const mapped = data.map((u: any) => ({
-          id: u.id,
-          name: u.name || u.email,
-        }));
-  
-        setAvailableManagers(mapped);
+        const [pmData, ftData] = await Promise.all([
+          fetchJSON("/users/property-managers").catch(() => []),
+          fetchJSON("/users/field-team").catch(() => []),
+        ]);
+        const byId = new Map<number, PropertyManager>();
+        pmData.forEach((u: any) => {
+          byId.set(Number(u.id), { id: Number(u.id), name: u.name || u.email });
+        });
+        ftData.forEach((u: any) => {
+          if (!byId.has(Number(u.id))) {
+            byId.set(Number(u.id), { id: Number(u.id), name: u.name || u.email });
+          }
+        });
+        setAvailableManagers(Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name)));
       } catch (error) {
-        console.error("Failed to load property managers:", error);
+        console.error("Failed to load managers:", error);
       } finally {
         setLoadingManagers(false);
       }
     };
-  
+
     loadManagers();
   }, []);
   
@@ -486,7 +492,7 @@ export default function AddPropertyModal({
             </FieldRowItem>
             <FieldRowItem>
               <MultiSelectField
-                label="Property Manager"
+                label="Manager"
                 value={selectedManagerOptions}
                 onChange={(newOptions) => {
                   setSelectedManagerIds(newOptions.map((opt) => Number(opt.id)));
