@@ -694,6 +694,15 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
                       <button
                         className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
                         style={{ minHeight: "38px" }}
+                        onClick={() => {
+                          const firstItem = (submenuMap[item.id] || [])[0];
+                          if (firstItem?.path) {
+                            navigate(firstItem.path);
+                            handleNavigation(firstItem.label, firstItem.sectionId, firstItem.path);
+                            setIsHovered(false);
+                            setActiveDropdown(null);
+                          }
+                        }}
                       >
                         <div className="flex items-center gap-2 flex-1 text-left min-w-0">
                           <span className="flex items-center justify-center flex-shrink-0">
@@ -1025,6 +1034,15 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
                     <button
                       className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
                       style={{ minHeight: "38px" }}
+                      onClick={() => {
+                        const firstItem = (submenuMap[item.id] || [])[0];
+                        if (firstItem?.path) {
+                          navigate(firstItem.path);
+                          handleNavigation(firstItem.label, firstItem.sectionId, firstItem.path);
+                          setIsHovered(false);
+                          setActiveDropdown(null);
+                        }
+                      }}
                     >
                       <div className="flex items-center gap-2 flex-1 text-left min-w-0">
                         <span className="flex items-center justify-center flex-shrink-0">
@@ -1317,6 +1335,15 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
                   <button
                     className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
                     style={{ minHeight: "38px" }}
+                    onClick={() => {
+                      const firstItem = (submenuMap[item.id] || [])[0];
+                      if (firstItem?.path) {
+                        navigate(firstItem.path);
+                        handleNavigation(firstItem.label, firstItem.sectionId, firstItem.path);
+                        setIsHovered(false);
+                        setActiveDropdown(null);
+                      }
+                    }}
                   >
                     <div className="flex items-center gap-2 flex-1 text-left min-w-0">
                       <span className="flex items-center justify-center flex-shrink-0">
