@@ -89,7 +89,7 @@ const PropertyPageHeader = memo(function PropertyPageHeader({
     "Vendors",
     "Bills",
     "Notes",
-    "Invoicing",
+    ...(isConcierge ? ["Invoicing"] : []),
   ];
 
   const handleTabClick = (tab: string) => {
@@ -107,12 +107,16 @@ const PropertyPageHeader = memo(function PropertyPageHeader({
             <span className="text-[#717179] font-medium text-base leading-4">
               {propertyType}
             </span>
-            <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="2" cy="2" r="2" fill="#717179" />
-            </svg>
-            <span className="text-[#717179] font-medium text-base leading-4">
-              {propertyUnits} Unit{propertyUnits !== 1 ? "s" : ""}
-            </span>
+            {!isConcierge && (
+              <>
+                <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="2" cy="2" r="2" fill="#717179" />
+                </svg>
+                <span className="text-[#717179] font-medium text-base leading-4">
+                  {propertyUnits} Unit{propertyUnits !== 1 ? "s" : ""}
+                </span>
+              </>
+            )}
             <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="2" cy="2" r="2" fill="#717179" />
             </svg>

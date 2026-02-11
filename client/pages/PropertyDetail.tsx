@@ -117,7 +117,11 @@ export function PropertyTabContent() {
   const { tab } = useParams<{ tab: string }>();
   const currentTab = tab || "Overview";
   const effectiveTab =
-    currentTab === "Units" && propertyType === "Concierge" ? "Overview" : currentTab;
+    currentTab === "Units" && propertyType === "Concierge"
+      ? "Overview"
+      : currentTab === "Invoicing" && propertyType !== "Concierge"
+        ? "Overview"
+        : currentTab;
 
   switch (effectiveTab) {
     case "Overview":

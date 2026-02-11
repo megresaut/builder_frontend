@@ -5,7 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useNavigate, useLocation } from "react-router-dom";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
@@ -91,13 +91,13 @@ function useInitialTabState(): {
 }
 
 /** Syncs URL to the selected tab's route when we restored from sessionStorage (so refresh shows correct page).
- *  Only sync when current path is "/" so that direct navigations (e.g. /fto for Field Team Portal) are not overwritten. */
+ *  Runs in useLayoutEffect so the URL is corrected before first paint, avoiding a visible "refresh" when returning to the tab. */
 function RestoreTabUrlSync({ didRestore }: { didRestore: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { selectedTab, tabMetadata } = useTabContext();
   const doneRef = useRef(false);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!didRestore || doneRef.current) return;
     // Only override URL when user landed on root; don't redirect away from /fto or other direct links
     if (location.pathname !== "/" && location.pathname !== "") return;
