@@ -43,7 +43,7 @@ interface WorkOrder {
   updatedDate: string;
   age: string;
   priority: "High" | "Low" | "Normal";
-  status: "In progress" | "Completed";
+  status: "In Progress" | "Completed";
   billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
   billTotal: string;
   vendorName?: string;
@@ -80,11 +80,11 @@ const calculateAge = (date: string): string => {
   const diffMs = now.getTime() - then.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  
-  if (diffDays > 0) {
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+
+  if (diffDays >= 1) {
+    return `${diffDays} day${diffDays !== 1 ? "s" : ""}`;
   }
-  return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+  return `${diffHours} hour${diffHours !== 1 ? "s" : ""}`;
 };
 
 // Helper function to normalize priority
@@ -95,11 +95,11 @@ const normalizePriority = (priority: string): "High" | "Low" | "Normal" => {
   return "Normal";
 };
 
-// Helper function to normalize status
-const normalizeStatus = (status: string): "In progress" | "Completed" => {
+// Helper function to normalize status (must match TaskStatusBadge keys: "In Progress", "Completed")
+const normalizeStatus = (status: string): "In Progress" | "Completed" => {
   const lower = status.toLowerCase();
   if (lower === "completed" || lower === "closed") return "Completed";
-  return "In progress";
+  return "In Progress";
 };
 
 // Map API response to WorkOrder interface
@@ -124,7 +124,7 @@ const mapAPIWorkOrderToWorkOrder = (apiWO: APIWorkOrder): WorkOrder => {
         year: "numeric",
       });
   
-  const age = calculateAge(apiWO.updated_at || apiWO.created_at);
+  const age = calculateAge(apiWO.created_at);
   
   const billTotal = apiWO.bill_total_cents
     ? `$${(apiWO.bill_total_cents / 100).toFixed(2)}`
@@ -165,7 +165,7 @@ const mockWorkOrders: WorkOrder[] = [
     updatedDate: "Oct 2, 2025",
     age: "6 days 5 hours",
     priority: "High",
-    status: "In progress",
+    status: "In Progress",
     billStatus: "Paid",
     billTotal: "$420",
     assignees: [
@@ -201,7 +201,7 @@ const mockWorkOrders: WorkOrder[] = [
     updatedDate: "Sep 29, 2025",
     age: "6 days 5 hours",
     priority: "Low",
-    status: "In progress",
+    status: "In Progress",
     billStatus: "Awaiting Invoice",
     billTotal: "No invoice",
     assignees: [
@@ -593,7 +593,7 @@ export default function MaintenanceWorkOrders() {
     [workOrders],
   );
   const uniqueStatuses = useMemo(
-    () => ["In progress", "Completed"] as const,
+    () => ["In Progress", "Completed"] as const,
     [],
   );
   const uniquePriorities = useMemo(
@@ -1271,7 +1271,7 @@ export default function MaintenanceWorkOrders() {
         } : editingWorkOrder ? {
           // Fallback if we don't have full API data
           workOrderName: editingWorkOrder.task,
-          status: (editingWorkOrder.status === "In progress" 
+          status: (editingWorkOrder.status === "In Progress" 
             ? "in_progress" 
             : editingWorkOrder.status === "Completed" 
               ? "completed" 
@@ -1351,7 +1351,7 @@ export default function MaintenanceWorkOrders() {
                 : data.priority === "low"
                   ? "Low"
                   : "Normal",
-            status: data.status === "completed" ? "Completed" : "In progress",
+            status: data.status === "completed" ? "Completed" : "In Progress",
             billStatus: "Awaiting Invoice",
             billTotal: "No invoice",
             assignees: [],

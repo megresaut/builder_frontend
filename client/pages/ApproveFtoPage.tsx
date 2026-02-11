@@ -36,6 +36,7 @@ interface HourRow {
   assignee: string;
   assigneeId: number;
   submissionId: number;
+  hourIndex?: number;
 }
 
 interface ExpenseRow {
@@ -263,7 +264,7 @@ const buildHoursJSON = (hourRows: HourRow[]) => {
       note: row.note || "",
       no_charge: row.noFee,
       emergency: row.emergency,
-      hour_index: index,
+      hour_index: row.hourIndex ?? index,
     };
     if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
     return out;
@@ -590,6 +591,10 @@ export default function ApproveFTOPage() {
   
   // Track submissions by assignee ID so we know which assignees already have submissions
   const [submissionByAssignee, setSubmissionByAssignee] = useState<Record<number, number>>({});
+  /** All submission IDs for this FTO (so we can PATCH each one on approve, including clearing hours) */
+  const [loadedSubmissionIds, setLoadedSubmissionIds] = useState<number[]>([]);
+  /** submissionId -> field_team_member_id for patching when a submission has zero rows left */
+  const [loadedSubmissionToAssignee, setLoadedSubmissionToAssignee] = useState<Record<number, number>>({});
   const [loadedFto, setLoadedFto] = useState<Record<string, any> | null>(null);
   const [showEditFTOModal, setShowEditFTOModal] = useState(false);
   const [ftoDetailsVersion, setFtoDetailsVersion] = useState(0);
@@ -789,6 +794,8 @@ export default function ApproveFTOPage() {
           setHasNoSubmissions(true);
           setHourRows([]);
           setExpenseRows([]);
+          setLoadedSubmissionIds([]);
+          setLoadedSubmissionToAssignee({});
           setIsLoadingSubmissions(false);
           return;
         }
@@ -816,6 +823,7 @@ export default function ApproveFTOPage() {
             if (Array.isArray(hoursData)) {
               hoursData.forEach((hourLine: any, index: number) => {
                 const upchargeCents = hourLine.upcharge_cents ?? 0;
+                const hourIndex = hourLine.hour_index ?? index;
                 allHourLines.push({
                   id: `hour-${submission.ID}-${index}`,
                   date: formatDate(new Date(hourLine.date_of_work)),
@@ -828,6 +836,7 @@ export default function ApproveFTOPage() {
                   assignee: assigneeById[submission.FieldTeamMemberID] || "",
                   assigneeId: submission.FieldTeamMemberID,
                   submissionId: submission.ID,
+                  hourIndex,
                 });
               });
             }
@@ -889,6 +898,9 @@ export default function ApproveFTOPage() {
           assigneeToSubmission[submission.FieldTeamMemberID] = submission.ID;
         });
         setSubmissionByAssignee(assigneeToSubmission);
+
+        setLoadedSubmissionIds(submissions.map((s) => s.ID));
+        setLoadedSubmissionToAssignee(Object.fromEntries(submissions.map((s) => [s.ID, s.FieldTeamMemberID])));
 
         setHourRows(allHourLines);
         setExpenseRows(allExpenseLines);
@@ -1035,70 +1047,47 @@ export default function ApproveFTOPage() {
         throw new Error("All rows must have an assignee selected");
       }
 
-      // Group hour rows by assigneeId
-      const hoursByAssignee: Record<number, HourRow[]> = {};
-      hourRows.forEach((row) => {
-        if (!hoursByAssignee[row.assigneeId]) {
-          hoursByAssignee[row.assigneeId] = [];
-        }
-        hoursByAssignee[row.assigneeId].push(row);
-      });
-
-      // Group expense rows by assigneeId
-      const expensesByAssignee: Record<number, ExpenseRow[]> = {};
-      expenseRows.forEach((row) => {
-        if (!expensesByAssignee[row.assigneeId]) {
-          expensesByAssignee[row.assigneeId] = [];
-        }
-        expensesByAssignee[row.assigneeId].push(row);
-      });
-
-      // Get all unique assignee IDs
-      const allAssigneeIds = new Set<number>([
-        ...Object.keys(hoursByAssignee).map(Number),
-        ...Object.keys(expensesByAssignee).map(Number),
-      ]);
-
-      if (allAssigneeIds.size === 0) {
+      if (hourRows.length === 0 && expenseRows.length === 0) {
         throw new Error("No hours or expenses to approve");
       }
 
-      // Process each assignee (create or patch submissions)
-      for (const assigneeId of allAssigneeIds) {
-        const assigneeHours = hoursByAssignee[assigneeId] || [];
-        const assigneeExpenses = expensesByAssignee[assigneeId] || [];
-
-        const hoursJSON = buildHoursJSON(assigneeHours);
-        const materialsJSON = buildMaterialsJSON(assigneeExpenses);
-
-        // Find if any row in this group has an existing submission ID
-        // (indicates these rows came from an existing submission that should be patched)
-        const existingHourSubmissionId = assigneeHours.find((r) => r.submissionId > 0)?.submissionId;
-        const existingExpenseSubmissionId = assigneeExpenses.find((r) => r.submissionId > 0)?.submissionId;
-        const existingSubmissionId = existingHourSubmissionId || existingExpenseSubmissionId;
-
-        if (existingSubmissionId) {
-          // Existing submission - PATCH it (include assignee ID in case it changed)
-          await patchSubmission(existingSubmissionId, {
-            hours_json: hoursJSON,
-            materials_json: materialsJSON,
-            field_team_member_id: assigneeId,
-          });
-        } else {
-          // All rows are new - create a new submission
-          if (!ftoIdNum) {
-            throw new Error("Cannot create submission: FTO ID is missing");
-          }
-          await createSubmissionForAssignee(
-            ftoIdNum,
-            assigneeId,
-            hoursJSON,
-            materialsJSON
-          );
-        }
+      // 1) PATCH each loaded submission with its current hour/expense rows (so deletions persist)
+      for (const submissionId of loadedSubmissionIds) {
+        const subHourRows = hourRows.filter((r) => r.submissionId === submissionId);
+        const subExpenseRows = expenseRows.filter((r) => r.submissionId === submissionId);
+        const hoursJSON = buildHoursJSON(subHourRows);
+        const materialsJSON = buildMaterialsJSON(subExpenseRows);
+        const assigneeId = loadedSubmissionToAssignee[submissionId];
+        await patchSubmission(submissionId, {
+          hours_json: hoursJSON,
+          materials_json: materialsJSON,
+          field_team_member_id: assigneeId,
+        });
       }
 
-      // All submissions created/patched successfully
+      // 2) Create new submissions for any rows with submissionId === 0 (new rows)
+      const newHourRows = hourRows.filter((r) => r.submissionId === 0);
+      const newExpenseRows = expenseRows.filter((r) => r.submissionId === 0);
+      const newAssigneeIds = new Set<number>([
+        ...newHourRows.map((r) => r.assigneeId),
+        ...newExpenseRows.map((r) => r.assigneeId),
+      ].filter((id) => id > 0));
+
+      for (const assigneeId of newAssigneeIds) {
+        const assigneeNewHours = newHourRows.filter((r) => r.assigneeId === assigneeId);
+        const assigneeNewExpenses = newExpenseRows.filter((r) => r.assigneeId === assigneeId);
+        const hoursJSON = buildHoursJSON(assigneeNewHours);
+        const materialsJSON = buildMaterialsJSON(assigneeNewExpenses);
+        if (!ftoIdNum) {
+          throw new Error("Cannot create submission: FTO ID is missing");
+        }
+        await createSubmissionForAssignee(
+          ftoIdNum,
+          assigneeId,
+          hoursJSON,
+          materialsJSON
+        );
+      }
 
       // Update field_team_orders.amount_cents with FTO Total (from hours + expenses) before approving
       const amountCents = Math.round(grandTotal * 100);

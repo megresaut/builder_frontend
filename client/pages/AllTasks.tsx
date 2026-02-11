@@ -42,6 +42,7 @@ interface ApiTask {
   priority: string;
   category: string;
   due_date: string | null;
+  date_requested?: string;
   last_updated: string;
   requested_by: number | null;
   assignees: Array<{ id: number; name: string; email: string }>;
@@ -81,7 +82,7 @@ function transformApiTaskToUiTask(apiTask: ApiTask, sequentialNumber?: number): 
     });
   };
 
-  // Calculate age based on last_updated
+  // Calculate age based on created date (date_requested)
   const getAge = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -141,7 +142,7 @@ function transformApiTaskToUiTask(apiTask: ApiTask, sequentialNumber?: number): 
     category: apiTask.category || "",
     due: formatDate(apiTask.due_date),
     updated: formatDate(apiTask.last_updated),
-    age: getAge(apiTask.last_updated),
+    age: getAge(apiTask.date_requested ?? apiTask.last_updated),
     requested_by: apiTask.requested_by ?? undefined,
     assignees: (apiTask.assignees || []).map((person) => ({
       id: person.id,

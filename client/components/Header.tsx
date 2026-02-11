@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
+import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 
 // Global state for fullscreen mode using localStorage
 const FULLSCREEN_KEY = "app-fullscreen-mode";
@@ -27,6 +28,7 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
+  const { propertyDisplayName } = usePropertyBreadcrumb();
 
   const getCurrentPageLabel = (): {
     label: string;
@@ -95,7 +97,7 @@ export default function Header() {
     } else if (path === "/blank") {
       return { label: "New Tab", path, id: "blank" };
     } else if (path === "/") {
-      return { label: "All Properties", path, id: "all-properties" };
+      return { label: "All Properties", path, id: "properties" };
     } else if (path === "/all-tasks") {
       return { label: "All Tasks", path, id: "all-tasks" };
     } else if (path === "/utilities") {
@@ -155,17 +157,13 @@ export default function Header() {
     const path = location.pathname;
     const items: { label: string; href?: string }[] = [];
     const propertyState = location.state as { address?: string } | null;
-    // console.log(propertyState);
     if (path.includes("/property/")) {
       const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
       if (match) {
-        const propertyId = match[1];
         const tab = match[2];
         items.push({ label: "Properties", href: "/" });
-
-
         items.push({
-          label: propertyState?.address || "Property"
+          label: propertyDisplayName ?? propertyState?.address ?? "Property"
         });
 
         if (tab && tab !== "Overview") {
@@ -362,18 +360,19 @@ export default function Header() {
     setNextNewTabId,
   } = tabContext;
 
-  // When the user navigates (sidebar, links, etc.): update the CURRENT tab's label/route only.
-  // Do NOT add or switch tabs. The only way to get a second tab is by clicking the "+" (addNewTab) button.
-  // Update the current tab's metadata when location changes (same tab, in-tab navigation)
+  // When the user navigates (sidebar, link, task click, etc.): update only the CURRENT tab's label and route.
+  // Do not add or switch tabs — new tabs only when user clicks "+" (addNewTab).
   useEffect(() => {
     const currentPageInfo = getCurrentPageLabel();
     if (currentPageInfo && selectedTab) {
       const metadata = tabMetadata[selectedTab];
       if (metadata?.route !== currentPageInfo.path) {
+        const isTaskRoute = currentPageInfo.id.startsWith("task-");
         setTabMetadata(selectedTab, {
           ...metadata,
           label: currentPageInfo.label,
           route: currentPageInfo.path,
+          ...(isTaskRoute && { sectionId: "all-tasks" }),
         });
       }
     }

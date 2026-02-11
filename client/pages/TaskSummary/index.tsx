@@ -386,7 +386,7 @@ export default function TaskSummary() {
   const navigate = useNavigate();
   const location = useLocation();
   const navigationState = location.state as any;
-  const { setSelectedTab, setTabMetadata, tabMetadata } = useTabContext();
+  const { selectedTab, setTabMetadata, tabMetadata } = useTabContext();
   const { userId } = useAuth();
 
   // Extract sequentialNumber from navigation state
@@ -623,20 +623,20 @@ export default function TaskSummary() {
     (existingTask && taskId !== "1")
   ); // Task 1 is our "Edgerton" demo
 
-  // Update tab metadata with actual task name and switch to task tab
+  // Update current tab's metadata with actual task name when loaded (stay in same tab; do not switch or add tabs)
   useEffect(() => {
-    if (taskId && taskData?.title) {
-      const tabId = `task-${taskId}`;
+    if (taskId && taskData?.title && selectedTab) {
       const activeTab =
         (tab as "summary" | "workorders" | "fieldteam" | "subtasks") || "summary";
-      setTabMetadata(tabId, {
+      const existing = tabMetadata[selectedTab];
+      setTabMetadata(selectedTab, {
+        ...existing,
         label: taskData.title,
         route: `/tasks/${taskId}/${activeTab}`,
         sectionId: "all-tasks",
       });
-      setSelectedTab(tabId);
     }
-  }, [taskId, taskData?.title, tab, setTabMetadata, setSelectedTab]);
+  }, [taskId, taskData?.title, tab, selectedTab, setTabMetadata]);
 
   // Track creation and last updated (raw from API or set on edit; formatted for display via formatTaskDateTime)
   const [createdTimestamp, setCreatedTimestamp] = useState<string>(() => {
@@ -3450,12 +3450,6 @@ export default function TaskSummary() {
                 }
               }}
               onTaskClick={(linkedTaskId) => {
-                const tabId = `task-${linkedTaskId}`;
-                setSelectedTab(tabId);
-                setTabMetadata(tabId, {
-                  label: `Task ${linkedTaskId}`,
-                  route: `/tasks/${linkedTaskId}`,
-                });
                 navigate(`/tasks/${linkedTaskId}`);
               }}
               onAddUpdate={() =>
