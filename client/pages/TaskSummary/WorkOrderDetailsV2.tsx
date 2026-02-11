@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Bell, Share2, Mail, ChevronDown, Plus } from "lucide-react";
+import { ArrowLeft, Bell, Share2, Mail, ChevronDown, Plus, History } from "lucide-react";
 import { EditIcon } from "@/components/icons";
 import SectionCard from "@/components/SectionCard";
 import PeopleCard from "@/components/PeopleCard";
@@ -263,6 +263,102 @@ function transformApiNoteToUiNote(
     created_at: apiNote.created_at,
     updated_at: apiNote.updated_at,
   };
+}
+
+/** Shape for estimate history entries (matches backend API) */
+interface EstimateHistoryEntry {
+  id: number;
+  work_order_id?: number;
+  changed_by?: number | null;
+  old_value: number | null;
+  new_value: number | null;
+  created_at: string;
+  changed_by_name?: string | null;
+}
+
+function formatEstimateValue(val: number | null): string {
+  if (val === null || val === undefined) return "—";
+  return `$${val.toFixed(2)}`;
+}
+
+function formatHistoryDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+function EstimateHistoryTimeline({
+  entries,
+}: {
+  entries: Array<Pick<EstimateHistoryEntry, "id" | "changed_by_name" | "old_value" | "new_value" | "created_at">>;
+}) {
+  if (entries.length === 0) {
+    return (
+      <p className="text-[#717179] text-sm py-4 text-center">
+        No estimate updates yet.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-col py-2">
+      <div className="relative">
+        {/* Vertical timeline rail */}
+        <div
+          className="absolute left-[7px] top-2 bottom-2 w-px bg-[#e5e5e5]"
+          aria-hidden
+        />
+        {entries.map((entry) => {
+          const isInitial = entry.old_value === null || entry.old_value === undefined;
+          return (
+            <div
+              key={entry.id}
+              className="relative flex gap-4 pl-8 pb-5 last:pb-0"
+            >
+              {/* Dot */}
+              <div
+                className="absolute left-0 w-[15px] h-[15px] rounded-full border-2 border-[#2463eb] bg-white"
+                aria-hidden
+              />
+              <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                <div className="text-[#303030] text-sm font-medium">
+                  {entry.changed_by_name ?? "Someone"}
+                  {isInitial ? (
+                    <>
+                      {" set estimate to "}
+                      <span className="text-[#013764] font-semibold">
+                        {formatEstimateValue(entry.new_value)}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {" changed estimate from "}
+                      <span className="text-[#717179] font-normal">
+                        {formatEstimateValue(entry.old_value)}
+                      </span>
+                      {" to "}
+                      <span className="text-[#013764] font-semibold">
+                        {formatEstimateValue(entry.new_value)}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <div className="text-[#717179] text-xs">
+                  {formatHistoryDate(entry.created_at)}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export default function WorkOrderDetailsV2({
@@ -713,6 +809,13 @@ export default function WorkOrderDetailsV2({
   });
   const [isEstimateTotalModalOpen, setIsEstimateTotalModalOpen] =
     useState(false);
+  const [isEstimateHistoryModalOpen, setIsEstimateHistoryModalOpen] =
+    useState(false);
+  const [estimateHistoryEntries, setEstimateHistoryEntries] = useState<
+    EstimateHistoryEntry[]
+  >([]);
+  const [estimateHistoryLoading, setEstimateHistoryLoading] = useState(false);
+  const [estimateHistoryError, setEstimateHistoryError] = useState<string | null>(null);
   const [estimateTotal, setEstimateTotal] = useState<number>(0);
   const [draftEstimateTotal, setDraftEstimateTotal] = useState<number>(0);
 
@@ -732,7 +835,7 @@ export default function WorkOrderDetailsV2({
     }
 
     if (!userId) {
-      console.error("User ID is required to update estimate total");
+      alert("You must be logged in to update the estimate.");
       return;
     }
 
@@ -779,6 +882,39 @@ export default function WorkOrderDetailsV2({
       setDraftEstimateTotal(0);
     }
   }, [isEstimateTotalModalOpen]);
+
+  // Fetch estimate history when history modal opens
+  useEffect(() => {
+    if (!isEstimateHistoryModalOpen || !workOrderId) return;
+
+    let cancelled = false;
+    setEstimateHistoryError(null);
+    setEstimateHistoryLoading(true);
+
+    (async () => {
+      try {
+        const data = (await fetchJSON(
+          `/maintenance/work-orders/id/${workOrderId}/estimate-history`
+        )) as EstimateHistoryEntry[];
+        if (!cancelled) {
+          setEstimateHistoryEntries(data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setEstimateHistoryError(err instanceof Error ? err.message : "Failed to load history");
+          setEstimateHistoryEntries([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setEstimateHistoryLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isEstimateHistoryModalOpen, workOrderId]);
 
   const handleWorkOrderUpdate = (formData: {
     property?: string;
@@ -1413,13 +1549,22 @@ export default function WorkOrderDetailsV2({
                     ${estimateTotal.toFixed(2)}
                   </div>
                 </div>
-                <button
-                  onClick={handleOpenEstimateTotalModal}
-                  className="flex items-center gap-1 text-sm text-[#2463eb] hover:underline"
-                >
-                  <EditIcon width={16} height={16} />
-                  <span className="font-medium">Edit</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsEstimateHistoryModalOpen(true)}
+                    className="flex items-center gap-1 text-sm text-[#717179] hover:text-[#303030] hover:underline"
+                  >
+                    <History width={16} height={16} />
+                    <span className="font-medium">View history</span>
+                  </button>
+                  <button
+                    onClick={handleOpenEstimateTotalModal}
+                    className="flex items-center gap-1 text-sm text-[#2463eb] hover:underline"
+                  >
+                    <EditIcon width={16} height={16} />
+                    <span className="font-medium">Edit</span>
+                  </button>
+                </div>
               </div>
             </SectionCard>
             <SectionCard padding="none" variant="white">
@@ -1827,6 +1972,22 @@ export default function WorkOrderDetailsV2({
             placeholder="$0.00"
           />
         </ModalField>
+      </ModalTemplate>
+
+      {/* Estimate Update History Modal */}
+      <ModalTemplate
+        open={isEstimateHistoryModalOpen}
+        onOpenChange={setIsEstimateHistoryModalOpen}
+        title="Estimate Update History"
+        size="sm"
+      >
+        {estimateHistoryLoading ? (
+          <p className="text-[#717179] text-sm py-8 text-center">Loading...</p>
+        ) : estimateHistoryError ? (
+          <p className="text-red-600 text-sm py-4">{estimateHistoryError}</p>
+        ) : (
+          <EstimateHistoryTimeline entries={estimateHistoryEntries} />
+        )}
       </ModalTemplate>
     </div>
   );
