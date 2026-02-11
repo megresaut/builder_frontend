@@ -1,6 +1,7 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Outlet, useOutletContext } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchJSON } from "@/api/fetchJSON";
+import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
 import { Overview } from "./properties/Overview";
@@ -34,6 +35,15 @@ type BackendProperty = {
   emergency_hourly_rate_cents?: number | null;
   /** JSON array of { name: string } or raw from backend */
   owners?: unknown;
+};
+
+/** Context passed from PropertyLayout to tab content via Outlet */
+export type PropertyOutletContext = {
+  property: BackendProperty;
+  propertyAddress: string;
+  propertyType: string;
+  propertyUnits: number;
+  propertyDisplayTitle: string;
 };
 
 /** Parse backend `owners` into array of owner names for the edit modal. */
@@ -79,60 +89,207 @@ function toEditPayload(full: BackendProperty) {
   };
 }
 
-export default function PropertyDetail() {
+// Map DB code → display type
+function formatType(t: string) {
+  switch (t) {
+    case "R":
+      return "Rental";
+    case "C":
+      return "Concierge";
+    case "HOA":
+      return "HOA";
+    case "OR":
+      return "OR";
+    case "Comm":
+      return "Commercial";
+    default:
+      return t;
+  }
+}
+
+/**
+ * Renders the tab content only. Used as the child route under PropertyLayout.
+ * Header never re-renders when switching tabs; only this content swaps.
+ */
+export function PropertyTabContent() {
+  const { property, propertyAddress, propertyType, propertyUnits } =
+    useOutletContext<PropertyOutletContext>();
+  const { tab } = useParams<{ tab: string }>();
+  const currentTab = tab || "Overview";
+  const effectiveTab =
+    currentTab === "Units" && propertyType === "Concierge" ? "Overview" : currentTab;
+
+  switch (effectiveTab) {
+    case "Overview":
+      return (
+        <Overview
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+          propertyId={property.id}
+        />
+      );
+    case "Units":
+      return (
+        <Units
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+        />
+      );
+    case "Utilities":
+      return (
+        <Utilities
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+        />
+      );
+    case "Maintenance":
+      return (
+        <Maintenance
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+          propertyId={property.id}
+        />
+      );
+    case "Inspections":
+      return (
+        <Inspections
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+        />
+      );
+    case "Tasks":
+      return (
+        <Tasks
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+        />
+      );
+    case "Vendors":
+      return (
+        <Vendors
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+        />
+      );
+    case "Bills":
+      return (
+        <Bills
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+        />
+      );
+    case "Notes":
+      return (
+        <Notes
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+        />
+      );
+    case "Invoicing":
+      return (
+        <Invoicing
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+        />
+      );
+    default:
+      return (
+        <Overview
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+          propertyId={property.id}
+        />
+      );
+  }
+}
+
+// Cache property by id so that if the layout remounts on tab change we show real header immediately
+const propertyCache = new Map<string, BackendProperty>();
+
+/**
+ * Layout that loads property once and renders header + Outlet.
+ * Uses a cache so that even if the layout remounts on tab change, we never flash the loading header.
+ */
+export default function PropertyLayout() {
   const { propertyId, tab } = useParams<{ propertyId: string; tab?: string }>();
   const navigate = useNavigate();
-
-  const [property, setProperty] = useState<BackendProperty | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { setPropertyDisplayName } = usePropertyBreadcrumb();
+  // Initialize from cache when available so we never show loading header on remount (e.g. tab switch)
+  const [property, setProperty] = useState<BackendProperty | null>(() =>
+    propertyId ? propertyCache.get(propertyId) ?? null : null
+  );
+  const [loading, setLoading] = useState(() => !(propertyId && propertyCache.has(propertyId)));
 
   const handleDeactivate = async () => {
     if (!propertyId || !confirm("Are you sure you want to deactivate this property?")) return;
     try {
       await fetchJSON(`/properties/${propertyId}`, { method: "DELETE" });
+      propertyCache.delete(propertyId);
       navigate("/");
     } catch (err: unknown) {
       alert("Failed to deactivate: " + (err instanceof Error ? err.message : String(err)));
     }
   };
 
-  // Map DB code → display type
-  const formatType = (t: string) => {
-    switch (t) {
-      case "R":
-        return "Rental";
-      case "C":
-        return "Concierge";
-      case "HOA":
-        return "HOA";
-      case "OR":
-        return "OR";
-      case "Comm":
-        return "Commercial";
-      default:
-        return t;
-    }
-  };
-
   useEffect(() => {
-    async function load() {
-      if (!propertyId) return;
-
-      try {
-        setLoading(true);
-        const data = await fetchJSON(`/properties/${propertyId}`);
-        setProperty(data);
-      } finally {
-        setLoading(false);
-      }
+    if (!propertyId) return;
+    const cached = propertyCache.get(propertyId);
+    if (cached) {
+      setProperty(cached);
+      setLoading(false);
+      return;
     }
-
-    load();
+    let cancelled = false;
+    setLoading(true);
+    fetchJSON(`/properties/${propertyId}`)
+      .then((data) => {
+        if (!cancelled) {
+          propertyCache.set(propertyId, data);
+          setProperty(data);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [propertyId]);
 
-  if (loading) {
+  // Sync property display name to top nav breadcrumb (Properties > property name > tab)
+  useEffect(() => {
+    if (property) {
+      const isHOA = property.property_type?.toLowerCase() === "hoa";
+      const title = isHOA && property.name ? property.name : property.address_line1;
+      setPropertyDisplayName(title);
+    } else {
+      setPropertyDisplayName(null);
+    }
+    return () => setPropertyDisplayName(null);
+  }, [property, setPropertyDisplayName]);
+
+  const currentTab = tab || "Overview";
+
+  // First load only: show same shell with loading in header and content so layout doesn’t jump
+  if (loading && !property) {
     return (
-      <PropertiesTemplate activeTab={tab || "Overview"}>
+      <PropertiesTemplate
+        activeTab={currentTab}
+        propertyAddress="Loading..."
+        propertyType=""
+        propertyUnits={0}
+      >
         <div className="p-10 text-gray-500">Loading...</div>
       </PropertiesTemplate>
     );
@@ -140,7 +297,12 @@ export default function PropertyDetail() {
 
   if (!property) {
     return (
-      <PropertiesTemplate activeTab={tab || "Overview"}>
+      <PropertiesTemplate
+        activeTab={currentTab}
+        propertyAddress="Property not found"
+        propertyType=""
+        propertyUnits={0}
+      >
         <div className="flex items-center justify-center h-96">
           <p className="text-gray-500 text-lg">Property not found</p>
         </div>
@@ -148,137 +310,31 @@ export default function PropertyDetail() {
     );
   }
 
-  // Derived values for UI: for HOAs show name in top bar, otherwise address
   const propertyAddress = property.address_line1;
   const isHOA = property.property_type?.toLowerCase() === "hoa";
   const propertyDisplayTitle =
     isHOA && property.name ? property.name : property.address_line1;
   const propertyType = formatType(property.property_type);
-  const propertyUnits = 1; // hardcoded for now
+  const propertyUnits = 1;
 
-  const renderPageContent = () => {
-    const currentTab = tab || "Overview";
-    // Concierge properties don't have Units; show Overview if someone deep-links to Units
-    const effectiveTab =
-      currentTab === "Units" && propertyType === "Concierge" ? "Overview" : currentTab;
-
-    switch (effectiveTab) {
-      case "Overview":
-        return (
-          <Overview
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-            propertyId={property.id}
-          />
-        );
-
-      case "Units":
-        return (
-          <Units
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-          />
-        );
-
-      case "Utilities":
-        return (
-          <Utilities
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-          />
-        );
-
-      case "Maintenance":
-        return (
-          <Maintenance
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-            propertyId={property.id}
-          />
-        );
-
-      case "Inspections":
-        return (
-          <Inspections
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-          />
-        );
-
-      case "Tasks":
-        return (
-          <Tasks
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-          />
-        );
-
-      case "Vendors":
-        return (
-          <Vendors
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-          />
-        );
-
-      case "Bills":
-        return (
-          <Bills
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-          />
-        );
-
-      case "Notes":
-        return (
-          <Notes
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-          />
-        );
-
-      case "Invoicing":
-        return (
-          <Invoicing
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-          />
-        );
-
-      default:
-        return (
-          <Overview
-            propertyAddress={propertyAddress}
-            propertyType={propertyType}
-            propertyUnits={propertyUnits}
-            propertyId={property.id}
-          />
-        );
-    }
+  const outletContext: PropertyOutletContext = {
+    property,
+    propertyAddress,
+    propertyType,
+    propertyUnits,
+    propertyDisplayTitle,
   };
-
-  const propertyEditData = toEditPayload(property);
 
   return (
     <PropertiesTemplate
       propertyAddress={propertyDisplayTitle}
       propertyType={propertyType}
       propertyUnits={propertyUnits}
-      activeTab={tab || "Overview"}
+      activeTab={currentTab}
       onDeactivate={handleDeactivate}
-      propertyEditData={propertyEditData}
+      propertyEditData={toEditPayload(property)}
     >
-      {renderPageContent()}
+      <Outlet context={outletContext} />
     </PropertiesTemplate>
   );
 }

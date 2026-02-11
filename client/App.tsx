@@ -27,7 +27,7 @@ import {
   type PersistedTabState,
 } from "./lib/tabPersistence";
 import Utilities from "./pages/Utilities_wrong";
-import PropertyDetail from "./pages/PropertyDetail";
+import PropertyLayout, { PropertyTabContent } from "./pages/PropertyDetail";
 import BlankPage from "./pages/BlankPage";
 import { RecordBill } from "./pages/properties/RecordBill";
 import { Auth } from "./pages/Auth";
@@ -293,28 +293,6 @@ export default function App() {
                 />
 
                 <Route
-                  path="/property/:propertyId"
-                  element={
-                    <RequireAuth>
-                      <ShellLayout>
-                        <PropertyDetail />
-                      </ShellLayout>
-                    </RequireAuth>
-                  }
-                />
-
-                <Route
-                  path="/property/:propertyId/:tab"
-                  element={
-                    <RequireAuth>
-                      <ShellLayout>
-                        <PropertyDetail />
-                      </ShellLayout>
-                    </RequireAuth>
-                  }
-                />
-
-                <Route
                   path="/property/:propertyId/bills/record"
                   element={
                     <RequireAuth>
@@ -324,6 +302,20 @@ export default function App() {
                     </RequireAuth>
                   }
                 />
+
+                <Route
+                  path="/property/:propertyId"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <PropertyLayout />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                >
+                  <Route index element={<Navigate to="Overview" replace />} />
+                  <Route path=":tab" element={<PropertyTabContent />} />
+                </Route>
 
                 <Route
                   path="/recurring-tasks"

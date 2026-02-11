@@ -6,7 +6,11 @@ import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import { formatUnitLabel } from "@/utils/unitLabel";
 import { useAuth } from "@/auth/useAuth";
 import { ChevronLeft } from "lucide-react";
+import { EditIcon } from "@/components/icons";
 import { NotesTemplate, FilesTemplate } from "@/components/templates";
+import { DateField } from "@/components/forms/DateField";
+import { StatusSelectField } from "@/components/forms/StatusSelectField";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import type { Note, File } from "@/components/templates";
 import { AddNoteModal, AddFileModal } from "@/components/task";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
@@ -134,6 +138,12 @@ export default function FtoWorkOrderDetail() {
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [viewingFileName, setViewingFileName] = useState<string | null>(null);
+  const [isEditWorkOrderModalOpen, setIsEditWorkOrderModalOpen] = useState(false);
+  const [editDueDate, setEditDueDate] = useState<string | null>(null);
+  const [editStatus, setEditStatus] = useState<
+    "not_started" | "in_progress" | "completed"
+  >("not_started");
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   const loadWorkOrder = useCallback(async () => {
     if (!workOrderId) return;
@@ -390,6 +400,69 @@ export default function FtoWorkOrderDetail() {
       .replace(/_/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase());
 
+  // Map backend status to StatusSelectField value
+  const mapBackendStatusToFrontend = (
+    s: string
+  ): "not_started" | "in_progress" | "completed" => {
+    const map: Record<string, "not_started" | "in_progress" | "completed"> = {
+      new: "not_started",
+      in_progress: "in_progress",
+      completed: "completed",
+    };
+    return map[(s || "").toLowerCase()] ?? "not_started";
+  };
+
+  const mapFrontendStatusToBackend = (
+    s: "not_started" | "in_progress" | "completed"
+  ): string => {
+    const map = {
+      not_started: "new",
+      in_progress: "in_progress",
+      completed: "completed",
+    };
+    return map[s] ?? "new";
+  };
+
+  useEffect(() => {
+    if (isEditWorkOrderModalOpen && workOrder) {
+      const rawDue = workOrder.due_date;
+      setEditDueDate(rawDue ? String(rawDue).split("T")[0] : null);
+      setEditStatus(mapBackendStatusToFrontend(workOrder.status));
+    }
+  }, [isEditWorkOrderModalOpen, workOrder]);
+
+  const handleEditWorkOrderSubmit = async () => {
+    if (!workOrderId || !workOrder) return;
+    setEditSubmitting(true);
+    try {
+      const payload: { due_date?: string | null; status: string } = {
+        status: mapFrontendStatusToBackend(editStatus),
+      };
+      if (editDueDate) {
+        payload.due_date = editDueDate.includes("T")
+          ? editDueDate
+          : `${editDueDate}T12:00:00.000Z`;
+      } else {
+        payload.due_date = null;
+      }
+      const updated = await fetchJSON(`/maintenance/work-orders/${workOrderId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+      setWorkOrder({
+        ...workOrder,
+        due_date: updated.due_date ?? updated.dueDate ?? editDueDate,
+        status: updated.status ?? editStatus,
+      });
+      setIsEditWorkOrderModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update work order. Please try again.");
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
   return (
     <PageTemplate>
       <>
@@ -423,8 +496,16 @@ export default function FtoWorkOrderDetail() {
           <>
             {/* Read-only details card (form-like) */}
             <SectionCard padding="none" variant="white">
-              <div className="p-4 sm:p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="p-4 sm:p-6 relative">
+                <button
+                  type="button"
+                  onClick={() => setIsEditWorkOrderModalOpen(true)}
+                  className="absolute top-4 right-4 flex items-center justify-center w-10 h-10 min-w-[44px] min-h-[44px] rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 touch-manipulation"
+                  aria-label="Edit work order details"
+                >
+                  <EditIcon width={18} height={18} />
+                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 pr-12 sm:pr-12">
                   <DetailItem label="Work Order" value={workOrder.name} />
                   <DetailItem label="Property" value={workOrder.property_name ?? "—"} />
                   <DetailItem label="Property Unit" value={unitLabel} />
@@ -568,6 +649,36 @@ export default function FtoWorkOrderDetail() {
           title={editingFileId ? "Edit File" : "Add File"}
           submitLabel="Save"
         />
+
+        <ModalTemplate
+          open={isEditWorkOrderModalOpen}
+          onOpenChange={setIsEditWorkOrderModalOpen}
+          title="Edit Work Order Details"
+          size="sm"
+          footer={
+            <ModalButtons
+              onCancel={() => setIsEditWorkOrderModalOpen(false)}
+              onConfirm={handleEditWorkOrderSubmit}
+              cancelLabel="Cancel"
+              confirmLabel="Save"
+              confirmDisabled={editSubmitting}
+            />
+          }
+        >
+          <div className="flex flex-col gap-4">
+            <StatusSelectField
+              label="Status"
+              value={editStatus}
+              onChange={(v) => setEditStatus(v)}
+            />
+            <DateField
+              label="Due Date"
+              value={editDueDate}
+              onChange={(v) => setEditDueDate(v ? String(v).split("T")[0] : null)}
+              returnFormat="ISO"
+            />
+          </div>
+        </ModalTemplate>
 
         {viewingFileUrl && (
           <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
