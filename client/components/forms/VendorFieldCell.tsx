@@ -1,14 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-  usePopoverContext,
 } from "@/components/ui/popover";
 import { usePopoverAutoClose } from "@/hooks/usePopoverAutoClose";
 import { useGlobalActionsScrollLock } from "@/hooks/useGlobalActionsScrollLock";
 import { FieldCellShell } from "./FieldCellShell";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 
 interface VendorFieldCellProps {
   value?: string;
@@ -18,6 +17,14 @@ interface VendorFieldCellProps {
   error?: boolean;
   id?: string;
   placeholder?: string;
+  /** When provided, options are server-driven: search is debounced and passed here, no client-side filter */
+  onSearchChange?: (search: string) => void;
+  /** Called when the dropdown opens or closes (e.g. to fetch initial vendors) */
+  onOpenChange?: (open: boolean) => void;
+  /** Called when user scrolls near bottom (for pagination) */
+  onLoadMore?: () => void;
+  optionsLoading?: boolean;
+  hasMore?: boolean;
 }
 
 /**
@@ -25,6 +32,8 @@ interface VendorFieldCellProps {
  *
  * Allows selecting from predefined vendors or typing a custom vendor name.
  */
+const SEARCH_DEBOUNCE_MS = 250;
+
 export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
   value,
   onChange,
@@ -33,20 +42,38 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
   error = false,
   id,
   placeholder = "Select or type vendor...",
+  onSearchChange,
+  onOpenChange,
+  onLoadMore,
+  optionsLoading = false,
+  hasMore = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value || "");
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isAsyncMode = typeof onSearchChange === "function";
 
   // Sync inputValue when value prop changes externally
   useEffect(() => {
     setInputValue(value || "");
   }, [value]);
 
+  // Notify parent when open state changes (e.g. to fetch initial vendors)
+  const setOpenWithNotify = useCallback(
+    (next: boolean) => {
+      setOpen(next);
+      onOpenChange?.(next);
+    },
+    [onOpenChange],
+  );
+
   usePopoverAutoClose({
     open,
-    onOpenChange: setOpen,
+    onOpenChange: setOpenWithNotify,
     triggerRef: triggerRef as React.RefObject<HTMLElement>,
     contentRef: contentRef as React.RefObject<HTMLElement>,
   });
@@ -58,12 +85,25 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
     ],
   });
 
-  // Filter options based on input
-  const filteredOptions = options.filter((opt) =>
-    opt?.label && typeof opt.label === 'string'
-      ? opt.label.toLowerCase().includes((inputValue || '').toLowerCase())
-      : false,
-  );
+  // Debounced server search when in async mode (only while dropdown is open)
+  useEffect(() => {
+    if (!isAsyncMode || !open) return;
+    searchDebounceRef.current = window.setTimeout(() => {
+      onSearchChange?.(inputValue ?? "");
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (searchDebounceRef.current) window.clearTimeout(searchDebounceRef.current);
+    };
+  }, [open, inputValue, isAsyncMode, onSearchChange]);
+
+  // Options: server-filtered in async mode, client-filtered otherwise
+  const filteredOptions = isAsyncMode
+    ? options
+    : options.filter((opt) =>
+        opt?.label && typeof opt.label === "string"
+          ? opt.label.toLowerCase().includes((inputValue || "").toLowerCase())
+          : false,
+      );
 
   const selectedOption = options.find((opt) => opt?.value === value);
   const displayLabel = selectedOption?.label || inputValue || placeholder || '';
@@ -80,9 +120,20 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
     setOpen(false);
   };
 
+  const handleListScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      if (!onLoadMore || optionsLoading || !hasMore) return;
+      const target = e.currentTarget;
+      if (target.scrollTop + target.clientHeight >= target.scrollHeight - 24) {
+        onLoadMore();
+      }
+    },
+    [onLoadMore, optionsLoading, hasMore],
+  );
+
   return (
     <FieldCellShell error={error}>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpenWithNotify}>
         <PopoverTrigger asChild>
           <button
             ref={triggerRef}
@@ -121,12 +172,15 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
           style={{ width: "max-content" }}
         >
           <div
+            ref={listScrollRef}
+            onScroll={handleListScroll}
             style={{
               padding: "8px 0",
               overflowY: "auto",
               overflowX: "hidden",
               overscrollBehavior: "contain",
               WebkitOverflowScrolling: "touch",
+              maxHeight: 260,
             }}
           >
             {/* Custom input field */}
@@ -149,6 +203,23 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
                 }}
               />
             </div>
+
+            {/* Loading state when no options yet */}
+            {optionsLoading && filteredOptions.length === 0 && (
+              <div
+                style={{
+                  padding: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: "var(--color-text-secondary, #6b7280)",
+                  fontSize: "13px",
+                }}
+              >
+                <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+                Loading vendors...
+              </div>
+            )}
 
             {/* Options list */}
             {filteredOptions.length > 0 && (
@@ -195,6 +266,47 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
                     </button>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Load more indicator at bottom */}
+            {optionsLoading && filteredOptions.length > 0 && (
+              <div
+                style={{
+                  padding: "8px 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: "var(--color-text-secondary, #6b7280)",
+                  fontSize: "12px",
+                }}
+              >
+                <Loader2 className="h-3 w-3 animate-spin flex-shrink-0" />
+                Loading more...
+              </div>
+            )}
+            {!optionsLoading && hasMore && filteredOptions.length > 0 && (
+              <div
+                style={{
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  color: "var(--color-text-secondary, #6b7280)",
+                }}
+              >
+                Scroll for more
+              </div>
+            )}
+
+            {/* Empty state (no loading, no options) */}
+            {!optionsLoading && filteredOptions.length === 0 && (
+              <div
+                style={{
+                  padding: "12px",
+                  fontSize: "13px",
+                  color: "var(--color-text-secondary, #6b7280)",
+                }}
+              >
+                {isAsyncMode ? "No vendors found. Type to search or add custom." : "No matching vendors."}
               </div>
             )}
 

@@ -931,12 +931,29 @@ export default function FtoInspectionForm() {
     return sectionNodes;
   };
 
-  // Helper to get only items with camera icons (depth >= 2) for a section
-  const getSectionSubItems = (sectionId: string): ChecklistNode[] => {
-    return getSectionNodes(sectionId).filter(n => n.depth >= 2);
+  // Helper: node is a leaf if it has no children
+  const isLeafNode = (node: ChecklistNode): boolean => {
+    return !currentChecklist.some(n => n.parentId === node.id);
   };
 
-  // Helper to get modal title with parent level (e.g., "Driveway → Check for cracks")
+  // Helper: node has at least one child that is a leaf
+  const hasLeafChild = (node: ChecklistNode): boolean => {
+    const children = currentChecklist.filter(n => n.parentId === node.id);
+    return children.some(child => isLeafNode(child));
+  };
+
+  // Camera icon: show for leaf nodes OR parents of leaf nodes (exclude top-level sections)
+  const shouldShowCameraIconForNode = (node: ChecklistNode): boolean => {
+    if (node.depth === 0) return false;
+    return isLeafNode(node) || hasLeafChild(node);
+  };
+
+  // Helper to get only items with camera icons for a section
+  const getSectionSubItems = (sectionId: string): ChecklistNode[] => {
+    return getSectionNodes(sectionId).filter(n => shouldShowCameraIconForNode(n));
+  };
+
+  // Helper to get modal title with parent (e.g., "Basement → Bed 1", "Bedroom 1 → Bath 1")
   const getModalTitle = (nodeId: string): string => {
     const node = currentChecklist.find((n) => n.id === nodeId);
     if (!node) return "";
@@ -944,18 +961,14 @@ export default function FtoInspectionForm() {
     // If it's a top-level section, just return the section name
     if (node.depth === 0) return node.text;
 
-    // Find the parent (depth 1 item)
-    let parent: ChecklistNode | undefined;
+    // If we have a parent, show "Parent → Child" (works at any depth)
     if (node.parentId) {
-      parent = currentChecklist.find((n) => n.id === node.parentId);
+      const parent = currentChecklist.find((n) => n.id === node.parentId);
+      if (parent) {
+        return `${parent.text} → ${node.text}`;
+      }
     }
 
-    // If we have a parent and it's depth 1, show "Parent → Child"
-    if (parent && parent.depth === 1) {
-      return `${parent.text} → ${node.text}`;
-    }
-
-    // Otherwise just return the node text
     return node.text;
   };
 
@@ -979,17 +992,17 @@ export default function FtoInspectionForm() {
   };
 
   // Helper to count photos for a section (used in section header)
-  // Only count photos for items that show camera icons (depth >= 2)
+  // Only count photos for items that show camera icons (leaf or parent of leaf)
   const getSectionPhotoCount = (sectionId: string): number => {
     const sectionNodes = getSectionNodes(sectionId);
-    const nodeIds = sectionNodes.filter(n => n.depth >= 2).map(n => n.id);
+    const nodeIds = sectionNodes.filter(n => shouldShowCameraIconForNode(n)).map(n => n.id);
     return photos.filter(p => p.sectionNodeId && nodeIds.includes(p.sectionNodeId)).length;
   };
 
   // Helper to count total line items in a section (only items that show camera icons)
   const getSectionTotalLineItems = (sectionId: string): number => {
     const sectionNodes = getSectionNodes(sectionId);
-    return sectionNodes.filter(n => n.depth >= 2).length;
+    return sectionNodes.filter(n => shouldShowCameraIconForNode(n)).length;
   };
 
   // Toggle section expansion
@@ -1042,23 +1055,19 @@ export default function FtoInspectionForm() {
         {isExpanded && (
           <div className="bg-white border-t border-gray-200">
             <div 
-              className="p-4 max-h-[400px] overflow-y-auto"
+              className="p-4 max-h-[400px] min-h-0 overflow-y-auto overscroll-contain"
               onWheel={(e) => {
-                // Prevent page scroll when scrolling within section content
+                // Contain scroll within section on desktop; allow boundary to pass through
                 const target = e.currentTarget;
                 const isScrollingDown = e.deltaY > 0;
                 const isScrollingUp = e.deltaY < 0;
-                
-                // Check if we're at the boundaries
                 const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 1;
                 const isAtTop = target.scrollTop <= 1;
-                
+
                 if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
-                  // At boundary, allow page scroll
-                  return;
+                  return; // At boundary, allow scroll to propagate to parent
                 }
-                // Within content, stop propagation to prevent page scroll
-                e.stopPropagation();
+                e.stopPropagation(); // Within content, scroll this section only
               }}
             >
               {sectionNodes.length === 0 ? (
@@ -1085,7 +1094,7 @@ export default function FtoInspectionForm() {
                       <div
                         onClick={() => {
                           // If item has photo(s), open gallery for that item
-                          if (node.depth >= 1 && hasPhotoForNode(node.id)) {
+                          if (shouldShowCameraIconForNode(node) && hasPhotoForNode(node.id)) {
                             const photoIndexForItem = photos.findIndex(p => p.sectionNodeId === node.id);
                             if (photoIndexForItem !== -1) {
                               setCurrentPhotoIndex(photoIndexForItem);
@@ -1096,7 +1105,7 @@ export default function FtoInspectionForm() {
                         className={cn(
                           "text-sm whitespace-pre-wrap",
                           node.depth === 1 ? "font-semibold text-gray-900" : "text-gray-700",
-                          node.depth >= 1 && hasPhotoForNode(node.id) ? "cursor-pointer hover:underline text-blue-600" : ""
+                          shouldShowCameraIconForNode(node) && hasPhotoForNode(node.id) ? "cursor-pointer hover:underline text-blue-600" : ""
                         )}
                       >
                         {node.text}
@@ -1104,7 +1113,7 @@ export default function FtoInspectionForm() {
                     </div>
 
                     {/* Photo count indicator for items that have photos */}
-                    {node.depth >= 1 && hasPhotoForNode(node.id) && (
+                    {shouldShowCameraIconForNode(node) && hasPhotoForNode(node.id) && (
                       <div className="flex-shrink-0 flex items-center gap-1 text-green-600 text-xs font-medium" title={`${getNodePhotoCount(node.id)} photo(s) attached`}>
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
@@ -1113,8 +1122,8 @@ export default function FtoInspectionForm() {
                       </div>
                     )}
 
-                    {/* Camera Icon for Indented Sub-Items Only (depth >= 2) */}
-                    {node.depth >= 2 && !isReadOnly && (
+                    {/* Camera Icon for leaf nodes and parents of leaf nodes */}
+                    {shouldShowCameraIconForNode(node) && !isReadOnly && (
                       <button
                         onClick={() => {
                           setSelectedNodeId(node.id);
