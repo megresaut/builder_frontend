@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
@@ -415,7 +415,6 @@ const extractSubmissionIds = (rows: { id: string }[]): number[] => {
 };
 
 
-const mockVendors = ["Elite HVAC", "ABC Plumbing", "Green Lawn Services"];
 const mockTasks = ["HVAC Inspection", "Plumbing Repair", "Door Lock Repair"];
 const mockAssignees = ["John Smith", "Jane Doe", "Mike Johnson", "Sarah Williams"];
 
@@ -599,7 +598,75 @@ export default function ApproveFTOPage() {
   const [showEditFTOModal, setShowEditFTOModal] = useState(false);
   const [ftoDetailsVersion, setFtoDetailsVersion] = useState(0);
 
+  // Live vendors for expense section (paginated, same pattern as work order menu)
+  const [isExpenseVendorDropdownOpen, setIsExpenseVendorDropdownOpen] = useState(false);
+  const vendorPageSize = 50;
+  const vendorRequestIdRef = useRef(0);
+  const [expenseVendors, setExpenseVendors] = useState<Array<{ id: number; name: string }>>([]);
+  const [expenseVendorSearch, setExpenseVendorSearch] = useState("");
+  const [expenseVendorOffset, setExpenseVendorOffset] = useState(0);
+  const [expenseVendorHasMore, setExpenseVendorHasMore] = useState(true);
+  const [expenseVendorLoading, setExpenseVendorLoading] = useState(false);
 
+  const fetchExpenseVendorsPage = useCallback(
+    async (search: string, offset: number, append: boolean) => {
+      const requestId = ++vendorRequestIdRef.current;
+      setExpenseVendorLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.set("limit", vendorPageSize.toString());
+        if (offset > 0) params.set("offset", offset.toString());
+        const trimmed = search.trim();
+        if (trimmed) params.set("search", trimmed);
+        const vendorList = await fetchJSON(`/vendors?${params.toString()}`);
+        if (requestId !== vendorRequestIdRef.current) return;
+        const normalized = (Array.isArray(vendorList) ? vendorList : []).map((v: any) => ({
+          id: Number(v.id),
+          name: typeof v.name === "string" ? v.name : String(v.name ?? ""),
+        }));
+        setExpenseVendors((prev) => (append ? [...prev, ...normalized] : normalized));
+        setExpenseVendorHasMore(normalized.length === vendorPageSize);
+        setExpenseVendorOffset(offset + normalized.length);
+      } catch (err) {
+        if (requestId !== vendorRequestIdRef.current) return;
+        console.error("Failed to load vendors for expense dropdown:", err);
+        if (!append) setExpenseVendors([]);
+        setExpenseVendorHasMore(false);
+      } finally {
+        if (requestId === vendorRequestIdRef.current) {
+          setExpenseVendorLoading(false);
+        }
+      }
+    },
+    [vendorPageSize],
+  );
+
+  useEffect(() => {
+    if (!isExpenseVendorDropdownOpen) return;
+    const t = window.setTimeout(() => {
+      fetchExpenseVendorsPage(expenseVendorSearch, 0, false);
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [isExpenseVendorDropdownOpen, expenseVendorSearch, fetchExpenseVendorsPage]);
+
+  const expenseVendorOptions = useMemo(
+    () =>
+      expenseVendors.map((v) => ({
+        value: v.name,
+        label: v.name,
+      })),
+    [expenseVendors],
+  );
+
+  const handleExpenseVendorOpenChange = useCallback((open: boolean) => {
+    setIsExpenseVendorDropdownOpen(open);
+    if (!open) setExpenseVendorSearch("");
+  }, []);
+
+  const handleExpenseVendorLoadMore = useCallback(() => {
+    if (expenseVendorLoading || !expenseVendorHasMore) return;
+    fetchExpenseVendorsPage(expenseVendorSearch, expenseVendorOffset, true);
+  }, [expenseVendorLoading, expenseVendorHasMore, expenseVendorSearch, expenseVendorOffset, fetchExpenseVendorsPage]);
 
   // const makeAttachmentKey = (submissionId: number, materialIndex: number) =>
   //   `${submissionId}-${materialIndex}`;
@@ -1864,10 +1931,12 @@ export default function ApproveFTOPage() {
                                 updateExpenseRow(row.id, "vendor", value)
                               }
                               placeholder="Select or type vendor..."
-                              options={mockVendors.map((v) => ({
-                                value: v,
-                                label: v,
-                              }))}
+                              options={expenseVendorOptions}
+                              onOpenChange={handleExpenseVendorOpenChange}
+                              onSearchChange={setExpenseVendorSearch}
+                              onLoadMore={handleExpenseVendorLoadMore}
+                              optionsLoading={expenseVendorLoading}
+                              hasMore={expenseVendorHasMore}
                             />
                           </div>
 
