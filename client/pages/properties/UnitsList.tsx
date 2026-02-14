@@ -273,6 +273,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
     unitsList,
     `units-${propertyId}`,
+    { initialSortBy: "unitNumber", initialSortOrder: "asc" },
   );
 
   const columnManagement = useColumnManagement([

@@ -1132,41 +1132,44 @@ export default function ApproveFTOPage() {
         });
       }
 
-      // 2) Create new submissions for any rows with submissionId === 0 (new rows)
-      const newHourRows = hourRows.filter((r) => r.submissionId === 0);
-      const newExpenseRows = expenseRows.filter((r) => r.submissionId === 0);
-      const newAssigneeIds = new Set<number>([
-        ...newHourRows.map((r) => r.assigneeId),
-        ...newExpenseRows.map((r) => r.assigneeId),
-      ].filter((id) => id > 0));
+      // 2) Create new submissions for any rows with submissionId === 0 (new rows) — only in FTO mode (misc has no FTO to attach to)
+      if (ftoIdNum) {
+        const newHourRows = hourRows.filter((r) => r.submissionId === 0);
+        const newExpenseRows = expenseRows.filter((r) => r.submissionId === 0);
+        const newAssigneeIds = new Set<number>([
+          ...newHourRows.map((r) => r.assigneeId),
+          ...newExpenseRows.map((r) => r.assigneeId),
+        ].filter((id) => id > 0));
 
-      for (const assigneeId of newAssigneeIds) {
-        const assigneeNewHours = newHourRows.filter((r) => r.assigneeId === assigneeId);
-        const assigneeNewExpenses = newExpenseRows.filter((r) => r.assigneeId === assigneeId);
-        const hoursJSON = buildHoursJSON(assigneeNewHours);
-        const materialsJSON = buildMaterialsJSON(assigneeNewExpenses);
-        if (!ftoIdNum) {
-          throw new Error("Cannot create submission: FTO ID is missing");
+        for (const assigneeId of newAssigneeIds) {
+          const assigneeNewHours = newHourRows.filter((r) => r.assigneeId === assigneeId);
+          const assigneeNewExpenses = newExpenseRows.filter((r) => r.assigneeId === assigneeId);
+          const hoursJSON = buildHoursJSON(assigneeNewHours);
+          const materialsJSON = buildMaterialsJSON(assigneeNewExpenses);
+          await createSubmissionForAssignee(
+            ftoIdNum,
+            assigneeId,
+            hoursJSON,
+            materialsJSON
+          );
         }
-        await createSubmissionForAssignee(
-          ftoIdNum,
-          assigneeId,
-          hoursJSON,
-          materialsJSON
-        );
       }
 
-      // Update field_team_orders.amount_cents with FTO Total (from hours + expenses) before approving
+      // Update field_team_orders.amount_cents with FTO Total (from hours + expenses) before approving — only when we have an FTO
       const amountCents = Math.round(grandTotal * 100);
       if (ftoIdNum) {
         await updateFtoAmountCents(ftoIdNum, amountCents);
       }
 
-      // Approve entire FTO (all submissions for this FTO and the FTO itself)
-      if (!ftoIdNum) {
-        throw new Error("Cannot approve: FTO ID is missing");
+      // Approve: misc = single submission by ID; FTO = entire FTO and all its submissions
+      if (isMiscMode && submissionIdNum !== null) {
+        await approveSubmission(submissionIdNum);
+      } else {
+        if (!ftoIdNum) {
+          throw new Error("Cannot approve: FTO ID is missing");
+        }
+        await approveFto(ftoIdNum);
       }
-      await approveFto(ftoIdNum);
 
       navigate(-1);
     } catch (err) {

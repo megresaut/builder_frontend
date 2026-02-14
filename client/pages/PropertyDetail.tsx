@@ -35,6 +35,8 @@ type BackendProperty = {
   emergency_hourly_rate_cents?: number | null;
   /** JSON array of { name: string } or raw from backend */
   owners?: unknown;
+  /** Number of units for this property (from backend COUNT) */
+  units_count?: number;
 };
 
 /** Context passed from PropertyLayout to tab content via Outlet */
@@ -319,7 +321,7 @@ export default function PropertyLayout() {
   const propertyDisplayTitle =
     isHOA && property.name ? property.name : property.address_line1;
   const propertyType = formatType(property.property_type);
-  const propertyUnits = 1;
+  const propertyUnits = Math.max(0, Number(property.units_count) || 0);
 
   const outletContext: PropertyOutletContext = {
     property,
