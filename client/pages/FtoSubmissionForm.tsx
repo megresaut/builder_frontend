@@ -49,6 +49,9 @@ import {
 const CUSTOM_FTO_TASK_VALUE = "__custom_fto__";
 const MISC_EXPENSE_TASK_VALUE = "0"; // Miscellaneous expense - no FTO
 
+/** Property name that should not be selectable for FTO/misc submissions (Buildium sentinel). */
+const NO_PROPERTY_SENTINEL_NAME = "Billing For No Property";
+
 
 /** Collaborators for custom FTO: 'na' = no collaborators, number[] = user ids, null = not yet selected */
 type CollaboratorSelection = "na" | number[] | null;
@@ -512,11 +515,18 @@ export default function FtoSubmissionForm() {
         setPropertiesError(null);
   
         const data: Property[] = await fetchJSON("/properties");
-  
+
         if (!isMounted) return;
-  
-        // Defensive filter (backend should already do this)
-        setProperties(data.filter((p) => p.active));
+
+        // Defensive filter (backend should already do this) and exclude "Billing For No Property"
+        // so field team cannot submit hours/expenses against that sentinel property.
+        setProperties(
+          data.filter(
+            (p) =>
+              p.active &&
+              p.name?.trim().toLowerCase() !== NO_PROPERTY_SENTINEL_NAME.toLowerCase()
+          )
+        );
       } catch (err) {
         console.error(err);
         if (isMounted) {

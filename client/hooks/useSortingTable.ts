@@ -29,12 +29,26 @@ function naturalCompare(a: string, b: string): number {
   return 0;
 }
 
-export function useSortingTable<T extends Record<string, any>>(data: T[], namespace: string = "default") {
+export type UseSortingTableOptions = {
+  /** Column to sort by when user has not yet clicked a column (e.g. "unitNumber" for Units tab). */
+  initialSortBy?: string;
+  /** Order for initial sort. */
+  initialSortOrder?: "asc" | "desc";
+};
+
+export function useSortingTable<T extends Record<string, any>>(
+  data: T[],
+  namespace: string = "default",
+  options?: UseSortingTableOptions
+) {
   const [sortBy, setSortBy] = usePageState<string>(`${namespace}_sortBy`, "");
   const [sortOrder, setSortOrder] = usePageState<"asc" | "desc">(`${namespace}_sortOrder`, "asc");
 
+  const effectiveSortBy = sortBy || options?.initialSortBy || "";
+  const effectiveSortOrder = sortBy ? sortOrder : (options?.initialSortOrder ?? "asc");
+
   const getSortedData = () => {
-    if (!sortBy) return data;
+    if (!effectiveSortBy) return data;
 
     const formatArrayValue = (value: unknown[]) =>
       value
@@ -64,8 +78,8 @@ export function useSortingTable<T extends Record<string, any>>(data: T[], namesp
         .join(", ");
 
     const sorted = [...data].sort((a, b) => {
-      let aValue: any = a[sortBy];
-      let bValue: any = b[sortBy];
+      let aValue: any = a[effectiveSortBy];
+      let bValue: any = b[effectiveSortBy];
 
       if (aValue == null) aValue = "";
       if (bValue == null) bValue = "";
@@ -84,7 +98,7 @@ export function useSortingTable<T extends Record<string, any>>(data: T[], namesp
       // Use natural sort so unit numbers order as 1, 2, 3, ... 9, 10, 11
       const cmp = naturalCompare(aStr, bStr);
       if (cmp !== 0) {
-        return sortOrder === "asc" ? cmp : -cmp;
+        return effectiveSortOrder === "asc" ? cmp : -cmp;
       }
       return 0;
     });
