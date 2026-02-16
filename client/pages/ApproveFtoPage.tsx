@@ -271,6 +271,14 @@ const buildHoursJSON = (hourRows: HourRow[]) => {
   });
 };
 
+const chargeTypeToExpenseType = (
+  ct: "personal" | "avm" | "client"
+): "personal-expense" | "avm-expense" | "client-expense" => {
+  if (ct === "avm") return "avm-expense";
+  if (ct === "personal") return "personal-expense";
+  return "client-expense";
+};
+
 const buildMaterialsJSON = (expenseRows: ExpenseRow[]) => {
   return expenseRows.map((row, index) => {
     const upchargeCents = parseMoneyToCents(row.upcharge);
@@ -279,6 +287,7 @@ const buildMaterialsJSON = (expenseRows: ExpenseRow[]) => {
       vendor_name: row.vendor,
       note: row.receiptNote || "",
       is_avm_expense: row.chargeType === "avm",
+      expense_type: chargeTypeToExpenseType(row.chargeType),
       amount_cents: parseMoneyToCents(row.amount),
       material_index: row.materialIndex,
     };
@@ -441,6 +450,15 @@ const formatVendorName = (raw: string): string => {
 /** Map backend is_avm_expense to UI chargeType. false → client, true → avm. */
 const isAvmExpenseToChargeType = (isAvm: boolean): "avm" | "client" =>
   isAvm ? "avm" : "client";
+
+/** Derive charge type from API expense line: use expense_type when present, else is_avm_expense. */
+const expenseLineToChargeType = (expense: ExpenseLine): "personal" | "avm" | "client" => {
+  const et = expense.expense_type;
+  if (et === "avm-expense") return "avm";
+  if (et === "client-expense") return "client";
+  if (et === "personal-expense") return "personal";
+  return isAvmExpenseToChargeType(expense.is_avm_expense ?? false);
+};
 
 
 // const parseDueDate = (dateStr: string | undefined): Date | null => {
@@ -944,7 +962,7 @@ export default function ApproveFTOPage() {
                     vendor: formatVendorName(expense.vendor_name || ""),
                     receiptNote: expense.note || "",
                     avmExpense: expense.is_avm_expense,
-                    chargeType: isAvmExpenseToChargeType(expense.is_avm_expense ?? false),
+                    chargeType: expenseLineToChargeType(expense),
                     amount: `$${((expense.amount_cents ?? 0) / 100).toFixed(2)}`,
                     upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
                     assignee: assigneeById[submission.FieldTeamMemberID] || "",

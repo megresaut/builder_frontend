@@ -1435,7 +1435,7 @@ export default function FtoSubmissionForm() {
       property_id: Number(e.propertyId),
       unit_id: getUnitIdAsNumber(e.unitId),
       amount: Number(e.amount),
-      is_avm_expense: false,
+      is_avm_expense: e.chargeType === "avm-expense",
       note: e.note,
       expense_type: e.chargeType,        // string | null
       vendor_name: e.vendorId,           // string | null (id or custom input)
@@ -2153,6 +2153,9 @@ export default function FtoSubmissionForm() {
                             onChange={(value) => {
                                 if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                 updateExpenseEntry(entry.id, "taskId", value);
+                                if (value === MISC_EXPENSE_TASK_VALUE) {
+                                  updateExpenseEntry(entry.id, "chargeType", "avm-expense");
+                                }
                             }}
                             placeholder={
                                 ftosLoading
