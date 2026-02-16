@@ -795,9 +795,20 @@ export default function FtoHome() {
           />
         )}
 
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Home</h1>
-          <p className="text-gray-600 mt-2">Welcome to Field Team Orders</p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Home</h1>
+            <p className="text-gray-600 mt-2">Welcome to Field Team Orders</p>
+          </div>
+          <button
+            onClick={() => navigate("/field-team-orders")}
+            className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-[#303030]"
+          >
+            <BuildingIcon width={20} height={20} />
+            <span className="font-medium text-base leading-normal">
+              Main Portal
+            </span>
+          </button>
         </div>
 
         <SubPageHeaderV2
