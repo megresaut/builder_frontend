@@ -6,6 +6,7 @@ import ColumnFilterModal from "./ColumnFilterModal";
 import CreateFTOModal from "./CreateFTOModal";
 import FTOApprovalModal from "./FTOApprovalModal";
 import { DocumentIcon } from "@/components/icons";
+import { fetchJSON } from "@/api/fetchJSON";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -431,11 +432,20 @@ export default function FieldTeamOrdersTab({
     setShowDeleteConfirm(true);
   }, []);
 
-  const confirmDeleteFTO = useCallback(() => {
-    if (orderToDelete) {
-      setFieldTeamOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
+  const confirmDeleteFTO = useCallback(async () => {
+    if (!orderToDelete) return;
+    try {
+      await fetchJSON(`/maintenance/ftos?id=${orderToDelete.id}`, {
+        method: "DELETE",
+      });
+      setFieldTeamOrders((prev) =>
+        prev.filter((o) => o.id !== orderToDelete.id)
+      );
       setShowDeleteConfirm(false);
       setOrderToDelete(null);
+    } catch (err) {
+      console.error("Delete FTO failed", err);
+      alert("Failed to delete Field Team Order. Please try again.");
     }
   }, [orderToDelete]);
 
@@ -716,7 +726,10 @@ export default function FieldTeamOrdersTab({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmDeleteFTO}
+              onClick={async (e) => {
+                e.preventDefault();
+                await confirmDeleteFTO();
+              }}
               className="bg-[#982740] text-white hover:bg-[#7a1f33]"
             >
               Delete
