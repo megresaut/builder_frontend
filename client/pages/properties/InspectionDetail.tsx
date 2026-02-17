@@ -1146,10 +1146,10 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       })
     );
 
-    // Create a temporary DOM element for the PDF content
+    // Create a temporary DOM element for the PDF content (no fixed height so all content is captured)
     const element = document.createElement("div");
     element.style.width = "8.5in";
-    element.style.height = "11in";
+    element.style.minHeight = "11in";
     element.style.margin = "0";
     element.style.padding = "0.5in 0.75in";
     element.style.fontFamily = "Arial, sans-serif";
@@ -1159,7 +1159,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     element.style.left = "-9999px";
     element.style.top = "0";
     element.style.boxSizing = "border-box";
-    element.style.overflow = "hidden";
+    element.style.overflow = "visible";
 
     // Build HTML content
     let htmlContent = `
