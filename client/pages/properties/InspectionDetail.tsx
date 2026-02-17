@@ -1158,49 +1158,8 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       })
     );
 
-    // EXIF orientation: 1=normal, 3=180°, 6=90° CW, 8=90° CCW. 6 and 8 are common for phone photos.
-    const getExifOrientation = (dataUrl: string): number => {
-      try {
-        const base64 = dataUrl.indexOf(",") >= 0 ? dataUrl.split(",")[1] : dataUrl;
-        if (!base64) return 1;
-        const binary = atob(base64);
-        const len = binary.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
-        const view = new DataView(bytes.buffer);
-        if (view.getUint16(0, false) !== 0xffd8) return 1;
-        let offset = 2;
-        while (offset < len) {
-          const marker = view.getUint16(offset, false);
-          offset += 2;
-          if (marker === 0xffe1) {
-            offset += 2; // skip segment length
-            if (view.getUint32(offset, false) !== 0x45786966) return 1; // "Exif"
-            const tiffStart = offset + 6; // TIFF header starts after "Exif\0\0"
-            const little = view.getUint16(tiffStart, false) === 0x4949;
-            const ifd0 = view.getUint32(tiffStart + 4, little);
-            const ifdStart = tiffStart + ifd0;
-            const numTags = view.getUint16(ifdStart, little);
-            const tagsStart = ifdStart + 2;
-            for (let i = 0; i < numTags; i++) {
-              const tag = view.getUint16(tagsStart + i * 12, little);
-              if (tag === 0x0112) {
-                return view.getUint16(tagsStart + i * 12 + 8, little);
-              }
-            }
-            return 1;
-          }
-          if ((marker & 0xff00) !== 0xff00) break;
-          offset += view.getUint16(offset, false);
-        }
-      } catch {
-        /* ignore */
-      }
-      return 1;
-    };
-
-    // Load image, apply EXIF orientation so landscape photos aren't squished; return oriented data URL and dimensions.
-    const getOrientedImage = (
+    // Use browser's displayed dimensions; bake image through canvas so PDF shows same orientation as browser (portrait stays portrait).
+    const getImageForPdf = (
       dataUrl: string | undefined
     ): Promise<{ dataUrl: string; w: number; h: number; format: "PNG" | "JPEG" }> => {
       return new Promise((resolve) => {
@@ -1211,47 +1170,19 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         const isPng = dataUrl.startsWith("data:image/png");
         const img = new Image();
         img.onload = () => {
-          let w = img.naturalWidth;
-          let h = img.naturalHeight;
-          const orientation = isPng ? 1 : getExifOrientation(dataUrl);
-          if (orientation >= 6 && orientation <= 8) {
-            [w, h] = [h, w];
-          }
+          const w = img.naturalWidth;
+          const h = img.naturalHeight;
           const canvas = document.createElement("canvas");
           canvas.width = w;
           canvas.height = h;
           const ctx = canvas.getContext("2d");
           if (!ctx) {
-            resolve({ dataUrl, w: img.naturalWidth, h: img.naturalHeight, format: isPng ? "PNG" : "JPEG" });
+            resolve({ dataUrl, w, h, format: isPng ? "PNG" : "JPEG" });
             return;
           }
-          switch (orientation) {
-            case 6:
-              ctx.translate(w, 0);
-              ctx.rotate(0.5 * Math.PI);
-              ctx.drawImage(img, 0, 0);
-              break;
-            case 8:
-              ctx.translate(0, h);
-              ctx.rotate(-0.5 * Math.PI);
-              ctx.drawImage(img, 0, 0);
-              break;
-            case 3:
-              ctx.translate(w, h);
-              ctx.rotate(Math.PI);
-              ctx.drawImage(img, 0, 0);
-              break;
-            default:
-              ctx.drawImage(img, 0, 0);
-          }
-          const outFormat = isPng ? "image/png" : "image/jpeg";
-          const outDataUrl = canvas.toDataURL(outFormat, 0.92);
-          resolve({
-            dataUrl: outDataUrl,
-            w,
-            h,
-            format: isPng ? "PNG" : "JPEG",
-          });
+          ctx.drawImage(img, 0, 0);
+          const out = canvas.toDataURL(isPng ? "image/png" : "image/jpeg", 0.92);
+          resolve({ dataUrl: out, w, h, format: isPng ? "PNG" : "JPEG" });
         };
         img.onerror = () => resolve({ dataUrl: dataUrl || "", w: 1, h: 1, format: "JPEG" });
         img.src = dataUrl;
@@ -1269,7 +1200,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     const sectionTextH = 4;
     const labelToBoxGap = 3; // margin between section label and image box
     const timestampH = 5;
-    const maxImageHInCard = 52; // so card fits in row and images don't get cut
+    const maxImageHInCard = 78; // taller so portrait photos show full image in frame
     const pxToMm = 25.4 / 96;
 
     const ensureSpace = (needed: number) => {
@@ -1363,17 +1294,17 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
             const rowHeights: number[] = [];
             const rowImages: Array<{ dataUrl: string; w: number; h: number; format: "PNG" | "JPEG" }> = [];
             for (const { photo } of rowItems) {
-              const oriented = await getOrientedImage(photo.base64);
-              const wMm = oriented.w * pxToMm;
-              const hMm = oriented.h * pxToMm;
+              const baked = await getImageForPdf(photo.base64);
+              const wMm = baked.w * pxToMm;
+              const hMm = baked.h * pxToMm;
               const scale = Math.min(cardWidth / wMm, maxImageHInCard / hMm, 1);
               const imgW = wMm * scale;
               const imgH = hMm * scale;
               rowImages.push({
-                dataUrl: oriented.dataUrl,
+                dataUrl: baked.dataUrl,
                 w: imgW,
                 h: imgH,
-                format: oriented.format,
+                format: baked.format,
               });
               rowHeights.push(sectionTextH + labelToBoxGap + imgH + timestampH);
             }
