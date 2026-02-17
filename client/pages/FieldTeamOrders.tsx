@@ -838,8 +838,19 @@ export default function FieldTeamOrders() {
   ];
 
   const handleDeleteOrder = useCallback(
-    (order: FieldTeamOrder) => {
-      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+    async (order: FieldTeamOrder) => {
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${order.description}"?\nThis cannot be undone.`
+      );
+      if (!confirmed) return;
+
+      try {
+        await fetchJSON(`/maintenance/ftos?id=${order.id}`, { method: "DELETE" });
+        setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      } catch (err) {
+        console.error("Delete FTO failed", err);
+        alert("Failed to delete Field Team Order. Please try again.");
+      }
     },
     []
   );

@@ -5,7 +5,8 @@ import SectionCard from "@/components/SectionCard";
 import BlueButton from "@/components/BlueButton";
 import InspectionAssignees from "@/components/InspectionAssignees";
 import InspectionDetailsBarTemplate from "@/components/templates/InspectionDetailsBarTemplate";
-import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import PhotoCommentModal from "@/components/PhotoCommentModal";
+import { SelectField } from "@/components/forms/SelectField";
 import {
   PlusIcon,
   DeleteIcon,
@@ -17,7 +18,6 @@ import {
 import { DownloadIcon } from "@/components/icons/DownloadIcon";
 import { Maximize2, Minimize2, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SelectField } from "@/components/forms/SelectField";
 import {
   ChecklistNode,
   InspectionPhoto,
@@ -34,6 +34,8 @@ import {
   updateChecklist,
   addInspectionPhotos,
   listInspectionPhotos,
+  updateInspectionPhoto,
+  BackendInspection,
   BackendInspectionChecklist,
 } from "@/api/inspections";
 import { API_BASE } from "@/api/fetchJSON";
@@ -431,6 +433,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [isLoadingChecklist, setIsLoadingChecklist] = useState(true);
   const [checklistId, setChecklistId] = useState<number | null>(inspection?.checklist_id || null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [backendInspection, setBackendInspection] = useState<BackendInspection | null>(null);
 
   // Helper function to map backend status to frontend status
   const mapBackendStatusToFrontend = (backendStatus: string): "In Progress" | "Completed" => {
@@ -457,6 +460,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
       try {
         const backendInspection = await getInspection(inspectionId);
+        setBackendInspection(backendInspection);
         
         // Update status from backend
         const frontendStatus = mapBackendStatusToFrontend(backendInspection.status);
@@ -480,12 +484,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
     fetchInspectionData();
   }, [inspectionId]);
-
-  // Metadata State
-  const [uploadedBy] = useState<string>("John Doe");
-  const [uploadedAt] = useState<string>(new Date().toLocaleString());
-  const [lastUpdated] = useState<string>(new Date().toLocaleString());
-  const [lastUpdatedBy] = useState<string>("Jerry Sanchez");
 
   // --- Fetch photos from backend ---
   useEffect(() => {
@@ -555,7 +553,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
   // Photo Upload State
   const [selectedNodeId, setSelectedNodeId] = useState<string>("");
-  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Photo Comment Modal State
   const [isPhotoCommentModalOpen, setIsPhotoCommentModalOpen] = useState(false);
@@ -897,21 +894,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
   // --- Handlers: Photos ---
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!selectedNodeId) {
-      alert("Please select a checklist item first.");
-      if (photoInputRef.current) photoInputRef.current.value = "";
-      return;
-    }
-
-    if (e.target.files && e.target.files.length > 0) {
-      // Store the selected file and open the modal
-      setPendingPhotoFile(e.target.files[0]);
-      setIsPhotoCommentModalOpen(true);
-      if (photoInputRef.current) photoInputRef.current.value = "";
-    }
-  };
-
   const handlePhotoCommentSubmit = async (file: File, comment: string, condition?: string) => {
     if (!inspectionId) {
       alert("No inspection ID found");
@@ -1010,6 +992,47 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     }));
   };
 
+  const handleSavePhotoConditionAndNote = async (
+    photoId: string,
+    condition: string | null,
+    comment: string
+  ) => {
+    if (!inspectionId) return;
+    const cond =
+      condition && ["good", "fair", "poor"].includes(condition)
+        ? (condition as "good" | "fair" | "poor")
+        : null;
+    try {
+      await updateInspectionPhoto(Number(inspectionId), Number(photoId), {
+        condition: cond,
+        comment: comment || null,
+      });
+      const backendPhotos = await listInspectionPhotos(inspectionId);
+      const frontendPhotos: InspectionPhoto[] = backendPhotos.map((bp) => ({
+        id: bp.id.toString(),
+        inspectionId: bp.inspection_id.toString(),
+        sectionNodeId: bp.section_id,
+        fileRef: `${API_BASE}/uploads/${bp.storage_path}`,
+        uploadedAt: bp.created_at,
+        comment: bp.comment,
+        condition: bp.condition,
+      }));
+      setPhotos(frontendPhotos);
+      const notes: Record<string, string> = {};
+      frontendPhotos.forEach((p) => {
+        if (p.comment) notes[p.id] = p.comment;
+      });
+      setPhotoNotes(notes);
+      if (selectedPhotoForModal?.id === photoId) {
+        const updated = frontendPhotos.find((p) => p.id === photoId);
+        if (updated) setSelectedPhotoForModal(updated);
+      }
+    } catch (error) {
+      console.error("Failed to update photo:", error);
+      alert("Failed to update photo. Please try again.");
+    }
+  };
+
   // --- Handlers: General ---
 
   const handleStatusChange = async (newStatus: "In Progress" | "Completed") => {
@@ -1101,7 +1124,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     // Helper to convert Blob URL to Base64
     const blobUrlToBase64 = async (blobUrl: string): Promise<string> => {
       try {
-        const response = await fetch(blobUrl);
+        const response = await fetch(blobUrl, { credentials: "include" });
         const blob = await response.blob();
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -1142,12 +1165,9 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     let htmlContent = `
       <h1 style="color: #303030; margin: 0 0 12px 0; font-size: 24px; line-height: 1.2;">Inspection Report</h1>
       <div style="background-color: #f5f5f5; padding: 10px 12px; margin-bottom: 16px; border-radius: 4px;">
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Property:</span> 22 Indian Chase Dr</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Property:</span> ${backendInspection?.property_name ?? "Unknown Property"}</div>
         <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Inspection Due Date:</span> ${dueDate}</div>
         <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Field Manager:</span> ${inspection?.inspector?.name || "Unassigned"}</div>
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Uploaded By:</span> ${uploadedBy}</div>
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Uploaded At:</span> ${uploadedAt}</div>
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Last Updated:</span> ${lastUpdated} by ${lastUpdatedBy}</div>
       </div>
     `;
 
@@ -1166,10 +1186,10 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
       // Render each section with its photos in a 4-column grid
       Object.entries(photosBySection).forEach(([sectionId, sectionPhotos]) => {
-        const section = sections.find(s => s.id === sectionId);
+        const sectionLabel = sectionId ? getNodePath(sectionId) : "Uncategorized";
         htmlContent += `
           <div style="margin-bottom: 16px;">
-            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; background-color: #f0f4ff; padding: 4px 8px; border-radius: 3px; min-height: 20px; line-height: 1.4;">Section: ${section?.text || "Unknown"}</div>
+            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; background-color: #f0f4ff; padding: 4px 8px; border-radius: 3px; min-height: 20px; line-height: 1.4;">Section: ${sectionLabel || "Unknown"}</div>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
         `;
 
@@ -1439,7 +1459,8 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedNodeId(node.id);
-                          photoInputRef.current?.click();
+                          setPendingPhotoFile(null);
+                          setIsPhotoCommentModalOpen(true);
                         }}
                         className="flex-shrink-0 p-1.5 text-blue-600 bg-white border border-blue-600 hover:bg-blue-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                         title="Add photo to this item"
@@ -1565,23 +1586,18 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                     !selectedNodeId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-gray-50 bg-white"
                   )}
                   onClick={() => {
-                    if (selectedNodeId) photoInputRef.current?.click();
-                    else alert("Please select a checklist item first");
+                    if (selectedNodeId) {
+                      setPendingPhotoFile(null);
+                      setIsPhotoCommentModalOpen(true);
+                    } else {
+                      alert("Please select a checklist item first");
+                    }
                   }}
                 >
                   <div className="text-gray-400">
                     <PlusIcon width={24} height={24} />
                   </div>
                   <span className="mt-1 text-sm text-gray-600 font-medium">Click to Upload</span>
-                  <input
-                    ref={photoInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                    disabled={!selectedNodeId}
-                  />
                 </div>
               </div>
 
@@ -1664,12 +1680,14 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       {/* Photo Comment Modal - For uploading new photos */}
       <PhotoCommentModal
         open={isPhotoCommentModalOpen}
-        onOpenChange={setIsPhotoCommentModalOpen}
+        onOpenChange={(open) => {
+          setIsPhotoCommentModalOpen(open);
+          if (!open) setPendingPhotoFile(null);
+        }}
         onSubmit={handlePhotoCommentSubmit}
         title={selectedNodeId ? getNodePath(selectedNodeId) : "Add Photo"}
         submitLabel="Upload Photo"
         initialFile={pendingPhotoFile}
-        isLoading={isUploadingPhoto}
       />
 
       {/* Photo Viewer Modal */}
@@ -1685,6 +1703,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           note={photoNotes[selectedPhotoForModal.id] || ""}
           onNoteChange={(note) => handleUpdatePhotoNote(selectedPhotoForModal.id, note)}
           nodePath={selectedPhotoForModal.sectionNodeId ? getNodePath(selectedPhotoForModal.sectionNodeId) : "Unknown Item"}
+          onSave={handleSavePhotoConditionAndNote}
         />
       )}
     </>
@@ -1699,96 +1718,12 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
 // --- Helper Components ---
 
-const CONDITION_OPTIONS: { value: string; label: string }[] = [
+const PHOTO_VIEWER_CONDITION_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "Select condition (optional)" },
   { value: "good", label: "Good" },
   { value: "fair", label: "Fair" },
   { value: "poor", label: "Poor" },
 ];
-
-interface PhotoCommentModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (file: File, comment: string, condition?: string) => Promise<void>;
-  title: string;
-  submitLabel: string;
-  initialFile: File | null;
-  isLoading?: boolean;
-}
-
-function PhotoCommentModal({
-  open,
-  onOpenChange,
-  onSubmit,
-  title,
-  submitLabel,
-  initialFile,
-  isLoading = false,
-}: PhotoCommentModalProps) {
-  const [comment, setComment] = React.useState("");
-  const [condition, setCondition] = React.useState("");
-
-  React.useEffect(() => {
-    if (!open) {
-      setComment("");
-      setCondition("");
-    }
-  }, [open]);
-
-  const handleConfirm = async () => {
-    if (!initialFile) return;
-    await onSubmit(initialFile, comment, condition || undefined);
-  };
-
-  const handleCancel = () => {
-    if (!isLoading) {
-      onOpenChange(false);
-    }
-  };
-
-  return (
-    <ModalTemplate
-      open={open}
-      onOpenChange={onOpenChange}
-      title={title}
-      size="sm"
-      footer={
-        <ModalButtons
-          onCancel={handleCancel}
-          onConfirm={handleConfirm}
-          cancelLabel="Cancel"
-          confirmLabel={isLoading ? "Uploading..." : submitLabel}
-          confirmDisabled={!initialFile || isLoading}
-        />
-      }
-    >
-      <div className="flex flex-col gap-4">
-        <div className="text-sm text-gray-600">
-          <strong>File:</strong> {initialFile ? initialFile.name : "No file selected"}
-        </div>
-        <SelectField
-          label="Condition"
-          value={condition}
-          onChange={(v) => setCondition(v as string)}
-          options={CONDITION_OPTIONS}
-          placeholder="Select condition (optional)"
-        />
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Comment (optional)
-          </label>
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Add a comment or note for this photo..."
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            rows={3}
-          />
-        </div>
-      </div>
-    </ModalTemplate>
-  );
-}
 
 interface PhotoViewerModalProps {
   open: boolean;
@@ -1801,6 +1736,7 @@ interface PhotoViewerModalProps {
   note: string;
   onNoteChange: (note: string) => void;
   nodePath: string;
+  onSave?: (photoId: string, condition: string | null, comment: string) => Promise<void>;
 }
 
 function PhotoViewerModal({
@@ -1814,11 +1750,33 @@ function PhotoViewerModal({
   note,
   onNoteChange,
   nodePath,
+  onSave,
 }: PhotoViewerModalProps) {
-  if (!open) return null;
+  const [condition, setCondition] = React.useState(photo.condition || "");
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    setCondition(photo.condition || "");
+  }, [photo.id, photo.condition]);
 
   const canGoNext = photoIndex < totalPhotos - 1;
   const canGoPrev = photoIndex > 0;
+
+  const handleSave = async () => {
+    if (!onSave) return;
+    setIsSaving(true);
+    try {
+      await onSave(
+        photo.id,
+        condition ? condition : null,
+        note
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!open) return null;
 
   return (
     <div
@@ -1857,14 +1815,15 @@ function PhotoViewerModal({
           />
         </div>
 
-        {/* Condition Section */}
-        <div className="border-t border-gray-200 px-4 pt-4 pb-1 bg-white">
-          <label className="text-sm font-semibold text-gray-900 mb-1 block">Condition</label>
-          <p className="text-sm text-gray-700">
-            {photo.condition
-              ? photo.condition.charAt(0).toUpperCase() + photo.condition.slice(1)
-              : "—"}
-          </p>
+        {/* Condition Section - editable */}
+        <div className="border-t border-gray-200 px-4 pt-4 pb-2 bg-white">
+          <SelectField
+            label="Condition"
+            value={condition}
+            onChange={(v) => setCondition(v as string)}
+            options={PHOTO_VIEWER_CONDITION_OPTIONS}
+            placeholder="Select condition (optional)"
+          />
         </div>
 
         {/* Notes Section */}
@@ -1879,8 +1838,8 @@ function PhotoViewerModal({
           />
         </div>
 
-        {/* Footer with Navigation */}
-        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50 gap-4">
+        {/* Footer with Navigation and Save */}
+        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50 gap-4 flex-wrap">
           <button
             onClick={onPrev}
             disabled={!canGoPrev}
@@ -1889,8 +1848,19 @@ function PhotoViewerModal({
             ← Previous
           </button>
 
-          <div className="text-sm text-gray-600">
-            {new Date(photo.uploadedAt).toLocaleString()}
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">
+              {new Date(photo.uploadedAt).toLocaleString()}
+            </span>
+            {onSave && (
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSaving ? "Saving..." : "Save"}
+              </button>
+            )}
           </div>
 
           <button
