@@ -209,6 +209,7 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
           style={{
             width: "var(--radix-popover-trigger-width)",
           }}
+          hideWhenDetached={false}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onInteractOutside={(e) => {
             const target = e.target as Node;
