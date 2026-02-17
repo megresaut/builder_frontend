@@ -24,7 +24,6 @@ import {
   MOCK_CHECKLIST_NODES,
 } from "@/data/inspection-checklist";
 import { DEFAULT_INSPECTION_TEMPLATES, ChecklistSectionTemplate } from "@/data/inspections";
-import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import {
   updateInspection,
@@ -603,6 +602,19 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     return path.join(" → ");
   };
 
+  // Helper to get the root (top-level) node id for grouping (e.g. Exterior, Interior)
+  const getRootNodeId = (nodeId: string): string | null => {
+    const node = nodes.find((n) => n.id === nodeId);
+    if (!node) return null;
+    let current = node;
+    while (current.parentId) {
+      const parent = nodes.find((n) => n.id === current.parentId);
+      if (!parent) return current.id;
+      current = parent;
+    }
+    return current.id;
+  };
+
   // Helper to check if a node has photos
   const hasPhotoForNode = (nodeId: string) => {
     return photos.some((p) => p.sectionNodeId === nodeId);
@@ -1138,7 +1150,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       }
     };
 
-    // Pre-process photos to convert Blob URLs to Base64
+    // Pre-process photos to Base64 and get dimensions for scaling
     const photosWithBase64 = await Promise.all(
       photos.map(async (photo) => {
         const base64 = await blobUrlToBase64(photo.fileRef);
@@ -1146,140 +1158,182 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       })
     );
 
-    // Create a temporary DOM element for the PDF content (no fixed height so all content is captured)
-    const element = document.createElement("div");
-    element.style.width = "8.5in";
-    element.style.minHeight = "11in";
-    element.style.margin = "0";
-    element.style.padding = "0.5in 0.75in";
-    element.style.fontFamily = "Arial, sans-serif";
-    element.style.color = "#333";
-    element.style.background = "#ffffff";
-    element.style.position = "absolute";
-    element.style.left = "-9999px";
-    element.style.top = "0";
-    element.style.boxSizing = "border-box";
-    element.style.overflow = "visible";
-
-    // Build HTML content
-    let htmlContent = `
-      <h1 style="color: #303030; margin: 0 0 12px 0; font-size: 24px; line-height: 1.2;">Inspection Report</h1>
-      <div style="background-color: #f5f5f5; padding: 10px 12px; margin-bottom: 16px; border-radius: 4px;">
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Property:</span> ${backendInspection?.property_name ?? "Unknown Property"}</div>
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Inspection Due Date:</span> ${dueDate}</div>
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Field Manager:</span> ${inspection?.inspector?.name || "Unassigned"}</div>
-      </div>
-    `;
-
-    if (photosWithBase64.length > 0) {
-      htmlContent += `<h2 style="color: #505050; margin: 12px 0 8px 0; font-size: 14px; font-weight: bold; page-break-after: avoid;">Photos (${photosWithBase64.length})</h2>`;
-
-      // Group photos by section
-      const photosBySection: Record<string, typeof photosWithBase64> = {};
-      photosWithBase64.forEach(photo => {
-        const sectionId = photo.sectionNodeId;
-        if (!photosBySection[sectionId]) {
-          photosBySection[sectionId] = [];
-        }
-        photosBySection[sectionId].push(photo);
-      });
-
-      // Render each section with its photos in a 4-column grid
-      Object.entries(photosBySection).forEach(([sectionId, sectionPhotos]) => {
-        const sectionLabel = sectionId ? getNodePath(sectionId) : "Uncategorized";
-        htmlContent += `
-          <div style="margin-bottom: 16px;">
-            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; background-color: #f0f4ff; padding: 4px 8px; border-radius: 3px; min-height: 20px; line-height: 1.4;">Section: ${sectionLabel || "Unknown"}</div>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
-        `;
-
-        sectionPhotos.forEach(photo => {
-          htmlContent += `
-            <div style="display: flex; flex-direction: column; border: 1px solid #ddd; padding: 4px; border-radius: 3px; background: #fafafa; min-height: 0;">
-              <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 120px; margin-bottom: 4px; border-radius: 2px; overflow: hidden;">
-                ${photo.base64 ? `<img src="${photo.base64}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />` : `<div style="padding: 8px; color: #999; font-size: 9px; text-align: center;">Image error</div>`}
-              </div>
-              ${photo.subsectionName ? `<div style="font-size: 7px; color: #0066cc; font-weight: bold; background-color: #f0f4ff; padding: 2px 4px; border-radius: 2px; margin-bottom: 2px; text-align: center; line-height: 1.2;">${photo.subsectionName}</div>` : ""}
-              <div style="font-size: 8px; color: #666; line-height: 1.2; text-align: center; margin-bottom: 4px;">📷 ${new Date(photo.uploadedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
-              ${photoNotes[photo.id] ? `<div style="font-size: 9px; color: #333; font-weight: 500; margin-top: 0; padding: 4px 6px; border-top: 1px solid #e5e7eb; line-height: 1.3; white-space: normal; word-break: break-word; overflow: hidden; background-color: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb;">${photoNotes[photo.id]}</div>` : ""}
-            </div>
-          `;
-        });
-
-        htmlContent += `
-            </div>
-          </div>
-        `;
-      });
-    } else {
-      htmlContent += `<p style="color: #999; font-style: italic; font-size: 11px;">No photos uploaded for this inspection.</p>`;
-    }
-
-    element.innerHTML = htmlContent;
-    document.body.appendChild(element);
-
-    // Wait for images to load (now they are base64, but technically still async decoding)
-    const images = element.getElementsByTagName("img");
-    const imagePromises = Array.from(images).map((img) => {
-      if (img.complete) return Promise.resolve();
+    const getImageDimensions = (dataUrl: string | undefined): Promise<{ w: number; h: number }> => {
       return new Promise((resolve) => {
-        img.onload = resolve;
-        img.onerror = resolve; // Continue even if image fails
+        if (!dataUrl) {
+          resolve({ w: 1, h: 1 });
+          return;
+        }
+        const img = new Image();
+        img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+        img.onerror = () => resolve({ w: 1, h: 1 });
+        img.src = dataUrl;
       });
-    });
+    };
+
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentW = pageW - margin * 2;
+    const cols = 2;
+    const cardGap = 6;
+    const cardWidth = (contentW - cardGap) / cols;
+    const sectionTextH = 4;
+    const labelToBoxGap = 3; // margin between section label and image box
+    const timestampH = 5;
+    const maxImageHInCard = 52; // so card fits in row and images don't get cut
+    const pxToMm = 25.4 / 96;
+
+    const ensureSpace = (needed: number) => {
+      if (currentY + needed > pageH - margin) {
+        pdf.addPage();
+        currentY = margin;
+      }
+    };
+
+    let currentY = margin;
+
+    // Header
+    pdf.setFontSize(20);
+    pdf.setTextColor(48, 48, 48);
+    pdf.text("Inspection Report", margin, currentY + 6);
+    currentY += 14;
+
+    pdf.setFillColor(245, 245, 245);
+    pdf.rect(margin, currentY, contentW, 22, "F");
+    pdf.setFontSize(10);
+    pdf.setTextColor(51, 51, 51);
+    pdf.text(`Property: ${backendInspection?.property_name ?? "Unknown Property"}`, margin + 4, currentY + 6);
+    pdf.text(`Inspection Due Date: ${dueDate}`, margin + 4, currentY + 12);
+    pdf.text(`Field Manager: ${inspection?.inspector?.name || "Unassigned"}`, margin + 4, currentY + 18);
+    currentY += 26;
 
     try {
-      await Promise.all(imagePromises);
+      if (photosWithBase64.length === 0) {
+        pdf.setFontSize(11);
+        pdf.setTextColor(153, 153, 153);
+        pdf.text("No photos uploaded for this inspection.", margin, currentY);
+      } else {
+        // Flatten to list of { photo, sectionLabel } keeping order (by root, then section)
+        const photosBySection: Record<string, typeof photosWithBase64> = {};
+        photosWithBase64.forEach((photo) => {
+          const sectionId = photo.sectionNodeId;
+          if (!photosBySection[sectionId]) photosBySection[sectionId] = [];
+          photosBySection[sectionId].push(photo);
+        });
+        const rootOrder = nodes.filter((n) => n.depth === 0).sort((a, b) => a.orderIndex - b.orderIndex);
+        const sectionsByRoot: Map<string, Array<{ sectionLabel: string; photos: typeof photosWithBase64 }>> = new Map();
+        rootOrder.forEach((root) => sectionsByRoot.set(root.id, []));
+        Object.entries(photosBySection).forEach(([sectionId, sectionPhotos]) => {
+          const rootId = getRootNodeId(sectionId);
+          const sectionLabel = sectionId ? getNodePath(sectionId) : "Uncategorized";
+          const list = rootId != null ? sectionsByRoot.get(rootId) : null;
+          if (list) list.push({ sectionLabel, photos: sectionPhotos });
+          else {
+            if (!sectionsByRoot.has("_other")) sectionsByRoot.set("_other", []);
+            sectionsByRoot.get("_other")!.push({ sectionLabel, photos: sectionPhotos });
+          }
+        });
+        // Show path after first node; use " -> " so PDF renders arrows properly (Unicode → can show as "!' ")
+        const labelAfterFirstNode = (fullPath: string): string => {
+          const parts = fullPath.split(" → ");
+          if (parts.length <= 1) return fullPath || "General";
+          return parts.slice(1).join(" -> ");
+        };
 
-      const canvas = await html2canvas(element, {
-        scale: 4,
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        imageTimeout: 0,
-        onclone: (clonedDocument) => {
-          const clonedElement = clonedDocument.body.querySelector('div');
-          if (clonedElement) {
-            clonedElement.style.transform = 'scale(1)';
+        const sectionHeaderH = 14;
+
+        const rootsToRender = rootOrder.map((r) => r.id).concat(sectionsByRoot.has("_other") ? ["_other"] : []);
+
+        for (const rootId of rootsToRender) {
+          const sections = sectionsByRoot.get(rootId);
+          if (!sections || sections.length === 0) continue;
+
+          const rootLabel = rootId === "_other" ? "Other" : (nodes.find((n) => n.id === rootId)?.text ?? "Other");
+
+          // Big section heading (top node name)
+          ensureSpace(sectionHeaderH);
+          pdf.setFontSize(16);
+          pdf.setTextColor(30, 58, 95);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(rootLabel, margin, currentY + 5);
+          pdf.setDrawColor(224, 231, 239);
+          pdf.setLineWidth(0.4);
+          pdf.line(margin, currentY + 8, margin + contentW, currentY + 8);
+          pdf.setFont("helvetica", "normal");
+          currentY += sectionHeaderH;
+
+          const flatList: Array<{ photo: (typeof photosWithBase64)[0]; sectionLabel: string }> = [];
+          sections.forEach(({ sectionLabel, photos }) => {
+            photos.forEach((photo) =>
+              flatList.push({ photo, sectionLabel: labelAfterFirstNode(sectionLabel) })
+            );
+          });
+
+          for (let i = 0; i < flatList.length; i += cols) {
+            const rowItems = flatList.slice(i, i + cols);
+            const rowHeights: number[] = [];
+            const rowImages: Array<{ w: number; h: number }> = [];
+            for (const { photo } of rowItems) {
+              const dims = await getImageDimensions(photo.base64);
+              const wMm = dims.w * pxToMm;
+              const hMm = dims.h * pxToMm;
+              const scale = Math.min(cardWidth / wMm, maxImageHInCard / hMm, 1);
+              const imgW = wMm * scale;
+              const imgH = hMm * scale;
+              rowImages.push({ w: imgW, h: imgH });
+              rowHeights.push(sectionTextH + labelToBoxGap + imgH + timestampH);
+            }
+            const cardH = Math.max(...rowHeights);
+            ensureSpace(cardH + cardGap);
+
+            for (let c = 0; c < rowItems.length; c++) {
+              const { photo, sectionLabel } = rowItems[c];
+              const x = margin + c * (cardWidth + cardGap);
+              const cardY = currentY;
+
+              // Box: light fill + border so each image is clearly contained and centered
+              pdf.setFillColor(250, 250, 250);
+              pdf.rect(x, cardY, cardWidth, cardH, "F");
+              pdf.setDrawColor(218, 220, 224);
+              pdf.setLineWidth(0.3);
+              pdf.rect(x, cardY, cardWidth, cardH, "S");
+
+              pdf.setFontSize(9);
+              pdf.setTextColor(80, 80, 80);
+              let label = (sectionLabel || "General").replace(/→/g, " -> ");
+              if (pdf.getTextWidth(label) > cardWidth) {
+                while (label.length && pdf.getTextWidth(label + "…") > cardWidth) label = label.slice(0, -1);
+                label = label + "…";
+              }
+              pdf.text(label, x + (cardWidth - pdf.getTextWidth(label)) / 2, cardY + 3.5);
+
+              const imgY = cardY + sectionTextH + labelToBoxGap;
+              const { w: imgW, h: imgH } = rowImages[c];
+              const imgX = x + (cardWidth - imgW) / 2;
+              const imgFormat = photo.base64?.startsWith("data:image/png") ? "PNG" : "JPEG";
+              if (photo.base64) {
+                pdf.addImage(photo.base64, imgFormat, imgX, imgY, imgW, imgH);
+              }
+
+              const dateY = imgY + imgH;
+              pdf.setFontSize(8);
+              pdf.setTextColor(102, 102, 102);
+              const dateStr = `${new Date(photo.uploadedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`;
+              const dateW = pdf.getTextWidth(dateStr);
+              pdf.text(dateStr, x + (cardWidth - dateW) / 2, dateY + 3.5);
+            }
+
+            currentY += cardH + cardGap;
           }
         }
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // Add first page
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
-
-      // Add subsequent pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
       }
 
-      const filename = `inspection-${new Date().toISOString().split("T")[0]}.pdf`;
-      pdf.save(filename);
+      pdf.save(`inspection-${new Date().toISOString().split("T")[0]}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
-    } finally {
-      document.body.removeChild(element);
     }
   };
 
