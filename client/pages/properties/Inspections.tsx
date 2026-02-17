@@ -11,6 +11,7 @@ import ScheduleInspectionModal from "./ScheduleInspectionModal";
 import AddTemplateModal from "./AddTemplateModal";
 import {
   listInspections,
+  listInspectionPhotos,
   createInspection,
   listChecklists,
   createChecklist,
@@ -241,36 +242,45 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
         // Debugging log removed
         setTemplates(checklistsData);
 
+        // Filter to this property's inspections
+        const filtered = backendInspections.filter(
+          (bi) => bi.property_id === Number(propertyId)
+        );
+        // Fetch photo counts in parallel
+        const photoCounts = await Promise.all(
+          filtered.map((bi) =>
+            listInspectionPhotos(bi.id).then((photos) => photos.length)
+          )
+        );
+
         // Transform backend inspections to UI format
-        const uiInspections: Inspection[] = backendInspections
-          .filter((bi) => bi.property_id === Number(propertyId))
-          .map((bi) => {
-            const assignedManager = managers.find((m) => m.id === bi.assigned_field_team_member_id);
-            const checklist = checklistsData.find((c) => c.id === bi.checklist_id);
-            
-            // Ensure inspector has proper initials
-            let inspector = assignedManager || { id: 0, name: "Unassigned", initials: "?" };
-            if (assignedManager && !assignedManager.initials) {
-              inspector = {
-                ...assignedManager,
-                initials: computeInitials(assignedManager.name)
-              };
-            }
-            
-            return {
-              id: bi.id,
-              name: `Inspection ${bi.id}`, // Backend doesn't have name; we'll fix this
-              inspector,
-              inspectionDate: bi.due_date ? new Date(bi.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—",
-              submitted: "", // Backend doesn't track submitted date yet
-              status: bi.status as any, // "In Progress" | "Completed"
-              issues: 0, // Not tracked yet
-              photos: 0, // We'd need to fetch photos count
-              updated: new Date(bi.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-              templateName: checklist?.name || "Default Template",
-              checklist_id: bi.checklist_id,
+        const uiInspections: Inspection[] = filtered.map((bi, index) => {
+          const assignedManager = managers.find((m) => m.id === bi.assigned_field_team_member_id);
+          const checklist = checklistsData.find((c) => c.id === bi.checklist_id);
+          
+          // Ensure inspector has proper initials
+          let inspector = assignedManager || { id: 0, name: "Unassigned", initials: "?" };
+          if (assignedManager && !assignedManager.initials) {
+            inspector = {
+              ...assignedManager,
+              initials: computeInitials(assignedManager.name)
             };
-          });
+          }
+          
+          return {
+            id: bi.id,
+            name: `Inspection ${bi.id}`, // Backend doesn't have name; we'll fix this
+            inspector,
+            inspectionDate: bi.due_date ? new Date(bi.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—",
+            submitted: "", // Backend doesn't track submitted date yet
+            status: bi.status as any, // "In Progress" | "Completed"
+            issues: 0, // Not tracked yet
+            photos: photoCounts[index] ?? 0,
+            updated: new Date(bi.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+            templateName: checklist?.name || "Default Template",
+            checklist_id: bi.checklist_id,
+          };
+        });
 
         setInspectionsList(uiInspections);
       } catch (error) {
