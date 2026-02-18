@@ -83,6 +83,8 @@ interface APIFTO {
   task_id?: number;
   description: string;
   due_date: string;
+  /** Most recent date_of_work from submissions; use for "Date of Work" column. */
+  date_of_work?: string;
   priority: "low" | "normal" | "high";
   status: string;
   approval_status: string;
@@ -171,13 +173,14 @@ const transformAPIToFieldTeamOrders = (
       row.approval_status
     );
 
+    const displayDateSource = row.date_of_work ?? row.due_date;
     return {
       id: row.id,
       taskId: row.task_id ?? row.id,
       task_id: row.task_id ?? null,
       property: row.property_name ?? "",
       description: row.description,
-      dueDate: row.due_date ? toDateOnly(row.due_date) : "",
+      dueDate: displayDateSource ? toDateOnly(displayDateSource) : "",
       due_date: row.due_date, // Keep raw date for modal
       priority: (row.priority?.toLowerCase() as "low" | "normal" | "high") || "normal",
       status: normalizeFTOStatus(row.status) as
@@ -794,7 +797,7 @@ const fieldTeamColumnConfig: Record<
     ),
   },
   dueDate: {
-    label: "Due Date",
+    label: "Date of Work",
     icon: (
       <svg
         width="16"
@@ -2235,7 +2238,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           columns={[
             { key: "priority", label: "Priority", icon: fieldTeamColumnConfig.priority.icon },
             { key: "description", label: "Description", icon: fieldTeamColumnConfig.description.icon },
-            { key: "dueDate", label: "Due Date", icon: fieldTeamColumnConfig.dueDate.icon },
+            { key: "dueDate", label: "Date of Work", icon: fieldTeamColumnConfig.dueDate.icon },
             { key: "fieldTeam", label: "Field Team", icon: fieldTeamColumnConfig.fieldTeam.icon },
             { key: "status", label: "Status", icon: fieldTeamColumnConfig.status.icon },
             { key: "timesheetStatus", label: "Timesheet Status", icon: fieldTeamColumnConfig.timesheetStatus.icon },

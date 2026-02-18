@@ -5,6 +5,7 @@ import { TextField } from "@/components/forms/TextField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
 import { DateField } from "@/components/forms/DateField";
 import { ComboboxFieldWithCustomInput } from "@/components/forms/ComboboxFieldWithCustomInput";
+import { ComboboxField } from "@/components/forms/ComboboxField";
 import { SelectFieldCell } from "@/components/forms/SelectFieldCell";
 import { DateFieldCell } from "@/components/forms/DateFieldCell";
 import { NumberFieldCell } from "@/components/forms/NumberFieldCell";
@@ -20,9 +21,24 @@ import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useParams } from "react-router-dom";
-import { fetchJSON } from "@/api/fetchJSON";
+import { API_BASE, fetchJSON } from "@/api/fetchJSON";
 import { cn } from "@/lib/utils";
 import { AlertBanner } from "@/components/AlertBanner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import glAccountsData from "@/data/gl_accounts.json";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface HourRow {
   id: string;
@@ -53,6 +69,9 @@ interface ExpenseRow {
   submissionId: number;
   materialIndex: number;
   attachmentIds: number[];
+  glAccountId: string;
+  /** Set when expense was exported to Buildium (AVMRE only); used to disable re-approve */
+  exportedToBuildium?: boolean;
 }
 
 interface ApproveFTOPageProps {
@@ -78,6 +97,9 @@ interface ExpenseLine {
   amount_cents: number;
   upcharge_cents?: number;
   expense_type?: "personal-expense" | "avm-expense" | "client-expense";
+  /** Optional: only present when booking to AVMRE */
+  gl_account_id?: string;
+  exported_to_buildium?: boolean;
 }
 
 
@@ -116,8 +138,7 @@ const fetchAttachmentsForExpense = async (
   materialIndex: number,
 ): Promise<Attachment[]> => {
   const res = await fetch(
-    `/api/maintenance/attachments?submission_id=${submissionId}&material_index=${materialIndex}`,
-    // `http://localhost:8080/maintenance/attachments?submission_id=${submissionId}&material_index=${materialIndex}`,
+    `${API_BASE}/maintenance/attachments?submission_id=${submissionId}&material_index=${materialIndex}`,
     {
       headers: { Accept: "application/json" },
     },
@@ -132,8 +153,7 @@ const fetchAttachmentsForExpense = async (
 
 const fetchAttachmentsByFto = async (ftoId: number): Promise<AttachmentSummary[]> => {
   const res = await fetch(
-    `/api/maintenance/attachments/by-fto?fto_id=${ftoId}`,
-    // `http://localhost:8080/maintenance/attachments/by-fto?fto_id=${ftoId}`,
+    `${API_BASE}/maintenance/attachments/by-fto?fto_id=${ftoId}`,
     { headers: { Accept: "application/json" } }
   );
 
@@ -157,8 +177,7 @@ const fetchAttachmentsByFto = async (ftoId: number): Promise<AttachmentSummary[]
 
 const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]> => {
   const res = await fetch(
-    `/api/maintenance/submissions/by-fto?fto_id=${ftoId}`,
-    // `http://localhost:8080/maintenance/submissions/by-fto?fto_id=${ftoId}`,
+    `${API_BASE}/maintenance/submissions/by-fto?fto_id=${ftoId}`,
     {
       headers: { Accept: "application/json" },
     },
@@ -190,8 +209,7 @@ const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]
 // Fetch a single submission by ID (for misc expenses)
 const fetchSubmissionById = async (submissionId: number): Promise<{ submission: BackendSubmission; property_name?: string; property_id?: number }> => {
   const res = await fetch(
-    `/api/maintenance/submissions/${submissionId}`,
-    // `http://localhost:8080/maintenance/submissions/${submissionId}`,
+    `${API_BASE}/maintenance/submissions/${submissionId}`,
     {
       headers: { Accept: "application/json" },
     },
@@ -231,8 +249,7 @@ const fetchSubmissionById = async (submissionId: number): Promise<{ submission: 
 // Fetch attachments by submission ID (for misc expenses)
 const fetchAttachmentsBySubmission = async (submissionId: number): Promise<AttachmentSummary[]> => {
   const res = await fetch(
-    `/api/maintenance/attachments/by-submission?submission_id=${submissionId}`,
-    // `http://localhost:8080/maintenance/attachments/by-submission?submission_id=${submissionId}`,
+    `${API_BASE}/maintenance/attachments/by-submission?submission_id=${submissionId}`,
     { headers: { Accept: "application/json" } }
   );
 
@@ -279,8 +296,12 @@ const chargeTypeToExpenseType = (
   return "client-expense";
 };
 
-const buildMaterialsJSON = (expenseRows: ExpenseRow[]) => {
-  return expenseRows.map((row, index) => {
+const buildMaterialsJSON = (
+  expenseRows: ExpenseRow[],
+  options?: { includeAvmreFields: boolean }
+) => {
+  const includeAvmreFields = options?.includeAvmreFields ?? false;
+  return expenseRows.map((row) => {
     const upchargeCents = parseMoneyToCents(row.upcharge);
     const out: Record<string, unknown> = {
       date_of_work: row.date,
@@ -292,6 +313,10 @@ const buildMaterialsJSON = (expenseRows: ExpenseRow[]) => {
       material_index: row.materialIndex,
     };
     if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
+    if (includeAvmreFields) {
+      if (row.glAccountId) out.gl_account_id = row.glAccountId;
+      out.exported_to_buildium = row.exportedToBuildium ?? false;
+    }
     return out;
   });
 };
@@ -318,13 +343,13 @@ const patchSubmission = async (
     hours_json?: any[];
     materials_json?: any[];
     field_team_member_id?: number;
+    property_id?: number;
   }
 ) => {
   // Debugging logs removed
 
   const res = await fetch(
-    `/api/maintenance/submissions/${submissionId}`,
-    // `http://localhost:8080/maintenance/submissions/${submissionId}`,
+    `${API_BASE}/maintenance/submissions/${submissionId}`,
     {
       method: "PATCH",
       headers: {
@@ -381,8 +406,7 @@ const createSubmissionForAssignee = async (
   }));
 
   const res = await fetch(
-    // `http://localhost:8080/maintenance/ftos/${ftoId}/submissions`,
-    `/api/maintenance/ftos/${ftoId}/submissions`,
+    `${API_BASE}/maintenance/ftos/${ftoId}/submissions`,
     {
       method: "POST",
       headers: {
@@ -500,8 +524,7 @@ const parseDueDate = (dateStr: string | undefined): Date | null => {
 
 const approveSubmission = async (submissionId: number) => {
   const res = await fetch(
-    // `http://localhost:8080/maintenance/submissions/${submissionId}/approve`,
-    `/api/maintenance/submissions/${submissionId}/approve`,
+    `${API_BASE}/maintenance/submissions/${submissionId}/approve`,
     {
       method: "POST",
       headers: {
@@ -518,7 +541,7 @@ const approveSubmission = async (submissionId: number) => {
 
 /** Approves the entire FTO: all submissions for this FTO and the FTO itself. */
 const approveFto = async (ftoId: number) => {
-  const res = await fetch(`/api/maintenance/ftos/${ftoId}/approve`, {
+  const res = await fetch(`${API_BASE}/maintenance/ftos/${ftoId}/approve`, {
     method: "POST",
     headers: { Accept: "application/json" },
   });
@@ -530,8 +553,7 @@ const approveFto = async (ftoId: number) => {
 
 const rejectSubmission = async (submissionId: number) => {
   const res = await fetch(
-    // `http://localhost:8080/maintenance/submissions/${submissionId}/reject`,
-    `/api/maintenance/submissions/${submissionId}/reject`,
+    `${API_BASE}/maintenance/submissions/${submissionId}/reject`,
     {
       method: "POST",
       headers: {
@@ -548,8 +570,7 @@ const rejectSubmission = async (submissionId: number) => {
 
 const updateFtoAmountCents = async (ftoId: number, amountCents: number) => {
   const res = await fetch(
-    // `http://localhost:8080/maintenance/ftos/${ftoId}`,
-    `/api/maintenance/ftos/${ftoId}`,
+    `${API_BASE}/maintenance/ftos/${ftoId}`,
     {
       method: "PATCH",
       headers: {
@@ -582,6 +603,8 @@ export default function ApproveFTOPage() {
   
   // Determine if we're in "misc submission" mode (single submission by ID)
   const isMiscMode = submissionIdNum !== null && ftoIdNum === null;
+  /** AVMRE LLC: only show GL Account column and run Buildium export when property is this id */
+  const AVMRE_PROPERTY_ID = 585;
   // FTO Details - populated from props or state
   const [ftoName, setFtoName] = useState(state.ftoName || "");
   const [property, setProperty] = useState(state.property || "");
@@ -604,6 +627,7 @@ export default function ApproveFTOPage() {
   const [hasNoSubmissions, setHasNoSubmissions] = useState(false);
   const [rateError, setRateError] = useState<"hourly" | "emergency" | null>(null);
   const [propertyId, setPropertyId] = useState<number | null>(null);
+  const isAvmreProperty = propertyId === AVMRE_PROPERTY_ID;
   // const [attachmentsByKey, setAttachmentsByKey] = useState<Record<string, AttachmentSummary[]>>({});
   
   // Track submissions by assignee ID so we know which assignees already have submissions
@@ -614,7 +638,24 @@ export default function ApproveFTOPage() {
   const [loadedSubmissionToAssignee, setLoadedSubmissionToAssignee] = useState<Record<number, number>>({});
   const [loadedFto, setLoadedFto] = useState<Record<string, any> | null>(null);
   const [showEditFTOModal, setShowEditFTOModal] = useState(false);
+  const [showEditMiscModal, setShowEditMiscModal] = useState(false);
+  const [editMiscProperties, setEditMiscProperties] = useState<Array<{ id: number; name: string }>>([]);
+  const [editMiscPropertyId, setEditMiscPropertyId] = useState<number | null>(null);
   const [ftoDetailsVersion, setFtoDetailsVersion] = useState(0);
+
+  // GL Account options (same data as Record Bill)
+  const [glSearch, setGlSearch] = useState("");
+  const glAccountOptions = useMemo(
+    () => (glAccountsData as any[]).map((gl) => ({ id: gl.Id as string, name: gl.Name as string })),
+    [],
+  );
+  const filteredGLAccounts = useMemo(
+    () =>
+      glSearch
+        ? glAccountOptions.filter((gl) => gl.name.toLowerCase().includes(glSearch.toLowerCase()))
+        : glAccountOptions,
+    [glAccountOptions, glSearch],
+  );
 
   // Live vendors for expense section (paginated, same pattern as work order menu)
   const [isExpenseVendorDropdownOpen, setIsExpenseVendorDropdownOpen] = useState(false);
@@ -766,8 +807,7 @@ export default function ApproveFTOPage() {
 
       try {
         const res = await fetch(
-          // `http://localhost:8080/maintenance/ftos/${ftoIdNum}`,
-          `/api/maintenance/ftos/${ftoIdNum}`,
+          `${API_BASE}/maintenance/ftos/${ftoIdNum}`,
           {
             headers: { Accept: "application/json" },
           }
@@ -793,8 +833,9 @@ export default function ApproveFTOPage() {
         }
         if (fto.unit_name) setUnit(fto.unit_name);
         if (fto.description) setDescription(fto.description);
-        if (fto.due_date) {
-          const parsedDate = parseDueDate(fto.due_date);
+        const displayDateSource = fto.date_of_work ?? fto.due_date;
+        if (displayDateSource) {
+          const parsedDate = parseDueDate(displayDateSource);
           if (parsedDate) setDueDate(parsedDate);
         }
         if (fto.priority) {
@@ -967,6 +1008,8 @@ export default function ApproveFTOPage() {
                     upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
                     assignee: assigneeById[submission.FieldTeamMemberID] || "",
                     assigneeId: submission.FieldTeamMemberID,
+                    glAccountId: expense.gl_account_id ?? "",
+                    exportedToBuildium: expense.exported_to_buildium ?? false,
                   });
                 });
               }
@@ -1105,6 +1148,7 @@ export default function ApproveFTOPage() {
         submissionId: 0,
         materialIndex: 0,
         attachmentIds: [],
+        glAccountId: "",
       },
     ]);
   };
@@ -1141,7 +1185,7 @@ export default function ApproveFTOPage() {
         const subHourRows = hourRows.filter((r) => r.submissionId === submissionId);
         const subExpenseRows = expenseRows.filter((r) => r.submissionId === submissionId);
         const hoursJSON = buildHoursJSON(subHourRows);
-        const materialsJSON = buildMaterialsJSON(subExpenseRows);
+        const materialsJSON = buildMaterialsJSON(subExpenseRows, { includeAvmreFields: isAvmreProperty });
         const assigneeId = loadedSubmissionToAssignee[submissionId];
         await patchSubmission(submissionId, {
           hours_json: hoursJSON,
@@ -1163,7 +1207,7 @@ export default function ApproveFTOPage() {
           const assigneeNewHours = newHourRows.filter((r) => r.assigneeId === assigneeId);
           const assigneeNewExpenses = newExpenseRows.filter((r) => r.assigneeId === assigneeId);
           const hoursJSON = buildHoursJSON(assigneeNewHours);
-          const materialsJSON = buildMaterialsJSON(assigneeNewExpenses);
+          const materialsJSON = buildMaterialsJSON(assigneeNewExpenses, { includeAvmreFields: isAvmreProperty });
           await createSubmissionForAssignee(
             ftoIdNum,
             assigneeId,
@@ -1187,6 +1231,101 @@ export default function ApproveFTOPage() {
           throw new Error("Cannot approve: FTO ID is missing");
         }
         await approveFto(ftoIdNum);
+      }
+
+      // --- MISC MODE: Export to Buildium only for AVMRE LLC (property id 585) ---
+      if (isMiscMode && expenseRows.length > 0 && isAvmreProperty) {
+        // Validate GL accounts
+        const missingGL = expenseRows.some((r) => !r.glAccountId);
+        if (missingGL) {
+          throw new Error("Select a GL Account for each expense row before exporting to Buildium.");
+        }
+
+        // Resolve vendors by name → get vendor_id + check buildium_vendor_id
+        const vendorCache: Record<string, { id: number; buildiumVendorId: string | null }> = {};
+        for (const row of expenseRows) {
+          const vendorName = row.vendor.trim();
+          if (!vendorName) throw new Error("Each expense row must have a vendor.");
+          if (!vendorCache[vendorName]) {
+            try {
+              const results = await fetchJSON(`/vendors?search=${encodeURIComponent(vendorName)}&limit=1`);
+              const match = Array.isArray(results) && results.length > 0 ? results[0] : null;
+              if (!match) {
+                throw new Error(`Vendor "${vendorName}" not found in the system. Please select a vendor from the dropdown.`);
+              }
+              vendorCache[vendorName] = {
+                id: Number(match.id),
+                buildiumVendorId: match.buildium_vendor_id ?? null,
+              };
+            } catch (fetchErr) {
+              if (fetchErr instanceof Error && fetchErr.message.startsWith("Vendor")) throw fetchErr;
+              throw new Error(`Failed to look up vendor "${vendorName}".`);
+            }
+          }
+          if (!vendorCache[vendorName].buildiumVendorId) {
+            throw new Error(`Vendor "${vendorName}" is not linked to Buildium. Add a Buildium Vendor ID in vendor settings before exporting.`);
+          }
+        }
+
+        const buildiumErrors: string[] = [];
+
+        for (let i = 0; i < expenseRows.length; i++) {
+          const row = expenseRows[i];
+          try {
+            const parsedDate = row.date;
+            const dateObj = new Date(parsedDate);
+            const dueDateObj = new Date(dateObj);
+            dueDateObj.setDate(dueDateObj.getDate() + 7);
+
+            const toYMD = (d: Date) => d.toISOString().split("T")[0];
+            const dateStr = toYMD(dateObj);
+            const dueDateStr = toYMD(dueDateObj);
+
+            const amountCentsVal = parseMoneyToCents(row.amount);
+            const receiptNote = row.receiptNote || "Misc expense";
+
+            const vendorInfo = vendorCache[row.vendor.trim()];
+
+            const receiptAttachmentId = row.attachmentIds?.[0] ?? null;
+
+            const exportPayload: Record<string, unknown> = {
+              vendor_id: vendorInfo.id,
+              statement_date: dateStr + "T00:00:00Z",
+              due_date: dueDateStr + "T00:00:00Z",
+              memo: receiptNote,
+              line_items: [
+                {
+                  line_id: 1,
+                  gl_account_id: row.glAccountId,
+                  description: receiptNote,
+                  amount_cents: amountCentsVal,
+                },
+              ],
+            };
+            if (receiptAttachmentId != null) {
+              exportPayload.attachment_id = receiptAttachmentId;
+            }
+
+            await fetchJSON("/vendors/export-misc-expense-to-buildium", {
+              method: "POST",
+              body: JSON.stringify(exportPayload),
+            });
+          } catch (billErr) {
+            buildiumErrors.push(`Row ${i + 1}: ${billErr instanceof Error ? billErr.message : String(billErr)}`);
+          }
+        }
+
+        if (buildiumErrors.length > 0) {
+          alert("Expense approved, but some Buildium exports failed:\n\n" + buildiumErrors.join("\n"));
+          navigate(-1);
+          return;
+        }
+
+        // Persist exported_to_buildium so Approve is disabled on next visit
+        const updatedRows = expenseRows.map((r) => ({ ...r, exportedToBuildium: true }));
+        await patchSubmission(submissionIdNum!, {
+          materials_json: buildMaterialsJSON(updatedRows, { includeAvmreFields: true }),
+        });
       }
 
       navigate(-1);
@@ -1270,8 +1409,7 @@ export default function ApproveFTOPage() {
     const attachmentId = row.attachmentIds[0];
   
     pdfViewer.openPdf(
-      `/api/maintenance/attachments/${attachmentId}`,
-      // `http://localhost:8080/maintenance/attachments/${attachmentId}`,
+      `${API_BASE}/maintenance/attachments/${attachmentId}`,  
       "Receipt"
     );
   };
@@ -1376,6 +1514,31 @@ export default function ApproveFTOPage() {
                       style={{ width: "790px" }}
                     />
                   </div>
+                  {isMiscMode && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setShowEditMiscModal(true);
+                        setEditMiscPropertyId(propertyId);
+                        try {
+                          const list = await fetchJSON("/properties");
+                          const arr = Array.isArray(list) ? list : [];
+                          setEditMiscProperties(
+                            arr.map((p: { id: number; name?: string }) => ({
+                              id: Number(p.id),
+                              name: (p.name ?? "").trim() || `Property ${p.id}`,
+                            }))
+                          );
+                        } catch {
+                          setEditMiscProperties([]);
+                        }
+                      }}
+                      className="flex items-center gap-2 shrink-0 rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm font-medium text-[#303030] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                    >
+                      <EditIcon width={16} height={16} color="#525252" />
+                      Edit
+                    </button>
+                  )}
                   {!isMiscMode && ftoIdNum && loadedFto && (
                     <button
                       type="button"
@@ -1428,7 +1591,7 @@ export default function ApproveFTOPage() {
                     </div>
                   </div>
 
-                  {/* Priority and Due Date Row */}
+                  {/* Priority and Date of Work Row */}
                   <div className="flex gap-5">
                     <div className="flex-1">
                       <SelectField
@@ -1445,7 +1608,7 @@ export default function ApproveFTOPage() {
                     </div>
                     <div className="flex-1">
                       <DateField
-                        label="Due Date"
+                        label="Date of Work"
                         value={dueDate ? formatDate(dueDate) : ""}
                         onChange={() => {}}
                         disabled={true}
@@ -1876,6 +2039,16 @@ export default function ApproveFTOPage() {
                             Charge Type <span className="text-red-600">*</span>
                           </span>
                         </div>
+                        {isMiscMode && isAvmreProperty && (
+                          <div
+                            className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                            style={{ width: "200px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          >
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              GL Account <span className="text-red-600">*</span>
+                            </span>
+                          </div>
+                        )}
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
                           style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
@@ -2118,6 +2291,56 @@ export default function ApproveFTOPage() {
                             </Popover>
                           </div>
 
+                          {/* GL Account Cell (misc mode + AVMRE property only) */}
+                          {isMiscMode && isAvmreProperty && (
+                            <div
+                              className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                              style={{
+                                width: "200px",
+                                borderBottom: "1px solid #DADADA",
+                                borderRight: "1px solid #DADADA",
+                                boxShadow: attemptedSubmit && !row.glAccountId ? "inset 0 0 0 2px #dc2626" : "none",
+                              }}
+                            >
+                              <Select
+                                value={row.glAccountId}
+                                onValueChange={(value) => {
+                                  updateExpenseRow(row.id, "glAccountId", value);
+                                  setGlSearch("");
+                                }}
+                                onOpenChange={(open) => {
+                                  if (!open) setGlSearch("");
+                                }}
+                              >
+                                <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
+                                  <SelectValue placeholder="Select GL Account" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white border border-[#E5E7EB] shadow-md p-0">
+                                  <div className="p-2 border-b border-[#E5E7EB]">
+                                    <input
+                                      autoFocus
+                                      placeholder="Type to search…"
+                                      value={glSearch}
+                                      onChange={(e) => setGlSearch(e.target.value)}
+                                      onKeyDown={(e) => e.stopPropagation()}
+                                      className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+                                    />
+                                  </div>
+                                  <div className="max-h-[240px] overflow-y-auto">
+                                    {filteredGLAccounts.length === 0 && (
+                                      <div className="px-3 py-2 text-sm text-gray-400">No accounts found</div>
+                                    )}
+                                    {filteredGLAccounts.map((gl) => (
+                                      <SelectItem key={gl.id} value={gl.id}>
+                                        {gl.name}
+                                      </SelectItem>
+                                    ))}
+                                  </div>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
                           {/* Amount Cell - Currency */}
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
@@ -2278,8 +2501,21 @@ export default function ApproveFTOPage() {
             </button>
             <BlueButton
               onClick={handleApprove}
+              disabled={
+                isMiscMode &&
+                isAvmreProperty &&
+                expenseRows.length > 0 &&
+                expenseRows.every((r) => r.exportedToBuildium)
+              }
             >
-              {isMiscMode ? "Approve Expense" : "Approve Field Team Order"}
+              {isMiscMode &&
+              isAvmreProperty &&
+              expenseRows.length > 0 &&
+              expenseRows.every((r) => r.exportedToBuildium)
+                ? "Already exported"
+                : isMiscMode
+                  ? "Approve Expense"
+                  : "Approve Field Team Order"}
             </BlueButton>
           </div>
         </div>
@@ -2306,6 +2542,58 @@ export default function ApproveFTOPage() {
           editingFTO={editingFTO}
         />
       )}
+
+      {/* Edit misc expense details (property) */}
+      <Dialog open={showEditMiscModal} onOpenChange={setShowEditMiscModal}>
+        <DialogContent className="w-[90vw] max-w-[440px] bg-white rounded-xl border border-[#E5E7EB] shadow-xl p-0 gap-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 text-left border-b border-[#E5E7EB]">
+            <DialogTitle className="text-lg font-semibold text-[#303030]">
+              Edit misc expense details
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-6 py-5">
+            <ComboboxField
+              label="Property"
+              value={editMiscPropertyId != null ? String(editMiscPropertyId) : ""}
+              onChange={(val) => setEditMiscPropertyId(val ? Number(val) : null)}
+              placeholder="Select property..."
+              searchPlaceholder="Search properties..."
+              options={editMiscProperties.map((p) => ({ value: String(p.id), label: p.name }))}
+              emptyMessage="No properties found"
+            />
+          </div>
+          <DialogFooter className="px-6 py-4 bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-row justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setShowEditMiscModal(false)}
+              className="rounded-lg border border-[#DADADA] bg-white px-4 py-2 text-sm font-medium text-[#303030] hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <BlueButton
+              type="button"
+              onClick={async () => {
+                if (submissionIdNum == null || editMiscPropertyId == null) return;
+                const subHourRows = hourRows.filter((r) => r.submissionId === submissionIdNum);
+                const subExpenseRows = expenseRows.filter((r) => r.submissionId === submissionIdNum);
+                const assigneeId = loadedSubmissionToAssignee[submissionIdNum];
+                await patchSubmission(submissionIdNum, {
+                  hours_json: buildHoursJSON(subHourRows),
+                  materials_json: buildMaterialsJSON(subExpenseRows, { includeAvmreFields: editMiscPropertyId === AVMRE_PROPERTY_ID }),
+                  field_team_member_id: assigneeId,
+                  property_id: editMiscPropertyId,
+                });
+                setPropertyId(editMiscPropertyId);
+                setProperty(editMiscProperties.find((p) => p.id === editMiscPropertyId)?.name ?? property);
+                setShowEditMiscModal(false);
+              }}
+              disabled={editMiscPropertyId == null}
+            >
+              Save
+            </BlueButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

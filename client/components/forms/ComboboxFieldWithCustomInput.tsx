@@ -27,6 +27,11 @@ interface ComboboxFieldWithCustomInputProps {
   emptyMessage?: string;
   customInputPlaceholder?: string;
   customButtonLabel?: string;
+  onSearchChange?: (search: string) => void;
+  onOpenChange?: (open: boolean) => void;
+  onLoadMore?: () => void;
+  optionsLoading?: boolean;
+  hasMore?: boolean;
 }
 
 /**
@@ -92,20 +97,32 @@ export const ComboboxFieldWithCustomInput: React.FC<
   emptyMessage = "No results found",
   customInputPlaceholder = "Or enter a new value",
   customButtonLabel = "vendor",
+  onSearchChange,
+  onOpenChange: onOpenChangeProp,
+  onLoadMore,
+  optionsLoading = false,
+  hasMore = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [customInputMode, setCustomInputMode] = useState(false);
   const [customValue, setCustomValue] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const customInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+
+  const isAsyncMode = typeof onSearchChange === "function";
 
   const fieldId = id || (label && typeof label === 'string' ? label.toLowerCase().replace(/\s+/g, "-") : "combobox");
   const selectedOption = options.find((opt) => opt?.value === value);
   const selectedLabel = selectedOption?.label ?? (value || placeholder || '');
 
-  // Use all options (no filtering)
-  const filteredOptions = options;
+  const filteredOptions = isAsyncMode
+    ? options
+    : searchQuery
+      ? options.filter((o) => o.label.toLowerCase().includes(searchQuery.toLowerCase()))
+      : options;
 
   // Focus custom input when entering custom mode
   useEffect(() => {
@@ -116,9 +133,18 @@ export const ComboboxFieldWithCustomInput: React.FC<
     }
   }, [customInputMode]);
 
+  const setOpenWithNotify = (next: boolean) => {
+    setOpen(next);
+    onOpenChangeProp?.(next);
+    if (!next) {
+      setSearchQuery("");
+      if (isAsyncMode) onSearchChange?.("");
+    }
+  };
+
   const handleSelect = (optionValue: string) => {
     onChange?.(optionValue === value ? "" : optionValue);
-    setOpen(false);
+    setOpenWithNotify(false);
     setCustomInputMode(false);
     setCustomValue("");
   };
@@ -126,7 +152,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
   const handleCustomInput = () => {
     if (customValue.trim()) {
       onChange?.(customValue);
-      setOpen(false);
+      setOpenWithNotify(false);
       setCustomInputMode(false);
       setCustomValue("");
     }
@@ -143,6 +169,14 @@ export const ComboboxFieldWithCustomInput: React.FC<
     }
   };
 
+  const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!hasMore || optionsLoading || !onLoadMore) return;
+    const t = e.currentTarget;
+    if (t.scrollTop + t.clientHeight >= t.scrollHeight - 24) {
+      onLoadMore();
+    }
+  };
+
   return (
     <FieldShell
       label={label}
@@ -152,7 +186,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
       disabled={disabled}
       htmlFor={fieldId}
     >
-      <Popover open={open} onOpenChange={setOpen} modal={false}>
+      <Popover open={open} onOpenChange={setOpenWithNotify} modal={false}>
         <PopoverTrigger asChild>
           <button
             id={fieldId}
@@ -244,9 +278,36 @@ export const ComboboxFieldWithCustomInput: React.FC<
               </button>
             )}
 
+            {/* Search Input */}
+            {!customInputMode && (
+              <div style={{ padding: "8px", borderBottom: "1px solid var(--color-border-light)" }}>
+                <input
+                  autoFocus
+                  placeholder="Type to search…"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (isAsyncMode) onSearchChange?.(e.target.value);
+                  }}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  style={{
+                    width: "100%",
+                    padding: "6px 10px",
+                    border: "1px solid var(--color-border-light)",
+                    borderRadius: "6px",
+                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                    fontSize: "13px",
+                    outline: "none",
+                  }}
+                />
+              </div>
+            )}
+
             {/* Options List */}
             {!customInputMode && (
               <div
+                ref={listScrollRef}
+                onScroll={handleListScroll}
                 style={{
                   maxHeight: "240px",
                   overflowY: "auto",
@@ -254,7 +315,22 @@ export const ComboboxFieldWithCustomInput: React.FC<
                   flexShrink: 1,
                 }}
               >
-                {filteredOptions.length === 0 ? (
+                {optionsLoading && filteredOptions.length === 0 ? (
+                  <div
+                    style={{
+                      padding: "16px 8px",
+                      textAlign: "center",
+                      color: "var(--color-text-muted)",
+                      fontSize: "14px",
+                      minHeight: "80px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    Loading…
+                  </div>
+                ) : filteredOptions.length === 0 ? (
                   <div
                     style={{
                       padding: "16px 8px",
@@ -270,42 +346,49 @@ export const ComboboxFieldWithCustomInput: React.FC<
                     {emptyMessage}
                   </div>
                 ) : (
-                  filteredOptions.map((option, index) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => handleSelect(option.value)}
-                      onMouseEnter={() => setHighlightedIndex(index)}
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        border: "none",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        backgroundColor:
-                          highlightedIndex === index
-                            ? "rgba(36, 99, 235, 0.15)"
-                            : value === option.value
-                              ? "rgba(36, 99, 235, 0.1)"
-                              : "transparent",
-                        color: "var(--color-text-primary)",
-                        fontFamily:
-                          "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                        fontSize: "14px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        transition: "background-color 0.15s",
-                      }}
-                    >
-                      {value === option.value ? (
-                        <Check className="h-4 w-4 shrink-0 text-blue-600" />
-                      ) : (
-                        <div className="h-4 w-4 shrink-0" />
-                      )}
-                      <span>{option.label}</span>
-                    </button>
-                  ))
+                  <>
+                    {filteredOptions.map((option, index) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleSelect(option.value)}
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 12px",
+                          border: "none",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          backgroundColor:
+                            highlightedIndex === index
+                              ? "rgba(36, 99, 235, 0.15)"
+                              : value === option.value
+                                ? "rgba(36, 99, 235, 0.1)"
+                                : "transparent",
+                          color: "var(--color-text-primary)",
+                          fontFamily:
+                            "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                          fontSize: "14px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          transition: "background-color 0.15s",
+                        }}
+                      >
+                        {value === option.value ? (
+                          <Check className="h-4 w-4 shrink-0 text-blue-600" />
+                        ) : (
+                          <div className="h-4 w-4 shrink-0" />
+                        )}
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                    {optionsLoading && filteredOptions.length > 0 && (
+                      <div style={{ padding: "8px 12px", textAlign: "center", color: "var(--color-text-muted)", fontSize: "13px" }}>
+                        Loading more…
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}

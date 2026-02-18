@@ -73,6 +73,8 @@ export interface APIFTOResponse {
   status: string;
   priority: string;
   due_date: string;
+  /** Most recent date_of_work from submissions; use for "Date of Work" column. */
+  date_of_work?: string;
   approval_status: string;
   form_submission_status: "none" | "partial" | "complete";
   is_visible_to_client: boolean;
@@ -156,14 +158,15 @@ export const transformAPIToFieldTeamOrders = (
   usersById: Record<number, UserDirectoryEntry>,
 ): FieldTeamOrder[] => {
   return apiData.map((fto) => {
-    const dueDateISO = fto.due_date;
-    const dueDate = dueDateISO
-      ? new Date(dueDateISO).toLocaleDateString("en-US", {
+    const displayDateISO = fto.date_of_work ?? fto.due_date;
+    const dueDate = displayDateISO
+      ? new Date(displayDateISO).toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
         })
-      : "No due date";
+      : "No date";
+    const dueDateISO = fto.due_date;
 
     const timesheetStatus =
       fto.approval_status === "rejected"
@@ -320,7 +323,7 @@ export default function TaskFieldTeamOrders({
     },
     {
       key: "dueDate",
-      label: "Due Date",
+      label: "Date of Work",
       icon: <CalendarIcon width={16} height={16} />,
     },
     {
