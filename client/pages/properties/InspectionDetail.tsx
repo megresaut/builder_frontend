@@ -5,8 +5,7 @@ import SectionCard from "@/components/SectionCard";
 import BlueButton from "@/components/BlueButton";
 import InspectionAssignees from "@/components/InspectionAssignees";
 import InspectionDetailsBarTemplate from "@/components/templates/InspectionDetailsBarTemplate";
-import PhotoCommentModal from "@/components/PhotoCommentModal";
-import { SelectField } from "@/components/forms/SelectField";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
   PlusIcon,
   DeleteIcon,
@@ -18,12 +17,14 @@ import {
 import { DownloadIcon } from "@/components/icons/DownloadIcon";
 import { Maximize2, Minimize2, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SelectField } from "@/components/forms/SelectField";
 import {
   ChecklistNode,
   InspectionPhoto,
   MOCK_CHECKLIST_NODES,
 } from "@/data/inspection-checklist";
 import { DEFAULT_INSPECTION_TEMPLATES, ChecklistSectionTemplate } from "@/data/inspections";
+import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import {
   updateInspection,
@@ -33,8 +34,6 @@ import {
   updateChecklist,
   addInspectionPhotos,
   listInspectionPhotos,
-  updateInspectionPhoto,
-  BackendInspection,
   BackendInspectionChecklist,
 } from "@/api/inspections";
 import { API_BASE } from "@/api/fetchJSON";
@@ -432,7 +431,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [isLoadingChecklist, setIsLoadingChecklist] = useState(true);
   const [checklistId, setChecklistId] = useState<number | null>(inspection?.checklist_id || null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [backendInspection, setBackendInspection] = useState<BackendInspection | null>(null);
 
   // Helper function to map backend status to frontend status
   const mapBackendStatusToFrontend = (backendStatus: string): "In Progress" | "Completed" => {
@@ -459,7 +457,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
       try {
         const backendInspection = await getInspection(inspectionId);
-        setBackendInspection(backendInspection);
         
         // Update status from backend
         const frontendStatus = mapBackendStatusToFrontend(backendInspection.status);
@@ -483,6 +480,12 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
     fetchInspectionData();
   }, [inspectionId]);
+
+  // Metadata State
+  const [uploadedBy] = useState<string>("John Doe");
+  const [uploadedAt] = useState<string>(new Date().toLocaleString());
+  const [lastUpdated] = useState<string>(new Date().toLocaleString());
+  const [lastUpdatedBy] = useState<string>("Jerry Sanchez");
 
   // --- Fetch photos from backend ---
   useEffect(() => {
@@ -552,6 +555,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
   // Photo Upload State
   const [selectedNodeId, setSelectedNodeId] = useState<string>("");
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Photo Comment Modal State
   const [isPhotoCommentModalOpen, setIsPhotoCommentModalOpen] = useState(false);
@@ -600,19 +604,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     }
 
     return path.join(" → ");
-  };
-
-  // Helper to get the root (top-level) node id for grouping (e.g. Exterior, Interior)
-  const getRootNodeId = (nodeId: string): string | null => {
-    const node = nodes.find((n) => n.id === nodeId);
-    if (!node) return null;
-    let current = node;
-    while (current.parentId) {
-      const parent = nodes.find((n) => n.id === current.parentId);
-      if (!parent) return current.id;
-      current = parent;
-    }
-    return current.id;
   };
 
   // Helper to check if a node has photos
@@ -906,6 +897,21 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
   // --- Handlers: Photos ---
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedNodeId) {
+      alert("Please select a checklist item first.");
+      if (photoInputRef.current) photoInputRef.current.value = "";
+      return;
+    }
+
+    if (e.target.files && e.target.files.length > 0) {
+      // Store the selected file and open the modal
+      setPendingPhotoFile(e.target.files[0]);
+      setIsPhotoCommentModalOpen(true);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  };
+
   const handlePhotoCommentSubmit = async (file: File, comment: string, condition?: string) => {
     if (!inspectionId) {
       alert("No inspection ID found");
@@ -1004,47 +1010,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     }));
   };
 
-  const handleSavePhotoConditionAndNote = async (
-    photoId: string,
-    condition: string | null,
-    comment: string
-  ) => {
-    if (!inspectionId) return;
-    const cond =
-      condition && ["good", "fair", "poor"].includes(condition)
-        ? (condition as "good" | "fair" | "poor")
-        : null;
-    try {
-      await updateInspectionPhoto(Number(inspectionId), Number(photoId), {
-        condition: cond,
-        comment: comment || null,
-      });
-      const backendPhotos = await listInspectionPhotos(inspectionId);
-      const frontendPhotos: InspectionPhoto[] = backendPhotos.map((bp) => ({
-        id: bp.id.toString(),
-        inspectionId: bp.inspection_id.toString(),
-        sectionNodeId: bp.section_id,
-        fileRef: `${API_BASE}/uploads/${bp.storage_path}`,
-        uploadedAt: bp.created_at,
-        comment: bp.comment,
-        condition: bp.condition,
-      }));
-      setPhotos(frontendPhotos);
-      const notes: Record<string, string> = {};
-      frontendPhotos.forEach((p) => {
-        if (p.comment) notes[p.id] = p.comment;
-      });
-      setPhotoNotes(notes);
-      if (selectedPhotoForModal?.id === photoId) {
-        const updated = frontendPhotos.find((p) => p.id === photoId);
-        if (updated) setSelectedPhotoForModal(updated);
-      }
-    } catch (error) {
-      console.error("Failed to update photo:", error);
-      alert("Failed to update photo. Please try again.");
-    }
-  };
-
   // --- Handlers: General ---
 
   const handleStatusChange = async (newStatus: "In Progress" | "Completed") => {
@@ -1136,7 +1101,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     // Helper to convert Blob URL to Base64
     const blobUrlToBase64 = async (blobUrl: string): Promise<string> => {
       try {
-        const response = await fetch(blobUrl, { credentials: "include" });
+        const response = await fetch(blobUrl);
         const blob = await response.blob();
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -1150,7 +1115,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       }
     };
 
-    // Pre-process photos to Base64 and get dimensions for scaling
+    // Pre-process photos to convert Blob URLs to Base64
     const photosWithBase64 = await Promise.all(
       photos.map(async (photo) => {
         const base64 = await blobUrlToBase64(photo.fileRef);
@@ -1158,204 +1123,143 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       })
     );
 
-    // Use browser's displayed dimensions; bake image through canvas so PDF shows same orientation as browser (portrait stays portrait).
-    const getImageForPdf = (
-      dataUrl: string | undefined
-    ): Promise<{ dataUrl: string; w: number; h: number; format: "PNG" | "JPEG" }> => {
-      return new Promise((resolve) => {
-        if (!dataUrl) {
-          resolve({ dataUrl: "", w: 1, h: 1, format: "JPEG" });
-          return;
+    // Create a temporary DOM element for the PDF content
+    const element = document.createElement("div");
+    element.style.width = "8.5in";
+    element.style.height = "11in";
+    element.style.margin = "0";
+    element.style.padding = "0.5in 0.75in";
+    element.style.fontFamily = "Arial, sans-serif";
+    element.style.color = "#333";
+    element.style.background = "#ffffff";
+    element.style.position = "absolute";
+    element.style.left = "-9999px";
+    element.style.top = "0";
+    element.style.boxSizing = "border-box";
+    element.style.overflow = "hidden";
+
+    // Build HTML content
+    let htmlContent = `
+      <h1 style="color: #303030; margin: 0 0 12px 0; font-size: 24px; line-height: 1.2;">Inspection Report</h1>
+      <div style="background-color: #f5f5f5; padding: 10px 12px; margin-bottom: 16px; border-radius: 4px;">
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Property:</span> 22 Indian Chase Dr</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Inspection Due Date:</span> ${dueDate}</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Field Manager:</span> ${inspection?.inspector?.name || "Unassigned"}</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Uploaded By:</span> ${uploadedBy}</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Uploaded At:</span> ${uploadedAt}</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Last Updated:</span> ${lastUpdated} by ${lastUpdatedBy}</div>
+      </div>
+    `;
+
+    if (photosWithBase64.length > 0) {
+      htmlContent += `<h2 style="color: #505050; margin: 12px 0 8px 0; font-size: 14px; font-weight: bold; page-break-after: avoid;">Photos (${photosWithBase64.length})</h2>`;
+
+      // Group photos by section
+      const photosBySection: Record<string, typeof photosWithBase64> = {};
+      photosWithBase64.forEach(photo => {
+        const sectionId = photo.sectionNodeId;
+        if (!photosBySection[sectionId]) {
+          photosBySection[sectionId] = [];
         }
-        const isPng = dataUrl.startsWith("data:image/png");
-        const img = new Image();
-        img.onload = () => {
-          const w = img.naturalWidth;
-          const h = img.naturalHeight;
-          const canvas = document.createElement("canvas");
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            resolve({ dataUrl, w, h, format: isPng ? "PNG" : "JPEG" });
-            return;
-          }
-          ctx.drawImage(img, 0, 0);
-          const out = canvas.toDataURL(isPng ? "image/png" : "image/jpeg", 0.92);
-          resolve({ dataUrl: out, w, h, format: isPng ? "PNG" : "JPEG" });
-        };
-        img.onerror = () => resolve({ dataUrl: dataUrl || "", w: 1, h: 1, format: "JPEG" });
-        img.src = dataUrl;
+        photosBySection[sectionId].push(photo);
       });
-    };
 
-    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 14;
-    const contentW = pageW - margin * 2;
-    const cols = 2;
-    const cardGap = 6;
-    const cardWidth = (contentW - cardGap) / cols;
-    const sectionTextH = 4;
-    const labelToBoxGap = 3; // margin between section label and image box
-    const timestampH = 5;
-    const maxImageHInCard = 78; // taller so portrait photos show full image in frame
-    const pxToMm = 25.4 / 96;
+      // Render each section with its photos in a 4-column grid
+      Object.entries(photosBySection).forEach(([sectionId, sectionPhotos]) => {
+        const section = sections.find(s => s.id === sectionId);
+        htmlContent += `
+          <div style="margin-bottom: 16px;">
+            <div style="font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 8px; background-color: #f0f4ff; padding: 4px 8px; border-radius: 3px; min-height: 20px; line-height: 1.4;">Section: ${section?.text || "Unknown"}</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+        `;
 
-    const ensureSpace = (needed: number) => {
-      if (currentY + needed > pageH - margin) {
-        pdf.addPage();
-        currentY = margin;
-      }
-    };
+        sectionPhotos.forEach(photo => {
+          htmlContent += `
+            <div style="display: flex; flex-direction: column; border: 1px solid #ddd; padding: 4px; border-radius: 3px; background: #fafafa; min-height: 0;">
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 120px; margin-bottom: 4px; border-radius: 2px; overflow: hidden;">
+                ${photo.base64 ? `<img src="${photo.base64}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />` : `<div style="padding: 8px; color: #999; font-size: 9px; text-align: center;">Image error</div>`}
+              </div>
+              ${photo.subsectionName ? `<div style="font-size: 7px; color: #0066cc; font-weight: bold; background-color: #f0f4ff; padding: 2px 4px; border-radius: 2px; margin-bottom: 2px; text-align: center; line-height: 1.2;">${photo.subsectionName}</div>` : ""}
+              <div style="font-size: 8px; color: #666; line-height: 1.2; text-align: center; margin-bottom: 4px;">📷 ${new Date(photo.uploadedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+              ${photoNotes[photo.id] ? `<div style="font-size: 9px; color: #333; font-weight: 500; margin-top: 0; padding: 4px 6px; border-top: 1px solid #e5e7eb; line-height: 1.3; white-space: normal; word-break: break-word; overflow: hidden; background-color: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb;">${photoNotes[photo.id]}</div>` : ""}
+            </div>
+          `;
+        });
 
-    let currentY = margin;
+        htmlContent += `
+            </div>
+          </div>
+        `;
+      });
+    } else {
+      htmlContent += `<p style="color: #999; font-style: italic; font-size: 11px;">No photos uploaded for this inspection.</p>`;
+    }
 
-    // Header
-    pdf.setFontSize(20);
-    pdf.setTextColor(48, 48, 48);
-    pdf.text("Inspection Report", margin, currentY + 6);
-    currentY += 14;
+    element.innerHTML = htmlContent;
+    document.body.appendChild(element);
 
-    pdf.setFillColor(245, 245, 245);
-    pdf.rect(margin, currentY, contentW, 22, "F");
-    pdf.setFontSize(10);
-    pdf.setTextColor(51, 51, 51);
-    pdf.text(`Property: ${backendInspection?.property_name ?? "Unknown Property"}`, margin + 4, currentY + 6);
-    pdf.text(`Inspection Due Date: ${dueDate}`, margin + 4, currentY + 12);
-    pdf.text(`Field Manager: ${inspection?.inspector?.name || "Unassigned"}`, margin + 4, currentY + 18);
-    currentY += 26;
+    // Wait for images to load (now they are base64, but technically still async decoding)
+    const images = element.getElementsByTagName("img");
+    const imagePromises = Array.from(images).map((img) => {
+      if (img.complete) return Promise.resolve();
+      return new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve; // Continue even if image fails
+      });
+    });
 
     try {
-      if (photosWithBase64.length === 0) {
-        pdf.setFontSize(11);
-        pdf.setTextColor(153, 153, 153);
-        pdf.text("No photos uploaded for this inspection.", margin, currentY);
-      } else {
-        // Flatten to list of { photo, sectionLabel } keeping order (by root, then section)
-        const photosBySection: Record<string, typeof photosWithBase64> = {};
-        photosWithBase64.forEach((photo) => {
-          const sectionId = photo.sectionNodeId;
-          if (!photosBySection[sectionId]) photosBySection[sectionId] = [];
-          photosBySection[sectionId].push(photo);
-        });
-        const rootOrder = nodes.filter((n) => n.depth === 0).sort((a, b) => a.orderIndex - b.orderIndex);
-        const sectionsByRoot: Map<string, Array<{ sectionLabel: string; photos: typeof photosWithBase64 }>> = new Map();
-        rootOrder.forEach((root) => sectionsByRoot.set(root.id, []));
-        Object.entries(photosBySection).forEach(([sectionId, sectionPhotos]) => {
-          const rootId = getRootNodeId(sectionId);
-          const sectionLabel = sectionId ? getNodePath(sectionId) : "Uncategorized";
-          const list = rootId != null ? sectionsByRoot.get(rootId) : null;
-          if (list) list.push({ sectionLabel, photos: sectionPhotos });
-          else {
-            if (!sectionsByRoot.has("_other")) sectionsByRoot.set("_other", []);
-            sectionsByRoot.get("_other")!.push({ sectionLabel, photos: sectionPhotos });
-          }
-        });
-        // Show path after first node; use " -> " so PDF renders arrows properly (Unicode → can show as "!' ")
-        const labelAfterFirstNode = (fullPath: string): string => {
-          const parts = fullPath.split(" → ");
-          if (parts.length <= 1) return fullPath || "General";
-          return parts.slice(1).join(" -> ");
-        };
+      await Promise.all(imagePromises);
 
-        const sectionHeaderH = 14;
-
-        const rootsToRender = rootOrder.map((r) => r.id).concat(sectionsByRoot.has("_other") ? ["_other"] : []);
-
-        for (const rootId of rootsToRender) {
-          const sections = sectionsByRoot.get(rootId);
-          if (!sections || sections.length === 0) continue;
-
-          const rootLabel = rootId === "_other" ? "Other" : (nodes.find((n) => n.id === rootId)?.text ?? "Other");
-
-          // Big section heading (top node name)
-          ensureSpace(sectionHeaderH);
-          pdf.setFontSize(16);
-          pdf.setTextColor(30, 58, 95);
-          pdf.setFont("helvetica", "bold");
-          pdf.text(rootLabel, margin, currentY + 5);
-          pdf.setDrawColor(224, 231, 239);
-          pdf.setLineWidth(0.4);
-          pdf.line(margin, currentY + 8, margin + contentW, currentY + 8);
-          pdf.setFont("helvetica", "normal");
-          currentY += sectionHeaderH;
-
-          const flatList: Array<{ photo: (typeof photosWithBase64)[0]; sectionLabel: string }> = [];
-          sections.forEach(({ sectionLabel, photos }) => {
-            photos.forEach((photo) =>
-              flatList.push({ photo, sectionLabel: labelAfterFirstNode(sectionLabel) })
-            );
-          });
-
-          for (let i = 0; i < flatList.length; i += cols) {
-            const rowItems = flatList.slice(i, i + cols);
-            const rowHeights: number[] = [];
-            const rowImages: Array<{ dataUrl: string; w: number; h: number; format: "PNG" | "JPEG" }> = [];
-            for (const { photo } of rowItems) {
-              const baked = await getImageForPdf(photo.base64);
-              const wMm = baked.w * pxToMm;
-              const hMm = baked.h * pxToMm;
-              const scale = Math.min(cardWidth / wMm, maxImageHInCard / hMm, 1);
-              const imgW = wMm * scale;
-              const imgH = hMm * scale;
-              rowImages.push({
-                dataUrl: baked.dataUrl,
-                w: imgW,
-                h: imgH,
-                format: baked.format,
-              });
-              rowHeights.push(sectionTextH + labelToBoxGap + imgH + timestampH);
-            }
-            const cardH = Math.max(...rowHeights);
-            ensureSpace(cardH + cardGap);
-
-            for (let c = 0; c < rowItems.length; c++) {
-              const { photo, sectionLabel } = rowItems[c];
-              const x = margin + c * (cardWidth + cardGap);
-              const cardY = currentY;
-
-              // Box: light fill + border so each image is clearly contained and centered
-              pdf.setFillColor(250, 250, 250);
-              pdf.rect(x, cardY, cardWidth, cardH, "F");
-              pdf.setDrawColor(218, 220, 224);
-              pdf.setLineWidth(0.3);
-              pdf.rect(x, cardY, cardWidth, cardH, "S");
-
-              pdf.setFontSize(9);
-              pdf.setTextColor(80, 80, 80);
-              let label = (sectionLabel || "General").replace(/→/g, " -> ");
-              if (pdf.getTextWidth(label) > cardWidth) {
-                while (label.length && pdf.getTextWidth(label + "…") > cardWidth) label = label.slice(0, -1);
-                label = label + "…";
-              }
-              pdf.text(label, x + (cardWidth - pdf.getTextWidth(label)) / 2, cardY + 3.5);
-
-              const imgY = cardY + sectionTextH + labelToBoxGap;
-              const { dataUrl: imgDataUrl, w: imgW, h: imgH, format: imgFormat } = rowImages[c];
-              const imgX = x + (cardWidth - imgW) / 2;
-              if (imgDataUrl) {
-                pdf.addImage(imgDataUrl, imgFormat, imgX, imgY, imgW, imgH);
-              }
-
-              const dateY = imgY + imgH;
-              pdf.setFontSize(8);
-              pdf.setTextColor(102, 102, 102);
-              const dateStr = `${new Date(photo.uploadedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`;
-              const dateW = pdf.getTextWidth(dateStr);
-              pdf.text(dateStr, x + (cardWidth - dateW) / 2, dateY + 3.5);
-            }
-
-            currentY += cardH + cardGap;
+      const canvas = await html2canvas(element, {
+        scale: 4,
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        imageTimeout: 0,
+        onclone: (clonedDocument) => {
+          const clonedElement = clonedDocument.body.querySelector('div');
+          if (clonedElement) {
+            clonedElement.style.transform = 'scale(1)';
           }
         }
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      // Add subsequent pages if needed
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
       }
 
-      pdf.save(`inspection-${new Date().toISOString().split("T")[0]}.pdf`);
+      const filename = `inspection-${new Date().toISOString().split("T")[0]}.pdf`;
+      pdf.save(filename);
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
+    } finally {
+      document.body.removeChild(element);
     }
   };
 
@@ -1535,8 +1439,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedNodeId(node.id);
-                          setPendingPhotoFile(null);
-                          setIsPhotoCommentModalOpen(true);
+                          photoInputRef.current?.click();
                         }}
                         className="flex-shrink-0 p-1.5 text-blue-600 bg-white border border-blue-600 hover:bg-blue-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                         title="Add photo to this item"
@@ -1662,18 +1565,23 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                     !selectedNodeId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-gray-50 bg-white"
                   )}
                   onClick={() => {
-                    if (selectedNodeId) {
-                      setPendingPhotoFile(null);
-                      setIsPhotoCommentModalOpen(true);
-                    } else {
-                      alert("Please select a checklist item first");
-                    }
+                    if (selectedNodeId) photoInputRef.current?.click();
+                    else alert("Please select a checklist item first");
                   }}
                 >
                   <div className="text-gray-400">
                     <PlusIcon width={24} height={24} />
                   </div>
                   <span className="mt-1 text-sm text-gray-600 font-medium">Click to Upload</span>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={!selectedNodeId}
+                  />
                 </div>
               </div>
 
@@ -1756,14 +1664,12 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       {/* Photo Comment Modal - For uploading new photos */}
       <PhotoCommentModal
         open={isPhotoCommentModalOpen}
-        onOpenChange={(open) => {
-          setIsPhotoCommentModalOpen(open);
-          if (!open) setPendingPhotoFile(null);
-        }}
+        onOpenChange={setIsPhotoCommentModalOpen}
         onSubmit={handlePhotoCommentSubmit}
         title={selectedNodeId ? getNodePath(selectedNodeId) : "Add Photo"}
         submitLabel="Upload Photo"
         initialFile={pendingPhotoFile}
+        isLoading={isUploadingPhoto}
       />
 
       {/* Photo Viewer Modal */}
@@ -1779,7 +1685,6 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           note={photoNotes[selectedPhotoForModal.id] || ""}
           onNoteChange={(note) => handleUpdatePhotoNote(selectedPhotoForModal.id, note)}
           nodePath={selectedPhotoForModal.sectionNodeId ? getNodePath(selectedPhotoForModal.sectionNodeId) : "Unknown Item"}
-          onSave={handleSavePhotoConditionAndNote}
         />
       )}
     </>
@@ -1794,12 +1699,96 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
 
 // --- Helper Components ---
 
-const PHOTO_VIEWER_CONDITION_OPTIONS: { value: string; label: string }[] = [
+const CONDITION_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "Select condition (optional)" },
   { value: "good", label: "Good" },
   { value: "fair", label: "Fair" },
   { value: "poor", label: "Poor" },
 ];
+
+interface PhotoCommentModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (file: File, comment: string, condition?: string) => Promise<void>;
+  title: string;
+  submitLabel: string;
+  initialFile: File | null;
+  isLoading?: boolean;
+}
+
+function PhotoCommentModal({
+  open,
+  onOpenChange,
+  onSubmit,
+  title,
+  submitLabel,
+  initialFile,
+  isLoading = false,
+}: PhotoCommentModalProps) {
+  const [comment, setComment] = React.useState("");
+  const [condition, setCondition] = React.useState("");
+
+  React.useEffect(() => {
+    if (!open) {
+      setComment("");
+      setCondition("");
+    }
+  }, [open]);
+
+  const handleConfirm = async () => {
+    if (!initialFile) return;
+    await onSubmit(initialFile, comment, condition || undefined);
+  };
+
+  const handleCancel = () => {
+    if (!isLoading) {
+      onOpenChange(false);
+    }
+  };
+
+  return (
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      size="sm"
+      footer={
+        <ModalButtons
+          onCancel={handleCancel}
+          onConfirm={handleConfirm}
+          cancelLabel="Cancel"
+          confirmLabel={isLoading ? "Uploading..." : submitLabel}
+          confirmDisabled={!initialFile || isLoading}
+        />
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <div className="text-sm text-gray-600">
+          <strong>File:</strong> {initialFile ? initialFile.name : "No file selected"}
+        </div>
+        <SelectField
+          label="Condition"
+          value={condition}
+          onChange={(v) => setCondition(v as string)}
+          options={CONDITION_OPTIONS}
+          placeholder="Select condition (optional)"
+        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Comment (optional)
+          </label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Add a comment or note for this photo..."
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            rows={3}
+          />
+        </div>
+      </div>
+    </ModalTemplate>
+  );
+}
 
 interface PhotoViewerModalProps {
   open: boolean;
@@ -1812,7 +1801,6 @@ interface PhotoViewerModalProps {
   note: string;
   onNoteChange: (note: string) => void;
   nodePath: string;
-  onSave?: (photoId: string, condition: string | null, comment: string) => Promise<void>;
 }
 
 function PhotoViewerModal({
@@ -1826,33 +1814,11 @@ function PhotoViewerModal({
   note,
   onNoteChange,
   nodePath,
-  onSave,
 }: PhotoViewerModalProps) {
-  const [condition, setCondition] = React.useState(photo.condition || "");
-  const [isSaving, setIsSaving] = React.useState(false);
-
-  React.useEffect(() => {
-    setCondition(photo.condition || "");
-  }, [photo.id, photo.condition]);
+  if (!open) return null;
 
   const canGoNext = photoIndex < totalPhotos - 1;
   const canGoPrev = photoIndex > 0;
-
-  const handleSave = async () => {
-    if (!onSave) return;
-    setIsSaving(true);
-    try {
-      await onSave(
-        photo.id,
-        condition ? condition : null,
-        note
-      );
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  if (!open) return null;
 
   return (
     <div
@@ -1891,15 +1857,14 @@ function PhotoViewerModal({
           />
         </div>
 
-        {/* Condition Section - editable */}
-        <div className="border-t border-gray-200 px-4 pt-4 pb-2 bg-white">
-          <SelectField
-            label="Condition"
-            value={condition}
-            onChange={(v) => setCondition(v as string)}
-            options={PHOTO_VIEWER_CONDITION_OPTIONS}
-            placeholder="Select condition (optional)"
-          />
+        {/* Condition Section */}
+        <div className="border-t border-gray-200 px-4 pt-4 pb-1 bg-white">
+          <label className="text-sm font-semibold text-gray-900 mb-1 block">Condition</label>
+          <p className="text-sm text-gray-700">
+            {photo.condition
+              ? photo.condition.charAt(0).toUpperCase() + photo.condition.slice(1)
+              : "—"}
+          </p>
         </div>
 
         {/* Notes Section */}
@@ -1914,8 +1879,8 @@ function PhotoViewerModal({
           />
         </div>
 
-        {/* Footer with Navigation and Save */}
-        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50 gap-4 flex-wrap">
+        {/* Footer with Navigation */}
+        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50 gap-4">
           <button
             onClick={onPrev}
             disabled={!canGoPrev}
@@ -1924,19 +1889,8 @@ function PhotoViewerModal({
             ← Previous
           </button>
 
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
-              {new Date(photo.uploadedAt).toLocaleString()}
-            </span>
-            {onSave && (
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isSaving ? "Saving..." : "Save"}
-              </button>
-            )}
+          <div className="text-sm text-gray-600">
+            {new Date(photo.uploadedAt).toLocaleString()}
           </div>
 
           <button

@@ -78,6 +78,8 @@ interface APIFTOResponse {
   status: string;
   priority: string;
   due_date: string;
+  /** Most recent date_of_work from submissions; use for "Date of Work" column. */
+  date_of_work?: string;
   approval_status: string;
   form_submission_status: "none" | "partial" | "complete";
   is_visible_to_client: boolean;
@@ -417,12 +419,15 @@ const transformAPIToFieldTeamOrder = (
   usersById: Record<number, { id: number; name: string }>
 ): FieldTeamOrder[] => {
   return apiData.map((fto) => {
-    const dateObj = new Date(fto.due_date);
-    const dueDate = dateObj.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    const displayDateSource = fto.date_of_work ?? fto.due_date;
+    const dateObj = displayDateSource ? new Date(displayDateSource) : null;
+    const dueDate = dateObj && !isNaN(dateObj.getTime())
+      ? dateObj.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : "—";
 
     const due_date = fto.due_date;
     const timesheetStatus = mapFormSubmissionToTimesheetStatus(
@@ -779,7 +784,7 @@ export default function FieldTeamOrders() {
     },
     {
       key: "dueDate",
-      label: "Due Date",
+      label: "Date of Work",
       icon: <CalendarIcon width={16} height={16} />,
     },
     {

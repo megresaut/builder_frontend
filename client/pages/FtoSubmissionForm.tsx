@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import PdfViewerModal from "@/components/PdfViewerModal";
@@ -34,8 +34,7 @@ import {
   billingToNoCharge,
   noChargeToBilling,
 } from "@/data/fto/properties";
-import { VENDORS } from "@/data/fto/vendors";
-import { fetchJSON } from "@/api/fetchJSON";
+import { API_BASE, fetchJSON } from "@/api/fetchJSON";  
 import { useAuth } from "@/auth/useAuth";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import { parseMsgFile } from "@/utils/parseMsgFile";
@@ -386,6 +385,75 @@ export default function FtoSubmissionForm() {
   const [hourErrors, setHourErrors] = useState<HourEntryErrors>({});
   const [expenseErrors, setExpenseErrors] = useState<ExpenseEntryErrors>({});
   const { userId } = useAuth();
+
+  // Live vendor list from backend (paginated + searchable)
+  const vendorPageSize = 50;
+  const vendorRequestIdRef = useRef(0);
+  const [liveVendors, setLiveVendors] = useState<{ id: number; name: string }[]>([]);
+  const [vendorSearch, setVendorSearch] = useState("");
+  const [vendorOffset, setVendorOffset] = useState(0);
+  const [vendorHasMore, setVendorHasMore] = useState(true);
+  const [vendorLoading, setVendorLoading] = useState(false);
+
+  const fetchVendorsPage = useCallback(
+    async (search: string, offset: number, append: boolean) => {
+      const requestId = ++vendorRequestIdRef.current;
+      setVendorLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.set("limit", vendorPageSize.toString());
+        if (offset > 0) params.set("offset", offset.toString());
+        const trimmed = search.trim();
+        if (trimmed) params.set("search", trimmed);
+        const vendorList = await fetchJSON(`/vendors?${params.toString()}`);
+        if (requestId !== vendorRequestIdRef.current) return;
+        const normalized = (Array.isArray(vendorList) ? vendorList : []).map((v: any) => ({
+          id: Number(v.id),
+          name: typeof v.name === "string" ? v.name : String(v.name ?? ""),
+        }));
+        setLiveVendors((prev) => (append ? [...prev, ...normalized] : normalized));
+        setVendorHasMore(normalized.length === vendorPageSize);
+        setVendorOffset(offset + normalized.length);
+      } catch (err) {
+        if (requestId !== vendorRequestIdRef.current) return;
+        console.error("Failed to load vendors:", err);
+        if (!append) setLiveVendors([]);
+        setVendorHasMore(false);
+      } finally {
+        if (requestId === vendorRequestIdRef.current) setVendorLoading(false);
+      }
+    },
+    [vendorPageSize],
+  );
+
+  const handleVendorOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        setVendorSearch("");
+        fetchVendorsPage("", 0, false);
+      }
+    },
+    [fetchVendorsPage],
+  );
+
+  const handleVendorSearchChange = useCallback(
+    (search: string) => {
+      setVendorSearch(search);
+      setVendorOffset(0);
+      fetchVendorsPage(search, 0, false);
+    },
+    [fetchVendorsPage],
+  );
+
+  const handleVendorLoadMore = useCallback(() => {
+    if (vendorLoading || !vendorHasMore) return;
+    fetchVendorsPage(vendorSearch, vendorOffset, true);
+  }, [vendorLoading, vendorHasMore, vendorSearch, vendorOffset, fetchVendorsPage]);
+
+  const vendorOptions = liveVendors.map((v) => ({
+    value: v.name,
+    label: v.name,
+  }));
 
   // Same user list as Create FTO modal (field team + property managers) for Collaborators dropdown
   const [availableCollaborators, setAvailableCollaborators] = useState<{ id: number; name: string }[]>([]);
@@ -1147,10 +1215,7 @@ export default function FtoSubmissionForm() {
     ];
   };
 
-  const vendorOptions = VENDORS.map((vendor) => ({
-    value: vendor.id,
-    label: vendor.name,
-  }));
+  // vendorOptions is computed from live backend data above
 
   const validateForm = (): boolean => {
     const newHourErrors: HourEntryErrors = {};
@@ -2228,6 +2293,11 @@ export default function FtoSubmissionForm() {
                           placeholder="Select Vendor"
                           customInputPlaceholder="Enter vendor name"
                           disabled={isApproved}
+                          onOpenChange={handleVendorOpenChange}
+                          onSearchChange={handleVendorSearchChange}
+                          onLoadMore={handleVendorLoadMore}
+                          optionsLoading={vendorLoading}
+                          hasMore={vendorHasMore}
                         />
 
                         <TextAreaField
@@ -2272,7 +2342,7 @@ export default function FtoSubmissionForm() {
                                   );
 
                                   const res = await fetch(
-                                    "/api/vendors/bills/upload-pdf",
+                                    `${API_BASE}/vendors/bills/upload-pdf`,
                                     {
                                       method: "POST",
                                       credentials: "include",
@@ -2365,7 +2435,7 @@ export default function FtoSubmissionForm() {
                                 : null;
                               if (attachmentId && !isNaN(attachmentId)) {
                                 fetch(
-                                  `/api/maintenance/attachments/${attachmentId}`,
+                                  `${API_BASE}/maintenance/attachments/${attachmentId}`,
                                   { credentials: "include" }
                                 )
                                   .then((res) => {
@@ -2392,7 +2462,7 @@ export default function FtoSubmissionForm() {
                               }
                               if (file.storage_path) {
                                 fetch(
-                                  `/api/files?key=${encodeURIComponent(
+                                  `${API_BASE}/files?key=${encodeURIComponent(
                                     file.storage_path
                                   )}`,
                                   { credentials: "include" }
@@ -2438,7 +2508,7 @@ export default function FtoSubmissionForm() {
                               (async () => {
                                 try {
                                   const res = await fetch(
-                                    `/api/maintenance/attachments/${attachmentId}`,
+                                    `${API_BASE}/maintenance/attachments/${attachmentId}`,
                                     { credentials: "include" }
                                   );
                                   if (!res.ok) {
@@ -2460,7 +2530,7 @@ export default function FtoSubmissionForm() {
                             } else if (file.storage_path) {
                               (async () => {
                                 const res = await fetch(
-                                  `/api/files?key=${encodeURIComponent(
+                                  `${API_BASE}/files?key=${encodeURIComponent(
                                     file.storage_path
                                   )}`,
                                   { credentials: "include" }
