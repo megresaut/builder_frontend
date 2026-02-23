@@ -28,6 +28,7 @@ import {
   FlagIcon,
   HamburgerIcon,
   EyeIcon,
+  WarningIcon,
 } from "@/components/icons";
 
 interface FieldTeamOrder {
@@ -36,7 +37,7 @@ interface FieldTeamOrder {
   /** Real task FK (nullable). Use for modal/update, not taskId. */
   task_id?: number | null;
   property: string;
-  property_id: number;
+  property_id: number | null;
   description: string;
   dueDate: string;
   due_date: string;
@@ -71,7 +72,7 @@ interface APIFTOResponse {
   description: string;
   property_id: number;
   property_name: string;
-  property_address: string;
+  property_address?: string | null;
   task_id?: number;
   field_team_member_ids: number[];
   pm_assignee_ids: number[];
@@ -420,9 +421,9 @@ const transformAPIToFieldTeamOrder = (
 ): FieldTeamOrder[] => {
   return apiData.map((fto) => {
     const displayDateSource = fto.date_of_work ?? fto.due_date;
-    const dateObj = displayDateSource ? new Date(displayDateSource) : null;
-    const dueDate = dateObj && !isNaN(dateObj.getTime())
-      ? dateObj.toLocaleDateString("en-US", {
+    const dateOnly = displayDateSource ? displayDateSource.split("T")[0] : null;
+    const dueDate = dateOnly
+      ? new Date(dateOnly + "T00:00:00").toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
@@ -1191,7 +1192,12 @@ export default function FieldTeamOrders() {
                       );
                     }
                     if (columnKey === "property") {
-                      return (
+                      return order.property_id == null ? (
+                        <div className="flex items-center gap-1.5 text-amber-600">
+                          <WarningIcon width={14} height={14} />
+                          <span className="text-sm font-medium">Not set</span>
+                        </div>
+                      ) : (
                         <span className="text-gray-900 font-normal text-sm truncate">
                           {order.property}
                         </span>

@@ -53,6 +53,7 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const listScrollRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isAsyncMode = typeof onSearchChange === "function";
@@ -84,6 +85,17 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
       contentRef as React.RefObject<HTMLElement>,
     ],
   });
+
+  // Focus and select search input when dropdown opens so user can immediately type
+  useEffect(() => {
+    if (open && searchInputRef.current) {
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   // Debounced server search when in async mode (only while dropdown is open)
   useEffect(() => {
@@ -170,6 +182,13 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
           syncTriggerWidth={false}
           maxHeight={280}
           style={{ width: "max-content" }}
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            requestAnimationFrame(() => {
+              searchInputRef.current?.focus();
+              searchInputRef.current?.select();
+            });
+          }}
         >
           <div
             ref={listScrollRef}
@@ -186,6 +205,7 @@ export const VendorFieldCell: React.FC<VendorFieldCellProps> = ({
             {/* Custom input field */}
             <div style={{ padding: "8px 12px", borderBottom: "1px solid #E5E7EB" }}>
               <input
+                ref={searchInputRef}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}

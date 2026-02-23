@@ -6,6 +6,7 @@ import {
   CalendarIcon,
   BuildingIcon,
   EyeIcon,
+  WarningIcon,
 } from "@/components/icons";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 
@@ -15,6 +16,7 @@ interface FtoOrderCardProps {
   dueDate: string;
   description: string;
   property: string;
+  propertyId?: number | null;
   unit: string;
   priority: "low" | "normal" | "high";
   createdBy: string;
@@ -29,6 +31,7 @@ export default function FtoOrderCard({
   dueDate,
   description,
   property,
+  propertyId,
   unit,
   priority,
   createdBy,
@@ -119,16 +122,23 @@ export default function FtoOrderCard({
       </div>
 
       <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-xs text-gray-600">
-          <BuildingIcon width={14} height={14} />
-          <span className="truncate">{property}</span>
-          {unit && unit !== UNIT_EMPTY_DISPLAY && (
-            <>
-              <span>•</span>
-              <span className="truncate">{unit}</span>
-            </>
-          )}
-        </div>
+        {propertyId == null ? (
+          <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded-md border border-amber-200">
+            <WarningIcon width={14} height={14} />
+            <span className="font-medium">Property not set - please select</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <BuildingIcon width={14} height={14} />
+            <span className="truncate">{property}</span>
+            {unit && unit !== UNIT_EMPTY_DISPLAY && (
+              <>
+                <span>•</span>
+                <span className="truncate">{unit}</span>
+              </>
+            )}
+          </div>
+        )}
         <div className="flex items-center gap-2 text-xs text-gray-600">
           <CalendarIcon width={14} height={14} />
           <span>{dueDate}</span>

@@ -5,7 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useNavigate, useLocation } from "react-router-dom";
-import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
@@ -118,12 +118,22 @@ export default function App() {
   const [openTabsSet, setOpenTabsSet] = useState<Set<string>>(() => new Set(initialState.openTabs));
   const [nextNewTabId, setNextNewTabIdState] = useState(initialState.nextNewTabId);
 
-  const setTabMetadata = (tabId: string, metadata: TabMetadata) => {
-    setTabMetadataState((prev) => ({
-      ...prev,
-      [tabId]: metadata,
-    }));
-  };
+  const setTabMetadata = useCallback((tabId: string, metadata: TabMetadata) => {
+    setTabMetadataState((prev) => {
+      const existing = prev[tabId] || {};
+      return {
+        ...prev,
+        [tabId]: {
+          ...existing,
+          ...metadata,
+          pageState: {
+            ...(existing.pageState || {}),
+            ...(metadata.pageState || {}),
+          },
+        },
+      };
+    });
+  }, []);
 
   const setOpenTabs = (
     value: string[] | Set<string> | ((prev: Set<string>) => Set<string>)

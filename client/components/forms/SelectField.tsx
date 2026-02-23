@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import {
   Popover,
@@ -106,11 +106,13 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [searchText, setSearchText] = React.useState("");
   const [searchTimeout, setSearchTimeout] = React.useState<NodeJS.Timeout>();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
 
   // Determine if we're in multi-select mode
   const isMultiple = multiple;
+
   const selectedValues = isMultiple ? (Array.isArray(value) ? value : []) : [];
   const selectedValue = !isMultiple
     ? typeof value === "string"
@@ -351,6 +353,17 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md"
           align="start"
           syncTriggerWidth={true}
+          onOpenAutoFocus={
+            isMultiple
+              ? (e) => {
+                  e.preventDefault();
+                  requestAnimationFrame(() => {
+                    searchInputRef.current?.focus();
+                    searchInputRef.current?.select();
+                  });
+                }
+              : undefined
+          }
         >
           {isMultiple && (
             <div
@@ -363,6 +376,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
               }}
             >
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search..."
                 value={searchText}

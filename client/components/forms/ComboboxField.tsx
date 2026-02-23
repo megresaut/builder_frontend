@@ -108,16 +108,8 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
     setHighlightedIndex(0);
   }, [searchTerm]);
 
-  // Single focus path: we control focus so Radix doesn't steal it (onOpenAutoFocus preventDefault).
-  // Short delay so popover is fully mounted and avoids same-tap close on mobile.
-  useEffect(() => {
-    if (open && searchInputRef.current) {
-      const timer = setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [open]);
+  // Focus search input as soon as dropdown opens so user can type immediately (no delay).
+  // We do this in onOpenAutoFocus with requestAnimationFrame so the input is in the DOM and ref is set.
 
   const handleSelect = (optionValue: string) => {
     onChange?.(optionValue === value ? "" : optionValue);
@@ -210,7 +202,13 @@ export const ComboboxField: React.FC<ComboboxFieldProps> = ({
             width: "var(--radix-popover-trigger-width)",
           }}
           hideWhenDetached={false}
-          onOpenAutoFocus={(e) => e.preventDefault()}
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            requestAnimationFrame(() => {
+              searchInputRef.current?.focus();
+              searchInputRef.current?.select();
+            });
+          }}
           onInteractOutside={(e) => {
             const target = e.target as Node;
             if (contentRef.current?.contains(target)) {

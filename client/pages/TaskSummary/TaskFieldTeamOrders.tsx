@@ -66,7 +66,7 @@ export interface APIFTOResponse {
   description: string;
   property_id: number;
   property_name: string;
-  property_address: string;
+  property_address?: string | null;
   task_id?: number;
   field_team_member_ids: number[];
   pm_assignee_ids: number[];
@@ -159,8 +159,9 @@ export const transformAPIToFieldTeamOrders = (
 ): FieldTeamOrder[] => {
   return apiData.map((fto) => {
     const displayDateISO = fto.date_of_work ?? fto.due_date;
-    const dueDate = displayDateISO
-      ? new Date(displayDateISO).toLocaleDateString("en-US", {
+    const dateOnly = displayDateISO ? displayDateISO.split("T")[0] : null;
+    const dueDate = dateOnly
+      ? new Date(dateOnly + "T00:00:00").toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
