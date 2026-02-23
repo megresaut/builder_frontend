@@ -4,6 +4,7 @@ import CreateFTOModal from "@/components/CreateFTOModal";
 import PageHeader from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
+import { useTabContext } from "@/hooks/useTabContext";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
@@ -547,6 +548,14 @@ export default function FieldTeamOrders() {
   const [filterTimesheetStatus, setFilterTimesheetStatus] = usePageState("filterTimesheetStatus", "");
   const [filterFtoStatus, setFilterFtoStatus] = usePageState("filterFtoStatus", "");
   const [filterPriority, setFilterPriority] = usePageState("filterPriority", "");
+  const { setTabMetadata } = useTabContext();
+
+  // Clear persisted modal state when leaving the page so it doesn't reopen when returning (e.g. from Approve FTO)
+  useEffect(() => {
+    return () => {
+      setTabMetadata("/field-team-orders", { pageState: { showFTOModal: false } });
+    };
+  }, [setTabMetadata]);
 
   async function fetchUsersByIds(
     ids: number[]
