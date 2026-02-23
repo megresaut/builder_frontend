@@ -109,6 +109,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
   const [customValue, setCustomValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const customInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const listScrollRef = useRef<HTMLDivElement>(null);
 
@@ -129,9 +130,12 @@ export const ComboboxFieldWithCustomInput: React.FC<
     if (customInputMode && customInputRef.current) {
       setTimeout(() => {
         customInputRef.current?.focus();
+        customInputRef.current?.select();
       }, 0);
     }
   }, [customInputMode]);
+
+  // Focus search input when dropdown opens (handled in onOpenAutoFocus below)
 
   const setOpenWithNotify = (next: boolean) => {
     setOpen(next);
@@ -231,6 +235,15 @@ export const ComboboxFieldWithCustomInput: React.FC<
           style={{
             width: "var(--radix-popover-trigger-width)",
           }}
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            if (!customInputMode) {
+              requestAnimationFrame(() => {
+                searchInputRef.current?.focus();
+                searchInputRef.current?.select();
+              });
+            }
+          }}
           onInteractOutside={(e) => {
             const target = e.target as Node;
             if (contentRef.current?.contains(target)) {
@@ -282,7 +295,7 @@ export const ComboboxFieldWithCustomInput: React.FC<
             {!customInputMode && (
               <div style={{ padding: "8px", borderBottom: "1px solid var(--color-border-light)" }}>
                 <input
-                  autoFocus
+                  ref={searchInputRef}
                   placeholder="Type to search…"
                   value={searchQuery}
                   onChange={(e) => {

@@ -14,7 +14,7 @@ import { TextFieldCell } from "@/components/forms/TextFieldCell";
 import { VendorFieldCell } from "@/components/forms/VendorFieldCell";
 import { FieldCellShell } from "@/components/forms/FieldCellShell";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DeleteIcon, EyeIcon, EditIcon } from "@/components/icons";
+import { DeleteIcon, EyeIcon, EditIcon, PaperclipIcon } from "@/components/icons";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import BlueButton from "@/components/BlueButton";
 import PdfViewerModal from "@/components/PdfViewerModal";
@@ -69,6 +69,7 @@ interface ExpenseRow {
   submissionId: number;
   materialIndex: number;
   attachmentIds: number[];
+  submissionHasAttachments: boolean;
   glAccountId: string;
   /** Set when expense was exported to Buildium (AVMRE only); used to disable re-approve */
   exportedToBuildium?: boolean;
@@ -107,6 +108,7 @@ interface BackendSubmission {
   ID: number;
   FTOID: number;
   FieldTeamMemberID: number;
+  HasAttachments?: boolean;
   MaterialsJSON: string | null;
   HoursJSON: {
     date_of_work: string;
@@ -238,6 +240,7 @@ const fetchSubmissionById = async (submissionId: number): Promise<{ submission: 
       ID: sub.ID || sub.id,
       FTOID: sub.FTOID || sub.fto_id,
       FieldTeamMemberID: sub.FieldTeamMemberID || sub.field_team_member_id,
+      HasAttachments: sub.HasAttachments ?? sub.has_attachments ?? false,
       MaterialsJSON: sub.MaterialsJSON || sub.materials,
       HoursJSON: sub.HoursJSON || sub.hours,
     },
@@ -643,6 +646,89 @@ export default function ApproveFTOPage() {
   const [editMiscPropertyId, setEditMiscPropertyId] = useState<number | null>(null);
   const [ftoDetailsVersion, setFtoDetailsVersion] = useState(0);
 
+  // "Add attachment" flow for expense rows with missing attachments
+  const attachmentFileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingAttachmentRow, setPendingAttachmentRow] = useState<ExpenseRow | null>(null);
+  const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
+
+  const handleAddAttachment = (row: ExpenseRow) => {
+    setPendingAttachmentRow(row);
+    attachmentFileInputRef.current?.click();
+  };
+
+  const handleAttachmentFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingAttachmentRow) {
+      setPendingAttachmentRow(null);
+      return;
+    }
+
+    const row = pendingAttachmentRow;
+    setPendingAttachmentRow(null);
+
+    // Reset input so same file can be re-selected
+    e.target.value = "";
+
+    try {
+      setIsUploadingAttachment(true);
+
+      // 1. Upload file to storage
+      const formData = new FormData();
+      formData.append("file", file, file.name);
+
+      const uploadRes = await fetch(`${API_BASE}/maintenance/uploads`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!uploadRes.ok) throw new Error(`Upload failed (${uploadRes.status})`);
+      const uploadData = await uploadRes.json();
+      const storagePath = uploadData.storage_path;
+
+      // 2. Attach to submission
+      const attachRes = await fetch(
+        `${API_BASE}/maintenance/submissions/${row.submissionId}/attachments`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            material_index: row.materialIndex,
+            file_name: uploadData.file_name || file.name,
+            file_type: uploadData.file_type || file.type,
+            file_size: uploadData.file_size || file.size,
+            storage_path: storagePath,
+          }),
+        },
+      );
+
+      if (!attachRes.ok) throw new Error("Failed to attach file to submission");
+
+      // 3. Refetch attachments and update expense rows
+      let newAttachmentIndex: Record<string, number[]> = {};
+      if (isMiscMode && submissionIdNum) {
+        const atts = await fetchAttachmentsBySubmission(submissionIdNum);
+        newAttachmentIndex = buildAttachmentIndex(atts);
+      } else if (ftoIdNum) {
+        const atts = await fetchAttachmentsByFto(ftoIdNum);
+        newAttachmentIndex = buildAttachmentIndex(atts);
+      }
+
+      setExpenseRows((prev) =>
+        prev.map((r) => {
+          const key = `${r.submissionId}-${r.materialIndex}`;
+          return { ...r, attachmentIds: newAttachmentIndex[key] ?? r.attachmentIds };
+        }),
+      );
+    } catch (err) {
+      console.error("Failed to add attachment:", err);
+      alert("Failed to add attachment. Please try again.");
+    } finally {
+      setIsUploadingAttachment(false);
+    }
+  };
+
   // GL Account options (same data as Record Bill)
   const [glSearch, setGlSearch] = useState("");
   const glAccountOptions = useMemo(
@@ -833,9 +919,8 @@ export default function ApproveFTOPage() {
         }
         if (fto.unit_name) setUnit(fto.unit_name);
         if (fto.description) setDescription(fto.description);
-        const displayDateSource = fto.date_of_work ?? fto.due_date;
-        if (displayDateSource) {
-          const parsedDate = parseDueDate(displayDateSource);
+        if (fto.due_date) {
+          const parsedDate = parseDueDate(fto.due_date);
           if (parsedDate) setDueDate(parsedDate);
         }
         if (fto.priority) {
@@ -998,6 +1083,7 @@ export default function ApproveFTOPage() {
                     materialIndex: index,
 
                     attachmentIds: attachmentIndex[key] ?? [],
+                    submissionHasAttachments: submission.HasAttachments ?? false,
 
                     date: formatDate(new Date(expense.date_of_work)),
                     vendor: formatVendorName(expense.vendor_name || ""),
@@ -1148,6 +1234,7 @@ export default function ApproveFTOPage() {
         submissionId: 0,
         materialIndex: 0,
         attachmentIds: [],
+        submissionHasAttachments: false,
         glAccountId: "",
       },
     ]);
@@ -1417,6 +1504,10 @@ export default function ApproveFTOPage() {
   
   
 
+  const hasMissingAttachments = expenseRows.some(
+    (r) => r.submissionHasAttachments && (!r.attachmentIds || r.attachmentIds.length === 0),
+  );
+
   return (
     <div
       className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]"
@@ -1428,6 +1519,15 @@ export default function ApproveFTOPage() {
         minHeight: "100vh",
       }}
     >
+      {/* Hidden file input for adding attachments */}
+      <input
+        ref={attachmentFileInputRef}
+        type="file"
+        className="hidden"
+        accept=".pdf,.msg,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif"
+        onChange={handleAttachmentFileSelected}
+      />
+
       {/* Main Content Area */}
       <div
         style={{
@@ -1462,6 +1562,15 @@ export default function ApproveFTOPage() {
                 message="This property doesn't have an emergency hourly rate set. Set it on the property to calculate amounts for emergency hours "
                 messageLinkText={propertyId != null ? "here." : undefined}
                 messageLinkOnClick={propertyId != null ? () => navigate(`/property/${propertyId}`) : undefined}
+              />
+            </div>
+          )}
+
+          {hasMissingAttachments && (
+            <div className="mb-6">
+              <AlertBanner
+                title="Missing receipts"
+                message="One or more expenses indicate a receipt was attached but none was found. Use the paperclip icon on the expense row to add the missing receipt."
               />
             </div>
           )}
@@ -1591,7 +1700,7 @@ export default function ApproveFTOPage() {
                     </div>
                   </div>
 
-                  {/* Priority and Date of Work Row */}
+                  {/* Priority and Due Date Row */}
                   <div className="flex gap-5">
                     <div className="flex-1">
                       <SelectField
@@ -1608,7 +1717,7 @@ export default function ApproveFTOPage() {
                     </div>
                     <div className="flex-1">
                       <DateField
-                        label="Date of Work"
+                        label="Due Date"
                         value={dueDate ? formatDate(dueDate) : ""}
                         onChange={() => {}}
                         disabled={true}
@@ -2432,6 +2541,20 @@ export default function ApproveFTOPage() {
                             >
                               <EyeIcon width={16} height={16} />
                             </button>
+
+                            {/* 📎 Add Attachment (when expected but missing) */}
+                            {row.submissionId !== 0 &&
+                              row.submissionHasAttachments &&
+                              (!row.attachmentIds || row.attachmentIds.length === 0) && (
+                                <button
+                                  disabled={isUploadingAttachment}
+                                  onClick={() => handleAddAttachment(row)}
+                                  className="text-amber-500 hover:text-amber-600 transition-colors"
+                                  title="Receipt expected but missing — click to add"
+                                >
+                                  <PaperclipIcon width={16} height={16} />
+                                </button>
+                              )}
 
                             {/* 🗑 Delete */}
                             <button

@@ -1,5 +1,22 @@
 import { usePageState } from "@/hooks/usePageState";
 
+const DATE_LIKE_RE =
+  /\d{4}-\d{2}|[A-Z][a-z]{2}\s+\d{1,2}|^\d{1,2}\/\d{1,2}\/\d{2,4}/;
+
+function tryParseDate(str: string): number | null {
+  if (!str || str.length < 6 || !DATE_LIKE_RE.test(str)) return null;
+  const ts = Date.parse(str);
+  return Number.isNaN(ts) ? null : ts;
+}
+
+const CURRENCY_RE = /^\$[\d,.]+$/;
+
+function tryParseCurrency(str: string): number | null {
+  if (!str || !CURRENCY_RE.test(str)) return null;
+  const n = parseFloat(str.replace(/[$,]/g, ""));
+  return Number.isNaN(n) ? null : n;
+}
+
 /**
  * Compare two values with natural (numeric-aware) ordering so that
  * "1", "2", "10", "11" sort correctly instead of "1", "10", "11", "2".
@@ -95,7 +112,25 @@ export function useSortingTable<T extends Record<string, any>>(
       const aStr = typeof aValue === "string" ? aValue : String(aValue ?? "");
       const bStr = typeof bValue === "string" ? bValue : String(bValue ?? "");
 
-      // Use natural sort so unit numbers order as 1, 2, 3, ... 9, 10, 11
+      // Date-aware comparison (e.g. "Jan 28, 2026", ISO strings)
+      const aDate = tryParseDate(aStr);
+      const bDate = tryParseDate(bStr);
+      if (aDate !== null && bDate !== null) {
+        const cmp = aDate - bDate;
+        if (cmp !== 0) return effectiveSortOrder === "asc" ? cmp : -cmp;
+        return 0;
+      }
+
+      // Currency-aware comparison (e.g. "$180", "$1,200")
+      const aCur = tryParseCurrency(aStr);
+      const bCur = tryParseCurrency(bStr);
+      if (aCur !== null && bCur !== null) {
+        const cmp = aCur - bCur;
+        if (cmp !== 0) return effectiveSortOrder === "asc" ? cmp : -cmp;
+        return 0;
+      }
+
+      // Fallback: natural (numeric-aware) string sort
       const cmp = naturalCompare(aStr, bStr);
       if (cmp !== 0) {
         return effectiveSortOrder === "asc" ? cmp : -cmp;

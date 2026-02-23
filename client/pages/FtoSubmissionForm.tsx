@@ -51,6 +51,9 @@ const MISC_EXPENSE_TASK_VALUE = "0"; // Miscellaneous expense - no FTO
 /** Property name that should not be selectable for FTO/misc submissions (Buildium sentinel). */
 const NO_PROPERTY_SENTINEL_NAME = "Billing For No Property";
 
+/** User ID of the admin who can submit on behalf of other users (e.g. Carter). */
+const SUBMIT_AS_ADMIN_USER_ID = 5;
+
 
 /** Collaborators for custom FTO: 'na' = no collaborators, number[] = user ids, null = not yet selected */
 type CollaboratorSelection = "na" | number[] | null;
@@ -317,10 +320,15 @@ export default function FtoSubmissionForm() {
     (location.state as any)?.isApproved ?? false
   );
 
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
+  /** Format Date as local YYYY-MM-DD so the calendar date is correct in any timezone. */
+  const toLocalDateString = (date: Date): string => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   };
+
+  const getTodayDate = () => toLocalDateString(new Date());
 
   const [pdfViewer, setPdfViewer] = useState<{
     isOpen: boolean;
@@ -385,6 +393,30 @@ export default function FtoSubmissionForm() {
   const [hourErrors, setHourErrors] = useState<HourEntryErrors>({});
   const [expenseErrors, setExpenseErrors] = useState<ExpenseEntryErrors>({});
   const { userId } = useAuth();
+
+  // Admin-only: submit on behalf of another user (any user)
+  const isSubmitAsAdmin = userId === SUBMIT_AS_ADMIN_USER_ID;
+  const [usersForSubmitAs, setUsersForSubmitAs] = useState<{ id: number; name: string }[]>([]);
+  const [submitAsTechId, setSubmitAsTechId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isSubmitAsAdmin) return;
+    let cancelled = false;
+    fetchJSON("/users/all")
+      .then((data: any[]) => {
+        if (cancelled) return;
+        const list = (Array.isArray(data) ? data : []).map((u: any) => ({
+          id: Number(u.id),
+          name: u.name || u.email || String(u.id),
+        }));
+        setUsersForSubmitAs(list);
+        setSubmitAsTechId((prev) => (prev === null && userId != null ? userId : prev));
+      })
+      .catch(() => {
+        if (!cancelled) setUsersForSubmitAs([]);
+      });
+    return () => { cancelled = true; };
+  }, [isSubmitAsAdmin, userId]);
 
   // Live vendor list from backend (paginated + searchable)
   const vendorPageSize = 50;
@@ -1418,6 +1450,11 @@ export default function FtoSubmissionForm() {
   };
 
 
+  // Block submit when any expense has a file that is still uploading or doesn't have storage_path yet.
+  const hasPendingAttachmentUploads = expenseEntries.some((e) =>
+    e.files.some((f) => f.uploading === true || !f.storage_path)
+  );
+
   const submitDailyWork = async () => {
     // Check if submission is approved - cannot edit approved submissions
     if (isApproved) {
@@ -1425,7 +1462,17 @@ export default function FtoSubmissionForm() {
       return;
     }
 
-    const techId = userId; // TODO: replace with auth user
+    if (hasPendingAttachmentUploads) {
+      alert(
+        "Please wait for all attachments to finish uploading before submitting. If an upload failed, remove the file and try again or add it again."
+      );
+      return;
+    }
+
+    const techId =
+      isSubmitAsAdmin && submitAsTechId != null
+        ? submitAsTechId
+        : userId;
   
     // Helper to convert unitId string to number or null
     const getUnitIdAsNumber = (unitId: string | null): number | null => {
@@ -1476,10 +1523,13 @@ export default function FtoSubmissionForm() {
     }
 
     // POST endpoint - create new submission
+    // Send date_of_work as date-only (YYYY-MM-DD) to avoid timezone shifting when stored
+    const toDateOnly = (dateStr: string | null | undefined): string =>
+      !dateStr ? "" : dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
     const hours = hourEntries.map((h) => ({
       fto_id: Number(h.taskId), // taskId === FTO id (by design)
     
-      date_of_work: new Date(h.date!).toISOString(),
+      date_of_work: toDateOnly(h.date ?? undefined) || h.date!,
     
       property_id: h.propertyId ? Number(h.propertyId) : null,
       unit_id: getUnitIdAsNumber(h.unitId),
@@ -1496,7 +1546,7 @@ export default function FtoSubmissionForm() {
   
     const expenses = expenseEntries.map((e) => ({
       fto_id: Number(e.taskId),
-      date_of_work: new Date(e.date!).toISOString(),
+      date_of_work: toDateOnly(e.date ?? undefined) || e.date!,
       property_id: Number(e.propertyId),
       unit_id: getUnitIdAsNumber(e.unitId),
       amount: Number(e.amount),
@@ -1566,6 +1616,20 @@ export default function FtoSubmissionForm() {
             <div className="h-px w-full bg-[#E5E5E5]" />
           </div>
 
+          {isSubmitAsAdmin && (
+            <div className="rounded-xl bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-4">
+              <SelectField
+                label="Submit as"
+                options={usersForSubmitAs.map((u) => ({
+                  value: String(u.id),
+                  label: u.name,
+                }))}
+                value={submitAsTechId != null ? String(submitAsTechId) : ""}
+                onChange={(value) => setSubmitAsTechId(value ? Number(value) : null)}
+              />
+            </div>
+          )}
+
           <div className="flex flex-col gap-6">
             {/* Hours Section */}
             <div className="rounded-xl bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-4 flex flex-col gap-4">
@@ -1589,11 +1653,19 @@ export default function FtoSubmissionForm() {
               <div className="flex flex-col gap-4">
                 {hourEntries.map((entry, index) => (
                   <div key={entry.id}>
-                    {/* Entry Header */}
-                    <div className="flex items-center justify-between pr-3">
+                    {/* Entry Header - expand area not in tab order so Tab goes to first field */}
+                    <div className="flex items-center justify-between pr-3 relative">
                       <div
+                        role="button"
+                        tabIndex={-1}
                         className="flex items-center gap-2 cursor-pointer"
                         onClick={() => toggleHourEntry(entry.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            toggleHourEntry(entry.id);
+                          }
+                        }}
                       >
                         {entry.isExpanded ? (
                           <ChevronDown className="w-4 h-4 text-[#303030]" />
@@ -1623,8 +1695,10 @@ export default function FtoSubmissionForm() {
                       </div>
                       {!isApproved && (
                         <button
+                          type="button"
                           onClick={() => deleteHourEntry(entry.id)}
-                          className="text-[#982740] hover:opacity-70 transition-opacity"
+                          className="text-[#982740] hover:opacity-70 transition-opacity p-1"
+                          aria-label="Delete hour entry"
                         >
                           <DeleteIcon width={16} height={16} />
                         </button>
@@ -1635,7 +1709,7 @@ export default function FtoSubmissionForm() {
                       <div className="h-px w-full bg-[#E5E5E5] mt-4" />
                     )}
 
-                    {/* Expanded Content */}
+                    {/* Expanded Content - original flex layout; tab order follows DOM (Date → Property → Unit → Task → …) */}
                     {entry.isExpanded && (
                       <div className="flex flex-col gap-4 mt-4">
                         <DateField
@@ -1655,9 +1729,7 @@ export default function FtoSubmissionForm() {
                             updateHourEntry(
                               entry.id,
                               "date",
-                              date instanceof Date
-                                ? date.toISOString().split("T")[0]
-                                : date,
+                              date instanceof Date ? toLocalDateString(date) : date,
                             );
                           }}
                           placeholder="mm/dd/yyyy"
@@ -1836,6 +1908,7 @@ export default function FtoSubmissionForm() {
                                 : [];
                           return (
                             <MultiSelectField
+                              key="collaborators"
                               label="Collaborators"
                               required
                               value={selectedCollaborators}
@@ -2022,11 +2095,19 @@ export default function FtoSubmissionForm() {
               <div className="flex flex-col gap-4">
                 {expenseEntries.map((entry, index) => (
                   <div key={entry.id}>
-                    {/* Entry Header */}
+                    {/* Entry Header - expand area not in tab order so Tab goes to first field */}
                     <div className="flex items-center justify-between pr-3">
                       <div
+                        role="button"
+                        tabIndex={-1}
                         className="flex items-center gap-2 cursor-pointer"
                         onClick={() => toggleExpenseEntry(entry.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            toggleExpenseEntry(entry.id);
+                          }
+                        }}
                       >
                         {entry.isExpanded ? (
                           <ChevronDown className="w-4 h-4 text-[#303030]" />
@@ -2056,8 +2137,10 @@ export default function FtoSubmissionForm() {
                       </div>
                       {!isApproved && (
                         <button
+                          type="button"
                           onClick={() => deleteExpenseEntry(entry.id)}
-                          className="text-[#982740] hover:opacity-70 transition-opacity"
+                          className="text-[#982740] hover:opacity-70 transition-opacity p-1"
+                          aria-label="Delete expense entry"
                         >
                           <DeleteIcon width={16} height={16} />
                         </button>
@@ -2068,7 +2151,7 @@ export default function FtoSubmissionForm() {
                       <div className="h-px w-full bg-[#E5E5E5] mt-4" />
                     )}
 
-                    {/* Expanded Content */}
+                    {/* Expanded Content - original flex layout; tab order follows DOM */}
                     {entry.isExpanded && (
                       <div className="flex flex-col gap-4 mt-4">
                         <DateField
@@ -2088,9 +2171,7 @@ export default function FtoSubmissionForm() {
                             updateExpenseEntry(
                               entry.id,
                               "date",
-                              date instanceof Date
-                                ? date.toISOString().split("T")[0]
-                                : date,
+                              date instanceof Date ? toLocalDateString(date) : date,
                             );
                           }}
                           placeholder="mm/dd/yyyy"
@@ -2323,6 +2404,15 @@ export default function FtoSubmissionForm() {
                             const isMsg = (name: string) =>
                               name.toLowerCase().endsWith(".msg");
 
+                            // Show files as uploading immediately so submit is blocked until done
+                            updateExpenseEntry(entry.id, "files", [
+                              ...entry.files,
+                              ...newFiles.map((f) => ({
+                                ...f,
+                                uploading: true,
+                              })),
+                            ]);
+
                             const uploadedFiles = await Promise.all(
                               newFiles.map(async (item) => {
                                 if (!item.file) {
@@ -2370,9 +2460,10 @@ export default function FtoSubmissionForm() {
                                 }
                               })
                             );
-                          
+
+                            // Replace the "uploading" placeholders with upload results
                             updateExpenseEntry(entry.id, "files", [
-                              ...entry.files,
+                              ...entry.files.filter((f) => !f.uploading),
                               ...uploadedFiles,
                             ]);
                           }}
@@ -2606,9 +2697,10 @@ export default function FtoSubmissionForm() {
             </button>
             {!isApproved && (
               <button
+                disabled={hasPendingAttachmentUploads}
                 onClick={async () => {
                   if (!validateForm()) return;
-                
+                  if (hasPendingAttachmentUploads) return;
                   try {
                     await submitDailyWork();
                     navigate("/fto");
@@ -2617,7 +2709,7 @@ export default function FtoSubmissionForm() {
                     alert("Failed to submit work");
                   }
                 }}
-                className="rounded-lg bg-[#013764] border border-white shadow-[0_0_0_1px_#002D5A] px-3 py-2 min-h-[36px] flex items-center justify-center"
+                className="rounded-lg bg-[#013764] border border-white shadow-[0_0_0_1px_#002D5A] px-3 py-2 min-h-[36px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span
                   className="text-base text-white font-medium"
@@ -2626,7 +2718,7 @@ export default function FtoSubmissionForm() {
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                   }}
                 >
-                  Submit
+                  {hasPendingAttachmentUploads ? "Uploading…" : "Submit"}
                 </span>
               </button>
             )}

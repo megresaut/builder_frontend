@@ -37,7 +37,7 @@ interface FieldTeamOrder {
   due_date: string; // ISO format for API/modal
   description: string;
   property: string;
-  property_id: number;
+  property_id: number | null;
   unit: string;
   unit_id?: number | null;
   priority: "low" | "normal" | "high";
@@ -705,6 +705,7 @@ export default function FtoHome() {
                   dueDate={order.dueDate}
                   description={order.description}
                   property={order.property}
+                  propertyId={order.property_id}
                   unit={order.unit}
                   priority={order.priority}
                   createdBy={order.createdBy}

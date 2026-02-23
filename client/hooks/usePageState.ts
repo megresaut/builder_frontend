@@ -50,16 +50,10 @@ export function usePageState<T>(
     storedValue !== undefined ? storedValue : initialValue,
   );
 
-  // Sync state changes to tab metadata
+  // Sync state changes to tab metadata (provider merges; no currentMetadata in deps to avoid re-run loop)
   useEffect(() => {
-    setTabMetadata(currentTabId, {
-      ...currentMetadata,
-      pageState: {
-        ...currentMetadata.pageState,
-        [key]: value,
-      },
-    });
-  }, [value, currentTabId, key, setTabMetadata, currentMetadata]);
+    setTabMetadata(currentTabId, { pageState: { [key]: value } });
+  }, [value, currentTabId, key, setTabMetadata]);
 
   // Restore state from metadata when it changes
   useEffect(() => {
