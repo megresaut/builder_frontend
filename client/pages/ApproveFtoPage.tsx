@@ -606,8 +606,14 @@ export default function ApproveFTOPage() {
   
   // Determine if we're in "misc submission" mode (single submission by ID)
   const isMiscMode = submissionIdNum !== null && ftoIdNum === null;
-  /** AVMRE LLC: only show GL Account column and run Buildium export when property is this id */
-  const AVMRE_PROPERTY_ID = 585;
+  /** Property's Buildium info (loaded when propertyId set); used for misc export to Buildium */
+  const [propertyBuildiumDetails, setPropertyBuildiumDetails] = useState<{
+    buildium_property_id: string;
+    property_type: string;
+  } | null>(null);
+  const canExportToBuildium =
+    isMiscMode &&
+    !!propertyBuildiumDetails?.buildium_property_id?.trim();
   // FTO Details - populated from props or state
   const [ftoName, setFtoName] = useState(state.ftoName || "");
   const [property, setProperty] = useState(state.property || "");
@@ -630,7 +636,6 @@ export default function ApproveFTOPage() {
   const [hasNoSubmissions, setHasNoSubmissions] = useState(false);
   const [rateError, setRateError] = useState<"hourly" | "emergency" | null>(null);
   const [propertyId, setPropertyId] = useState<number | null>(null);
-  const isAvmreProperty = propertyId === AVMRE_PROPERTY_ID;
   // const [attachmentsByKey, setAttachmentsByKey] = useState<Record<string, AttachmentSummary[]>>({});
   
   // Track submissions by assignee ID so we know which assignees already have submissions
@@ -645,6 +650,32 @@ export default function ApproveFTOPage() {
   const [editMiscProperties, setEditMiscProperties] = useState<Array<{ id: number; name: string }>>([]);
   const [editMiscPropertyId, setEditMiscPropertyId] = useState<number | null>(null);
   const [ftoDetailsVersion, setFtoDetailsVersion] = useState(0);
+
+  // Load property Buildium details when propertyId is set (for misc export)
+  useEffect(() => {
+    if (propertyId == null) {
+      setPropertyBuildiumDetails(null);
+      return;
+    }
+    let cancelled = false;
+    fetchJSON(`/properties/${propertyId}`)
+      .then((data: any) => {
+        if (cancelled) return;
+        const bid = data?.buildium_property_id ?? "";
+        const ptype = data?.property_type ?? "";
+        setPropertyBuildiumDetails(
+          typeof bid === "string" && bid.trim() !== ""
+            ? { buildium_property_id: bid.trim(), property_type: typeof ptype === "string" ? ptype : "" }
+            : null
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setPropertyBuildiumDetails(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [propertyId]);
 
   // "Add attachment" flow for expense rows with missing attachments
   const attachmentFileInputRef = useRef<HTMLInputElement>(null);
@@ -1272,7 +1303,7 @@ export default function ApproveFTOPage() {
         const subHourRows = hourRows.filter((r) => r.submissionId === submissionId);
         const subExpenseRows = expenseRows.filter((r) => r.submissionId === submissionId);
         const hoursJSON = buildHoursJSON(subHourRows);
-        const materialsJSON = buildMaterialsJSON(subExpenseRows, { includeAvmreFields: isAvmreProperty });
+        const materialsJSON = buildMaterialsJSON(subExpenseRows, { includeAvmreFields: canExportToBuildium });
         const assigneeId = loadedSubmissionToAssignee[submissionId];
         await patchSubmission(submissionId, {
           hours_json: hoursJSON,
@@ -1294,7 +1325,7 @@ export default function ApproveFTOPage() {
           const assigneeNewHours = newHourRows.filter((r) => r.assigneeId === assigneeId);
           const assigneeNewExpenses = newExpenseRows.filter((r) => r.assigneeId === assigneeId);
           const hoursJSON = buildHoursJSON(assigneeNewHours);
-          const materialsJSON = buildMaterialsJSON(assigneeNewExpenses, { includeAvmreFields: isAvmreProperty });
+          const materialsJSON = buildMaterialsJSON(assigneeNewExpenses, { includeAvmreFields: canExportToBuildium });
           await createSubmissionForAssignee(
             ftoIdNum,
             assigneeId,
@@ -1320,8 +1351,8 @@ export default function ApproveFTOPage() {
         await approveFto(ftoIdNum);
       }
 
-      // --- MISC MODE: Export to Buildium only for AVMRE LLC (property id 585) ---
-      if (isMiscMode && expenseRows.length > 0 && isAvmreProperty) {
+      // --- MISC MODE: Export to Buildium when property has Buildium ID ---
+      if (isMiscMode && expenseRows.length > 0 && canExportToBuildium) {
         // Validate GL accounts
         const missingGL = expenseRows.some((r) => !r.glAccountId);
         if (missingGL) {
@@ -1391,6 +1422,10 @@ export default function ApproveFTOPage() {
             };
             if (receiptAttachmentId != null) {
               exportPayload.attachment_id = receiptAttachmentId;
+            }
+            if (propertyBuildiumDetails) {
+              exportPayload.buildium_property_id = propertyBuildiumDetails.buildium_property_id;
+              exportPayload.property_type = propertyBuildiumDetails.property_type;
             }
 
             await fetchJSON("/vendors/export-misc-expense-to-buildium", {
@@ -2148,13 +2183,13 @@ export default function ApproveFTOPage() {
                             Charge Type <span className="text-red-600">*</span>
                           </span>
                         </div>
-                        {isMiscMode && isAvmreProperty && (
+                        {isMiscMode && (
                           <div
                             className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
                             style={{ width: "200px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              GL Account <span className="text-red-600">*</span>
+                              GL Account {canExportToBuildium ? <span className="text-red-600">*</span> : null}
                             </span>
                           </div>
                         )}
@@ -2400,15 +2435,15 @@ export default function ApproveFTOPage() {
                             </Popover>
                           </div>
 
-                          {/* GL Account Cell (misc mode + AVMRE property only) */}
-                          {isMiscMode && isAvmreProperty && (
+                          {/* GL Account Cell (misc mode) */}
+                          {isMiscMode && (
                             <div
                               className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                               style={{
                                 width: "200px",
                                 borderBottom: "1px solid #DADADA",
                                 borderRight: "1px solid #DADADA",
-                                boxShadow: attemptedSubmit && !row.glAccountId ? "inset 0 0 0 2px #dc2626" : "none",
+                                boxShadow: attemptedSubmit && canExportToBuildium && !row.glAccountId ? "inset 0 0 0 2px #dc2626" : "none",
                               }}
                             >
                               <Select
@@ -2626,13 +2661,13 @@ export default function ApproveFTOPage() {
               onClick={handleApprove}
               disabled={
                 isMiscMode &&
-                isAvmreProperty &&
+                canExportToBuildium &&
                 expenseRows.length > 0 &&
                 expenseRows.every((r) => r.exportedToBuildium)
               }
             >
               {isMiscMode &&
-              isAvmreProperty &&
+              canExportToBuildium &&
               expenseRows.length > 0 &&
               expenseRows.every((r) => r.exportedToBuildium)
                 ? "Already exported"
@@ -2702,7 +2737,7 @@ export default function ApproveFTOPage() {
                 const assigneeId = loadedSubmissionToAssignee[submissionIdNum];
                 await patchSubmission(submissionIdNum, {
                   hours_json: buildHoursJSON(subHourRows),
-                  materials_json: buildMaterialsJSON(subExpenseRows, { includeAvmreFields: editMiscPropertyId === AVMRE_PROPERTY_ID }),
+                  materials_json: buildMaterialsJSON(subExpenseRows, { includeAvmreFields: true }),
                   field_team_member_id: assigneeId,
                   property_id: editMiscPropertyId,
                 });

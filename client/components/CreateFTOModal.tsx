@@ -59,6 +59,8 @@ interface EditingFTO {
   priority: "low" | "normal" | "high";
   status: "new" | "dispatched" | "completed" | "cancelled";
   due_date: string;
+  event_start_at?: string | null;
+  event_end_at?: string | null;
   property_id: number;
   property_name?: string;
   unit_id?: number | null;
@@ -108,6 +110,8 @@ export default function CreateFTOModal({
   const [priority, setPriority] = useState("normal");
   const [status, setStatus] = useState("new");
   const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [eventStartAt, setEventStartAt] = useState<string | null>(null);
+  const [eventEndAt, setEventEndAt] = useState<string | null>(null);
   const [pmAssigneeIds, setPmAssigneeIds] = useState<number[]>([]);
   const [fieldTeamMemberIds, setFieldTeamMemberIds] = useState<number[]>([]);
   const [description, setDescription] = useState("");
@@ -162,6 +166,8 @@ export default function CreateFTOModal({
       setPriority("normal");
       setStatus("new");
       setDueDate(null);
+      setEventStartAt(null);
+      setEventEndAt(null);
       setPmAssigneeIds([]);
       setFieldTeamMemberIds([]);
       setDescription("");
@@ -209,8 +215,19 @@ export default function CreateFTOModal({
     
       setDueDate(date); // ✅ Date object only
     }
-    
-    
+
+    if (editingFTO?.event_start_at) {
+      const d = new Date(editingFTO.event_start_at);
+      setEventStartAt(d.toISOString().slice(0, 16));
+    } else {
+      setEventStartAt(null);
+    }
+    if (editingFTO?.event_end_at) {
+      const d = new Date(editingFTO.event_end_at);
+      setEventEndAt(d.toISOString().slice(0, 16));
+    } else {
+      setEventEndAt(null);
+    }
   }, [open, editingFTO]);
   
 
@@ -393,6 +410,9 @@ export default function CreateFTOModal({
       unit_id: selectedUnitId !== null ? selectedUnitId : undefined,
       field_team_member_ids: fieldTeamMemberIds,
       pm_assignee_ids: pmAssigneeIds,
+      ...(eventStartAt && { event_start_at: new Date(eventStartAt).toISOString() }),
+      ...(eventEndAt && { event_end_at: new Date(eventEndAt).toISOString() }),
+      ...(!editingFTO && { sync_to_outlook: true }),
     };
   
     try {
@@ -716,6 +736,36 @@ export default function CreateFTOModal({
               required={false}
               disabled={readOnly}
             />
+          </FieldRowItem>
+        </FieldRow>
+
+        {/* Row 3b: Event time slot (optional, for Outlook calendar) */}
+        <FieldRow columns={2}>
+          <FieldRowItem>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Event start (time slot)
+            </label>
+            <input
+              type="datetime-local"
+              value={eventStartAt ?? ""}
+              onChange={(e) => setEventStartAt(e.target.value || null)}
+              disabled={readOnly}
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-0.5">Optional. Used for Outlook calendar.</p>
+          </FieldRowItem>
+          <FieldRowItem>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Event end (time slot)
+            </label>
+            <input
+              type="datetime-local"
+              value={eventEndAt ?? ""}
+              onChange={(e) => setEventEndAt(e.target.value || null)}
+              disabled={readOnly}
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-0.5">Optional. Used for Outlook calendar.</p>
           </FieldRowItem>
         </FieldRow>
 
