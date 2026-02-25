@@ -1414,7 +1414,7 @@ export default function ApproveFTOPage() {
               line_items: [
                 {
                   line_id: 1,
-                  gl_account_id: row.glAccountId,
+                  gl_account_id: String(row.glAccountId),
                   description: receiptNote,
                   amount_cents: amountCentsVal,
                 },

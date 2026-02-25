@@ -49,6 +49,7 @@ interface PropertiesTemplateProps {
   propertyAddress?: string;
   propertyType?: string;
   propertyUnits?: number;
+  propertyLocationsCount?: number;
   property?: Property;
   onDeactivate?: () => void;
   /** When provided, Edit Property opens the modal pre-filled with this data (e.g. from property detail page). */
@@ -60,6 +61,7 @@ const PropertyPageHeader = memo(function PropertyPageHeader({
   propertyAddress,
   propertyType,
   propertyUnits,
+  propertyLocationsCount = 0,
   propertyId,
   currentActiveTab,
   onDeactivate,
@@ -71,6 +73,7 @@ const PropertyPageHeader = memo(function PropertyPageHeader({
   propertyAddress: string;
   propertyType: string;
   propertyUnits: number;
+  propertyLocationsCount?: number;
   propertyId: string | undefined;
   currentActiveTab: string;
   onDeactivate?: () => void;
@@ -83,6 +86,7 @@ const PropertyPageHeader = memo(function PropertyPageHeader({
   const tabs = [
     "Overview",
     ...(isConcierge ? [] : ["Units"]),
+    ...(propertyLocationsCount > 0 ? ["Locations"] : []),
     "Utilities",
     "Maintenance",
     "Inspections",
@@ -158,6 +162,7 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
   propertyAddress = "3 Hekma Road, Greenwich, CT 06831",
   propertyType = "Single-Family",
   propertyUnits = 1,
+  propertyLocationsCount = 0,
   property,
   onDeactivate,
   propertyEditData,
@@ -208,6 +213,7 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
               propertyAddress={propertyAddress}
               propertyType={propertyType}
               propertyUnits={propertyUnits}
+              propertyLocationsCount={propertyLocationsCount}
               propertyId={propertyId}
               currentActiveTab={currentActiveTab}
               onDeactivate={onDeactivate}

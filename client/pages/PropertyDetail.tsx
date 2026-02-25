@@ -6,6 +6,7 @@ import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 import { PropertiesTemplate } from "@/layout/PropertiesTemplate";
 import { Overview } from "./properties/Overview";
 import { Units } from "./properties/Units";
+import { Locations } from "./properties/Locations";
 import { Utilities } from "./properties/Utilities";
 import { Maintenance } from "./properties/Maintenance";
 import { Tasks } from "./properties/Tasks";
@@ -37,6 +38,8 @@ type BackendProperty = {
   owners?: unknown;
   /** Number of units for this property (from backend COUNT) */
   units_count?: number;
+  /** Number of locations for this property (from backend COUNT) */
+  locations_count?: number;
 };
 
 /** Context passed from PropertyLayout to tab content via Outlet */
@@ -141,6 +144,14 @@ export function PropertyTabContent() {
           propertyAddress={propertyAddress}
           propertyType={propertyType}
           propertyUnits={propertyUnits}
+        />
+      );
+    case "Locations":
+      return (
+        <Locations
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyId={property.id}
         />
       );
     case "Utilities":
@@ -322,6 +333,7 @@ export default function PropertyLayout() {
     isHOA && property.name ? property.name : property.address_line1;
   const propertyType = formatType(property.property_type);
   const propertyUnits = Math.max(0, Number(property.units_count) || 0);
+  const propertyLocationsCount = Math.max(0, Number(property.locations_count) ?? 0);
 
   const outletContext: PropertyOutletContext = {
     property,
@@ -336,6 +348,7 @@ export default function PropertyLayout() {
       propertyAddress={propertyDisplayTitle}
       propertyType={propertyType}
       propertyUnits={propertyUnits}
+      propertyLocationsCount={propertyLocationsCount}
       activeTab={currentTab}
       onDeactivate={handleDeactivate}
       propertyEditData={toEditPayload(property)}
