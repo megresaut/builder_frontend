@@ -125,17 +125,10 @@ const removeStoredJob = (accountId: number) => {
 const isDuplicateBillError = (msg: string | null | undefined): boolean => {
   if (!msg) return false;
   const lower = msg.toLowerCase();
-  
-  // Check for duplicate key constraint violations related to bills
-  const hasDuplicateKey = lower.includes("duplicate key") || lower.includes("duplicate");
-  const hasBillConstraint = 
-    lower.includes("bills_utility_account_id_provider_id_statement_date_amount__key") ||
-    lower.includes("insert bill failed");
-  
-  // Also check for common duplicate bill error patterns
   return (
+    lower.includes("already been imported") ||
     lower.includes("already exists") ||
-    (hasDuplicateKey && hasBillConstraint)
+    (lower.includes("duplicate key") && lower.includes("bill"))
   );
 };
 
@@ -1909,25 +1902,12 @@ useEffect(() => {
                                 <span className="text-xs text-red-600 font-medium">
                                   {errorMsg || "Scrape failed"}
                                 </span>
-                                {!errorMsg && (
-                                  <>
-                                    <span className="text-xs text-red-600">Please try again.</span>
-                                    <span className="text-xs text-red-600">If you've already tried this twice,</span>
-                                    <span className="text-xs text-red-600">contact support.</span>
-                                  </>
-                                )}
+                                <span className="text-xs text-red-500 mt-0.5">
+                                  Please try again. If issue persists, contact support.
+                                </span>
                               </>
                             );
                           })()}
-                          <span className="text-xs text-red-600">
-                            Please try again.
-                          </span>
-                          <span className="text-xs text-red-600">
-                            If you’ve already tried this twice,
-                          </span>
-                          <span className="text-xs text-red-600">
-                            contact support.
-                          </span>
                         </div>
                       </div>
                     )}
