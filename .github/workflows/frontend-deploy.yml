@@ -36,6 +36,8 @@ jobs:
     # -------------------------------
     - name: Build frontend
       run: npm run build
+      env:
+        VITE_API_URL: /api
 
     # -------------------------------
     # Deploy client/dist/spa → OVH
