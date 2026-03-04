@@ -116,10 +116,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
 
       scrollTimeoutRef.current = setTimeout(() => {
         const scrollPos = mainContent.scrollTop;
-        const prevMetadata = tabMetadata[currentTabId] || {};
         setTabMetadata(currentTabId, {
-          label: currentMetadata?.label || "",
-          ...prevMetadata,
           scrollPosition: scrollPos,
         });
       }, 200); // Debounce scroll updates
