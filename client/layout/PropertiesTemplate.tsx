@@ -224,6 +224,13 @@ export const PropertiesTemplate: React.FC<PropertiesTemplateProps> = ({
             />
           </div>
 
+          {/* Warning banner when Buildium ID is missing */}
+          {property && !property.buildingId && (
+            <div className="mx-6 mt-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              No Buildium property ID found for this property. Please contact an administrator to resolve this.
+            </div>
+          )}
+
           {/* Only this content area updates when switching tabs; scrolls independently */}
           <div className="flex-1 min-h-0 overflow-auto pt-6">
             {children}

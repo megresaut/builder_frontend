@@ -46,6 +46,7 @@ export { FileUploadField } from "./FileUploadField";
 export { StatusIndicator } from "./StatusIndicator";
 export { PrioritySelectField } from "./PrioritySelectField";
 export { StatusSelectField } from "./StatusSelectField";
+export { PropertyLocationCombobox } from "./PropertyLocationCombobox";
 
 // Cell field components (for table cells)
 export { SelectFieldCell } from "./SelectFieldCell";

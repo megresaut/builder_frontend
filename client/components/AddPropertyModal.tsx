@@ -15,6 +15,7 @@ import {
 } from "@/components/forms";
 import { MultiInputField } from "@/components/forms/MultiInputField";
 import { fetchJSON } from "@/api/fetchJSON";
+import { toast } from "sonner";
 
 // Backend contract types
 interface PropertyManager {
@@ -64,6 +65,7 @@ interface AddPropertyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editData?: PropertyEditData;
+  onSave?: () => void;
 }
 
 // Mock API Layer
@@ -196,6 +198,7 @@ export default function AddPropertyModal({
   open,
   onOpenChange,
   editData,
+  onSave,
 }: AddPropertyModalProps) {
   // API state
   const [availableManagers, setAvailableManagers] = useState<PropertyManager[]>(
@@ -363,11 +366,12 @@ export default function AddPropertyModal({
         });
       }
     
+      onSave?.();
       onOpenChange(false);
     } catch (err) {
       console.error("Failed to save property:", err);
+      toast.error("Failed to save property. Please try again.");
     }
-    onOpenChange(false);
   };
 
   // Build manager options from API data
