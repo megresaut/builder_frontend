@@ -1,4 +1,5 @@
 import { fetchJSON, API_BASE } from "./fetchJSON";
+import type { ChecklistSectionTemplate } from "@/data/inspections";
 
 // Backend models
 export interface BackendInspection {
@@ -173,6 +174,32 @@ export async function listInspectionPhotos(
   inspectionId: number
 ): Promise<BackendInspectionPhoto[]> {
   return fetchJSON(`/inspections/${inspectionId}/photos`);
+}
+
+/**
+ * Upload a DOCX file and parse it into checklist sections via AI
+ */
+export async function parseChecklistDocx(
+  file: File
+): Promise<{ sections: ChecklistSectionTemplate[] }> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(
+    `${API_BASE}/inspections/checklists/parse-docx`,
+    {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API error ${res.status}: ${text}`);
+  }
+
+  return res.json();
 }
 
 /**

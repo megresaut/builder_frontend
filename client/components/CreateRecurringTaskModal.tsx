@@ -10,6 +10,7 @@ import {
   NumberField,
   type MultiSelectOption,
   PrioritySelectField,
+  PropertyLocationCombobox,
 } from "@/components/forms";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
@@ -32,6 +33,7 @@ interface SimpleProperty {
   address_line1?: string | null;
   city?: string | null;
   state?: string | null;
+  locations_count?: number;
 }
 
 interface SimpleUnit {
@@ -82,6 +84,7 @@ export default function CreateRecurringTaskModal({
   const [description, setDescription] = useState("");
   const [collaborators, setCollaborators] = useState<MultiSelectOption[]>([]);
   const [property, setProperty] = useState("");
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
   const [unit, setUnit] = useState("");
   const [dueAfterValue, setDueAfterValue] = useState("");
   const [dueAfterUnit, setDueAfterUnit] = useState("days");
@@ -140,6 +143,7 @@ export default function CreateRecurringTaskModal({
       setDescription("");
       setCollaborators([]);
       setProperty("");
+      setSelectedLocationId(null);
       setUnit("");
       setDueAfterValue("");
       setDueAfterUnit("days");
@@ -458,6 +462,10 @@ export default function CreateRecurringTaskModal({
         payload.unit_id = unitId;
       }
 
+      if (selectedLocationId !== null) {
+        payload.location_id = selectedLocationId;
+      }
+
       if (dueAfter) {
         payload.due_after = dueAfter;
       }
@@ -542,17 +550,19 @@ export default function CreateRecurringTaskModal({
         <FormSection title="Property & Scheduling">
           {/* Property and Unit in same row */}
           <div className="grid grid-cols-2 gap-4">
-            <SelectField
+            <PropertyLocationCombobox
               label="Property"
               required
-              value={property ?? ""}
-              onChange={(value) => setProperty(Array.isArray(value) ? value[0] : value)}
-              placeholder="Select Property"
+              properties={properties}
+              propertyId={property ? Number(property) : null}
+              locationId={selectedLocationId}
+              onChange={({ propertyId, locationId }) => {
+                setProperty(propertyId ? String(propertyId) : "");
+                setSelectedLocationId(locationId);
+                setUnit("");
+              }}
               error={errors.property}
-              options={properties.map((p) => ({
-                value: String(p.id),
-                label: p.name || p.address_line1 || `Property #${p.id}`,
-              }))}
+              placeholder="Select Property"
             />
             <SelectField
               label="Unit"

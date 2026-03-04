@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -275,36 +275,35 @@ export default function AllProperties() {
   };
   
   // Load properties from backend
-  useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        const data = await fetchJSON("/properties");
+  const loadProperties = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await fetchJSON("/properties");
 
-        const mapped = data.map((p: any) => ({
-          id: p.id,
-          name: p.name ?? "",
-          address: p.address_line1,
-          location: `${p.city}, ${p.state}`,
-          manager: Array.isArray(p.manager_names) ? p.manager_names.join(", ") : (p.manager_names ?? ""),
-          manager_ids: Array.isArray(p.manager_ids) ? p.manager_ids.map(Number) : [],
-          type: p.property_type,
-          buildingId: p.buildium_property_id,
-          status: p.active ? "active" : "inactive",
-        }));
-        
+      const mapped = data.map((p: any) => ({
+        id: p.id,
+        name: p.name ?? "",
+        address: p.address_line1,
+        location: `${p.city}, ${p.state}`,
+        manager: Array.isArray(p.manager_names) ? p.manager_names.join(", ") : (p.manager_names ?? ""),
+        manager_ids: Array.isArray(p.manager_ids) ? p.manager_ids.map(Number) : [],
+        type: p.property_type,
+        buildingId: p.buildium_property_id,
+        status: p.active ? "active" : "inactive",
+      }));
 
-        setProperties(mapped);
-        setFilteredProperties(mapped);   // NEW
-        setLoading(false);
-      } catch (err: any) {
-        setError(err.message);
-        setLoading(false);
-      }
+      setProperties(mapped);
+      setFilteredProperties(mapped);
+      setLoading(false);
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
     }
-
-    load();
   }, []);
+
+  useEffect(() => {
+    loadProperties();
+  }, [loadProperties]);
 
   const getInitials = (name: string) =>
     name
@@ -1195,6 +1194,7 @@ export default function AllProperties() {
           }
         }}
         editData={editingProperty || undefined}
+        onSave={loadProperties}
       />
     </div>
   );

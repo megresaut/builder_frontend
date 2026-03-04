@@ -14,7 +14,7 @@ import {
   FileUploadField,
   PrioritySelectField,
   StatusSelectField,
-  ComboboxField,
+  PropertyLocationCombobox,
 } from "@/components/forms";
 import type { MultiSelectOption } from "@/components/forms";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
@@ -34,6 +34,7 @@ interface SimpleProperty {
   address_line1?: string | null;
   city?: string | null;
   state?: string | null;
+  locations_count?: number;
 }
 
 interface SimpleUnit {
@@ -58,6 +59,7 @@ interface CreateTaskModalProps {
     category: string;
     property_id: number;
     unit_id?: number | null;
+    location_id?: number | null;
     due_date: string | null;
     assignees: number[];
     collaborators?: number[];
@@ -101,6 +103,7 @@ export default function CreateTaskModal({
     null
   );
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState<"normal" | "low" | "high" | "urgent">("normal");
   const [dueDate, setDueDate] = useState<Date | null>(null);
@@ -122,6 +125,7 @@ export default function CreateTaskModal({
     description: string;
     propertyId: number | null;
     unitId: number | null;
+    locationId: number | null;
     category: string;
     priority: "normal" | "low" | "high" | "urgent";
     dueDate: Date | null;
@@ -284,6 +288,7 @@ export default function CreateTaskModal({
       setCategory(editData.category || "");
       setSelectedPropertyId(editData.property_id);
       setSelectedUnitId(editData.unit_id ?? null);
+      setSelectedLocationId(editData.location_id ?? null);
       setAssigneeIds(editData.assignees || []);
       setCollaboratorIds(editData.collaborators || []);
 
@@ -371,6 +376,7 @@ export default function CreateTaskModal({
       setUpdateMessage("");
       setSelectedPropertyId(null);
       setSelectedUnitId(null);
+      setSelectedLocationId(null);
       setCategory("");
       setPriority("normal");
       setDueDate(null);
@@ -431,6 +437,7 @@ export default function CreateTaskModal({
         initial.description !== description ||
         initial.propertyId !== selectedPropertyId ||
         initial.unitId !== selectedUnitId ||
+        initial.locationId !== selectedLocationId ||
         initial.category !== category ||
         initial.priority !== priority ||
         initial.status !== status ||
@@ -483,11 +490,6 @@ export default function CreateTaskModal({
 
     return changes.join(", ");
   };
-
-  const propertyOptions = properties.map((p) => ({
-    value: String(p.id),
-    label: renderPropertyLabel(p),
-  }));
 
   const unitOptions = [
     {
@@ -686,6 +688,10 @@ export default function CreateTaskModal({
 
       if (selectedUnitId !== null) {
         payload.unit_id = selectedUnitId;
+      }
+
+      if (selectedLocationId !== null) {
+        payload.location_id = selectedLocationId;
       }
 
       if (description.trim()) {
@@ -993,19 +999,20 @@ export default function CreateTaskModal({
 
                 <FieldRow columns={2}>
                   <FieldRowItem>
-                    <ComboboxField
+                    <PropertyLocationCombobox
                       label="Property"
                       required
-                      value={String(selectedPropertyId || "")}
-                      onChange={(value) => {
-                        const id = value ? Number(value) : null;
-                        setSelectedPropertyId(id);
+                      properties={properties}
+                      propertyId={selectedPropertyId}
+                      locationId={selectedLocationId}
+                      onChange={({ propertyId, locationId }) => {
+                        setSelectedPropertyId(propertyId);
+                        setSelectedLocationId(locationId);
                         setSelectedUnitId(null);
                       }}
                       error={errors.property}
                       placeholder="Select Property"
                       searchPlaceholder="Search properties..."
-                      options={propertyOptions}
                     />
                   </FieldRowItem>
                   <FieldRowItem>

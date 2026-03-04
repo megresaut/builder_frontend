@@ -11,7 +11,7 @@ import {
   TextAreaField,
   DateField,
   MultiSelectField,
-  ComboboxField,
+  PropertyLocationCombobox,
 } from "@/components/forms";
 
 import type { MultiSelectOption } from "@/components/forms";
@@ -40,6 +40,7 @@ interface SimpleProperty {
   address_line1: string;
   city: string;
   state: string;
+  locations_count?: number;
 }
 
 interface SimpleTask {
@@ -64,6 +65,7 @@ interface EditingFTO {
   property_id: number;
   property_name?: string;
   unit_id?: number | null;
+  location_id?: number | null;
   task_id?: number;
   field_team_member_ids: number[];
   pm_assignee_ids: number[];
@@ -105,6 +107,7 @@ export default function CreateFTOModal({
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
     null
   );
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [ftoName, setFtoName] = useState("");
   const [priority, setPriority] = useState("normal");
@@ -161,6 +164,7 @@ export default function CreateFTOModal({
   useEffect(() => {
     if (!open && !editingFTO) {
       setSelectedPropertyId(null);
+      setSelectedLocationId(null);
       setSelectedTaskId(null);
       setFtoName("");
       setPriority("normal");
@@ -199,7 +203,8 @@ export default function CreateFTOModal({
   
     setSelectedPropertyId(editingFTO.property_id);
     setSelectedUnitId(editingFTO.unit_id ?? null);
-  
+    setSelectedLocationId(editingFTO.location_id ?? null);
+
     setSelectedTaskId(editingFTO.task_id ?? null);
     setPmAssigneeIds(editingFTO.pm_assignee_ids);
     setFieldTeamMemberIds(editingFTO.field_team_member_ids);
@@ -287,14 +292,6 @@ export default function CreateFTOModal({
   }, [open]);
 
   
-
-  const propertyOptions = properties.map((p) => ({
-    value: String(p.id),
-    label:
-      p.name ||
-      [p.address_line1, p.city, p.state].filter(Boolean).join(", ") ||
-      `Property #${p.id}`,
-  }));
 
   const taskOptions = tasks.map((t) => ({
     value: String(t.id),
@@ -408,6 +405,7 @@ export default function CreateFTOModal({
       property_id: selectedPropertyId!,
       ...(taskIdPayload !== undefined && { task_id: taskIdPayload }),
       unit_id: selectedUnitId !== null ? selectedUnitId : undefined,
+      location_id: selectedLocationId !== null ? selectedLocationId : undefined,
       field_team_member_ids: fieldTeamMemberIds,
       pm_assignee_ids: pmAssigneeIds,
       ...(eventStartAt && { event_start_at: new Date(eventStartAt).toISOString() }),
@@ -617,20 +615,21 @@ export default function CreateFTOModal({
                 disabled
               />
             ) : (
-              <ComboboxField
+              <PropertyLocationCombobox
                 label="Property"
                 required
-                value={String(selectedPropertyId || "")}
-                onChange={(value) => {
-                  const id = value ? Number(value) : null;
-                  setSelectedPropertyId(id);
+                properties={properties}
+                propertyId={selectedPropertyId}
+                locationId={selectedLocationId}
+                onChange={({ propertyId, locationId }) => {
+                  setSelectedPropertyId(propertyId);
+                  setSelectedLocationId(locationId);
                   setSelectedTaskId(null);
                   setSelectedUnitId(null);
                 }}
                 error={errors.property}
                 placeholder="Select Property"
                 searchPlaceholder="Search properties..."
-                options={propertyOptions}
                 disabled={readOnly}
               />
             )}
