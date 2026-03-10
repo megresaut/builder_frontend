@@ -337,6 +337,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                     ? "#303030"
                     : "var(--color-text-primary)",
                   fontSize: "14px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {displayLabel}

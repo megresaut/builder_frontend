@@ -16,6 +16,9 @@ import {
 
 import type { MultiSelectOption } from "@/components/forms";
 import { fetchJSON } from "@/api/fetchJSON";
+import AIGeneratedBanner from "@/components/AIGeneratedBanner";
+import { useConflictCheck } from "@/hooks/useConflictCheck";
+import ConflictWarningBanner from "@/components/ConflictWarningBanner";
 import {
   PROPERTY_LEVEL_LABEL,
   PROPERTY_LEVEL_SHORT_LABEL,
@@ -130,11 +133,24 @@ export default function CreateFTOModal({
   const [unitsLoading, setUnitsLoading] = useState(false);
   const [editingUnitLabel, setEditingUnitLabel] = useState<string>("");
 
+  // Conflict check: compute ISO date range from event times or due date
+  const conflictStart = eventStartAt
+    ? new Date(eventStartAt).toISOString()
+    : dueDate
+      ? new Date(dueDate).toISOString()
+      : undefined;
+  const conflictEnd = eventEndAt
+    ? new Date(eventEndAt).toISOString()
+    : dueDate
+      ? new Date(new Date(dueDate).getTime() + 24 * 60 * 60 * 1000).toISOString()
+      : undefined;
+  const { conflicts } = useConflictCheck(fieldTeamMemberIds, conflictStart, conflictEnd);
+
   useEffect(() => {
     if (!open) return;
-  
+
     let cancelled = false;
-  
+
     async function loadOptions() {
       try {
         setOptionsLoading(true);
@@ -597,17 +613,18 @@ export default function CreateFTOModal({
       }
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {editingFTO && <AIGeneratedBanner entityType="fto" entityId={editingFTO.id} />}
         {/* Row 1: Property | Unit | Task */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "2fr 1fr 1fr",
+            gridTemplateColumns: "3fr 2fr 2fr",
             gap: "12px",
             width: "100%",
           }}
         >
           <div>
-            {isEditing || isPropertyLocked ? (
+            {isPropertyLocked ? (
               <TextField
                 label="Property"
                 required
@@ -635,7 +652,7 @@ export default function CreateFTOModal({
             )}
           </div>
           <div>
-            {isEditing || isPropertyLocked ? (
+            {isPropertyLocked ? (
               <TextField label="Unit" value={unitDisplayForField} disabled />
             ) : (
               <SelectField
@@ -800,6 +817,9 @@ export default function CreateFTOModal({
             />
           </FieldRowItem>
         </FieldRow>
+
+        {/* Conflict warning banner */}
+        <ConflictWarningBanner conflicts={conflicts} />
 
         {/* Row 5: Description (full width) */}
         <TextAreaField

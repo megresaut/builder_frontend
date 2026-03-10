@@ -25,6 +25,7 @@ import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import { fetchJSON } from "@/api/fetchJSON";
+import AIGeneratedBanner from "@/components/AIGeneratedBanner";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { useAuth } from "@/auth/useAuth";
 
@@ -340,6 +341,22 @@ export default function CreateWorkOrderModalV2({
     });
   }, [initialData?.vendor, formData.vendorId, vendorSearch]);
 
+  // When vendorId is set (e.g. from AI draft) but vendor isn't in the loaded list, fetch it
+  useEffect(() => {
+    if (!formData.vendorId || vendorSearch.trim()) return;
+    const vid = Number(formData.vendorId);
+    if (isNaN(vid) || vid <= 0) return;
+    if (vendors.some((v) => v.id === vid)) return; // already loaded
+    fetchJSON(`/vendors/${vid}`).then((v: any) => {
+      if (v && v.id) {
+        setVendors((prev) => {
+          if (prev.some((existing) => existing.id === v.id)) return prev;
+          return [{ id: v.id, name: v.name, phone: v.phone || "", email: v.email || "", notes: v.notes || "" }, ...prev];
+        });
+      }
+    }).catch(() => {}); // vendor may not exist
+  }, [formData.vendorId, vendors, vendorSearch]);
+
   const handleVendorScroll = useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
       if (!vendorHasMore || vendorLoading) return;
@@ -380,10 +397,14 @@ export default function CreateWorkOrderModalV2({
           files: initialData.files ?? [],
         });
       } else {
+        let createVendorId = "";
+        if (initialData?.vendorId !== undefined && initialData?.vendorId !== null) {
+          createVendorId = String(initialData.vendorId);
+        }
         setFormData({
           task: taskOptions ? "" : (initialData?.task ?? ""),
           workOrderName: initialData?.workOrderName ?? "",
-          vendorId: "",
+          vendorId: createVendorId,
           status: "not_started",
           priority: "normal",
           dueDate: initialData?.dueDate ?? null,
@@ -763,6 +784,7 @@ export default function CreateWorkOrderModalV2({
         }
       >
         <FormLayout>
+          {mode === "edit" && workOrderId && <AIGeneratedBanner entityType="work_order" entityId={workOrderId} />}
           {mode === "create" && !hideTaskSelection && (
             <FormSection>
               <SelectField

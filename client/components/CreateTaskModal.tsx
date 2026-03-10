@@ -20,8 +20,11 @@ import type { MultiSelectOption } from "@/components/forms";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { FormSection } from "@/components/ui/form-section";
 import { fetchJSON } from "@/api/fetchJSON";
+import AIGeneratedBanner from "@/components/AIGeneratedBanner";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { useAuth } from "@/auth/useAuth";
+import { useConflictCheck } from "@/hooks/useConflictCheck";
+import ConflictWarningBanner from "@/components/ConflictWarningBanner";
 import {
   PROPERTY_LEVEL_LABEL,
   PROPERTY_LEVEL_SHORT_LABEL,
@@ -146,6 +149,14 @@ export default function CreateTaskModal({
 
   const isEditing = !!editData;
   const isUpdateMode = Boolean(editData?.id) && variant === "withMessageAndAttachments";
+
+  // Conflict check for assignees/collaborators based on due date
+  const allAssigneeIds = [...new Set([...assigneeIds, ...collaboratorIds])];
+  const conflictStart = dueDate ? new Date(dueDate).toISOString() : undefined;
+  const conflictEnd = dueDate
+    ? new Date(new Date(dueDate).getTime() + 24 * 60 * 60 * 1000).toISOString()
+    : undefined;
+  const { conflicts: taskConflicts } = useConflictCheck(allAssigneeIds, conflictStart, conflictEnd);
 
   useEffect(() => {
     if (!open) return;
@@ -902,6 +913,7 @@ export default function CreateTaskModal({
         }
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: isUpdateMode ? "8px" : "-20px" }}>
+          {editData && <AIGeneratedBanner entityType="task" entityId={editData.id} />}
           {isUpdateMode ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
@@ -951,6 +963,8 @@ export default function CreateTaskModal({
                   options={collaboratorOptions}
                 />
               </div>
+
+              <ConflictWarningBanner conflicts={taskConflicts} />
 
               <TextAreaField
                 label="Message"
@@ -1119,6 +1133,7 @@ export default function CreateTaskModal({
                     />
                   </FieldRowItem>
                 </FieldRow>
+                <ConflictWarningBanner conflicts={taskConflicts} />
               </FormSection>
             </>
           )}

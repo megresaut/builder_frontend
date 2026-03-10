@@ -1,0 +1,915 @@
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
+import PageTemplate from "@/layout/PageTemplate";
+import {
+  listDrafts,
+  approveDraft,
+  rejectDraft,
+  getDraftCount,
+  type AIDraft,
+} from "@/api/aiDrafts";
+import { fetchJSON } from "@/api/fetchJSON";
+import CreateFTOModal from "@/components/CreateFTOModal";
+import CreateTaskModal from "@/components/CreateTaskModal";
+import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function extractName(draft: AIDraft): string {
+  const d = draft.extracted_data;
+  if (d?.name) return d.name;
+  if (d?.title) return d.title;
+  if (d?.subject) return d.subject;
+  if (d?.task_name) return d.task_name;
+  if (d?.description) {
+    const desc = String(d.description);
+    return desc.length > 60 ? desc.slice(0, 57) + "..." : desc;
+  }
+  return `Draft #${draft.id}`;
+}
+
+/** Group parent drafts with their child work orders */
+function groupDrafts(
+  drafts: AIDraft[]
+): { parent: AIDraft; children: AIDraft[] }[] {
+  const parentIds = new Set(
+    drafts.filter((d) => !d.parent_draft_id).map((d) => d.id)
+  );
+  const childrenMap = new Map<number, AIDraft[]>();
+
+  for (const d of drafts) {
+    if (d.parent_draft_id && parentIds.has(d.parent_draft_id)) {
+      const existing = childrenMap.get(d.parent_draft_id) || [];
+      existing.push(d);
+      childrenMap.set(d.parent_draft_id, existing);
+    }
+  }
+
+  const groups: { parent: AIDraft; children: AIDraft[] }[] = [];
+  const usedIds = new Set<number>();
+
+  for (const d of drafts) {
+    if (usedIds.has(d.id)) continue;
+    if (!d.parent_draft_id) {
+      usedIds.add(d.id);
+      const children = childrenMap.get(d.id) || [];
+      children.forEach((c) => usedIds.add(c.id));
+      groups.push({ parent: d, children });
+    }
+  }
+
+  // Orphan children that didn't match a parent in this set
+  for (const d of drafts) {
+    if (!usedIds.has(d.id)) {
+      groups.push({ parent: d, children: [] });
+    }
+  }
+
+  return groups;
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function EntityTypeBadge({ type }: { type: string }) {
+  const config: Record<string, { bg: string; text: string; label: string }> = {
+    task: { bg: "bg-blue-50", text: "text-blue-600", label: "Task" },
+    fto: { bg: "bg-emerald-50", text: "text-emerald-600", label: "FTO" },
+    work_order: {
+      bg: "bg-purple-50",
+      text: "text-purple-600",
+      label: "Work Order",
+    },
+  };
+  const c = config[type] || {
+    bg: "bg-gray-50",
+    text: "text-gray-600",
+    label: type,
+  };
+  return (
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${c.bg} ${c.text}`}
+    >
+      {c.label}
+    </span>
+  );
+}
+
+function SourceBadge({ source }: { source: string }) {
+  const config: Record<string, { label: string; icon: string }> = {
+    calendar: { label: "Calendar", icon: "M6 2V5M18 2V5M3 9H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" },
+    sms: { label: "SMS", icon: "M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" },
+    buildium: { label: "Buildium", icon: "M3 21V3H10V8H21V21H3ZM5 5V19H8V10H19V19H19V8H10V5H5ZM12 19H14V14H12V19ZM16 19H18V14H16V19Z" },
+  };
+  const c = config[source] || { label: source, icon: "" };
+  return (
+    <span className="inline-flex items-center gap-1 text-xs text-[#717179]">
+      {c.icon && (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <path d={c.icon} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+      {c.label}
+    </span>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const config: Record<string, { dot: string; text: string; label: string }> = {
+    pending: { dot: "bg-amber-400", text: "text-amber-600", label: "Pending" },
+    approved: { dot: "bg-emerald-500", text: "text-emerald-600", label: "Approved" },
+    rejected: { dot: "bg-red-400", text: "text-red-500", label: "Rejected" },
+  };
+  const c = config[status] || { dot: "bg-gray-400", text: "text-gray-500", label: status };
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${c.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+      {c.label}
+    </span>
+  );
+}
+
+function ConfidenceBar({ value }: { value: number }) {
+  const pct = Math.round(value * 100);
+  let color = "#ef4444";
+  if (value >= 0.8) color = "#22c55e";
+  else if (value >= 0.6) color = "#eab308";
+
+  const size = 20;
+  const strokeWidth = 2;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const filled = circumference * value;
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#f0f0f0"
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={`${filled} ${circumference - filled}`}
+          strokeLinecap="round"
+        />
+      </svg>
+      <span className="text-[11px] tabular-nums" style={{ color }}>{pct}%</span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Expanded detail panel
+// ---------------------------------------------------------------------------
+
+function DraftDetailPanel({
+  draft,
+  propertyMap,
+  vendorMap,
+  userMap,
+}: {
+  draft: AIDraft;
+  propertyMap: Record<number, string>;
+  vendorMap: Record<number, string>;
+  userMap: Record<number, string>;
+}) {
+  /** Resolve an ID field to a display name, falling back to the raw value. */
+  function resolveValue(key: string, value: unknown): string {
+    if (value == null) return "";
+
+    // Single-ID fields → property / vendor
+    if (key === "property_id" && typeof value === "number") {
+      return propertyMap[value] || String(value);
+    }
+    if (key === "vendor_id" && typeof value === "number") {
+      return vendorMap[value] || String(value);
+    }
+
+    // Single user-ID fields
+    if (
+      (key === "assigned_to" ||
+        key === "requested_by" ||
+        key === "reviewed_by_user_id" ||
+        key === "last_edited_by_user_id") &&
+      typeof value === "number"
+    ) {
+      return userMap[value] || String(value);
+    }
+
+    // Array-of-user-ID fields
+    if (
+      (key === "field_team_member_ids" ||
+        key === "pm_assignee_ids" ||
+        key === "assignee_ids" ||
+        key === "collaborator_ids") &&
+      Array.isArray(value)
+    ) {
+      const names = value.map((id: number) => userMap[id] || String(id));
+      return names.join(", ");
+    }
+
+    if (typeof value === "object") return JSON.stringify(value);
+    return String(value);
+  }
+
+  return (
+    <div className="px-6 py-4 bg-[#fafafa] border-t border-[#f0f0f0]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <h4 className="text-xs font-semibold text-[#717179] uppercase tracking-wider mb-2">
+            AI Reasoning
+          </h4>
+          <p className="text-sm text-[#303030] leading-relaxed">
+            {draft.ai_reasoning || "No reasoning provided."}
+          </p>
+          <div className="mt-3 flex items-center gap-4 text-xs text-[#a1a1a9]">
+            <span>Model: {draft.ai_model}</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-xs font-semibold text-[#717179] uppercase tracking-wider mb-2">
+            Extracted Data
+          </h4>
+          <div className="bg-white border border-[#e5e5e5] rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <tbody>
+                {Object.entries(draft.extracted_data || {}).map(
+                  ([key, value]) => (
+                    <tr key={key} className="border-b border-[#f5f5f5] last:border-0">
+                      <td className="px-3 py-2 text-[#717179] text-xs font-medium align-top whitespace-nowrap bg-[#fafafa] w-[140px]">
+                        {key.replace(/_/g, " ")}
+                      </td>
+                      <td className="px-3 py-2 text-[#303030] text-xs break-words">
+                        {resolveValue(key, value)}
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {draft.reviewed_at && (
+        <div className="mt-4 pt-3 border-t border-[#e5e5e5] text-xs text-[#a1a1a9]">
+          Reviewed {formatDateTime(draft.reviewed_at)}
+          {draft.reviewed_by_name ? ` by ${draft.reviewed_by_name}` : ""}
+          {draft.created_entity_id
+            ? ` — Created entity #${draft.created_entity_id}`
+            : ""}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main page
+// ---------------------------------------------------------------------------
+
+export default function AIDrafts() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [drafts, setDrafts] = useState<AIDraft[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [showHistory, setShowHistory] = useState(false);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const didAutoExpand = useRef(false);
+  const [actionInFlight, setActionInFlight] = useState<number | null>(null);
+  const [editingDraft, setEditingDraft] = useState<AIDraft | null>(null);
+  const [showFTOModal, setShowFTOModal] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showWOModal, setShowWOModal] = useState(false);
+
+  // Filters
+  const [filterType, setFilterType] = useState<string>("all");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+
+  // Name lookup maps (id → name)
+  const [propertyMap, setPropertyMap] = useState<Record<number, string>>({});
+  const [vendorMap, setVendorMap] = useState<Record<number, string>>({});
+  const [userMap, setUserMap] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    Promise.all([
+      fetchJSON("/properties").catch(() => []),
+      fetchJSON("/vendors?limit=500&offset=0").catch(() => []),
+      fetchJSON("/users/all").catch(() => []),
+    ]).then(([props, vendors, users]) => {
+      const pm: Record<number, string> = {};
+      for (const p of props) pm[p.id] = p.name;
+      setPropertyMap(pm);
+
+      const vm: Record<number, string> = {};
+      for (const v of vendors) vm[v.id] = v.name;
+      setVendorMap(vm);
+
+      const um: Record<number, string> = {};
+      for (const u of users) um[u.id] = u.name || u.email || String(u.id);
+      setUserMap(um);
+    });
+  }, []);
+
+  // -----------------------------------------------------------------------
+  // Data loading — default to pending only, toggle to show all
+  // -----------------------------------------------------------------------
+
+  const loadDrafts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const statusParam = showHistory ? undefined : "pending";
+      const [data, countResp] = await Promise.all([
+        listDrafts(statusParam),
+        getDraftCount(),
+      ]);
+      setDrafts(data);
+      setPendingCount(countResp.count);
+    } catch (err: any) {
+      console.error("Error loading AI drafts:", err);
+      setError(err.message ?? "Failed to load drafts");
+      setDrafts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [showHistory]);
+
+  useEffect(() => {
+    loadDrafts();
+  }, [loadDrafts]);
+
+  useEffect(() => {
+    const handler = () => loadDrafts();
+    window.addEventListener("refreshAIDrafts", handler);
+    return () => window.removeEventListener("refreshAIDrafts", handler);
+  }, [loadDrafts]);
+
+  // Auto-expand a draft if linked from the notification panel (?expand=ID)
+  useEffect(() => {
+    if (didAutoExpand.current || loading || drafts.length === 0) return;
+    const expandParam = searchParams.get("expand");
+    if (expandParam) {
+      const id = Number(expandParam);
+      if (id && drafts.some((d) => d.id === id)) {
+        setExpandedId(id);
+      }
+      // Clean up the URL param
+      searchParams.delete("expand");
+      setSearchParams(searchParams, { replace: true });
+      didAutoExpand.current = true;
+    }
+  }, [loading, drafts, searchParams, setSearchParams]);
+
+  // -----------------------------------------------------------------------
+  // Actions
+  // -----------------------------------------------------------------------
+
+  const currentUserId = useMemo(() => {
+    const raw = localStorage.getItem("avm_user_id");
+    return raw ? Number(raw) : 0;
+  }, []);
+
+  const handleApprove = useCallback(
+    async (draft: AIDraft) => {
+      if (actionInFlight) return;
+
+      // Block WO approval if parent task draft is not yet approved
+      if (draft.entity_type === "work_order" && draft.parent_draft_id) {
+        const parentDraft = drafts.find((d) => d.id === draft.parent_draft_id);
+        if (parentDraft && parentDraft.status !== "approved") {
+          setError("Please approve the parent task before approving this work order.");
+          return;
+        }
+      }
+
+      try {
+        setActionInFlight(draft.id);
+        await approveDraft(draft.id, currentUserId);
+        await loadDrafts();
+      } catch (err: any) {
+        console.error("Approve failed:", err);
+        setError(err.message ?? "Failed to approve draft");
+      } finally {
+        setActionInFlight(null);
+      }
+    },
+    [currentUserId, actionInFlight, loadDrafts, drafts]
+  );
+
+  const handleReject = useCallback(
+    async (draft: AIDraft) => {
+      if (actionInFlight) return;
+      try {
+        setActionInFlight(draft.id);
+        await rejectDraft(draft.id, currentUserId);
+        await loadDrafts();
+      } catch (err: any) {
+        console.error("Reject failed:", err);
+        setError(err.message ?? "Failed to reject draft");
+      } finally {
+        setActionInFlight(null);
+      }
+    },
+    [currentUserId, actionInFlight, loadDrafts]
+  );
+
+  // -----------------------------------------------------------------------
+  // Edit draft in modal
+  // -----------------------------------------------------------------------
+
+  const handleEditDraft = useCallback((draft: AIDraft) => {
+    setEditingDraft(draft);
+    switch (draft.entity_type) {
+      case "fto":
+        setShowFTOModal(true);
+        break;
+      case "task":
+        setShowTaskModal(true);
+        break;
+      case "work_order":
+        setShowWOModal(true);
+        break;
+    }
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setEditingDraft(null);
+    setShowFTOModal(false);
+    setShowTaskModal(false);
+    setShowWOModal(false);
+    loadDrafts();
+  }, [loadDrafts]);
+
+  // -----------------------------------------------------------------------
+  // Grouped data
+  // -----------------------------------------------------------------------
+
+  const groups = useMemo(() => groupDrafts(drafts), [drafts]);
+
+  const filteredGroups = useMemo(() => {
+    return groups.filter(({ parent, children }) => {
+      // Type filter: match if parent OR any child matches
+      if (filterType !== "all") {
+        const typeMatch =
+          parent.entity_type === filterType ||
+          children.some((c) => c.entity_type === filterType);
+        if (!typeMatch) return false;
+      }
+      if (filterDateFrom) {
+        const from = new Date(filterDateFrom);
+        if (new Date(parent.created_at) < from) return false;
+      }
+      if (filterDateTo) {
+        const to = new Date(filterDateTo);
+        to.setDate(to.getDate() + 1); // include the full end day
+        if (new Date(parent.created_at) >= to) return false;
+      }
+      return true;
+    });
+  }, [groups, filterType, filterDateFrom, filterDateTo]);
+
+  // -----------------------------------------------------------------------
+  // Render a draft row
+  // -----------------------------------------------------------------------
+
+  function renderDraftRow(draft: AIDraft, isChild: boolean) {
+    const isExpanded = expandedId === draft.id;
+    const isBusy = actionInFlight === draft.id;
+    const isPending = draft.status === "pending";
+
+    return (
+      <div key={draft.id}>
+        <div
+          onClick={() => setExpandedId(isExpanded ? null : draft.id)}
+          className={`grid items-center cursor-pointer transition-colors ${
+            isChild
+              ? "hover:bg-[#f3f1fa]"
+              : "hover:bg-[#fafafa]"
+          } ${isExpanded ? "bg-[#f8f9fb]" : ""}`}
+          style={{ gridTemplateColumns: "28px auto 1fr 80px 100px 80px 100px 70px", padding: "9px 16px", gap: "12px" }}
+        >
+          {/* Chevron */}
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 16 16"
+            fill="none"
+            className={`transition-transform flex-shrink-0 ${isExpanded ? "rotate-90" : ""}`}
+          >
+            <path d="M6 4L10 8L6 12" stroke="#a1a1a9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+
+          {/* Type */}
+          <EntityTypeBadge type={draft.entity_type} />
+
+          {/* Name */}
+          <div className="min-w-0">
+            {isPending ? (
+              <span
+                className="text-sm text-[#303030] truncate block hover:underline hover:text-[#2463eb] cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditDraft(draft);
+                }}
+              >
+                {extractName(draft)}
+              </span>
+            ) : (
+              <span className="text-sm text-[#303030] truncate block">
+                {extractName(draft)}
+              </span>
+            )}
+          </div>
+
+          {/* Source */}
+          <SourceBadge source={draft.source} />
+
+          {/* Confidence */}
+          {draft.ai_confidence != null ? (
+            <ConfidenceBar value={draft.ai_confidence} />
+          ) : (
+            <span className="text-xs text-[#a1a1a9]">—</span>
+          )}
+
+          {/* Status */}
+          <StatusBadge status={draft.status} />
+
+          {/* Date */}
+          <span className="text-xs text-[#717179] whitespace-nowrap">
+            {formatDate(draft.created_at)}
+          </span>
+
+          {/* Actions */}
+          <div
+            className="flex items-center gap-2 justify-end"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {isPending ? (
+              <>
+                <button
+                  disabled={isBusy}
+                  onClick={() => handleApprove(draft)}
+                  title="Approve"
+                  className={`inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors ${
+                    isBusy
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-emerald-500 hover:bg-emerald-50"
+                  }`}
+                >
+                  {isBusy ? (
+                    <LoadingSpinner />
+                  ) : (
+                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                      <circle cx="11" cy="11" r="10" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M7 11L10 14L15 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  disabled={isBusy}
+                  onClick={() => handleReject(draft)}
+                  title="Reject"
+                  className={`inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors ${
+                    isBusy
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-red-400 hover:bg-red-50"
+                  }`}
+                >
+                  {isBusy ? (
+                    <LoadingSpinner />
+                  ) : (
+                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                      <circle cx="11" cy="11" r="10" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M8 8L14 14M14 8L8 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  )}
+                </button>
+              </>
+            ) : (
+              <span className="text-xs text-[#c4c4c4]">
+                {draft.reviewed_by_name || ""}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {isExpanded && !isChild && <DraftDetailPanel draft={draft} propertyMap={propertyMap} vendorMap={vendorMap} userMap={userMap} />}
+      </div>
+    );
+  }
+
+  // -----------------------------------------------------------------------
+  // Page render
+  // -----------------------------------------------------------------------
+
+  return (
+    <PageTemplate>
+      <div className="flex flex-col gap-5 w-full">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-[#303030] font-semibold text-2xl">
+                AI Drafts
+              </h1>
+              {pendingCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#f0f0f0] text-[#717179] text-[11px] font-medium">
+                  {pendingCount}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-[#717179] mt-1">
+              Review and approve AI-detected maintenance items
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Show history toggle */}
+            <label className="flex items-center gap-2 text-xs text-[#999] cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={showHistory}
+                onChange={(e) => setShowHistory(e.target.checked)}
+                className="rounded border-gray-300 text-[#2463eb] focus:ring-[#2463eb] h-3 w-3"
+              />
+              Show history
+            </label>
+
+            <button
+              onClick={loadDrafts}
+              className="flex h-7 items-center gap-1.5 px-2.5 rounded-lg border border-[#e8e8e8] bg-white hover:bg-[#fafafa] transition-colors text-xs text-[#999]"
+            >
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M13.65 7.015A5.5 5.5 0 1 0 12.5 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M14 3V7H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {error}
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto text-red-400 hover:text-red-600"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Filters */}
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Type filter */}
+          <div className="flex items-center gap-0.5 bg-[#f5f5f5] rounded-lg p-0.5">
+            {(["all", "task", "fto", "work_order"] as const).map((t) => {
+              const labels: Record<string, string> = { all: "All", task: "Task", fto: "FTO", work_order: "Work Order" };
+              const active = filterType === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setFilterType(t)}
+                  className={`h-6 px-2.5 rounded-md text-[11px] font-medium transition-colors ${
+                    active
+                      ? "bg-white text-[#303030] shadow-sm"
+                      : "text-[#999] hover:text-[#717179]"
+                  }`}
+                >
+                  {labels[t]}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Date range */}
+          <div className="flex items-center gap-1.5 ml-auto">
+            <span className="text-[11px] text-[#999]">From</span>
+            <input
+              type="date"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+              className="h-6 px-2 rounded-md border border-[#e8e8e8] text-[11px] text-[#303030] bg-white focus:outline-none focus:border-[#c0c0c0]"
+            />
+            <span className="text-[11px] text-[#999]">to</span>
+            <input
+              type="date"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+              className="h-6 px-2 rounded-md border border-[#e8e8e8] text-[11px] text-[#303030] bg-white focus:outline-none focus:border-[#c0c0c0]"
+            />
+            {(filterDateFrom || filterDateTo) && (
+              <button
+                onClick={() => { setFilterDateFrom(""); setFilterDateTo(""); }}
+                className="text-[#999] hover:text-red-500 ml-0.5"
+                title="Clear dates"
+              >
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                  <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="border border-[#ebebeb] rounded-xl bg-white overflow-hidden">
+          {/* Header row */}
+          <div
+            className="grid items-center border-b border-[#f0f0f0] text-[10px] font-semibold text-[#bbb] uppercase tracking-wider select-none"
+            style={{ gridTemplateColumns: "28px auto 1fr 80px 100px 80px 100px 70px", padding: "7px 16px", gap: "12px" }}
+          >
+            <div />
+            <div>Type</div>
+            <div>Name</div>
+            <div>Source</div>
+            <div>Confidence</div>
+            <div>Status</div>
+            <div>Created</div>
+            <div className="text-right">Actions</div>
+          </div>
+
+          {/* Loading */}
+          {loading && (
+            <div className="flex items-center justify-center py-16">
+              <div className="flex items-center gap-3 text-sm text-[#717179]">
+                <svg className="animate-spin h-5 w-5 text-[#2463eb]" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                  <path d="M4 12a8 8 0 0 1 8-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75" />
+                </svg>
+                Loading...
+              </div>
+            </div>
+          )}
+
+          {/* Empty */}
+          {!loading && filteredGroups.length === 0 && !error && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="mb-3 text-[#d4d4d4]">
+                <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <p className="text-sm font-medium text-[#717179]">
+                {drafts.length > 0 ? "No drafts match filters" : showHistory ? "No drafts found" : "All caught up"}
+              </p>
+              <p className="text-xs text-[#a1a1a9] mt-1">
+                {drafts.length > 0
+                  ? "Try adjusting the type or date filters."
+                  : showHistory
+                    ? "No AI drafts have been created yet."
+                    : "No pending drafts to review. Check \"Show history\" to see past decisions."}
+              </p>
+            </div>
+          )}
+
+          {/* Rows */}
+          {!loading &&
+            filteredGroups.map(({ parent, children }) => (
+              <div key={parent.id} className="border-b border-[#f0f0f0] last:border-0">
+                {renderDraftRow(parent, false)}
+                {children.length > 0 && (
+                  <div className="ml-12 mr-4 mb-2">
+                    {children.map((child) => (
+                      <div
+                        key={child.id}
+                        className="rounded-lg border border-[#e8e5f3] bg-[#faf9fd] overflow-hidden"
+                      >
+                        {renderDraftRow(child, true)}
+                        {expandedId === child.id && <DraftDetailPanel draft={child} propertyMap={propertyMap} vendorMap={vendorMap} userMap={userMap} />}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+        </div>
+
+        {/* Footer */}
+        {!loading && drafts.length > 0 && (
+          <div className="text-xs text-[#a1a1a9]">
+            {filteredGroups.length !== groups.length
+              ? `${filteredGroups.length} of ${drafts.length} drafts`
+              : `${drafts.length} draft${drafts.length !== 1 ? "s" : ""}`}
+            {" -- "}
+            {pendingCount} pending
+          </div>
+        )}
+      </div>
+
+      {/* Edit modals */}
+      {showFTOModal && editingDraft && (
+        <CreateFTOModal
+          open={showFTOModal}
+          onOpenChange={(open) => { if (!open) closeModal(); }}
+          editingFTO={{
+            id: 0,
+            name: editingDraft.extracted_data?.name || "",
+            description: editingDraft.extracted_data?.description || "",
+            priority: editingDraft.extracted_data?.priority || "normal",
+            status: "new",
+            due_date: editingDraft.extracted_data?.due_date || "",
+            property_id: editingDraft.extracted_data?.property_id,
+            field_team_member_ids: editingDraft.extracted_data?.field_team_member_ids || [],
+            pm_assignee_ids: [],
+          }}
+        />
+      )}
+
+      {showTaskModal && editingDraft && (
+        <CreateTaskModal
+          open={showTaskModal}
+          onOpenChange={(open) => { if (!open) closeModal(); }}
+          editData={{
+            id: 0,
+            name: editingDraft.extracted_data?.name || "",
+            description: editingDraft.extracted_data?.description || "",
+            priority: editingDraft.extracted_data?.priority || "normal",
+            status: editingDraft.extracted_data?.status || "open",
+            category: editingDraft.extracted_data?.category || "",
+            property_id: editingDraft.extracted_data?.property_id,
+            unit_id: editingDraft.extracted_data?.unit_id || null,
+            due_date: editingDraft.extracted_data?.due_date || null,
+            assignees: [],
+            collaborators: [],
+          }}
+        />
+      )}
+
+      {showWOModal && editingDraft && (() => {
+        const parentDraft = editingDraft.parent_draft_id
+          ? drafts.find((d) => d.id === editingDraft.parent_draft_id)
+          : null;
+        const taskName = editingDraft.extracted_data?.task_name
+          || (parentDraft ? extractName(parentDraft) : "");
+        return (
+          <CreateWorkOrderModalV2
+            open={showWOModal}
+            onOpenChange={(open) => { if (!open) closeModal(); }}
+            mode="create"
+            propertyId={editingDraft.extracted_data?.property_id}
+            initialData={{
+              task: taskName,
+              workOrderName: editingDraft.extracted_data?.name || "",
+              vendorId: editingDraft.extracted_data?.vendor_id,
+              priority: editingDraft.extracted_data?.priority || "normal",
+              notes: editingDraft.extracted_data?.work_description || "",
+            }}
+          />
+        );
+      })()}
+    </PageTemplate>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tiny spinner
+// ---------------------------------------------------------------------------
+
+function LoadingSpinner() {
+  return (
+    <svg className="animate-spin h-3 w-3" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" className="opacity-25" />
+      <path d="M2 8a6 6 0 0 1 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-75" />
+    </svg>
+  );
+}
