@@ -15,7 +15,7 @@ import {
   ChevronDownIcon,
 } from "@/components/icons";
 import { DownloadIcon } from "@/components/icons/DownloadIcon";
-import { Maximize2, Minimize2, ChevronRight, ChevronDown } from "lucide-react";
+import { Maximize2, Minimize2, ChevronRight, ChevronDown, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectField } from "@/components/forms/SelectField";
 import {
@@ -1312,6 +1312,14 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           </BlueButton>
         </div>
       </div>
+
+      {/* No checklist notice */}
+      {!isLoadingChecklist && (!checklistId || nodes.length === 0) && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
+          <span>No checklist has been assigned to this inspection. Please assign a checklist template to begin.</span>
+        </div>
+      )}
 
       {/* Two-Column Layout: Left (Checklist) and Right (Photos + Assignees) */}
       <div className="flex flex-col lg:flex-row gap-6 w-full">

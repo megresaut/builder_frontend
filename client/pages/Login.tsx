@@ -84,6 +84,9 @@ export const Login = () => {
       console.log("DECODED JWT PAYLOAD:", decoded);
       console.log("JWT KEYS:", decoded ? Object.keys(decoded) : null);
   
+      // Clear stale tab state so RestoreTabUrlSync doesn't override the redirect
+      sessionStorage.removeItem("avm-tab-state");
+
       // Navigate to main app
       if (result.role === "field_team_member") {
         navigate("/fto", { replace: true });

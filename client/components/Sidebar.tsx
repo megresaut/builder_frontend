@@ -123,6 +123,9 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     ) {
       return "maintenance";
     }
+    if (path.includes("/operations")) {
+      return "operations";
+    }
     return null;
   };
 
@@ -467,6 +470,28 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       ),
       hasSubmenu: true,
     },
+    // Calendar tab — only visible to user ID 5
+    ...(userId === 5 ? [{
+      id: "operations",
+      label: "Calendar",
+      iconLight: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2.5" y="3.33334" width="15" height="13.3333" rx="1.66667" stroke="#717179" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M13.3333 1.66667V5" stroke="#717179" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M6.66667 1.66667V5" stroke="#717179" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M2.5 8.33334H17.5" stroke="#717179" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      iconDark: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2.5" y="3.33334" width="15" height="13.3333" rx="1.66667" fill="#303030" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M13.3333 1.66667V5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M6.66667 1.66667V5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M2.5 8.33334H17.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      hasSubmenu: true,
+    }] : []),
       ];
 
   const submenuMap: Record<
@@ -514,6 +539,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         sectionId: "vendors",
       },
     ],
+    operations: [{ label: "Calendar", path: "/operations", sectionId: "operations-calendar" }],
   };
 
   const tabContext = useContext(TabContext);
@@ -530,6 +556,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       "field-team-orders": "field-team-orders",
       "work-orders": "work-orders",
       "vendors": "field-team-orders",
+      "operations-calendar": "operations",
     };
 
     return sectionToTabMap[sectionId];
@@ -548,7 +575,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         ...currentTabMetadata,
         label,
         sectionId,
-        // Don't update route here - let Header's useEffect handle it
+        ...(path && { route: path }),
         scrollPosition: 0,
       });
     }

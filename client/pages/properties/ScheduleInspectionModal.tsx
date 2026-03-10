@@ -7,6 +7,8 @@ import { ComboboxFieldWithCustomInput } from "@/components/forms/ComboboxFieldWi
 import { DEFAULT_INSPECTION_TEMPLATES } from "@/data/inspections";
 import { BackendInspectionChecklist } from "@/api/inspections";
 import { FieldManager } from "./Inspections";
+import { useConflictCheck } from "@/hooks/useConflictCheck";
+import ConflictWarningBanner from "@/components/ConflictWarningBanner";
 
 interface ScheduleInspectionModalProps {
   open: boolean;
@@ -28,6 +30,14 @@ export default function ScheduleInspectionModal({
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Conflict check for field manager based on due date
+  const conflictUserIds = selectedManagerId ? [Number(selectedManagerId)] : [];
+  const conflictStart = dueDate ? dueDate.toISOString() : undefined;
+  const conflictEnd = dueDate
+    ? new Date(dueDate.getTime() + 24 * 60 * 60 * 1000).toISOString()
+    : undefined;
+  const { conflicts } = useConflictCheck(conflictUserIds, conflictStart, conflictEnd);
 
   // Reset form when modal closes
   useEffect(() => {
@@ -78,14 +88,14 @@ export default function ScheduleInspectionModal({
   }));
 
   // Show all templates from the database
-  const templateOptions = useMemo(() => 
+  const templateOptions = useMemo(() =>
     templates.map((template) => ({
       value: template.name,
       label: template.name,
     })),
     [templates]
   );
-  
+
   // Debug: Log templates to console
   useEffect(() => {
     if (open) {
@@ -173,6 +183,8 @@ export default function ScheduleInspectionModal({
           placeholder="Select a Due Date"
           returnFormat="Date"
         />
+
+        <ConflictWarningBanner conflicts={conflicts} />
       </div>
     </ModalTemplate>
   );

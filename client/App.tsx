@@ -36,6 +36,8 @@ import { Welcome } from "./pages/Welcome";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { TermsOfService } from "./pages/TermsOfService";
 import TaskSummary from "./pages/TaskSummary/index";
+import AIDrafts from "./pages/AIDrafts";
+import Operations from "./pages/Operations";
 
 // FTO
 import FtoShellLayout from "./layout/FTOShellLayout";
@@ -361,6 +363,17 @@ export default function App() {
                 />
 
                 <Route
+                  path="/ai-drafts"
+                  element={
+                    <RequireAuth allowedRoles={["admin", "property_manager"]}>
+                      <ShellLayout>
+                        <AIDrafts />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
                   path="/task-summary/:taskId/:tab/:workOrderId"
                   element={
                     <ShellLayout>
@@ -390,6 +403,17 @@ export default function App() {
                     <ShellLayout>
                       <TaskSummaryWrapper />
                     </ShellLayout>
+                  }
+                />
+
+                <Route
+                  path="/operations"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <Operations />
+                      </ShellLayout>
+                    </RequireAuth>
                   }
                 />
 

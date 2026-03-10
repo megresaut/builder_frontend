@@ -161,10 +161,10 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
           <div
             ref={mainContentRef}
             data-testid="main-content"
-            className="flex-1 overflow-auto bg-white"
-            style={{ paddingBottom: "150px", borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
+            className="flex-1 overflow-auto bg-white flex flex-col"
+            style={{ borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
           >
-            <div>
+            <div className="flex-1">
               {children}
             </div>
           </div>

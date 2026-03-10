@@ -1,8 +1,11 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
 import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
+import { getDraftCount } from "@/api/aiDrafts";
+import NotificationPanel from "@/components/NotificationPanel";
+import NotificationBell from "@/components/NotificationBell";
 
 // Global state for fullscreen mode using localStorage
 const FULLSCREEN_KEY = "app-fullscreen-mode";
@@ -29,6 +32,29 @@ export default function Header() {
   const location = useLocation();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   const { propertyDisplayName } = usePropertyBreadcrumb();
+
+  // Only show draft notifications and calendar bell for user ID 5
+  const currentUserId = localStorage.getItem("avm_user_id");
+  const showDraftNotifications = currentUserId === "5";
+
+  // AI Drafts pending count for notification bell
+  const [pendingDrafts, setPendingDrafts] = useState(0);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const loadPendingCount = useCallback(() => {
+    if (!showDraftNotifications) return;
+    getDraftCount().then((r) => setPendingDrafts(r.count)).catch(() => {});
+  }, [showDraftNotifications]);
+  useEffect(() => {
+    loadPendingCount();
+    const handler = () => loadPendingCount();
+    window.addEventListener("refreshAIDrafts", handler);
+    return () => window.removeEventListener("refreshAIDrafts", handler);
+  }, [loadPendingCount]);
+  // Refresh count periodically (every 60s)
+  useEffect(() => {
+    const interval = setInterval(loadPendingCount, 60000);
+    return () => clearInterval(interval);
+  }, [loadPendingCount]);
 
   const getCurrentPageLabel = (): {
     label: string;
@@ -112,6 +138,10 @@ export default function Header() {
       return { label: "Recurring Tasks", path, id: "recurring-tasks" };
     } else if (path === "/vendors") {
       return { label: "Vendors", path, id: "vendors" };
+    } else if (path === "/ai-drafts") {
+      return { label: "Drafts", path, id: "ai-drafts" };
+    } else if (path === "/operations") {
+      return { label: "Calendar", path, id: "operations" };
     } else if (path === "/utilities/view-bill") {
       return { label: "View Bill", path, id: "utilities-view-bill" };
     } else if (
@@ -360,19 +390,24 @@ export default function Header() {
     setNextNewTabId,
   } = tabContext;
 
+  // Keep a ref to the latest tabMetadata so navigateToTabRoute never reads stale closure state
+  const tabMetadataRef = useRef(tabMetadata);
+  tabMetadataRef.current = tabMetadata;
+
   // When the user navigates (sidebar, link, task click, etc.): update only the CURRENT tab's label and route.
   // Do not add or switch tabs — new tabs only when user clicks "+" (addNewTab).
   useEffect(() => {
     const currentPageInfo = getCurrentPageLabel();
     if (currentPageInfo && selectedTab) {
       const metadata = tabMetadata[selectedTab];
-      if (metadata?.route !== currentPageInfo.path) {
-        const isTaskRoute = currentPageInfo.id.startsWith("task-");
+      const isTaskRoute = currentPageInfo.id.startsWith("task-");
+      const newSectionId = isTaskRoute ? "all-tasks" : currentPageInfo.id;
+      if (metadata?.route !== currentPageInfo.path || metadata?.sectionId !== newSectionId) {
         setTabMetadata(selectedTab, {
           ...metadata,
           label: currentPageInfo.label,
           route: currentPageInfo.path,
-          ...(isTaskRoute && { sectionId: "all-tasks" }),
+          sectionId: newSectionId,
         });
       }
     }
@@ -617,6 +652,42 @@ export default function Header() {
           />
         </svg>
       ),
+      operations: (
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M16 1C16.5523 1 17 1.44772 17 2V3.00163C17.4755 3.00489 17.891 3.01472 18.2518 3.04419C18.8139 3.09012 19.3306 3.18868 19.816 3.43597C20.5686 3.81947 21.1805 4.43139 21.564 5.18404C21.8113 5.66937 21.9099 6.18608 21.9558 6.74817C22 7.28936 22 7.95372 22 8.75868V17.2413C22 18.0463 22 18.7106 21.9558 19.2518C21.9099 19.8139 21.8113 20.3306 21.564 20.816C21.1805 21.5686 20.5686 22.1805 19.816 22.564C19.3306 22.8113 18.8139 22.9099 18.2518 22.9558C17.7106 23 17.0463 23 16.2413 23H7.75868C6.95372 23 6.28937 23 5.74818 22.9558C5.18608 22.9099 4.66937 22.8113 4.18404 22.564C3.43139 22.1805 2.81947 21.5686 2.43598 20.816C2.18868 20.3306 2.09012 19.8139 2.04419 19.2518C1.99998 18.7106 1.99999 18.0463 2 17.2413V8.7587C1.99999 7.95374 1.99998 7.28937 2.04419 6.74817C2.09012 6.18608 2.18868 5.66937 2.43598 5.18404C2.81947 4.43139 3.43139 3.81947 4.18404 3.43597C4.66937 3.18868 5.18608 3.09012 5.74818 3.04419C6.10898 3.01472 6.52454 3.00489 7 3.00163V2C7 1.44772 7.44772 1 8 1C8.55229 1 9 1.44772 9 2V3H15V2C15 1.44772 15.4477 1 16 1ZM7 5.00176V6C7 6.55228 7.44772 7 8 7C8.55229 7 9 6.55228 9 6V5H15V6C15 6.55228 15.4477 7 16 7C16.5523 7 17 6.55228 17 6V5.00176C17.4455 5.00489 17.7954 5.01357 18.089 5.03755C18.5274 5.07337 18.7516 5.1383 18.908 5.21799C19.2843 5.40973 19.5903 5.7157 19.782 6.09202C19.8617 6.24842 19.9266 6.47262 19.9624 6.91104C19.9992 7.36113 20 7.94342 20 8.8V9H4V8.8C4 7.94342 4.00078 7.36113 4.03755 6.91104C4.07337 6.47262 4.1383 6.24842 4.21799 6.09202C4.40973 5.7157 4.7157 5.40973 5.09202 5.21799C5.24842 5.1383 5.47262 5.07337 5.91104 5.03755C6.20463 5.01357 6.55447 5.00489 7 5.00176Z"
+            fill="currentColor"
+          />
+        </svg>
+      ),
+      "ai-drafts": (
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M18.8385 7H11.1615C10.6343 6.99998 10.1795 6.99997 9.80498 7.03057C9.40963 7.06287 9.01641 7.13419 8.63803 7.32698C8.07355 7.6146 7.61461 8.07354 7.32699 8.63803C7.13419 9.01641 7.06288 9.40963 7.03057 9.80497C6.99997 10.1795 6.99999 10.6343 7 11.1614V18.8385C6.99999 19.3657 6.99997 19.8205 7.03057 20.195C7.06288 20.5904 7.13419 20.9836 7.32699 21.362C7.61461 21.9265 8.07355 22.3854 8.63803 22.673C9.01641 22.8658 9.40963 22.9371 9.80498 22.9694C10.1795 23 10.6343 23 11.1614 23H18.8385C19.3656 23 19.8205 23 20.195 22.9694C20.5904 22.9371 20.9836 22.8658 21.362 22.673C21.9265 22.3854 22.3854 21.9265 22.673 21.362C22.8658 20.9836 22.9371 20.5904 22.9694 20.195C23 19.8205 23 19.3657 23 18.8385V11.1615C23 10.6343 23 10.1796 22.9694 9.80497C22.9371 9.40963 22.8658 9.01641 22.673 8.63803C22.3854 8.07354 21.9265 7.6146 21.362 7.32698C20.9836 7.13419 20.5904 7.06287 20.195 7.03057C19.8205 6.99997 19.3657 6.99998 18.8385 7Z"
+            fill="currentColor"
+          />
+          <path
+            d="M5.16146 1H12.8385C13.3657 0.999984 13.8205 0.999969 14.195 1.03057C14.5904 1.06287 14.9836 1.13419 15.362 1.32698C15.9265 1.6146 16.3854 2.07354 16.673 2.63803C16.8658 3.01641 16.9371 3.40963 16.9694 3.80497C16.9969 4.14076 16.9997 4.54098 17 5.00003L11.1191 5.00001C10.6305 4.9999 10.1007 4.99977 9.64211 5.03724C9.12309 5.07964 8.43737 5.1846 7.73005 5.54499C6.78924 6.02436 6.02434 6.78926 5.54497 7.73007C5.18458 8.43739 5.07962 9.12311 5.03722 9.64213C4.99975 10.1007 4.99988 10.6305 4.99999 11.1192L5.00001 17C4.54097 16.9997 4.14075 16.9969 3.80497 16.9694C3.40963 16.9371 3.01641 16.8658 2.63803 16.673C2.07354 16.3854 1.6146 15.9265 1.32698 15.362C1.13419 14.9836 1.06287 14.5904 1.03057 14.195C0.999967 13.8205 0.999984 13.3658 1 12.8386V5.16148C0.999984 4.63437 0.999967 4.17952 1.03057 3.80497C1.06287 3.40963 1.13419 3.01641 1.32698 2.63803C1.6146 2.07354 2.07354 1.6146 2.63803 1.32698C3.01641 1.13419 3.40963 1.06287 3.80497 1.03057C4.17953 0.999969 4.63433 0.999984 5.16146 1Z"
+            fill="currentColor"
+          />
+        </svg>
+      ),
     };
 
     // Map section IDs to icon types
@@ -631,7 +702,8 @@ export default function Header() {
     };
 
     const iconKey = mapping[sectionId];
-    return iconKey ? iconLibrary[iconKey] : null;
+    if (iconKey) return iconLibrary[iconKey];
+    return sectionIconMap[sectionId] || null;
   };
 
   // Save scroll position before switching tabs
@@ -650,13 +722,13 @@ export default function Header() {
     }
   };
 
-  // Navigate to a tab's stored route
-  const navigateToTabRoute = (tabId: string) => {
-    const metadata = tabMetadata[tabId];
+  // Navigate to a tab's stored route (uses ref to avoid stale closure)
+  const navigateToTabRoute = useCallback((tabId: string) => {
+    const metadata = tabMetadataRef.current[tabId];
     if (metadata?.route && metadata.route !== location.pathname) {
       navigate(metadata.route);
     }
-  };
+  }, [location.pathname, navigate]);
 
   const toggleTab = (tabId: string, isClosing: boolean = false) => {
     const newTabs = new Set(openTabs);
@@ -728,6 +800,7 @@ export default function Header() {
   );
 
   return (
+    <>
     <header className="bg-white">
       {/* Tabs Section */}
       {!isFullscreen && (
@@ -1023,8 +1096,18 @@ export default function Header() {
               </svg>
             </button>
 
-            {/* Notification Button */}
-            <button className="p-2 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors flex-shrink-0 relative">
+            {/* Calendar Notifications Bell — only for user ID 5 */}
+            {showDraftNotifications && <NotificationBell />}
+
+            {/* Notification Button → opens panel — only for user ID 5 */}
+            {showDraftNotifications && (
+            <button
+              onClick={() => setNotificationsOpen(true)}
+              title={pendingDrafts > 0 ? `${pendingDrafts} pending draft${pendingDrafts !== 1 ? "s" : ""} to review` : "AI Drafts"}
+              className={`p-2 hover:bg-gray-100 rounded-lg border transition-colors flex-shrink-0 relative ${
+                notificationsOpen || location.pathname === "/ai-drafts" ? "border-[#2463eb] bg-blue-50" : "border-gray-300"
+              }`}
+            >
               <svg
                 width="18"
                 height="18"
@@ -1037,7 +1120,13 @@ export default function Header() {
                 <path d="M10.268 21a2 2 0 0 0 3.464 0" />
                 <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
               </svg>
+              {pendingDrafts > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                  {pendingDrafts > 99 ? "99+" : pendingDrafts}
+                </span>
+              )}
             </button>
+            )}
 
             {/* Fullscreen Toggle Button */}
             <button
@@ -1094,5 +1183,11 @@ export default function Header() {
         )}
       </div>
     </header>
+
+    <NotificationPanel
+      open={notificationsOpen}
+      onClose={() => setNotificationsOpen(false)}
+    />
+    </>
   );
 }

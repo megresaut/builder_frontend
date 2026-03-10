@@ -612,7 +612,6 @@ export default function ApproveFTOPage() {
     property_type: string;
   } | null>(null);
   const canExportToBuildium =
-    isMiscMode &&
     !!propertyBuildiumDetails?.buildium_property_id?.trim();
   // FTO Details - populated from props or state
   const [ftoName, setFtoName] = useState(state.ftoName || "");
@@ -651,7 +650,7 @@ export default function ApproveFTOPage() {
   const [editMiscPropertyId, setEditMiscPropertyId] = useState<number | null>(null);
   const [ftoDetailsVersion, setFtoDetailsVersion] = useState(0);
 
-  // Load property Buildium details when propertyId is set (for misc export)
+  // Load property Buildium details when propertyId is set (for Buildium expense export)
   useEffect(() => {
     if (propertyId == null) {
       setPropertyBuildiumDetails(null);
@@ -1298,6 +1297,40 @@ export default function ApproveFTOPage() {
         throw new Error("No hours or expenses to approve");
       }
 
+      // Pre-validate Buildium fields before approving (so we don't approve then fail to export)
+      let vendorCache: Record<string, { id: number; buildiumVendorId: string | null }> | null = null;
+      if (expenseRows.length > 0 && canExportToBuildium) {
+        const missingGL = expenseRows.some((r) => !r.glAccountId);
+        if (missingGL) {
+          throw new Error("Select a GL Account for each expense row before exporting to Buildium.");
+        }
+
+        vendorCache = {};
+        for (const row of expenseRows) {
+          const vendorName = row.vendor.trim();
+          if (!vendorName) throw new Error("Each expense row must have a vendor.");
+          if (!vendorCache[vendorName]) {
+            try {
+              const results = await fetchJSON(`/vendors?search=${encodeURIComponent(vendorName)}&limit=1`);
+              const match = Array.isArray(results) && results.length > 0 ? results[0] : null;
+              if (!match) {
+                throw new Error(`Vendor "${vendorName}" not found in the system. Please select a vendor from the dropdown.`);
+              }
+              vendorCache[vendorName] = {
+                id: Number(match.id),
+                buildiumVendorId: match.buildium_vendor_id ?? null,
+              };
+            } catch (fetchErr) {
+              if (fetchErr instanceof Error && (fetchErr.message.startsWith("Vendor") || fetchErr.message.startsWith("Each"))) throw fetchErr;
+              throw new Error(`Failed to look up vendor "${vendorName}".`);
+            }
+          }
+          if (!vendorCache[vendorName].buildiumVendorId) {
+            throw new Error(`Vendor "${vendorName}" is not linked to Buildium. Add a Buildium Vendor ID in vendor settings before exporting.`);
+          }
+        }
+      }
+
       // 1) PATCH each loaded submission with its current hour/expense rows (so deletions persist)
       for (const submissionId of loadedSubmissionIds) {
         const subHourRows = hourRows.filter((r) => r.submissionId === submissionId);
@@ -1351,41 +1384,10 @@ export default function ApproveFTOPage() {
         await approveFto(ftoIdNum);
       }
 
-      // --- MISC MODE: Export to Buildium when property has Buildium ID ---
-      if (isMiscMode && expenseRows.length > 0 && canExportToBuildium) {
-        // Validate GL accounts
-        const missingGL = expenseRows.some((r) => !r.glAccountId);
-        if (missingGL) {
-          throw new Error("Select a GL Account for each expense row before exporting to Buildium.");
-        }
-
-        // Resolve vendors by name → get vendor_id + check buildium_vendor_id
-        const vendorCache: Record<string, { id: number; buildiumVendorId: string | null }> = {};
-        for (const row of expenseRows) {
-          const vendorName = row.vendor.trim();
-          if (!vendorName) throw new Error("Each expense row must have a vendor.");
-          if (!vendorCache[vendorName]) {
-            try {
-              const results = await fetchJSON(`/vendors?search=${encodeURIComponent(vendorName)}&limit=1`);
-              const match = Array.isArray(results) && results.length > 0 ? results[0] : null;
-              if (!match) {
-                throw new Error(`Vendor "${vendorName}" not found in the system. Please select a vendor from the dropdown.`);
-              }
-              vendorCache[vendorName] = {
-                id: Number(match.id),
-                buildiumVendorId: match.buildium_vendor_id ?? null,
-              };
-            } catch (fetchErr) {
-              if (fetchErr instanceof Error && fetchErr.message.startsWith("Vendor")) throw fetchErr;
-              throw new Error(`Failed to look up vendor "${vendorName}".`);
-            }
-          }
-          if (!vendorCache[vendorName].buildiumVendorId) {
-            throw new Error(`Vendor "${vendorName}" is not linked to Buildium. Add a Buildium Vendor ID in vendor settings before exporting.`);
-          }
-        }
-
+      // --- Export expenses to Buildium when property has Buildium ID (both misc and FTO mode) ---
+      if (expenseRows.length > 0 && canExportToBuildium && vendorCache) {
         const buildiumErrors: string[] = [];
+        const exportedRowIds = new Set<string>();
 
         for (let i = 0; i < expenseRows.length; i++) {
           const row = expenseRows[i];
@@ -1400,7 +1402,7 @@ export default function ApproveFTOPage() {
             const dueDateStr = toYMD(dueDateObj);
 
             const amountCentsVal = parseMoneyToCents(row.amount);
-            const receiptNote = row.receiptNote || "Misc expense";
+            const receiptNote = row.receiptNote || (isMiscMode ? "Misc expense" : "FTO expense");
 
             const vendorInfo = vendorCache[row.vendor.trim()];
 
@@ -1432,22 +1434,32 @@ export default function ApproveFTOPage() {
               method: "POST",
               body: JSON.stringify(exportPayload),
             });
+            exportedRowIds.add(row.id);
           } catch (billErr) {
             buildiumErrors.push(`Row ${i + 1}: ${billErr instanceof Error ? billErr.message : String(billErr)}`);
           }
         }
 
+        // Persist exported_to_buildium for rows that succeeded (even on partial failure)
+        if (exportedRowIds.size > 0) {
+          const updatedRows = expenseRows.map((r) => ({
+            ...r,
+            exportedToBuildium: exportedRowIds.has(r.id) ? true : (r.exportedToBuildium ?? false),
+          }));
+          const submissionIds = [...new Set(updatedRows.map((r) => r.submissionId).filter((id) => id > 0))];
+          for (const subId of submissionIds) {
+            const subExpenseRows = updatedRows.filter((r) => r.submissionId === subId);
+            await patchSubmission(subId, {
+              materials_json: buildMaterialsJSON(subExpenseRows, { includeAvmreFields: true }),
+            });
+          }
+        }
+
         if (buildiumErrors.length > 0) {
-          alert("Expense approved, but some Buildium exports failed:\n\n" + buildiumErrors.join("\n"));
+          alert("Expenses approved, but some Buildium exports failed:\n\n" + buildiumErrors.join("\n"));
           navigate(-1);
           return;
         }
-
-        // Persist exported_to_buildium so Approve is disabled on next visit
-        const updatedRows = expenseRows.map((r) => ({ ...r, exportedToBuildium: true }));
-        await patchSubmission(submissionIdNum!, {
-          materials_json: buildMaterialsJSON(updatedRows, { includeAvmreFields: true }),
-        });
       }
 
       navigate(-1);
@@ -1508,6 +1520,7 @@ export default function ApproveFTOPage() {
 
   const isExpensesCellInvalid = (row: ExpenseRow, field: keyof ExpenseRow) => {
     const requiredFields = ['date', 'vendor', 'assignee', 'amount'];
+    if (canExportToBuildium) requiredFields.push('glAccountId');
     if (!requiredFields.includes(field)) return false;
 
     // Special case: 'assignee' field should check assigneeId (the numeric value)
@@ -2183,13 +2196,13 @@ export default function ApproveFTOPage() {
                             Charge Type <span className="text-red-600">*</span>
                           </span>
                         </div>
-                        {isMiscMode && (
+                        {canExportToBuildium && (
                           <div
                             className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
                             style={{ width: "200px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              GL Account {canExportToBuildium ? <span className="text-red-600">*</span> : null}
+                              GL Account <span className="text-red-600">*</span>
                             </span>
                           </div>
                         )}
@@ -2435,8 +2448,8 @@ export default function ApproveFTOPage() {
                             </Popover>
                           </div>
 
-                          {/* GL Account Cell (misc mode) */}
-                          {isMiscMode && (
+                          {/* GL Account Cell */}
+                          {canExportToBuildium && (
                             <div
                               className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                               style={{
@@ -2660,14 +2673,12 @@ export default function ApproveFTOPage() {
             <BlueButton
               onClick={handleApprove}
               disabled={
-                isMiscMode &&
                 canExportToBuildium &&
                 expenseRows.length > 0 &&
                 expenseRows.every((r) => r.exportedToBuildium)
               }
             >
-              {isMiscMode &&
-              canExportToBuildium &&
+              {canExportToBuildium &&
               expenseRows.length > 0 &&
               expenseRows.every((r) => r.exportedToBuildium)
                 ? "Already exported"
