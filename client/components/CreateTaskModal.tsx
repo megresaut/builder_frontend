@@ -80,6 +80,9 @@ interface CreateTaskModalProps {
   variant?: "compact" | "withMessageAndAttachments";
   /** When opening for create (no editData), preselect this property (e.g. from property page). */
   defaultPropertyId?: number;
+  /** Draft review mode — shows Approve/Reject instead of Update/Cancel */
+  onApprove?: () => void;
+  onReject?: () => void;
 }
 
 const renderPropertyLabel = (p: SimpleProperty) =>
@@ -95,6 +98,8 @@ export default function CreateTaskModal({
   onTaskUpdated,
   variant = "withMessageAndAttachments",
   defaultPropertyId,
+  onApprove,
+  onReject,
 }: CreateTaskModalProps) {
   const { userId } = useAuth();
   const hasHydratedRef = useRef(false);
@@ -903,13 +908,32 @@ export default function CreateTaskModal({
         title={isUpdateMode ? "Update task" : isEditing ? "Edit Task" : "Create Task"}
         size={isUpdateMode ? "md" : "lg"}
         footer={
-          <ModalButtons
-            onCancel={() => onOpenChange(false)}
-            onConfirm={handleSubmit}
-            cancelLabel="Cancel"
-            confirmLabel={isUpdateMode ? "Save Update" : isEditing ? "Update Task" : "Create Task"}
-            confirmDisabled={isUpdateMode && !hasChanges()}
-          />
+          onApprove ? (
+            <div className="flex items-center justify-end gap-2 w-full">
+              <button
+                type="button"
+                onClick={onReject}
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                Reject
+              </button>
+              <button
+                type="button"
+                onClick={onApprove}
+                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                Approve
+              </button>
+            </div>
+          ) : (
+            <ModalButtons
+              onCancel={() => onOpenChange(false)}
+              onConfirm={handleSubmit}
+              cancelLabel="Cancel"
+              confirmLabel={isUpdateMode ? "Save Update" : isEditing ? "Update Task" : "Create Task"}
+              confirmDisabled={isUpdateMode && !hasChanges()}
+            />
+          )
         }
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: isUpdateMode ? "8px" : "-20px" }}>

@@ -5,6 +5,7 @@ export function useConflictCheck(
   userIds: number[],
   start: string | undefined,
   end: string | undefined,
+  excludeEventId?: number,
 ) {
   const [conflicts, setConflicts] = useState<BusyUser[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export function useConflictCheck(
     timerRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const result = await checkConflicts(userIds, start, end);
+        const result = await checkConflicts(userIds, start, end, excludeEventId);
         setConflicts(result.conflicts || []);
       } catch {
         setConflicts([]);
@@ -36,7 +37,7 @@ export function useConflictCheck(
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [userIds.join(","), start, end]);
+  }, [userIds.join(","), start, end, excludeEventId]);
 
   return { conflicts, loading, hasConflicts: conflicts.length > 0 };
 }

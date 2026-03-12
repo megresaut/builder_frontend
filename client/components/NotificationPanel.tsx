@@ -359,7 +359,8 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
       const um: Record<number, string> = {};
       for (const u of users) um[u.id] = u.name || u.email || String(u.id);
       setUserMap(um);
-      setDrafts(data);
+      // Exclude drafts flagged as potential duplicates — those live in the Duplicates tab
+      setDrafts(data.filter((d: AIDraft) => !d.duplicate_of));
     } catch (err: any) {
       setError(err.message ?? "Failed to load drafts");
       setDrafts([]);

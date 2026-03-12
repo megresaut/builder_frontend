@@ -45,6 +45,7 @@ export async function checkConflicts(
   userIds: number[],
   start: string,
   end: string,
+  excludeEventId?: number,
 ): Promise<ConflictCheckResult> {
   const token = localStorage.getItem("avm_token");
   const params = new URLSearchParams({
@@ -52,6 +53,7 @@ export async function checkConflicts(
     start,
     end,
   });
+  if (excludeEventId) params.set("exclude_event_id", String(excludeEventId));
   return fetchJSON(`/operations/availability/check?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
   });

@@ -130,7 +130,7 @@ export default function EventDetailPopover({ item, anchorRect, onClose, onViewDe
   }
   if (top < 16) top = 16;
 
-  const hasViewDetails = item.type !== "calendar_event";
+  const hasViewDetails = true;
 
   return (
     <div className="fixed inset-0 z-50" style={{ pointerEvents: "none" }}>

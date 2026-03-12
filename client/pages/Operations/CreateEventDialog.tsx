@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ComboboxField } from "@/components/forms/ComboboxField";
+import { DateField } from "@/components/forms/DateField";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { createCalendarEvent } from "@/data/operations";
 import { fetchJSON } from "@/api/fetchJSON";
 import { toast } from "sonner";
@@ -83,6 +92,260 @@ function formatDateOnly(dateStr?: string): string {
   const date = dateStr ? new Date(dateStr) : new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+// ─── DateTime picker with calendar + time list ──────────────────────────────
+
+/** Generate 30-minute time slots for the dropdown */
+function generateTimeSlots(): { value: string; label: string }[] {
+  const slots: { value: string; label: string }[] = [];
+  for (let h = 0; h < 24; h++) {
+    for (const m of [0, 30]) {
+      const hh = String(h).padStart(2, "0");
+      const mm = String(m).padStart(2, "0");
+      const value = `${hh}:${mm}`;
+      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      const ampm = h < 12 ? "AM" : "PM";
+      const label = `${hour12}:${mm} ${ampm}`;
+      slots.push({ value, label });
+    }
+  }
+  return slots;
+}
+
+const TIME_SLOTS = generateTimeSlots();
+
+/** Parse "YYYY-MM-DDTHH:MM" into { date, time } */
+function parseDT(iso: string): { date: Date | null; time: string } {
+  if (!iso) return { date: null, time: "" };
+  const [datePart, timePart] = iso.split("T");
+  const date = datePart ? new Date(datePart + "T00:00:00") : null;
+  return { date: date && !isNaN(date.getTime()) ? date : null, time: timePart?.slice(0, 5) || "" };
+}
+
+/** Format Date + "HH:MM" back to "YYYY-MM-DDTHH:MM" */
+function buildDT(date: Date | null, time: string): string {
+  if (!date) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const d = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  return time ? `${d}T${time}` : d;
+}
+
+/** Display "MM/DD/YYYY, H:MM AM" */
+function formatDisplay(iso: string): string {
+  const { date, time } = parseDT(iso);
+  if (!date) return "";
+  const datePart = format(date, "MM/dd/yyyy");
+  if (!time) return datePart;
+  const [hh, mm] = time.split(":").map(Number);
+  const hour12 = hh === 0 ? 12 : hh > 12 ? hh - 12 : hh;
+  const ampm = hh < 12 ? "AM" : "PM";
+  return `${datePart}, ${hour12}:${String(mm).padStart(2, "0")} ${ampm}`;
+}
+
+function DateTimeInput({
+  label,
+  required,
+  value,
+  onChange,
+  error,
+}: {
+  label: string;
+  required?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const { date, time } = parseDT(value);
+  const [calendarMonth, setCalendarMonth] = useState(date || new Date());
+  const timeListRef = useRef<HTMLDivElement>(null);
+
+  // Scroll selected time into view when dropdown opens
+  useEffect(() => {
+    if (open && time && timeListRef.current) {
+      const el = timeListRef.current.querySelector(`[data-time="${time}"]`);
+      if (el) el.scrollIntoView({ block: "center" });
+    }
+  }, [open, time]);
+
+  useEffect(() => {
+    if (date) setCalendarMonth(date);
+  }, [date]);
+
+  const handleDateSelect = (d: Date) => {
+    const newTime = time || "09:00";
+    onChange(buildDT(d, newTime));
+  };
+
+  const handleTimeSelect = (t: string) => {
+    const d = date || new Date();
+    onChange(buildDT(d, t));
+    setOpen(false);
+  };
+
+  const days = useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const daysInMonth = getDaysInMonth(new Date(year, month, 1));
+    const firstDay = getDay(startOfMonth(new Date(year, month, 1)));
+    const result: (number | null)[] = [];
+    for (let i = 0; i < firstDay; i++) result.push(null);
+    for (let i = 1; i <= daysInMonth; i++) result.push(i);
+    return result;
+  }, [calendarMonth]);
+
+  const displayValue = formatDisplay(value);
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="relative w-full text-left"
+            style={{
+              borderRadius: "0.5rem",
+              backgroundColor: "white",
+              padding: "0.5rem 2.5rem 0.5rem 0.75rem",
+              minHeight: "44px",
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "14px",
+              fontWeight: 400,
+              letterSpacing: "-0.32px",
+              lineHeight: 1.43,
+              outline: "none",
+              border: `1px solid ${error ? "var(--color-status-error)" : open ? "#000" : "var(--color-border-light)"}`,
+              color: displayValue ? "var(--color-text-primary)" : "var(--color-text-placeholder)",
+              cursor: "pointer",
+            }}
+          >
+            {displayValue || "Select date & time"}
+            <CalendarIcon
+              style={{
+                position: "absolute",
+                right: "0.5rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "1rem",
+                height: "1rem",
+                color: "#303030",
+                pointerEvents: "none",
+              }}
+            />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="p-0 z-[52]"
+          scrollable={false}
+          syncTriggerWidth={false}
+          style={{
+            width: "auto",
+            display: "flex",
+            overflow: "hidden",
+            maxHeight: "none",
+          }}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          {/* Calendar side */}
+          <div style={{ padding: "12px", width: "240px", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+              <button type="button" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", borderRadius: "4px", display: "flex" }}>
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span style={{ fontSize: "13px", fontWeight: 500, fontFamily: "Geist, sans-serif" }}>
+                {format(calendarMonth, "MMMM yyyy")}
+              </span>
+              <button type="button" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", borderRadius: "4px", display: "flex" }}>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px", marginBottom: "4px" }}>
+              {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+                <div key={d} style={{ textAlign: "center", fontSize: "11px", fontWeight: 500, color: "#717179", padding: "4px 0" }}>{d}</div>
+              ))}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px" }}>
+              {days.map((day, idx) => {
+                const isSelected = date && day !== null &&
+                  date.getDate() === day &&
+                  date.getMonth() === calendarMonth.getMonth() &&
+                  date.getFullYear() === calendarMonth.getFullYear();
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    disabled={day === null}
+                    onClick={() => {
+                      if (day !== null) {
+                        handleDateSelect(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day));
+                      }
+                    }}
+                    style={{
+                      aspectRatio: "1",
+                      border: "none",
+                      borderRadius: "4px",
+                      background: isSelected ? "rgba(36, 99, 235, 0.2)" : "transparent",
+                      color: isSelected ? "#2463eb" : day === null ? "transparent" : "var(--color-text-primary)",
+                      fontWeight: isSelected ? 500 : 400,
+                      fontSize: "13px",
+                      cursor: day === null ? "default" : "pointer",
+                      fontFamily: "Geist, sans-serif",
+                    }}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ width: "1px", backgroundColor: "var(--color-border-light)" }} />
+
+          {/* Time slots side */}
+          <div ref={timeListRef} style={{ width: "100px", maxHeight: "300px", overflowY: "auto", padding: "4px 0" }}>
+            {TIME_SLOTS.map((slot) => {
+              const isSelected = time === slot.value;
+              return (
+                <button
+                  key={slot.value}
+                  type="button"
+                  data-time={slot.value}
+                  onClick={() => handleTimeSelect(slot.value)}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    padding: "6px 12px",
+                    border: "none",
+                    background: isSelected ? "rgba(36, 99, 235, 0.15)" : "transparent",
+                    color: isSelected ? "#2463eb" : "var(--color-text-primary)",
+                    fontWeight: isSelected ? 500 : 400,
+                    fontSize: "13px",
+                    fontFamily: "Geist, sans-serif",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    borderRadius: 0,
+                  }}
+                  onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "rgba(0,0,0,0.04)"; }}
+                  onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
+                >
+                  {slot.label}
+                </button>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </div>
+  );
 }
 
 // ─── Shared multi-select dropdown ────────────────────────────────────────────
@@ -209,6 +472,22 @@ function CalendarEventForm({
   const [allDay, setAllDay] = useState(false);
   const [startAt, setStartAt] = useState(() => formatDateTimeLocal(defaultDate));
   const [endAt, setEndAt] = useState(() => formatDateTimeLocal(defaultDate, 1));
+
+  // Auto-update end to start + 1 hour when start changes
+  function handleStartChange(newStart: string) {
+    setStartAt(newStart);
+    if (newStart && !allDay) {
+      const startDate = new Date(newStart);
+      if (!isNaN(startDate.getTime())) {
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const newEnd = `${endDate.getFullYear()}-${pad(endDate.getMonth() + 1)}-${pad(endDate.getDate())}T${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+        setEndAt(newEnd);
+      }
+    } else if (newStart && allDay) {
+      setEndAt(newStart);
+    }
+  }
   const [propertyId, setPropertyId] = useState<string>("");
   const [assignees, setAssignees] = useState<number[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -292,28 +571,59 @@ function CalendarEventForm({
           <label htmlFor="all-day" className="text-sm font-medium text-gray-700 cursor-pointer">All day</label>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start <span className="text-red-500">*</span></label>
-            <Input type={allDay ? "date" : "datetime-local"} value={startAt} onChange={(e) => setStartAt(e.target.value)} aria-invalid={!!errors.startAt} />
-            {errors.startAt && <p className="text-red-500 text-xs mt-1">{errors.startAt}</p>}
+        {allDay ? (
+          <div className="grid grid-cols-2 gap-4">
+            <DateField
+              label="Start"
+              required
+              value={startAt || null}
+              onChange={(date) => {
+                const val = date instanceof Date ? date.toISOString().split("T")[0] : (date || "");
+                handleStartChange(val);
+              }}
+              returnFormat="ISO"
+              error={errors.startAt}
+            />
+            <DateField
+              label="End"
+              required
+              value={endAt || null}
+              onChange={(date) => {
+                const val = date instanceof Date ? date.toISOString().split("T")[0] : (date || "");
+                setEndAt(val);
+              }}
+              returnFormat="ISO"
+              error={errors.endAt}
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End <span className="text-red-500">*</span></label>
-            <Input type={allDay ? "date" : "datetime-local"} value={endAt} onChange={(e) => setEndAt(e.target.value)} aria-invalid={!!errors.endAt} />
-            {errors.endAt && <p className="text-red-500 text-xs mt-1">{errors.endAt}</p>}
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            <DateTimeInput
+              label="Start"
+              required
+              value={startAt}
+              onChange={handleStartChange}
+              error={errors.startAt}
+            />
+            <DateTimeInput
+              label="End"
+              required
+              value={endAt}
+              onChange={setEndAt}
+              error={errors.endAt}
+            />
           </div>
-        </div>
+        )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Property</label>
-          <Select value={propertyId} onValueChange={setPropertyId}>
-            <SelectTrigger><SelectValue placeholder="Select a property (optional)" /></SelectTrigger>
-            <SelectContent>
-              {properties.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+        <ComboboxField
+          label="Property"
+          value={propertyId}
+          onChange={setPropertyId}
+          placeholder="Select a property (optional)"
+          searchPlaceholder="Search properties..."
+          options={properties.map((p) => ({ value: String(p.id), label: p.name }))}
+          emptyMessage="No properties found"
+        />
 
         <MultiSelectDropdown
           label="Assignees"

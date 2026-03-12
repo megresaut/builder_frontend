@@ -609,6 +609,8 @@ export default function TaskFieldTeamOrders({
                 pm_assignee_ids: editingOrder.pmAssigneeIds || [],
                 unit_id: editingOrder.unitId ?? null,
                 unit_name: editingOrder.unit,
+                event_start_at: editingOrder.event_start_at ?? null,
+                event_end_at: editingOrder.event_end_at ?? null,
               }
             : null
         }

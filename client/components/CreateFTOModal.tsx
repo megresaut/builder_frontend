@@ -86,6 +86,9 @@ interface CreateFTOModalProps {
   lockedUnitLabel?: string;
   lockedTaskId?: number;
   lockedTaskLabel?: string;
+  /** Draft review mode — shows Approve/Reject instead of Update/Cancel */
+  onApprove?: () => void;
+  onReject?: () => void;
 }
 
 
@@ -101,6 +104,8 @@ export default function CreateFTOModal({
   lockedUnitLabel,
   lockedTaskId,
   lockedTaskLabel,
+  onApprove,
+  onReject,
 }: CreateFTOModalProps) {
   // Form state - using IDs instead of objects
   // console.log( "editingFTO:", editingFTO )
@@ -214,7 +219,8 @@ export default function CreateFTOModal({
     );
     setFtoName(editingFTO.name);
     setDescription(editingFTO.description);
-    setPriority(editingFTO.priority);
+    const normalizedPriority = (editingFTO.priority || "normal").toLowerCase();
+    setPriority(["low", "normal", "high"].includes(normalizedPriority) ? normalizedPriority : "normal");
     setStatus(editingFTO.status);
   
     setSelectedPropertyId(editingFTO.property_id);
@@ -239,13 +245,15 @@ export default function CreateFTOModal({
 
     if (editingFTO?.event_start_at) {
       const d = new Date(editingFTO.event_start_at);
-      setEventStartAt(d.toISOString().slice(0, 16));
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+      setEventStartAt(local.toISOString().slice(0, 16));
     } else {
       setEventStartAt(null);
     }
     if (editingFTO?.event_end_at) {
       const d = new Date(editingFTO.event_end_at);
-      setEventEndAt(d.toISOString().slice(0, 16));
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+      setEventEndAt(local.toISOString().slice(0, 16));
     } else {
       setEventEndAt(null);
     }
@@ -460,7 +468,7 @@ export default function CreateFTOModal({
   // Determine if in edit mode
   const isEditing = !!editingFTO;
   const isPropertyLocked = lockedPropertyId != null;
-  const isTaskLocked = lockedTaskId != null;
+  const isTaskLocked = lockedTaskId != null || lockedTaskLabel != null;
 
 
   
@@ -590,7 +598,7 @@ export default function CreateFTOModal({
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title={readOnly ? "View Field Team Order" : isEditing ? "Edit Field Team Order" : "Create Field Team Order"}
+      title={readOnly ? "View Field Team Order" : (isEditing && !onApprove) ? "Edit Field Team Order" : "Create Field Team Order"}
       size="md"
       footer={
         readOnly ? (
@@ -600,6 +608,23 @@ export default function CreateFTOModal({
             cancelLabel="Close"
             confirmLabel={undefined}
           />
+        ) : onApprove ? (
+          <div className="flex items-center justify-end gap-2 w-full">
+            <button
+              type="button"
+              onClick={onReject}
+              className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              Reject
+            </button>
+            <button
+              type="button"
+              onClick={onApprove}
+              className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Approve
+            </button>
+          </div>
         ) : (
           <ModalButtons
             onCancel={() => onOpenChange(false)}
@@ -623,7 +648,7 @@ export default function CreateFTOModal({
             width: "100%",
           }}
         >
-          <div>
+          <div style={{ minWidth: 0 }}>
             {isPropertyLocked ? (
               <TextField
                 label="Property"

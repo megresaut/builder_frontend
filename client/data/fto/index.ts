@@ -1,4 +1,3 @@
-export { AVAILABLE_ASSIGNEES } from "./assignees";
 export { VENDORS } from "./vendors";
 export {
   validateHours,

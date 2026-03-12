@@ -75,6 +75,8 @@ interface FieldTeamOrder {
   pm_assignee_ids?: number[];
   field_team_member_ids?: number[];
   due_date?: string; // Raw date for modal
+  event_start_at?: string | null;
+  event_end_at?: string | null;
 }
 
 
@@ -97,6 +99,8 @@ interface APIFTO {
   property_name?: string;
   unit_id?: number;
   unit_name?: string;
+  event_start_at?: string | null;
+  event_end_at?: string | null;
 }
 
 // Misc submission (fto_id IS NULL) - for property-filtered misc expenses
@@ -194,6 +198,8 @@ const transformAPIToFieldTeamOrders = (
       name: row.name,
       pm_assignee_ids: row.pm_assignee_ids ?? [],
       field_team_member_ids: row.field_team_member_ids ?? [],
+      event_start_at: row.event_start_at ?? null,
+      event_end_at: row.event_end_at ?? null,
 
       fieldTeam: (row.field_team_member_ids || [])
         .map((id: number) => {
@@ -2635,6 +2641,8 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
                   task_id: order.task_id ?? undefined,
                   field_team_member_ids: order.field_team_member_ids ?? [],
                   pm_assignee_ids: order.pm_assignee_ids ?? [],
+                  event_start_at: order.event_start_at ?? null,
+                  event_end_at: order.event_end_at ?? null,
                 };
               })()
             : null

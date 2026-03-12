@@ -34,14 +34,6 @@ interface CreateWorkOrderModalProps {
   defaultPropertyLabel?: string;
 }
 
-const AVAILABLE_ASSIGNEES: Assignee[] = [
-  { id: "1", name: "David Harris", initials: "DH" },
-  { id: "2", name: "Sarah Johnson", initials: "SJ" },
-  { id: "3", name: "Michael Chen", initials: "MC" },
-  { id: "4", name: "Emily Rodriguez", initials: "ER" },
-  { id: "5", name: "James Wilson", initials: "JW" },
-];
-
 export default function CreateWorkOrderModal({
   open,
   onOpenChange,
@@ -57,10 +49,7 @@ export default function CreateWorkOrderModal({
   const [status, setStatus] = useState("inprogress");
   const [priority, setPriority] = useState("normal");
   const [selectedDueDate, setSelectedDueDate] = useState<Date | null>(null);
-  const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([
-    AVAILABLE_ASSIGNEES[0],
-    AVAILABLE_ASSIGNEES[0],
-  ]);
+  const [selectedAssignees, setSelectedAssignees] = useState<Assignee[]>([]);
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const assigneeButtonRef = useRef<HTMLButtonElement>(null);
   const [assigneeDropdownPos, setAssigneeDropdownPos] = useState({
