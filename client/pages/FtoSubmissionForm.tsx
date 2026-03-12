@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import PdfViewerModal from "@/components/PdfViewerModal";
@@ -47,6 +47,12 @@ import {
 
 const CUSTOM_FTO_TASK_VALUE = "__custom_fto__";
 const MISC_EXPENSE_TASK_VALUE = "0"; // Miscellaneous expense - no FTO
+const PENDING_FTO_PREFIX = "__pending_fto__:";
+const makePendingFtoValue = (name: string) => `${PENDING_FTO_PREFIX}${name}`;
+const isPendingFtoValue = (v: string | null): boolean =>
+  !!v && v.startsWith(PENDING_FTO_PREFIX);
+const extractPendingFtoName = (v: string): string =>
+  v.slice(PENDING_FTO_PREFIX.length);
 
 /** Property name that should not be selectable for FTO/misc submissions (Buildium sentinel). */
 const NO_PROPERTY_SENTINEL_NAME = "Billing For No Property";
@@ -208,6 +214,7 @@ interface ApiAttachment {
 interface ApiSubmission {
   id: number;
   fto_id: number;
+  FTOID?: number; // Go backend may serialize as "FTOID" (no json tag)
   task_id: number | null;
 
   date_of_work: string;
@@ -355,7 +362,7 @@ export default function FtoSubmissionForm() {
   });
 
   const [isCreateFTOModalOpen, setIsCreateFTOModalOpen] = useState(false);
-  const [isCreatingCustomFto, setIsCreatingCustomFto] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [hourEntries, setHourEntries] = useState<HourEntry[]>([
     {
@@ -393,6 +400,57 @@ export default function FtoSubmissionForm() {
   const [hourErrors, setHourErrors] = useState<HourEntryErrors>({});
   const [expenseErrors, setExpenseErrors] = useState<ExpenseEntryErrors>({});
   const { userId } = useAuth();
+
+  // Derive unique pending custom FTOs from hour entries (for expense dropdown + submit)
+  const pendingCustomFtos = useMemo(() => {
+    const seen = new Map<string, { propertyId: string; customTaskName: string }>();
+    for (const entry of hourEntries) {
+      if (
+        entry.taskId === CUSTOM_FTO_TASK_VALUE &&
+        entry.propertyId &&
+        entry.customTaskName.trim()
+      ) {
+        const key = `${entry.propertyId}::${entry.customTaskName.trim()}`;
+        if (!seen.has(key)) {
+          seen.set(key, {
+            propertyId: entry.propertyId,
+            customTaskName: entry.customTaskName.trim(),
+          });
+        }
+      }
+    }
+    return Array.from(seen.values());
+  }, [hourEntries]);
+
+  // Clean up orphaned pending FTO references in expenses when hour entries change
+  useEffect(() => {
+    const definedKeys = new Set<string>();
+    for (const h of hourEntries) {
+      if (
+        h.taskId === CUSTOM_FTO_TASK_VALUE &&
+        h.propertyId &&
+        h.customTaskName.trim()
+      ) {
+        definedKeys.add(`${h.propertyId}::${h.customTaskName.trim()}`);
+      }
+    }
+
+    setExpenseEntries((prev) => {
+      let changed = false;
+      const updated = prev.map((e) => {
+        if (isPendingFtoValue(e.taskId)) {
+          const name = extractPendingFtoName(e.taskId!);
+          const key = `${e.propertyId}::${name}`;
+          if (!definedKeys.has(key)) {
+            changed = true;
+            return { ...e, taskId: null };
+          }
+        }
+        return e;
+      });
+      return changed ? updated : prev;
+    });
+  }, [hourEntries]);
 
   // Admin-only: submit on behalf of another user (any user)
   const isSubmitAsAdmin = userId === SUBMIT_AS_ADMIN_USER_ID;
@@ -695,9 +753,10 @@ export default function FtoSubmissionForm() {
     const attachments = normalizeAttachments(apiSubmission.attachments);
     
     // Get property_id, unit_id, and fto_id from submission level (FTO level)
+    // Note: Go backend serializes FTOID without a json tag, so it may arrive as "FTOID" or "fto_id"
     const submissionPropertyId = submission.property_id;
     const submissionUnitId = submission.unit_id;
-    const submissionFtoId = submission.fto_id;
+    const submissionFtoId = submission.fto_id ?? submission.FTOID;
     
     // ✅ 1. Pull from the REAL backend fields
     const rawHours = safeArray<ApiHourLine>(
@@ -1001,7 +1060,7 @@ export default function FtoSubmissionForm() {
     } else if (apiSubmission) {
       // Fallback to using submission fto_id
       const { submission } = apiSubmission;
-      const submissionFtoId = submission.fto_id;
+      const submissionFtoId = submission.fto_id ?? submission.FTOID;
       const submissionPropertyId = submission.property_id;
       
       if (submissionFtoId && submissionPropertyId) {
@@ -1274,8 +1333,18 @@ export default function FtoSubmissionForm() {
         errors.taskId = "Task is required";
         isValid = false;
       } else if (entry.taskId === CUSTOM_FTO_TASK_VALUE) {
-        errors.taskId = "Please create the task (FTO) before submitting.";
-        isValid = false;
+        if (!entry.customTaskName?.trim()) {
+          errors.taskId = "Task name is required for custom tasks.";
+          isValid = false;
+        }
+        if (!isCollaboratorSelectionValid(entry.collaboratorIds)) {
+          errors.collaboratorIds = "Collaborators selection is required for custom tasks.";
+          isValid = false;
+        }
+        if (!entry.note?.trim()) {
+          errors.note = "Notes are required for custom tasks (used as FTO description).";
+          isValid = false;
+        }
       }
       if (!entry.hours) {
         errors.hours = "Hours is required";
@@ -1313,6 +1382,15 @@ export default function FtoSubmissionForm() {
       if (!entry.taskId) {
         errors.taskId = "Task is required";
         isValid = false;
+      } else if (isPendingFtoValue(entry.taskId)) {
+        const name = extractPendingFtoName(entry.taskId);
+        const stillExists = pendingCustomFtos.some(
+          (p) => p.propertyId === entry.propertyId && p.customTaskName === name
+        );
+        if (!stillExists) {
+          errors.taskId = "The referenced custom task no longer exists. Please select a different task.";
+          isValid = false;
+        }
       }
       if (entry.amount == null || entry.amount === "") {
         errors.amount = "Amount is required";
@@ -1337,117 +1415,8 @@ export default function FtoSubmissionForm() {
     return isValid;
   };
 
-  const getActiveCustomHourEntry = (): HourEntry | null => {
-    for (let i = hourEntries.length - 1; i >= 0; i -= 1) {
-      if (hourEntries[i]?.taskId === CUSTOM_FTO_TASK_VALUE) return hourEntries[i];
-    }
-    return null;
-  };
-
   const isCollaboratorSelectionValid = (v: CollaboratorSelection): boolean =>
     v === "na" || (Array.isArray(v) && v.length > 0);
-
-  const canCreateCustomFtoFromHourEntry = (entry: HourEntry | null): boolean => {
-    if (!entry) return false;
-    if (!entry.propertyId) return false;
-    if (!entry.date) return false;
-    if (!entry.note?.trim()) return false;
-    if (!entry.customTaskName?.trim()) return false;
-    if (!isCollaboratorSelectionValid(entry.collaboratorIds)) return false;
-    const techIdNum = Number(userId);
-    if (!techIdNum || Number.isNaN(techIdNum)) return false;
-    return true;
-  };
-
-  const getMissingCustomFtoFields = (entry: HourEntry | null): string[] => {
-    if (!entry) return ["Property", "Task name", "Date", "Notes", "Collaborators"];
-    const missing: string[] = [];
-    if (!entry.propertyId) missing.push("Property");
-    if (!entry.customTaskName?.trim()) missing.push("Task name");
-    if (!entry.date) missing.push("Date");
-    if (!entry.note?.trim()) missing.push("Notes");
-    if (!isCollaboratorSelectionValid(entry.collaboratorIds)) missing.push("Collaborators");
-    const techIdNum = Number(userId);
-    if (!techIdNum || Number.isNaN(techIdNum)) missing.push("Logged in user");
-    return missing;
-  };
-
-  const handleCreateCustomFto = async () => {
-    const entry = getActiveCustomHourEntry();
-    if (!canCreateCustomFtoFromHourEntry(entry)) return;
-    if (!entry) return;
-
-    const techIdNum = Number(userId);
-    const propertyIdNum = Number(entry.propertyId);
-    const unitIdNum = entry.unitId ? Number(entry.unitId) : null;
-
-    const collaboratorIds =
-      entry.collaboratorIds === "na" || !Array.isArray(entry.collaboratorIds)
-        ? []
-        : entry.collaboratorIds;
-    const field_team_member_ids = [techIdNum, ...collaboratorIds];
-
-    const payload = {
-      property_id: propertyIdNum,
-      unit_id: unitIdNum && !Number.isNaN(unitIdNum) ? unitIdNum : undefined,
-      name: entry.customTaskName.trim(),
-      description: entry.note.trim(),
-      status: "completed",
-      due_date: new Date(entry.date!).toISOString(),
-      priority: "normal",
-      field_team_member_ids,
-      pm_assignee_ids: [],
-    };
-
-    try {
-      setIsCreatingCustomFto(true);
-      const created: any = await fetchJSON("/maintenance/ftos", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-
-      const createdId =
-        created?.id ?? created?.fto?.id ?? created?.data?.id ?? null;
-      const createdName =
-        created?.name ??
-        created?.fto?.name ??
-        created?.data?.name ??
-        payload.name;
-
-      if (!createdId) {
-        throw new Error("Create FTO succeeded but no id returned.");
-      }
-
-      setFtosByProperty((prev) => {
-        const key = String(entry.propertyId);
-        const existing = prev[key] ?? [];
-        if (existing.some((f) => String(f.id) === String(createdId))) return prev;
-
-        const newFto: FTO = {
-          id: Number(createdId),
-          name: String(createdName),
-          description: payload.description,
-          property_id: propertyIdNum,
-          property_name: "",
-          status: payload.status,
-          priority: payload.priority,
-          approval_status: "",
-          form_submission_status: "none",
-        };
-
-        return { ...prev, [key]: [...existing, newFto] };
-      });
-
-      updateHourEntry(entry.id, "taskId", String(createdId));
-      updateHourEntry(entry.id, "customTaskName", "");
-      updateHourEntry(entry.id, "collaboratorIds", null);
-    } catch (err) {
-      console.error("Failed to create FTO from submission form:", err);
-      alert("Failed to create task (FTO).");
-    } finally {
-      setIsCreatingCustomFto(false);
-    }
-  };
 
 
   // Block submit when any expense has a file that is still uploading or doesn't have storage_path yet.
@@ -1455,7 +1424,177 @@ export default function FtoSubmissionForm() {
     e.files.some((f) => f.uploading === true || !f.storage_path)
   );
 
-  const submitDailyWork = async () => {
+  const createPendingFtosAndSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      // Step 1: Collect unique custom FTOs to create
+      const toCreate = new Map<
+        string,
+        { propertyId: string; customTaskName: string; sourceEntry: HourEntry }
+      >();
+
+      for (const entry of hourEntries) {
+        if (
+          entry.taskId === CUSTOM_FTO_TASK_VALUE &&
+          entry.propertyId &&
+          entry.customTaskName.trim()
+        ) {
+          const key = `${entry.propertyId}::${entry.customTaskName.trim()}`;
+          if (!toCreate.has(key)) {
+            toCreate.set(key, {
+              propertyId: entry.propertyId,
+              customTaskName: entry.customTaskName.trim(),
+              sourceEntry: entry,
+            });
+          }
+        }
+      }
+
+      // Step 2: Create each FTO, build mapping
+      const ftoIdMap = new Map<string, number>();
+      const techId =
+        isSubmitAsAdmin && submitAsTechId != null ? submitAsTechId : userId;
+      const techIdNum = Number(techId);
+
+      for (const [key, info] of toCreate) {
+        const { sourceEntry } = info;
+        const propertyIdNum = Number(info.propertyId);
+        const unitIdNum = sourceEntry.unitId ? Number(sourceEntry.unitId) : null;
+
+        const collaboratorIds =
+          sourceEntry.collaboratorIds === "na" ||
+          !Array.isArray(sourceEntry.collaboratorIds)
+            ? []
+            : sourceEntry.collaboratorIds;
+
+        const payload = {
+          property_id: propertyIdNum,
+          unit_id:
+            unitIdNum && !Number.isNaN(unitIdNum) ? unitIdNum : undefined,
+          name: info.customTaskName,
+          description: sourceEntry.note.trim(),
+          status: "completed",
+          due_date: new Date(sourceEntry.date!).toISOString(),
+          priority: "normal",
+          field_team_member_ids: [techIdNum, ...collaboratorIds],
+          pm_assignee_ids: [] as number[],
+        };
+
+        const created: any = await fetchJSON("/maintenance/ftos", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        const createdId =
+          created?.id ?? created?.fto?.id ?? created?.data?.id ?? null;
+        if (!createdId) {
+          throw new Error(
+            `Failed to create FTO "${info.customTaskName}" — no ID returned.`
+          );
+        }
+
+        ftoIdMap.set(key, Number(createdId));
+
+        const createdName =
+          created?.name ??
+          created?.fto?.name ??
+          created?.data?.name ??
+          info.customTaskName;
+
+        // Update ftosByProperty cache
+        setFtosByProperty((prev) => {
+          const propKey = String(info.propertyId);
+          const existing = prev[propKey] ?? [];
+          if (existing.some((f) => String(f.id) === String(createdId)))
+            return prev;
+          return {
+            ...prev,
+            [propKey]: [
+              ...existing,
+              {
+                id: Number(createdId),
+                name: String(createdName),
+                description: payload.description,
+                property_id: propertyIdNum,
+                property_name: "",
+                status: payload.status,
+                priority: payload.priority,
+                approval_status: "",
+                form_submission_status: "none",
+              } as FTO,
+            ],
+          };
+        });
+
+        // Incrementally update state so partial progress is saved on failure
+        setHourEntries((prev) =>
+          prev.map((h) => {
+            if (
+              h.taskId === CUSTOM_FTO_TASK_VALUE &&
+              h.propertyId === info.propertyId &&
+              h.customTaskName.trim() === info.customTaskName
+            ) {
+              return {
+                ...h,
+                taskId: String(createdId),
+                customTaskName: "",
+                collaboratorIds: null,
+              };
+            }
+            return h;
+          })
+        );
+        setExpenseEntries((prev) =>
+          prev.map((e) => {
+            if (
+              isPendingFtoValue(e.taskId) &&
+              e.propertyId === info.propertyId &&
+              extractPendingFtoName(e.taskId!) === info.customTaskName
+            ) {
+              return { ...e, taskId: String(createdId) };
+            }
+            return e;
+          })
+        );
+      }
+
+      // Step 3: Build resolved copies for the API call (state updates are async)
+      const resolvedHours = hourEntries.map((h) => {
+        if (
+          h.taskId === CUSTOM_FTO_TASK_VALUE &&
+          h.propertyId &&
+          h.customTaskName.trim()
+        ) {
+          const k = `${h.propertyId}::${h.customTaskName.trim()}`;
+          const realId = ftoIdMap.get(k);
+          if (realId) return { ...h, taskId: String(realId) };
+        }
+        return h;
+      });
+
+      const resolvedExpenses = expenseEntries.map((e) => {
+        if (isPendingFtoValue(e.taskId)) {
+          const name = extractPendingFtoName(e.taskId!);
+          const k = `${e.propertyId}::${name}`;
+          const realId = ftoIdMap.get(k);
+          if (realId) return { ...e, taskId: String(realId) };
+        }
+        return e;
+      });
+
+      // Step 4: Submit with resolved entries
+      await submitDailyWork(resolvedHours, resolvedExpenses);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const submitDailyWork = async (
+    hoursOverride?: HourEntry[],
+    expensesOverride?: ExpenseEntry[]
+  ) => {
+    const hourEntries_ = hoursOverride ?? hourEntries;
+    const expenseEntries_ = expensesOverride ?? expenseEntries;
     // Check if submission is approved - cannot edit approved submissions
     if (isApproved) {
       alert("You can no longer update approved submissions.");
@@ -1492,7 +1631,7 @@ export default function FtoSubmissionForm() {
         return dateStr.split("T")[0];
       };
 
-      const hours_json = hourEntries.map((h, idx) => ({
+      const hours_json = hourEntries_.map((h, idx) => ({
         date_of_work: formatDate(h.date),
         hours_decimal: Number(h.hours) || 0,
         note: h.note ?? "",
@@ -1502,7 +1641,7 @@ export default function FtoSubmissionForm() {
         unit_id: getUnitIdAsNumber(h.unitId),
       }));
 
-      const materials_json = expenseEntries.map((e, idx) => ({
+      const materials_json = expenseEntries_.map((e, idx) => ({
         date_of_work: formatDate(e.date),
         vendor_name: e.vendorId ?? null,
         note: e.note ?? "",
@@ -1526,25 +1665,24 @@ export default function FtoSubmissionForm() {
     // Send date_of_work as date-only (YYYY-MM-DD) to avoid timezone shifting when stored
     const toDateOnly = (dateStr: string | null | undefined): string =>
       !dateStr ? "" : dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
-    const hours = hourEntries.map((h) => ({
+    const hours = hourEntries_.map((h) => ({
       fto_id: Number(h.taskId), // taskId === FTO id (by design)
-    
+
       date_of_work: toDateOnly(h.date ?? undefined) || h.date!,
-    
+
       property_id: h.propertyId ? Number(h.propertyId) : null,
       unit_id: getUnitIdAsNumber(h.unitId),
       task_id: Number(h.taskId), // optional but fine to include
-    
+
       hours_decimal: Number(h.hours),
-    
+
       emergency: h.emergencyRate === "yes",
       no_charge: billingToNoCharge(h.billing),
-    
+
       note: h.note ?? "",
     }));
-    
-  
-    const expenses = expenseEntries.map((e) => ({
+
+    const expenses = expenseEntries_.map((e) => ({
       fto_id: Number(e.taskId),
       date_of_work: toDateOnly(e.date ?? undefined) || e.date!,
       property_id: Number(e.propertyId),
@@ -1829,7 +1967,7 @@ export default function FtoSubmissionForm() {
                                 
                                 // Fallback to submission fto_id if name didn't match
                                 if (!taskIdToCheck && apiSubmission) {
-                                  const submissionFtoId = apiSubmission.submission.fto_id;
+                                  const submissionFtoId = apiSubmission.submission.fto_id ?? apiSubmission.submission.FTOID;
                                   const submissionPropertyId = apiSubmission.submission.property_id;
                                   if (submissionFtoId && submissionPropertyId && 
                                       String(entry.propertyId) === String(submissionPropertyId)) {
@@ -2020,35 +2158,6 @@ export default function FtoSubmissionForm() {
                     )}
                   </div>
                 ))}
-
-                {/* Create FTO Button (custom task flow only) */}
-                {!isApproved && !isViewingExistingSubmission && (() => {
-                  const activeCustom = getActiveCustomHourEntry();
-                  if (!activeCustom) return null;
-                  const enabled =
-                    canCreateCustomFtoFromHourEntry(activeCustom) &&
-                    !isCreatingCustomFto;
-                  const missingFields = getMissingCustomFtoFields(activeCustom);
-                  const tooltip = enabled
-                    ? ""
-                    : `Complete: ${missingFields.join(", ")}`;
-                  return (
-                    <div title={tooltip}>
-                      <button
-                        onClick={handleCreateCustomFto}
-                        disabled={!enabled}
-                        className={[
-                          "w-full rounded-lg px-3 py-2 min-h-[36px] flex items-center justify-center",
-                          enabled
-                            ? "bg-[#013764] border border-white shadow-[0_0_0_1px_#002D5A] text-white hover:opacity-90 transition-opacity"
-                            : "bg-[#F2F2F2] border border-[#DADADA] text-[rgba(48,48,48,0.55)] cursor-not-allowed",
-                        ].join(" ")}
-                      >
-                        {isCreatingCustomFto ? "Creating task..." : "Create FTO"}
-                      </button>
-                    </div>
-                  );
-                })()}
 
                 {/* Add Hour Entry Button */}
                 {!isApproved && (
@@ -2244,6 +2353,13 @@ export default function FtoSubmissionForm() {
                             options={[
                               // Add "Misc" option at the top for miscellaneous expenses
                               { value: MISC_EXPENSE_TASK_VALUE, label: "Misc (No FTO)" },
+                              // Pending custom FTOs from hour entries for this property
+                              ...pendingCustomFtos
+                                .filter((p) => p.propertyId === entry.propertyId)
+                                .map((p) => ({
+                                  value: makePendingFtoValue(p.customTaskName),
+                                  label: `${p.customTaskName} (new)`,
+                                })),
                               ...(ftosByProperty[entry.propertyId ?? ""] ?? []).map((fto) => ({
                                 value: String(fto.id),
                                 label: fto.name,
@@ -2255,9 +2371,18 @@ export default function FtoSubmissionForm() {
                                 return MISC_EXPENSE_TASK_VALUE;
                               }
 
+                              // Check if this references a pending custom FTO
+                              if (isPendingFtoValue(entry.taskId)) {
+                                const name = extractPendingFtoName(entry.taskId!);
+                                const stillExists = pendingCustomFtos.some(
+                                  (p) => p.propertyId === entry.propertyId && p.customTaskName === name
+                                );
+                                return stillExists ? entry.taskId! : "";
+                              }
+
                               // For existing misc submissions, check if fto_id is null/0
                               if (isViewingExistingSubmission && apiSubmission) {
-                                const submissionFtoId = apiSubmission.submission.fto_id;
+                                const submissionFtoId = apiSubmission.submission.fto_id ?? apiSubmission.submission.FTOID;
                                 if (!submissionFtoId || submissionFtoId === 0) {
                                   return MISC_EXPENSE_TASK_VALUE;
                                 }
@@ -2265,7 +2390,7 @@ export default function FtoSubmissionForm() {
 
                               // Priority: Use FTO name from location state if available, otherwise use entry.taskId or submission fto_id
                               let taskIdToCheck = entry.taskId;
-                              
+
                               if (isViewingExistingSubmission) {
                                 // First try to match by FTO name from location state
                                 if (ftoNameFromState && entry.propertyId) {
@@ -2275,25 +2400,25 @@ export default function FtoSubmissionForm() {
                                     taskIdToCheck = String(matchedFto.id);
                                   }
                                 }
-                                
+
                                 // Fallback to submission fto_id if name didn't match
                                 if (!taskIdToCheck && apiSubmission) {
-                                  const submissionFtoId = apiSubmission.submission.fto_id;
+                                  const submissionFtoId = apiSubmission.submission.fto_id ?? apiSubmission.submission.FTOID;
                                   const submissionPropertyId = apiSubmission.submission.property_id;
-                                  if (submissionFtoId && submissionPropertyId && 
+                                  if (submissionFtoId && submissionPropertyId &&
                                       String(entry.propertyId) === String(submissionPropertyId)) {
                                     taskIdToCheck = String(submissionFtoId);
                                   }
                                 }
                               }
-                              
+
                               if (!taskIdToCheck || !entry.propertyId) {
                                 return "";
                               }
-                              
+
                               const ftos = ftosByProperty[entry.propertyId] ?? [];
                               const ftoExists = ftos.some((f) => String(f.id) === String(taskIdToCheck));
-                              
+
                               return ftoExists ? String(taskIdToCheck) : "";
                             })()}
                             onChange={(value) => {
@@ -2697,12 +2822,12 @@ export default function FtoSubmissionForm() {
             </button>
             {!isApproved && (
               <button
-                disabled={hasPendingAttachmentUploads}
+                disabled={hasPendingAttachmentUploads || isSubmitting}
                 onClick={async () => {
                   if (!validateForm()) return;
                   if (hasPendingAttachmentUploads) return;
                   try {
-                    await submitDailyWork();
+                    await createPendingFtosAndSubmit();
                     navigate("/fto");
                   } catch (err) {
                     console.error(err);
@@ -2718,7 +2843,11 @@ export default function FtoSubmissionForm() {
                       "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                   }}
                 >
-                  {hasPendingAttachmentUploads ? "Uploading…" : "Submit"}
+                  {hasPendingAttachmentUploads
+                    ? "Uploading…"
+                    : isSubmitting
+                    ? "Submitting…"
+                    : "Submit"}
                 </span>
               </button>
             )}

@@ -222,6 +222,8 @@ export default function FtoHome() {
         priority: order.priority as "low" | "normal" | "high",
         status: toFtoStatus(order.approvalStatus) as "new" | "dispatched" | "completed" | "cancelled",
         due_date: order.due_date, // ISO format for modal
+        event_start_at: order.event_start_at ?? null,
+        event_end_at: order.event_end_at ?? null,
       };
 
       setEditingFTO(viewData);
@@ -272,6 +274,8 @@ export default function FtoHome() {
         priority: matchedFTO.priority as "low" | "normal" | "high",
         status: matchedFTO.status as "new" | "dispatched" | "completed" | "cancelled",
         due_date: matchedFTO.due_date, // ISO format for modal
+        event_start_at: matchedFTO.event_start_at ?? null,
+        event_end_at: matchedFTO.event_end_at ?? null,
       };
 
       setEditingFTO(viewData);

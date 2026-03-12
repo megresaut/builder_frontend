@@ -13,6 +13,7 @@ import CalendarSidebar from "./CalendarFilters";
 import AdvancedFiltersModal from "./AdvancedFiltersModal";
 import CreateEventDialog from "./CreateEventDialog";
 import EventDetailPopover from "./EventDetailPopover";
+import EditEventDialog from "./EditEventDialog";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 
@@ -168,6 +169,10 @@ export default function OperationsCalendar() {
   const [recurringModalOpen, setRecurringModalOpen] = useState(false);
   const [editingRecurring, setEditingRecurring] = useState<any>(null);
 
+  // Calendar event edit modal state
+  const [editEventDialogOpen, setEditEventDialogOpen] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
+
   const dateRangeRef = useRef<{ start: string; end: string } | null>(null);
 
   // Keep FullCalendar sized correctly on resize / sidebar toggle
@@ -320,6 +325,10 @@ export default function OperationsCalendar() {
 
   const handleViewDetails = useCallback(async (item: CalendarItem) => {
     switch (item.type) {
+      case "calendar_event":
+        setEditingEventId(item.id);
+        setEditEventDialogOpen(true);
+        break;
       case "task":
         navigate(`/tasks/${item.id}`);
         break;
@@ -346,6 +355,8 @@ export default function OperationsCalendar() {
             pm_assignee_ids: ftoData.pm_assignee_ids ?? [],
             unit_id: ftoData.unit_id,
             unit_name: ftoData.unit_name,
+            event_start_at: ftoData.event_start_at ?? null,
+            event_end_at: ftoData.event_end_at ?? null,
           });
           setFtoModalOpen(true);
         } catch {
@@ -718,6 +729,17 @@ export default function OperationsCalendar() {
         onOpenChange={setCreateDialogOpen}
         defaultDate={selectedDate ?? undefined}
         onEventCreated={handleEventCreated}
+      />
+
+      {/* Calendar Event Edit Modal */}
+      <EditEventDialog
+        open={editEventDialogOpen}
+        onOpenChange={(open) => {
+          setEditEventDialogOpen(open);
+          if (!open) setEditingEventId(null);
+        }}
+        eventId={editingEventId}
+        onEventUpdated={handleEventCreated}
       />
 
       {/* FTO Edit Modal */}

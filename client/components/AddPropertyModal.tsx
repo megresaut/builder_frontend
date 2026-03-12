@@ -68,38 +68,6 @@ interface AddPropertyModalProps {
   onSave?: () => void;
 }
 
-// Mock API Layer
-const mockFetchPropertyManagers = async (): Promise<PropertyManager[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { id: 1, name: "David Harris" },
-        { id: 2, name: "Sarah Johnson" },
-        { id: 3, name: "Michael Chen" },
-        { id: 4, name: "Emily Rodriguez" },
-      ]);
-    }, 100);
-  });
-};
-
-const mockSaveProperty = async (payload: any): Promise<void> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log("[API] POST /properties", payload);
-      resolve();
-    }, 300);
-  });
-};
-
-const mockUpdateProperty = async (id: number, payload: any): Promise<void> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log(`[API] PATCH /properties/${id}`, payload);
-      resolve();
-    }, 300);
-  });
-};
-
 // Constants
 const US_STATES = [
   "AL",

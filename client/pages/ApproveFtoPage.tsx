@@ -910,6 +910,8 @@ export default function ApproveFTOPage() {
       pm_assignee_ids: Array.isArray(loadedFto.pm_assignee_ids)
         ? loadedFto.pm_assignee_ids.map(Number)
         : [],
+      event_start_at: loadedFto.event_start_at ?? null,
+      event_end_at: loadedFto.event_end_at ?? null,
     };
   }, [loadedFto, ftoIdNum]);
 

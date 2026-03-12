@@ -65,6 +65,8 @@ interface FieldTeamOrder {
   name: string;
   pm_assignee_ids: number[];
   hours?: number;
+  event_start_at?: string | null;
+  event_end_at?: string | null;
 }
 
 interface APIFTOResponse {
@@ -91,6 +93,8 @@ interface APIFTOResponse {
   updated_at?: string;
   unit_id?: number;
   unit_name?: string;
+  event_start_at?: string | null;
+  event_end_at?: string | null;
 }
 
 // Misc submission (fto_id IS NULL)
@@ -475,6 +479,8 @@ const transformAPIToFieldTeamOrder = (
       }),
       field_team_member_ids: fto.field_team_member_ids ?? [],
       hours: fto.hours_decimal,
+      event_start_at: fto.event_start_at ?? null,
+      event_end_at: fto.event_end_at ?? null,
     };
   });
 };
@@ -1510,6 +1516,8 @@ export default function FieldTeamOrders() {
                   // optional display helpers
                   property_name: order.property,
                   unit_name: order.unit && order.unit !== UNIT_EMPTY_DISPLAY ? order.unit : null,
+                  event_start_at: order.event_start_at ?? null,
+                  event_end_at: order.event_end_at ?? null,
                 };
               })()
             : null

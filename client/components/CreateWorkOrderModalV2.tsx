@@ -70,6 +70,9 @@ interface CreateWorkOrderModalV2Props {
   }) => void;
   onWorkOrderCreated?: (workOrder: any) => void; // Callback when work order is successfully created
   onWorkOrderUpdated?: (workOrder: any) => void; // Callback when work order is successfully updated
+  /** Draft review mode — shows Approve/Reject instead of Update/Cancel */
+  onApprove?: () => void;
+  onReject?: () => void;
 }
 
 // Base options for dropdowns
@@ -216,6 +219,8 @@ export default function CreateWorkOrderModalV2({
   onDataUpdate,
   onWorkOrderCreated,
   onWorkOrderUpdated,
+  onApprove,
+  onReject,
 }: CreateWorkOrderModalV2Props) {
   const [formData, setFormData] = useState<{
     task: string;
@@ -773,14 +778,33 @@ export default function CreateWorkOrderModalV2({
         title={modalTitle}
         size="md"
         footer={
-          <ModalButtons
-            onCancel={handleCancel}
-            onConfirm={handleConfirm}
-            cancelLabel="Cancel"
-            confirmLabel={confirmLabel}
-            confirmDisabled={isSubmitting}
-            cancelDisabled={isSubmitting}
-          />
+          onApprove ? (
+            <div className="flex items-center justify-end gap-2 w-full">
+              <button
+                type="button"
+                onClick={onReject}
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                Reject
+              </button>
+              <button
+                type="button"
+                onClick={onApprove}
+                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                Approve
+              </button>
+            </div>
+          ) : (
+            <ModalButtons
+              onCancel={handleCancel}
+              onConfirm={handleConfirm}
+              cancelLabel="Cancel"
+              confirmLabel={confirmLabel}
+              confirmDisabled={isSubmitting}
+              cancelDisabled={isSubmitting}
+            />
+          )
         }
       >
         <FormLayout>

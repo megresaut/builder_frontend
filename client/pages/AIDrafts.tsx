@@ -6,7 +6,12 @@ import {
   approveDraft,
   rejectDraft,
   getDraftCount,
+  listFeedback,
+  createFeedback,
+  deleteFeedback,
   type AIDraft,
+  type AIFeedback,
+  type DuplicateMatch,
 } from "@/api/aiDrafts";
 import { fetchJSON } from "@/api/fetchJSON";
 import CreateFTOModal from "@/components/CreateFTOModal";
@@ -242,6 +247,16 @@ function DraftDetailPanel({
     }
 
     if (typeof value === "object") return JSON.stringify(value);
+
+    // Format ISO date/datetime strings
+    if (
+      typeof value === "string" &&
+      (key.endsWith("_at") || key.endsWith("_date") || key === "due_date") &&
+      /^\d{4}-\d{2}-\d{2}T/.test(value)
+    ) {
+      return formatDateTime(value);
+    }
+
     return String(value);
   }
 
@@ -271,7 +286,7 @@ function DraftDetailPanel({
                   ([key, value]) => (
                     <tr key={key} className="border-b border-[#f5f5f5] last:border-0">
                       <td className="px-3 py-2 text-[#717179] text-xs font-medium align-top whitespace-nowrap bg-[#fafafa] w-[140px]">
-                        {key.replace(/_/g, " ")}
+                        {key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </td>
                       <td className="px-3 py-2 text-[#303030] text-xs break-words">
                         {resolveValue(key, value)}
@@ -284,6 +299,35 @@ function DraftDetailPanel({
           </div>
         </div>
       </div>
+
+      {/* Duplicate matches */}
+      {draft.duplicate_of && (draft.duplicate_of as any).matches?.length > 0 && (
+        <div className="mt-4 pt-3 border-t border-[#e5e5e5]">
+          <h4 className="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 9V13M12 17H12.01M12 3L2 21H22L12 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Potential Duplicates
+          </h4>
+          <p className="text-xs text-[#717179] mb-2">{(draft.duplicate_of as any).summary}</p>
+          <div className="space-y-2">
+            {((draft.duplicate_of as any).matches as DuplicateMatch[]).map((m, i) => (
+              <div key={i} className="flex items-start gap-2 p-2.5 bg-orange-50 border border-orange-100 rounded-lg">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <EntityTypeBadge type={m.entity_type} />
+                    <span className="text-xs font-medium text-[#303030] truncate">{m.name}</span>
+                    <span className="text-[10px] text-orange-600 font-medium ml-auto whitespace-nowrap">
+                      {Math.round(m.confidence * 100)}% match
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#717179] mt-1">{m.reasoning}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {draft.reviewed_at && (
         <div className="mt-4 pt-3 border-t border-[#e5e5e5] text-xs text-[#a1a1a9]">
@@ -308,7 +352,8 @@ export default function AIDrafts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
-  const [showHistory, setShowHistory] = useState(false);
+  const [duplicateCount, setDuplicateCount] = useState(0);
+  const [viewTab, setViewTab] = useState<"pending" | "duplicates" | "history">("pending");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const didAutoExpand = useRef(false);
   const [actionInFlight, setActionInFlight] = useState<number | null>(null);
@@ -316,6 +361,21 @@ export default function AIDrafts() {
   const [showFTOModal, setShowFTOModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showWOModal, setShowWOModal] = useState(false);
+  const [cascadeConfirm, setCascadeConfirm] = useState<AIDraft | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<{
+    draft: AIDraft;
+    matches: DuplicateMatch[];
+    summary: string;
+  } | null>(null);
+
+  // Feedback
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackList, setFeedbackList] = useState<AIFeedback[]>([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackSource, setFeedbackSource] = useState("general");
+  const [feedbackType, setFeedbackType] = useState("correction");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
 
   // Filters
   const [filterType, setFilterType] = useState<string>("all");
@@ -326,6 +386,7 @@ export default function AIDrafts() {
   const [propertyMap, setPropertyMap] = useState<Record<number, string>>({});
   const [vendorMap, setVendorMap] = useState<Record<number, string>>({});
   const [userMap, setUserMap] = useState<Record<number, string>>({});
+  const [userEmailMap, setUserEmailMap] = useState<Record<number, string>>({});
 
   useEffect(() => {
     Promise.all([
@@ -342,26 +403,46 @@ export default function AIDrafts() {
       setVendorMap(vm);
 
       const um: Record<number, string> = {};
-      for (const u of users) um[u.id] = u.name || u.email || String(u.id);
+      const uem: Record<number, string> = {};
+      for (const u of users) {
+        um[u.id] = u.name || u.email || String(u.id);
+        uem[u.id] = u.email || "";
+      }
       setUserMap(um);
+      setUserEmailMap(uem);
     });
   }, []);
 
   // -----------------------------------------------------------------------
-  // Data loading — default to pending only, toggle to show all
+  // Data loading — tab-based: pending, duplicates, or all (history)
   // -----------------------------------------------------------------------
 
   const loadDrafts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const statusParam = showHistory ? undefined : "pending";
+      const statusParam = viewTab === "history" ? undefined : "pending";
       const [data, countResp] = await Promise.all([
         listDrafts(statusParam),
         getDraftCount(),
       ]);
-      setDrafts(data);
-      setPendingCount(countResp.count);
+
+      // Separate by tab
+      const pendingAll = data.filter((d) => d.status === "pending");
+      const pendingNonDup = pendingAll.filter((d) => !d.duplicate_of);
+      const pendingDup = pendingAll.filter((d) => d.duplicate_of);
+      const historyItems = data.filter((d) => d.status === "approved" || d.status === "rejected");
+
+      if (viewTab === "duplicates") {
+        setDrafts(pendingDup);
+      } else if (viewTab === "history") {
+        setDrafts(historyItems);
+      } else {
+        setDrafts(pendingNonDup);
+      }
+
+      setPendingCount(pendingNonDup.length);
+      setDuplicateCount(pendingDup.length);
     } catch (err: any) {
       console.error("Error loading AI drafts:", err);
       setError(err.message ?? "Failed to load drafts");
@@ -369,7 +450,7 @@ export default function AIDrafts() {
     } finally {
       setLoading(false);
     }
-  }, [showHistory]);
+  }, [viewTab]);
 
   useEffect(() => {
     loadDrafts();
@@ -406,31 +487,127 @@ export default function AIDrafts() {
     return raw ? Number(raw) : 0;
   }, []);
 
-  const handleApprove = useCallback(
-    async (draft: AIDraft) => {
-      if (actionInFlight) return;
+  const loadFeedback = useCallback(async () => {
+    setFeedbackLoading(true);
+    try {
+      const data = await listFeedback();
+      setFeedbackList(data.filter((f) => f.active));
+    } catch { /* ignore */ }
+    setFeedbackLoading(false);
+  }, []);
 
-      // Block WO approval if parent task draft is not yet approved
-      if (draft.entity_type === "work_order" && draft.parent_draft_id) {
-        const parentDraft = drafts.find((d) => d.id === draft.parent_draft_id);
-        if (parentDraft && parentDraft.status !== "approved") {
-          setError("Please approve the parent task before approving this work order.");
-          return;
-        }
-      }
+  useEffect(() => {
+    if (showFeedback) loadFeedback();
+  }, [showFeedback, loadFeedback]);
 
+  const handleSubmitFeedback = useCallback(async () => {
+    if (!feedbackMessage.trim()) return;
+    setFeedbackSubmitting(true);
+    try {
+      await createFeedback({
+        user_id: currentUserId,
+        source: feedbackSource,
+        feedback_type: feedbackType,
+        message: feedbackMessage.trim(),
+      });
+      setFeedbackMessage("");
+      loadFeedback();
+    } catch { /* ignore */ }
+    setFeedbackSubmitting(false);
+  }, [currentUserId, feedbackSource, feedbackType, feedbackMessage, loadFeedback]);
+
+  const handleDeleteFeedback = useCallback(async (id: number) => {
+    try {
+      await deleteFeedback(id);
+      setFeedbackList((prev) => prev.filter((f) => f.id !== id));
+    } catch { /* ignore */ }
+  }, []);
+
+  /** Find pending children of a given parent draft */
+  const getPendingChildren = useCallback(
+    (parentId: number) =>
+      drafts.filter(
+        (d) => d.parent_draft_id === parentId && d.status === "pending"
+      ),
+    [drafts]
+  );
+
+  /** Actually perform the approval (after all checks pass) */
+  const doApprove = useCallback(
+    async (draft: AIDraft): Promise<boolean> => {
       try {
         setActionInFlight(draft.id);
-        await approveDraft(draft.id, currentUserId);
+        setCascadeConfirm(null);
+        setDuplicateWarning(null);
+
+        const shouldCascade =
+          draft.entity_type === "task" &&
+          getPendingChildren(draft.id).length > 0;
+
+        await approveDraft(draft.id, currentUserId, undefined, shouldCascade);
         await loadDrafts();
+        return true;
       } catch (err: any) {
         console.error("Approve failed:", err);
-        setError(err.message ?? "Failed to approve draft");
+        let msg = err.message ?? "Failed to approve draft";
+        try {
+          const jsonMatch = msg.match(/\{.*"error"\s*:\s*"([^"]+)"/);
+          if (jsonMatch) msg = jsonMatch[1];
+        } catch {}
+        setError(msg);
+        return false;
       } finally {
         setActionInFlight(null);
       }
     },
-    [currentUserId, actionInFlight, loadDrafts, drafts]
+    [currentUserId, loadDrafts, getPendingChildren]
+  );
+
+  const handleApprove = useCallback(
+    async (draft: AIDraft, skipDuplicateCheck = false): Promise<boolean> => {
+      if (actionInFlight) return false;
+
+      // Block child (FTO / WO) approval if parent task is not yet approved
+      if (
+        (draft.entity_type === "work_order" || draft.entity_type === "fto") &&
+        draft.parent_draft_id
+      ) {
+        const parentDraft = drafts.find((d) => d.id === draft.parent_draft_id);
+        if (parentDraft && parentDraft.status !== "approved") {
+          setError(
+            "Please approve the parent task first before approving this " +
+              (draft.entity_type === "fto" ? "field team order" : "work order") +
+              "."
+          );
+          return false;
+        }
+      }
+
+      // If this is a task with pending children, show cascade confirmation
+      if (draft.entity_type === "task") {
+        const pendingChildren = getPendingChildren(draft.id);
+        if (pendingChildren.length > 0 && !cascadeConfirm) {
+          setCascadeConfirm(draft);
+          return false;
+        }
+      }
+
+      // If this draft was flagged as a potential duplicate, show warning before approving
+      if (!skipDuplicateCheck && draft.duplicate_of) {
+        const dupData = draft.duplicate_of as any;
+        if (dupData.matches?.length > 0) {
+          setDuplicateWarning({
+            draft,
+            matches: dupData.matches,
+            summary: dupData.summary || "This item was flagged as a potential duplicate.",
+          });
+          return false;
+        }
+      }
+
+      return await doApprove(draft);
+    },
+    [currentUserId, actionInFlight, loadDrafts, drafts, getPendingChildren, cascadeConfirm, doApprove]
   );
 
   const handleReject = useCallback(
@@ -550,6 +727,14 @@ export default function AIDrafts() {
                 }}
               >
                 {extractName(draft)}
+                {draft.duplicate_of && (
+                  <span className="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 text-orange-600 border border-orange-200" title="Potential duplicate detected">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+                      <path d="M12 9V13M12 17H12.01M12 3L2 21H22L12 3Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Duplicate
+                  </span>
+                )}
               </span>
             ) : (
               <span className="text-sm text-[#303030] truncate block">
@@ -578,7 +763,7 @@ export default function AIDrafts() {
 
           {/* Actions */}
           <div
-            className="flex items-center gap-2 justify-end"
+            className={`flex items-center gap-2 ${isPending ? "justify-end" : "justify-center"}`}
             onClick={(e) => e.stopPropagation()}
           >
             {isPending ? (
@@ -623,9 +808,33 @@ export default function AIDrafts() {
                 </button>
               </>
             ) : (
-              <span className="text-xs text-[#c4c4c4]">
-                {draft.reviewed_by_name || ""}
-              </span>
+              (() => {
+                const reviewerName = draft.reviewed_by ? (userMap[draft.reviewed_by] || draft.reviewed_by_name || "") : (draft.reviewed_by_name || "");
+                const reviewerEmail = draft.reviewed_by ? (userEmailMap[draft.reviewed_by] || "") : "";
+                const initials = reviewerName
+                  .split(" ")
+                  .filter(Boolean)
+                  .map((w: string) => w[0]?.toUpperCase())
+                  .slice(0, 2)
+                  .join("");
+                return reviewerName ? (
+                  <div className="relative group flex justify-center">
+                    <div className={`w-7 h-7 rounded-full border-[1.5px] flex items-center justify-center text-[10px] font-semibold cursor-default ${
+                      draft.status === "approved"
+                        ? "border-emerald-400 text-emerald-600"
+                        : "border-red-300 text-red-500"
+                    }`}>
+                      {initials}
+                    </div>
+                    <div className="absolute bottom-full right-0 mb-1.5 hidden group-hover:block z-50 pointer-events-none">
+                      <div className="bg-[#1a1a1a] text-white rounded-lg px-3 py-2 shadow-lg whitespace-nowrap">
+                        <div className="text-xs font-semibold">{reviewerName}</div>
+                        {reviewerEmail && <div className="text-[11px] text-[#a1a1a9]">{reviewerEmail}</div>}
+                      </div>
+                    </div>
+                  </div>
+                ) : null;
+              })()
             )}
           </div>
         </div>
@@ -660,18 +869,16 @@ export default function AIDrafts() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Show history toggle */}
-            <label className="flex items-center gap-2 text-xs text-[#999] cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={showHistory}
-                onChange={(e) => setShowHistory(e.target.checked)}
-                className="rounded border-gray-300 text-[#2463eb] focus:ring-[#2463eb] h-3 w-3"
-              />
-              Show history
-            </label>
-
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowFeedback(true)}
+              className="flex h-7 items-center gap-1.5 px-2.5 rounded-lg border border-[#e8e8e8] bg-white hover:bg-[#fafafa] transition-colors text-xs text-[#999]"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15C21 15.53 20.79 16.04 20.41 16.41C20.04 16.79 19.53 17 19 17H7L3 21V5C3 4.47 3.21 3.96 3.59 3.59C3.96 3.21 4.47 3 5 3H19C19.53 3 20.04 3.21 20.41 3.59C20.79 3.96 21 4.47 21 5V15Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              AI Feedback
+            </button>
             <button
               onClick={loadDrafts}
               className="flex h-7 items-center gap-1.5 px-2.5 rounded-lg border border-[#e8e8e8] bg-white hover:bg-[#fafafa] transition-colors text-xs text-[#999]"
@@ -683,6 +890,41 @@ export default function AIDrafts() {
               Refresh
             </button>
           </div>
+        </div>
+
+        {/* View tabs */}
+        <div className="flex items-center gap-1 border-b border-[#e8e8e8]">
+          {([
+            { key: "pending" as const, label: "Pending", count: pendingCount },
+            { key: "duplicates" as const, label: "Potential Duplicates", count: duplicateCount },
+            { key: "history" as const, label: "History", count: 0 },
+          ]).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setViewTab(tab.key)}
+              className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+                viewTab === tab.key
+                  ? "text-[#303030]"
+                  : "text-[#999] hover:text-[#717179]"
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold ${
+                    tab.key === "duplicates"
+                      ? "bg-orange-100 text-orange-600"
+                      : "bg-[#f0f0f0] text-[#717179]"
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </span>
+              {viewTab === tab.key && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#303030] rounded-t" />
+              )}
+            </button>
+          ))}
         </div>
 
         {/* Error */}
@@ -697,6 +939,121 @@ export default function AIDrafts() {
                 <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </button>
+          </div>
+        )}
+
+        {/* Cascade approval confirmation */}
+        {cascadeConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
+              <div className="px-6 pt-5 pb-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 9V13M12 17H12.01M12 3L2 21H22L12 3Z" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#303030]">
+                      Approve Task & Related Items
+                    </h3>
+                    <p className="mt-2 text-sm text-[#717179] leading-relaxed">
+                      By approving this task, you will also approve the{" "}
+                      {getPendingChildren(cascadeConfirm.id)
+                        .map((c) =>
+                          c.entity_type === "fto"
+                            ? "field team order"
+                            : c.entity_type === "work_order"
+                            ? "work order"
+                            : c.entity_type
+                        )
+                        .join(" and ")}{" "}
+                      associated with it. Please review the details of each before confirming.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-3 bg-[#fafafa] border-t border-[#f0f0f0] flex justify-end gap-2">
+                <button
+                  onClick={() => setCascadeConfirm(null)}
+                  className="px-4 py-2 text-sm font-medium text-[#717179] bg-white border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleApprove(cascadeConfirm)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+                >
+                  Approve All
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Duplicate warning dialog */}
+        {duplicateWarning && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 overflow-hidden">
+              <div className="px-6 pt-5 pb-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 9V13M12 17H12.01M12 3L2 21H22L12 3Z" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-[#303030]">
+                      Potential Duplicates Detected
+                    </h3>
+                    <p className="mt-1 text-sm text-[#717179]">
+                      {duplicateWarning.summary}
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      {duplicateWarning.matches.map((m, i) => (
+                        <div
+                          key={i}
+                          className="flex items-start gap-2 p-2.5 bg-orange-50 border border-orange-100 rounded-lg"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <EntityTypeBadge type={m.entity_type} />
+                              <span className="text-sm font-medium text-[#303030] truncate">
+                                {m.name}
+                              </span>
+                              <span className="text-xs text-orange-600 font-medium ml-auto whitespace-nowrap">
+                                {Math.round(m.confidence * 100)}% match
+                              </span>
+                            </div>
+                            <p className="text-xs text-[#717179] mt-1">
+                              {m.reasoning}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-3 bg-[#fafafa] border-t border-[#f0f0f0] flex justify-end gap-2">
+                <button
+                  onClick={() => setDuplicateWarning(null)}
+                  className="px-4 py-2 text-sm font-medium text-[#717179] bg-white border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const draft = duplicateWarning.draft;
+                    setDuplicateWarning(null);
+                    handleApprove(draft, true);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors"
+                >
+                  Approve Anyway
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -754,7 +1111,7 @@ export default function AIDrafts() {
         </div>
 
         {/* Table */}
-        <div className="border border-[#ebebeb] rounded-xl bg-white overflow-hidden">
+        <div className="border border-[#ebebeb] rounded-xl bg-white overflow-visible">
           {/* Header row */}
           <div
             className="grid items-center border-b border-[#f0f0f0] text-[10px] font-semibold text-[#bbb] uppercase tracking-wider select-none"
@@ -767,7 +1124,7 @@ export default function AIDrafts() {
             <div>Confidence</div>
             <div>Status</div>
             <div>Created</div>
-            <div className="text-right">Actions</div>
+            <div className="text-center">Actions</div>
           </div>
 
           {/* Loading */}
@@ -790,14 +1147,22 @@ export default function AIDrafts() {
                 <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               <p className="text-sm font-medium text-[#717179]">
-                {drafts.length > 0 ? "No drafts match filters" : showHistory ? "No drafts found" : "All caught up"}
+                {drafts.length > 0
+                  ? "No drafts match filters"
+                  : viewTab === "duplicates"
+                    ? "No potential duplicates"
+                    : viewTab === "history"
+                      ? "No drafts found"
+                      : "All caught up"}
               </p>
               <p className="text-xs text-[#a1a1a9] mt-1">
                 {drafts.length > 0
                   ? "Try adjusting the type or date filters."
-                  : showHistory
-                    ? "No AI drafts have been created yet."
-                    : "No pending drafts to review. Check \"Show history\" to see past decisions."}
+                  : viewTab === "duplicates"
+                    ? "No incoming drafts have been flagged as potential duplicates."
+                    : viewTab === "history"
+                      ? "No AI drafts have been created yet."
+                      : "No pending drafts to review."}
               </p>
             </div>
           )}
@@ -837,33 +1202,46 @@ export default function AIDrafts() {
       </div>
 
       {/* Edit modals */}
-      {showFTOModal && editingDraft && (
-        <CreateFTOModal
-          open={showFTOModal}
-          onOpenChange={(open) => { if (!open) closeModal(); }}
-          editingFTO={{
-            id: 0,
-            name: editingDraft.extracted_data?.name || "",
-            description: editingDraft.extracted_data?.description || "",
-            priority: editingDraft.extracted_data?.priority || "normal",
-            status: "new",
-            due_date: editingDraft.extracted_data?.due_date || "",
-            property_id: editingDraft.extracted_data?.property_id,
-            field_team_member_ids: editingDraft.extracted_data?.field_team_member_ids || [],
-            pm_assignee_ids: [],
-          }}
-        />
-      )}
+      {showFTOModal && editingDraft && (() => {
+        const parentTaskDraft = editingDraft.parent_draft_id
+          ? drafts.find((d) => d.id === editingDraft.parent_draft_id && d.entity_type === "task")
+          : null;
+        const parentTaskName = parentTaskDraft?.extracted_data?.name || null;
+        return (
+          <CreateFTOModal
+            open={showFTOModal}
+            onOpenChange={(open) => { if (!open) closeModal(); }}
+            {...(parentTaskName ? { lockedTaskLabel: parentTaskName } : {})}
+            onApprove={async () => { const ok = await handleApprove(editingDraft); if (ok) closeModal(); }}
+            onReject={async () => { await handleReject(editingDraft); closeModal(); }}
+            editingFTO={{
+              id: 0,
+              name: editingDraft.extracted_data?.name || "",
+              description: editingDraft.extracted_data?.description || "",
+              priority: editingDraft.extracted_data?.priority || "normal",
+              status: "new",
+              due_date: editingDraft.extracted_data?.due_date || "",
+              event_start_at: editingDraft.extracted_data?.event_start_at || null,
+              event_end_at: editingDraft.extracted_data?.event_end_at || null,
+              property_id: editingDraft.extracted_data?.property_id,
+              field_team_member_ids: editingDraft.extracted_data?.field_team_member_ids || [],
+              pm_assignee_ids: [],
+            }}
+          />
+        );
+      })()}
 
       {showTaskModal && editingDraft && (
         <CreateTaskModal
           open={showTaskModal}
           onOpenChange={(open) => { if (!open) closeModal(); }}
+          onApprove={async () => { const ok = await handleApprove(editingDraft); if (ok) closeModal(); }}
+          onReject={async () => { await handleReject(editingDraft); closeModal(); }}
           editData={{
             id: 0,
             name: editingDraft.extracted_data?.name || "",
             description: editingDraft.extracted_data?.description || "",
-            priority: editingDraft.extracted_data?.priority || "normal",
+            priority: editingDraft.extracted_data?.priority || "medium",
             status: editingDraft.extracted_data?.status || "open",
             category: editingDraft.extracted_data?.category || "",
             property_id: editingDraft.extracted_data?.property_id,
@@ -885,18 +1263,132 @@ export default function AIDrafts() {
           <CreateWorkOrderModalV2
             open={showWOModal}
             onOpenChange={(open) => { if (!open) closeModal(); }}
+            onApprove={async () => { const ok = await handleApprove(editingDraft); if (ok) closeModal(); }}
+            onReject={async () => { await handleReject(editingDraft); closeModal(); }}
             mode="create"
             propertyId={editingDraft.extracted_data?.property_id}
             initialData={{
               task: taskName,
               workOrderName: editingDraft.extracted_data?.name || "",
               vendorId: editingDraft.extracted_data?.vendor_id,
-              priority: editingDraft.extracted_data?.priority || "normal",
+              priority: editingDraft.extracted_data?.priority || "medium",
               notes: editingDraft.extracted_data?.work_description || "",
             }}
           />
         );
       })()}
+
+      {/* AI Feedback Panel */}
+      {showFeedback && (
+        <div className="fixed inset-0 z-50 flex items-start justify-end">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setShowFeedback(false)} />
+          <div className="relative w-full max-w-md h-full bg-white shadow-xl flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#e8e8e8]">
+              <div>
+                <h2 className="text-lg font-semibold text-[#303030]">AI Feedback</h2>
+                <p className="text-xs text-[#999] mt-0.5">Teach the AI classifier by providing corrections and patterns</p>
+              </div>
+              <button onClick={() => setShowFeedback(false)} className="p-1.5 rounded-lg hover:bg-[#f5f5f5] text-[#999]">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Submit form */}
+            <div className="px-5 py-4 border-b border-[#e8e8e8] bg-[#fafafa]">
+              <div className="flex gap-2 mb-3">
+                <select
+                  value={feedbackSource}
+                  onChange={(e) => setFeedbackSource(e.target.value)}
+                  className="h-8 px-2 rounded-lg border border-[#e8e8e8] bg-white text-xs text-[#303030]"
+                >
+                  <option value="general">All Sources</option>
+                  <option value="calendar">Calendar</option>
+                  <option value="sms">SMS</option>
+                  <option value="buildium">Buildium</option>
+                </select>
+                <select
+                  value={feedbackType}
+                  onChange={(e) => setFeedbackType(e.target.value)}
+                  className="h-8 px-2 rounded-lg border border-[#e8e8e8] bg-white text-xs text-[#303030]"
+                >
+                  <option value="correction">Correction</option>
+                  <option value="pattern">Pattern</option>
+                  <option value="suggestion">Suggestion</option>
+                </select>
+              </div>
+              <textarea
+                value={feedbackMessage}
+                onChange={(e) => setFeedbackMessage(e.target.value)}
+                placeholder={'e.g. "When you see \'Meet painters at [address]\', always classify as work_order, not fto_only"'}
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border border-[#e8e8e8] bg-white text-sm text-[#303030] placeholder:text-[#bbb] resize-none focus:outline-none focus:border-[#2463eb]"
+              />
+              <button
+                onClick={handleSubmitFeedback}
+                disabled={feedbackSubmitting || !feedbackMessage.trim()}
+                className="mt-2 w-full h-8 rounded-lg bg-[#303030] text-white text-xs font-medium hover:bg-[#444] transition-colors disabled:opacity-40"
+              >
+                {feedbackSubmitting ? "Submitting..." : "Submit Feedback"}
+              </button>
+            </div>
+
+            {/* Existing feedback list */}
+            <div className="flex-1 overflow-y-auto px-5 py-3">
+              {feedbackLoading && feedbackList.length === 0 && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                </div>
+              )}
+              {!feedbackLoading && feedbackList.length === 0 && (
+                <p className="text-center text-sm text-[#999] py-8">
+                  No feedback yet. Add corrections to help the AI learn from its mistakes.
+                </p>
+              )}
+              <div className="flex flex-col gap-2">
+                {feedbackList.map((fb) => (
+                  <div key={fb.id} className="rounded-lg border border-[#e8e8e8] bg-white p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            fb.feedback_type === "correction" ? "bg-red-50 text-red-600" :
+                            fb.feedback_type === "pattern" ? "bg-blue-50 text-blue-600" :
+                            "bg-amber-50 text-amber-600"
+                          }`}>
+                            {fb.feedback_type}
+                          </span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-500">
+                            {fb.source}
+                          </span>
+                          <span className="text-[10px] text-[#bbb]">
+                            {new Date(fb.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-[#303030]">{fb.message}</p>
+                        {fb.user_name && (
+                          <p className="text-[10px] text-[#bbb] mt-1">by {fb.user_name}</p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteFeedback(fb.id)}
+                        className="flex-shrink-0 p-1 rounded hover:bg-red-50 text-[#ccc] hover:text-red-400 transition-colors"
+                        title="Remove"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M3 3L9 9M9 3L3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </PageTemplate>
   );
 }
