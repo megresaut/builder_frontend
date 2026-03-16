@@ -5,6 +5,10 @@ import {
   type IdentityOption,
 } from "@/components/forms/IdentitySelectField";
 import {
+  MultiSelectField,
+  type MultiSelectOption,
+} from "@/components/forms/MultiSelectField";
+import {
   DrawerTemplate,
   DrawerSubheader,
   DrawerSection,
@@ -38,6 +42,12 @@ interface FieldTeamOrder {
   unit?: string;
   fieldTeamAssignee?: string;
   task?: string;
+}
+
+interface PropertyOption {
+  id: number;
+  name: string;
+  active: boolean;
 }
 
 interface HoursSummaryDrawerProps {
@@ -76,6 +86,9 @@ export default function HoursSummaryDrawer({
   const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(
     initialDateRangeEnd || null,
   );
+  const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
+  const [properties, setProperties] = useState<PropertyOption[]>([]);
+  const [loadingProperties, setLoadingProperties] = useState(false);
   const [fieldTeamMembers, setFieldTeamMembers] = useState<IdentityOption[]>([]);
   const [loadingFieldTeam, setLoadingFieldTeam] = useState(false);
   const [hoursSummary, setHoursSummary] = useState<HoursSummaryResponse | null>(null);
@@ -113,6 +126,38 @@ export default function HoursSummaryDrawer({
     }
 
     loadFieldTeamMembers();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
+  // Fetch properties when drawer opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let cancelled = false;
+
+    async function loadProperties() {
+      try {
+        setLoadingProperties(true);
+        const data = await fetchJSON("/properties");
+
+        if (!cancelled) {
+          setProperties(
+            (data as PropertyOption[]).filter((p) => p.active)
+          );
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load properties:", err);
+          setProperties([]);
+        }
+      } finally {
+        if (!cancelled) setLoadingProperties(false);
+      }
+    }
+
+    loadProperties();
     return () => {
       cancelled = true;
     };
@@ -162,6 +207,11 @@ export default function HoursSummaryDrawer({
             params.append("end_date", endDateStr);
           }
 
+          // Add property filter if provided (optional)
+          if (selectedProperties.length > 0) {
+            params.append("property_ids", selectedProperties.join(","));
+          }
+
           const data = await fetchJSON(
             `/maintenance/submissions/hours-summary?${params.toString()}`
           );
@@ -193,7 +243,7 @@ export default function HoursSummaryDrawer({
       setHoursSummary(null);
       setSummaryError(null);
     }
-  }, [isOpen, selectedManagers, dateRangeStart, dateRangeEnd]);
+  }, [isOpen, selectedManagers, dateRangeStart, dateRangeEnd, selectedProperties]);
 
   const hasRequiredFilters =
     selectedManagers.length > 0 || (!!dateRangeStart && !!dateRangeEnd);
@@ -202,6 +252,7 @@ export default function HoursSummaryDrawer({
     setSelectedManagers([]);
     setDateRangeStart(null);
     setDateRangeEnd(null);
+    setSelectedProperties([]);
   };
 
   return (
@@ -236,6 +287,23 @@ export default function HoursSummaryDrawer({
               options={fieldTeamMembers}
               multiple={true}
               disabled={loadingFieldTeam}
+            />
+            <MultiSelectField
+              label="Properties"
+              value={selectedProperties.map((id) => {
+                const prop = properties.find((p) => String(p.id) === id);
+                return { id, label: prop?.name || id };
+              })}
+              onChange={(value: MultiSelectOption[]) =>
+                setSelectedProperties(value.map((v) => v.id))
+              }
+              placeholder={loadingProperties ? "Loading..." : "All properties"}
+              options={properties.map((p) => ({
+                id: String(p.id),
+                label: p.name,
+              }))}
+              disabled={loadingProperties}
+              searchable
             />
             <div>
               <label
