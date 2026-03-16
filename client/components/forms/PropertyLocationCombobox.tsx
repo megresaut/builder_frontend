@@ -300,8 +300,9 @@ export const PropertyLocationCombobox: React.FC<PropertyLocationComboboxProps> =
 
         <PopoverContent
           align="start"
-          className="w-[var(--radix-popover-trigger-width)] p-0"
+          className="p-0"
           style={{
+            minWidth: "320px",
             width: "var(--radix-popover-trigger-width)",
           }}
           hideWhenDetached={false}

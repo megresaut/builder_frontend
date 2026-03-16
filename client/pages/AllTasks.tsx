@@ -433,9 +433,23 @@ export default function AllTasks() {
     },
   ];
 
-  const handleDeleteTask = useCallback((task: Task) => {
-    setTasksList((prev) => prev.filter((t) => t.id !== task.id));
-  }, []);
+  const handleDeleteTask = useCallback(
+    async (task: Task) => {
+      if (!confirm("Are you sure you want to delete this task?")) {
+        return;
+      }
+
+      try {
+        await fetchJSON(`/maintenance/tasks/delete/${task.id}`, {
+          method: "DELETE",
+        });
+        loadTasks();
+      } catch (err: any) {
+        console.error("Failed to delete task:", err);
+      }
+    },
+    [loadTasks]
+  );
 
   const handleEditTask = useCallback((task: Task) => {
     const apiTask = apiTasks.find((t) => t.id === task.id);

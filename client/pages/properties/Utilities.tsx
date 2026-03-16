@@ -12,6 +12,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useParams } from "react-router-dom";
 import EditUtilityAccountModal from "@/components/EditUtilityAccountModal";
+import { toast } from "sonner";
 
 interface UtilityAccount {
   id: number;
@@ -2541,10 +2542,15 @@ useEffect(() => {
             });
           } else {
             if (!editingUtilityAccount) return;
-            await fetchJSON(`/utilities/accounts/${editingUtilityAccount.id}`, {
+            const res = await fetchJSON(`/utilities/accounts/${editingUtilityAccount.id}`, {
               method: "PATCH",
               body: JSON.stringify(payload),
             });
+            if (res?.cascaded_count > 0) {
+              toast.success(
+                `Password also updated for ${res.cascaded_count} other account${res.cascaded_count === 1 ? "" : "s"}`
+              );
+            }
           }
 
           await queryClient.invalidateQueries({

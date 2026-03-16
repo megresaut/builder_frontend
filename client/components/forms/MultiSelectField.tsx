@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Check, ChevronDown, X } from "lucide-react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { Check, ChevronDown, X, Search } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
@@ -24,6 +24,7 @@ interface MultiSelectFieldProps {
   disabled?: boolean;
   placeholder?: string;
   options: MultiSelectOption[];
+  searchable?: boolean;
 }
 
 /**
@@ -40,9 +41,26 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
   onChange,
   placeholder = "Select options",
   options,
+  searchable = false,
 }) => {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchQuery.trim()) return options;
+    const q = searchQuery.toLowerCase();
+    return options.filter((o) => o.label.toLowerCase().includes(q));
+  }, [options, searchQuery, searchable]);
+
+  // Focus search input when popover opens
+  useEffect(() => {
+    if (open && searchable) {
+      setTimeout(() => searchInputRef.current?.focus(), 0);
+    }
+    if (!open) setSearchQuery("");
+  }, [open, searchable]);
 
   // Deduplicate selected values
   const uniqueValue = Array.from(
@@ -133,6 +151,27 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
         </PopoverTrigger>
 
         <PopoverContent align="start" className="w-auto p-0">
+          {searchable && (
+            <div
+              style={{
+                padding: "8px",
+                borderBottom: "1px solid var(--color-border-light)",
+              }}
+            >
+              <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border" style={{ borderColor: "var(--color-border-light)" }}>
+                <Search className="h-4 w-4 shrink-0" style={{ color: "var(--color-text-placeholder)" }} />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search..."
+                  className="w-full text-sm outline-none bg-transparent"
+                  style={{ fontSize: "14px" }}
+                />
+              </div>
+            </div>
+          )}
           <div
             role="listbox"
             aria-multiselectable="true"
@@ -143,7 +182,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
               minWidth: "200px",
             }}
           >
-            {options.length === 0 ? (
+            {filteredOptions.length === 0 ? (
               <div
                 style={{
                   padding: "8px 12px",
@@ -151,10 +190,10 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
                   color: "var(--color-text-muted)",
                 }}
               >
-                No options
+                {searchQuery ? "No matches" : "No options"}
               </div>
             ) : (
-              options.map((option) => {
+              filteredOptions.map((option) => {
                 const isSelected = uniqueValue.some((v) => v.id === option.id);
                 return (
                   <button
