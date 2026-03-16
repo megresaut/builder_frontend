@@ -567,18 +567,24 @@ export default function FieldTeamOrders() {
     ids: number[]
   ): Promise<Record<number, { id: number; name: string }>> {
     const uniqueIds = Array.from(new Set(ids));
-  
-    const users = await Promise.all(
+
+    const results = await Promise.all(
       uniqueIds.map(async (id) => {
-        const user = await fetchJSON(`/users/${id}`);
-        return user;
+        try {
+          const user = await fetchJSON(`/users/${id}`);
+          return user;
+        } catch {
+          return null;
+        }
       })
     );
-  
-    return users.reduce((acc, user) => {
-      acc[user.id] = user;
-      return acc;
-    }, {} as Record<number, { id: number; name: string }>);
+
+    return results
+      .filter((user): user is { id: number; name: string } => user !== null)
+      .reduce((acc, user) => {
+        acc[user.id] = user;
+        return acc;
+      }, {} as Record<number, { id: number; name: string }>);
   }
   
 

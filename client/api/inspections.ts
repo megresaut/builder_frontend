@@ -203,6 +203,26 @@ export async function parseChecklistDocx(
 }
 
 /**
+ * Delete a photo from an inspection
+ */
+export async function deleteInspectionPhoto(
+  inspectionId: number,
+  photoId: number
+): Promise<void> {
+  const res = await fetch(
+    `${API_BASE}/inspections/${inspectionId}/photos/${photoId}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    }
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API error ${res.status}: ${text}`);
+  }
+}
+
+/**
  * Update a photo's condition and/or comment
  */
 export async function updateInspectionPhoto(

@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   fetchNotifications,
   fetchUnreadCount,
   markNotificationRead,
@@ -23,10 +28,45 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 const SEVERITY_BAR: Record<string, string> = {
   critical: "bg-red-500",
   warning: "bg-amber-400",
   info: "bg-blue-400",
+};
+
+const SEVERITY_BADGE: Record<string, { bg: string; text: string; label: string }> = {
+  critical: { bg: "bg-red-100", text: "text-red-700", label: "Critical" },
+  warning: { bg: "bg-amber-100", text: "text-amber-700", label: "Warning" },
+  info: { bg: "bg-blue-100", text: "text-blue-700", label: "Info" },
+};
+
+const TYPE_LABELS: Record<string, string> = {
+  deadline_1day: "Deadline Reminder (24h)",
+  deadline_1hour: "Starting Soon (1h)",
+  task_closed: "Task Closed",
+  fto_completed: "FTO Completed",
+  fto_submitted: "FTO Submission",
+  work_order_completed: "Work Order Completed",
+  conflict_detected: "Scheduling Conflict",
+  overdue_warning: "Overdue Warning",
+  schedule_overload: "Schedule Overload",
+};
+
+const ENTITY_LABELS: Record<string, string> = {
+  task: "Task",
+  field_team_order: "FTO",
+  work_order: "Work Order",
+  calendar_event: "Calendar Event",
 };
 
 // ---------------------------------------------------------------------------
@@ -38,6 +78,7 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<CalendarNotification[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<CalendarNotification | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const prevUnreadRef = useRef(0);
@@ -52,9 +93,8 @@ export default function NotificationBell() {
     if (!userId) return;
     try {
       const count = await fetchUnreadCount(userId);
-      // Toast for new critical notifications when panel is closed
       if (count > prevUnreadRef.current && !open) {
-        // We don't know exactly which are new, but signal the user
+        // new notifications arrived
       }
       prevUnreadRef.current = count;
       setUnreadCount(count);
@@ -77,7 +117,6 @@ export default function NotificationBell() {
       const data = await fetchNotifications(userId, 15);
       setNotifications(data);
 
-      // Check for new critical ones to toast
       const criticals = data.filter(
         (n) =>
           n.severity === "critical" &&
@@ -102,7 +141,7 @@ export default function NotificationBell() {
 
   // ---- Close on outside click / Escape ----
   useEffect(() => {
-    if (!open) return;
+    if (!open || selected) return;
 
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -125,7 +164,7 @@ export default function NotificationBell() {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [open]);
+  }, [open, selected]);
 
   // ---- Actions ----
   const handleMarkRead = useCallback(
@@ -148,14 +187,18 @@ export default function NotificationBell() {
     [userId],
   );
 
-  const handleDismiss = useCallback(async (id: number) => {
-    try {
-      await dismissNotification(id);
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    } catch {
-      // ignore
-    }
-  }, []);
+  const handleDismiss = useCallback(
+    async (id: number) => {
+      try {
+        await dismissNotification(id);
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+        if (selected?.id === id) setSelected(null);
+      } catch {
+        // ignore
+      }
+    },
+    [selected],
+  );
 
   const handleMarkAllRead = useCallback(async () => {
     if (!userId) return;
@@ -175,6 +218,14 @@ export default function NotificationBell() {
     );
     setUnreadCount(0);
   }, [userId, notifications]);
+
+  const handleNotificationClick = useCallback(
+    (n: CalendarNotification) => {
+      if (!isRead(n)) handleMarkRead(n.id);
+      setSelected(n);
+    },
+    [handleMarkRead, userId],
+  );
 
   const isRead = (n: CalendarNotification) =>
     n.read_by_user_ids.includes(userId);
@@ -205,7 +256,6 @@ export default function NotificationBell() {
           strokeLinejoin="round"
           className="text-gray-700"
         >
-          {/* Calendar icon */}
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
           <line x1="16" y1="2" x2="16" y2="6" />
           <line x1="8" y1="2" x2="8" y2="6" />
@@ -242,14 +292,12 @@ export default function NotificationBell() {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
-            {/* Loading */}
             {loading && notifications.length === 0 && (
               <div className="flex items-center justify-center py-12">
                 <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
               </div>
             )}
 
-            {/* Empty state */}
             {!loading && notifications.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center px-4">
                 <svg
@@ -274,16 +322,13 @@ export default function NotificationBell() {
               </div>
             )}
 
-            {/* Notification list */}
             {notifications.map((n) => (
               <div
                 key={n.id}
                 className={`flex border-b border-gray-50 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors ${
                   !isRead(n) ? "bg-blue-50/50" : ""
                 }`}
-                onClick={() => {
-                  if (!isRead(n)) handleMarkRead(n.id);
-                }}
+                onClick={() => handleNotificationClick(n)}
               >
                 {/* Severity bar */}
                 <div
@@ -335,6 +380,133 @@ export default function NotificationBell() {
           </div>
         </div>
       )}
+
+      {/* ---- Detail Modal ---- */}
+      <Dialog open={!!selected} onOpenChange={(v) => { if (!v) setSelected(null); }}>
+        <DialogContent className="bg-white rounded-lg w-full max-w-md p-0 overflow-hidden">
+          {selected && (
+            <>
+              {/* Severity banner */}
+              <div className={`h-1.5 w-full ${SEVERITY_BAR[selected.severity] ?? "bg-gray-300"}`} />
+
+              <div className="px-5 pt-4 pb-5">
+                {/* Header row: badge + type */}
+                <div className="flex items-center gap-2 mb-3">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      SEVERITY_BADGE[selected.severity]?.bg ?? "bg-gray-100"
+                    } ${SEVERITY_BADGE[selected.severity]?.text ?? "text-gray-600"}`}
+                  >
+                    {SEVERITY_BADGE[selected.severity]?.label ?? selected.severity}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {TYPE_LABELS[selected.notification_type] ?? selected.notification_type}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <DialogTitle className="text-base font-semibold text-gray-900 mb-2">
+                  {selected.title}
+                </DialogTitle>
+
+                {/* Message */}
+                <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                  {selected.message}
+                </p>
+
+                {/* Metadata details */}
+                {selected.metadata && Object.keys(selected.metadata).length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                      Details
+                    </p>
+                    <div className="space-y-1.5">
+                      {selected.metadata.entity_type && selected.metadata.entity_id && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Related entity</span>
+                          <span className="text-xs font-medium text-gray-700">
+                            {ENTITY_LABELS[selected.metadata.entity_type] ?? selected.metadata.entity_type}{" "}
+                            #{selected.metadata.entity_id}
+                          </span>
+                        </div>
+                      )}
+                      {selected.metadata.submission_id && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Submission</span>
+                          <span className="text-xs font-medium text-gray-700">
+                            #{selected.metadata.submission_id}
+                          </span>
+                        </div>
+                      )}
+                      {selected.metadata.user_id && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Affected user</span>
+                          <span className="text-xs font-medium text-gray-700">
+                            User #{selected.metadata.user_id}
+                          </span>
+                        </div>
+                      )}
+                      {selected.metadata.conflict_event_id && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Conflicting event</span>
+                          <span className="text-xs font-medium text-gray-700">
+                            #{selected.metadata.conflict_event_id}
+                          </span>
+                        </div>
+                      )}
+                      {selected.metadata.date && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Date</span>
+                          <span className="text-xs font-medium text-gray-700">
+                            {selected.metadata.date}
+                          </span>
+                        </div>
+                      )}
+                      {selected.metadata.count && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Items scheduled</span>
+                          <span className="text-xs font-medium text-gray-700">
+                            {selected.metadata.count}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Timestamps */}
+                <div className="flex items-center justify-between text-[11px] text-gray-400 mb-4">
+                  <span>Created {formatDate(selected.created_at)}</span>
+                  {selected.expires_at && (
+                    <span>Expires {formatDate(selected.expires_at)}</span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2">
+                  {!isRead(selected) && (
+                    <button
+                      onClick={() => {
+                        handleMarkRead(selected.id);
+                        setSelected({ ...selected, read_by_user_ids: [...selected.read_by_user_ids, userId] });
+                      }}
+                      className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                    >
+                      Mark as read
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDismiss(selected.id)}
+                    className="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

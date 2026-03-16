@@ -46,6 +46,9 @@ import FtoSubmissionForm from "./pages/FtoSubmissionForm";
 import ApproveFtoPage from "./pages/ApproveFtoPage";
 import FtoInspections from "./pages/FtoInspections";
 import FtoInspectionForm from "./pages/FtoInspectionForm";
+import FtoInspectionCreate from "./pages/FtoInspectionCreate";
+import FtoInspectionDetail from "./pages/FtoInspectionDetail";
+import FtoInspectionRunner from "./pages/FtoInspectionRunner";
 import FtoWorkOrders from "./pages/FtoWorkOrders";
 import FtoWorkOrderDetail from "./pages/FtoWorkOrderDetail";
 
@@ -472,11 +475,21 @@ export default function App() {
                   <Route index element={<FtoInspections />} />
 
                   {/* Create */}
-                  <Route path="new" element={<FtoInspectionForm />} />
+                  <Route path="new" element={<FtoInspectionCreate />} />
 
-                  {/* Edit / View */}
-                  <Route path=":inspectionId" element={<FtoInspectionForm />} />
+                  {/* Detail / Start */}
+                  <Route path=":inspectionId" element={<FtoInspectionDetail />} />
                 </Route>
+
+                {/* Inspection Runner - full screen, outside shell layout */}
+                <Route
+                  path="/fto/inspections/:inspectionId/run"
+                  element={
+                    <RequireAuth>
+                      <FtoInspectionRunner />
+                    </RequireAuth>
+                  }
+                />
 
                 <Route
                   path="/fto/work-orders"

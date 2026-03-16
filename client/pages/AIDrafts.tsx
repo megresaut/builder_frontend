@@ -357,6 +357,13 @@ export default function AIDrafts() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const didAutoExpand = useRef(false);
   const [actionInFlight, setActionInFlight] = useState<number | null>(null);
+  const [approveAllInFlight, setApproveAllInFlight] = useState(false);
+  const [approveAllProgress, setApproveAllProgress] = useState({ done: 0, total: 0 });
+  const [approveAllResult, setApproveAllResult] = useState<{
+    approved: number;
+    total: number;
+    failures: Record<number, string>; // draft id → error reason
+  } | null>(null);
   const [editingDraft, setEditingDraft] = useState<AIDraft | null>(null);
   const [showFTOModal, setShowFTOModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -532,6 +539,32 @@ export default function AIDrafts() {
     [drafts]
   );
 
+  /** Turn raw server/SQL errors into user-friendly messages */
+  const friendlyError = (raw: string): string => {
+    const s = raw.toLowerCase();
+    if (s.includes("tasks_property_id_fkey") || s.includes("property_id"))
+      return "No property assigned — please select a property before approving";
+    if (s.includes("tasks_assignee") || s.includes("assignee"))
+      return "No assignee — please assign someone before approving";
+    if (s.includes("vendor") && s.includes("fkey"))
+      return "Vendor not found — please select a valid vendor";
+    if (s.includes("parent") && s.includes("approved"))
+      return "Parent task must be approved first";
+    if (s.includes("duplicate"))
+      return "This item was flagged as a potential duplicate";
+    if (s.includes("already approved") || s.includes("not pending"))
+      return "Already approved or no longer pending";
+    if (s.includes("23503"))
+      return "Missing required reference — edit the draft to fill in missing fields";
+    if (s.includes("23505"))
+      return "A matching record already exists";
+    if (s.includes("23502") || s.includes("not-null"))
+      return "Required field is missing — edit the draft to fill in all fields";
+    // Strip nested "failed to create task: create task:" prefixes
+    const cleaned = raw.replace(/failed to \w+ \w+: \w+ \w+: /gi, "").trim();
+    return cleaned || "Unexpected error";
+  };
+
   /** Actually perform the approval (after all checks pass) */
   const doApprove = useCallback(
     async (draft: AIDraft): Promise<boolean> => {
@@ -539,6 +572,7 @@ export default function AIDrafts() {
         setActionInFlight(draft.id);
         setCascadeConfirm(null);
         setDuplicateWarning(null);
+        setApproveAllResult(null);
 
         const shouldCascade =
           draft.entity_type === "task" &&
@@ -549,12 +583,7 @@ export default function AIDrafts() {
         return true;
       } catch (err: any) {
         console.error("Approve failed:", err);
-        let msg = err.message ?? "Failed to approve draft";
-        try {
-          const jsonMatch = msg.match(/\{.*"error"\s*:\s*"([^"]+)"/);
-          if (jsonMatch) msg = jsonMatch[1];
-        } catch {}
-        setError(msg);
+        setError(friendlyError(err.message ?? "Failed to approve draft"));
         return false;
       } finally {
         setActionInFlight(null);
@@ -626,6 +655,68 @@ export default function AIDrafts() {
     },
     [currentUserId, actionInFlight, loadDrafts]
   );
+
+  const handleApproveAll = useCallback(async () => {
+    if (actionInFlight || approveAllInFlight) return;
+    setApproveAllInFlight(true);
+    setError(null);
+    setApproveAllResult(null);
+
+    // Work on the current pending drafts list
+    const pending = [...drafts].filter((d) => d.status === "pending");
+
+    // Approve parent tasks first (they cascade to children), then the rest
+    const parentTasks = pending.filter(
+      (d) => d.entity_type === "task" && !d.parent_draft_id
+    );
+    const rest = pending.filter(
+      (d) => !(d.entity_type === "task" && !d.parent_draft_id)
+    );
+    const ordered = [...parentTasks, ...rest];
+
+    // Track which draft IDs were already approved via cascade so we skip them
+    const cascadedChildIds = new Set<number>();
+    for (const parent of parentTasks) {
+      for (const child of getPendingChildren(parent.id)) {
+        cascadedChildIds.add(child.id);
+      }
+    }
+
+    // Filter out children that will be cascade-approved with their parent
+    const toApprove = ordered.filter((d) => !cascadedChildIds.has(d.id));
+
+    setApproveAllProgress({ done: 0, total: toApprove.length });
+
+    const failures: Record<number, string> = {};
+    for (let i = 0; i < toApprove.length; i++) {
+      const draft = toApprove[i];
+      try {
+        setActionInFlight(draft.id);
+
+        const shouldCascade =
+          draft.entity_type === "task" &&
+          getPendingChildren(draft.id).length > 0;
+
+        await approveDraft(draft.id, currentUserId, undefined, shouldCascade);
+      } catch (err: any) {
+        console.error(`Approve all: failed draft ${draft.id}:`, err);
+        failures[draft.id] = friendlyError(err.message ?? "Unknown error");
+      } finally {
+        setActionInFlight(null);
+      }
+      setApproveAllProgress({ done: i + 1, total: toApprove.length });
+    }
+
+    await loadDrafts();
+    setApproveAllInFlight(false);
+
+    const failCount = Object.keys(failures).length;
+    setApproveAllResult({
+      approved: toApprove.length - failCount,
+      total: toApprove.length,
+      failures,
+    });
+  }, [actionInFlight, approveAllInFlight, drafts, currentUserId, loadDrafts, getPendingChildren]);
 
   // -----------------------------------------------------------------------
   // Edit draft in modal
@@ -839,6 +930,16 @@ export default function AIDrafts() {
           </div>
         </div>
 
+        {approveAllResult?.failures[draft.id] && (
+          <div className="flex items-center gap-1.5 px-4 py-1.5 bg-red-50 text-xs text-red-600">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            Approval failed: {approveAllResult.failures[draft.id]}
+          </div>
+        )}
+
         {isExpanded && !isChild && <DraftDetailPanel draft={draft} propertyMap={propertyMap} vendorMap={vendorMap} userMap={userMap} />}
       </div>
     );
@@ -879,6 +980,30 @@ export default function AIDrafts() {
               </svg>
               AI Feedback
             </button>
+            {viewTab === "pending" && pendingCount > 0 && (
+              <button
+                onClick={handleApproveAll}
+                disabled={!!actionInFlight || approveAllInFlight}
+                className="flex h-7 items-center gap-1.5 px-2.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition-colors text-xs text-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {approveAllInFlight ? (
+                  <>
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="animate-spin">
+                      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="28" strokeDashoffset="8" strokeLinecap="round" />
+                    </svg>
+                    {approveAllProgress.done}/{approveAllProgress.total}
+                  </>
+                ) : (
+                  <>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                    Approve All
+                  </>
+                )}
+              </button>
+            )}
             <button
               onClick={loadDrafts}
               className="flex h-7 items-center gap-1.5 px-2.5 rounded-lg border border-[#e8e8e8] bg-white hover:bg-[#fafafa] transition-colors text-xs text-[#999]"
@@ -929,7 +1054,7 @@ export default function AIDrafts() {
 
         {/* Error */}
         {error && (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          <div className="flex items-start gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 whitespace-pre-line">
             {error}
             <button
               onClick={() => setError(null)}
@@ -939,6 +1064,34 @@ export default function AIDrafts() {
                 <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </button>
+          </div>
+        )}
+
+        {/* Approve All result summary */}
+        {approveAllResult && (
+          <div className="rounded-lg border overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border-b border-emerald-200 text-sm text-emerald-700">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+                <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+              <span className="font-medium">
+                Approved {approveAllResult.approved} of {approveAllResult.total} drafts
+              </span>
+              <button
+                onClick={() => setApproveAllResult(null)}
+                className="ml-auto text-emerald-400 hover:text-emerald-600"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+            {Object.keys(approveAllResult.failures).length > 0 && (
+              <div className="px-4 py-2 bg-red-50 text-sm text-red-600">
+                {Object.keys(approveAllResult.failures).length} failed — see items marked below
+              </div>
+            )}
           </div>
         )}
 

@@ -617,6 +617,7 @@ export default function ApproveFTOPage() {
   const [ftoName, setFtoName] = useState(state.ftoName || "");
   const [property, setProperty] = useState(state.property || "");
   const [unit, setUnit] = useState(state.unit || "");
+  const [ftoLocation, setFtoLocation] = useState("");
   const [fieldTeamAssignee, setFieldTeamAssignee] = useState(
     state.fieldTeamAssignee || "",
   );
@@ -950,6 +951,7 @@ export default function ApproveFTOPage() {
           setProperty(fto.property_name || fto.property_address || "");
         }
         if (fto.unit_name) setUnit(fto.unit_name);
+        if (fto.location_name) setFtoLocation(fto.location_name);
         if (fto.description) setDescription(fto.description);
         if (fto.due_date) {
           const parsedDate = parseDueDate(fto.due_date);
@@ -1730,7 +1732,7 @@ export default function ApproveFTOPage() {
                     />
                   </div>
 
-                  {/* Property and Unit Row */}
+                  {/* Property, Location, and Unit Row */}
                   <div className="flex gap-5">
                     <div className="flex-1">
                       <TextField
@@ -1740,6 +1742,16 @@ export default function ApproveFTOPage() {
                         disabled={true}
                       />
                     </div>
+                    {ftoLocation && (
+                      <div className="flex-1">
+                        <TextField
+                          label="Location"
+                          value={ftoLocation}
+                          onChange={() => {}}
+                          disabled={true}
+                        />
+                      </div>
+                    )}
                     <div className="flex-1">
                       <TextField
                         label="Unit"
