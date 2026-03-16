@@ -45,6 +45,7 @@ interface SummaryTabProps {
   currentPropertyId?: number;
   currentPropertyName?: string;
   currentPropertyAddress?: string;
+  currentLocationAddress?: string;
   currentPropertyImageUrl?: string | null;
   currentUnit: string;
   createdTimestamp: string;
@@ -106,6 +107,7 @@ export default function SummaryTab({
   currentPropertyId,
   currentPropertyName,
   currentPropertyAddress,
+  currentLocationAddress,
   currentPropertyImageUrl,
   currentUnit,
   createdTimestamp,
@@ -288,6 +290,7 @@ export default function SummaryTab({
             }
             propertyName={`${currentPropertyName || getPropertyName(currentProperty)}${currentUnit ? ` - ${getUnitDisplayLabel(currentUnit)}` : ""}`}
             propertyAddress={currentPropertyAddress || getPropertyAddress(currentProperty)}
+            locationAddress={currentLocationAddress}
             mapImage="https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/b2c68a80effe0893f444c93ea4b66f4db8c65123?placeholderIfAbsent=true"
             propertyId={currentPropertyId ? String(currentPropertyId) : undefined}
           />

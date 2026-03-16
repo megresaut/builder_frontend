@@ -23,6 +23,7 @@ import {
   FileUploadField,
   ComboboxFieldWithCustomInput,
   MultiSelectField,
+  PropertyLocationCombobox,
 } from "@/components/forms";
 import type { MultiSelectOption } from "@/components/forms";
 import {
@@ -69,6 +70,7 @@ interface HourEntry {
   isExpanded: boolean;
   date: string | null;
   propertyId: string | null;
+  locationId: string | null;
   unitId: string | null;
   taskId: string | null;
   customTaskName: string;
@@ -84,6 +86,7 @@ interface ExpenseEntry {
   isExpanded: boolean;
   date: string | null;
   propertyId: string | null;
+  locationId: string | null;
   unitId: string | null;
   taskId: string | null;
   amount: number | string;
@@ -147,8 +150,9 @@ interface Property {
   
     active: boolean;
     created_at: string;
-  
+
     manager_names: string[];
+    locations_count?: number;
   }
 
 interface Unit {
@@ -370,6 +374,7 @@ export default function FtoSubmissionForm() {
       isExpanded: true,
       date: getTodayDate(),
       propertyId: null,
+      locationId: null,
       unitId: null,
       taskId: null,
       customTaskName: "",
@@ -387,6 +392,7 @@ export default function FtoSubmissionForm() {
       isExpanded: true,
       date: getTodayDate(),
       propertyId: null,
+      locationId: null,
       unitId: null,
       taskId: null,
       amount: "",
@@ -784,6 +790,7 @@ export default function FtoSubmissionForm() {
 
         date: h.date_of_work?.split("T")[0] ?? null,
         propertyId: entryPropertyId,
+        locationId: h.location_id ? String(h.location_id) : null,
         unitId: entryUnitId, // Will be mapped to ID later if it's a name
         taskId: entryTaskId,
         customTaskName: "",
@@ -821,6 +828,7 @@ export default function FtoSubmissionForm() {
 
         date: m.date_of_work?.split("T")[0] ?? null,
         propertyId: entryPropertyId,
+        locationId: m.location_id ? String(m.location_id) : null,
         unitId: entryUnitId, // Will be mapped to ID later if it's a name
         taskId: entryTaskId,
 
@@ -1671,6 +1679,7 @@ export default function FtoSubmissionForm() {
       date_of_work: toDateOnly(h.date ?? undefined) || h.date!,
 
       property_id: h.propertyId ? Number(h.propertyId) : null,
+      location_id: h.locationId ? Number(h.locationId) : null,
       unit_id: getUnitIdAsNumber(h.unitId),
       task_id: Number(h.taskId), // optional but fine to include
 
@@ -1686,6 +1695,7 @@ export default function FtoSubmissionForm() {
       fto_id: Number(e.taskId),
       date_of_work: toDateOnly(e.date ?? undefined) || e.date!,
       property_id: Number(e.propertyId),
+      location_id: e.locationId ? Number(e.locationId) : null,
       unit_id: getUnitIdAsNumber(e.unitId),
       amount: Number(e.amount),
       is_avm_expense: e.chargeType === "avm-expense",
@@ -1878,24 +1888,23 @@ export default function FtoSubmissionForm() {
                         {/* Property and Unit Row */}
                         <div className="flex flex-col lg:flex-row gap-3">
                           <div className="flex-1">
-                            <ComboboxField
+                            <PropertyLocationCombobox
                                     label="Property"
                                     required
                                     error={hourErrors[entry.id]?.propertyId}
-                                    options={properties.map((p) => ({
-                                        value: String(p.id),
-                                        label: p.name,
-                                    }))}
-                                    value={entry.propertyId || ""}
-                                    onChange={(value) => {
+                                    properties={properties}
+                                    propertyId={entry.propertyId ? Number(entry.propertyId) : null}
+                                    locationId={entry.locationId ? Number(entry.locationId) : null}
+                                    onChange={({ propertyId, locationId }) => {
                                         if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
-                                        updateHourEntry(entry.id, "propertyId", value);
-                                        updateHourEntry(entry.id, "unitId", null); // Clear unit when property changes
+                                        updateHourEntry(entry.id, "propertyId", propertyId ? String(propertyId) : null);
+                                        updateHourEntry(entry.id, "locationId", locationId ? String(locationId) : null);
+                                        updateHourEntry(entry.id, "unitId", null);
                                         updateHourEntry(entry.id, "taskId", null);
                                         updateHourEntry(entry.id, "customTaskName", "");
-                                        if (value) {
-                                          loadFtosForProperty(value as string);
-                                          loadUnitsForProperty(value as string);
+                                        if (propertyId) {
+                                          loadFtosForProperty(String(propertyId));
+                                          loadUnitsForProperty(String(propertyId));
                                         }
                                     }}
                                     placeholder={
@@ -2291,23 +2300,22 @@ export default function FtoSubmissionForm() {
                         {/* Property and Unit Row */}
                         <div className="flex flex-col lg:flex-row gap-3">
                           <div className="flex-1">
-                            <ComboboxField
+                            <PropertyLocationCombobox
                                 label="Property"
                                 required
                                 error={expenseErrors[entry.id]?.propertyId}
-                                options={properties.map((p) => ({
-                                    value: String(p.id),
-                                    label: p.name,
-                                }))}
-                                value={entry.propertyId || ""}
-                                onChange={(value) => {
+                                properties={properties}
+                                propertyId={entry.propertyId ? Number(entry.propertyId) : null}
+                                locationId={entry.locationId ? Number(entry.locationId) : null}
+                                onChange={({ propertyId, locationId }) => {
                                     if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
-                                    updateExpenseEntry(entry.id, "propertyId", value);
-                                    updateExpenseEntry(entry.id, "unitId", null); // Clear unit when property changes
+                                    updateExpenseEntry(entry.id, "propertyId", propertyId ? String(propertyId) : null);
+                                    updateExpenseEntry(entry.id, "locationId", locationId ? String(locationId) : null);
+                                    updateExpenseEntry(entry.id, "unitId", null);
                                     updateExpenseEntry(entry.id, "taskId", null);
-                                    if (value) {
-                                      loadFtosForProperty(value as string);
-                                      loadUnitsForProperty(value as string);
+                                    if (propertyId) {
+                                      loadFtosForProperty(String(propertyId));
+                                      loadUnitsForProperty(String(propertyId));
                                     }
                                 }}
                                 placeholder={

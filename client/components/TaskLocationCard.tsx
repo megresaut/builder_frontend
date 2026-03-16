@@ -9,6 +9,7 @@ interface TaskLocationCardProps {
   propertyImage?: string;
   propertyName?: string;
   propertyAddress?: string;
+  locationAddress?: string;
   mapImage?: string;
   propertyId?: string;
   variant?: "default" | "gray";
@@ -24,6 +25,7 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
   propertyImage,
   propertyName,
   propertyAddress,
+  locationAddress,
   mapImage,
   propertyId,
   variant = "default",
@@ -74,9 +76,9 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
                 </button>
               </div>
             )}
-            {propertyAddress && (
+            {(locationAddress || propertyAddress) && (
               <div className="mt-2 text-sm text-[#717179] font-['Geist',sans-serif]">
-                {propertyAddress}
+                {locationAddress || propertyAddress}
               </div>
             )}
           </div>
@@ -86,16 +88,17 @@ export const TaskLocationCard: React.FC<TaskLocationCardProps> = ({
         {mapImage && (
           <button
             onClick={() => {
-              if (propertyAddress) {
-                const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(propertyAddress)}`;
+              const addr = locationAddress || propertyAddress;
+              if (addr) {
+                const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(addr)}`;
                 window.open(mapsUrl, "_blank");
               }
             }}
             className={`mt-6 w-full rounded-lg overflow-hidden transition-transform hover:scale-105 ${
-              propertyAddress ? "cursor-pointer" : "cursor-default"
+              (locationAddress || propertyAddress) ? "cursor-pointer" : "cursor-default"
             }`}
-            disabled={!propertyAddress}
-            title={propertyAddress ? "Click to view on Google Maps" : ""}
+            disabled={!(locationAddress || propertyAddress)}
+            title={(locationAddress || propertyAddress) ? "Click to view on Google Maps" : ""}
           >
             <img
               src={mapImage}

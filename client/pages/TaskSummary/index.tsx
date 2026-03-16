@@ -429,6 +429,7 @@ export default function TaskSummary() {
           property_id: apiTask.property_id,
           property_name: apiTask.property_name,
           property_address: apiTask.property_address,
+          location_address: apiTask.location_address,
           property: propertyDisplay, // Add property field for display
           unit_id: apiTask.unit_id,
           unit: formatUnitLabel({
@@ -3372,6 +3373,7 @@ export default function TaskSummary() {
               currentPropertyId={currentPropertyId}
               currentPropertyName={taskData?.property_name}
               currentPropertyAddress={taskData?.property_address}
+              currentLocationAddress={taskData?.location_address}
               currentPropertyImageUrl={propertyImageUrl}
               currentUnit={currentUnit}
               createdTimestamp={formatTaskDateTime(createdTimestamp)}

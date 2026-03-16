@@ -34,6 +34,7 @@ import {
   updateChecklist,
   addInspectionPhotos,
   listInspectionPhotos,
+  updateInspectionPhoto,
   BackendInspectionChecklist,
 } from "@/api/inspections";
 import { API_BASE } from "@/api/fetchJSON";
@@ -1010,6 +1011,37 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     }));
   };
 
+  const handleSavePhoto = async (photoId: string, condition: string | null, comment: string) => {
+    if (!inspectionId) return;
+    try {
+      const cond = condition && ["good", "fair", "poor"].includes(condition)
+        ? (condition as "good" | "fair" | "poor")
+        : null;
+      await updateInspectionPhoto(inspectionId, Number(photoId), {
+        condition: cond,
+        comment: comment || null,
+      });
+      // Refresh photos
+      const backendPhotos = await listInspectionPhotos(inspectionId);
+      const frontendPhotos: InspectionPhoto[] = backendPhotos.map((bp) => ({
+        id: bp.id.toString(),
+        inspectionId: bp.inspection_id.toString(),
+        sectionNodeId: bp.section_id,
+        fileRef: `${API_BASE}/uploads/${bp.storage_path}`,
+        uploadedAt: bp.created_at,
+        comment: bp.comment,
+        condition: bp.condition,
+      }));
+      setPhotos(frontendPhotos);
+      // Update the selected photo for the modal so it reflects changes
+      const updated = frontendPhotos.find(p => p.id === photoId);
+      if (updated) setSelectedPhotoForModal(updated);
+    } catch (error) {
+      console.error("Failed to update photo:", error);
+      alert("Failed to save changes.");
+    }
+  };
+
   // --- Handlers: General ---
 
   const handleStatusChange = async (newStatus: "In Progress" | "Completed") => {
@@ -1629,21 +1661,41 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
                         {/* Photos Grid */}
                         {isNodeExpanded && (
                           <div className="p-2 bg-white border-t border-gray-200">
-                            <div className="grid grid-cols-3 gap-1.5">
-                              {nodePhotos.map((photo) => (
-                                <div
-                                  key={photo.id}
-                                  className="relative group cursor-pointer rounded-md overflow-hidden bg-gray-100 aspect-square border border-gray-200"
-                                  onClick={() => handleOpenPhotoModal(photo)}
-                                >
-                                  <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
-                                  {photo.comment && (
-                                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-[8px] px-1 py-0.5 line-clamp-1">
-                                      {photo.comment}
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                              {nodePhotos.map((photo) => {
+                                const condConfig = photo.condition === "good"
+                                  ? { label: "Good", color: "text-green-700", bg: "bg-green-100" }
+                                  : photo.condition === "fair"
+                                  ? { label: "Fair", color: "text-yellow-700", bg: "bg-yellow-100" }
+                                  : photo.condition === "poor"
+                                  ? { label: "Poor", color: "text-red-700", bg: "bg-red-100" }
+                                  : null;
+
+                                return (
+                                  <div
+                                    key={photo.id}
+                                    className="flex-shrink-0 w-40 border border-gray-200 rounded-lg overflow-hidden bg-white cursor-pointer hover:shadow-md transition-shadow"
+                                    onClick={() => handleOpenPhotoModal(photo)}
+                                  >
+                                    <div className="aspect-square bg-gray-100">
+                                      <img src={photo.fileRef} alt="Inspection" className="w-full h-full object-cover" />
                                     </div>
-                                  )}
-                                </div>
-                              ))}
+                                    <div className="p-1.5 flex flex-col gap-0.5">
+                                      {condConfig && (
+                                        <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded w-fit", condConfig.bg, condConfig.color)}>
+                                          {condConfig.label}
+                                        </span>
+                                      )}
+                                      {photo.comment && (
+                                        <p className="text-[10px] text-gray-600 line-clamp-2">{photo.comment}</p>
+                                      )}
+                                      {!condConfig && !photo.comment && (
+                                        <p className="text-[10px] text-gray-400 italic">No details</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
@@ -1693,6 +1745,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           note={photoNotes[selectedPhotoForModal.id] || ""}
           onNoteChange={(note) => handleUpdatePhotoNote(selectedPhotoForModal.id, note)}
           nodePath={selectedPhotoForModal.sectionNodeId ? getNodePath(selectedPhotoForModal.sectionNodeId) : "Unknown Item"}
+          onSave={handleSavePhoto}
         />
       )}
     </>
@@ -1809,6 +1862,7 @@ interface PhotoViewerModalProps {
   note: string;
   onNoteChange: (note: string) => void;
   nodePath: string;
+  onSave: (photoId: string, condition: string | null, comment: string) => Promise<void>;
 }
 
 function PhotoViewerModal({
@@ -1822,91 +1876,132 @@ function PhotoViewerModal({
   note,
   onNoteChange,
   nodePath,
+  onSave,
 }: PhotoViewerModalProps) {
+  const [condition, setCondition] = React.useState(photo.condition || "");
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  // Sync condition when photo changes (navigation)
+  React.useEffect(() => {
+    setCondition(photo.condition || "");
+  }, [photo.id, photo.condition]);
+
   if (!open) return null;
 
   const canGoNext = photoIndex < totalPhotos - 1;
   const canGoPrev = photoIndex > 0;
 
+  const condOptions = [
+    { value: "good", label: "Good", color: "text-green-700", bg: "bg-green-100" },
+    { value: "fair", label: "Fair", color: "text-yellow-700", bg: "bg-yellow-100" },
+    { value: "poor", label: "Poor", color: "text-red-700", bg: "bg-red-100" },
+  ];
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await onSave(photo.id, condition || null, note);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div
-      className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3"
       onClick={() => onOpenChange(false)}
     >
       <div
-        className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col"
+        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div className="flex flex-col gap-1 flex-1 min-w-0">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold text-gray-900">Photo Viewer</h2>
-              <span className="text-sm text-gray-500 flex-shrink-0">
-                {photoIndex + 1} of {totalPhotos}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onPrev}
+                disabled={!canGoPrev}
+                className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ArrowBackIcon width={16} height={16} />
+              </button>
+              <span className="text-xs text-gray-500 font-medium tabular-nums whitespace-nowrap">
+                {photoIndex + 1} / {totalPhotos}
               </span>
+              <button
+                onClick={onNext}
+                disabled={!canGoNext}
+                className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ArrowForwardIcon width={16} height={16} />
+              </button>
             </div>
-            <p className="text-sm text-blue-600 truncate">{nodePath}</p>
+            <span className="text-xs text-gray-400 truncate">{nodePath}</span>
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="text-gray-400 hover:text-gray-600 transition-colors text-2xl leading-none ml-2 flex-shrink-0"
+            className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
           >
-            ×
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
 
-        {/* Image Container */}
-        <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-hidden p-4">
+        {/* Image */}
+        <div className="flex-1 flex items-center justify-center bg-gray-950 overflow-hidden min-h-0" style={{ maxHeight: "55vh" }}>
           <img
             src={photo.fileRef}
             alt="Inspection"
-            className="max-h-full max-w-full object-contain shadow-sm"
+            className="max-h-full max-w-full object-contain"
           />
         </div>
 
-        {/* Condition Section */}
-        <div className="border-t border-gray-200 px-4 pt-4 pb-1 bg-white">
-          <label className="text-sm font-semibold text-gray-900 mb-1 block">Condition</label>
-          <p className="text-sm text-gray-700">
-            {photo.condition
-              ? photo.condition.charAt(0).toUpperCase() + photo.condition.slice(1)
-              : "—"}
-          </p>
-        </div>
-
-        {/* Notes Section */}
-        <div className="border-t border-gray-200 p-4 bg-white">
-          <label className="text-sm font-semibold text-gray-900 mb-2 block">Notes</label>
-          <textarea
-            value={note}
-            onChange={(e) => onNoteChange(e.target.value)}
-            placeholder="Add notes or comments about this photo..."
-            className="w-full p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            rows={3}
-          />
-        </div>
-
-        {/* Footer with Navigation */}
-        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50 gap-4">
-          <button
-            onClick={onPrev}
-            disabled={!canGoPrev}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            ← Previous
-          </button>
-
-          <div className="text-sm text-gray-600">
-            {new Date(photo.uploadedAt).toLocaleString()}
+        {/* Details */}
+        <div className="px-4 py-3 flex flex-col gap-3 border-t border-gray-100">
+          {/* Condition buttons + timestamp */}
+          <div className="flex items-center justify-between">
+            <div className="flex gap-1.5">
+              {condOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setCondition(condition === opt.value ? "" : opt.value)}
+                  className={cn(
+                    "text-xs font-medium px-2.5 py-1 rounded-full border transition-colors",
+                    condition === opt.value
+                      ? `${opt.bg} ${opt.color} border-current`
+                      : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-[11px] text-gray-400 flex-shrink-0">
+              {new Date(photo.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              {" "}
+              {new Date(photo.uploadedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+            </span>
           </div>
 
+          {/* Notes */}
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">Notes</label>
+            <textarea
+              value={note}
+              onChange={(e) => onNoteChange(e.target.value)}
+              placeholder="Add a note..."
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-shadow"
+              rows={2}
+            />
+          </div>
+
+          {/* Save button */}
           <button
-            onClick={onNext}
-            disabled={!canGoNext}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="w-full px-4 py-2 bg-[#013764] text-white rounded-lg text-sm font-medium hover:bg-[#012a4e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Next →
+            {isSaving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>
