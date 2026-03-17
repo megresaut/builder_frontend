@@ -508,6 +508,11 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         path: "/",
         sectionId: "all-properties",
       },
+      {
+        label: "Insurance",
+        path: "/insurance",
+        sectionId: "insurance",
+      },
     ],
     screening: [],
     leases: [],

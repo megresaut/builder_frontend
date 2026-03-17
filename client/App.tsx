@@ -38,6 +38,7 @@ import { TermsOfService } from "./pages/TermsOfService";
 import TaskSummary from "./pages/TaskSummary/index";
 import AIDrafts from "./pages/AIDrafts";
 import Operations from "./pages/Operations";
+import InsuranceDashboard from "./pages/InsuranceDashboard";
 
 // FTO
 import FtoShellLayout from "./layout/FTOShellLayout";
@@ -269,6 +270,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <Bills />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/insurance"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <InsuranceDashboard />
                       </ShellLayout>
                     </RequireAuth>
                   }

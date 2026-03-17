@@ -482,6 +482,12 @@ export default function FtoSubmissionForm() {
     return () => { cancelled = true; };
   }, [isSubmitAsAdmin, userId]);
 
+  // Clear FTO cache when "Submit as" user changes so tasks re-fetch for the selected user
+  useEffect(() => {
+    if (!isSubmitAsAdmin) return;
+    setFtosByProperty({});
+  }, [submitAsTechId, isSubmitAsAdmin]);
+
   // Live vendor list from backend (paginated + searchable)
   const vendorPageSize = 50;
   const vendorRequestIdRef = useRef(0);
@@ -1140,9 +1146,10 @@ export default function FtoSubmissionForm() {
     try {
       setFtosLoading(true);
   
+      const effectiveUserId = isSubmitAsAdmin && submitAsTechId != null ? submitAsTechId : userId;
       const params = new URLSearchParams({
         property_id: String(Number(propertyId)),
-        field_team_member_id: String(userId),
+        field_team_member_id: String(effectiveUserId),
         status: "dispatched",
       });
   
@@ -1486,6 +1493,7 @@ export default function FtoSubmissionForm() {
           priority: "normal",
           field_team_member_ids: [techIdNum, ...collaboratorIds],
           pm_assignee_ids: [] as number[],
+          source: "submission_form",
         };
 
         const created: any = await fetchJSON("/maintenance/ftos", {

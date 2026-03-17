@@ -92,6 +92,7 @@ const PropertyPageHeader = memo(function PropertyPageHeader({
     "Inspections",
     "Vendors",
     "Bills",
+    "Insurance",
     "Notes",
     ...(isConcierge ? ["Invoicing"] : []),
   ];
