@@ -44,6 +44,9 @@ function formatDateTime(iso: string): string {
 
 function extractName(draft: AIDraft): string {
   const d = draft.extracted_data;
+  if (draft.entity_type === "fto_merge" && d?.source_fto && d?.target_fto) {
+    return `Merge "${d.source_fto.name}" → "${d.target_fto.name}"`;
+  }
   if (d?.name) return d.name;
   if (d?.title) return d.title;
   if (d?.subject) return d.subject;
@@ -107,6 +110,11 @@ function EntityTypeBadge({ type }: { type: string }) {
       bg: "bg-purple-50",
       text: "text-purple-600",
       label: "Work Order",
+    },
+    fto_merge: {
+      bg: "bg-orange-50",
+      text: "text-orange-600",
+      label: "FTO Merge",
     },
   };
   const c = config[type] || {
@@ -258,6 +266,130 @@ function DraftDetailPanel({
     }
 
     return String(value);
+  }
+
+  // FTO Merge comparison view
+  if (draft.entity_type === "fto_merge") {
+    const sourceFTO = draft.extracted_data?.source_fto;
+    const targetFTO = draft.extracted_data?.target_fto;
+
+    return (
+      <div className="px-6 py-4 bg-[#fafafa] border-t border-[#f0f0f0]">
+        {/* Reasoning */}
+        <div className="mb-4">
+          <h4 className="text-xs font-semibold text-[#717179] uppercase tracking-wider mb-2">
+            AI Reasoning
+          </h4>
+          <p className="text-sm text-[#303030] leading-relaxed">
+            {draft.ai_reasoning || "No reasoning provided."}
+          </p>
+        </div>
+
+        {/* Side-by-side comparison */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* Source FTO (submission) */}
+          <div className="bg-white border border-orange-200 rounded-lg p-4">
+            <h4 className="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Submission FTO
+            </h4>
+            {sourceFTO ? (
+              <table className="w-full text-xs">
+                <tbody>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium w-[100px]">Name</td>
+                    <td className="py-1.5 text-[#303030]">{sourceFTO.name}</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium">Description</td>
+                    <td className="py-1.5 text-[#303030]">{sourceFTO.description || "—"}</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium">Status</td>
+                    <td className="py-1.5 text-[#303030]">{sourceFTO.status}</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium">Hours</td>
+                    <td className="py-1.5 text-[#303030]">{sourceFTO.hours_decimal || 0}h</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 text-[#717179] font-medium">Created</td>
+                    <td className="py-1.5 text-[#303030]">{sourceFTO.created_at ? formatDateTime(sourceFTO.created_at) : "—"}</td>
+                  </tr>
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-xs text-[#999]">No data available</p>
+            )}
+          </div>
+
+          {/* Target FTO (existing) */}
+          <div className="bg-white border border-emerald-200 rounded-lg p-4">
+            <h4 className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M9 12L11 14L15 10M12 3L2 21H22L12 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Existing FTO
+              {targetFTO?.task_id && (
+                <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-blue-50 text-blue-600 font-medium">Task-linked</span>
+              )}
+            </h4>
+            {targetFTO ? (
+              <table className="w-full text-xs">
+                <tbody>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium w-[100px]">Name</td>
+                    <td className="py-1.5 text-[#303030]">{targetFTO.name}</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium">Description</td>
+                    <td className="py-1.5 text-[#303030]">{targetFTO.description || "—"}</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium">Status</td>
+                    <td className="py-1.5 text-[#303030]">{targetFTO.status}</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium">Hours</td>
+                    <td className="py-1.5 text-[#303030]">{targetFTO.hours_decimal || 0}h</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium">Due Date</td>
+                    <td className="py-1.5 text-[#303030]">{targetFTO.due_date ? formatDateTime(targetFTO.due_date) : "—"}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 text-[#717179] font-medium">Created</td>
+                    <td className="py-1.5 text-[#303030]">{targetFTO.created_at ? formatDateTime(targetFTO.created_at) : "—"}</td>
+                  </tr>
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-xs text-[#999]">No data available</p>
+            )}
+          </div>
+        </div>
+
+        {/* Merge summary */}
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+          <p className="text-xs text-orange-700">
+            <strong>Merge:</strong> Approving will move all submissions and attachments from the submission FTO to the existing FTO,
+            combine field team members, recalculate hours, and delete the submission FTO.
+          </p>
+        </div>
+
+        {draft.reviewed_at && (
+          <div className="mt-4 pt-3 border-t border-[#e5e5e5] text-xs text-[#a1a1a9]">
+            Reviewed {formatDateTime(draft.reviewed_at)}
+            {draft.reviewed_by_name ? ` by ${draft.reviewed_by_name}` : ""}
+            {draft.created_entity_id
+              ? ` — Merged into FTO #${draft.created_entity_id}`
+              : ""}
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -621,8 +753,9 @@ export default function AIDrafts() {
         }
       }
 
+      // fto_merge drafts ARE the duplicate resolution — skip duplicate warning
       // If this draft was flagged as a potential duplicate, show warning before approving
-      if (!skipDuplicateCheck && draft.duplicate_of) {
+      if (!skipDuplicateCheck && draft.entity_type !== "fto_merge" && draft.duplicate_of) {
         const dupData = draft.duplicate_of as any;
         if (dupData.matches?.length > 0) {
           setDuplicateWarning({
@@ -862,11 +995,13 @@ export default function AIDrafts() {
                 <button
                   disabled={isBusy}
                   onClick={() => handleApprove(draft)}
-                  title="Approve"
+                  title={draft.entity_type === "fto_merge" ? "Merge" : "Approve"}
                   className={`inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors ${
                     isBusy
                       ? "text-gray-300 cursor-not-allowed"
-                      : "text-emerald-500 hover:bg-emerald-50"
+                      : draft.entity_type === "fto_merge"
+                        ? "text-orange-500 hover:bg-orange-50"
+                        : "text-emerald-500 hover:bg-emerald-50"
                   }`}
                 >
                   {isBusy ? (
@@ -881,7 +1016,7 @@ export default function AIDrafts() {
                 <button
                   disabled={isBusy}
                   onClick={() => handleReject(draft)}
-                  title="Reject"
+                  title={draft.entity_type === "fto_merge" ? "Keep Separate" : "Reject"}
                   className={`inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors ${
                     isBusy
                       ? "text-gray-300 cursor-not-allowed"
@@ -1214,8 +1349,8 @@ export default function AIDrafts() {
         <div className="flex items-center gap-3 flex-wrap">
           {/* Type filter */}
           <div className="flex items-center gap-0.5 bg-[#f5f5f5] rounded-lg p-0.5">
-            {(["all", "task", "fto", "work_order"] as const).map((t) => {
-              const labels: Record<string, string> = { all: "All", task: "Task", fto: "FTO", work_order: "Work Order" };
+            {(["all", "task", "fto", "work_order", "fto_merge"] as const).map((t) => {
+              const labels: Record<string, string> = { all: "All", task: "Task", fto: "FTO", work_order: "Work Order", fto_merge: "FTO Merge" };
               const active = filterType === t;
               return (
                 <button
