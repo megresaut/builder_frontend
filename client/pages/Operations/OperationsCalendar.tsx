@@ -127,11 +127,9 @@ export default function OperationsCalendar() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   // Fetch properties & vendors for advanced filters
   useEffect(() => {
-    const token = localStorage.getItem("avm_token");
-    const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
-      fetchJSON("/properties", { headers }).catch(() => []),
-      fetchJSON("/vendors", { headers }).catch(() => []),
+      fetchJSON("/properties").catch(() => []),
+      fetchJSON("/vendors").catch(() => []),
     ]).then(([props, vends]) => {
       const p = Array.isArray(props) ? props : [];
       const v = Array.isArray(vends) ? vends : [];

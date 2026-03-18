@@ -156,10 +156,7 @@ export default function FtoInspections() {
         // Fetch current user's name for inspector display (list is filtered to this user's inspections)
         let currentUserName: string | null = null;
         try {
-          const token = localStorage.getItem("avm_token");
-          const user = await fetchJSON(`/users/${resolvedUserId}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          }) as { name?: string };
+          const user = await fetchJSON(`/users/${resolvedUserId}`) as { name?: string };
           currentUserName = user?.name ?? null;
         } catch {
           // use null and mapper will show "N/A"

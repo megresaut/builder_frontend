@@ -1,15 +1,45 @@
-export const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
-export async function fetchJSON(path: string, options: RequestInit = {}) {
-  const url = `${API_BASE}${path}`;
+import { refreshAccessToken, getAccessToken, clearAuthState } from "./auth";
 
-  const res = await fetch(url, {
+export const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+async function doFetch(path: string, options: RequestInit = {}, tokenOverride?: string | null) {
+  const url = `${API_BASE}${path}`;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string> || {}),
+  };
+
+  // Auto-attach Authorization header from in-memory token
+  const authToken = tokenOverride ?? getAccessToken();
+  if (authToken && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
+  return fetch(url, {
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
     ...options,
+    headers,
   });
+}
+
+export async function fetchJSON(path: string, options: RequestInit = {}) {
+  let res = await doFetch(path, options);
+
+  // If 401, try refreshing the token once.
+  // refreshAccessToken() is already deduped — safe to call from anywhere.
+  if (res.status === 401) {
+    const newToken = await refreshAccessToken();
+
+    if (newToken) {
+      // Retry the original request with the new token
+      res = await doFetch(path, options, newToken);
+    } else {
+      // Refresh failed — clear auth state and redirect to login
+      clearAuthState();
+      window.location.href = "/login";
+      throw new Error("Session expired");
+    }
+  }
 
   if (!res.ok) {
     const text = await res.text();

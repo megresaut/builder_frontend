@@ -1,30 +1,50 @@
 import { useEffect, useState } from "react";
+import { getAccessToken, refreshAccessToken, isTokenValid } from "@/api/auth";
 
 export function useAuth() {
-  const [userId, setUserId] = useState<number | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<number | null>(() => {
+    const v = localStorage.getItem("avm_user_id");
+    return v ? Number(v) : null;
+  });
+  const [role, setRole] = useState<string | null>(
+    () => localStorage.getItem("avm_role")
+  );
+
+  // If we already have a valid token in memory (hydrated from localStorage
+  // at module load), skip the loading state entirely — no async work needed.
+  const hasValidToken = isTokenValid(getAccessToken());
+
+  const [loading, setLoading] = useState(!hasValidToken);
+  const [authenticated, setAuthenticated] = useState(hasValidToken);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("avm_token");
-    const storedRole = localStorage.getItem("avm_role");
-    const storedUserId = localStorage.getItem("avm_user_id");
+    // Token was already valid on mount — nothing to do
+    if (hasValidToken) return;
 
-    if (storedToken && storedUserId) {
-      setToken(storedToken);
-      setRole(storedRole);
-      setUserId(Number(storedUserId));
-    }
+    let cancelled = false;
 
-    setLoading(false);
-  }, []);
+    // No valid token — try refreshing via httpOnly cookie
+    refreshAccessToken().then((newToken) => {
+      if (cancelled) return;
+      if (newToken) {
+        setRole(localStorage.getItem("avm_role"));
+        const uid = localStorage.getItem("avm_user_id");
+        if (uid) setUserId(Number(uid));
+        setAuthenticated(true);
+      } else {
+        setAuthenticated(false);
+      }
+      setLoading(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [hasValidToken]);
 
   return {
-    token,
+    token: getAccessToken(),
     role,
     userId,
     loading,
-    isAuthenticated: !!token,
+    isAuthenticated: authenticated,
   };
 }

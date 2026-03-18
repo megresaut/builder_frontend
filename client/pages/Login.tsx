@@ -3,16 +3,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 
-export function decodeJwt(token: string): any {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
-}
-
-
 export const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -61,29 +51,12 @@ export const Login = () => {
 
       const result = await loginRequest(normalizedEmail, formData.password);
 
-  
-      // Save token
-      localStorage.setItem("avm_token", result.token);
-      localStorage.setItem("avm_role", result.role);
-
-      // ✅ extract user id from token
-      const decoded = decodeJwt(result.token);
-
-      const userId =
-        decoded?.user_id ??
-        decoded?.id ??
-        decoded?.sub;
-
-      if (!userId) {
+      // loginRequest stores the access token in memory and
+      // persists role + user_id to localStorage for UI use.
+      if (!result.user_id) {
         throw new Error("No user id found in token");
       }
 
-      localStorage.setItem("avm_user_id", String(userId));
-      console.log("USER ID:", localStorage.getItem("avm_user_id"));
-      console.log("ROLE:", localStorage.getItem("avm_role"));
-      console.log("DECODED JWT PAYLOAD:", decoded);
-      console.log("JWT KEYS:", decoded ? Object.keys(decoded) : null);
-  
       // Clear stale tab state so RestoreTabUrlSync doesn't override the redirect
       sessionStorage.removeItem("avm-tab-state");
 
@@ -93,7 +66,6 @@ export const Login = () => {
       } else {
         navigate("/", { replace: true });
       }
-      console.log("LOGIN RESULT:", result);
     } catch (err: any) {
       setErrors({ password: "Invalid email or password" });
     } finally {

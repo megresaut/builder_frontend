@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import { useAuth } from "./auth/useAuth";
 
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
@@ -61,7 +62,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Simple auth gate (unchanged behavior)
+// Auth gate — validates in-memory token + attempts refresh on load
 const RequireAuth = ({
   children,
   allowedRoles,
@@ -69,15 +70,18 @@ const RequireAuth = ({
   children: React.ReactNode;
   allowedRoles?: string[];
 }) => {
-  const token = localStorage.getItem("avm_token");
-  const role = localStorage.getItem("avm_role");
+  const { isAuthenticated, role, loading } = useAuth();
 
-  if (!token) {
+  if (loading) {
+    // Still checking token / attempting refresh — show nothing to avoid flash
+    return null;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(role || "")) {
-    // Logged in but wrong role
     return <Navigate to="/" replace />;
   }
 
