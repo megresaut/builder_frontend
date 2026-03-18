@@ -15,6 +15,7 @@ import {
   type PageHeaderAction,
 } from "@/components/BillsPageHeader";
 import { fetchJSON } from "@/api/fetchJSON";
+import { openAuthPdf } from "@/api/openAuthPdf";
 
 interface Bill {
   id: number;
@@ -1391,9 +1392,9 @@ export default function Bills() {
                           />
                         </svg>
                       ),
-                      onClick: (bill: Bill) => {
+                      onClick: async (bill: Bill) => {
                         if (bill.isUtility) {
-                          window.open(`/api/utilities/pdf/bills/${bill.id}`, "_blank");
+                          await openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
                           return;
                         }
                         navigate(
@@ -1411,10 +1412,7 @@ export default function Bills() {
               if (selectedTab === "approved") {
                 // Utility / provider-backed bills → PDF (same as View Bill)
                 if (bill.isUtility) {
-                  window.open(
-                    `/api/utilities/pdf/bills/${bill.id}`,
-                    "_blank"
-                  );
+                  openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
                   return;
                 }
             

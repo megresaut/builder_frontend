@@ -13,6 +13,7 @@ import { fetchJSON } from "@/api/fetchJSON";
 import { useParams } from "react-router-dom";
 import EditUtilityAccountModal from "@/components/EditUtilityAccountModal";
 import { toast } from "sonner";
+import { openAuthPdf } from "@/api/openAuthPdf";
 
 interface UtilityAccount {
   id: number;
@@ -1933,17 +1934,17 @@ useEffect(() => {
                     openMenuId={openUtilityMenuId}
                     setOpenMenuId={setOpenUtilityMenuId}
 
-                    onView={() => {
+                    onView={async () => {
                       // Find the raw account data to get last_bill_amount_cents
                       const rawAccount = safeAccounts.find((ua: any) => ua.id === account.id);
                       if (!rawAccount) return;
-                      
+
                       // Find matching bill ID by amount
                       const billId = findBillIdByAmount(rawAccount.last_bill_amount_cents);
-                      
+
                       if (billId) {
                         // Use the same link format as the bills table
-                        window.open(`${API_BASE}/utilities/pdf/bills/${billId}`, "_blank");
+                        await openAuthPdf(`/utilities/pdf/bills/${billId}`).catch(() => {});
                       } else {
                         // Fallback to the old link if no match found
                         navigate(`/utilities/accounts/${account.id}`);
@@ -2260,8 +2261,8 @@ useEffect(() => {
                       propertyId={bill.id}
                       openMenuId={openBillsMenuId}
                       setOpenMenuId={setOpenBillsMenuId}
-                      onView={() => {
-                        window.open(`${API_BASE}/utilities/pdf/bills/${bill.id}`, "_blank");
+                      onView={async () => {
+                        await openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
                       }}
                     />
                   </td>

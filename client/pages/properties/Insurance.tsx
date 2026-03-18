@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchJSON, authFetch, API_BASE } from "@/api/fetchJSON";
+import { useAuthBlobUrl } from "@/hooks/useAuthBlobUrl";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -1669,6 +1670,7 @@ export function Insurance({ propertyAddress, propertyType, propertyUnits, proper
 
   const [openPolicyMenuId, setOpenPolicyMenuId] = useState<number | null>(null);
   const [pdfViewer, setPdfViewer] = useState<{ url: string; title: string } | null>(null);
+  const { blobUrl: pdfBlobUrl, loading: pdfLoading } = useAuthBlobUrl(pdfViewer?.url);
   const [openRentersMenuId, setOpenRentersMenuId] = useState<number | null>(null);
 
   const refetchAll = () => {
@@ -2092,23 +2094,23 @@ export function Insurance({ propertyAddress, propertyType, propertyUnits, proper
                 <h3 className="text-[#303030] font-medium text-base truncate max-w-[700px]">{pdfViewer.title}</h3>
               </div>
               <div className="flex items-center gap-2">
-                <a
-                  href={pdfViewer.url}
-                  download
+                {pdfBlobUrl && <a
+                  href={pdfBlobUrl}
+                  download={pdfViewer.title || "file"}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-[#DADADA] bg-white px-3 py-1.5 text-sm text-[#303030] hover:bg-gray-50 transition-colors"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   Download
-                </a>
-                <a
-                  href={pdfViewer.url}
+                </a>}
+                {pdfBlobUrl && <a
+                  href={pdfBlobUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-lg border border-[#DADADA] bg-white px-3 py-1.5 text-sm text-[#303030] hover:bg-gray-50 transition-colors"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                   Open
-                </a>
+                </a>}
                 <button
                   onClick={() => setPdfViewer(null)}
                   className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-[#DADADA] bg-white hover:bg-gray-100 transition-colors"
@@ -2117,12 +2119,18 @@ export function Insurance({ propertyAddress, propertyType, propertyUnits, proper
                 </button>
               </div>
             </div>
-            {/* PDF iframe */}
-            <iframe
-              src={pdfViewer.url}
-              className="flex-1 w-full bg-gray-100"
-              title={pdfViewer.title}
-            />
+            {/* PDF iframe — loaded via authenticated blob URL */}
+            {pdfLoading ? (
+              <div className="flex-1 w-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Loading...</div>
+            ) : pdfBlobUrl ? (
+              <iframe
+                src={`${pdfBlobUrl}#view=FitH&toolbar=1&navpanes=0`}
+                className="flex-1 w-full bg-gray-100"
+                title={pdfViewer.title}
+              />
+            ) : (
+              <div className="flex-1 w-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Failed to load PDF</div>
+            )}
           </div>
         </div>,
         document.body

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import WorkOrders from "./WorkOrders";
 import { fetchJSON, authFetch } from "@/api/fetchJSON";
+import { openAuthPdf } from "@/api/openAuthPdf";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import { usePageState } from "@/hooks/usePageState";
@@ -956,7 +957,7 @@ export default function TaskSummary() {
                     {attachments.map((file) => (
                       <button
                         key={file.id}
-                        onClick={() => window.open(file.storage_path, "_blank")}
+                        onClick={() => openAuthPdf(file.storage_path).catch(() => {})}
                         className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-[#e5e5e5] rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -1118,7 +1119,7 @@ export default function TaskSummary() {
                               {u.attachments.map((a) => (
                                 <button
                                   key={a.id}
-                                  onClick={() => window.open(a.storage_path, "_blank")}
+                                  onClick={() => openAuthPdf(a.storage_path).catch(() => {})}
                                   className="flex items-center gap-2 text-xs text-[#2463eb] hover:underline"
                                 >
                                   <Paperclip className="w-3 h-3" />

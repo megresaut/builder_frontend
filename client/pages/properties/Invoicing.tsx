@@ -24,6 +24,7 @@ import RecordBillModal, {
   type RecordBillModalMode,
 } from "@/components/RecordBillModal";
 import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
+import { openAuthPdf } from "@/api/openAuthPdf";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 
 import glAccounts from "@/data/gl_accounts.json";  
@@ -953,16 +954,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     setShowAddAdditionalBillsModal(true);
   };
 
-  const openInvoicePDF = (pdfObjectKey?: string) => {
+  const openInvoicePDF = async (pdfObjectKey?: string) => {
     if (!pdfObjectKey) {
       console.warn("No PDF object key available");
       return;
     }
-  
+
     // Static file served by backend
-    const url = `${API_BASE}/files/${pdfObjectKey}`;
-  
-    window.open(url, "_blank", "noopener,noreferrer");
+    await openAuthPdf(`/files/${pdfObjectKey}`).catch(() => {});
   };
   
   

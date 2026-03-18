@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import { fetchJSON, authFetch, API_BASE } from "@/api/fetchJSON";
+import { useAuthBlobUrl } from "@/hooks/useAuthBlobUrl";
 import { formatUnitLabel } from "@/utils/unitLabel";
 import { useAuth } from "@/auth/useAuth";
 import { ChevronLeft } from "lucide-react";
@@ -137,6 +138,7 @@ export default function FtoWorkOrderDetail() {
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
+  const { blobUrl: viewingBlobUrl, loading: viewingFileLoading } = useAuthBlobUrl(viewingFileUrl);
   const [viewingFileName, setViewingFileName] = useState<string | null>(null);
   const [isEditWorkOrderModalOpen, setIsEditWorkOrderModalOpen] = useState(false);
   const [editDueDate, setEditDueDate] = useState<string | null>(null);
@@ -696,11 +698,17 @@ export default function FtoWorkOrderDetail() {
                   ×
                 </button>
               </div>
-              <iframe
-                title="File preview"
-                src={viewingFileUrl}
-                className="flex-1 w-full min-h-[70vh] border-0"
-              />
+              {viewingFileLoading ? (
+                <div className="flex-1 w-full min-h-[70vh] flex items-center justify-center text-gray-400 text-sm">Loading...</div>
+              ) : viewingBlobUrl ? (
+                <iframe
+                  title="File preview"
+                  src={viewingBlobUrl}
+                  className="flex-1 w-full min-h-[70vh] border-0"
+                />
+              ) : (
+                <div className="flex-1 w-full min-h-[70vh] flex items-center justify-center text-gray-400 text-sm">Failed to load file</div>
+              )}
             </div>
           </div>
         )}

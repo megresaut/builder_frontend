@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo } from "react";
+import React from "react";
 import { ModalTemplate } from "@/components/ui/ModalTemplate";
+import { useAuthBlobUrl } from "@/hooks/useAuthBlobUrl";
 
 type PdfViewerModalProps = {
   open: boolean;
@@ -8,7 +9,7 @@ type PdfViewerModalProps = {
   url?: string;
 };
 
-const isProbablyPdfUrl = (url: string) => {
+const isProbablyPdf = (url: string) => {
   const clean = url.split("#")[0].split("?")[0];
   return clean.toLowerCase().endsWith(".pdf") || url.startsWith("blob:");
 };
@@ -19,17 +20,7 @@ export default function PdfViewerModal({
   title,
   url,
 }: PdfViewerModalProps) {
-  const safeUrl = useMemo(() => {
-    if (!url) return undefined;
-    const u = url.trim();
-    return u ? u : undefined;
-  }, [url]);
-
-  useEffect(() => {
-    if (!open) return;
-    if (!safeUrl) return;
-    // Nothing else to do; kept for future enhancements.
-  }, [open, safeUrl]);
+  const { blobUrl, loading, error } = useAuthBlobUrl(open ? url : undefined);
 
   return (
     <ModalTemplate
@@ -70,11 +61,10 @@ export default function PdfViewerModal({
           >
             Close
           </button>
-          {safeUrl ? (
+          {blobUrl ? (
             <a
-              href={safeUrl}
-              target="_blank"
-              rel="noreferrer"
+              href={blobUrl}
+              download={title || "file"}
               style={{
                 borderRadius: "8px",
                 backgroundColor: "var(--color-button-primary)",
@@ -109,7 +99,34 @@ export default function PdfViewerModal({
         </div>
       }
     >
-      {safeUrl ? (
+      {loading ? (
+        <div style={{
+          width: "100%",
+          height: "70vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "8px",
+          border: "1px solid #E5E5E5",
+          backgroundColor: "#F7F7F7",
+          fontSize: "14px",
+          color: "#71717A",
+        }}>
+          Loading...
+        </div>
+      ) : error ? (
+        <div style={{
+          width: "100%",
+          borderRadius: "8px",
+          border: "1px solid #E5E5E5",
+          backgroundColor: "#FEF2F2",
+          padding: "16px",
+          fontSize: "14px",
+          color: "#DC2626",
+        }}>
+          {error}
+        </div>
+      ) : blobUrl ? (
         <div style={{
           width: "100%",
           height: "70vh",
@@ -120,16 +137,8 @@ export default function PdfViewerModal({
         }}>
           <iframe
             title={title}
-            src={
-              isProbablyPdfUrl(safeUrl)
-                ? `${safeUrl}#view=FitH&toolbar=1&navpanes=0`
-                : safeUrl
-            }
-            style={{
-              width: "100%",
-              height: "100%",
-              border: "none",
-            }}
+            src={isProbablyPdf(url || "") ? `${blobUrl}#view=FitH&toolbar=1&navpanes=0` : blobUrl}
+            style={{ width: "100%", height: "100%", border: "none" }}
           />
         </div>
       ) : (
@@ -141,7 +150,6 @@ export default function PdfViewerModal({
           padding: "16px",
           fontSize: "14px",
           color: "#71717A",
-          fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
         }}>
           No preview available for this file.
         </div>
