@@ -427,13 +427,10 @@ export default function EditEventDialog({ open, onOpenChange, eventId, onEventUp
   useEffect(() => {
     if (!open || !eventId) return;
     setLoading(true);
-    const token = localStorage.getItem("avm_token");
-    const headers = { Authorization: `Bearer ${token}` };
-
     Promise.all([
-      fetchJSON(`/operations/events/${eventId}`, { headers }),
-      fetchJSON("/properties", { headers }).catch(() => []),
-      fetchJSON("/users/all", { headers }).catch(() => []),
+      fetchJSON(`/operations/events/${eventId}`),
+      fetchJSON("/properties").catch(() => []),
+      fetchJSON("/users/all").catch(() => []),
     ]).then(([ev, props, usrs]) => {
       const event = ev as CalendarEventData;
       setEventData(event);

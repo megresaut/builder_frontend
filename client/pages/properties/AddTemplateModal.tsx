@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import DOMPurify from "dompurify";
 import mammoth from "mammoth";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { TextField } from "@/components/forms/TextField";
@@ -522,7 +523,7 @@ export default function AddTemplateModal({
                 </div>
                 <div
                   className="max-h-[50vh] overflow-y-auto p-4 prose prose-sm prose-gray max-w-none [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_li]:my-0.5 [&_p]:my-1 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm"
-                  dangerouslySetInnerHTML={{ __html: docxHtml }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(docxHtml) }}
                 />
               </div>
             )}

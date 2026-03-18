@@ -1267,14 +1267,11 @@ export default function CreateEventDialog({
   // Fetch shared data when dialog opens
   useEffect(() => {
     if (!open) return;
-    const token = localStorage.getItem("avm_token");
-    const headers = { Authorization: `Bearer ${token}` };
-
-    fetchJSON("/properties", { headers })
+    fetchJSON("/properties")
       .then((data) => setProperties(data ?? []))
       .catch(() => setProperties([]));
 
-    fetchJSON("/users/all", { headers })
+    fetchJSON("/users/all")
       .then((data) => setUsers(data ?? []))
       .catch(() => setUsers([]));
   }, [open]);

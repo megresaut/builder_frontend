@@ -213,9 +213,7 @@ export default function CalendarSidebar({
   const [managerSearch, setManagerSearch] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("avm_token");
-    const headers = { Authorization: `Bearer ${token}` };
-    fetchJSON("/users/all", { headers })
+    fetchJSON("/users/all")
       .then((usrs) => {
         const real = Array.isArray(usrs) ? usrs.map((u: any) => ({ id: u.id, name: u.name || u.email, role: u.role })) : [];
         // TODO: Remove mock data — added to test scalability with 200+ users

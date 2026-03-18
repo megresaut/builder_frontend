@@ -66,12 +66,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
   // Fetch user name when userId is available
   useEffect(() => {
     if (userId) {
-      const token = localStorage.getItem("avm_token");
-      fetchJSON(`/users/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      fetchJSON(`/users/${userId}`)
         .then((user: any) => {
           setUserName(user.name || "");
         })

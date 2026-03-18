@@ -44,34 +44,25 @@ export async function fetchCalendarFeed(
   if (filters.assignee_id) params.set("assignee_id", String(filters.assignee_id));
   if (filters.type) params.set("type", filters.type);
 
-  const token = localStorage.getItem("avm_token");
-  return fetchJSON(`/operations/calendar/feed?${params}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return fetchJSON(`/operations/calendar/feed?${params}`);
 }
 
 export async function createCalendarEvent(data: CalendarEventPayload) {
-  const token = localStorage.getItem("avm_token");
   return fetchJSON("/operations/events", {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(data),
   });
 }
 
 export async function updateCalendarEvent(id: number, data: Partial<CalendarEventPayload>) {
-  const token = localStorage.getItem("avm_token");
   return fetchJSON(`/operations/events/${id}`, {
     method: "PATCH",
-    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteCalendarEvent(id: number) {
-  const token = localStorage.getItem("avm_token");
   return fetchJSON(`/operations/events/${id}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
   });
 }

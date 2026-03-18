@@ -30,15 +30,12 @@ export async function fetchUserAvailability(
   start: string,
   end: string,
 ): Promise<UserAvailability[]> {
-  const token = localStorage.getItem("avm_token");
   const params = new URLSearchParams({
     user_id: String(userId),
     start,
     end,
   });
-  return fetchJSON(`/operations/availability?${params}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return fetchJSON(`/operations/availability?${params}`);
 }
 
 export async function checkConflicts(
@@ -47,14 +44,11 @@ export async function checkConflicts(
   end: string,
   excludeEventId?: number,
 ): Promise<ConflictCheckResult> {
-  const token = localStorage.getItem("avm_token");
   const params = new URLSearchParams({
     user_ids: userIds.join(","),
     start,
     end,
   });
   if (excludeEventId) params.set("exclude_event_id", String(excludeEventId));
-  return fetchJSON(`/operations/availability/check?${params}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return fetchJSON(`/operations/availability/check?${params}`);
 }

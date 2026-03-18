@@ -95,8 +95,7 @@ export default function EventDetailPopover({ item, anchorRect, onClose, onViewDe
   // Fetch property name
   useEffect(() => {
     if (!item?.property_id) { setPropertyName(null); return; }
-    const token = localStorage.getItem("avm_token");
-    fetchJSON(`/properties/${item.property_id}`, { headers: { Authorization: `Bearer ${token}` } })
+    fetchJSON(`/properties/${item.property_id}`)
       .then((p: any) => setPropertyName(p?.name || p?.address || `Property #${item.property_id}`))
       .catch(() => setPropertyName(`Property #${item.property_id}`));
   }, [item?.property_id]);
