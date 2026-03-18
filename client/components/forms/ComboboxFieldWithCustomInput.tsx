@@ -235,18 +235,31 @@ export const ComboboxFieldWithCustomInput: React.FC<
           style={{
             width: "var(--radix-popover-trigger-width)",
           }}
+          sticky="always"
+          hideWhenDetached={false}
           onOpenAutoFocus={(e) => {
             e.preventDefault();
             if (!customInputMode) {
-              requestAnimationFrame(() => {
+              // Delay focus to let the layout settle on mobile before the
+              // virtual keyboard triggers a resize/scroll
+              setTimeout(() => {
                 searchInputRef.current?.focus();
-                searchInputRef.current?.select();
-              });
+              }, 120);
             }
           }}
           onInteractOutside={(e) => {
             const target = e.target as Node;
             if (contentRef.current?.contains(target)) {
+              e.preventDefault();
+            }
+          }}
+          onFocusOutside={(e) => {
+            // On mobile, the virtual keyboard opening/closing causes transient
+            // focus shifts to the body. Prevent the popover from closing unless
+            // focus actually moved to another interactive element.
+            const related = e.target as HTMLElement | null;
+            const isTransientBlur = !related || related === document.body || related.tagName === "HTML";
+            if (isTransientBlur) {
               e.preventDefault();
             }
           }}

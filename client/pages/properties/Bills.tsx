@@ -11,6 +11,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
 import { fetchJSON } from "@/api/fetchJSON";
+import { openAuthPdf } from "@/api/openAuthPdf";
 
 interface BillsProps {
   propertyAddress: string;
@@ -1161,13 +1162,10 @@ export const Bills: React.FC<BillsProps> = ({
                     />
                   </svg>
                 ),
-                onClick: (bill: Bill) => {
+                onClick: async (bill: Bill) => {
                   // 🧾 Utility bill → open PDF
                   if (bill.isUtility) {
-                    window.open(
-                      `/api/utilities/pdf/bills/${bill.id}`,
-                      "_blank"
-                    );                
+                    await openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
                     return;
                   }
                 

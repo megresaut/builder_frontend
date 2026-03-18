@@ -65,6 +65,7 @@ import { parseEmlFile } from "@/utils/parseEmlFile";
 import type { ParsedMsg } from "@/utils/parseMsgFile";
 import { MOCK_TASKS } from "@/data/tasks";
 import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
+import { openAuthPdf } from "@/api/openAuthPdf";
 import { useAuth } from "@/auth/useAuth";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
@@ -1414,9 +1415,7 @@ export default function TaskSummary() {
             loading: true,
             error: null,
           });
-          fetch(`/api/maintenance/attachments/${attachmentId}`, {
-            credentials: "include",
-          })
+          authFetch(`/maintenance/attachments/${attachmentId}`)
             .then((res) => {
               if (!res.ok) throw new Error("Failed to load file");
               return res.blob();
@@ -1451,9 +1450,7 @@ export default function TaskSummary() {
             loading: true,
             error: null,
           });
-          fetch(`/api/files?key=${encodeURIComponent(file.storage_path)}`, {
-            credentials: "include",
-          })
+          authFetch(`/files?key=${encodeURIComponent(file.storage_path)}`)
             .then((res) => {
               if (!res.ok) throw new Error("Failed to load file");
               return res.blob();
@@ -1956,7 +1953,7 @@ export default function TaskSummary() {
           ...(timelineAttachments.length > 0 && {
             attachments: timelineAttachments,
             onAttachmentClick: (file: any) => {
-              if (file?.url) window.open(file.url, "_blank");
+              if (file?.url) openAuthPdf(file.url).catch(() => {});
             },
           }),
         };

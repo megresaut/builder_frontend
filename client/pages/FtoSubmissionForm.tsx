@@ -2665,9 +2665,8 @@ export default function FtoSubmissionForm() {
                                 ? parseInt(file.id, 10)
                                 : null;
                               if (attachmentId && !isNaN(attachmentId)) {
-                                fetch(
-                                  `${API_BASE}/maintenance/attachments/${attachmentId}`,
-                                  { credentials: "include" }
+                                authFetch(
+                                  `/maintenance/attachments/${attachmentId}`
                                 )
                                   .then((res) => {
                                     if (!res.ok) throw new Error("Failed to load");
@@ -2692,11 +2691,10 @@ export default function FtoSubmissionForm() {
                                 return;
                               }
                               if (file.storage_path) {
-                                fetch(
-                                  `${API_BASE}/files?key=${encodeURIComponent(
+                                authFetch(
+                                  `/files?key=${encodeURIComponent(
                                     file.storage_path
-                                  )}`,
-                                  { credentials: "include" }
+                                  )}`
                                 )
                                   .then((res) => {
                                     if (!res.ok) throw new Error("Failed to load");

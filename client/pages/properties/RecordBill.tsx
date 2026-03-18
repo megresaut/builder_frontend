@@ -262,13 +262,9 @@ const loadAttachmentIntoViewer = async (
   >
 ) => {
   try {
-    const storagePath = a.StoragePath.startsWith("http")
-      ? a.StoragePath
-      : `${API_BASE}${a.StoragePath}`;
-
-    const res = await fetch(storagePath, {
-      credentials: "include",
-    });
+    const res = a.StoragePath.startsWith("http")
+      ? await fetch(a.StoragePath, { credentials: "include" })
+      : await authFetch(a.StoragePath);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch PDF: ${res.status} ${res.statusText}`);
