@@ -16,6 +16,7 @@ import MsgViewerModal from "@/components/MsgViewerModal";
 import { parseMsgFile } from "@/utils/parseMsgFile";
 import { parseEmlFile } from "@/utils/parseEmlFile";
 import type { ParsedMsg } from "@/utils/parseMsgFile";
+import { authFetch } from "@/api/fetchJSON";
 
 interface AddFileModalProps {
   open: boolean;
@@ -259,9 +260,8 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
                       loading: true,
                       error: null,
                     });
-                    fetch(
-                      `/api/files?key=${encodeURIComponent(fileWithMeta.storage_path)}`,
-                      { credentials: "include" }
+                    authFetch(
+                      `/files?key=${encodeURIComponent(fileWithMeta.storage_path)}`,
                     )
                       .then((res) => {
                         if (!res.ok) throw new Error("Failed to load");
@@ -286,9 +286,7 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
                       loading: true,
                       error: null,
                     });
-                    fetch(`/api/maintenance/attachments/${attachmentId}`, {
-                      credentials: "include",
-                    })
+                    authFetch(`/maintenance/attachments/${attachmentId}`)
                       .then((res) => {
                         if (!res.ok) throw new Error("Failed to load");
                         return res.blob();
@@ -320,9 +318,8 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
                 if (fileWithMeta.storage_path) {
                   (async () => {
                     try {
-                      const res = await fetch(
-                        `/api/files?key=${encodeURIComponent(fileWithMeta.storage_path)}`,
-                        { credentials: "include" }
+                      const res = await authFetch(
+                        `/files?key=${encodeURIComponent(fileWithMeta.storage_path)}`,
                       );
                       if (!res.ok) {
                         alert("Failed to load PDF");
@@ -343,9 +340,8 @@ export const AddFileModal: React.FC<AddFileModalProps> = ({
                 if (attachmentId && !isNaN(attachmentId)) {
                   (async () => {
                     try {
-                      const res = await fetch(
-                        `/api/maintenance/attachments/${attachmentId}`,
-                        { credentials: "include" }
+                      const res = await authFetch(
+                        `/maintenance/attachments/${attachmentId}`,
                       );
                       if (!res.ok) {
                         alert("Failed to load attachment");

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, authFetch, API_BASE } from "@/api/fetchJSON";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -65,8 +65,6 @@ type InsuranceSummary = {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 const POLICY_TYPE_LABELS: Record<string, string> = {
   general_liability: "General Liability",
@@ -523,10 +521,10 @@ function PolicyFormPanel({
       // 1. Upload the PDF
       const formData = new FormData();
       formData.append("file", file);
-      const uploadRes = await fetch(
-        `${API_BASE}/insurance/policies/upload`,
-        { method: "POST", body: formData, credentials: "include" }
-      );
+      const uploadRes = await authFetch("/insurance/policies/upload", {
+        method: "POST",
+        body: formData,
+      });
       if (!uploadRes.ok) throw new Error("Upload failed");
       const uploadData = await uploadRes.json();
 
@@ -1240,10 +1238,10 @@ function RentersFormPanel({
       // 1. Upload the PDF
       const formData = new FormData();
       formData.append("file", file);
-      const uploadRes = await fetch(
-        `${API_BASE}/insurance/policies/upload`,
-        { method: "POST", body: formData, credentials: "include" }
-      );
+      const uploadRes = await authFetch("/insurance/policies/upload", {
+        method: "POST",
+        body: formData,
+      });
       if (!uploadRes.ok) throw new Error("Upload failed");
       const uploadData = await uploadRes.json();
 
@@ -1299,10 +1297,10 @@ function RentersFormPanel({
       if (docFile && !form.document_object_key) {
         const fd = new FormData();
         fd.append("file", docFile);
-        const uploadRes = await fetch(
-          `${API_BASE}/insurance/policies/upload`,
-          { method: "POST", body: fd, credentials: "include" }
-        );
+        const uploadRes = await authFetch("/insurance/policies/upload", {
+          method: "POST",
+          body: fd,
+        });
         if (!uploadRes.ok) throw new Error("File upload failed");
         const uploadData = await uploadRes.json();
         docObjectKey = uploadData.object_key;
@@ -1315,10 +1313,10 @@ function RentersFormPanel({
       if (coiFile) {
         const fd = new FormData();
         fd.append("file", coiFile);
-        const uploadRes = await fetch(
-          `${API_BASE}/insurance/policies/upload`,
-          { method: "POST", body: fd, credentials: "include" }
-        );
+        const uploadRes = await authFetch("/insurance/policies/upload", {
+          method: "POST",
+          body: fd,
+        });
         if (!uploadRes.ok) throw new Error("COI upload failed");
         const uploadData = await uploadRes.json();
         coiObjectKey = uploadData.object_key;

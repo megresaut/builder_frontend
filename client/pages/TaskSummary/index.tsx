@@ -64,7 +64,7 @@ import { parseMsgFile } from "@/utils/parseMsgFile";
 import { parseEmlFile } from "@/utils/parseEmlFile";
 import type { ParsedMsg } from "@/utils/parseMsgFile";
 import { MOCK_TASKS } from "@/data/tasks";
-import { fetchJSON, API_BASE } from "@/api/fetchJSON";
+import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
@@ -1193,16 +1193,9 @@ export default function TaskSummary() {
         const formData = new FormData();
         formData.append("file", fileToUpload, fileToUpload.name);
 
-        // For multipart/form-data, we need to use fetch directly (not fetchJSON)
-        // because fetchJSON sets Content-Type: application/json, but we need the browser
-        // to set Content-Type with boundary for multipart/form-data
-        // const API_BASE = "http://localhost:8080";
-        const API_BASE = "/api";
-        const uploadRes = await fetch(`${API_BASE}/maintenance/tasks/attachments/upload`, {
+        const uploadRes = await authFetch("/maintenance/tasks/attachments/upload", {
           method: "POST",
-          credentials: "include",
           body: formData,
-          // Don't set Content-Type - browser will set it with boundary
         });
 
         if (!uploadRes.ok) {

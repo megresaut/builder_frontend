@@ -19,7 +19,7 @@ import {
 import type { MultiSelectOption } from "@/components/forms";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { FormSection } from "@/components/ui/form-section";
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, authFetch } from "@/api/fetchJSON";
 import AIGeneratedBanner from "@/components/AIGeneratedBanner";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { useAuth } from "@/auth/useAuth";
@@ -798,7 +798,7 @@ export default function CreateTaskModal({
           formData.append("file", file.file);
 
           try {
-            const response = await fetch("/api/maintenance/uploads", {
+            const response = await authFetch("/maintenance/uploads", {
               method: "POST",
               body: formData,
             });
@@ -836,7 +836,7 @@ export default function CreateTaskModal({
           formData.append("file", file.file);
 
           try {
-            const response = await fetch("/api/maintenance/tasks/attachments/upload", {
+            const response = await authFetch("/maintenance/tasks/attachments/upload", {
               method: "POST",
               body: formData,
             });

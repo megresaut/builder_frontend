@@ -22,7 +22,7 @@ import {
   NotesTemplate,
   FilesTemplate,
 } from "@/components/templates";
-import { API_BASE, fetchJSON } from "@/api/fetchJSON";
+import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
 import { useParams } from "react-router-dom";
 
 import type { RecentNote } from "@/hooks/usePropertyDetailsState";
@@ -503,12 +503,11 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
       const formData = new FormData();
       formData.append("file", rawFile);
 
-      const uploadRes = await fetch(
-        `${API_BASE}/properties/files/${propertyId}/upload`,
+      const uploadRes = await authFetch(
+        `/properties/files/${propertyId}/upload`,
         {
           method: "POST",
           body: formData,
-          credentials: "include",
         },
       );
 
@@ -1054,11 +1053,10 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                         try {
                           const formData = new FormData();
                           formData.append("file", photoUploadFile);
-                          const uploadRes = await fetch(
-                            `${API_BASE}/properties/images/upload`,
+                          const uploadRes = await authFetch(
+                            `/properties/images/upload`,
                             {
                               method: "POST",
-                              credentials: "include",
                               body: formData,
                             }
                           );

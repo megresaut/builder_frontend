@@ -32,7 +32,7 @@ import {
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import type { Note, File } from "@/components/templates";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
-import { fetchJSON, API_BASE } from "@/api/fetchJSON";
+import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import { formatUnitDisplayForTable } from "@/utils/unitLabel";
@@ -1108,13 +1108,10 @@ export default function WorkOrderDetailsV2({
         const formData = new FormData();
         formData.append("file", fileToUpload, fileToUpload.name);
 
-        // const API_BASE = "http://localhost:8080";
-        const API_BASE = "/api";
-        const uploadRes = await fetch(
-          `${API_BASE}/maintenance/tasks/attachments/upload`,
+        const uploadRes = await authFetch(
+          `/maintenance/tasks/attachments/upload`,
           {
             method: "POST",
-            credentials: "include",
             body: formData,
             // Don't set Content-Type - browser will set it with boundary
           },
@@ -1666,9 +1663,7 @@ export default function WorkOrderDetailsV2({
                       loading: true,
                       error: null,
                     });
-                    fetch(`/api/maintenance/attachments/${attachmentId}`, {
-                      credentials: "include",
-                    })
+                    authFetch(`/maintenance/attachments/${attachmentId}`)
                       .then((r) => {
                         if (!r.ok) throw new Error("Failed to load");
                         return r.blob();
@@ -1692,9 +1687,8 @@ export default function WorkOrderDetailsV2({
                     loading: true,
                     error: null,
                   });
-                  fetch(
-                    `/api/files?key=${encodeURIComponent(file.storage_path)}`,
-                    { credentials: "include" }
+                  authFetch(
+                    `/files?key=${encodeURIComponent(file.storage_path)}`,
                   )
                     .then((r) => {
                       if (!r.ok) throw new Error("Failed to load");

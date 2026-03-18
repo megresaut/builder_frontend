@@ -22,6 +22,41 @@ async function doFetch(path: string, options: RequestInit = {}, tokenOverride?: 
   });
 }
 
+/**
+ * Authenticated fetch for non-JSON requests (file uploads, etc.).
+ * Auto-attaches the Authorization header but does NOT set Content-Type,
+ * so the browser can set multipart/form-data with the correct boundary.
+ * Includes 401 → refresh → retry logic.
+ */
+export async function authFetch(path: string, options: RequestInit = {}): Promise<Response> {
+  const url = `${API_BASE}${path}`;
+
+  function buildInit(token: string | null): RequestInit {
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> || {}),
+    };
+    if (token && !headers["Authorization"]) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return { credentials: "include", ...options, headers };
+  }
+
+  let res = await fetch(url, buildInit(getAccessToken()));
+
+  if (res.status === 401) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      res = await fetch(url, buildInit(newToken));
+    } else {
+      clearAuthState();
+      window.location.href = "/login";
+      throw new Error("Session expired");
+    }
+  }
+
+  return res;
+}
+
 export async function fetchJSON(path: string, options: RequestInit = {}) {
   let res = await doFetch(path, options);
 
