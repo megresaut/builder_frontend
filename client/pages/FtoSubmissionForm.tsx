@@ -35,7 +35,7 @@ import {
   billingToNoCharge,
   noChargeToBilling,
 } from "@/data/fto/properties";
-import { API_BASE, fetchJSON } from "@/api/fetchJSON";  
+import { API_BASE, authFetch, fetchJSON } from "@/api/fetchJSON";  
 import { useAuth } from "@/auth/useAuth";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import { parseMsgFile } from "@/utils/parseMsgFile";
@@ -2572,11 +2572,10 @@ export default function FtoSubmissionForm() {
                                     fileToUpload.name
                                   );
 
-                                  const res = await fetch(
-                                    `${API_BASE}/vendors/bills/upload-pdf`,
+                                  const res = await authFetch(
+                                    "/vendors/bills/upload-pdf",
                                     {
                                       method: "POST",
-                                      credentials: "include",
                                       body: formData,
                                     }
                                   );
@@ -2739,9 +2738,8 @@ export default function FtoSubmissionForm() {
                             if (attachmentId && !isNaN(attachmentId)) {
                               (async () => {
                                 try {
-                                  const res = await fetch(
-                                    `${API_BASE}/maintenance/attachments/${attachmentId}`,
-                                    { credentials: "include" }
+                                  const res = await authFetch(
+                                    `/maintenance/attachments/${attachmentId}`
                                   );
                                   if (!res.ok) {
                                     alert("Failed to load attachment");
@@ -2761,11 +2759,10 @@ export default function FtoSubmissionForm() {
                               })();
                             } else if (file.storage_path) {
                               (async () => {
-                                const res = await fetch(
-                                  `${API_BASE}/files?key=${encodeURIComponent(
+                                const res = await authFetch(
+                                  `/files?key=${encodeURIComponent(
                                     file.storage_path
-                                  )}`,
-                                  { credentials: "include" }
+                                  )}`
                                 );
                                 if (!res.ok) {
                                   alert("Failed to load PDF");

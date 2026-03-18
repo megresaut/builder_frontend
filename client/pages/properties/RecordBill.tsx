@@ -11,7 +11,7 @@ import {
 import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
 
-import { fetchJSON, API_BASE } from "@/api/fetchJSON";
+import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
 import glAccounts from "@/data/gl_accounts.json";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import MsgViewerModal from "@/components/MsgViewerModal";
@@ -1456,7 +1456,7 @@ export const RecordBill = () => {
         const formData = new FormData();
         formData.append("file", fileToUpload);
 
-        const res = await fetch("/api/vendors/bills/upload-pdf", {
+        const res = await authFetch("/vendors/bills/upload-pdf", {
           method: "POST",
           body: formData,
         });

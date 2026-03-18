@@ -1,4 +1,4 @@
-import { fetchJSON, API_BASE } from "./fetchJSON";
+import { fetchJSON, authFetch } from "./fetchJSON";
 import type { ChecklistSectionTemplate } from "@/data/inspections";
 
 // Backend models
@@ -150,11 +150,10 @@ export async function addInspectionPhotos(
   if (condition) formData.append("condition", condition);
   files.forEach((file) => formData.append("file", file));
 
-  const res = await fetch(
-    `${API_BASE}/inspections/${inspectionId}/photos`,
+  const res = await authFetch(
+    `/inspections/${inspectionId}/photos`,
     {
       method: "POST",
-      credentials: "include",
       body: formData,
     }
   );
@@ -185,11 +184,10 @@ export async function parseChecklistDocx(
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(
-    `${API_BASE}/inspections/checklists/parse-docx`,
+  const res = await authFetch(
+    `/inspections/checklists/parse-docx`,
     {
       method: "POST",
-      credentials: "include",
       body: formData,
     }
   );
@@ -209,11 +207,10 @@ export async function deleteInspectionPhoto(
   inspectionId: number,
   photoId: number
 ): Promise<void> {
-  const res = await fetch(
-    `${API_BASE}/inspections/${inspectionId}/photos/${photoId}`,
+  const res = await authFetch(
+    `/inspections/${inspectionId}/photos/${photoId}`,
     {
       method: "DELETE",
-      credentials: "include",
     }
   );
   if (!res.ok) {

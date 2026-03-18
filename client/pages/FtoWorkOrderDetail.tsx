@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
-import { fetchJSON, API_BASE } from "@/api/fetchJSON";
+import { fetchJSON, authFetch, API_BASE } from "@/api/fetchJSON";
 import { formatUnitLabel } from "@/utils/unitLabel";
 import { useAuth } from "@/auth/useAuth";
 import { ChevronLeft } from "lucide-react";
@@ -326,9 +326,9 @@ export default function FtoWorkOrderDetail() {
         }
         const formData = new FormData();
         formData.append("file", fileToUpload, fileToUpload.name);
-        const uploadRes = await fetch(
-          `${API_BASE}/maintenance/tasks/attachments/upload`,
-          { method: "POST", credentials: "include", body: formData },
+        const uploadRes = await authFetch(
+          `/maintenance/tasks/attachments/upload`,
+          { method: "POST", body: formData },
         );
         if (!uploadRes.ok) throw new Error("Upload failed");
         const uploadData: {

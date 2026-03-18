@@ -1,13 +1,14 @@
+import { authFetch } from "@/api/fetchJSON";
+
 async function uploadPdf(file: File): Promise<{
     storage_path: string;
     sha256?: string;
   }> {
     const formData = new FormData();
     formData.append("file", file);
-  
-    const res = await fetch("/api/vendors/bills/upload-pdf", {
+
+    const res = await authFetch("/vendors/bills/upload-pdf", {
       method: "POST",
-      credentials: "include",
       body: formData,
     });
   

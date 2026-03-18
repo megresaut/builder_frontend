@@ -24,7 +24,7 @@ import { UploadedFile } from "@/components/ui/attachment-uploader";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import CreateTaskModal from "@/components/CreateTaskModal";
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, authFetch } from "@/api/fetchJSON";
 import AIGeneratedBanner from "@/components/AIGeneratedBanner";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { useAuth } from "@/auth/useAuth";
@@ -186,11 +186,8 @@ const uploadFile = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append("file", file);
 
-  // const API_BASE = "http://localhost:8080";
-  const API_BASE = "/api";
-  const response = await fetch(`${API_BASE}/maintenance/uploads`, {
+  const response = await authFetch("/maintenance/uploads", {
     method: "POST",
-    credentials: "include",
     body: formData,
   });
 

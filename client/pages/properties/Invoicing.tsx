@@ -23,7 +23,7 @@ import RecordBillModal, {
   type RecordBillModalData,
   type RecordBillModalMode,
 } from "@/components/RecordBillModal";
-import { API_BASE, fetchJSON } from "@/api/fetchJSON";
+import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 
 import glAccounts from "@/data/gl_accounts.json";  
@@ -498,8 +498,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       setLoadingInvoice(true);
   
       // 1️⃣ Generate (or regenerate) invoice
-      const generateRes = await fetch(
-        `${API_BASE}/invoicing/generate`,
+      const generateRes = await authFetch(
+        `/invoicing/generate`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -517,8 +517,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           // 👇 Invoice already exists, fetch the current draft invoice
           setGenerateInvoiceError(null);
           
-          const draftRes = await fetch(
-            `${API_BASE}/invoicing/current-draft?property_id=${propertyId}`
+          const draftRes = await authFetch(
+            `/invoicing/current-draft?property_id=${propertyId}`
           );
           
           if (!draftRes.ok) {
@@ -542,8 +542,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   
       // 2️⃣ Fetch expanded line items
-      const itemsRes = await fetch(
-        `${API_BASE}/invoicing/line-items-expanded?id=${invoiceId}`,
+      const itemsRes = await authFetch(
+        `/invoicing/line-items-expanded?id=${invoiceId}`,
       );
   
       if (!itemsRes.ok) {
@@ -895,8 +895,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       const formData = new FormData();
       formData.append("file", pdfBlob, "invoice.pdf");
   
-      const uploadRes = await fetch(
-        `${API_BASE}/vendors/bills/upload-pdf`,
+      const uploadRes = await authFetch(
+        `/vendors/bills/upload-pdf`,
         {
           method: "POST",
           body: formData,
@@ -922,8 +922,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       
   
       // 2️⃣ Finalize invoice WITH PDF
-      const finalizeRes = await fetch(
-        `${API_BASE}/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
+      const finalizeRes = await authFetch(
+        `/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

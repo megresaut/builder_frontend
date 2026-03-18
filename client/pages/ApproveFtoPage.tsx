@@ -21,7 +21,7 @@ import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useParams } from "react-router-dom";
-import { API_BASE, fetchJSON } from "@/api/fetchJSON";
+import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
 import { cn } from "@/lib/utils";
 import { AlertBanner } from "@/components/AlertBanner";
 import {
@@ -139,8 +139,8 @@ const fetchAttachmentsForExpense = async (
   submissionId: number,
   materialIndex: number,
 ): Promise<Attachment[]> => {
-  const res = await fetch(
-    `${API_BASE}/maintenance/attachments?submission_id=${submissionId}&material_index=${materialIndex}`,
+  const res = await authFetch(
+    `/maintenance/attachments?submission_id=${submissionId}&material_index=${materialIndex}`,
     {
       headers: { Accept: "application/json" },
     },
@@ -154,8 +154,8 @@ const fetchAttachmentsForExpense = async (
 };
 
 const fetchAttachmentsByFto = async (ftoId: number): Promise<AttachmentSummary[]> => {
-  const res = await fetch(
-    `${API_BASE}/maintenance/attachments/by-fto?fto_id=${ftoId}`,
+  const res = await authFetch(
+    `/maintenance/attachments/by-fto?fto_id=${ftoId}`,
     { headers: { Accept: "application/json" } }
   );
 
@@ -178,8 +178,8 @@ const fetchAttachmentsByFto = async (ftoId: number): Promise<AttachmentSummary[]
 
 
 const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]> => {
-  const res = await fetch(
-    `${API_BASE}/maintenance/submissions/by-fto?fto_id=${ftoId}`,
+  const res = await authFetch(
+    `/maintenance/submissions/by-fto?fto_id=${ftoId}`,
     {
       headers: { Accept: "application/json" },
     },
@@ -210,8 +210,8 @@ const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]
 
 // Fetch a single submission by ID (for misc expenses)
 const fetchSubmissionById = async (submissionId: number): Promise<{ submission: BackendSubmission; property_name?: string; property_id?: number }> => {
-  const res = await fetch(
-    `${API_BASE}/maintenance/submissions/${submissionId}`,
+  const res = await authFetch(
+    `/maintenance/submissions/${submissionId}`,
     {
       headers: { Accept: "application/json" },
     },
@@ -251,8 +251,8 @@ const fetchSubmissionById = async (submissionId: number): Promise<{ submission: 
 
 // Fetch attachments by submission ID (for misc expenses)
 const fetchAttachmentsBySubmission = async (submissionId: number): Promise<AttachmentSummary[]> => {
-  const res = await fetch(
-    `${API_BASE}/maintenance/attachments/by-submission?submission_id=${submissionId}`,
+  const res = await authFetch(
+    `/maintenance/attachments/by-submission?submission_id=${submissionId}`,
     { headers: { Accept: "application/json" } }
   );
 
@@ -351,8 +351,8 @@ const patchSubmission = async (
 ) => {
   // Debugging logs removed
 
-  const res = await fetch(
-    `${API_BASE}/maintenance/submissions/${submissionId}`,
+  const res = await authFetch(
+    `/maintenance/submissions/${submissionId}`,
     {
       method: "PATCH",
       headers: {
@@ -408,8 +408,8 @@ const createSubmissionForAssignee = async (
     attachments: [],
   }));
 
-  const res = await fetch(
-    `${API_BASE}/maintenance/ftos/${ftoId}/submissions`,
+  const res = await authFetch(
+    `/maintenance/ftos/${ftoId}/submissions`,
     {
       method: "POST",
       headers: {
@@ -526,8 +526,8 @@ const parseDueDate = (dateStr: string | undefined): Date | null => {
 };
 
 const approveSubmission = async (submissionId: number) => {
-  const res = await fetch(
-    `${API_BASE}/maintenance/submissions/${submissionId}/approve`,
+  const res = await authFetch(
+    `/maintenance/submissions/${submissionId}/approve`,
     {
       method: "POST",
       headers: {
@@ -544,7 +544,7 @@ const approveSubmission = async (submissionId: number) => {
 
 /** Approves the entire FTO: all submissions for this FTO and the FTO itself. */
 const approveFto = async (ftoId: number) => {
-  const res = await fetch(`${API_BASE}/maintenance/ftos/${ftoId}/approve`, {
+  const res = await authFetch(`/maintenance/ftos/${ftoId}/approve`, {
     method: "POST",
     headers: { Accept: "application/json" },
   });
@@ -555,8 +555,8 @@ const approveFto = async (ftoId: number) => {
 };
 
 const rejectSubmission = async (submissionId: number) => {
-  const res = await fetch(
-    `${API_BASE}/maintenance/submissions/${submissionId}/reject`,
+  const res = await authFetch(
+    `/maintenance/submissions/${submissionId}/reject`,
     {
       method: "POST",
       headers: {
@@ -572,8 +572,8 @@ const rejectSubmission = async (submissionId: number) => {
 };
 
 const updateFtoAmountCents = async (ftoId: number, amountCents: number) => {
-  const res = await fetch(
-    `${API_BASE}/maintenance/ftos/${ftoId}`,
+  const res = await authFetch(
+    `/maintenance/ftos/${ftoId}`,
     {
       method: "PATCH",
       headers: {
@@ -707,9 +707,8 @@ export default function ApproveFTOPage() {
       const formData = new FormData();
       formData.append("file", file, file.name);
 
-      const uploadRes = await fetch(`${API_BASE}/maintenance/uploads`, {
+      const uploadRes = await authFetch("/maintenance/uploads", {
         method: "POST",
-        credentials: "include",
         body: formData,
       });
 
@@ -718,12 +717,11 @@ export default function ApproveFTOPage() {
       const storagePath = uploadData.storage_path;
 
       // 2. Attach to submission
-      const attachRes = await fetch(
-        `${API_BASE}/maintenance/submissions/${row.submissionId}/attachments`,
+      const attachRes = await authFetch(
+        `/maintenance/submissions/${row.submissionId}/attachments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({
             material_index: row.materialIndex,
             file_name: uploadData.file_name || file.name,
@@ -925,8 +923,8 @@ export default function ApproveFTOPage() {
       if (!ftoIdNum) return;
 
       try {
-        const res = await fetch(
-          `${API_BASE}/maintenance/ftos/${ftoIdNum}`,
+        const res = await authFetch(
+          `/maintenance/ftos/${ftoIdNum}`,
           {
             headers: { Accept: "application/json" },
           }

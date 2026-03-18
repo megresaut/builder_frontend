@@ -13,7 +13,7 @@ import {
   Paperclip,
 } from "lucide-react";
 import WorkOrders from "./WorkOrders";
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, authFetch } from "@/api/fetchJSON";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import { usePageState } from "@/hooks/usePageState";
@@ -596,7 +596,7 @@ export default function TaskSummary() {
     form.append("file", file);
   
     try {
-      const res = await fetch(`/maintenance/attachments/tasks/${taskId}`, {
+      const res = await authFetch(`/maintenance/attachments/tasks/${taskId}`, {
         method: "POST",
         body: form,
       });
