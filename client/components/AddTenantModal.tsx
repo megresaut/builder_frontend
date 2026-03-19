@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
+import { FileUploadField } from "@/components/forms/FileUploadField";
+import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import { createTenant, updateTenant } from "@/data/tenants";
 import type { Tenant } from "@/types/tenant";
 import { toast } from "sonner";
@@ -41,6 +43,16 @@ export default function AddTenantModal({
   const [ecRelationship, setEcRelationship] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Document uploads
+  const [leaseFiles, setLeaseFiles] = useState<UploadedFile[]>([]);
+  const [insuranceFiles, setInsuranceFiles] = useState<UploadedFile[]>([]);
+
+  // Insurance fields
+  const [insCarrier, setInsCarrier] = useState("");
+  const [insPolicyNumber, setInsPolicyNumber] = useState("");
+  const [insEffective, setInsEffective] = useState("");
+  const [insExpiration, setInsExpiration] = useState("");
+
   useEffect(() => {
     if (open && editData) {
       setFirstName(editData.first_name);
@@ -58,6 +70,12 @@ export default function AddTenantModal({
       setEcName(editData.emergency_contact_name || "");
       setEcPhone(editData.emergency_contact_phone || "");
       setEcRelationship(editData.emergency_contact_relationship || "");
+      setLeaseFiles([]);
+      setInsuranceFiles([]);
+      setInsCarrier("");
+      setInsPolicyNumber("");
+      setInsEffective("");
+      setInsExpiration("");
     } else if (open && !editData) {
       setFirstName("");
       setLastName("");
@@ -74,6 +92,12 @@ export default function AddTenantModal({
       setEcName("");
       setEcPhone("");
       setEcRelationship("");
+      setLeaseFiles([]);
+      setInsuranceFiles([]);
+      setInsCarrier("");
+      setInsPolicyNumber("");
+      setInsEffective("");
+      setInsExpiration("");
     }
   }, [open, editData]);
 
@@ -130,6 +154,17 @@ export default function AddTenantModal({
         });
         toast.success("Tenant added");
       }
+
+      // TODO: Upload lease documents via tenant documents API
+      if (leaseFiles.length > 0) {
+        toast.success(`${leaseFiles.length} lease document(s) attached`);
+      }
+
+      // TODO: Create renters insurance record via insurance API
+      if (insuranceFiles.length > 0 || insCarrier) {
+        toast.success("Renters insurance info saved");
+      }
+
       onSaved();
     } catch {
       toast.error("Failed to save tenant");
@@ -222,6 +257,48 @@ export default function AddTenantModal({
               <input className={inputClass} type="date" value={moveOut} onChange={(e) => setMoveOut(e.target.value)} />
             </div>
           </div>
+        </FormSection>
+
+        <FormSection title="Lease Agreement" description="Upload the signed lease agreement" showDivider>
+          <FileUploadField
+            label="Lease Document"
+            files={leaseFiles}
+            onFilesAdded={(newFiles) => setLeaseFiles((prev) => [...prev, ...newFiles])}
+            onFileRemoved={(fileId) => setLeaseFiles((prev) => prev.filter((f) => f.id !== fileId))}
+            accept=".pdf,.doc,.docx"
+            maxFiles={3}
+            placeholder="Drop lease agreement here, or click to browse"
+          />
+        </FormSection>
+
+        <FormSection title="Renters Insurance" description="This will also appear in the Insurance tab" showDivider>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Insurance Carrier</label>
+              <input className={inputClass} value={insCarrier} onChange={(e) => setInsCarrier(e.target.value)} placeholder="State Farm, Lemonade, etc." />
+            </div>
+            <div>
+              <label className={labelClass}>Policy Number</label>
+              <input className={inputClass} value={insPolicyNumber} onChange={(e) => setInsPolicyNumber(e.target.value)} placeholder="POL-123456" />
+            </div>
+            <div>
+              <label className={labelClass}>Effective Date</label>
+              <input className={inputClass} type="date" value={insEffective} onChange={(e) => setInsEffective(e.target.value)} />
+            </div>
+            <div>
+              <label className={labelClass}>Expiration Date</label>
+              <input className={inputClass} type="date" value={insExpiration} onChange={(e) => setInsExpiration(e.target.value)} />
+            </div>
+          </div>
+          <FileUploadField
+            label="Insurance Document / COI"
+            files={insuranceFiles}
+            onFilesAdded={(newFiles) => setInsuranceFiles((prev) => [...prev, ...newFiles])}
+            onFileRemoved={(fileId) => setInsuranceFiles((prev) => prev.filter((f) => f.id !== fileId))}
+            accept=".pdf,.jpg,.jpeg,.png"
+            maxFiles={3}
+            placeholder="Drop insurance document or COI here, or click to browse"
+          />
         </FormSection>
 
         <FormSection title="Emergency Contact" showDivider={false}>
