@@ -38,6 +38,7 @@ import { ModalButtons, ModalTemplate } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { fetchJSON } from "@/api/fetchJSON";
 import TenantsList from "@/components/TenantsList";
+import OwnersList from "@/components/OwnersList";
 import { fetchTenantsByProperty } from "@/data/tenants";
 import type { Tenant } from "@/types/tenant";
 
@@ -531,6 +532,10 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                     </div>
                   </div>
                 </div>
+              </SectionRowTemplate>
+
+              <SectionRowTemplate isLast={false}>
+                <OwnersList />
               </SectionRowTemplate>
 
               <SectionRowTemplate isLast={false}>

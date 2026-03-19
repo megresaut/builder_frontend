@@ -34,10 +34,18 @@ interface Vendor {
   notes: string;
 }
 
+interface PropertyUnit {
+  id: number;
+  property_id: number;
+  buildium_unit_id: number | null;
+  unit_name: string;
+}
+
 interface LineItem {
   id: number;
   property: string;
-  unit: string;
+  unit: string;          // buildium_unit_id as string, or "" for no unit
+  unitName: string;      // display name for the unit
   description: string;
   glAccount: string;
   total: string;
@@ -109,8 +117,26 @@ const toCents = (value: string): number => {
 
 
 const mockProperties = ["22 Indian Creek Dr", "25 Park Ave", "100 Main St"];
-const mockUnits = ["N/A", "1", "2", "3", "4", "5"];
 const mockGLAccounts = ["Utilities", "Maintenance", "Other"];
+
+/** Natural sort comparator — handles "1", "2", "10", "A", "B", "1A", "1B", etc. */
+const naturalSort = (a: string, b: string): number => {
+  const ax: (string | number)[] = [];
+  const bx: (string | number)[] = [];
+  a.replace(/(\d+)|(\D+)/g, (_, d, s) => { ax.push(d ? +d : s); return ""; });
+  b.replace(/(\d+)|(\D+)/g, (_, d, s) => { bx.push(d ? +d : s); return ""; });
+  for (let i = 0; i < Math.max(ax.length, bx.length); i++) {
+    const ai = ax[i] ?? "";
+    const bi = bx[i] ?? "";
+    if (typeof ai === "number" && typeof bi === "number") {
+      if (ai !== bi) return ai - bi;
+    } else {
+      const cmp = String(ai).localeCompare(String(bi), undefined, { sensitivity: "base" });
+      if (cmp !== 0) return cmp;
+    }
+  }
+  return 0;
+};
 
 const placeholderBill = {
   vendor: mockVendors[0],
@@ -123,6 +149,7 @@ const placeholderBill = {
       id: 1,
       property: "22 Indian Creek Dr",
       unit: "1",
+      unitName: "Unit 1",
       description: "Monthly electric service charge and consumption",
       glAccount: "Utilities",
       total: "$450.00",
@@ -131,6 +158,7 @@ const placeholderBill = {
       id: 2,
       property: "22 Indian Creek Dr",
       unit: "2",
+      unitName: "Unit 2",
       description: "Water and sewer service",
       glAccount: "Utilities",
       total: "$125.50",
@@ -139,6 +167,7 @@ const placeholderBill = {
       id: 3,
       property: "25 Park Ave",
       unit: "1",
+      unitName: "Unit 1",
       description: "Gas heating service",
       glAccount: "Utilities",
       total: "$275.00",
@@ -165,6 +194,7 @@ const emptyLineItem = (id: number): LineItem => ({
   id,
   property: "",
   unit: "",
+  unitName: "",
   description: "",
   glAccount: "",
   total: "",
@@ -433,6 +463,7 @@ export const RecordBill = () => {
             id: 1,
             property: "",
             unit: "",
+            unitName: "",
             description: "",
             glAccount: "",
             total: "",
@@ -471,6 +502,7 @@ export const RecordBill = () => {
 
   const [propertySearch, setPropertySearch] = useState("");
   const [glSearch, setGlSearch] = useState("");
+  const [unitsByProperty, setUnitsByProperty] = useState<Record<string, PropertyUnit[]>>({});
   const filteredProperties = properties.filter((p) =>
     p.name.toLowerCase().includes(propertySearch.toLowerCase())
   );
@@ -840,6 +872,7 @@ export const RecordBill = () => {
         ? item.PropertyID.toString()
         : "",
       unit: item.Unit || "",
+      unitName: item.UnitName || item.Unit || "",
       workOrder: item.WorkOrderRef || "",
       description: item.Description || "",
       glAccount: item.GLAccountID
@@ -851,7 +884,13 @@ export const RecordBill = () => {
     }));
     
     setLineItems(formatted);
-  
+
+    // Preload units for properties that already have values
+    const propertyIds = new Set(
+      formatted.map((li: LineItem) => li.property).filter(Boolean)
+    );
+    propertyIds.forEach((pid: string) => loadUnitsForProperty(pid));
+
     //
     // ---------------------------
     // Attachments
@@ -1162,7 +1201,7 @@ export const RecordBill = () => {
           line_items: patchPayload.line_items.map((li) => ({
             line_id: li.line_id,
             property_id: Number(li.property_id),      // 🔒 never null
-            unit: "",
+            unit: li.unit || "",
           
             gl_account_id: li.gl_account_id,           // 🔒 already validated
             gl_account_name: li.gl_account_name,
@@ -1253,9 +1292,14 @@ export const RecordBill = () => {
         navigate(-1);
       }
   
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to approve and export bill:", err);
-      alert("Bill was approved, but exporting to Buildium may have failed.");
+      const msg = err?.message || err?.error || String(err);
+      if (msg.toLowerCase().includes("buildium unit")) {
+        alert(msg);
+      } else {
+        alert("Bill was approved, but exporting to Buildium may have failed.");
+      }
     }
   };
   
@@ -1352,15 +1396,16 @@ export const RecordBill = () => {
     setLineItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
-  
+
         const updated = { ...item, [field]: value };
-  
-        // When property changes → clear work order + load new orders
-        // if (field === "property") {
-        //   updated.workOrder = "";
-        //   loadWorkOrdersForProperty(value);
-        // }
-  
+
+        // When property changes → clear unit + load units for new property
+        if (field === "property") {
+          updated.unit = "";
+          updated.unitName = "";
+          loadUnitsForProperty(value);
+        }
+
         return updated;
       })
     );
@@ -1399,6 +1444,7 @@ export const RecordBill = () => {
         id: newId,
         property: "",
         unit: "",
+        unitName: "",
         workOrder: "",
         description: "",
         glAccount: "",
@@ -1627,6 +1673,31 @@ export const RecordBill = () => {
   };
 
 
+  const loadUnitsForProperty = useCallback(
+    async (propertyIdStr: string) => {
+      const propertyId = Number(propertyIdStr);
+      if (!propertyId) return;
+      if (unitsByProperty[propertyIdStr]) return; // already loaded
+
+      try {
+        const list = await fetchJSON(`/properties/${propertyId}/units`);
+        const units: PropertyUnit[] = (list || []).map((u: any) => ({
+          id: u.id,
+          property_id: u.property_id,
+          buildium_unit_id: u.buildium_unit_id ?? null,
+          unit_name: u.unit_name,
+        }));
+        setUnitsByProperty((prev) => ({
+          ...prev,
+          [propertyIdStr]: units,
+        }));
+      } catch (err) {
+        console.error("Failed loading units for property", propertyId, err);
+      }
+    },
+    [unitsByProperty]
+  );
+
   const loadWorkOrdersForProperty = useCallback(
     async (propertyIdStr: string) => {
       const propertyId = Number(propertyIdStr);
@@ -1668,7 +1739,7 @@ export const RecordBill = () => {
       return {
         line_id: item.id,
         property_id,               // number ONLY
-        unit: "",
+        unit: (item.unit === "__property__" || item.unit.startsWith("internal-")) ? "" : item.unit,
   
         gl_account_id: gl.id.toString(),
         gl_account_name: gl.name,   // string, not ""
@@ -2080,6 +2151,10 @@ minHeight: 0,
                           </SelectTrigger>
                           <SelectContent
                               className="bg-white border border-[#E5E7EB] shadow-md p-0"
+                              onKeyDown={(e) => {
+                                const t = e.target as HTMLElement;
+                                if (t.tagName === "INPUT") e.stopPropagation();
+                              }}
                           >
                             {/* Search input */}
                             <div className="p-2 border-b border-[#E5E7EB]">
@@ -2088,7 +2163,8 @@ minHeight: 0,
                                 placeholder="Type to search…"
                                 value={vendorSearch}
                                 onChange={(e) => setVendorSearch(e.target.value)}
-                                onKeyDown={(e) => e.stopPropagation()} // ⛔ prevent Select keyboard hijack
+                                onKeyDown={(e) => e.stopPropagation()}
+                                onFocus={(e) => e.stopPropagation()}
                                 className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
                               />
                             </div>
@@ -2321,7 +2397,14 @@ minHeight: 0,
                                   <SelectValue placeholder="Select a Property" />
                                 </SelectTrigger>
 
-                                <SelectContent className="bg-white border border-[#E5E7EB] shadow-md p-0">
+                                <SelectContent
+                                  className="bg-white border border-[#E5E7EB] shadow-md p-0"
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Escape") e.stopPropagation();
+                                    const t = e.target as HTMLElement;
+                                    if (t.tagName === "INPUT") e.stopPropagation();
+                                  }}
+                                >
                                   {/* Search */}
                                   <div className="p-2 border-b border-[#E5E7EB]">
                                     <input
@@ -2330,6 +2413,7 @@ minHeight: 0,
                                       value={propertySearch}
                                       onChange={(e) => setPropertySearch(e.target.value)}
                                       onKeyDown={(e) => e.stopPropagation()}
+                                      onFocus={(e) => e.stopPropagation()}
                                       className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
                                     />
                                   </div>
@@ -2361,15 +2445,49 @@ minHeight: 0,
                                 value={item.unit}
                                 onChange={(value) => {
                                   if (!isReadOnly) {
-                                    handleUpdateLineItem(item.id, "unit", value);
+                                    if (value === "__property__") {
+                                      handleUpdateLineItem(item.id, "unit", "__property__");
+                                      setLineItems((prev) =>
+                                        prev.map((li) =>
+                                          li.id === item.id
+                                            ? { ...li, unitName: "Property Level" }
+                                            : li
+                                        )
+                                      );
+                                    } else {
+                                      const units = unitsByProperty[item.property] || [];
+                                      const selected = units.find(
+                                        (u) => (u.buildium_unit_id?.toString() ?? `internal-${u.id}`) === value
+                                      );
+                                      handleUpdateLineItem(item.id, "unit", value);
+                                      if (selected) {
+                                        setLineItems((prev) =>
+                                          prev.map((li) =>
+                                            li.id === item.id
+                                              ? { ...li, unitName: selected.unit_name }
+                                              : li
+                                          )
+                                        );
+                                      }
+                                    }
                                   }
                                 }}
-                                placeholder="Select a Unit"
-                                options={mockUnits.map((unit) => ({
-                                  value: unit,
-                                  label: unit,
-                                }))}
-                                disabled={isReadOnly}
+                                placeholder={
+                                  !item.property
+                                    ? "Select property first"
+                                    : "Select a Unit"
+                                }
+                                options={[
+                                  { value: "__property__", label: "Property Level" },
+                                  ...(unitsByProperty[item.property] || [])
+                                    .slice()
+                                    .sort((a, b) => naturalSort(a.unit_name, b.unit_name))
+                                    .map((u) => ({
+                                      value: u.buildium_unit_id?.toString() ?? `internal-${u.id}`,
+                                      label: u.unit_name,
+                                    })),
+                                ]}
+                                disabled={isReadOnly || !item.property}
                               />
                             </div>
 
@@ -2471,7 +2589,14 @@ minHeight: 0,
                                   <SelectValue placeholder="Select an Account" />
                                 </SelectTrigger>
 
-                                <SelectContent className="bg-white border border-[#E5E7EB] shadow-md p-0">
+                                <SelectContent
+                                  className="bg-white border border-[#E5E7EB] shadow-md p-0"
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Escape") e.stopPropagation();
+                                    const t = e.target as HTMLElement;
+                                    if (t.tagName === "INPUT") e.stopPropagation();
+                                  }}
+                                >
                                   {/* Search */}
                                   <div className="p-2 border-b border-[#E5E7EB]">
                                     <input
@@ -2480,6 +2605,7 @@ minHeight: 0,
                                       value={glSearch}
                                       onChange={(e) => setGlSearch(e.target.value)}
                                       onKeyDown={(e) => e.stopPropagation()}
+                                      onFocus={(e) => e.stopPropagation()}
                                       className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
                                     />
                                   </div>

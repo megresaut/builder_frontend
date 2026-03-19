@@ -1212,7 +1212,10 @@ export default function Bills() {
               }              
               if (columnKey === "memo") {
                 return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
+                  <span
+                    className="text-gray-900 font-normal text-sm block truncate max-w-[300px]"
+                    title={bill.memo}
+                  >
                     {bill.memo}
                   </span>
                 );
