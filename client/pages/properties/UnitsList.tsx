@@ -37,6 +37,9 @@ import {
 import { ModalButtons, ModalTemplate } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { fetchJSON } from "@/api/fetchJSON";
+import TenantsList from "@/components/TenantsList";
+import { fetchTenantsByProperty } from "@/data/tenants";
+import type { Tenant } from "@/types/tenant";
 
 
 interface Unit {
@@ -145,9 +148,7 @@ async function fetchUnitsByProperty(propertyId: number): Promise<Unit[]> {
     id: item.id,
     unitNumber: item.unit_name,
     address: item.address_1 || "",
-    tenants: Array.isArray(item.owners)
-      ? item.owners.map((owner: any) => owner.name)
-      : [],
+    tenants: [] as string[],
     propertyId: item.property_id,
   }));
 }
@@ -169,15 +170,27 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Fetch units from mock API on mount or when propertyId changes
+  // Fetch units and tenants on mount or when propertyId changes
   useEffect(() => {
     const loadUnits = async () => {
       if (!propertyId) return;
 
       setIsLoadingUnits(true);
       try {
-        const units = await fetchUnitsByProperty(Number(propertyId));
-        setUnitsList(units);
+        const [units, allTenants] = await Promise.all([
+          fetchUnitsByProperty(Number(propertyId)),
+          fetchTenantsByProperty(Number(propertyId)).catch(() => [] as Tenant[]),
+        ]);
+        // Group tenant names by unit_id
+        const tenantsByUnit = new Map<number, string[]>();
+        for (const t of allTenants) {
+          const names = tenantsByUnit.get(t.unit_id) || [];
+          names.push(`${t.first_name} ${t.last_name}`);
+          tenantsByUnit.set(t.unit_id, names);
+        }
+        setUnitsList(
+          units.map((u) => ({ ...u, tenants: tenantsByUnit.get(u.id) || [] })),
+        );
       } catch (error) {
         console.error("Failed to load units:", error);
         setUnitsList([]);
@@ -458,25 +471,6 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   }, [selectedUnitId, selectedUnit, location.pathname]);
 
 
-  useEffect(() => {
-    const loadUnits = async () => {
-      if (!propertyId) return;
-  
-      setIsLoadingUnits(true);
-      try {
-        const units = await fetchUnitsByProperty(Number(propertyId));
-        setUnitsList(units);
-      } catch (error) {
-        console.error("Failed to load units:", error);
-        setUnitsList([]);
-      } finally {
-        setIsLoadingUnits(false);
-      }
-    };
-  
-    loadUnits();
-  }, [propertyId]);
-  
   return (
     <>
       <div
@@ -527,22 +521,23 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                           <div className="text-[#71717A] text-xs leading-[1.33]">
                             TENANTS
                           </div>
-                          <div className="flex flex-col self-start mt-1 gap-1 text-base text-[#303030] leading-[1.13]">
-                            {selectedUnit.tenants.length > 0 ? (
-                              selectedUnit.tenants.map((tenant, idx) => (
-                                <div key={idx}>{tenant}</div>
-                              ))
-                            ) : (
-                              <span className="text-[#A0A0A0]">
-                                No tenants assigned
-                              </span>
-                            )}
+                          <div className="text-base text-[#303030] leading-[1.13] mt-1">
+                            {selectedUnit.tenants.length > 0
+                              ? selectedUnit.tenants.join(", ")
+                              : <span className="text-[#A0A0A0]">No tenants assigned</span>}
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              </SectionRowTemplate>
+
+              <SectionRowTemplate isLast={false}>
+                <TenantsList
+                  unitId={selectedUnit.id}
+                  propertyId={selectedUnit.propertyId}
+                />
               </SectionRowTemplate>
 
               <NotesTemplate
@@ -583,9 +578,26 @@ export const UnitsList: React.FC<UnitsListProps> = ({
           <>
             <div className="flex items-center gap-10 justify-between flex-wrap">
               <div className="flex flex-col gap-1 min-w-[240px]">
-                <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-                  Units
-                </h1>
+                <div className="flex items-center gap-4">
+                  <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
+                    Units
+                  </h1>
+                  {(() => {
+                    const occupied = unitsList.filter((u) => u.tenants.length > 0).length;
+                    const total = unitsList.length;
+                    const pct = total > 0 ? Math.round((occupied / total) * 100) : 0;
+                    return (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#F0F4FF] border border-[#D4DFFA]">
+                        <span className="text-sm font-semibold text-[#1357D5]">
+                          {occupied}/{total}
+                        </span>
+                        <span className="text-sm text-[#5B7EC1]">
+                          Occupied ({pct}%)
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
                 <div className="flex items-center gap-3 mt-1">
                   <p
                     className="text-[#717179] font-medium text-base leading-4"
@@ -598,7 +610,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
               </div>
 
               <div className="flex items-center gap-4">
-                {/* <button
+                <button
                   onClick={handleOpenAddModal}
                   className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
                 >
@@ -606,7 +618,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                   <span className="text-white font-medium text-base leading-normal">
                     Add unit
                   </span>
-                </button> */}
+                </button>
               </div>
             </div>
 

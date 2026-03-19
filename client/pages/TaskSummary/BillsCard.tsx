@@ -99,10 +99,11 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendor
 
   const handleAddBill = () => {
     setIsSelectBillModalOpen(false);
-    const recordUrl = returnToUrl
-      ? `/bills/record?returnTo=${encodeURIComponent(returnToUrl)}`
-      : "/bills/record";
-    navigate(recordUrl);
+    const params = new URLSearchParams();
+    if (returnToUrl) params.set("returnTo", returnToUrl);
+    if (workOrderId) params.set("workOrderId", String(workOrderId));
+    const qs = params.toString();
+    navigate(qs ? `/bills/record?${qs}` : "/bills/record");
   };
 
   const handleConfirmBill = async () => {
