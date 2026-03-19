@@ -82,6 +82,7 @@ export default function AddUnitModal({
     state: defaultAddress.state,
     zipCode: defaultAddress.zip,
   });
+  const [owners, setOwners] = useState<string[]>([""]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Reset form when modal opens/closes
@@ -94,6 +95,7 @@ export default function AddUnitModal({
         state: defaultAddress.state,
         zipCode: defaultAddress.zip,
       });
+      setOwners([""]);
       setErrors({});
     } else if (editData) {
       // Populate form from edit data
@@ -112,6 +114,8 @@ export default function AddUnitModal({
       }
 
       setAddressValue({ street, city, state, zipCode: zip });
+      // Populate owners from editData.tenants (which currently holds owner names from JSONB)
+      setOwners(editData.tenants.length > 0 ? [...editData.tenants] : [""]);
     }
   }, [open, editData, defaultAddress]);
 
@@ -144,10 +148,12 @@ export default function AddUnitModal({
     }
 
     const fullAddress = `${addressValue.street}, ${addressValue.city}, ${addressValue.state} ${addressValue.zipCode}`;
+    const ownerNames = owners.map((o) => o.trim()).filter(Boolean);
     const payload = {
       unit_number: unitNumber,
       address: fullAddress,
       property_id: propertyId,
+      owners: ownerNames.map((name) => ({ name })),
     };
 
     try {
@@ -157,6 +163,7 @@ export default function AddUnitModal({
           ...editData,
           unitNumber,
           address: fullAddress,
+          tenants: ownerNames,
         });
       } else {
         await mockSaveUnit(payload);
@@ -164,7 +171,7 @@ export default function AddUnitModal({
           id: Date.now(),
           unitNumber,
           address: fullAddress,
-          tenants: [],
+          tenants: ownerNames,
           propertyId,
         };
         onSubmit(newUnit);
@@ -214,6 +221,62 @@ export default function AddUnitModal({
             error={errors.unitNumber}
             placeholder="e.g., 1A, Suite 100"
           />
+        </FormSection>
+
+        {/* Owner Information Section */}
+        <FormSection showDivider={true}>
+          <div
+            style={{
+              fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+              fontSize: "20px",
+              color: "rgba(48, 48, 48, 1)",
+              fontWeight: 600,
+              lineHeight: 1.3,
+              marginBottom: "12px",
+            }}
+          >
+            Owner Information
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {owners.map((owner, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={owner}
+                  onChange={(e) => {
+                    const updated = [...owners];
+                    updated[idx] = e.target.value;
+                    setOwners(updated);
+                  }}
+                  placeholder="Owner name"
+                  className="flex-1 rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-[#303030] placeholder:text-[#A0A0A0] focus:outline-none focus:ring-2 focus:ring-[#1357D5]/20 focus:border-[#1357D5]"
+                />
+                {owners.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setOwners(owners.filter((_, i) => i !== idx))}
+                    className="p-1.5 rounded hover:bg-red-50 transition-colors text-[#982740]"
+                    title="Remove owner"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setOwners([...owners, ""])}
+              className="flex items-center gap-1.5 text-[#1357D5] font-medium text-sm hover:underline self-start mt-1"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Add another owner
+            </button>
+          </div>
         </FormSection>
 
         {/* Street Address Section */}

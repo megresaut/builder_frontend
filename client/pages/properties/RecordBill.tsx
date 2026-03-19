@@ -339,6 +339,7 @@ export const RecordBill = () => {
 
   const billIdParam = searchParams.get("billId");
   const returnTo = searchParams.get("returnTo");
+  const workOrderId = searchParams.get("workOrderId");
 
   // billId is either a real number OR null
   const billId: number | null =
@@ -1222,7 +1223,19 @@ export const RecordBill = () => {
       await fetchJSON(`/vendors/bills/${approvedBillId}/push`, {
         method: "POST",
       });
-  
+
+      // Link bill to work order if we came from a work order page
+      if (workOrderId) {
+        try {
+          await fetchJSON(`/maintenance/work-orders/id/${workOrderId}/bill`, {
+            method: "POST",
+            body: JSON.stringify({ bill_id: approvedBillId }),
+          });
+        } catch (linkErr) {
+          console.error("Failed to link bill to work order:", linkErr);
+        }
+      }
+
       // Notify Bills page
       window.dispatchEvent(
         new CustomEvent("billApproved", {
