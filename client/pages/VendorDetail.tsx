@@ -65,11 +65,70 @@ interface VendorFile {
   description?: string;
 }
 
-interface VendorInsurance {
+interface VendorComplianceDoc {
   id: number;
-  provider: string;
-  policyNumber: string;
+  documentType: "certificate_of_insurance" | "w9" | "1099" | "business_license" | "avm_agreement" | "contractors_license" | "other";
+  documentName: string;
+  provider?: string;
+  policyNumber?: string;
+  licenseNumber?: string;
   expirationDate: string;
+  fileName?: string;
+  fileUrl?: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
+/**
+ * Generate a simple mock PDF as a blob URL with placeholder text.
+ */
+function createMockPdfUrl(title: string, details: string): string {
+  const pdfContent = `%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]
+   /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 220 >>
+stream
+BT
+/F1 24 Tf
+50 700 Td
+(${title}) Tj
+/F1 12 Tf
+0 -40 Td
+(${details}) Tj
+0 -25 Td
+(This is a mock document for demo purposes.) Tj
+0 -25 Td
+(In production, the actual uploaded file would be served here.) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f
+0000000009 00000 n
+0000000058 00000 n
+0000000115 00000 n
+0000000306 00000 n
+0000000240 00000 n
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+578
+%%EOF`;
+  const blob = new Blob([pdfContent], { type: "application/pdf" });
+  return URL.createObjectURL(blob);
 }
 
 interface VendorCustomField {
@@ -114,22 +173,95 @@ let mockNotesStorage: Record<number, VendorNote[]> = {
 
 let mockFilesStorage: Record<number, VendorFile[]> = {};
 
-let mockInsuranceStorage: Record<number, VendorInsurance[]> = {
-  1: [
-    {
-      id: 1,
-      provider: "State Farm",
-      policyNumber: "SF-123456789",
-      expirationDate: "12/31/2025",
-    },
-    {
-      id: 2,
-      provider: "Allstate",
-      policyNumber: "AS-987654321",
-      expirationDate: "06/30/2026",
-    },
-  ],
-};
+// API helpers for vendor compliance docs
+
+interface BackendComplianceDoc {
+  id: number;
+  document_type: string;
+  document_name: string;
+  provider?: string | null;
+  policy_number?: string | null;
+  license_number?: string | null;
+  expiration_date: string;
+  file_name?: string | null;
+  file_url?: string | null;
+  uploaded_by: string;
+  uploaded_at: string;
+}
+
+function formatExpDate(dateStr: string): string {
+  // Backend returns YYYY-MM-DD; display as MM/DD/YYYY
+  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    const [y, m, d] = dateStr.split("T")[0].split("-");
+    return `${m}/${d}/${y}`;
+  }
+  return dateStr;
+}
+
+function mapBackendDoc(doc: BackendComplianceDoc): VendorComplianceDoc {
+  return {
+    id: doc.id,
+    documentType: doc.document_type as VendorComplianceDoc["documentType"],
+    documentName: doc.document_name,
+    provider: doc.provider ?? undefined,
+    policyNumber: doc.policy_number ?? undefined,
+    licenseNumber: doc.license_number ?? undefined,
+    expirationDate: formatExpDate(doc.expiration_date),
+    fileName: doc.file_name ?? undefined,
+    fileUrl: doc.file_url ?? undefined,
+    uploadedBy: doc.uploaded_by,
+    uploadedAt: doc.uploaded_at,
+  };
+}
+
+async function fetchVendorCompliance(vendorId: number): Promise<VendorComplianceDoc[]> {
+  const data: BackendComplianceDoc[] = await fetchJSON(`/vendors/compliance/docs/${vendorId}`);
+  return data.map(mapBackendDoc);
+}
+
+function toISODate(dateStr: string): string {
+  // Convert MM/DD/YYYY to YYYY-MM-DD for the backend
+  const match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    const [, m, d, y] = match;
+    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+  return dateStr; // already ISO or other format
+}
+
+async function apiAddVendorCompliance(
+  vendorId: number,
+  doc: Omit<VendorComplianceDoc, "id">,
+): Promise<VendorComplianceDoc> {
+  const resp = await fetchJSON(`/vendors/compliance/docs/${vendorId}`, {
+    method: "POST",
+    body: JSON.stringify({
+      document_type: doc.documentType,
+      document_name: doc.documentName,
+      provider: doc.provider || "",
+      policy_number: doc.policyNumber || "",
+      license_number: doc.licenseNumber || "",
+      expiration_date: toISODate(doc.expirationDate),
+    }),
+  });
+  return {
+    id: resp.id,
+    documentType: resp.document_type as VendorComplianceDoc["documentType"],
+    documentName: resp.document_name,
+    provider: resp.provider ?? undefined,
+    policyNumber: resp.policy_number ?? undefined,
+    licenseNumber: resp.license_number ?? undefined,
+    expirationDate: resp.expiration_date,
+    uploadedBy: "You",
+    uploadedAt: new Date().toLocaleString(),
+  };
+}
+
+async function apiDeleteVendorCompliance(docId: number): Promise<void> {
+  await fetchJSON(`/vendors/compliance/docs/delete/${docId}`, {
+    method: "DELETE",
+  });
+}
 
 let mockCustomFieldsStorage: Record<number, VendorCustomField[]> = {
   1: [
@@ -377,69 +509,7 @@ async function mockDeleteVendorFile(
   }
 }
 
-/**
- * Mock API: Fetch all insurance for a vendor
- * Real API would be: GET /vendors/insurance/{vendor_id}
- */
-async function mockFetchVendorInsurance(
-  vendorId: number,
-): Promise<VendorInsurance[]> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  if (!mockInsuranceStorage[vendorId]) {
-    mockInsuranceStorage[vendorId] = [];
-  }
-
-  return [...mockInsuranceStorage[vendorId]];
-}
-
-/**
- * Mock API: Add insurance for a vendor
- * Real API would be: POST /vendors/insurance/{vendor_id}
- */
-async function mockAddVendorInsurance(
-  vendorId: number,
-  provider: string,
-  policyNumber: string,
-  expirationDate: string,
-): Promise<VendorInsurance> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  if (!mockInsuranceStorage[vendorId]) {
-    mockInsuranceStorage[vendorId] = [];
-  }
-
-  const newInsurance: VendorInsurance = {
-    id: Date.now(),
-    provider,
-    policyNumber,
-    expirationDate,
-  };
-
-  mockInsuranceStorage[vendorId].push(newInsurance);
-  return newInsurance;
-}
-
-/**
- * Mock API: Delete insurance
- * Real API would be: DELETE /vendors/insurance/{insurance_id}
- */
-async function mockDeleteVendorInsurance(
-  vendorId: number,
-  insuranceId: number,
-): Promise<void> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  if (!mockInsuranceStorage[vendorId]) return;
-
-  const idx = mockInsuranceStorage[vendorId].findIndex((i) => i.id === insuranceId);
-  if (idx >= 0) {
-    mockInsuranceStorage[vendorId].splice(idx, 1);
-  }
-}
+// (compliance API functions moved above, near mock storage section)
 
 /**
  * Mock API: Fetch all custom fields for a vendor
@@ -692,20 +762,20 @@ export default function VendorDetail() {
     }
   }, [id]);
 
-  // Mock data state for insurance
-  const [insurance, setInsurance] = useState<VendorInsurance[]>([]);
+  // Mock data state for compliance documents
+  const [compliance, setCompliance] = useState<VendorComplianceDoc[]>([]);
 
   // Mock data state for custom fields
   const [fields, setFields] = useState<VendorCustomField[]>([]);
 
-  // Load mock insurance on mount
+  // Load compliance docs from API on mount
   useEffect(() => {
     (async () => {
       try {
-        const fetchedInsurance = await mockFetchVendorInsurance(id);
-        setInsurance(fetchedInsurance);
+        const fetched = await fetchVendorCompliance(id);
+        setCompliance(fetched);
       } catch (err) {
-        console.error("Failed to load insurance");
+        console.error("Failed to load compliance docs", err);
       }
     })();
   }, [id]);
@@ -722,30 +792,25 @@ export default function VendorDetail() {
     })();
   }, [id]);
 
-  // Mock insurance operations
-  const addInsurance = useCallback(
-    async (provider: string, policyNumber: string, expirationDate: string) => {
+  // Compliance CRUD operations (live API)
+  const addComplianceDoc = useCallback(
+    async (doc: Omit<VendorComplianceDoc, "id">) => {
       try {
-        const newInsurance = await mockAddVendorInsurance(
-          id,
-          provider,
-          policyNumber,
-          expirationDate,
-        );
-        setInsurance((prev) => [...prev, newInsurance]);
+        const newDoc = await apiAddVendorCompliance(id, doc);
+        setCompliance((prev) => [...prev, newDoc]);
       } catch (err) {
-        console.error("Failed to add insurance");
+        console.error("Failed to add compliance document", err);
       }
     },
     [id],
   );
 
-  const removeInsurance = useCallback(async (insuranceId: number) => {
+  const removeComplianceDoc = useCallback(async (docId: number) => {
     try {
-      await mockDeleteVendorInsurance(id, insuranceId);
-      setInsurance((prev) => prev.filter((i) => i.id !== insuranceId));
+      await apiDeleteVendorCompliance(docId);
+      setCompliance((prev) => prev.filter((i) => i.id !== docId));
     } catch (err) {
-      console.error("Failed to delete insurance");
+      console.error("Failed to delete compliance document", err);
     }
   }, [id]);
 
@@ -778,10 +843,17 @@ export default function VendorDetail() {
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
 
-  const [isAddInsuranceOpen, setIsAddInsuranceOpen] = useState(false);
-  const [insuranceProvider, setInsuranceProvider] = useState("");
-  const [insurancePolicyNumber, setInsurancePolicyNumber] = useState("");
-  const [insuranceExpirationDate, setInsuranceExpirationDate] = useState("");
+  const [isAddComplianceOpen, setIsAddComplianceOpen] = useState(false);
+  const [complianceDocType, setComplianceDocType] = useState<VendorComplianceDoc["documentType"]>("certificate_of_insurance");
+  const [complianceDocName, setComplianceDocName] = useState("");
+  const [complianceProvider, setComplianceProvider] = useState("");
+  const [compliancePolicyNumber, setCompliancePolicyNumber] = useState("");
+  const [complianceLicenseNumber, setComplianceLicenseNumber] = useState("");
+  const [complianceExpirationDate, setComplianceExpirationDate] = useState("");
+  const [complianceFileName, setComplianceFileName] = useState("");
+
+  const [viewingComplianceDoc, setViewingComplianceDoc] = useState<VendorComplianceDoc | null>(null);
+  const [isViewComplianceDocOpen, setIsViewComplianceDocOpen] = useState(false);
 
   const [isAddCustomFieldOpen, setIsAddCustomFieldOpen] = useState(false);
   const [customFieldName, setCustomFieldName] = useState("");
@@ -851,18 +923,37 @@ export default function VendorDetail() {
     }
   };
 
-  const handleAddInsurance = async () => {
-    const provider = insuranceProvider.trim();
-    const policyNumber = insurancePolicyNumber.trim();
-    const expirationDate = insuranceExpirationDate.trim();
-    if (!provider || !policyNumber || !expirationDate) return;
+  const handleAddCompliance = async () => {
+    const docName = complianceDocName.trim();
+    const expirationDate = complianceExpirationDate.trim();
+    if (!docName || !expirationDate) return;
 
-    await addInsurance(provider, policyNumber, expirationDate);
+    await addComplianceDoc({
+      documentType: complianceDocType,
+      documentName: docName,
+      provider: complianceProvider.trim() || undefined,
+      policyNumber: compliancePolicyNumber.trim() || undefined,
+      licenseNumber: complianceLicenseNumber.trim() || undefined,
+      expirationDate,
+      fileName: complianceFileName.trim() || undefined,
+      uploadedBy: "Current User",
+      uploadedAt: new Date().toLocaleString(undefined, {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+    });
 
-    setInsuranceProvider("");
-    setInsurancePolicyNumber("");
-    setInsuranceExpirationDate("");
-    setIsAddInsuranceOpen(false);
+    setComplianceDocType("certificate_of_insurance");
+    setComplianceDocName("");
+    setComplianceProvider("");
+    setCompliancePolicyNumber("");
+    setComplianceLicenseNumber("");
+    setComplianceExpirationDate("");
+    setComplianceFileName("");
+    setIsAddComplianceOpen(false);
   };
 
   const handleAddFile = async (
@@ -1029,37 +1120,98 @@ export default function VendorDetail() {
                   isLast={false}
                 />
 
-                {/* Vendor Insurance Section */}
+                {/* Vendor Compliance Section */}
                 <SectionRowTemplate isLast={false}>
                   <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
                     <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                      Vendor Insurance
+                      Vendor Compliance
                     </h2>
                     <SectionActionTemplate
                       label="Add"
-                      onClick={() => setIsAddInsuranceOpen(true)}
+                      onClick={() => setIsAddComplianceOpen(true)}
                     />
                   </div>
 
-                  {insurance.length === 0 ? (
-                    <EmptyStateTemplate message="No vendor insurance information on file." />
+                  {compliance.length === 0 ? (
+                    <EmptyStateTemplate message="No vendor compliance documents on file." />
                   ) : (
                     <RecordListTemplate>
-                      {insurance.map((ins, idx) => (
-                        <RecordRowTemplate
-                          key={ins.id}
-                          isLast={idx === insurance.length - 1}
-                          leftSlot={
-                            <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
-                              <div>{ins.provider}</div>
-                              <div className="text-[#71717A] text-xs mt-1">
-                                Policy: {ins.policyNumber} • Expires:{" "}
-                                {ins.expirationDate}
+                      {compliance.map((doc, idx) => {
+                        const typeLabels: Record<string, string> = {
+                          certificate_of_insurance: "Certificate of Insurance",
+                          w9: "W-9",
+                          "1099": "1099",
+                          business_license: "Business License",
+                          avm_agreement: "AVM Agreement",
+                          contractors_license: "Contractor's License",
+                          other: "Other",
+                        };
+                        const isExpiringSoon = (() => {
+                          const parts = doc.expirationDate.split("/");
+                          if (parts.length !== 3) return false;
+                          const expDate = new Date(+parts[2], +parts[0] - 1, +parts[1]);
+                          const daysLeft = Math.ceil((expDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                          return daysLeft <= 30 && daysLeft >= 0;
+                        })();
+                        const isExpired = (() => {
+                          const parts = doc.expirationDate.split("/");
+                          if (parts.length !== 3) return false;
+                          const expDate = new Date(+parts[2], +parts[0] - 1, +parts[1]);
+                          return expDate.getTime() < Date.now();
+                        })();
+                        return (
+                          <RecordRowTemplate
+                            key={doc.id}
+                            isLast={idx === compliance.length - 1}
+                            leftSlot={
+                              <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{doc.documentName}</span>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-medium">
+                                    {typeLabels[doc.documentType] || doc.documentType}
+                                  </span>
+                                  {isExpired && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium">
+                                      Expired
+                                    </span>
+                                  )}
+                                  {isExpiringSoon && !isExpired && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700 font-medium">
+                                      Expiring Soon
+                                    </span>
+                                  )}
+                                </div>
+                                {doc.provider && (
+                                  <div className="text-[#71717A] text-xs mt-1">
+                                    Provider: {doc.provider}
+                                    {doc.policyNumber && ` • Policy: ${doc.policyNumber}`}
+                                  </div>
+                                )}
+                                <div className="text-[#71717A] text-xs mt-1">
+                                  Expires: {doc.expirationDate}
+                                </div>
+                                {doc.fileName && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setViewingComplianceDoc(doc);
+                                      setIsViewComplianceDocOpen(true);
+                                    }}
+                                    className="text-[#1357D5] text-xs mt-1 flex items-center gap-1 hover:underline bg-transparent border-none cursor-pointer p-0"
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    {doc.fileName}
+                                  </button>
+                                )}
+                                <div className="text-[#A1A1AA] text-[11px] mt-1.5">
+                                  Uploaded by {doc.uploadedBy} on {doc.uploadedAt}
+                                </div>
                               </div>
-                            </div>
-                          }
-                        />
-                      ))}
+                            }
+                          />
+                        );
+                      })}
                     </RecordListTemplate>
                   )}
                 </SectionRowTemplate>
@@ -1151,6 +1303,17 @@ export default function VendorDetail() {
         url={selectedFile?.url}
       />
 
+      {/* Compliance Document Preview Modal */}
+      <PdfViewerModal
+        open={isViewComplianceDocOpen}
+        onOpenChange={(open) => {
+          setIsViewComplianceDocOpen(open);
+          if (!open) setViewingComplianceDoc(null);
+        }}
+        title={viewingComplianceDoc?.fileName || "Document Preview"}
+        url={viewingComplianceDoc?.fileUrl}
+      />
+
       {/* Add/Edit Note Modal */}
       <AddNoteModal
         open={isAddEditNoteOpen}
@@ -1206,60 +1369,119 @@ export default function VendorDetail() {
         ) : null}
       </ModalTemplate>
 
-      {/* Add Insurance Dialog */}
+      {/* Add Compliance Document Dialog */}
       <ModalTemplate
-        open={isAddInsuranceOpen}
+        open={isAddComplianceOpen}
         onOpenChange={(open) => {
-          setIsAddInsuranceOpen(open);
+          setIsAddComplianceOpen(open);
           if (!open) {
-            setInsuranceProvider("");
-            setInsurancePolicyNumber("");
-            setInsuranceExpirationDate("");
+            setComplianceDocType("certificate_of_insurance");
+            setComplianceDocName("");
+            setComplianceProvider("");
+            setCompliancePolicyNumber("");
+            setComplianceExpirationDate("");
+            setComplianceFileName("");
           }
         }}
-        title="Add Vendor Insurance"
+        title="Add Compliance Document"
         size="sm"
         footer={
           <ModalButtons
             onCancel={() => {
-              setInsuranceProvider("");
-              setInsurancePolicyNumber("");
-              setInsuranceExpirationDate("");
-              setIsAddInsuranceOpen(false);
+              setComplianceDocType("certificate_of_insurance");
+              setComplianceDocName("");
+              setComplianceProvider("");
+              setCompliancePolicyNumber("");
+              setComplianceExpirationDate("");
+              setComplianceFileName("");
+              setIsAddComplianceOpen(false);
             }}
-            onConfirm={handleAddInsurance}
+            onConfirm={handleAddCompliance}
             cancelLabel="Cancel"
             confirmLabel="Save"
             confirmDisabled={
-              insuranceProvider.trim().length === 0 ||
-              insurancePolicyNumber.trim().length === 0 ||
-              insuranceExpirationDate.trim().length === 0
+              complianceDocName.trim().length === 0 ||
+              complianceExpirationDate.trim().length === 0
             }
           />
         }
       >
         <FormLayout>
           <FormSection showDivider={false}>
-            <TextField
-              label="Provider"
-              value={insuranceProvider}
-              onChange={(e) => setInsuranceProvider(e.target.value)}
-              placeholder="Insurance provider"
+            <SelectField
+              label="Document Type"
+              value={complianceDocType}
+              onChange={(val) => setComplianceDocType((typeof val === "string" ? val : val[0]) as VendorComplianceDoc["documentType"])}
+              options={[
+                { value: "certificate_of_insurance", label: "Certificate of Insurance" },
+                { value: "w9", label: "W-9" },
+                { value: "1099", label: "1099" },
+                { value: "business_license", label: "Business License" },
+                { value: "avm_agreement", label: "AVM Agreement" },
+                { value: "contractors_license", label: "Contractor's License" },
+                { value: "other", label: "Other" },
+              ]}
             />
 
             <TextField
-              label="Policy Number"
-              value={insurancePolicyNumber}
-              onChange={(e) => setInsurancePolicyNumber(e.target.value)}
-              placeholder="Policy number"
+              label="Document Name"
+              value={complianceDocName}
+              onChange={(e) => setComplianceDocName(e.target.value)}
+              placeholder="e.g. General Liability Insurance"
             />
+
+            {(complianceDocType === "certificate_of_insurance") && (
+              <>
+                <TextField
+                  label="Provider"
+                  value={complianceProvider}
+                  onChange={(e) => setComplianceProvider(e.target.value)}
+                  placeholder="Insurance provider"
+                />
+                <TextField
+                  label="Policy Number"
+                  value={compliancePolicyNumber}
+                  onChange={(e) => setCompliancePolicyNumber(e.target.value)}
+                  placeholder="Policy number"
+                />
+              </>
+            )}
+
+            {complianceDocType === "contractors_license" && (
+              <TextField
+                label="License Number"
+                value={complianceLicenseNumber}
+                onChange={(e) => setComplianceLicenseNumber(e.target.value)}
+                placeholder="e.g. 1045328"
+              />
+            )}
 
             <TextField
               label="Expiration Date"
-              value={insuranceExpirationDate}
-              onChange={(e) => setInsuranceExpirationDate(e.target.value)}
+              value={complianceExpirationDate}
+              onChange={(e) => setComplianceExpirationDate(e.target.value)}
               placeholder="mm/dd/yyyy"
             />
+
+            <div>
+              <label className="block text-sm font-medium text-[#303030] mb-1.5">
+                Upload Document
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setComplianceFileName(file.name);
+                  }}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-gray-300 file:text-sm file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50 file:cursor-pointer"
+                />
+              </div>
+              {complianceFileName && (
+                <p className="text-xs text-[#71717A] mt-1">{complianceFileName}</p>
+              )}
+            </div>
           </FormSection>
         </FormLayout>
       </ModalTemplate>

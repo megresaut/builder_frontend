@@ -40,6 +40,7 @@ import TaskSummary from "./pages/TaskSummary/index";
 import AIDrafts from "./pages/AIDrafts";
 import Operations from "./pages/Operations";
 import InsuranceDashboard from "./pages/InsuranceDashboard";
+import VendorComplianceDashboard from "./pages/VendorComplianceDashboard";
 
 // FTO
 import FtoShellLayout from "./layout/FTOShellLayout";
@@ -376,6 +377,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <VendorDetail />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/vendor-compliance"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <VendorComplianceDashboard />
                       </ShellLayout>
                     </RequireAuth>
                   }

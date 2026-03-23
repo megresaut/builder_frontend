@@ -492,11 +492,13 @@ export const RecordBill = () => {
 
   const vendorPageSize = 50;
   const vendorRequestIdRef = useRef(0);
+  const rightPanelScrollRef = useRef<HTMLDivElement>(null);
   const [vendorSearch, setVendorSearch] = useState("");
   const [vendorOffset, setVendorOffset] = useState(0);
   const [vendorHasMore, setVendorHasMore] = useState(true);
   const [vendorLoading, setVendorLoading] = useState(false);
   const [isVendorDropdownOpen, setIsVendorDropdownOpen] = useState(false);
+  const [complianceWarnings, setComplianceWarnings] = useState<string[]>([]);
   const filteredVendors = vendors;
 
 
@@ -724,6 +726,32 @@ export const RecordBill = () => {
       return [selectedVendor, ...prev];
     });
   }, [selectedVendor, vendorSearch]);
+
+  // Check vendor compliance when a vendor is selected
+  useEffect(() => {
+    if (!selectedVendor) {
+      setComplianceWarnings([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const docs: { document_type: string }[] = await fetchJSON(
+          `/vendors/compliance/docs/${selectedVendor.id}`
+        );
+        if (cancelled) return;
+        const types = new Set(docs.map((d) => d.document_type));
+        const missing: string[] = [];
+        if (!types.has("certificate_of_insurance")) missing.push("Certificate of Insurance");
+        if (!types.has("w9") && !types.has("1099")) missing.push("W-9 / 1099");
+        if (!types.has("avm_agreement")) missing.push("AVM Agreement");
+        setComplianceWarnings(missing);
+      } catch {
+        if (!cancelled) setComplianceWarnings([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedVendor]);
 
   const handleVendorScroll = useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
@@ -1790,7 +1818,7 @@ minHeight: 0,
       {/* Two-Column Layout */}
       <div
         className="flex flex-1 overflow-hidden"
-        style={{ marginBottom: "72px" }}
+        style={{ marginBottom: "72px", minHeight: 0 }}
       >
         {/* Left Column - File Upload (Fixed) */}
         {isLeftPanelOpen && (
@@ -1802,6 +1830,12 @@ minHeight: 0,
               flexDirection: "column",
               padding: "12px 32px 24px",
               position: "relative",
+            }}
+            onWheel={(e) => {
+              // Forward scroll events from the left panel to the right panel
+              if (rightPanelScrollRef.current) {
+                rightPanelScrollRef.current.scrollTop += e.deltaY;
+              }
             }}
           >
             {!viewingFileUrl ? (
@@ -2059,10 +2093,12 @@ minHeight: 0,
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",
+            minHeight: 0,
           }}
         >
           {/* Scrollable Content Area */}
           <div
+            ref={rightPanelScrollRef}
             className="overflow-auto"
             style={{
               width: "100%",
@@ -2071,8 +2107,7 @@ minHeight: 0,
               overflowY: "auto",
               marginBottom: "4px",
               position: "relative",
-              overscrollBehavior: "contain",
-              touchAction: "pan-x pan-y",
+              minHeight: 0,
             }}
           >
             <div
@@ -2096,6 +2131,19 @@ minHeight: 0,
                     style={{ width: "790px" }}
                   />
                 </div>
+
+                {/* Vendor Compliance Warning */}
+                {selectedVendor && complianceWarnings.length > 0 && (
+                  <div
+                    className="flex items-start gap-2 mt-4 px-4 py-3 rounded-lg border border-amber-300 bg-amber-50 text-sm text-amber-900"
+                    style={{ maxWidth: "790px" }}
+                  >
+                    <span className="mt-0.5 shrink-0">&#9888;</span>
+                    <span>
+                      <strong>{selectedVendor.name}</strong> is missing: {complianceWarnings.join(", ")}
+                    </span>
+                  </div>
+                )}
 
                 {/* Form Fields */}
                 <div

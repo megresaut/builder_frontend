@@ -201,6 +201,19 @@ export async function parseChecklistDocx(
 }
 
 /**
+ * Delete an inspection (hard delete if not submitted, soft delete if submitted)
+ */
+export async function deleteInspection(id: number): Promise<void> {
+  const res = await authFetch(`/inspections/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API error ${res.status}: ${text}`);
+  }
+}
+
+/**
  * Delete a photo from an inspection
  */
 export async function deleteInspectionPhoto(
