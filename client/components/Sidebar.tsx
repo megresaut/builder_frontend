@@ -133,7 +133,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     if (path === "/") return "properties";
     if (path === "/insurance") return "properties";
     if (path === "/inspection-dashboard") return "properties";
-    if (path === "/bills") return "accounting";
+    if (path === "/bills" || path.startsWith("/accounting")) return "accounting";
     if (
       path.includes("/all-tasks") ||
       path.includes("/recurring-tasks") ||
@@ -615,7 +615,12 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     ],
     screening: [],
     leases: [],
-    accounting: [{ label: "Bills", path: "/bills", sectionId: "bills" }],
+    accounting: [
+      { label: "Dashboard", path: "/accounting", sectionId: "accounting-dashboard" },
+      { label: "Statements", path: "/accounting/statements", sectionId: "accounting-statements" },
+      { label: "Bills", path: "/bills", sectionId: "bills" },
+      { label: "QuickBooks", path: "/accounting/qbo", sectionId: "accounting-qbo" },
+    ],
     maintenance: [
       {
         label: "All Tasks",

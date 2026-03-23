@@ -51,6 +51,10 @@ import BugReports from "./pages/settings/BugReports";
 import BugReportDetail from "./pages/settings/BugReportDetail";
 import SettingsStub from "./pages/settings/SettingsStub";
 import { initConsoleCapture } from "./lib/consoleCapture";
+import AccountingDashboard from "./pages/AccountingDashboard";
+import AccountingStatements from "./pages/AccountingStatements";
+import AccountingStatementReconcile from "./pages/AccountingStatementReconcile";
+import AccountingQBOSettings from "./pages/AccountingQBOSettings";
 
 initConsoleCapture();
 
@@ -350,6 +354,50 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <InspectionDashboard />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingDashboard />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/statements"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingStatements />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/statements/:id"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingStatementReconcile />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/qbo"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingQBOSettings />
                       </ShellLayout>
                     </RequireAuth>
                   }
