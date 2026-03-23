@@ -15,6 +15,7 @@ import {
   createInspection,
   listChecklists,
   createChecklist,
+  deleteInspection,
   BackendInspection,
   BackendInspectionChecklist,
 } from "@/api/inspections";
@@ -348,8 +349,15 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     },
   ];
 
-  const handleDeleteInspection = useCallback((inspection: Inspection) => {
-    setInspectionsList((prev) => prev.filter((i) => i.id !== inspection.id));
+  const handleDeleteInspection = useCallback(async (inspection: Inspection) => {
+    if (!window.confirm(`Are you sure you want to delete "${inspection.name}"?`)) return;
+    try {
+      await deleteInspection(inspection.id);
+      setInspectionsList((prev) => prev.filter((i) => i.id !== inspection.id));
+    } catch (error) {
+      console.error("Failed to delete inspection:", error);
+      alert("Failed to delete inspection. Please try again.");
+    }
   }, []);
 
   const handleEditInspection = useCallback((inspection: Inspection) => {

@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import MergeFTOsModal from "@/components/MergeFTOsModal";
 import PageHeader from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
@@ -67,6 +68,9 @@ interface FieldTeamOrder {
   hours?: number;
   event_start_at?: string | null;
   event_end_at?: string | null;
+  bill_id?: number | null;
+  bill_draft_id?: number | null;
+  form_submission_status?: "none" | "partial" | "complete";
 }
 
 interface APIFTOResponse {
@@ -95,6 +99,8 @@ interface APIFTOResponse {
   unit_name?: string;
   event_start_at?: string | null;
   event_end_at?: string | null;
+  bill_id?: number | null;
+  bill_draft_id?: number | null;
 }
 
 // Misc submission (fto_id IS NULL)
@@ -481,6 +487,9 @@ const transformAPIToFieldTeamOrder = (
       hours: fto.hours_decimal,
       event_start_at: fto.event_start_at ?? null,
       event_end_at: fto.event_end_at ?? null,
+      bill_id: fto.bill_id ?? null,
+      bill_draft_id: fto.bill_draft_id ?? null,
+      form_submission_status: fto.form_submission_status,
     };
   });
 };
@@ -546,6 +555,9 @@ export default function FieldTeamOrders() {
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
   const [miscSearchValue, setMiscSearchValue] = usePageState("miscSearchValue", "");
   const [showHoursSummaryDrawer, setShowHoursSummaryDrawer] = useState(false);
+  const [mergeMode, setMergeMode] = useState(false);
+  const [selectedFtoIds, setSelectedFtoIds] = useState<Set<string | number>>(new Set());
+  const [showMergeModal, setShowMergeModal] = useState(false);
   const [showFilterBar, setShowFilterBar] = usePageState("showFilterBar", false);
   const [filterDateFrom, setFilterDateFrom] = usePageState("filterDateFrom", "");
   const [filterDateTo, setFilterDateTo] = usePageState("filterDateTo", "");
@@ -946,6 +958,27 @@ export default function FieldTeamOrders() {
     [navigate]
   );
 
+  // FTOs selected for merge
+  const selectedFTOsForMerge = useMemo(
+    () => orders.filter((o) => selectedFtoIds.has(o.id)),
+    [orders, selectedFtoIds]
+  );
+
+  const handleConfirmMerge = useCallback(
+    (primaryId: number, mergedIds: number[]) => {
+      // TODO: Call backend merge API when ready
+      console.log("Merge FTOs:", { primaryId, mergedIds });
+      setShowMergeModal(false);
+      setSelectedFtoIds(new Set());
+      setMergeMode(false);
+      // For now, just log — backend integration will come next
+      alert(
+        `Merge requested: Keep FTO #${primaryId}, merge in FTO(s) #${mergedIds.join(", #")}`
+      );
+    },
+    []
+  );
+
   return (
     <PageTemplate>
       <div className="flex flex-col gap-6 w-fit min-w-full">
@@ -965,6 +998,41 @@ export default function FieldTeamOrders() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                if (mergeMode) {
+                  setMergeMode(false);
+                  setSelectedFtoIds(new Set());
+                } else {
+                  setMergeMode(true);
+                }
+              }}
+              className={cn(
+                "flex h-9 items-center gap-2 px-3 rounded-lg border shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] transition-colors",
+                mergeMode
+                  ? "border-[#013764] bg-[#f0f6fc] text-[#013764]"
+                  : "border-[#DADADA] bg-white text-[#303030] hover:bg-gray-50"
+              )}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="18" cy="18" r="3" />
+                <circle cx="6" cy="6" r="3" />
+                <path d="M6 21V9a9 9 0 0 0 9 9" />
+              </svg>
+              <span className="font-medium text-base leading-normal">
+                {mergeMode ? "Cancel Merge" : "Merge"}
+              </span>
+            </button>
             <button
               onClick={() => window.open("/fto", "_blank")}
               className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-[#303030]"
@@ -1188,6 +1256,9 @@ export default function FieldTeamOrders() {
                   columns={columns}
                   data={filteredOrders}
                   rowKey="id"
+                  selectable={mergeMode}
+                  selectedIds={selectedFtoIds}
+                  onSelectionChange={setSelectedFtoIds}
                   showSearchBar={true}
                   searchValue={searchValue}
                   onSearchChange={setSearchValue}
@@ -1559,6 +1630,52 @@ export default function FieldTeamOrders() {
         isOpen={showHoursSummaryDrawer}
         onClose={() => setShowHoursSummaryDrawer(false)}
         orders={orders}
+      />
+
+      {/* Floating merge action bar */}
+      {mergeMode && selectedFtoIds.size >= 2 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3 rounded-xl bg-[#013764] shadow-lg shadow-black/20 border border-white/10">
+          <span className="text-white text-sm font-medium">
+            {selectedFtoIds.size} FTOs selected
+          </span>
+          <button
+            onClick={() => setShowMergeModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-[#013764] font-semibold text-sm hover:bg-gray-100 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="18" cy="18" r="3" />
+              <circle cx="6" cy="6" r="3" />
+              <path d="M6 21V9a9 9 0 0 0 9 9" />
+            </svg>
+            Merge Selected
+          </button>
+          <button
+            onClick={() => {
+              setSelectedFtoIds(new Set());
+              setMergeMode(false);
+            }}
+            className="text-white/70 hover:text-white text-sm font-medium transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      <MergeFTOsModal
+        open={showMergeModal}
+        onOpenChange={setShowMergeModal}
+        selectedFTOs={selectedFTOsForMerge}
+        onConfirmMerge={handleConfirmMerge}
       />
     </PageTemplate>
   );

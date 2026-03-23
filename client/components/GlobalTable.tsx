@@ -49,6 +49,12 @@ interface GlobalTableProps {
   searchValue?: string;
   onFilterClick?: () => void | undefined;
   showFilterButton?: boolean;
+  /** Enable row selection with checkboxes */
+  selectable?: boolean;
+  /** Set of selected row keys (controlled) */
+  selectedIds?: Set<string | number>;
+  /** Called when selection changes */
+  onSelectionChange?: (selectedIds: Set<string | number>) => void;
 }
 
 export default function GlobalTable({
@@ -82,6 +88,9 @@ export default function GlobalTable({
   searchValue = "",
   onFilterClick,
   showFilterButton = true,
+  selectable = false,
+  selectedIds,
+  onSelectionChange,
 }: GlobalTableProps) {
   const { handleSortClick, getSortIndicator, getSortedData } = sortingHook;
   const {
@@ -304,6 +313,31 @@ export default function GlobalTable({
         <table className="w-full">
           <thead>
             <tr className="h-12 bg-gray-50" style={{ borderBottomColor: "var(--color-border-light)", borderBottomWidth: "1px" }}>
+              {selectable && (
+                <th
+                  className="px-3 py-3 text-center w-10"
+                  style={{ borderRightColor: "var(--color-border-light)", borderRightWidth: "1px" }}
+                >
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-gray-300 text-[#013764] focus:ring-[#013764] cursor-pointer"
+                    checked={
+                      sorted.length > 0 &&
+                      selectedIds != null &&
+                      sorted.every((row) => selectedIds.has(row[rowKey]))
+                    }
+                    onChange={(e) => {
+                      if (!onSelectionChange) return;
+                      if (e.target.checked) {
+                        const all = new Set<string | number>(sorted.map((row) => row[rowKey]));
+                        onSelectionChange(all);
+                      } else {
+                        onSelectionChange(new Set());
+                      }
+                    }}
+                  />
+                </th>
+              )}
               {displayedColumnKeys.map((colKey) => {
                   const colConfig = columnConfig[colKey];
                   const sortIndicator = getSortIndicator(colKey);
@@ -397,6 +431,29 @@ export default function GlobalTable({
                   )}
                   style={{ borderBottomColor: "var(--color-border-light)", borderBottomWidth: "1px" }}
                 >
+                  {selectable && (
+                    <td
+                      className="px-3 py-3 text-center w-10"
+                      style={{ borderRightColor: "var(--color-border-light)", borderRightWidth: "1px" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-gray-300 text-[#013764] focus:ring-[#013764] cursor-pointer"
+                        checked={selectedIds?.has(row[rowKey]) ?? false}
+                        onChange={(e) => {
+                          if (!onSelectionChange || !selectedIds) return;
+                          const next = new Set(selectedIds);
+                          if (e.target.checked) {
+                            next.add(row[rowKey]);
+                          } else {
+                            next.delete(row[rowKey]);
+                          }
+                          onSelectionChange(next);
+                        }}
+                      />
+                    </td>
+                  )}
                   {displayedColumnKeys.map((colKey) => (
                       <td
                         key={colKey}
