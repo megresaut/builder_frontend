@@ -239,7 +239,7 @@ function InvoicesTab({ propertyId }: { propertyId: number }) {
         <h3 className="text-lg font-semibold text-gray-900">Invoices</h3>
         <button
           onClick={() => setGenerateOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-[#013764] text-white text-sm font-medium rounded-lg hover:bg-[#003a73] transition-colors"
         >
           Generate Invoice
         </button>
@@ -550,7 +550,7 @@ function VendorRatesTab({ propertyId }: { propertyId: number }) {
               resetForm();
               setShowAdd(true);
             }}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-[#013764] text-white text-sm font-medium rounded-lg hover:bg-[#003a73] transition-colors"
           >
             Add Rate
           </button>
@@ -666,7 +666,7 @@ function VendorRatesTab({ propertyId }: { propertyId: number }) {
             <button
               onClick={handleSave}
               disabled={formSaving}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-[#013764] text-white text-sm font-medium rounded-lg hover:bg-[#003a73] disabled:opacity-50 transition-colors"
             >
               {formSaving ? "Saving..." : editId ? "Update" : "Create"}
             </button>

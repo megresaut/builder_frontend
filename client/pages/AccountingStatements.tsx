@@ -142,7 +142,7 @@ export default function AccountingStatements() {
         </div>
         <button
           onClick={() => setUploadOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-[#013764] text-white text-sm font-medium rounded-lg hover:bg-[#003a73] transition-colors"
         >
           Upload Statement
         </button>
@@ -187,7 +187,7 @@ export default function AccountingStatements() {
           <p className="text-gray-500 mb-4">No statements found</p>
           <button
             onClick={() => setUploadOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-[#013764] text-white text-sm font-medium rounded-lg hover:bg-[#003a73] transition-colors"
           >
             Upload Your First Statement
           </button>

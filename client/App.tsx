@@ -55,6 +55,13 @@ import AccountingDashboard from "./pages/AccountingDashboard";
 import AccountingStatements from "./pages/AccountingStatements";
 import AccountingStatementReconcile from "./pages/AccountingStatementReconcile";
 import AccountingQBOSettings from "./pages/AccountingQBOSettings";
+import AccountingInvoices from "./pages/AccountingInvoices";
+import AccountingInvoiceDetail from "./pages/AccountingInvoiceDetail";
+import AccountingTransactions from "./pages/AccountingTransactions";
+import AccountingChartOfAccounts from "./pages/AccountingChartOfAccounts";
+import AccountingPnL from "./pages/AccountingPnL";
+import AccountingARaging from "./pages/AccountingARaging";
+import AccountingPropertyComparison from "./pages/AccountingPropertyComparison";
 
 initConsoleCapture();
 
@@ -398,6 +405,83 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <AccountingQBOSettings />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/invoices"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingInvoices />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/invoices/:id"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingInvoiceDetail />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/transactions"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingTransactions />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/chart-of-accounts"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingChartOfAccounts />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/reports/pnl"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingPnL />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/reports/ar-aging"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingARaging />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/reports/property-comparison"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingPropertyComparison />
                       </ShellLayout>
                     </RequireAuth>
                   }

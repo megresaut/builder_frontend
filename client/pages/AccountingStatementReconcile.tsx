@@ -156,7 +156,7 @@ export default function AccountingStatementReconcile() {
           <p className="text-gray-500">Statement not found</p>
           <button
             onClick={() => navigate("/accounting/statements")}
-            className="mt-4 px-4 py-2 text-sm text-blue-600 hover:underline"
+            className="mt-4 px-4 py-2 text-sm text-[#013764] hover:underline"
           >
             Back to Statements
           </button>
@@ -172,7 +172,7 @@ export default function AccountingStatementReconcile() {
         <div>
           <button
             onClick={() => navigate("/accounting/statements")}
-            className="text-sm text-blue-600 hover:underline mb-1"
+            className="text-sm text-[#013764] hover:underline mb-1"
           >
             &larr; Back to Statements
           </button>
@@ -215,7 +215,7 @@ export default function AccountingStatementReconcile() {
           </span>
           <button
             onClick={() => setBulkTagOpen(true)}
-            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-3 py-1.5 bg-[#013764] text-white text-xs font-medium rounded-lg hover:bg-[#003a73] transition-colors"
           >
             Tag Selected
           </button>

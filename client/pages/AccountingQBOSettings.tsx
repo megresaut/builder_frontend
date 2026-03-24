@@ -100,7 +100,7 @@ export default function AccountingQBOSettings() {
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 bg-[#013764] text-white text-sm font-medium rounded-lg hover:bg-[#003a73] disabled:opacity-50 transition-colors"
           >
             {syncing ? "Syncing..." : "Manual Sync"}
           </button>
@@ -126,7 +126,7 @@ export default function AccountingQBOSettings() {
           <h2 className="text-lg font-semibold text-gray-900">Sync Log</h2>
           <button
             onClick={loadSyncLog}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-[#013764] hover:underline"
           >
             Refresh
           </button>
@@ -152,16 +152,16 @@ export default function AccountingQBOSettings() {
                 </tr>
               </thead>
               <tbody>
-                {syncLog.map((entry) => {
-                  const statusColor = entry.status === "success"
+                {syncLog.map((entry: any) => {
+                  const isSuccess = entry.http_status >= 200 && entry.http_status < 300;
+                  const statusLabel = isSuccess ? "success" : `error ${entry.http_status}`;
+                  const statusColor = isSuccess
                     ? "bg-green-100 text-green-800"
-                    : entry.status === "failed"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-gray-100 text-gray-700";
+                    : "bg-red-100 text-red-800";
                   return (
                     <tr key={entry.id} className="border-b border-gray-100">
                       <td className="py-2 px-3 text-gray-600 whitespace-nowrap">
-                        {new Date(entry.synced_at).toLocaleString()}
+                        {entry.created_at ? new Date(entry.created_at).toLocaleString() : "-"}
                       </td>
                       <td className="py-2 px-3 text-gray-700">
                         {entry.entity_type} #{entry.entity_id}
@@ -169,7 +169,7 @@ export default function AccountingQBOSettings() {
                       <td className="py-2 px-3 text-gray-700">{entry.action}</td>
                       <td className="py-2 px-3">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor}`}>
-                          {entry.status}
+                          {statusLabel}
                         </span>
                       </td>
                       <td className="py-2 px-3 text-red-600 text-xs max-w-[300px] truncate">

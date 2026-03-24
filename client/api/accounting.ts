@@ -153,4 +153,29 @@ export const accountingAPI = {
     if (propertyId) params.set("property_id", String(propertyId));
     return fetchJSON(`/accounting/vendor-rates/calculate?${params}`);
   },
+
+  // Ledger view
+  getTransactionsLedger: (filters?: { property_id?: number; start_date?: string; end_date?: string }) => {
+    const params = new URLSearchParams();
+    if (filters?.property_id) params.set("property_id", String(filters.property_id));
+    if (filters?.start_date) params.set("start_date", filters.start_date);
+    if (filters?.end_date) params.set("end_date", filters.end_date);
+    return fetchJSON(`/accounting/transactions/ledger?${params}`);
+  },
+
+  // Reports
+  getIncomeStatement: (startMonth?: string, endMonth?: string, propertyId?: number) => {
+    const params = new URLSearchParams();
+    if (startMonth) params.set("start_month", startMonth);
+    if (endMonth) params.set("end_month", endMonth);
+    if (propertyId) params.set("property_id", String(propertyId));
+    return fetchJSON(`/accounting/reports/income-statement?${params}`);
+  },
+  getARaging: () => fetchJSON("/accounting/reports/ar-aging"),
+  getPropertyComparison: (month?: string) =>
+    fetchJSON(`/accounting/reports/property-comparison${month ? `?month=${month}` : ""}`),
+
+  // QBO Chart of Accounts
+  getChartOfAccounts: (accountType?: string) =>
+    fetchJSON(`/accounting/qbo/chart-of-accounts${accountType ? `?account_type=${accountType}` : ""}`),
 };
