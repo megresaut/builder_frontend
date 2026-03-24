@@ -25,6 +25,8 @@ interface MultiSelectFieldProps {
   placeholder?: string;
   options: MultiSelectOption[];
   searchable?: boolean;
+  /** If provided, popover auto-closes when this returns true after a selection change */
+  autoCloseOn?: (newValue: MultiSelectOption[]) => boolean;
 }
 
 /**
@@ -42,11 +44,45 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
   placeholder = "Select options",
   options,
   searchable = false,
+  autoCloseOn,
 }) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const fieldId = id || label.toLowerCase().replace(/\s+/g, "-");
+
+  // Close popover on page scroll (not scroll inside the dropdown itself)
+  useEffect(() => {
+    if (!open) return;
+
+    const handleScroll = (e: Event) => {
+      // Don't close if scrolling inside the popover content
+      const popoverEl = document.querySelector("[data-radix-popper-content-wrapper]");
+      if (popoverEl?.contains(e.target as Node)) return;
+      setOpen(false);
+    };
+
+    // Listen on capture phase to catch scroll before it's stopped
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    return () => window.removeEventListener("scroll", handleScroll, { capture: true });
+  }, [open]);
+
+  // Reliable mobile touch-outside-to-close
+  useEffect(() => {
+    if (!open) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      const popoverEl = document.querySelector("[data-radix-popper-content-wrapper]");
+      const triggerEl = containerRef.current;
+      const target = e.target as Node;
+      if (popoverEl?.contains(target) || triggerEl?.contains(target)) return;
+      setOpen(false);
+    };
+
+    document.addEventListener("touchstart", handleTouchStart, { passive: true });
+    return () => document.removeEventListener("touchstart", handleTouchStart);
+  }, [open]);
 
   const filteredOptions = useMemo(() => {
     if (!searchable || !searchQuery.trim()) return options;
@@ -69,10 +105,12 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
 
   const toggleItem = (item: MultiSelectOption) => {
     const isSelected = value.some((v) => v.id === item.id);
-    if (isSelected) {
-      onChange(value.filter((v) => v.id !== item.id));
-    } else {
-      onChange([...value, item]);
+    const newValue = isSelected
+      ? value.filter((v) => v.id !== item.id)
+      : [...value, item];
+    onChange(newValue);
+    if (autoCloseOn?.(newValue)) {
+      setOpen(false);
     }
   };
 
@@ -89,6 +127,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
       disabled={disabled}
       htmlFor={fieldId}
     >
+      <div ref={containerRef}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
@@ -238,6 +277,7 @@ export const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
           </div>
         </PopoverContent>
       </Popover>
+      </div>
     </FieldShell>
   );
 };

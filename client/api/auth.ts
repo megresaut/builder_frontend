@@ -49,7 +49,7 @@ export function isTokenValid(token: string | null): boolean {
 // ─── API calls ───────────────────────────────────────────────────
 
 export async function loginRequest(email: string, password: string) {
-  const res = await fetch(`${API_BASE}/auth/login`, {
+  const res = await fetch(`${API_BASE}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include", // receive refresh_token cookie
@@ -92,7 +92,7 @@ export function refreshAccessToken(): Promise<string | null> {
 
 async function _doRefresh(): Promise<string | null> {
   try {
-    const res = await fetch(`${API_BASE}/auth/refresh`, {
+    const res = await fetch(`${API_BASE}/refresh`, {
       method: "POST",
       credentials: "include", // sends refresh_token cookie
     });
@@ -121,7 +121,7 @@ async function _doRefresh(): Promise<string | null> {
 
 export async function logoutRequest(): Promise<void> {
   try {
-    await fetch(`${API_BASE}/auth/logout`, {
+    await fetch(`${API_BASE}/logout`, {
       method: "POST",
       credentials: "include",
       headers: _accessToken ? { Authorization: `Bearer ${_accessToken}` } : {},
