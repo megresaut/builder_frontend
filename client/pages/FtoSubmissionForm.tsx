@@ -2085,6 +2085,7 @@ export default function FtoSubmissionForm() {
                               placeholder="Select collaborators or N/A"
                               options={collaboratorOptions}
                               disabled={isApproved || (isViewingExistingSubmission && !isApproved)}
+                              autoCloseOn={(sel) => sel.some((s) => s.id === "na")}
                             />
                           );
                         })()}
