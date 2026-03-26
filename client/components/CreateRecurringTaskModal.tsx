@@ -175,7 +175,7 @@ export default function CreateRecurringTaskModal({
       try {
         const [propsRes, assigneesRes] = await Promise.all([
           fetchJSON("/properties").catch(() => []),
-          fetchJSON("/users/property-managers").catch(() => []),
+          fetchJSON("/users/all").catch(() => []),
         ]);
 
         if (cancelled) return;
