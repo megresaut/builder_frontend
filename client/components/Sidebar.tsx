@@ -653,6 +653,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         onMouseLeave={() => {
           if (!isPinned) {
             setIsHovered(false);
+            setHoveredItem(null);
             setActiveDropdown(null);
           }
         }}
@@ -665,6 +666,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
             onMouseLeave={() => {
               if (!isPinned) {
                 setIsHovered(false);
+                setHoveredItem(null);
                 setActiveDropdown(null);
               }
             }}
@@ -687,6 +689,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
           onMouseLeave={() => {
             if (!isPinned) {
               setIsHovered(false);
+              setHoveredItem(null);
               setActiveDropdown(null);
             }
           }}
@@ -763,19 +766,21 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
                   return (
                     <div
                       key={item.id}
-                      onMouseEnter={() => setHoveredItem(item.id)}
-                      onMouseLeave={() => setHoveredItem(null)}
                     >
                       <button
                         className="w-full flex items-center justify-between px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
                         style={{ minHeight: "38px" }}
                         onClick={() => {
-                          const firstItem = (submenuMap[item.id] || [])[0];
-                          if (firstItem?.path) {
-                            navigate(firstItem.path);
-                            handleNavigation(firstItem.label, firstItem.sectionId, firstItem.path);
-                            setIsHovered(false);
-                            setActiveDropdown(null);
+                          if (item.hasSubmenu) {
+                            setHoveredItem(hoveredItem === item.id ? null : item.id);
+                          } else {
+                            const firstItem = (submenuMap[item.id] || [])[0];
+                            if (firstItem?.path) {
+                              navigate(firstItem.path);
+                              handleNavigation(firstItem.label, firstItem.sectionId, firstItem.path);
+                              setIsHovered(false);
+                              setActiveDropdown(null);
+                            }
                           }
                         }}
                       >
@@ -787,8 +792,8 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
                             {item.label}
                           </span>
                         </div>
-                        {item.hasSubmenu && hoveredItem === item.id && (
-                          <ChevronDownIcon className="w-4 h-4 text-gray-900" />
+                        {item.hasSubmenu && (
+                          <ChevronDownIcon className={`w-4 h-4 text-gray-900 transition-transform ${hoveredItem === item.id ? "rotate-180" : ""}`} />
                         )}
                       </button>
 
@@ -805,6 +810,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
                                   subitem.sectionId,
                                   subitem.path,
                                 );
+                                setHoveredItem(null);
                                 setIsHovered(false);
                                 setActiveDropdown(null);
                               }}
