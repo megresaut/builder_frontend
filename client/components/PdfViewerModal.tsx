@@ -7,6 +7,8 @@ type PdfViewerModalProps = {
   onOpenChange: (open: boolean) => void;
   title: string;
   url?: string;
+  /** Optional extra content rendered in the footer before Close */
+  extraFooter?: React.ReactNode;
 };
 
 const isProbablyPdf = (url: string) => {
@@ -19,6 +21,7 @@ export default function PdfViewerModal({
   onOpenChange,
   title,
   url,
+  extraFooter,
 }: PdfViewerModalProps) {
   const { blobUrl, loading, error } = useAuthBlobUrl(open ? url : undefined);
 
@@ -30,6 +33,7 @@ export default function PdfViewerModal({
       size="lg"
       footer={
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {extraFooter}
           <button
             type="button"
             onClick={() => onOpenChange(false)}

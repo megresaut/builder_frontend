@@ -14,7 +14,7 @@ import { TextFieldCell } from "@/components/forms/TextFieldCell";
 import { VendorFieldCell } from "@/components/forms/VendorFieldCell";
 import { FieldCellShell } from "@/components/forms/FieldCellShell";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DeleteIcon, EyeIcon, EditIcon, PaperclipIcon } from "@/components/icons";
+import { DeleteIcon, EditIcon, PaperclipIcon } from "@/components/icons";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import BlueButton from "@/components/BlueButton";
 import PdfViewerModal from "@/components/PdfViewerModal";
@@ -703,6 +703,33 @@ export default function ApproveFTOPage() {
     try {
       setIsUploadingAttachment(true);
 
+      let targetSubmissionId = row.submissionId;
+
+      // If this is a new (unsaved) row, create a submission first
+      if (targetSubmissionId === 0) {
+        if (!row.assigneeId || row.assigneeId === 0) {
+          alert("Please select an assignee before attaching a receipt.");
+          return;
+        }
+        const materialsJSON = buildMaterialsJSON([row]);
+        if (ftoIdNum) {
+          targetSubmissionId = await createSubmissionForAssignee(
+            ftoIdNum,
+            row.assigneeId,
+            [],
+            materialsJSON,
+          );
+        } else {
+          throw new Error("Cannot create submission — no FTO ID");
+        }
+        // Update the row's submissionId so future operations target the right submission
+        setExpenseRows((prev) =>
+          prev.map((r) =>
+            r.id === row.id ? { ...r, submissionId: targetSubmissionId } : r,
+          ),
+        );
+      }
+
       // 1. Upload file to storage
       const formData = new FormData();
       formData.append("file", file, file.name);
@@ -718,7 +745,7 @@ export default function ApproveFTOPage() {
 
       // 2. Attach to submission
       const attachRes = await authFetch(
-        `/maintenance/submissions/${row.submissionId}/attachments`,
+        `/maintenance/submissions/${targetSubmissionId}/attachments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1537,18 +1564,22 @@ export default function ApproveFTOPage() {
     return !(value && String(value).trim());
   };
 
-  const handleViewExpenseAttachments = (row: ExpenseRow) => {
-    if (!row.attachmentIds || row.attachmentIds.length === 0) {
-      alert("No attachments for this expense");
-      return;
+  // Track which expense row is being viewed in the receipt modal (for "Change File")
+  const [viewingReceiptRow, setViewingReceiptRow] = useState<ExpenseRow | null>(null);
+
+  const handlePaperclipClick = (row: ExpenseRow) => {
+    if (row.attachmentIds && row.attachmentIds.length > 0) {
+      // Has attachment — open viewer with option to change
+      const attachmentId = row.attachmentIds[0];
+      setViewingReceiptRow(row);
+      pdfViewer.openPdf(
+        `${API_BASE}/maintenance/attachments/${attachmentId}`,
+        "Receipt"
+      );
+    } else {
+      // No attachment — trigger file picker
+      handleAddAttachment(row);
     }
-  
-    const attachmentId = row.attachmentIds[0];
-  
-    pdfViewer.openPdf(
-      `${API_BASE}/maintenance/attachments/${attachmentId}`,  
-      "Receipt"
-    );
   };
   
   
@@ -1591,7 +1622,7 @@ export default function ApproveFTOPage() {
           style={{
             flex: 1,
             minHeight: 0,
-            padding: "24px 32px",
+            padding: "24px 32px 100px 32px",
           }}
         >
           <div style={{ minWidth: "100%" }}>
@@ -2583,38 +2614,26 @@ export default function ApproveFTOPage() {
                               borderRight: "1px solid #DADADA",
                             }}
                           >
-                            {/* 👁 View Attachment */}
+                            {/* 📎 View / Attach Receipt */}
                             <button
-                              disabled={!row.attachmentIds || row.attachmentIds.length === 0}
-                              onClick={() => handleViewExpenseAttachments(row)}
+                              disabled={isUploadingAttachment}
+                              onClick={() => handlePaperclipClick(row)}
                               className={cn(
                                 "transition-colors",
-                                row.attachmentIds.length === 0
-                                  ? "text-gray-300 cursor-not-allowed"
-                                  : "text-[#525252] hover:text-[#303030]"
+                                row.attachmentIds?.length > 0
+                                  ? "text-blue-600 hover:text-blue-700"
+                                  : row.submissionHasAttachments
+                                    ? "text-amber-500 hover:text-amber-600"
+                                    : "text-[#525252] hover:text-[#303030]"
                               )}
                               title={
-                                row.submissionId === 0
-                                  ? "Attachments available after submission"
-                                  : "View receipt"
+                                row.attachmentIds?.length > 0
+                                  ? "View receipt"
+                                  : "Attach receipt"
                               }
                             >
-                              <EyeIcon width={16} height={16} />
+                              <PaperclipIcon width={16} height={16} />
                             </button>
-
-                            {/* 📎 Add Attachment (when expected but missing) */}
-                            {row.submissionId !== 0 &&
-                              row.submissionHasAttachments &&
-                              (!row.attachmentIds || row.attachmentIds.length === 0) && (
-                                <button
-                                  disabled={isUploadingAttachment}
-                                  onClick={() => handleAddAttachment(row)}
-                                  className="text-amber-500 hover:text-amber-600 transition-colors"
-                                  title="Receipt expected but missing — click to add"
-                                >
-                                  <PaperclipIcon width={16} height={16} />
-                                </button>
-                              )}
 
                             {/* 🗑 Delete */}
                             <button
@@ -2706,10 +2725,53 @@ export default function ApproveFTOPage() {
       <PdfViewerModal
         open={pdfViewer.isOpen}
         onOpenChange={(open) => {
-          if (!open) pdfViewer.closePdf();
+          if (!open) {
+            pdfViewer.closePdf();
+            setViewingReceiptRow(null);
+          }
         }}
         url={pdfViewer.url}
         title={pdfViewer.title}
+        extraFooter={
+          viewingReceiptRow ? (
+            <button
+              type="button"
+              onClick={() => {
+                pdfViewer.closePdf();
+                const row = viewingReceiptRow;
+                setViewingReceiptRow(null);
+                handleAddAttachment(row);
+              }}
+              style={{
+                borderRadius: "8px",
+                backgroundColor: "rgba(251, 251, 251, 1)",
+                boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.03)",
+                borderColor: "rgba(218, 218, 218, 1)",
+                borderStyle: "solid",
+                borderWidth: "1px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                paddingLeft: "12px",
+                paddingRight: "12px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                minHeight: "36px",
+                color: "rgba(48, 48, 48, 1)",
+                fontWeight: 400,
+                letterSpacing: "-0.32px",
+                lineHeight: 1.4,
+                justifyContent: "center",
+                cursor: "pointer",
+                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontSize: "16px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Change File
+            </button>
+          ) : undefined
+        }
       />
 
       {/* Edit FTO Modal - same as All Field Team Orders edit */}
