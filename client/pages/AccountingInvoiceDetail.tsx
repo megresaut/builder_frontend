@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { accountingAPI } from "@/api/accounting";
 import { toast } from "sonner";
 import PageTemplate from "@/layout/PageTemplate";
+import RecordPaymentModal from "@/components/accounting/RecordPaymentModal";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -39,6 +40,20 @@ interface Invoice {
   due_date: string;
   paid_date: string;
   created_by: string;
+  created_at: string;
+}
+
+interface Payment {
+  id: number;
+  invoice_id: number;
+  amount_cents: number;
+  payment_date: string;
+  payment_method: string;
+  reference_number: string;
+  notes: string;
+  qbo_payment_id: string;
+  qbo_synced: boolean;
+  voided: boolean;
   created_at: string;
 }
 
@@ -114,8 +129,10 @@ export default function AccountingInvoiceDetail() {
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [lines, setLines] = useState<InvoiceLine[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   const loadInvoice = () => {
     if (!id) return;
@@ -130,8 +147,17 @@ export default function AccountingInvoiceDetail() {
       .finally(() => setLoading(false));
   };
 
+  const loadPayments = () => {
+    if (!id) return;
+    accountingAPI
+      .getInvoicePayments(Number(id))
+      .then((data) => setPayments(data || []))
+      .catch(() => setPayments([]));
+  };
+
   useEffect(() => {
     loadInvoice();
+    loadPayments();
   }, [id]);
 
   const handleApprove = async () => {
@@ -161,6 +187,33 @@ export default function AccountingInvoiceDetail() {
       setActionLoading(false);
     }
   };
+
+  const handleVoidPayment = async (paymentId: number) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to void this payment?"
+    );
+    if (!confirmed) return;
+    setActionLoading(true);
+    try {
+      await accountingAPI.voidPayment(paymentId);
+      toast.success("Payment voided");
+      loadInvoice();
+      loadPayments();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to void payment");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const paidCents = payments
+    .filter((p) => !p.voided)
+    .reduce((sum, p) => sum + p.amount_cents, 0);
+  const remainingBalanceCents = (invoice?.total_cents || 0) - paidCents;
+  const canRecordPayment =
+    invoice &&
+    (invoice.status === "approved" || invoice.status === "synced") &&
+    remainingBalanceCents > 0;
 
   const handleVoid = async () => {
     if (!invoice) return;
@@ -243,6 +296,15 @@ export default function AccountingInvoiceDetail() {
             className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
           >
             {actionLoading ? "Syncing..." : "Sync to QBO"}
+          </button>
+        )}
+        {canRecordPayment && (
+          <button
+            onClick={() => setPaymentModalOpen(true)}
+            disabled={actionLoading}
+            className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+          >
+            Record Payment
           </button>
         )}
         {invoice.status !== "void" && (
@@ -400,7 +462,7 @@ export default function AccountingInvoiceDetail() {
       </div>
 
       {/* Totals section */}
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
+      <div className="bg-white border border-gray-200 rounded-lg p-5 mb-6">
         <div className="flex justify-end">
           <div className="w-72 space-y-2">
             <div className="flex justify-between text-sm">
@@ -433,9 +495,121 @@ export default function AccountingInvoiceDetail() {
                 {formatCents(invoice.total_cents)}
               </span>
             </div>
+            {paidCents > 0 && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Paid</span>
+                  <span className="text-green-700 font-medium">
+                    -{formatCents(paidCents)}
+                  </span>
+                </div>
+                <div className="border-t border-gray-200 pt-2 flex justify-between">
+                  <span className="text-base font-semibold text-gray-900">Balance Due</span>
+                  <span className="text-lg font-bold text-gray-900">
+                    {formatCents(remainingBalanceCents)}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Payments section */}
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Payments</h2>
+          {canRecordPayment && (
+            <button
+              onClick={() => setPaymentModalOpen(true)}
+              className="px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              + Record Payment
+            </button>
+          )}
+        </div>
+        {payments.length === 0 ? (
+          <p className="text-sm text-gray-500">No payments recorded.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 font-medium text-gray-500">Date</th>
+                  <th className="text-right py-2 font-medium text-gray-500">Amount</th>
+                  <th className="text-left py-2 font-medium text-gray-500">Method</th>
+                  <th className="text-left py-2 font-medium text-gray-500">Reference</th>
+                  <th className="text-left py-2 font-medium text-gray-500">QBO Status</th>
+                  <th className="text-right py-2 font-medium text-gray-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((payment) => (
+                  <tr
+                    key={payment.id}
+                    className={`border-b border-gray-100 hover:bg-gray-50 ${payment.voided ? "opacity-50" : ""}`}
+                  >
+                    <td className="py-2 text-gray-900">
+                      {formatDate(payment.payment_date)}
+                    </td>
+                    <td className="py-2 text-right text-gray-900 font-medium">
+                      {payment.voided ? (
+                        <span className="line-through">{formatCents(payment.amount_cents)}</span>
+                      ) : (
+                        formatCents(payment.amount_cents)
+                      )}
+                    </td>
+                    <td className="py-2 text-gray-700 capitalize">
+                      {payment.payment_method || "-"}
+                    </td>
+                    <td className="py-2 text-gray-700">
+                      {payment.reference_number || "-"}
+                    </td>
+                    <td className="py-2">
+                      {payment.voided ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          Voided
+                        </span>
+                      ) : payment.qbo_synced ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Synced{payment.qbo_payment_id ? ` (${payment.qbo_payment_id})` : ""}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                          Not Synced
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 text-right">
+                      {!payment.voided && (
+                        <button
+                          onClick={() => handleVoidPayment(payment.id)}
+                          disabled={actionLoading}
+                          className="text-red-600 hover:text-red-800 text-xs font-medium disabled:opacity-50"
+                        >
+                          Void
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Record Payment Modal */}
+      <RecordPaymentModal
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        onSuccess={() => {
+          loadInvoice();
+          loadPayments();
+        }}
+        invoiceId={invoice.id}
+        remainingBalanceCents={remainingBalanceCents}
+      />
     </PageTemplate>
   );
 }

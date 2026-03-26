@@ -36,6 +36,16 @@ interface Transaction {
   receipt_object_key?: string;
 }
 
+interface SuggestedMatch {
+  transaction_id: number;
+  transaction_description: string;
+  transaction_amount_cents: number;
+  bill_id: number;
+  bill_vendor_name: string;
+  bill_amount_cents: number;
+  confidence: number;
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -68,6 +78,13 @@ export default function AccountingStatementReconcile() {
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
   const [bulkTagOpen, setBulkTagOpen] = useState(false);
   const [locking, setLocking] = useState(false);
+
+  // Suggested matches
+  const [suggestedMatches, setSuggestedMatches] = useState<SuggestedMatch[]>([]);
+  const [matchesLoading, setMatchesLoading] = useState(false);
+  const [confirming, setConfirming] = useState<number | null>(null);
+  const [confirmingAll, setConfirmingAll] = useState(false);
+  const [creatingDrafts, setCreatingDrafts] = useState(false);
 
   // Filter
   const [statusFilter, setStatusFilter] = useState("");
@@ -128,6 +145,75 @@ export default function AccountingStatementReconcile() {
       setCheckedIds(new Set());
     } else {
       setCheckedIds(new Set(filteredTransactions.map((t) => t.id)));
+    }
+  };
+
+  const loadSuggestedMatches = async () => {
+    setMatchesLoading(true);
+    try {
+      const data = await accountingAPI.getSuggestedMatches(statementId);
+      setSuggestedMatches(data || []);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to load suggested matches");
+    } finally {
+      setMatchesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (statementId) loadSuggestedMatches();
+  }, [statementId]);
+
+  const handleConfirmMatch = async (match: SuggestedMatch) => {
+    setConfirming(match.transaction_id);
+    try {
+      await accountingAPI.confirmMatches(statementId, [
+        { transaction_id: match.transaction_id, bill_id: match.bill_id },
+      ]);
+      toast.success("Match confirmed");
+      setSuggestedMatches((prev) =>
+        prev.filter((m) => m.transaction_id !== match.transaction_id)
+      );
+      loadData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to confirm match");
+    } finally {
+      setConfirming(null);
+    }
+  };
+
+  const handleConfirmAllMatches = async () => {
+    if (!confirm(`Confirm all ${suggestedMatches.length} suggested matches?`)) return;
+    setConfirmingAll(true);
+    try {
+      const matches = suggestedMatches.map((m) => ({
+        transaction_id: m.transaction_id,
+        bill_id: m.bill_id,
+      }));
+      await accountingAPI.confirmMatches(statementId, matches);
+      toast.success(`${matches.length} matches confirmed`);
+      setSuggestedMatches([]);
+      loadData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to confirm matches");
+    } finally {
+      setConfirmingAll(false);
+    }
+  };
+
+  const handleCreateDrafts = async () => {
+    if (!confirm("Create draft bills from all unmatched transactions?")) return;
+    setCreatingDrafts(true);
+    try {
+      const result = await accountingAPI.createDraftsFromUnmatched(statementId);
+      const count = result?.drafts_created ?? 0;
+      toast.success(`${count} draft bill${count === 1 ? "" : "s"} created`);
+      loadData();
+      loadSuggestedMatches();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to create drafts");
+    } finally {
+      setCreatingDrafts(false);
     }
   };
 
@@ -362,6 +448,113 @@ export default function AccountingStatementReconcile() {
           </div>
         )}
       </div>
+
+      {/* Suggested Matches */}
+      {!isLocked && (
+        <div className="mt-6 border border-gray-200 rounded-lg">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base font-semibold text-gray-900">Suggested Matches</h2>
+              {suggestedMatches.length > 0 && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {suggestedMatches.length}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {suggestedMatches.length > 0 && (
+                <button
+                  onClick={handleConfirmAllMatches}
+                  disabled={confirmingAll}
+                  className="px-3 py-1.5 bg-[#013764] text-white text-xs font-medium rounded-lg hover:bg-[#003a73] disabled:opacity-50 transition-colors"
+                >
+                  {confirmingAll ? "Confirming..." : "Confirm All Matches"}
+                </button>
+              )}
+              <button
+                onClick={handleCreateDrafts}
+                disabled={creatingDrafts}
+                className="px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                {creatingDrafts ? "Creating..." : "Create Drafts from Unmatched"}
+              </button>
+              <button
+                onClick={loadSuggestedMatches}
+                disabled={matchesLoading}
+                className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700"
+              >
+                {matchesLoading ? "Loading..." : "Refresh"}
+              </button>
+            </div>
+          </div>
+
+          {matchesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+              <span className="ml-2 text-sm text-gray-500">Loading matches...</span>
+            </div>
+          ) : suggestedMatches.length === 0 ? (
+            <div className="text-center py-8 text-sm text-gray-500">
+              No suggested matches found
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {suggestedMatches.map((match) => (
+                <div
+                  key={`${match.transaction_id}-${match.bill_id}`}
+                  className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-4 min-w-0 flex-1">
+                    {/* Transaction side */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {match.transaction_description}
+                      </p>
+                      <p className={`text-xs font-medium ${match.transaction_amount_cents < 0 ? "text-red-600" : "text-green-600"}`}>
+                        {formatCents(match.transaction_amount_cents)}
+                      </p>
+                    </div>
+
+                    {/* Arrow */}
+                    <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+
+                    {/* Bill side */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {match.bill_vendor_name}
+                      </p>
+                      <p className={`text-xs font-medium ${match.bill_amount_cents < 0 ? "text-red-600" : "text-green-600"}`}>
+                        {formatCents(match.bill_amount_cents)}
+                      </p>
+                    </div>
+
+                    {/* Confidence */}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                      match.confidence >= 0.9
+                        ? "bg-green-100 text-green-800"
+                        : match.confidence >= 0.7
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    }`}>
+                      {Math.round(match.confidence * 100)}%
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => handleConfirmMatch(match)}
+                    disabled={confirming === match.transaction_id}
+                    className="ml-4 px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex-shrink-0"
+                  >
+                    {confirming === match.transaction_id ? "..." : "Confirm"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <BulkTagModal
         open={bulkTagOpen}

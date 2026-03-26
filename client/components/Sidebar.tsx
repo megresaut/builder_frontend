@@ -622,7 +622,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       { label: "Statements", path: "/accounting/statements", sectionId: "accounting-statements" },
       { label: "Chart of Accounts", path: "/accounting/chart-of-accounts", sectionId: "accounting-coa" },
       { label: "P&L Report", path: "/accounting/reports/pnl", sectionId: "accounting-pnl" },
-      { label: "AR Aging", path: "/accounting/reports/ar-aging", sectionId: "accounting-ar-aging" },
+      { label: "Accounts Receivable", path: "/accounting/reports/ar-aging", sectionId: "accounting-ar-aging" },
       { label: "Property Comparison", path: "/accounting/reports/property-comparison", sectionId: "accounting-property-comparison" },
       { label: "QBO Settings", path: "/accounting/qbo", sectionId: "accounting-qbo" },
     ],

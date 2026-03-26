@@ -155,11 +155,13 @@ export const accountingAPI = {
   },
 
   // Ledger view
-  getTransactionsLedger: (filters?: { property_id?: number; start_date?: string; end_date?: string }) => {
+  getTransactionsLedger: (filters?: { property_id?: number; start_date?: string; end_date?: string; uploaded_by?: number; tagged_by?: number }) => {
     const params = new URLSearchParams();
     if (filters?.property_id) params.set("property_id", String(filters.property_id));
     if (filters?.start_date) params.set("start_date", filters.start_date);
     if (filters?.end_date) params.set("end_date", filters.end_date);
+    if (filters?.uploaded_by) params.set("uploaded_by", String(filters.uploaded_by));
+    if (filters?.tagged_by) params.set("tagged_by", String(filters.tagged_by));
     return fetchJSON(`/accounting/transactions/ledger?${params}`);
   },
 
@@ -172,10 +174,34 @@ export const accountingAPI = {
     return fetchJSON(`/accounting/reports/income-statement?${params}`);
   },
   getARaging: () => fetchJSON("/accounting/reports/ar-aging"),
+  getAROutstandingInvoices: () => fetchJSON("/accounting/reports/outstanding-invoices"),
   getPropertyComparison: (month?: string) =>
     fetchJSON(`/accounting/reports/property-comparison${month ? `?month=${month}` : ""}`),
 
   // QBO Chart of Accounts
   getChartOfAccounts: (accountType?: string) =>
     fetchJSON(`/accounting/qbo/chart-of-accounts${accountType ? `?account_type=${accountType}` : ""}`),
+
+  // Reconciliation matching
+  getSuggestedMatches: (statementId: number) =>
+    fetchJSON(`/accounting/statements/${statementId}/suggested-matches`),
+  confirmMatches: (statementId: number, matches: { transaction_id: number; bill_id: number }[]) =>
+    fetchJSON(`/accounting/statements/${statementId}/confirm-matches`, {
+      method: "POST",
+      body: JSON.stringify({ matches }),
+    }),
+  createDraftsFromUnmatched: (statementId: number) =>
+    fetchJSON(`/accounting/statements/${statementId}/create-drafts`, { method: "POST" }),
+
+  // Payments
+  recordPayment: (invoiceId: number, data: { amount_cents: number; payment_date: string; payment_method: string; reference_number: string; notes: string }) =>
+    fetchJSON(`/accounting/invoices/${invoiceId}/payments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  getInvoicePayments: (invoiceId: number) =>
+    fetchJSON(`/accounting/invoices/${invoiceId}/payments`),
+  voidPayment: (paymentId: number) =>
+    fetchJSON(`/accounting/payments/${paymentId}`, { method: "DELETE" }),
 };

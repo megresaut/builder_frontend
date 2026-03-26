@@ -61,6 +61,7 @@ import AccountingTransactions from "./pages/AccountingTransactions";
 import AccountingChartOfAccounts from "./pages/AccountingChartOfAccounts";
 import AccountingPnL from "./pages/AccountingPnL";
 import AccountingARaging from "./pages/AccountingARaging";
+import AccountingAccountsReceivable from "./pages/AccountingAccountsReceivable";
 import AccountingPropertyComparison from "./pages/AccountingPropertyComparison";
 
 initConsoleCapture();
@@ -470,7 +471,7 @@ export default function App() {
                   element={
                     <RequireAuth>
                       <ShellLayout>
-                        <AccountingARaging />
+                        <AccountingAccountsReceivable />
                       </ShellLayout>
                     </RequireAuth>
                   }

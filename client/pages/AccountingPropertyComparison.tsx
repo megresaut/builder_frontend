@@ -102,7 +102,6 @@ export default function AccountingPropertyComparison() {
   const [showColumnModal, setShowColumnModal] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
-  const sortingHook = useSortingTable();
   const columnManagementHook = useColumnManagement(DEFAULT_COLUMN_KEYS);
 
   const loadData = (m: string) => {
@@ -132,6 +131,8 @@ export default function AccountingPropertyComparison() {
         p.property_name.toLowerCase().includes(searchValue.toLowerCase()),
       )
     : properties;
+
+  const sortingHook = useSortingTable(filteredProperties, "propComp");
 
   // Chart data
   const chartData = properties.map((p) => ({

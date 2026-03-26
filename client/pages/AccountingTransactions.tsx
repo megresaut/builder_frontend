@@ -22,6 +22,11 @@ interface Transaction {
   vendor_name: string;
   expense_category: string;
   status: string;
+  uploaded_by_name: string;
+  uploaded_at: string;
+  tagged_by: number;
+  tagged_by_name: string;
+  tagged_at: string;
 }
 
 interface Property {
@@ -31,6 +36,11 @@ interface Property {
 }
 
 interface Vendor {
+  id: number;
+  name: string;
+}
+
+interface User {
   id: number;
   name: string;
 }
@@ -67,6 +77,8 @@ const COLUMNS = [
   { key: "vendor_name", label: "Vendor" },
   { key: "expense_category", label: "Category" },
   { key: "status", label: "Status" },
+  { key: "tagged_by_name", label: "Tagged By" },
+  { key: "tagged_at", label: "Tagged At" },
 ];
 
 const DEFAULT_COLUMNS = COLUMNS.map((c) => c.key);
@@ -80,6 +92,7 @@ export default function AccountingTransactions() {
   const [loading, setLoading] = useState(true);
   const [properties, setProperties] = useState<Property[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   // Filters
   const [searchFilter, setSearchFilter] = useState("");
@@ -87,6 +100,8 @@ export default function AccountingTransactions() {
   const [vendorFilter, setVendorFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [uploadedByFilter, setUploadedByFilter] = useState("");
+  const [taggedByFilter, setTaggedByFilter] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -122,6 +137,14 @@ export default function AccountingTransactions() {
         )
       )
       .catch(() => {});
+
+    fetchJSON("/users/all")
+      .then((data: any[]) =>
+        setUsers(
+          (data || []).map((u: any) => ({ id: u.id, name: u.name }))
+        )
+      )
+      .catch(() => {});
   }, []);
 
   // Collect unique categories from loaded transactions
@@ -139,10 +162,14 @@ export default function AccountingTransactions() {
       property_id?: number;
       start_date?: string;
       end_date?: string;
+      uploaded_by?: number;
+      tagged_by?: number;
     } = {};
     if (propertyFilter) filters.property_id = Number(propertyFilter);
     if (startDate) filters.start_date = startDate;
     if (endDate) filters.end_date = endDate;
+    if (uploadedByFilter) filters.uploaded_by = Number(uploadedByFilter);
+    if (taggedByFilter) filters.tagged_by = Number(taggedByFilter);
 
     accountingAPI
       .getTransactionsLedger(filters)
@@ -155,7 +182,7 @@ export default function AccountingTransactions() {
 
   useEffect(() => {
     loadTransactions();
-  }, [propertyFilter, startDate, endDate]);
+  }, [propertyFilter, startDate, endDate, uploadedByFilter, taggedByFilter]);
 
   // Client-side filters for search, vendor, status, category
   const filteredTransactions = sortingHook.getSortedData().filter((txn: Transaction) => {
@@ -226,6 +253,12 @@ export default function AccountingTransactions() {
           </span>
         );
       }
+      case "tagged_by_name":
+        return <span className="text-gray-700">{row.tagged_by_name || "-"}</span>;
+      case "tagged_at":
+        return (
+          <span className="text-gray-700">{formatDate(row.tagged_at)}</span>
+        );
       default:
         return null;
     }
@@ -312,6 +345,36 @@ export default function AccountingTransactions() {
           {categories.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
+            </option>
+          ))}
+        </select>
+        <select
+          value={uploadedByFilter}
+          onChange={(e) => {
+            setUploadedByFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        >
+          <option value="">All Uploaders</option>
+          {users.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={taggedByFilter}
+          onChange={(e) => {
+            setTaggedByFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        >
+          <option value="">All Taggers</option>
+          {users.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.name}
             </option>
           ))}
         </select>
