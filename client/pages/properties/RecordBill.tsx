@@ -1304,11 +1304,20 @@ export const RecordBill = () => {
       }
   
       // =====================================================
-      // 🚀 PUSH TO BUILDIUM
+      // 🚀 PUSH TO BUILDIUM (paused for QB testing)
       // =====================================================
-      await fetchJSON(`/vendors/bills/${approvedBillId}/push`, {
-        method: "POST",
-      });
+      // await fetchJSON(`/vendors/bills/${approvedBillId}/push`, {
+      //   method: "POST",
+      // });
+
+      // =====================================================
+      // 📒 SYNC TO QUICKBOOKS
+      // =====================================================
+      try {
+        await fetchJSON(`/accounting/qbo/sync`, { method: "POST" });
+      } catch (qbErr) {
+        console.error("QBO sync failed (bill still saved):", qbErr);
+      }
 
       // Link bill to work order if we came from a work order page
       if (workOrderId) {
