@@ -453,18 +453,18 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
       title="Notifications"
       variant="floating"
       width={420}
-      footer={
-        <button
-          onClick={handleViewAll}
-          className="w-full text-center text-sm font-medium py-2 rounded-lg transition-colors"
-          style={{ color: "var(--color-button-primary)" }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f0f4ff")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-        >
-          View all drafts
-        </button>
-      }
     >
+      {/* View all drafts link */}
+      <button
+        onClick={handleViewAll}
+        className="w-full text-center text-sm font-medium py-2 mb-2 rounded-lg transition-colors"
+        style={{ color: "var(--color-button-primary)" }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f0f4ff")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+      >
+        View all drafts
+      </button>
+
       {/* Error banner */}
       {error && (
         <div className="mb-3 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center justify-between">

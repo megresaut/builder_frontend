@@ -719,20 +719,7 @@ export default function WorkOrderDetailsV2({
     workOrder?.files,
   ]);
 
-  // Mock notifications
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      message:
-        "A bill from Edgerton Inc. was uploaded, would you like to update work order status?",
-      type: "bill",
-    },
-    {
-      id: 2,
-      message: "Estimate differed from invoice by $50.50",
-      type: "discrepancy",
-    },
-  ]);
+  const [notifications, setNotifications] = useState<Array<{ id: number; message: string; type: string }>>([]);
 
   const [notes, setNotes] = useState<Note[]>(() => workOrder?.notes || []);
   const [notesLoading, setNotesLoading] = useState(false);
@@ -1400,12 +1387,12 @@ export default function WorkOrderDetailsV2({
   const displayDescription = apiWorkOrder?.description || workOrder?.description || "No description provided";
   const displayInvoiceNumber = apiWorkOrder?.bill_invoice_number || workOrder?.invoiceNumber || "";
   const displayVendorName = apiWorkOrder?.vendor_name || workOrder?.vendorName || "Unassigned";
-  const displayCreatedBy = apiWorkOrder?.created_by_name || "Julia LoSchiavo";
-  const displayCreatedByEmail = apiWorkOrder?.created_by_email || "julia.loschiavo@company.com";
+  const displayCreatedBy = apiWorkOrder?.created_by_name || "";
+  const displayCreatedByEmail = apiWorkOrder?.created_by_email || "";
   const displayCreatedByRole = normalizeRole(apiWorkOrder?.created_by_role) || "Property manager";
-  const displayCreatedAt = apiWorkOrder?.created_at 
+  const displayCreatedAt = apiWorkOrder?.created_at
     ? formatCreatedDate(apiWorkOrder.created_at)
-    : "11/12/2025 9:22 PM";
+    : "";
 
   return (
     <div className="flex flex-col w-full gap-6 bg-white min-h-0 font-['Geist',sans-serif]">

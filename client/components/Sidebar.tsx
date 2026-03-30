@@ -1,9 +1,10 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
 import { useAuth } from "@/auth/useAuth";
 import { fetchJSON } from "@/api/fetchJSON";
+import { logoutRequest } from "@/api/auth";
 import {
   PropertiesIcon,
   BillsIcon,
@@ -47,6 +48,25 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
   const location = useLocation();
   const { userId, role } = useAuth();
   const [userName, setUserName] = useState<string>("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const handleLogout = async () => {
+    await logoutRequest();
+    navigate("/login");
+  };
+
+  // Close user menu on outside click
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [userMenuOpen]);
 
   // Format role name: property_manager -> Property Manager, field_team_member -> Field Manager
   const formatRole = (roleName: string | null): string => {
@@ -505,8 +525,8 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       ),
       hasSubmenu: true,
     },
-    // Calendar tab — only visible to user ID 5
-    ...(userId === 5 ? [{
+    // Calendar tab — visible to admins and property managers
+    ...(role === "admin" || role === "property_manager" ? [{
       id: "operations",
       label: "Calendar",
       iconLight: (
@@ -936,57 +956,75 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
               </button>
             </div>
 
-            <div
-              className="flex items-center justify-between rounded-lg border border-gray-300 bg-white"
-              style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+            <div ref={userMenuRef} className="relative">
+              {userMenuOpen && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                   >
-                    <path
-                      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                      stroke="#9CA3AF"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <circle
-                      cx="12"
-                      cy="7"
-                      r="4"
-                      stroke="#9CA3AF"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Log out
+                  </button>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-gray-900">
-                    {userName || "User"}
-                  </span>
-                  <span className="text-xs text-gray-600">
-                    {formatRole(role)}
-                  </span>
-                </div>
-              </div>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="text-gray-700 flex-shrink-0"
+              )}
+              <div
+                onClick={() => setUserMenuOpen(o => !o)}
+                className="flex items-center justify-between rounded-lg border border-gray-300 bg-white cursor-pointer hover:bg-gray-50"
+                style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
               >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                        stroke="#9CA3AF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <circle
+                        cx="12"
+                        cy="7"
+                        r="4"
+                        stroke="#9CA3AF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {userName || "User"}
+                    </span>
+                    <span className="text-xs text-gray-600">
+                      {formatRole(role)}
+                    </span>
+                  </div>
+                </div>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="text-gray-700 flex-shrink-0"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
             </div>
           </div>
         </aside>
@@ -1272,57 +1310,75 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
               </button>
             </div>
 
-            <div
-              className="flex items-center justify-between rounded-lg border border-gray-300 bg-white"
-              style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+            <div ref={userMenuRef} className="relative">
+              {userMenuOpen && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                   >
-                    <path
-                      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                      stroke="#9CA3AF"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <circle
-                      cx="12"
-                      cy="7"
-                      r="4"
-                      stroke="#9CA3AF"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Log out
+                  </button>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-gray-900">
-                    {userName || "User"}
-                  </span>
-                  <span className="text-xs text-gray-600">
-                    {formatRole(role)}
-                  </span>
-                </div>
-              </div>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="text-gray-700 flex-shrink-0"
+              )}
+              <div
+                onClick={() => setUserMenuOpen(o => !o)}
+                className="flex items-center justify-between rounded-lg border border-gray-300 bg-white cursor-pointer hover:bg-gray-50"
+                style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
               >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                        stroke="#9CA3AF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <circle
+                        cx="12"
+                        cy="7"
+                        r="4"
+                        stroke="#9CA3AF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {userName || "User"}
+                    </span>
+                    <span className="text-xs text-gray-600">
+                      {formatRole(role)}
+                    </span>
+                  </div>
+                </div>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="text-gray-700 flex-shrink-0"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
             </div>
           </div>
         </aside>
@@ -1606,57 +1662,75 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
           </button>
         </div>
 
-        <div
-          className="flex items-center justify-between rounded-lg border border-gray-300 bg-white"
-          style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+        <div ref={userMenuRef} className="relative">
+          {userMenuOpen && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
               >
-                <path
-                  d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                  stroke="#9CA3AF"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle
-                  cx="12"
-                  cy="7"
-                  r="4"
-                  stroke="#9CA3AF"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Log out
+              </button>
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-gray-900">
-                {userName || "User"}
-              </span>
-              <span className="text-xs text-gray-600">
-                {formatRole(role)}
-              </span>
-            </div>
-          </div>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-gray-700 flex-shrink-0"
+          )}
+          <div
+            onClick={() => setUserMenuOpen(o => !o)}
+            className="flex items-center justify-between rounded-lg border border-gray-300 bg-white cursor-pointer hover:bg-gray-50"
+            style={{ padding: "8px 12px 8px 8px", gap: "35px" }}
           >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                    stroke="#9CA3AF"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle
+                    cx="12"
+                    cy="7"
+                    r="4"
+                    stroke="#9CA3AF"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-gray-900">
+                  {userName || "User"}
+                </span>
+                <span className="text-xs text-gray-600">
+                  {formatRole(role)}
+                </span>
+              </div>
+            </div>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-gray-700 flex-shrink-0"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </div>
         </div>
       </div>
     </aside>

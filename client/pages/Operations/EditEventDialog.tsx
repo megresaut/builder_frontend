@@ -122,7 +122,7 @@ function DateTimeInput({
   error?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { date, time } = parseDT(value);
+  const { date, time } = useMemo(() => parseDT(value), [value]);
   const [calendarMonth, setCalendarMonth] = useState(date || new Date());
   const timeListRef = useRef<HTMLDivElement>(null);
 

@@ -334,7 +334,7 @@ export default function OperationsCalendar() {
         navigate(`/work-orders`);
         break;
       case "inspection":
-        navigate(`/property/${item.property_id}/inspections/${item.id}`);
+        navigate(`/property/${item.property_id}/Inspections?inspectionId=${item.id}`);
         break;
       case "field_team_order":
         try {

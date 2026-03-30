@@ -16,6 +16,7 @@ import {
 
 import type { MultiSelectOption } from "@/components/forms";
 import { fetchJSON } from "@/api/fetchJSON";
+import { useAuth } from "@/auth/useAuth";
 import AIGeneratedBanner from "@/components/AIGeneratedBanner";
 import { useConflictCheck } from "@/hooks/useConflictCheck";
 import ConflictWarningBanner from "@/components/ConflictWarningBanner";
@@ -89,6 +90,7 @@ interface CreateFTOModalProps {
   /** Draft review mode — shows Approve/Reject instead of Update/Cancel */
   onApprove?: () => void;
   onReject?: () => void;
+  onSuccess?: () => void;
 }
 
 
@@ -106,11 +108,13 @@ export default function CreateFTOModal({
   lockedTaskLabel,
   onApprove,
   onReject,
+  onSuccess,
 }: CreateFTOModalProps) {
   // Form state - using IDs instead of objects
   // console.log( "editingFTO:", editingFTO )
 
   
+  const { userId } = useAuth();
   const hasHydratedRef = useRef<number | null>(null);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
     null
@@ -435,6 +439,7 @@ export default function CreateFTOModal({
       ...(eventStartAt && { event_start_at: new Date(eventStartAt).toISOString() }),
       ...(eventEndAt && { event_end_at: new Date(eventEndAt).toISOString() }),
       ...(!editingFTO && { sync_to_outlook: true }),
+      ...(!editingFTO && userId && { created_by: userId }),
     };
   
     try {
@@ -458,6 +463,7 @@ export default function CreateFTOModal({
         })
       );
       onOpenChange(false);
+      onSuccess?.();
     } catch (err) {
       console.error("Failed to save FTO:", err);
       alert("Failed to save field team order.");
@@ -789,7 +795,14 @@ export default function CreateFTOModal({
             <input
               type="datetime-local"
               value={eventStartAt ?? ""}
-              onChange={(e) => setEventStartAt(e.target.value || null)}
+              onChange={(e) => {
+                const val = e.target.value || null;
+                setEventStartAt(val);
+                if (val) {
+                  const end = new Date(new Date(val).getTime() + 60 * 60 * 1000);
+                  setEventEndAt(end.toISOString().slice(0, 16));
+                }
+              }}
               disabled={readOnly}
               className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />

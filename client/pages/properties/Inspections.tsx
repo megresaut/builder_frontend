@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
@@ -142,8 +142,12 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
   const navigate = useNavigate();
   const { propertyId } = useParams();
   const { userId } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [inspectionsList, setInspectionsList] = useState<Inspection[]>([]);
-  const [selectedInspectionId, setSelectedInspectionId] = useState<number | null>(null);
+  const inspectionIdFromUrl = searchParams.get("inspectionId");
+  const [selectedInspectionId, setSelectedInspectionId] = useState<number | null>(
+    inspectionIdFromUrl ? Number(inspectionIdFromUrl) : null
+  );
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showAddTemplateModal, setShowAddTemplateModal] = useState(false);
   const [loading, setLoading] = useState(true);

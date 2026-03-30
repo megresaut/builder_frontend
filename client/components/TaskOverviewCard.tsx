@@ -51,6 +51,8 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
   sequentialNumber,
   taskId,
 }) => {
+  const isCompleted = ["completed", "closed", "cancelled"].includes(status?.toLowerCase() ?? "");
+
   const taskNumberDisplay =
     sequentialNumber !== undefined
       ? `#${sequentialNumber} ${taskId || ""}`
@@ -60,9 +62,20 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
     <SectionCard
       variant={variant}
       title={
-        <span className="text-[#303030] text-[22px] font-semibold leading-[1.36]">
-          To-Do · {taskNumberDisplay}
-        </span>
+        isCompleted ? (
+          <div className="flex items-center gap-1.5 text-sm font-medium">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <circle cx="6.5" cy="6.5" r="6.5" fill="#22c55e" fillOpacity="0.15" />
+              <path d="M4 6.5L5.8 8.5L9 5" stroke="#22c55e" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text-emerald-600 font-semibold">Completed</span>
+            {lastUpdatedDate && <span className="text-[#717179]">{lastUpdatedDate}</span>}
+          </div>
+        ) : (
+          <span className="text-[#303030] text-[22px] font-semibold leading-[1.36]">
+            To-Do · {taskNumberDisplay}
+          </span>
+        )
       }
       actions={
         onEdit && (
@@ -80,8 +93,8 @@ export const TaskOverviewCard: React.FC<TaskOverviewCardProps> = ({
         )
       }
     >
-      {/* Last Updated Info */}
-      {lastUpdatedDate && (
+      {/* Last Updated Info (active tasks only) */}
+      {!isCompleted && lastUpdatedDate && (
         <div className="text-sm text-[#717179] font-medium">
           Last Updated{" "}
           <span className="text-[#303030] font-bold">{lastUpdatedDate}</span>
