@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 import { fetchJSON } from "@/api/fetchJSON";
 
 import PageTemplate from "@/layout/PageTemplate";
@@ -579,6 +580,7 @@ export default function VendorDetail() {
 
   const location = useLocation();
   const routeVendor = (location.state as any)?.vendor ?? null;
+  const { setVendorDisplayName } = usePropertyBreadcrumb();
 
   // Mock data state for vendor detail
   const [vendor, setVendor] = useState<VendorDetail | null>(() => {
@@ -636,6 +638,11 @@ export default function VendorDetail() {
       })();
     }
   }, [vendor, id]);
+
+  useEffect(() => {
+    if (vendor?.name) setVendorDisplayName(vendor.name);
+    return () => setVendorDisplayName(null);
+  }, [vendor?.name, setVendorDisplayName]);
 
   // Mock data state for notes
   const [notes, setNotes] = useState<VendorNote[]>([]);

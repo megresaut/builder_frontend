@@ -18,6 +18,7 @@ import { openAuthPdf } from "@/api/openAuthPdf";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import { usePageState } from "@/hooks/usePageState";
+import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
@@ -392,6 +393,7 @@ const ActionButton = ({
 export default function TaskSummary() {
   const { taskId } = useParams<{ taskId: string }>();
   const location = useLocation();
+  const { setTaskDisplayName } = usePropertyBreadcrumb();
   const [activeTab, setActiveTab] = useState("workorders");
   const [messageText, setMessageText] = useState("");
   const [summary, setSummary] = useState<any | null>(null);
@@ -473,23 +475,31 @@ export default function TaskSummary() {
     }
     load();
   }, [taskId]);
-  
+
+  // Keep breadcrumb in sync with loaded task title
+  useEffect(() => {
+    if (summary?.title) setTaskDisplayName(summary.title);
+    return () => setTaskDisplayName(null);
+  }, [summary?.title, setTaskDisplayName]);
+
   // Calculate sequential number based on all tasks sorted by ID
   useEffect(() => {
     if (!taskId) return;
     
     async function calculateSequentialNumber() {
       try {
-        const allTasks: Array<{ id: number }> = await fetchJSON("/maintenance/tasks");
-        // Sort by ID (ascending) and find the position of current task
-        const sortedTasks = [...allTasks].sort((a, b) => a.id - b.id);
+        const allTasks: Array<{ id: number; status: string }> = await fetchJSON("/maintenance/tasks");
+        // Only count active (non-completed) tasks for sequential numbering
+        const activeTasks = allTasks.filter(
+          (t) => !["completed", "closed", "cancelled"].includes(t.status?.toLowerCase() ?? "")
+        );
+        const sortedTasks = [...activeTasks].sort((a, b) => a.id - b.id);
         const taskIndex = sortedTasks.findIndex((t) => t.id === Number(taskId));
         if (taskIndex !== -1) {
-          const calculatedNumber = taskIndex + 1;
-          console.log(`Task ${taskId} found at index ${taskIndex}, sequential number: ${calculatedNumber}`, sortedTasks.map(t => t.id));
-          setSequentialNumber(calculatedNumber);
+          setSequentialNumber(taskIndex + 1);
         } else {
-          console.warn(`Task ${taskId} not found in sorted tasks`);
+          // Task not in active list (completed/closed/cancelled) — no sequential number
+          setSequentialNumber(null);
         }
       } catch (err) {
         console.error("Failed to calculate sequential number:", err);
@@ -552,12 +562,13 @@ export default function TaskSummary() {
       
       // Recalculate sequential number after refresh
       try {
-        const allTasks: Array<{ id: number }> = await fetchJSON("/maintenance/tasks");
-        const sortedTasks = [...allTasks].sort((a, b) => a.id - b.id);
+        const allTasks: Array<{ id: number; status: string }> = await fetchJSON("/maintenance/tasks");
+        const activeTasks = allTasks.filter(
+          (t) => !["completed", "closed", "cancelled"].includes(t.status?.toLowerCase() ?? "")
+        );
+        const sortedTasks = [...activeTasks].sort((a, b) => a.id - b.id);
         const taskIndex = sortedTasks.findIndex((t) => t.id === Number(taskId));
-        if (taskIndex !== -1) {
-          setSequentialNumber(taskIndex + 1);
-        }
+        setSequentialNumber(taskIndex !== -1 ? taskIndex + 1 : null);
       } catch (err) {
         console.error("Failed to recalculate sequential number:", err);
       }
@@ -632,15 +643,15 @@ export default function TaskSummary() {
           {summary.title}
         </div>
         <div className="flex items-center gap-1 mt-1 text-base text-[#717179] font-medium">
-          <span>To-Do</span>
-          <span>•</span>
-          <span>
-            {sequentialNumber !== null 
-              ? `#${sequentialNumber} ${taskId}` 
-              : summary 
-                ? `#? ${taskId}` 
-                : `#? ${taskId}`}
-          </span>
+          {sequentialNumber !== null ? (
+            <>
+              <span>To-Do</span>
+              <span>•</span>
+              <span>{`#${sequentialNumber} ${taskId}`}</span>
+            </>
+          ) : (
+            <span>{taskId}</span>
+          )}
         </div>
         </div>
         <div className="flex items-center gap-3">

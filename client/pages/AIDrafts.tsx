@@ -95,6 +95,13 @@ function groupDrafts(
     }
   }
 
+  // Sort all groups newest-first by parent created_at
+  groups.sort(
+    (a, b) =>
+      new Date(b.parent.created_at).getTime() -
+      new Date(a.parent.created_at).getTime()
+  );
+
   return groups;
 }
 
@@ -566,11 +573,15 @@ export default function AIDrafts() {
         getDraftCount(),
       ]);
 
-      // Separate by tab
-      const pendingAll = data.filter((d) => d.status === "pending");
+      // Separate by tab — sort newest first within each group
+      const byNewest = (a: AIDraft, b: AIDraft) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      const pendingAll = data.filter((d) => d.status === "pending").sort(byNewest);
       const pendingNonDup = pendingAll.filter((d) => !d.duplicate_of);
       const pendingDup = pendingAll.filter((d) => d.duplicate_of);
-      const historyItems = data.filter((d) => d.status === "approved" || d.status === "rejected");
+      const historyItems = data
+        .filter((d) => d.status === "approved" || d.status === "rejected")
+        .sort(byNewest);
 
       if (viewTab === "duplicates") {
         setDrafts(pendingDup);
@@ -680,6 +691,8 @@ export default function AIDrafts() {
       return "No assignee — please assign someone before approving";
     if (s.includes("vendor") && s.includes("fkey"))
       return "Vendor not found — please select a valid vendor";
+    if (s.includes("vendor") && (s.includes("before approving") || s.includes("select a vendor")))
+      return "Please select a vendor for the work order before approving";
     if (s.includes("parent") && s.includes("approved"))
       return "Parent task must be approved first";
     if (s.includes("duplicate"))
@@ -699,7 +712,7 @@ export default function AIDrafts() {
 
   /** Actually perform the approval (after all checks pass) */
   const doApprove = useCallback(
-    async (draft: AIDraft): Promise<boolean> => {
+    async (draft: AIDraft, fieldOverrides?: Record<string, any>): Promise<boolean> => {
       try {
         setActionInFlight(draft.id);
         setCascadeConfirm(null);
@@ -710,7 +723,35 @@ export default function AIDrafts() {
           draft.entity_type === "task" &&
           getPendingChildren(draft.id).length > 0;
 
-        await approveDraft(draft.id, currentUserId, undefined, shouldCascade);
+        try {
+          await approveDraft(draft.id, currentUserId, fieldOverrides, shouldCascade);
+        } catch (err: any) {
+          if (!shouldCascade) throw err;
+          // Cascade failed (e.g. a child WO has no vendor) — approve just the task,
+          // then try each child individually so FTO etc. still get approved.
+          await approveDraft(draft.id, currentUserId, undefined, false);
+          const children = getPendingChildren(draft.id);
+          const childFailures: string[] = [];
+          for (const child of children) {
+            try {
+              await approveDraft(child.id, currentUserId, undefined, false);
+            } catch (childErr: any) {
+              childFailures.push(
+                child.entity_type === "work_order"
+                  ? "Work order"
+                  : child.entity_type === "fto"
+                  ? "Field team order"
+                  : child.entity_type
+              );
+            }
+          }
+          if (childFailures.length > 0) {
+            setError(
+              `Task approved. ${childFailures.join(" and ")} could not be approved — please review and approve ${childFailures.length === 1 ? "it" : "them"} individually.`
+            );
+          }
+        }
+
         await loadDrafts();
         return true;
       } catch (err: any) {
@@ -725,7 +766,7 @@ export default function AIDrafts() {
   );
 
   const handleApprove = useCallback(
-    async (draft: AIDraft, skipDuplicateCheck = false): Promise<boolean> => {
+    async (draft: AIDraft, skipDuplicateCheck = false, fieldOverrides?: Record<string, any>): Promise<boolean> => {
       if (actionInFlight) return false;
 
       // Block child (FTO / WO) approval if parent task is not yet approved
@@ -767,7 +808,7 @@ export default function AIDrafts() {
         }
       }
 
-      return await doApprove(draft);
+      return await doApprove(draft, fieldOverrides);
     },
     [currentUserId, actionInFlight, loadDrafts, drafts, getPendingChildren, cascadeConfirm, doApprove]
   );
@@ -1187,13 +1228,13 @@ export default function AIDrafts() {
           ))}
         </div>
 
-        {/* Error */}
+        {/* Error — always fixed at top-center above any modal */}
         {error && (
-          <div className="flex items-start gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 whitespace-pre-line">
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex items-start gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 shadow-lg max-w-lg w-full whitespace-pre-line">
             {error}
             <button
               onClick={() => setError(null)}
-              className="ml-auto text-red-400 hover:text-red-600"
+              className="ml-auto text-red-400 hover:text-red-600 flex-shrink-0"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M4 4L10 10M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -1258,6 +1299,13 @@ export default function AIDrafts() {
                         .join(" and ")}{" "}
                       associated with it. Please review the details of each before confirming.
                     </p>
+                    {getPendingChildren(cascadeConfirm.id).some(
+                      (c) => c.entity_type === "work_order" && !c.extracted_data?.vendor_id
+                    ) && (
+                      <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 leading-relaxed">
+                        The work order has no vendor assigned. It will need to be approved separately after adding a vendor.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1551,7 +1599,7 @@ export default function AIDrafts() {
           <CreateWorkOrderModalV2
             open={showWOModal}
             onOpenChange={(open) => { if (!open) closeModal(); }}
-            onApprove={async () => { const ok = await handleApprove(editingDraft); if (ok) closeModal(); }}
+            onApprove={async (overrides) => { const ok = await handleApprove(editingDraft, false, overrides); if (ok) closeModal(); }}
             onReject={async () => { await handleReject(editingDraft); closeModal(); }}
             mode="create"
             propertyId={editingDraft.extracted_data?.property_id}

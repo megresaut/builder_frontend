@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreateTaskModal from "@/components/CreateTaskModal";
@@ -164,6 +164,76 @@ function transformApiTaskToUiTask(apiTask: ApiTask, sequentialNumber?: number): 
   };
 }
 
+function MultiSelectFilter({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  options: { value: string; label: string }[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const toggle = (value: string) => {
+    onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);
+  };
+
+  const displayLabel =
+    selected.length === 0
+      ? "All"
+      : selected.length === 1
+      ? (options.find((o) => o.value === selected[0])?.label ?? selected[0])
+      : `${selected.length} selected`;
+
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-xs font-medium text-[#717179] whitespace-nowrap">{label}</label>
+      <div ref={ref} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px] flex items-center justify-between gap-2 hover:border-[#b0b0b0]"
+        >
+          <span className={selected.length === 0 ? "text-[#999]" : ""}>{displayLabel}</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="flex-shrink-0 text-[#999]">
+            <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        {open && (
+          <div className="absolute top-full mt-1 left-0 z-50 bg-white border border-[#DADADA] rounded-lg shadow-lg py-1 min-w-[260px] whitespace-nowrap">
+            {options.map((opt) => (
+              <label
+                key={opt.value}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#f5f5f5] cursor-pointer text-sm text-[#303030]"
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.includes(opt.value)}
+                  onChange={() => toggle(opt.value)}
+                  className="rounded"
+                />
+                {opt.label}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AllTasks() {
   const navigate = useNavigate();
   const [tasksList, setTasksList] = useState<Task[]>([]);
@@ -187,10 +257,10 @@ export default function AllTasks() {
   const [showFilterBar, setShowFilterBar] = usePageState("allTasksShowFilterBar", false);
   const [filterDateFrom, setFilterDateFrom] = usePageState("allTasksFilterDateFrom", "");
   const [filterDateTo, setFilterDateTo] = usePageState("allTasksFilterDateTo", "");
-  const [filterProperty, setFilterProperty] = usePageState("allTasksFilterProperty", "");
-  const [filterPriority, setFilterPriority] = usePageState("allTasksFilterPriority", "");
-  const [filterStatus, setFilterStatus] = usePageState("allTasksFilterStatus", "");
-  const [filterAssignee, setFilterAssignee] = usePageState("allTasksFilterAssignee", "");
+  const [filterProperty, setFilterProperty] = usePageState<string[]>("allTasksFilterProperty", []);
+  const [filterPriority, setFilterPriority] = usePageState<string[]>("allTasksFilterPriority", []);
+  const [filterStatus, setFilterStatus] = usePageState<string[]>("allTasksFilterStatus", ["not_started", "in_progress"]);
+  const [filterAssignee, setFilterAssignee] = usePageState<string[]>("allTasksFilterAssignee", []);
 
   const uniqueProperties = useMemo(
     () => Array.from(new Set(tasksList.map((t) => t.property).filter(Boolean))).sort(),
@@ -206,13 +276,10 @@ export default function AllTasks() {
 
   const filteredTasks = useMemo(() => {
     return tasksList.filter((task) => {
-      if (filterProperty && task.property !== filterProperty) return false;
-      if (filterPriority && task.priority !== filterPriority) return false;
-      if (filterStatus && task.status !== filterStatus) return false;
-      if (filterAssignee) {
-        const hasAssignee = task.assignees.some((a) => a.name === filterAssignee);
-        if (!hasAssignee) return false;
-      }
+      if (filterProperty.length > 0 && !filterProperty.includes(task.property ?? "")) return false;
+      if (filterPriority.length > 0 && !filterPriority.includes(task.priority)) return false;
+      if (filterStatus.length > 0 && !filterStatus.includes(task.status)) return false;
+      if (filterAssignee.length > 0 && !task.assignees.some((a) => filterAssignee.includes(a.name))) return false;
       if (filterDateFrom || filterDateTo) {
         const apiTask = apiTasks.find((t) => t.id === task.id);
         const dueDate = apiTask?.due_date ?? null;
@@ -274,10 +341,14 @@ export default function AllTasks() {
       // Sort tasks by ID (ascending)
       const sortedTasks = [...apiResponse].sort((a, b) => a.id - b.id);
       setApiTasks(sortedTasks);
-      // Assign sequential numbers based on sorted position (1, 2, 3, etc.)
-      const transformedTasks = sortedTasks.map((task, index) => 
-        transformApiTaskToUiTask(task, index + 1)
-      );
+      // Assign sequential numbers only to active (non-completed) tasks
+      const completedStatuses = ["completed", "closed", "cancelled"];
+      let activeCounter = 0;
+      const transformedTasks = sortedTasks.map((task) => {
+        const isCompleted = completedStatuses.includes(task.status?.toLowerCase() ?? "");
+        const seq = isCompleted ? undefined : ++activeCounter;
+        return transformApiTaskToUiTask(task, seq);
+      });
       setTasksList(transformedTasks);
     } catch (error) {
       console.error("Error loading tasks:", error);
@@ -604,81 +675,49 @@ export default function AllTasks() {
                   className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
-                  Property
-                </label>
-                <select
-                  value={filterProperty}
-                  onChange={(e) => setFilterProperty(e.target.value)}
-                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
-                >
-                  <option value="">All</option>
-                  {uniqueProperties.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
-                  Priority
-                </label>
-                <select
-                  value={filterPriority}
-                  onChange={(e) => setFilterPriority(e.target.value)}
-                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[120px]"
-                >
-                  <option value="">All</option>
-                  <option value="low">Low</option>
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
-                  Status
-                </label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
-                >
-                  <option value="">All</option>
-                  <option value="not_started">Not started</option>
-                  <option value="in_progress">In progress</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
-                  Assignee
-                </label>
-                <select
-                  value={filterAssignee}
-                  onChange={(e) => setFilterAssignee(e.target.value)}
-                  className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
-                >
-                  <option value="">All</option>
-                  {uniqueAssignees.map((name) => (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <MultiSelectFilter
+                label="Property"
+                options={uniqueProperties.map((p) => ({ value: p, label: p }))}
+                selected={filterProperty}
+                onChange={setFilterProperty}
+              />
+              <MultiSelectFilter
+                label="Priority"
+                options={[
+                  { value: "low", label: "Low" },
+                  { value: "normal", label: "Normal" },
+                  { value: "high", label: "High" },
+                  { value: "urgent", label: "Urgent" },
+                ]}
+                selected={filterPriority}
+                onChange={setFilterPriority}
+              />
+              <MultiSelectFilter
+                label="Status"
+                options={[
+                  { value: "not_started", label: "Not started" },
+                  { value: "in_progress", label: "In progress" },
+                  { value: "completed", label: "Completed" },
+                ]}
+                selected={filterStatus}
+                onChange={setFilterStatus}
+              />
+              <MultiSelectFilter
+                label="Assignee"
+                options={uniqueAssignees.map((name) => ({ value: name, label: name }))}
+                selected={filterAssignee}
+                onChange={setFilterAssignee}
+              />
             </div>
             <button
               type="button"
               onClick={() => {
                 setFilterDateFrom("");
                 setFilterDateTo("");
-                setFilterProperty("");
-                setFilterPriority("");
-                setFilterStatus("");
-                setFilterAssignee("");
+                setFilterProperty([]);
+                setFilterPriority([]);
+                setFilterStatus(["not_started", "in_progress"]);
+                setFilterAssignee([]);
                 setCurrentPage(1);
               }}
               className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"

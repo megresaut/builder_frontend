@@ -63,12 +63,12 @@ import RecordBillModal from "@/components/RecordBillModal";
 import { parseMsgFile } from "@/utils/parseMsgFile";
 import { parseEmlFile } from "@/utils/parseEmlFile";
 import type { ParsedMsg } from "@/utils/parseMsgFile";
-import { MOCK_TASKS } from "@/data/tasks";
 import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
 import { openAuthPdf } from "@/api/openAuthPdf";
 import { useAuth } from "@/auth/useAuth";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
+import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 
 // Vendor master data with contact information
 const vendorMasterData: Record<
@@ -389,28 +389,22 @@ export default function TaskSummary() {
   const navigationState = location.state as any;
   const { selectedTab, setTabMetadata, tabMetadata } = useTabContext();
   const { userId } = useAuth();
+  const { setTaskDisplayName } = usePropertyBreadcrumb();
 
   // Extract sequentialNumber from navigation state
   const sequentialNumber = navigationState?.sequentialNumber;
 
-  // Find the task in MOCK_TASKS if navigation state is missing
-  const existingTask = useMemo(() => {
-    return MOCK_TASKS.find((t) => String(t.id) === taskId);
-  }, [taskId]);
-
   // State for fetched task data
   const [fetchedTaskData, setFetchedTaskData] = useState<any>(null);
-  const [isFetchingTaskData, setIsFetchingTaskData] = useState(false);
-  
+
   // Ref to track the last fetched taskId to prevent duplicate fetches
   const lastFetchedTaskIdRef = useRef<string | null>(null);
 
   // Function to fetch task data from API (can be called manually to refresh)
   const refetchTaskData = useCallback(async () => {
     if (!taskId) return;
-    
+
     try {
-      setIsFetchingTaskData(true);
       const apiTask = await fetchJSON(`/maintenance/tasks/${taskId}`);
       if (apiTask) {
         // Format property display string (same format as used in EditTaskDetailsModal)
@@ -453,30 +447,23 @@ export default function TaskSummary() {
       }
     } catch (error) {
       console.error("Failed to fetch task data:", error);
-      // If API fetch fails, we'll fall back to existingTask or MOCK_TASKS
-    } finally {
-      setIsFetchingTaskData(false);
     }
   }, [taskId]);
 
   // Always fetch fresh task data from API on mount/route change to ensure we have latest data
   useEffect(() => {
-    // Only fetch if:
-    // 1. taskId exists
-    // 2. We're not already fetching
-    // 3. We haven't already fetched this taskId (or taskId changed)
-    if (taskId && !isFetchingTaskData && lastFetchedTaskIdRef.current !== taskId) {
+    // Only fetch if taskId exists and we haven't already fetched this taskId
+    if (taskId && lastFetchedTaskIdRef.current !== taskId) {
       refetchTaskData();
     }
-  }, [taskId, refetchTaskData]); // Removed isFetchingTaskData from dependencies to prevent loop
+  }, [taskId, refetchTaskData]);
 
-  // Use either provided task data, fetched data, or find it from MOCK_TASKS
-  // Prefer fetchedTaskData if it exists (after manual refetch) to ensure fresh data
+  // Use fetched API data, falling back to navigation state only if fetch hasn't returned yet
   const taskData =
     fetchedTaskData ||
-    navigationState?.taskData || 
-    navigationState?.task || 
-    existingTask;
+    navigationState?.taskData ||
+    navigationState?.task ||
+    null;
 
   // Track taskId changes (debugging logs removed)
   const lastLoggedTaskIdRef = useRef<string | null>(null);
@@ -485,6 +472,12 @@ export default function TaskSummary() {
       lastLoggedTaskIdRef.current = taskId;
     }
   }, [taskId, taskData]);
+
+  // Keep breadcrumb in sync with loaded task title
+  useEffect(() => {
+    if (taskData?.title) setTaskDisplayName(taskData.title);
+    return () => setTaskDisplayName(null);
+  }, [taskData?.title, setTaskDisplayName]);
 
   // Ref for tracking blob URLs created during task initialization
   const createdAttachmentUrlsRef = useRef<Set<string>>(new Set());
@@ -618,12 +611,8 @@ export default function TaskSummary() {
     }
   }, [navigationState?.ftoAction, navigationState?.ftoId]);
 
-  // Determine if this is a new task
-  const isNewTask = !!(
-    navigationState?.taskData ||
-    navigationState?.task ||
-    (existingTask && taskId !== "1")
-  ); // Task 1 is our "Edgerton" demo
+  // Determine if this is a new task (created in this session via navigation state)
+  const isNewTask = !!(navigationState?.taskData || navigationState?.task);
 
   // Update current tab's metadata with actual task name when loaded (stay in same tab; do not switch or add tabs)
   useEffect(() => {
@@ -1602,12 +1591,11 @@ export default function TaskSummary() {
 
   // Initialize updates based on whether this is a newly created task
   const getInitialUpdates = () => {
-    if (isNewTask || existingTask) {
-      // For newly created or existing MOCK tasks, start with just the creation update
+    if (isNewTask) {
       return [getInitialUpdate()];
     }
 
-    // For existing tasks (like the Edgerton demo), show just the creation update
+    // For existing tasks, show just the creation update
     return [
       {
         id: 0,
@@ -1692,16 +1680,13 @@ export default function TaskSummary() {
     taskData?.unit_id,
   );
   const [currentTitle, setCurrentTitle] = useState<string>(
-    taskData?.title || "Edgerton - Quote",
+    taskData?.title || "",
   );
   const [currentDescription, setCurrentDescription] = useState<string>(
-    taskData?.description ||
-      (isNewTask
-        ? ""
-        : "We have been experiencing issues with the water heater. At first we thought the issue was due to us just moving in and maybe the water heater needed time to heat up after no tenants. It has been 3 days in a row now that we lose hot water mid shower."),
+    taskData?.description || "",
   );
   const [currentCategory, setCurrentCategory] = useState<string>(
-    taskData?.category || "Uncategorized",
+    taskData?.category || "",
   );
   const [currentStatus, setCurrentStatus] = useState<string>(() => {
     // UI expects: not_started | in_progress | completed
@@ -1731,15 +1716,13 @@ export default function TaskSummary() {
       const date = new Date(rawDueDate);
       return isNaN(date.getTime()) ? null : date;
     }
-    return isNewTask ? null : new Date(2025, 9, 15); // Oct 15, 2025
+    return null;
   });
   const [currentAssignees, setCurrentAssignees] = useState<any[]>(() => {
     if (taskData?.assignees && taskData.assignees.length > 0) {
       return taskData.assignees;
     }
-    return isNewTask
-      ? []
-      : [hydratePerson({ id: 1, name: "Julia LoSchiavo", initials: "JL" })];
+    return [];
   });
   const [currentCollaborators, setCurrentCollaborators] = useState<any[]>(
     () => {
@@ -3080,7 +3063,7 @@ export default function TaskSummary() {
 
   const [workOrderNotifications, setWorkOrderNotifications] = useState<
     Array<{ id: string; message: string }>
-  >([{ id: "1", message: "A bill from Edgerton Inc was uploaded" }]);
+  >([]);
 
   // Helper function to safely parse bill total
   const getBillAmount = (billTotal: string): number => {
@@ -3103,27 +3086,32 @@ export default function TaskSummary() {
           fetchedTaskData?.name ||
           "Loading..."
         }
-        subtitle={
-          <div className="flex items-center gap-3">
-            <div className="text-[#717179] font-medium text-base leading-4">
-              To-Do
+        subtitle={(() => {
+          const isCompleted = ["completed", "closed", "cancelled"].includes(
+            taskData?.status?.toLowerCase() ?? ""
+          );
+          return (
+            <div className="flex items-center gap-3">
+              {!isCompleted && (
+                <>
+                  <div className="text-[#717179] font-medium text-base leading-4">
+                    To-Do
+                  </div>
+                  <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="2" cy="2" r="2" fill="#717179" />
+                  </svg>
+                </>
+              )}
+              <span className="text-[#717179] font-medium text-base leading-4">
+                {isCompleted
+                  ? taskId
+                  : sequentialNumber !== undefined
+                  ? `#${sequentialNumber} ${taskId}`
+                  : `#${taskId}`}
+              </span>
             </div>
-            <svg
-              width="4"
-              height="4"
-              viewBox="0 0 4 4"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle cx="2" cy="2" r="2" fill="#717179" />
-            </svg>
-            <span className="text-[#717179] font-medium text-base leading-4">
-              {sequentialNumber !== undefined
-                ? `#${sequentialNumber} ${taskId}`
-                : `#${taskId}`}
-            </span>
-          </div>
-        }
+          );
+        })()}
         action={{
           label: uiState.selectedWorkOrderId
             ? "Update Work Order"

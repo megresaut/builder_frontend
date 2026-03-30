@@ -40,6 +40,12 @@ export async function markNotificationRead(
   });
 }
 
+export async function markAllNotificationsRead(userId: number): Promise<void> {
+  await fetchJSON(`/operations/notifications/read-all?user_id=${userId}`, {
+    method: "POST",
+  });
+}
+
 export async function dismissNotification(id: number): Promise<void> {
   await fetchJSON(`/operations/notifications/${id}/dismiss`, {
     method: "POST",

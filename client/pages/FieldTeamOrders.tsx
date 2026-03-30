@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import MergeFTOsModal from "@/components/MergeFTOsModal";
@@ -533,6 +533,76 @@ const transformAPIMiscSubmission = (apiData: APIMiscSubmissionResponse[]): MiscS
 };
 
 
+function MultiSelectFilter({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  options: { value: string; label: string }[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const toggle = (value: string) => {
+    onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);
+  };
+
+  const displayLabel =
+    selected.length === 0
+      ? "All"
+      : selected.length === 1
+      ? (options.find((o) => o.value === selected[0])?.label ?? selected[0])
+      : `${selected.length} selected`;
+
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-xs font-medium text-[#717179] whitespace-nowrap">{label}</label>
+      <div ref={ref} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px] flex items-center justify-between gap-2 hover:border-[#b0b0b0]"
+        >
+          <span className={selected.length === 0 ? "text-[#999]" : ""}>{displayLabel}</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="flex-shrink-0 text-[#999]">
+            <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        {open && (
+          <div className="absolute top-full mt-1 left-0 z-50 bg-white border border-[#DADADA] rounded-lg shadow-lg py-1 min-w-[200px] whitespace-nowrap">
+            {options.map((opt) => (
+              <label
+                key={opt.value}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#f5f5f5] cursor-pointer text-sm text-[#303030]"
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.includes(opt.value)}
+                  onChange={() => toggle(opt.value)}
+                  className="rounded"
+                />
+                {opt.label}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function FieldTeamOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<FieldTeamOrder[]>([]);
@@ -561,11 +631,11 @@ export default function FieldTeamOrders() {
   const [showFilterBar, setShowFilterBar] = usePageState("showFilterBar", false);
   const [filterDateFrom, setFilterDateFrom] = usePageState("filterDateFrom", "");
   const [filterDateTo, setFilterDateTo] = usePageState("filterDateTo", "");
-  const [filterProperty, setFilterProperty] = usePageState("filterProperty", "");
-  const [filterFieldTeamMember, setFilterFieldTeamMember] = usePageState("filterFieldTeamMember", "");
-  const [filterTimesheetStatus, setFilterTimesheetStatus] = usePageState("filterTimesheetStatus", "");
-  const [filterFtoStatus, setFilterFtoStatus] = usePageState("filterFtoStatus", "");
-  const [filterPriority, setFilterPriority] = usePageState("filterPriority", "");
+  const [filterProperty, setFilterProperty] = usePageState<string[]>("filterProperty", []);
+  const [filterFieldTeamMember, setFilterFieldTeamMember] = usePageState<string[]>("filterFieldTeamMember", []);
+  const [filterTimesheetStatus, setFilterTimesheetStatus] = usePageState<string[]>("filterTimesheetStatus", ["awaiting-submission", "submitted", "rejected"]);
+  const [filterFtoStatus, setFilterFtoStatus] = usePageState<string[]>("filterFtoStatus", ["New", "Dispatched", "pending-approval"]);
+  const [filterPriority, setFilterPriority] = usePageState<string[]>("filterPriority", []);
   const { setTabMetadata } = useTabContext();
 
   // Clear persisted modal state when leaving the page so it doesn't reopen when returning (e.g. from Approve FTO)
@@ -610,7 +680,7 @@ export default function FieldTeamOrders() {
       const rawData: APIFTOResponse[] = Array.isArray(raw)
         ? raw
         : raw?.data ?? raw?.items ?? raw?.results ?? [];
-      const apiData = rawData.filter((fto) => fto.status !== "cancelled");
+      const apiData = rawData;
 
       // collect all field team IDs
       const allFieldTeamIds = apiData.flatMap(
@@ -724,16 +794,11 @@ export default function FieldTeamOrders() {
       if (filterDateFrom && orderDateStr < filterDateFrom) return false;
       if (filterDateTo && orderDateStr > filterDateTo) return false;
     }
-    if (filterProperty && order.property !== filterProperty) return false;
-    if (
-      filterFieldTeamMember &&
-      !order.fieldTeam.some((m) => m.name === filterFieldTeamMember)
-    )
-      return false;
-    if (filterTimesheetStatus && order.timesheetStatus !== filterTimesheetStatus)
-      return false;
-    if (filterFtoStatus && order.status !== filterFtoStatus) return false;
-    if (filterPriority && order.priority !== filterPriority) return false;
+    if (filterProperty.length > 0 && !filterProperty.includes(order.property)) return false;
+    if (filterFieldTeamMember.length > 0 && !order.fieldTeam.some((m) => filterFieldTeamMember.includes(m.name))) return false;
+    if (filterTimesheetStatus.length > 0 && !filterTimesheetStatus.includes(order.timesheetStatus)) return false;
+    if (filterFtoStatus.length > 0 && !filterFtoStatus.includes(order.status)) return false;
+    if (filterPriority.length > 0 && !filterPriority.includes(order.priority)) return false;
     return true;
   });
 
@@ -749,7 +814,7 @@ export default function FieldTeamOrders() {
   });
 
   const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(filteredOrders);
+    useSortingTable(filteredOrders, "default", { initialSortBy: "due_date", initialSortOrder: "desc" });
   const {
     columnOrder,
     visibleColumns,
@@ -1137,104 +1202,62 @@ export default function FieldTeamOrders() {
                     className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
-                    Property
-                  </label>
-                  <select
-                    value={filterProperty}
-                    onChange={(e) => setFilterProperty(e.target.value)}
-                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
-                  >
-                    <option value="">All</option>
-                    {uniqueProperties.map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
-                    Field team
-                  </label>
-                  <select
-                    value={filterFieldTeamMember}
-                    onChange={(e) => setFilterFieldTeamMember(e.target.value)}
-                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
-                  >
-                    <option value="">All</option>
-                    {uniqueFieldTeamMembers.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
-                    Timesheet
-                  </label>
-                  <select
-                    value={filterTimesheetStatus}
-                    onChange={(e) =>
-                      setFilterTimesheetStatus(
-                        e.target.value as "" | "awaiting-submission" | "submitted" | "rejected" | "approved"
-                      )
-                    }
-                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
-                  >
-                    <option value="">All</option>
-                    <option value="awaiting-submission">Awaiting submission</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="approved">Approved</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
-                    FTO status
-                  </label>
-                  <select
-                    value={filterFtoStatus}
-                    onChange={(e) => setFilterFtoStatus(e.target.value)}
-                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
-                  >
-                    <option value="">All</option>
-                    <option value="New">New</option>
-                    <option value="Dispatched">Dispatched</option>
-                    <option value="Completed">Completed</option>
-                    <option value="pending-approval">Pending approval</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
-                    Priority
-                  </label>
-                  <select
-                    value={filterPriority}
-                    onChange={(e) =>
-                      setFilterPriority(e.target.value as "low" | "normal" | "high")
-                    }
-                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[120px]"
-                  >
-                    <option value="">All</option>
-                    <option value="low">Low</option>
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
+                <MultiSelectFilter
+                  label="Property"
+                  options={uniqueProperties.map((p) => ({ value: p, label: p }))}
+                  selected={filterProperty}
+                  onChange={setFilterProperty}
+                />
+                <MultiSelectFilter
+                  label="Field team"
+                  options={uniqueFieldTeamMembers.map((name) => ({ value: name, label: name }))}
+                  selected={filterFieldTeamMember}
+                  onChange={setFilterFieldTeamMember}
+                />
+                <MultiSelectFilter
+                  label="Timesheet"
+                  options={[
+                    { value: "awaiting-submission", label: "Awaiting submission" },
+                    { value: "submitted", label: "Submitted" },
+                    { value: "rejected", label: "Rejected" },
+                    { value: "approved", label: "Approved" },
+                  ]}
+                  selected={filterTimesheetStatus}
+                  onChange={setFilterTimesheetStatus}
+                />
+                <MultiSelectFilter
+                  label="FTO status"
+                  options={[
+                    { value: "New", label: "New" },
+                    { value: "Dispatched", label: "Dispatched" },
+                    { value: "Completed", label: "Completed" },
+                    { value: "pending-approval", label: "Pending approval" },
+                    { value: "Cancelled", label: "Cancelled" },
+                  ]}
+                  selected={filterFtoStatus}
+                  onChange={setFilterFtoStatus}
+                />
+                <MultiSelectFilter
+                  label="Priority"
+                  options={[
+                    { value: "low", label: "Low" },
+                    { value: "normal", label: "Normal" },
+                    { value: "high", label: "High" },
+                  ]}
+                  selected={filterPriority}
+                  onChange={setFilterPriority}
+                />
               </div>
               <button
                 type="button"
                 onClick={() => {
                   setFilterDateFrom("");
                   setFilterDateTo("");
-                  setFilterProperty("");
-                  setFilterFieldTeamMember("");
-                  setFilterTimesheetStatus("");
-                  setFilterFtoStatus("");
-                  setFilterPriority("");
+                  setFilterProperty([]);
+                  setFilterFieldTeamMember([]);
+                  setFilterTimesheetStatus([]);
+                  setFilterFtoStatus([]);
+                  setFilterPriority([]);
                   setCurrentPage(1);
                 }}
                 className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"
@@ -1568,6 +1591,7 @@ export default function FieldTeamOrders() {
           setShowFTOModal(open);
           if (!open) setEditingFTOId(null);
         }}
+        onSuccess={() => fetchOrders()}
         editingFTO={
           editingFTOId
             ? (() => {

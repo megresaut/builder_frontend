@@ -4,6 +4,7 @@ import { TabContext } from "@/hooks/useTabContext";
 import { useFavorites } from "@/hooks/FavoritesContext";
 import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 import { getDraftCount } from "@/api/aiDrafts";
+import { useAuth } from "@/auth/useAuth";
 import NotificationPanel from "@/components/NotificationPanel";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -31,11 +32,10 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
-  const { propertyDisplayName } = usePropertyBreadcrumb();
+  const { propertyDisplayName, vendorDisplayName, taskDisplayName } = usePropertyBreadcrumb();
 
-  // Only show draft notifications and calendar bell for user ID 5
-  const currentUserId = localStorage.getItem("avm_user_id");
-  const showDraftNotifications = currentUserId === "5";
+  const { role } = useAuth();
+  const showDraftNotifications = role === "admin" || role === "property_manager";
 
   // AI Drafts pending count for notification bell
   const [pendingDrafts, setPendingDrafts] = useState(0);
@@ -68,20 +68,7 @@ export default function Header() {
       const match = path.match(/\/tasks\/(\d+)/);
       if (match) {
         const taskId = match[1];
-        // Map taskId to task information (mock data)
-        const taskData: Record<string, string> = {
-          "1": "Edgerton - Quote",
-          "2": "Downtown Renovation",
-          "3": "HVAC Installation",
-          "4": "Electrical Rewiring",
-          "5": "Plumbing Repairs",
-          "6": "Roof Inspection",
-          "7": "Window Replacement",
-          "8": "Door Repairs",
-          "9": "Painting Project",
-          "10": "Foundation Work",
-        };
-        const label = taskData[taskId] || `Task ${taskId}`;
+        const label = taskDisplayName ?? `Task ${taskId}`;
         return {
           label,
           path,
@@ -94,22 +81,7 @@ export default function Header() {
         const propertyId = match[1];
         const tab = match[2];
 
-        // Map property types for unique identification
-        const propertyTypes: Record<string, string> = {
-          "1": "Concierge",
-          "2": "Rental",
-          "3": "Commercial",
-          "4": "OR",
-          "5": "HOA",
-          "6": "Concierge",
-          "7": "Concierge",
-          "8": "Concierge",
-          "9": "Concierge",
-          "10": "Concierge",
-        };
-
-        const propertyType = propertyTypes[propertyId] || "Property";
-        const label = `${propertyType} - Property ${propertyId}`;
+        const label = propertyDisplayName ?? `Property ${propertyId}`;
 
         if (tab && tab !== "Overview") {
           return {
@@ -138,6 +110,11 @@ export default function Header() {
       return { label: "Recurring Tasks", path, id: "recurring-tasks" };
     } else if (path === "/vendors") {
       return { label: "Vendors", path, id: "vendors" };
+    } else if (path.match(/^\/vendors\/\d+/)) {
+      const match = path.match(/^\/vendors\/(\d+)/);
+      const vendorId = match?.[1] ?? "";
+      const label = vendorDisplayName ?? `Vendor ${vendorId}`;
+      return { label, path, id: `vendor-${vendorId}` };
     } else if (path === "/ai-drafts") {
       return { label: "Drafts", path, id: "ai-drafts" };
     } else if (path === "/operations") {
@@ -187,7 +164,14 @@ export default function Header() {
     const path = location.pathname;
     const items: { label: string; href?: string; icon?: React.ReactNode }[] = [];
     const propertyState = location.state as { address?: string } | null;
-    if (path.includes("/property/")) {
+    if (path.includes("/tasks/")) {
+      const match = path.match(/\/tasks\/(\d+)/);
+      if (match) {
+        const taskId = match[1];
+        items.push({ label: "All Tasks", href: "/all-tasks" });
+        items.push({ label: taskDisplayName ?? `Task ${taskId}` });
+      }
+    } else if (path.includes("/property/")) {
       const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
       if (match) {
         const tab = match[2];
@@ -215,11 +199,16 @@ export default function Header() {
     } else if (path === "/recurring-tasks") {
       items.push({ label: "Recurring Tasks" });
     } else if (path === "/vendors") {
-      items.push({ label: "Vendors", icon: (
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13.3333 17.5V15.8333C13.3333 14.9493 12.9821 14.1014 12.357 13.4763C11.7319 12.8512 10.884 12.5 10 12.5H5C4.11595 12.5 3.26811 12.8512 2.64299 13.4763C2.01787 14.1014 1.66667 14.9493 1.66667 15.8333V17.5M18.3333 17.5V15.8333C18.3327 15.0948 18.087 14.3773 17.6345 13.7936C17.182 13.2099 16.5485 12.793 15.8333 12.6083M13.3333 2.60833C13.0503 2.69322 12.7829 2.82267 12.5427 2.99117C12.3025 3.15967 12.0933 3.36422 11.9241 3.59583C11.7549 3.82744 11.6287 4.08233 11.5514 4.35C11.4741 4.61767 11.4469 4.89333 11.4711 5.16717C11.4953 5.441 11.5705 5.70833 11.6933 5.957C11.8161 6.20567 11.984 6.43133 12.1885 6.62283C12.3931 6.81433 12.6305 6.96867 12.8885 7.07733C13.1465 7.186 13.4203 7.247 13.6957 7.2575C13.971 7.268 14.2453 7.228 14.5037 7.13967C14.762 7.05133 15 6.91617 15.2037 6.7425C15.4075 6.56883 15.5733 6.36017 15.6927 6.12817C15.812 5.89617 15.883 5.64517 15.9017 5.38833C15.9203 5.1315 15.8862 4.87383 15.8013 4.63C15.7163 4.38617 15.5822 4.16033 15.407 3.96583C15.2318 3.77133 15.0188 3.61217 14.7805 3.49717C14.5422 3.38217 14.2832 3.31383 14.018 3.29583C13.7528 3.27783 13.4867 3.31067 13.2342 3.39283L13.3333 2.60833ZM11.6667 7.5C11.6667 9.34095 10.1743 10.8333 8.33334 10.8333C6.49239 10.8333 5 9.34095 5 7.5C5 5.65905 6.49239 4.16667 8.33334 4.16667C10.1743 4.16667 11.6667 5.65905 11.6667 7.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ) });
+      items.push({ label: "Vendors" });
+    } else if (path.match(/^\/vendors\/\d+/)) {
+      const match = path.match(/^\/vendors\/(\d+)/);
+      const vendorId = match?.[1] ?? "";
+      items.push({ label: "Vendors", href: "/vendors" });
+      items.push({ label: vendorDisplayName ?? `Vendor ${vendorId}` });
+    } else if (path === "/operations") {
+      items.push({ label: "Calendar" });
+    } else if (path === "/vendor-compliance") {
+      items.push({ label: "Compliance" });
     } else if (path === "/record-bill") {
       items.push({ label: "Bills", href: "/bills" });
       items.push({ label: "Record Bill" });
@@ -406,7 +395,11 @@ export default function Header() {
       const metadata = tabMetadata[selectedTab];
       const isTaskRoute = currentPageInfo.id.startsWith("task-");
       const newSectionId = isTaskRoute ? "all-tasks" : currentPageInfo.id;
-      if (metadata?.route !== currentPageInfo.path || metadata?.sectionId !== newSectionId) {
+      if (
+        metadata?.route !== currentPageInfo.path ||
+        metadata?.sectionId !== newSectionId ||
+        metadata?.label !== currentPageInfo.label
+      ) {
         setTabMetadata(selectedTab, {
           ...metadata,
           label: currentPageInfo.label,
@@ -415,7 +408,7 @@ export default function Header() {
         });
       }
     }
-  }, [location.pathname, selectedTab]);
+  }, [location.pathname, selectedTab, vendorDisplayName, propertyDisplayName, taskDisplayName]);
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
@@ -856,7 +849,11 @@ export default function Header() {
             .map((tab) => {
               const isSelected = tab.id === selectedTab;
               const metadata = tabContext.tabMetadata[tab.id];
-              const displayLabel = metadata?.label || tab.label;
+              // For the active tab, derive the label from the current URL so it's
+              // always correct without waiting for the useEffect to flush.
+              const displayLabel = isSelected
+                ? (getCurrentPageLabel()?.label || metadata?.label || tab.label)
+                : (metadata?.label || tab.label);
               // Use metadata sectionId first, then fall back to tab.id for default tabs
               const sectionId =
                 metadata?.sectionId ||

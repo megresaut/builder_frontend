@@ -1322,12 +1322,29 @@ export const RecordBill = () => {
   
     } catch (err: any) {
       console.error("Failed to approve and export bill:", err);
-      const msg = err?.message || err?.error || String(err);
-      if (msg.toLowerCase().includes("buildium unit")) {
-        alert(msg);
+      const raw = err?.message || err?.error || String(err);
+      const lower = raw.toLowerCase();
+
+      let userMsg: string;
+      if (lower.includes("memo") && lower.includes("exceed") || lower.includes("memo") && lower.includes("240")) {
+        userMsg = "The line item description is too long for Buildium (max 240 characters). Please shorten the description and try again.";
+      } else if (lower.includes("buildium unit")) {
+        userMsg = "Invalid Buildium unit mapping — please update the unit in Buildium before exporting.";
+      } else if (lower.includes("buildium_vendor_id")) {
+        userMsg = "This vendor does not have a Buildium Vendor ID. Please link the vendor to Buildium before exporting.";
+      } else if (lower.includes("buildium_property_id")) {
+        userMsg = "This property does not have a Buildium Property ID. Please link the property to Buildium before exporting.";
+      } else if (lower.includes("gl_account")) {
+        userMsg = "Invalid GL Account on one or more line items. Please check and try again.";
+      } else if (lower.includes("attachment failed")) {
+        userMsg = "Bill was created in Buildium, but the PDF attachment failed to upload. You can attach it manually in Buildium.";
+      } else if (lower.includes("payload build failed")) {
+        userMsg = "Could not build the Buildium export payload. Please check that the vendor and property are linked to Buildium.";
       } else {
-        alert("Bill was approved, but exporting to Buildium may have failed.");
+        userMsg = `Bill was approved, but exporting to Buildium failed.\n\nDetails: ${raw}`;
       }
+
+      alert(userMsg);
     }
   };
   

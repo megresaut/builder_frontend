@@ -71,7 +71,7 @@ interface CreateWorkOrderModalV2Props {
   onWorkOrderCreated?: (workOrder: any) => void; // Callback when work order is successfully created
   onWorkOrderUpdated?: (workOrder: any) => void; // Callback when work order is successfully updated
   /** Draft review mode — shows Approve/Reject instead of Update/Cancel */
-  onApprove?: () => void;
+  onApprove?: (overrides: { vendor_id?: number }) => void;
   onReject?: () => void;
 }
 
@@ -786,7 +786,7 @@ export default function CreateWorkOrderModalV2({
               </button>
               <button
                 type="button"
-                onClick={onApprove}
+                onClick={() => onApprove?.({ vendor_id: formData.vendorId ? Number(formData.vendorId) : undefined })}
                 className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
               >
                 Approve
