@@ -42,7 +42,7 @@ import Operations from "./pages/Operations";
 import InsuranceDashboard from "./pages/InsuranceDashboard";
 import VendorComplianceDashboard from "./pages/VendorComplianceDashboard";
 
-// FTO
+// FTO testing
 import FtoShellLayout from "./layout/FTOShellLayout";
 import FTOHome from "./pages/FTOHome";
 import FtoSubmissionForm from "./pages/FtoSubmissionForm";
