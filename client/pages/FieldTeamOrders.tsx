@@ -634,7 +634,7 @@ export default function FieldTeamOrders() {
   const [filterProperty, setFilterProperty] = usePageState<string[]>("filterProperty", []);
   const [filterFieldTeamMember, setFilterFieldTeamMember] = usePageState<string[]>("filterFieldTeamMember", []);
   const [filterTimesheetStatus, setFilterTimesheetStatus] = usePageState<string[]>("filterTimesheetStatus", ["awaiting-submission", "submitted", "rejected"]);
-  const [filterFtoStatus, setFilterFtoStatus] = usePageState<string[]>("filterFtoStatus", ["New", "Dispatched", "pending-approval"]);
+  const [filterFtoStatus, setFilterFtoStatus] = usePageState<string[]>("filterFtoStatus", []);
   const [filterPriority, setFilterPriority] = usePageState<string[]>("filterPriority", []);
   const { setTabMetadata } = useTabContext();
 
