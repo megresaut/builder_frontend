@@ -143,13 +143,28 @@ export default function ActivityFeed() {
       case "task":
         navigate(`/tasks/${item.entity_id}`); break;
       case "work_order":
-        navigate(`/work-orders`); break;
+        if (item.parent_id) {
+          navigate(`/tasks/${item.parent_id}/workorders/${item.entity_id}`);
+        } else {
+          navigate(`/work-orders`);
+        }
+        break;
       case "fto":
-        navigate(`/field-team-orders`); break;
+        navigate(`/field-team-orders/approve/${item.entity_id}`); break;
       case "inspection":
-        navigate(`/inspections`); break;
+        if (item.property_id) {
+          navigate(`/property/${item.property_id}/Inspections`);
+        } else {
+          navigate(`/inspection-dashboard`);
+        }
+        break;
       case "tenant":
-        navigate(`/properties`); break;
+        if (item.property_id) {
+          navigate(`/property/${item.property_id}/Units`);
+        } else {
+          navigate(`/properties`);
+        }
+        break;
       case "invoice":
         navigate(`/invoicing`); break;
       case "insurance_policy":

@@ -678,7 +678,7 @@ export default function MyTodos() {
         </div>
       )}
 
-      {/* ── Completed (shown inline when status filter = completed, or collapsed at bottom otherwise) ── */}
+      {/* ── Completed ── */}
       {completed.length > 0 && filterStatus !== "completed" && (
         <div className="mt-8">
           <button onClick={() => setFilterStatus("completed")} className="flex items-center gap-3 w-full mb-3 group">
@@ -690,6 +690,23 @@ export default function MyTodos() {
               Show {completed.length} →
             </span>
           </button>
+        </div>
+      )}
+
+      {completed.length > 0 && filterStatus === "completed" && (
+        <div className="mt-2">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#a1a1a9] whitespace-nowrap">
+              Completed
+            </span>
+            <div className="flex-1 h-px bg-[#f0f0f0]" />
+            <span className="text-xs text-[#a1a1a9]">{completed.length}</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {completed.map((todo) => (
+              <TodoCard key={todo.id} todo={todo} onToggle={handleToggle} onUpdate={handleUpdate} onDelete={handleDelete} />
+            ))}
+          </div>
         </div>
       )}
     </div>

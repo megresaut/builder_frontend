@@ -1182,8 +1182,11 @@ export default function Header() {
               </svg>
             </button>
 
-            {/* Calendar Notifications Bell — only for user ID 5 */}
-            {showDraftNotifications && <NotificationBell />}
+            {/* Reminders (deadlines, conflicts) — only for user ID 5 */}
+            {showDraftNotifications && <NotificationBell mode="reminders" />}
+
+            {/* Activity feed (task closed, WO completed, FTO submitted, etc.) — only for user ID 5 */}
+            {showDraftNotifications && <NotificationBell mode="activity" />}
 
             {/* Notification Button → opens panel — only for user ID 5 */}
             {showDraftNotifications && (
