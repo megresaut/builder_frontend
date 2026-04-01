@@ -6,7 +6,7 @@ export default defineConfig({
   root: path.resolve(__dirname, "client"),
   server: {
     host: "::",
-    port: 5173, // <-- UPDATED FROM 8080 TO 5173
+    port: 5173,
     fs: {
       allow: [
         path.resolve(__dirname), // client/

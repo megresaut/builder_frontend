@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { fetchJSON } from "@/api/fetchJSON";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Plus } from "lucide-react";
 import { usePageState } from "@/hooks/usePageState";
@@ -8,6 +9,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { formatUnitDisplayForTable } from "@/utils/unitLabel";
+import { WorkOrderEvaluation, WorkOrderEvaluationData } from "@/components/WorkOrderEvaluation";
 
 interface WorkOrderDetailData {
   id: number;
@@ -51,7 +53,7 @@ const mockWorkOrderDetails: Record<number, WorkOrderDetailData> = {
     updatedDate: "Oct 2, 2025",
     age: "6 days 5 hours",
     priority: "High",
-    status: "In progress",
+    status: "Completed",
     billStatus: "Paid",
     billTotal: "$420",
     workOrderName: "Door Repair - Unit 101",
@@ -141,6 +143,19 @@ export default function WorkOrderDetail() {
   const workOrder = mockWorkOrderDetails[id] || mockWorkOrderDetails[1];
   const [tasksList, setTasksList] = useState<AssociatedTask[]>(mockAssociatedTasks[id] || []);
   const [ftosList, setFtosList] = useState<AssociatedFTO[]>(mockAssociatedFTOs[id] || []);
+  const [evaluation, setEvaluation] = useState<WorkOrderEvaluationData | undefined>(undefined);
+
+  // Fetch existing evaluation on mount
+  useEffect(() => {
+    if (!id) return;
+    fetchJSON(`/maintenance/work-orders/id/${id}/evaluation`)
+      .then((data: any) => {
+        if (data) {
+          setEvaluation({ rating: data.rating, notes: data.feedback ?? "", submittedAt: data.created_at });
+        }
+      })
+      .catch(() => {});
+  }, [id]);
 
   // Tasks table state management
   const [tasksCurrentPage, setTasksCurrentPage] = usePageState("tasksCurrentPage", 1);
@@ -513,6 +528,25 @@ export default function WorkOrderDetail() {
                   {workOrder.task} →
                 </button>
               </div>
+            )}
+
+            {/* Vendor Evaluation — only for completed work orders */}
+            {workOrder.status === "Completed" && (
+              <WorkOrderEvaluation
+                vendorName={workOrder.vendor}
+                existingEvaluation={evaluation}
+                onSubmit={async (data) => {
+                  try {
+                    await fetchJSON(`/maintenance/work-orders/id/${id}/evaluation`, {
+                      method: "POST",
+                      body: JSON.stringify({ rating: data.rating, feedback: data.notes || null }),
+                    });
+                    setEvaluation(data);
+                  } catch {
+                    // submission failed silently — UI stays in edit mode
+                  }
+                }}
+              />
             )}
           </div>
         )}

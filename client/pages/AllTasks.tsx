@@ -143,6 +143,7 @@ function transformApiTaskToUiTask(apiTask: ApiTask, sequentialNumber?: number): 
     due: formatDate(apiTask.due_date),
     updated: formatDate(apiTask.last_updated),
     age: getAge(apiTask.date_requested ?? apiTask.last_updated),
+    createdAt: apiTask.date_requested ?? apiTask.last_updated,
     requested_by: apiTask.requested_by ?? undefined,
     assignees: (apiTask.assignees || []).map((person) => ({
       id: person.id,
@@ -303,7 +304,8 @@ export default function AllTasks() {
 
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
     filteredTasks,
-    "allTasks",
+    "allTasksV2",
+    { initialSortBy: "createdAt", initialSortOrder: "desc" },
   );
   const {
     columnOrder,
@@ -338,8 +340,12 @@ export default function AllTasks() {
   const loadTasks = useCallback(async () => {
     try {
       const apiResponse: ApiTask[] = await fetchJSON("/maintenance/tasks");
-      // Sort tasks by ID (ascending)
-      const sortedTasks = [...apiResponse].sort((a, b) => a.id - b.id);
+      // Sort tasks by creation date (descending — newest first)
+      const sortedTasks = [...apiResponse].sort((a, b) => {
+        const aDate = new Date(a.date_requested ?? a.last_updated).getTime();
+        const bDate = new Date(b.date_requested ?? b.last_updated).getTime();
+        return bDate - aDate;
+      });
       setApiTasks(sortedTasks);
       // Assign sequential numbers only to active (non-completed) tasks
       const completedStatuses = ["completed", "closed", "cancelled"];

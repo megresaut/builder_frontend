@@ -49,7 +49,7 @@ export async function authFetch(path: string, options: RequestInit = {}): Promis
       res = await fetch(url, buildInit(newToken));
     } else {
       clearAuthState();
-      window.location.href = "/login";
+      window.dispatchEvent(new CustomEvent("auth:session-expired"));
       throw new Error("Session expired");
     }
   }
@@ -69,9 +69,9 @@ export async function fetchJSON(path: string, options: RequestInit = {}) {
       // Retry the original request with the new token
       res = await doFetch(path, options, newToken);
     } else {
-      // Refresh failed — clear auth state and redirect to login
+      // Refresh failed — clear auth state and signal the app to redirect
       clearAuthState();
-      window.location.href = "/login";
+      window.dispatchEvent(new CustomEvent("auth:session-expired"));
       throw new Error("Session expired");
     }
   }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 import { fetchJSON } from "@/api/fetchJSON";
@@ -78,6 +78,33 @@ interface VendorComplianceDoc {
   fileUrl?: string;
   uploadedBy: string;
   uploadedAt: string;
+}
+
+type VendorTab = "Overview" | "Performance";
+
+interface VendorPerformanceAPI {
+  work_orders_total: number;
+  work_orders_completed: number;
+  work_orders_in_progress: number;
+  work_orders_open: number;
+  avg_cost: number | null;
+  avg_completion_days: number | null;
+  avg_response_hours: number | null;
+  avg_rating: number | null;
+  total_ratings: number;
+  outstanding_compliance_docs: number;
+  required_compliance_docs: number;
+  recent_work_orders: {
+    id: number;
+    task_id: number;
+    name: string;
+    property_name: string | null;
+    status: string;
+    actual_cost: number | null;
+    completed_at: string | null;
+    created_at: string;
+    rating: number | null;
+  }[];
 }
 
 /**
@@ -574,6 +601,218 @@ async function mockDeleteVendorCustomField(
   }
 }
 
+// ============================================================================
+// KPI Sub-components
+// ============================================================================
+
+function KpiStatCard({ label, value, subtitle, accent }: {
+  label: string;
+  value: string | number;
+  subtitle?: string;
+  accent?: "green" | "blue" | "yellow" | "red" | "gray";
+}) {
+  const accentColors: Record<string, string> = {
+    green: "border-l-emerald-500",
+    blue: "border-l-blue-500",
+    yellow: "border-l-yellow-500",
+    red: "border-l-red-500",
+    gray: "border-l-gray-400",
+  };
+  return (
+    <div className={`bg-white rounded-lg border border-[#e5e5e5] border-l-4 ${accentColors[accent || "blue"]} p-5`}>
+      <div className="text-2xl font-semibold text-[#09090b]">{value}</div>
+      <div className="text-sm text-[#71717A] mt-1">{label}</div>
+      {subtitle && <div className="text-xs text-[#A1A1AA] mt-0.5">{subtitle}</div>}
+    </div>
+  );
+}
+
+function StarRating({ rating, max = 5 }: { rating: number | null; max?: number }) {
+  if (rating === null) {
+    return <span className="text-sm text-[#71717A]">No ratings yet</span>;
+  }
+  const filled = Math.round(rating);
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: max }, (_, i) => (
+        <svg key={i} width="18" height="18" viewBox="0 0 24 24" fill={i < filled ? "#f59e0b" : "none"} stroke={i < filled ? "#f59e0b" : "#d1d5db"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      ))}
+      <span className="text-sm text-[#71717A] ml-1.5">{rating.toFixed(1)} / {max}.0</span>
+    </div>
+  );
+}
+
+function WorkOrderStatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    completed: "bg-emerald-100 text-emerald-700",
+    in_progress: "bg-blue-100 text-blue-700",
+    cancelled: "bg-red-100 text-red-600",
+  };
+  const labels: Record<string, string> = {
+    completed: "Completed",
+    in_progress: "In Progress",
+    new: "Open",
+    sent: "Sent",
+    scheduled: "Scheduled",
+    cancelled: "Cancelled",
+  };
+  const style = styles[status] ?? "bg-gray-100 text-gray-600";
+  const label = labels[status] ?? status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style}`}>
+      {label}
+    </span>
+  );
+}
+
+
+function VendorPerformanceTab({ vendorId }: { vendorId: number }) {
+  const navigate = useNavigate();
+  const [perf, setPerf] = useState<VendorPerformanceAPI | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchJSON(`/vendors/performance/${vendorId}`)
+      .then(setPerf)
+      .catch(() => setPerf(null))
+      .finally(() => setLoading(false));
+  }, [vendorId]);
+
+  if (loading) {
+    return <div className="text-sm text-[#71717A] py-8 text-center">Loading performance data...</div>;
+  }
+  if (!perf) {
+    return <div className="text-sm text-[#71717A] py-8 text-center">Failed to load performance data.</div>;
+  }
+
+  const total = perf.work_orders_total || 1; // avoid divide-by-zero in progress bars
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiStatCard
+          label="Work Orders Completed"
+          value={perf.work_orders_completed}
+          subtitle={`${perf.work_orders_total} total`}
+          accent="green"
+        />
+        <KpiStatCard
+          label="Avg. Work Order Cost"
+          value={perf.avg_cost != null ? `$${perf.avg_cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+          accent="blue"
+        />
+        <KpiStatCard
+          label="Outstanding Compliance Docs"
+          value={perf.outstanding_compliance_docs}
+          subtitle={`of ${perf.required_compliance_docs} required`}
+          accent={perf.outstanding_compliance_docs > 0 ? "red" : "green"}
+        />
+        <KpiStatCard
+          label="Avg. Response Time"
+          value={perf.avg_response_hours != null ? `${Math.round(perf.avg_response_hours)}h` : "—"}
+          subtitle={perf.avg_completion_days != null ? `${perf.avg_completion_days.toFixed(1)} day avg. completion` : undefined}
+          accent="blue"
+        />
+      </div>
+
+      {/* Rating + Completion Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Vendor Rating */}
+        <SectionGroupCardTemplate>
+          <SectionRowTemplate isLast={true}>
+            <h2 className="text-[#303030] text-xl font-medium leading-[1.1] mb-3">Vendor Rating</h2>
+            <StarRating rating={perf.avg_rating} />
+            <p className="text-sm text-[#71717A] mt-2">
+              Based on {perf.total_ratings} completed work order evaluation{perf.total_ratings !== 1 ? "s" : ""}
+            </p>
+          </SectionRowTemplate>
+        </SectionGroupCardTemplate>
+
+        {/* Work Order Breakdown */}
+        <SectionGroupCardTemplate>
+          <SectionRowTemplate isLast={true}>
+            <h2 className="text-[#303030] text-xl font-medium leading-[1.1] mb-3">Work Order Breakdown</h2>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[#303030]">Completed</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${(perf.work_orders_completed / total) * 100}%` }} />
+                  </div>
+                  <span className="text-sm font-medium text-[#303030] w-8 text-right">{perf.work_orders_completed}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[#303030]">In Progress</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div className="h-full rounded-full bg-blue-500" style={{ width: `${(perf.work_orders_in_progress / total) * 100}%` }} />
+                  </div>
+                  <span className="text-sm font-medium text-[#303030] w-8 text-right">{perf.work_orders_in_progress}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[#303030]">Open</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div className="h-full rounded-full bg-gray-400" style={{ width: `${(perf.work_orders_open / total) * 100}%` }} />
+                  </div>
+                  <span className="text-sm font-medium text-[#303030] w-8 text-right">{perf.work_orders_open}</span>
+                </div>
+              </div>
+            </div>
+          </SectionRowTemplate>
+        </SectionGroupCardTemplate>
+      </div>
+
+      {/* Recent Work Orders Table */}
+      <SectionGroupCardTemplate>
+        <SectionRowTemplate isLast={true}>
+          <h2 className="text-[#303030] text-xl font-medium leading-[1.1] mb-3">Recent Work Orders</h2>
+          {perf.recent_work_orders.length === 0 ? (
+            <p className="text-sm text-[#71717A]">No work orders found for this vendor.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#e5e5e5]">
+                    <th className="text-left py-2 pr-4 font-medium text-[#71717A] text-xs uppercase tracking-wider">Work Order</th>
+                    <th className="text-left py-2 pr-4 font-medium text-[#71717A] text-xs uppercase tracking-wider">Property</th>
+                    <th className="text-left py-2 pr-4 font-medium text-[#71717A] text-xs uppercase tracking-wider">Status</th>
+                    <th className="text-right py-2 font-medium text-[#71717A] text-xs uppercase tracking-wider">Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {perf.recent_work_orders.map((wo) => (
+                    <tr
+                      key={wo.id}
+                      className="border-b border-[#f4f4f5] last:border-b-0 hover:bg-[#f9f9f9] cursor-pointer"
+                      onClick={() => navigate(`/tasks/${wo.task_id}/workorders/${wo.id}`)}
+                    >
+                      <td className="py-2.5 pr-4 text-[#303030] font-medium">{wo.name}</td>
+                      <td className="py-2.5 pr-4 text-[#71717A]">{wo.property_name ?? "—"}</td>
+                      <td className="py-2.5 pr-4"><WorkOrderStatusBadge status={wo.status} /></td>
+                      <td className="py-2.5 text-right text-[#303030]">
+                        {wo.actual_cost != null
+                          ? `$${wo.actual_cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionRowTemplate>
+      </SectionGroupCardTemplate>
+    </div>
+  );
+}
+
 export default function VendorDetail() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const id = Number(vendorId);
@@ -581,6 +820,8 @@ export default function VendorDetail() {
   const location = useLocation();
   const routeVendor = (location.state as any)?.vendor ?? null;
   const { setVendorDisplayName } = usePropertyBreadcrumb();
+
+  const [activeTab, setActiveTab] = useState<VendorTab>("Overview");
 
   // Mock data state for vendor detail
   const [vendor, setVendor] = useState<VendorDetail | null>(() => {
@@ -1014,8 +1255,8 @@ export default function VendorDetail() {
     setIsAddCustomFieldOpen(false);
   };
 
-  const handleTabClick = (_tab: string) => {
-    // reserved for future tab switching
+  const handleTabClick = (tab: VendorTab) => {
+    setActiveTab(tab);
   };
 
   if (!vendor) {
@@ -1079,14 +1320,26 @@ export default function VendorDetail() {
           />
 
           <div className="flex items-start gap-6 min-h-[36px] w-full border-b border-[#e5e5e5] font-['Geist',sans-serif] text-base text-[#717179] font-medium flex-nowrap overflow-x-auto">
-            <button
-              onClick={() => handleTabClick("Overview")}
-              className={`flex items-center gap-1.5 py-2 whitespace-nowrap border-b-2 border-[#09090b] text-[#09090b] transition-colors`}
-            >
-              Overview
-            </button>
+            {(["Overview", "Performance"] as VendorTab[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => handleTabClick(tab)}
+                className={`flex items-center gap-1.5 py-2 whitespace-nowrap border-b-2 transition-colors ${
+                  activeTab === tab
+                    ? "border-[#09090b] text-[#09090b]"
+                    : "border-transparent text-[#717179] hover:text-[#09090b]"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
 
+          {activeTab === "Performance" && (
+            <VendorPerformanceTab vendorId={id} />
+          )}
+
+          {activeTab === "Overview" && (
           <div className="flex items-start gap-6">
             <div className="flex-1 min-w-[240px] w-full">
               <SectionGroupCardTemplate>
@@ -1296,6 +1549,7 @@ export default function VendorDetail() {
               </SectionGroupCardTemplate>
             </div>
           </div>
+          )}
         </div>
       </PageTemplate>
 

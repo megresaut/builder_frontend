@@ -41,6 +41,20 @@ import TenantsList from "@/components/TenantsList";
 import OwnersList from "@/components/OwnersList";
 import { fetchTenantsByProperty } from "@/data/tenants";
 import type { Tenant } from "@/types/tenant";
+import { useAuth } from "@/auth/useAuth";
+import {
+  fetchUnitNotes,
+  createUnitNote,
+  updateUnitNote,
+  deleteUnitNote,
+} from "@/data/unitNotes";
+import {
+  fetchUnitFiles,
+  uploadUnitFile,
+  createUnitFileRecord,
+  updateUnitFile,
+  deleteUnitFile,
+} from "@/data/unitFiles";
 
 
 interface Unit {
@@ -56,84 +70,6 @@ interface UnitsListProps {
   propertyType: string;
   propertyUnits: number;
 }
-
-// Mock API response shape
-interface MockUnitApiResponse {
-  id: number;
-  property_id: number;
-  buildium_unit_id: number | null;
-  unit_name: string;
-  address_1: string | null;
-  owners: { name: string }[];
-  created_at: string;
-  updated_at: string;
-}
-
-// Mock API data (simulating GET /properties/{propertyId}/units)
-const MOCK_UNITS_API_DATA: Record<number, MockUnitApiResponse[]> = {
-  1: [
-    {
-      id: 1,
-      property_id: 1,
-      buildium_unit_id: 10001,
-      unit_name: "1A",
-      address_1: "113-115 Park Avenue, Suite 100",
-      owners: [
-        { name: "John Smith" },
-        { name: "Sarah Johnson" },
-      ],
-      created_at: "2024-01-15T08:00:00Z",
-      updated_at: "2024-01-15T08:00:00Z",
-    },
-    {
-      id: 2,
-      property_id: 1,
-      buildium_unit_id: 10002,
-      unit_name: "1B",
-      address_1: "113-115 Park Avenue, Suite 101",
-      owners: [
-        { name: "Michael Chen" },
-      ],
-      created_at: "2024-01-15T08:00:00Z",
-      updated_at: "2024-01-15T08:00:00Z",
-    },
-    {
-      id: 3,
-      property_id: 1,
-      buildium_unit_id: 10003,
-      unit_name: "2A",
-      address_1: "113-115 Park Avenue, Suite 200",
-      owners: [
-        { name: "Emily Rodriguez" },
-        { name: "David Harris" },
-      ],
-      created_at: "2024-01-15T08:00:00Z",
-      updated_at: "2024-01-15T08:00:00Z",
-    },
-    {
-      id: 4,
-      property_id: 1,
-      buildium_unit_id: 10004,
-      unit_name: "2B",
-      address_1: "113-115 Park Avenue, Suite 201",
-      owners: [],
-      created_at: "2024-01-15T08:00:00Z",
-      updated_at: "2024-01-15T08:00:00Z",
-    },
-    {
-      id: 5,
-      property_id: 1,
-      buildium_unit_id: 10005,
-      unit_name: "3A",
-      address_1: "113-115 Park Avenue, Suite 300",
-      owners: [
-        { name: "Jennifer Lee" },
-      ],
-      created_at: "2024-01-15T08:00:00Z",
-      updated_at: "2024-01-15T08:00:00Z",
-    },
-  ],
-};
 
 /**
  * Mock API: GET /properties/{propertyId}/units
@@ -239,50 +175,84 @@ export const UnitsList: React.FC<UnitsListProps> = ({
   const { state: unitState, dispatch: unitDispatch } =
     usePropertyDetailsState();
 
+  const { userId } = useAuth();
+  const [currentUserName, setCurrentUserName] = useState<string>("");
+
   useEffect(() => {
-    const initialNotes: RecentNote[] = [
-      {
-        id: 1,
-        text: "Tenant lease renewal coming up in 3 months",
-        type: "RENTAL",
-        date: "6/17/2024 10:32 AM",
-        author: "Johan Gonazlez",
-      },
-      {
-        id: 2,
-        text: "Scheduled maintenance for HVAC unit",
-        type: "RENTAL",
-        date: "6/12/2024 2:31 PM",
-        author: "Carteg Hughes",
-      },
-    ];
+    fetchJSON("/users/me")
+      .then((u: { name?: string | null; email?: string }) => {
+        setCurrentUserName(u.name || u.email || String(userId || ""));
+      })
+      .catch(() => {
+        setCurrentUserName(String(userId || ""));
+      });
+  }, [userId]);
 
-    const initialFiles: RecentFile[] = [
-      {
-        id: 1,
-        name: "Unit Lease Agreement.pdf",
-        category: "Lease Documents",
-        date: "6/3/2025 2:06 PM",
-        author: "Julia LoSchiavo",
-        type: "pdf",
-        icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true",
-        url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7",
-      },
-      {
-        id: 2,
-        name: "Unit Move-in Inspection.docx",
-        category: "Inspections",
-        date: "5/19/2024 3:55 PM",
-        author: "Carter Hughes",
-        type: "docx",
-        icon: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true",
-        url: "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0",
-      },
-    ];
+  useEffect(() => {
+    if (!selectedUnit) {
+      unitDispatch({ type: "SET_RECENT_NOTES", notes: [] });
+      unitDispatch({ type: "SET_RECENT_FILES", files: [] });
+      return;
+    }
 
-    unitDispatch({ type: "SET_RECENT_NOTES", notes: initialNotes });
-    unitDispatch({ type: "SET_RECENT_FILES", files: initialFiles });
-  }, [unitDispatch]);
+    const load = async () => {
+      try {
+        const [notes, files] = await Promise.all([
+          fetchUnitNotes(selectedUnit.propertyId, selectedUnit.id),
+          fetchUnitFiles(selectedUnit.propertyId, selectedUnit.id),
+        ]);
+
+        const dateOpts: Intl.DateTimeFormatOptions = {
+          month: "numeric",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        };
+
+        const docIcon =
+          "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+        const pdfIcon =
+          "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
+
+        unitDispatch({
+          type: "SET_RECENT_NOTES",
+          notes: notes.map((n) => ({
+            id: n.id,
+            text: n.text,
+            type: n.type,
+            date: new Date(n.created_at).toLocaleString(undefined, dateOpts),
+            author: n.author,
+          })),
+        });
+
+        unitDispatch({
+          type: "SET_RECENT_FILES",
+          files: files.map((f) => {
+            const ext = f.name.split(".").pop()?.toLowerCase() || "";
+            return {
+              id: f.id,
+              name: f.name,
+              category: f.category,
+              date: new Date(f.created_at).toLocaleString(undefined, dateOpts),
+              author: f.author,
+              type: ext || f.type,
+              icon: ext === "pdf" ? pdfIcon : docIcon,
+              url: f.url,
+              description: f.description,
+            };
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to load unit notes/files:", err);
+        unitDispatch({ type: "SET_RECENT_NOTES", notes: [] });
+        unitDispatch({ type: "SET_RECENT_FILES", files: [] });
+      }
+    };
+
+    load();
+  }, [selectedUnit?.id]);
+
 
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
     unitsList,
@@ -535,7 +505,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
               </SectionRowTemplate>
 
               <SectionRowTemplate isLast={false}>
-                <OwnersList />
+                <OwnersList unitId={selectedUnit.id} propertyId={selectedUnit.propertyId} />
               </SectionRowTemplate>
 
               <SectionRowTemplate isLast={false}>
@@ -549,10 +519,17 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                 notes={unitState.lists.recentNotes}
                 onAdd={openAddNoteModal}
                 onEdit={openViewNoteModal}
-                onDelete={(noteId) => {
+                onDelete={async (noteId) => {
                   closeTableOverlays();
                   closeUnitFormModal();
                   closeViewNoteModal();
+                  if (selectedUnit) {
+                    try {
+                      await deleteUnitNote(selectedUnit.propertyId, selectedUnit.id, noteId);
+                    } catch (err) {
+                      console.error("Failed to delete note:", err);
+                    }
+                  }
                   unitDispatch({ type: "DELETE_NOTE", noteId });
                 }}
                 isLast={false}
@@ -563,7 +540,7 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                 files={unitState.lists.recentFiles}
                 onAdd={openAddFileModal}
                 onEdit={(file) => openEditFileModal(file.id)}
-                onDelete={(fileId) => {
+                onDelete={async (fileId) => {
                   closeTableOverlays();
                   closeUnitFormModal();
                   closeViewNoteModal();
@@ -571,6 +548,13 @@ export const UnitsList: React.FC<UnitsListProps> = ({
                     (f) => f.id === fileId,
                   );
                   revokeBlobUrl(fileToDelete?.url);
+                  if (selectedUnit) {
+                    try {
+                      await deleteUnitFile(selectedUnit.propertyId, selectedUnit.id, fileId);
+                    } catch (err) {
+                      console.error("Failed to delete file:", err);
+                    }
+                  }
                   unitDispatch({ type: "DELETE_FILE", fileId });
                 }}
                 onView={(file) => openViewFileModal(file.id)}
@@ -717,9 +701,9 @@ export const UnitsList: React.FC<UnitsListProps> = ({
               title="Units"
               showColumnModal={columnManagement.showColumnModal}
               onShowColumnModalChange={columnManagement.setShowColumnModal}
-              // onRowClick={(unit: Unit) => {
-              //   selectUnit(unit);
-              // }}
+              onRowClick={(unit: Unit) => {
+                selectUnit(unit);
+              }}
               headerActions={
                 <button
                   ref={columnManagement.columnButtonRef}
@@ -770,38 +754,56 @@ export const UnitsList: React.FC<UnitsListProps> = ({
         }}
         isEditMode={unitState.activeModal === "editNote"}
         initialText={selectedNote?.text || ""}
-        onSubmit={(noteText) => {
-          const now = new Date();
-          const date = now.toLocaleString(undefined, {
+        onSubmit={async (noteText) => {
+          const dateOpts: Intl.DateTimeFormatOptions = {
             month: "numeric",
             day: "numeric",
             year: "numeric",
             hour: "numeric",
             minute: "2-digit",
-          });
+          };
 
-          if (unitState.activeModal === "editNote" && selectedNote) {
+          if (unitState.activeModal === "editNote" && selectedNote && selectedUnit) {
+            try {
+              await updateUnitNote(
+                selectedUnit.propertyId,
+                selectedUnit.id,
+                selectedNote.id,
+                { text: noteText },
+              );
+            } catch (err) {
+              console.error("Failed to update note:", err);
+            }
             unitDispatch({
               type: "UPDATE_NOTE",
               noteId: selectedNote.id,
               text: noteText,
-              date,
+              date: new Date().toLocaleString(undefined, dateOpts),
             });
-          } else {
-            const nextId = unitState.lists.recentNotes.length
-              ? Math.max(...unitState.lists.recentNotes.map((n) => n.id)) + 1
-              : 1;
-
-            unitDispatch({
-              type: "ADD_NOTE",
-              note: {
-                id: nextId,
-                text: noteText,
-                type: "RENTAL",
-                date,
-                author: "Current User",
-              },
-            });
+          } else if (selectedUnit) {
+            try {
+              const saved = await createUnitNote(
+                selectedUnit.propertyId,
+                selectedUnit.id,
+                {
+                  text: noteText,
+                  type: "RENTAL",
+                  author: currentUserName,
+                },
+              );
+              unitDispatch({
+                type: "ADD_NOTE",
+                note: {
+                  id: saved.id,
+                  text: saved.text,
+                  type: saved.type,
+                  date: new Date(saved.created_at).toLocaleString(undefined, dateOpts),
+                  author: saved.author,
+                },
+              });
+            } catch (err) {
+              console.error("Failed to create note:", err);
+            }
           }
           unitDispatch({ type: "CLOSE_MODAL" });
         }}
@@ -883,51 +885,73 @@ export const UnitsList: React.FC<UnitsListProps> = ({
             : ""
         }
         acceptedFormats=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
-        onSubmit={(uploadedFiles, category, description) => {
-          if (unitState.activeModal === "editFile" && selectedFile) {
+        onSubmit={async (uploadedFiles, category, description) => {
+          const dateOpts: Intl.DateTimeFormatOptions = {
+            month: "numeric",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          };
+          const docIcon =
+            "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
+          const pdfIcon =
+            "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
+
+          if (unitState.activeModal === "editFile" && selectedFile && selectedUnit) {
+            try {
+              await updateUnitFile(
+                selectedUnit.propertyId,
+                selectedUnit.id,
+                selectedFile.id,
+                { category, description },
+              );
+            } catch (err) {
+              console.error("Failed to update file:", err);
+            }
             unitDispatch({
               type: "UPDATE_FILE",
               fileId: selectedFile.id,
               category,
               description,
             });
-          } else {
-            const blobUrl = URL.createObjectURL(uploadedFiles[0].file!);
-            const now = new Date();
-            const date = now.toLocaleString(undefined, {
-              month: "numeric",
-              day: "numeric",
-              year: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            });
-
-            const fileName = uploadedFiles[0].name;
-            const ext = fileName.split(".").pop()?.toLowerCase() || "";
-            const docIcon =
-              "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/07da6a33a78bd70b7170adaa97b3fb7b14ff2fc0?placeholderIfAbsent=true";
-            const pdfIcon =
-              "https://api.builder.io/api/v1/image/assets/ba2f0cd1a4c64ebda0865daf8dd0ff2a/5ef69f3c3e2f3e3b15cc6139a16a94f848b10be7?placeholderIfAbsent=true";
-            const icon = ext === "doc" || ext === "docx" ? docIcon : pdfIcon;
-
-            const nextId = unitState.lists.recentFiles.length
-              ? Math.max(...unitState.lists.recentFiles.map((f) => f.id)) + 1
-              : 1;
-
-            unitDispatch({
-              type: "ADD_FILE",
-              file: {
-                id: nextId,
-                name: fileName,
-                category,
-                date,
-                author: "Current User",
-                type: ext || "file",
-                icon,
-                url: blobUrl,
-                description,
-              },
-            });
+          } else if (selectedUnit && uploadedFiles[0]?.file) {
+            try {
+              const { object_key, file_name, file_type } = await uploadUnitFile(
+                selectedUnit.propertyId,
+                selectedUnit.id,
+                uploadedFiles[0].file,
+              );
+              const ext = file_name.split(".").pop()?.toLowerCase() || "";
+              const saved = await createUnitFileRecord(
+                selectedUnit.propertyId,
+                selectedUnit.id,
+                {
+                  name: file_name,
+                  type: file_type,
+                  category,
+                  description: description || "",
+                  object_key,
+                  author: currentUserName,
+                },
+              );
+              unitDispatch({
+                type: "ADD_FILE",
+                file: {
+                  id: saved.id,
+                  name: saved.name,
+                  category: saved.category,
+                  date: new Date(saved.created_at).toLocaleString(undefined, dateOpts),
+                  author: saved.author,
+                  type: ext || saved.type,
+                  icon: ext === "pdf" ? pdfIcon : docIcon,
+                  url: saved.url,
+                  description: saved.description,
+                },
+              });
+            } catch (err) {
+              console.error("Failed to upload file:", err);
+            }
           }
           unitDispatch({ type: "CLOSE_MODAL" });
         }}

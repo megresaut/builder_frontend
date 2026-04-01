@@ -3,7 +3,8 @@ import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { FileUploadField } from "@/components/forms/FileUploadField";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
-import { createTenant, updateTenant } from "@/data/tenants";
+import { createTenant, updateTenant, uploadTenantDocument, createTenantDocument } from "@/data/tenants";
+import { createRentersInsurance } from "@/data/insurance";
 import type { Tenant } from "@/types/tenant";
 import { toast } from "sonner";
 
@@ -112,8 +113,9 @@ export default function AddTenantModal({
       const rentCents = rentDollars ? Math.round(parseFloat(rentDollars) * 100) : undefined;
       const depositCents = depositDollars ? Math.round(parseFloat(depositDollars) * 100) : undefined;
 
+      let savedTenant: Tenant;
       if (isEdit && editData) {
-        await updateTenant({
+        savedTenant = await updateTenant({
           id: editData.id,
           first_name: firstName,
           last_name: lastName,
@@ -133,7 +135,7 @@ export default function AddTenantModal({
         });
         toast.success("Tenant updated");
       } else {
-        await createTenant({
+        savedTenant = await createTenant({
           unit_id: unitId,
           property_id: propertyId,
           first_name: firstName,
@@ -155,14 +157,46 @@ export default function AddTenantModal({
         toast.success("Tenant added");
       }
 
-      // TODO: Upload lease documents via tenant documents API
-      if (leaseFiles.length > 0) {
-        toast.success(`${leaseFiles.length} lease document(s) attached`);
+      // Upload lease documents (2-step: upload file → create document record)
+      for (const f of leaseFiles) {
+        if (!f.file) continue;
+        try {
+          const { object_key, mime } = await uploadTenantDocument(f.file);
+          await createTenantDocument({
+            tenant_id: savedTenant.id,
+            document_type: "lease",
+            document_label: f.file.name,
+            document_object_key: object_key,
+            document_mime: mime,
+          });
+        } catch {
+          toast.error(`Failed to upload ${f.file.name}`);
+        }
       }
 
-      // TODO: Create renters insurance record via insurance API
-      if (insuranceFiles.length > 0 || insCarrier) {
-        toast.success("Renters insurance info saved");
+      // Create renters insurance record if carrier and dates are provided
+      if (insCarrier && insEffective && insExpiration) {
+        try {
+          await createRentersInsurance({
+            unit_id: unitId,
+            property_id: propertyId,
+            tenant_id: savedTenant.id,
+            tenant_name: `${firstName.trim()} ${lastName.trim()}`,
+            carrier_name: insCarrier,
+            policy_number: insPolicyNumber,
+            effective_date: insEffective,
+            expiration_date: insExpiration,
+            status: "active",
+            document_object_key: "",
+            document_mime: "",
+            coi_object_key: "",
+            coi_mime: "",
+            notes: "",
+          });
+          toast.success("Renters insurance saved");
+        } catch {
+          toast.error("Failed to save renters insurance");
+        }
       }
 
       onSaved();
