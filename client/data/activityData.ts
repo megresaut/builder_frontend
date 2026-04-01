@@ -25,6 +25,7 @@ export interface ActivityEvent {
   property_address?: string;
   entity_type: string;
   entity_id: number;
+  parent_id?: number;
   occurred_at: string;
 }
 

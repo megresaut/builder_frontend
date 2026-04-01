@@ -17,17 +17,21 @@ export interface CalendarNotification {
 export async function fetchNotifications(
   userId: number,
   limit = 20,
+  types?: string[],
 ): Promise<CalendarNotification[]> {
-  const data = await fetchJSON(
-    `/operations/notifications?user_id=${userId}&limit=${limit}`,
-  );
+  let url = `/operations/notifications?user_id=${userId}&limit=${limit}`;
+  if (types && types.length > 0) url += `&types=${types.join(",")}`;
+  const data = await fetchJSON(url);
   return data ?? [];
 }
 
-export async function fetchUnreadCount(userId: number): Promise<number> {
-  const data = await fetchJSON(
-    `/operations/notifications/unread-count?user_id=${userId}`,
-  );
+export async function fetchUnreadCount(
+  userId: number,
+  types?: string[],
+): Promise<number> {
+  let url = `/operations/notifications/unread-count?user_id=${userId}`;
+  if (types && types.length > 0) url += `&types=${types.join(",")}`;
+  const data = await fetchJSON(url);
   return data?.count ?? 0;
 }
 

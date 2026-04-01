@@ -16,6 +16,79 @@ import {
 } from "@/data/notifications";
 
 // ---------------------------------------------------------------------------
+// Mode config
+// ---------------------------------------------------------------------------
+
+export type NotificationMode = "reminders" | "activity";
+
+const MODE_CONFIG: Record<
+  NotificationMode,
+  {
+    title: string;
+    types: string[];
+    icon: React.ReactNode;
+    emptyText: string;
+  }
+> = {
+  reminders: {
+    title: "Reminders",
+    types: [
+      "deadline_1day",
+      "deadline_1hour",
+      "overdue_warning",
+      "conflict_detected",
+    ],
+    emptyText: "No upcoming reminders",
+    icon: (
+      // Calendar icon
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="text-gray-700"
+      >
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+    ),
+  },
+  activity: {
+    title: "Activity",
+    types: [
+      "task_closed",
+      "work_order_completed",
+      "fto_completed",
+      "fto_submitted",
+      "schedule_overload",
+    ],
+    emptyText: "No recent activity",
+    icon: (
+      // Heartbeat / activity monitor icon
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="text-gray-700"
+      >
+        <polyline points="2,12 6,12 8,6 10,18 13,9 15,13 17,12 22,12" />
+      </svg>
+    ),
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -46,7 +119,10 @@ const SEVERITY_BAR: Record<string, string> = {
   info: "bg-blue-400",
 };
 
-const SEVERITY_BADGE: Record<string, { bg: string; text: string; label: string }> = {
+const SEVERITY_BADGE: Record<
+  string,
+  { bg: string; text: string; label: string }
+> = {
   critical: { bg: "bg-red-100", text: "text-red-700", label: "Critical" },
   warning: { bg: "bg-amber-100", text: "text-amber-700", label: "Warning" },
   info: { bg: "bg-blue-100", text: "text-blue-700", label: "Info" },
@@ -75,36 +151,41 @@ const ENTITY_LABELS: Record<string, string> = {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  mode?: NotificationMode;
+}
+
+export default function NotificationBell({
+  mode = "reminders",
+}: NotificationBellProps) {
   const navigate = useNavigate();
+  const cfg = MODE_CONFIG[mode];
+
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [notifications, setNotifications] = useState<CalendarNotification[]>([]);
+  const [notifications, setNotifications] = useState<CalendarNotification[]>(
+    [],
+  );
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<CalendarNotification | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const prevUnreadRef = useRef(0);
 
   const userId = useMemo(() => {
     const raw = localStorage.getItem("avm_user_id");
     return raw ? Number(raw) : 0;
   }, []);
 
-  // ---- Fetch unread count ----
+  // ---- Poll unread count ----
   const loadUnreadCount = useCallback(async () => {
     if (!userId) return;
     try {
-      const count = await fetchUnreadCount(userId);
-      if (count > prevUnreadRef.current && !open) {
-        // new notifications arrived
-      }
-      prevUnreadRef.current = count;
+      const count = await fetchUnreadCount(userId, cfg.types);
       setUnreadCount(count);
     } catch {
       // silently ignore polling errors
     }
-  }, [userId, open]);
+  }, [userId, cfg.types]);
 
   useEffect(() => {
     loadUnreadCount();
@@ -117,18 +198,20 @@ export default function NotificationBell() {
     if (!userId) return;
     try {
       setLoading(true);
-      const data = await fetchNotifications(userId, 15);
+      const data = await fetchNotifications(userId, 15, cfg.types);
       setNotifications(data);
 
-      const criticals = data.filter(
-        (n) =>
-          n.severity === "critical" &&
-          !n.read_by_user_ids.includes(userId) &&
-          !n.dismissed,
-      );
-      if (criticals.length > 0 && !open) {
-        for (const c of criticals.slice(0, 2)) {
-          toast.error(c.title, { description: c.message });
+      if (mode === "reminders") {
+        const criticals = data.filter(
+          (n) =>
+            n.severity === "critical" &&
+            !n.read_by_user_ids.includes(userId) &&
+            !n.dismissed,
+        );
+        if (criticals.length > 0 && !open) {
+          for (const c of criticals.slice(0, 2)) {
+            toast.error(c.title, { description: c.message });
+          }
         }
       }
     } catch {
@@ -136,7 +219,7 @@ export default function NotificationBell() {
     } finally {
       setLoading(false);
     }
-  }, [userId, open]);
+  }, [userId, cfg.types, mode, open]);
 
   useEffect(() => {
     if (open) loadNotifications();
@@ -156,7 +239,6 @@ export default function NotificationBell() {
         setOpen(false);
       }
     };
-
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
@@ -222,7 +304,7 @@ export default function NotificationBell() {
       if (!isRead(n)) handleMarkRead(n.id);
       setSelected(n);
     },
-    [handleMarkRead, userId],
+    [handleMarkRead],
   );
 
   const isRead = (n: CalendarNotification) =>
@@ -230,35 +312,20 @@ export default function NotificationBell() {
 
   return (
     <div className="relative">
-      {/* Bell button */}
+      {/* Icon button */}
       <button
         ref={buttonRef}
         onClick={() => setOpen((v) => !v)}
         title={
           unreadCount > 0
-            ? `${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}`
-            : "Calendar Notifications"
+            ? `${unreadCount} unread ${cfg.title.toLowerCase()}`
+            : cfg.title
         }
         className={`p-2 hover:bg-gray-100 rounded-lg border transition-colors flex-shrink-0 relative ${
           open ? "border-[#2463eb] bg-blue-50" : "border-gray-300"
         }`}
       >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-gray-700"
-        >
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-          <line x1="16" y1="2" x2="16" y2="6" />
-          <line x1="8" y1="2" x2="8" y2="6" />
-          <line x1="3" y1="10" x2="21" y2="10" />
-        </svg>
+        {cfg.icon}
         {unreadCount > 0 && (
           <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -277,20 +344,57 @@ export default function NotificationBell() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-gray-900">
-                Calendar Notifications
+                {cfg.title}
               </h3>
-              <button
-                onClick={() => { setOpen(false); navigate("/operations"); }}
-                title="Go to Calendar"
-                className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </button>
+              {mode === "reminders" && (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    navigate("/operations");
+                  }}
+                  title="Go to Reminders"
+                  className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                </button>
+              )}
+              {mode === "activity" && (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    navigate("/activity-feed");
+                  }}
+                  title="Go to Activity"
+                  className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="2,12 6,12 8,6 10,18 13,9 15,13 17,12 22,12" />
+                  </svg>
+                </button>
+              )}
             </div>
             {notifications.some((n) => !isRead(n)) && (
               <button
@@ -319,18 +423,28 @@ export default function NotificationBell() {
                   fill="none"
                   className="text-gray-300 mb-3"
                 >
-                  <path
-                    d="M10.268 21a2 2 0 0 0 3.464 0"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
+                  {mode === "reminders" ? (
+                    <>
+                      <path
+                        d="M10.268 21a2 2 0 0 0 3.464 0"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      />
+                    </>
+                  ) : (
+                    <polyline
+                      points="2,12 6,12 8,6 10,18 13,9 15,13 17,12 22,12"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
+                  )}
                 </svg>
-                <p className="text-sm text-gray-500">No notifications</p>
+                <p className="text-sm text-gray-500">{cfg.emptyText}</p>
               </div>
             )}
 
@@ -394,97 +508,117 @@ export default function NotificationBell() {
       )}
 
       {/* ---- Detail Modal ---- */}
-      <Dialog open={!!selected} onOpenChange={(v) => { if (!v) setSelected(null); }}>
+      <Dialog
+        open={!!selected}
+        onOpenChange={(v) => {
+          if (!v) setSelected(null);
+        }}
+      >
         <DialogContent className="bg-white rounded-lg w-full max-w-md p-0 overflow-hidden">
           {selected && (
             <>
               {/* Severity banner */}
-              <div className={`h-1.5 w-full ${SEVERITY_BAR[selected.severity] ?? "bg-gray-300"}`} />
+              <div
+                className={`h-1.5 w-full ${SEVERITY_BAR[selected.severity] ?? "bg-gray-300"}`}
+              />
 
               <div className="px-5 pt-4 pb-5">
-                {/* Header row: badge + type */}
+                {/* Header row */}
                 <div className="flex items-center gap-2 mb-3">
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                       SEVERITY_BADGE[selected.severity]?.bg ?? "bg-gray-100"
                     } ${SEVERITY_BADGE[selected.severity]?.text ?? "text-gray-600"}`}
                   >
-                    {SEVERITY_BADGE[selected.severity]?.label ?? selected.severity}
+                    {SEVERITY_BADGE[selected.severity]?.label ??
+                      selected.severity}
                   </span>
                   <span className="text-xs text-gray-400">
-                    {TYPE_LABELS[selected.notification_type] ?? selected.notification_type}
+                    {TYPE_LABELS[selected.notification_type] ??
+                      selected.notification_type}
                   </span>
                 </div>
 
-                {/* Title */}
                 <DialogTitle className="text-base font-semibold text-gray-900 mb-2">
                   {selected.title}
                 </DialogTitle>
 
-                {/* Message */}
                 <p className="text-sm text-gray-600 leading-relaxed mb-4">
                   {selected.message}
                 </p>
 
-                {/* Metadata details */}
-                {selected.metadata && Object.keys(selected.metadata).length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                      Details
-                    </p>
-                    <div className="space-y-1.5">
-                      {selected.metadata.entity_type && selected.metadata.entity_id && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Related entity</span>
-                          <span className="text-xs font-medium text-gray-700">
-                            {ENTITY_LABELS[selected.metadata.entity_type] ?? selected.metadata.entity_type}{" "}
-                            #{selected.metadata.entity_id}
-                          </span>
-                        </div>
-                      )}
-                      {selected.metadata.submission_id && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Submission</span>
-                          <span className="text-xs font-medium text-gray-700">
-                            #{selected.metadata.submission_id}
-                          </span>
-                        </div>
-                      )}
-                      {selected.metadata.user_id && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Affected user</span>
-                          <span className="text-xs font-medium text-gray-700">
-                            User #{selected.metadata.user_id}
-                          </span>
-                        </div>
-                      )}
-                      {selected.metadata.conflict_event_id && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Conflicting event</span>
-                          <span className="text-xs font-medium text-gray-700">
-                            #{selected.metadata.conflict_event_id}
-                          </span>
-                        </div>
-                      )}
-                      {selected.metadata.date && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Date</span>
-                          <span className="text-xs font-medium text-gray-700">
-                            {selected.metadata.date}
-                          </span>
-                        </div>
-                      )}
-                      {selected.metadata.count && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Items scheduled</span>
-                          <span className="text-xs font-medium text-gray-700">
-                            {selected.metadata.count}
-                          </span>
-                        </div>
-                      )}
+                {/* Metadata */}
+                {selected.metadata &&
+                  Object.keys(selected.metadata).length > 0 && (
+                    <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                        Details
+                      </p>
+                      <div className="space-y-1.5">
+                        {selected.metadata.entity_type &&
+                          selected.metadata.entity_id && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">
+                                Related entity
+                              </span>
+                              <span className="text-xs font-medium text-gray-700">
+                                {ENTITY_LABELS[selected.metadata.entity_type] ??
+                                  selected.metadata.entity_type}{" "}
+                                #{selected.metadata.entity_id}
+                              </span>
+                            </div>
+                          )}
+                        {selected.metadata.submission_id && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">
+                              Submission
+                            </span>
+                            <span className="text-xs font-medium text-gray-700">
+                              #{selected.metadata.submission_id}
+                            </span>
+                          </div>
+                        )}
+                        {selected.metadata.user_id && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">
+                              Affected user
+                            </span>
+                            <span className="text-xs font-medium text-gray-700">
+                              User #{selected.metadata.user_id}
+                            </span>
+                          </div>
+                        )}
+                        {selected.metadata.conflict_event_id && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">
+                              Conflicting event
+                            </span>
+                            <span className="text-xs font-medium text-gray-700">
+                              #{selected.metadata.conflict_event_id}
+                            </span>
+                          </div>
+                        )}
+                        {selected.metadata.date && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Date</span>
+                            <span className="text-xs font-medium text-gray-700">
+                              {selected.metadata.date}
+                            </span>
+                          </div>
+                        )}
+                        {selected.metadata.count && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">
+                              Items scheduled
+                            </span>
+                            <span className="text-xs font-medium text-gray-700">
+                              {selected.metadata.count}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Timestamps */}
                 <div className="flex items-center justify-between text-[11px] text-gray-400 mb-4">
@@ -500,7 +634,13 @@ export default function NotificationBell() {
                     <button
                       onClick={() => {
                         handleMarkRead(selected.id);
-                        setSelected({ ...selected, read_by_user_ids: [...selected.read_by_user_ids, userId] });
+                        setSelected({
+                          ...selected,
+                          read_by_user_ids: [
+                            ...selected.read_by_user_ids,
+                            userId,
+                          ],
+                        });
                       }}
                       className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                     >

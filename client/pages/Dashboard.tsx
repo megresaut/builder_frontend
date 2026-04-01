@@ -75,6 +75,29 @@ function getCardSize(id: CardId, sizes: Partial<Record<CardId, CardSize>>): Card
   return sizes[id] ?? CARD_REGISTRY[id].defaultSize;
 }
 
+// Computes the visual 2-column grid positions of each card so arrow-key movement
+// can find true left/right/up/down neighbours.
+function computeGridLayout(list: CardId[], sizes: Partial<Record<CardId, CardSize>>) {
+  let row = 0, col = 0;
+  const positions = new Map<CardId, { row: number; col: number }>();
+  const grid      = new Map<string, CardId>(); // "row,col" → id
+  for (const id of list) {
+    const size = getCardSize(id, sizes);
+    if (size === "full") {
+      if (col > 0) { row++; col = 0; }
+      positions.set(id, { row, col: 0 });
+      grid.set(`${row},0`, id);
+      grid.set(`${row},1`, id);
+      row++; col = 0;
+    } else {
+      positions.set(id, { row, col });
+      grid.set(`${row},${col}`, id);
+      if (++col >= 2) { col = 0; row++; }
+    }
+  }
+  return { positions, grid };
+}
+
 function relativeTime(ts: number): string {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60000);
@@ -301,6 +324,7 @@ interface CardShellProps {
   size: CardSize;
   isCustomizing: boolean;
   isSelected: boolean;
+  isDragging: boolean;
   isDragOver: boolean;
   onSelect: () => void;
   onDragStart: () => void;
@@ -314,11 +338,11 @@ interface CardShellProps {
   children: React.ReactNode;
 }
 
-function CardShell({ id, size, isCustomizing, isSelected, isDragOver, onSelect, onDragStart, onDragEnter, onDragLeave, onDragOver, onDrop, onDragEnd, onRemove, onToggleSize, children }: CardShellProps) {
+function CardShell({ id, size, isCustomizing, isSelected, isDragging, isDragOver, onSelect, onDragStart, onDragEnter, onDragLeave, onDragOver, onDrop, onDragEnd, onRemove, onToggleSize, children }: CardShellProps) {
   return (
     <div
-      className={`${size === "full" ? "col-span-2" : "col-span-1"} flex flex-col transition-all duration-150 ${
-        isDragOver && isCustomizing && !isSelected ? "opacity-40 scale-[0.97]" : ""
+      className={`${size === "full" ? "col-span-2" : "col-span-1"} flex flex-col ${
+        isCustomizing && isDragging && isSelected ? "opacity-50" : ""
       }`}
       draggable={isCustomizing && isSelected}
       onClick={isCustomizing ? (e) => { e.stopPropagation(); onSelect(); } : undefined}
@@ -361,9 +385,11 @@ function CardShell({ id, size, isCustomizing, isSelected, isDragOver, onSelect, 
           </div>
         </div>
       )}
-      <div className={`flex-1 min-h-0 rounded-xl transition-all duration-150 ${
+      <div className={`flex-1 min-h-0 rounded-xl transition-shadow duration-100 ${
         isCustomizing && isSelected
           ? "ring-2 ring-blue-500 ring-offset-2 cursor-grab shadow-lg"
+          : isCustomizing && isDragOver
+          ? "ring-2 ring-blue-300 ring-offset-1 bg-blue-50/40"
           : isCustomizing
           ? "ring-1 ring-gray-200 cursor-pointer hover:ring-2 hover:ring-gray-300"
           : ""
@@ -397,16 +423,26 @@ function RecentActivityCard() {
       case "task":
         navigate(`/tasks/${item.entity_id}`); break;
       case "work_order":
-        navigate(`/work-orders`); break;
+        if (item.parent_id) {
+          navigate(`/tasks/${item.parent_id}/workorders/${item.entity_id}`);
+        } else {
+          navigate(`/work-orders`);
+        }
+        break;
       case "fto":
-        navigate(`/field-team-orders`); break;
+        navigate(`/field-team-orders/approve/${item.entity_id}`); break;
       case "inspection":
         if (item.property_id) {
           navigate(`/property/${item.property_id}/Inspections?inspectionId=${item.entity_id}`);
         }
         break;
       case "tenant":
-        navigate(`/properties`); break;
+        if (item.property_id) {
+          navigate(`/property/${item.property_id}/Units`);
+        } else {
+          navigate(`/properties`);
+        }
+        break;
       case "invoice":
         navigate(`/invoicing`); break;
       case "insurance_policy":
@@ -1231,7 +1267,8 @@ export default function Dashboard() {
 
   const dragCard     = useRef<CardId | null>(null);
   const dragOverCard = useRef<CardId | null>(null);
-  const [dragOverId, setDragOverId] = useState<CardId | null>(null);
+  const [dragOverId,  setDragOverId]  = useState<CardId | null>(null);
+  const [isDragging,  setIsDragging]  = useState(false);
   const scrollRAF    = useRef<number | null>(null);
   const scrollDir    = useRef<number>(0);
 
@@ -1301,7 +1338,7 @@ export default function Dashboard() {
   }
 
   // DnD — event handlers
-  function handleDragStart(id: CardId) { dragCard.current = id; }
+  function handleDragStart(id: CardId) { dragCard.current = id; setIsDragging(true); }
 
   function handleDragEnter(id: CardId, e: React.DragEvent) {
     // Ignore if event originates from a child of this element (bubbling)
@@ -1334,15 +1371,55 @@ export default function Dashboard() {
     list.splice(from, 1);
     list.splice(to, 0, dragCard.current!);
     setTempOrder(list);
-    dragCard.current = dragOverCard.current = null; setDragOverId(null);
+    dragCard.current = dragOverCard.current = null; setDragOverId(null); setIsDragging(false);
     setSelectedCard(null);
   }
 
   function handleDragEnd() {
     stopScroll();
-    dragCard.current = dragOverCard.current = null; setDragOverId(null);
+    dragCard.current = dragOverCard.current = null; setDragOverId(null); setIsDragging(false);
     setSelectedCard(null);
   }
+
+  // Arrow-key reordering when a card is selected in customize mode
+  useEffect(() => {
+    if (!isCustomizing || !selectedCard) return;
+    function onKeyDown(e: KeyboardEvent) {
+      const dirMap: Record<string, string> = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
+      const dir = dirMap[e.key];
+      if (!dir) return;
+      e.preventDefault();
+
+      setTempOrder(prev => {
+        const list = [...prev];
+        const idx  = list.indexOf(selectedCard!);
+        if (idx < 0) return prev;
+        const cardSize = getCardSize(selectedCard!, tempSizes);
+
+        if (dir === "up") {
+          if (idx === 0) return prev;
+          [list[idx - 1], list[idx]] = [list[idx], list[idx - 1]];
+        } else if (dir === "down") {
+          if (idx === list.length - 1) return prev;
+          [list[idx], list[idx + 1]] = [list[idx + 1], list[idx]];
+        } else {
+          // left / right — half cards only
+          if (cardSize === "full") return prev;
+          const { positions, grid } = computeGridLayout(list, tempSizes);
+          const pos = positions.get(selectedCard!);
+          if (!pos) return prev;
+          const neighborKey = dir === "left" ? `${pos.row},${pos.col - 1}` : `${pos.row},${pos.col + 1}`;
+          const neighborId  = grid.get(neighborKey);
+          if (!neighborId || neighborId === selectedCard) return prev;
+          const ni = list.indexOf(neighborId);
+          [list[idx], list[ni]] = [list[ni], list[idx]];
+        }
+        return list;
+      });
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isCustomizing, selectedCard, tempSizes]);
 
   const activeOrder   = isCustomizing ? tempOrder   : cardOrder;
   const activeEnabled = isCustomizing ? tempEnabled : enabledCards;
@@ -1357,7 +1434,7 @@ export default function Dashboard() {
           <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-gray-900">Customize dashboard</p>
-              <p className="text-xs text-gray-500">Click a card to select it, then drag to reorder. Use ½ / Full to resize. Click ✕ to remove.</p>
+              <p className="text-xs text-gray-500">Click a card to select it, then drag or use arrow keys to reorder. Use ½ / Full to resize. Click ✕ to remove.</p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <button onClick={() => setShowAddRemove(true)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium">
@@ -1416,6 +1493,7 @@ export default function Dashboard() {
                 size={getCardSize(id, activeSizes)}
                 isCustomizing={isCustomizing}
                 isSelected={selectedCard === id}
+                isDragging={isDragging}
                 isDragOver={dragOverId === id}
                 onSelect={() => setSelectedCard(prev => prev === id ? null : id)}
                 onDragStart={() => handleDragStart(id)}

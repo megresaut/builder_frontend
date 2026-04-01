@@ -2295,7 +2295,7 @@ export default function TaskSummary() {
         if (isCancelled) return;
         
         // Map API response to LinkedTaskData format
-        const mappedLinkedTasks: LinkedTaskData[] = linkedTasks.map((task: any) => {
+        const mappedLinkedTasks: LinkedTaskData[] = (linkedTasks ?? []).map((task: any) => {
           // Map backend status to frontend status
           const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
             open: "not_started",
