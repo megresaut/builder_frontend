@@ -22,6 +22,7 @@ export interface Task {
   due: string;
   updated: string;
   age: string;
+  createdAt?: string;
   priority: string;
   requested_by?: number;
   assignees: Assignee[];

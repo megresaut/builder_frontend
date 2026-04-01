@@ -128,13 +128,17 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       if (path.startsWith("/fto/work-orders")) return "fto-work-orders";
       return null;
     }
+    if (path === "/dashboard") return "dashboard";
     if (path === "/") return "properties";
+    if (path === "/insurance") return "properties";
+    if (path === "/inspection-dashboard") return "properties";
     if (path === "/bills") return "accounting";
     if (
       path.includes("/all-tasks") ||
       path.includes("/recurring-tasks") ||
       path.includes("/field-team-orders") ||
-      path.includes("/work-orders")
+      path.includes("/work-orders") ||
+      path.includes("/activity-feed")
     ) {
       return "maintenance";
     }
@@ -353,6 +357,23 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       ]
     : [
         {
+          id: "dashboard",
+          label: "Dashboard",
+          iconLight: (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.5 10L10 3.333 17.5 10v6.667c0 .368-.14.72-.39.97-.25.25-.603.39-.971.39H3.86c-.368 0-.72-.14-.97-.39a1.372 1.372 0 0 1-.39-.97V10Z" stroke="#717179" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M7.5 17.5v-5h5v5" stroke="#717179" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ),
+          iconDark: (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.5 10L10 3.333 17.5 10v6.667c0 .368-.14.72-.39.97-.25.25-.603.39-.971.39H3.86c-.368 0-.72-.14-.97-.39a1.372 1.372 0 0 1-.39-.97V10Z" fill="#303030" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M7.5 17.5v-5h5v5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ),
+          hasSubmenu: false,
+        },
+        {
           id: "properties",
       label: "Properties",
       iconLight: (
@@ -553,7 +574,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     string,
     Array<{ label: string; path?: string; sectionId?: string }>
   > = {
-    dashboard: [],
+    dashboard: [{ label: "Dashboard", path: "/dashboard", sectionId: "dashboard" }],
     "fto-home": [{ label: "Home", path: "/fto", sectionId: "fto-home" }],
     "fto-inspections": [{ label: "Property Inspections", path: "/fto/inspections", sectionId: "fto-inspections" }],
     "fto-work-orders": [{ label: "Work Orders", path: "/fto/work-orders", sectionId: "fto-work-orders" }],
@@ -567,6 +588,11 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         label: "Insurance",
         path: "/insurance",
         sectionId: "insurance",
+      },
+      {
+        label: "Inspections",
+        path: "/inspection-dashboard",
+        sectionId: "inspection-dashboard",
       },
     ],
     screening: [],
@@ -593,6 +619,11 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         path: "/work-orders",
         sectionId: "work-orders",
       },
+      {
+        label: "Activity Feed",
+        path: "/activity-feed",
+        sectionId: "activity-feed",
+      },
     ],
     vendors: [
       {
@@ -606,7 +637,11 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         sectionId: "vendor-compliance",
       },
     ],
-    operations: [{ label: "Calendar", path: "/operations", sectionId: "operations-calendar" }],
+    operations: [
+      { label: "Calendar", path: "/operations?tab=calendar", sectionId: "operations-calendar" },
+      { label: "Reminders", path: "/operations?tab=reminders", sectionId: "operations-reminders" },
+      { label: "To-Dos", path: "/operations?tab=todos", sectionId: "operations-todos" },
+    ],
   };
 
   const tabContext = useContext(TabContext);
@@ -625,6 +660,9 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       "vendors": "field-team-orders",
       "vendor-compliance": "field-team-orders",
       "operations-calendar": "operations",
+      "operations-reminders": "operations",
+      "activity-feed": "field-team-orders",
+      "inspection-dashboard": "properties",
     };
 
     return sectionToTabMap[sectionId];

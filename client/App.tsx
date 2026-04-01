@@ -39,8 +39,11 @@ import { TermsOfService } from "./pages/TermsOfService";
 import TaskSummary from "./pages/TaskSummary/index";
 import AIDrafts from "./pages/AIDrafts";
 import Operations from "./pages/Operations";
+import ActivityFeed from "./pages/ActivityFeed";
 import InsuranceDashboard from "./pages/InsuranceDashboard";
+import InspectionDashboard from "./pages/InspectionDashboard";
 import VendorComplianceDashboard from "./pages/VendorComplianceDashboard";
+import Dashboard from "./pages/Dashboard";
 
 // FTO testing
 import FtoShellLayout from "./layout/FTOShellLayout";
@@ -99,6 +102,18 @@ function useInitialTabState(): {
     return { state: getDefaultTabState(), didRestore: false };
   });
   return initial;
+}
+
+/** Listens for auth:session-expired events dispatched by fetchJSON when token refresh fails.
+ *  Uses React Router's navigate so the transition is smooth (no full page reload / blank flash). */
+function SessionExpiryHandler() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const handler = () => navigate("/login", { replace: true });
+    window.addEventListener("auth:session-expired", handler);
+    return () => window.removeEventListener("auth:session-expired", handler);
+  }, [navigate]);
+  return null;
 }
 
 /** Syncs URL to the selected tab's route when we restored from sessionStorage (so refresh shows correct page).
@@ -190,6 +205,7 @@ export default function App() {
         <FavoritesProvider>
           <TabContext.Provider value={tabContextValue}>
             <BrowserRouter>
+              <SessionExpiryHandler />
               <RestoreTabUrlSync didRestore={didRestore} />
               <Routes>
                 {/* ---------- PUBLIC ROUTES ---------- */}
@@ -200,6 +216,17 @@ export default function App() {
                 <Route path="/terms-of-service" element={<TermsOfService />} />
 
                 {/* ---------- MAIN APP (ShellLayout) ---------- */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <Dashboard />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
                 <Route
                   path="/"
                   element={
@@ -286,6 +313,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <InsuranceDashboard />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/inspection-dashboard"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <InspectionDashboard />
                       </ShellLayout>
                     </RequireAuth>
                   }
@@ -443,6 +481,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <Operations />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/activity-feed"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <ActivityFeed />
                       </ShellLayout>
                     </RequireAuth>
                   }

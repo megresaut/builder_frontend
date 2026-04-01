@@ -94,6 +94,10 @@ export default function Header() {
       }
     } else if (path === "/blank") {
       return { label: "New Tab", path, id: "blank" };
+    } else if (path === "/dashboard") {
+      return { label: "Dashboard", path, id: "dashboard" };
+    } else if (path === "/inspection-dashboard") {
+      return { label: "Inspections", path, id: "inspection-dashboard" };
     } else if (path === "/") {
       return { label: "All Properties", path, id: "properties" };
     } else if (path === "/all-tasks") {
@@ -106,6 +110,8 @@ export default function Header() {
       return { label: "Field Team Orders", path, id: "field-team-orders" };
     } else if (path === "/work-orders") {
       return { label: "Work Orders", path, id: "work-orders" };
+    } else if (path === "/activity-feed") {
+      return { label: "Activity Feed", path, id: "activity-feed" };
     } else if (path === "/recurring-tasks") {
       return { label: "Recurring Tasks", path, id: "recurring-tasks" };
     } else if (path === "/vendors") {
@@ -118,6 +124,10 @@ export default function Header() {
     } else if (path === "/ai-drafts") {
       return { label: "Drafts", path, id: "ai-drafts" };
     } else if (path === "/operations") {
+      const opsTab = new URLSearchParams(location.search).get("tab");
+      if (opsTab === "reminders") {
+        return { label: "Reminders", path: `${path}${location.search}`, id: "operations-reminders" };
+      }
       return { label: "Calendar", path, id: "operations" };
     } else if (path === "/utilities/view-bill") {
       return { label: "View Bill", path, id: "utilities-view-bill" };
@@ -184,6 +194,11 @@ export default function Header() {
           items.push({ label: tab });
         }
       }
+    } else if (path === "/dashboard") {
+      items.push({ label: "Dashboard" });
+    } else if (path === "/inspection-dashboard") {
+      items.push({ label: "Properties", href: "/" });
+      items.push({ label: "Inspections" });
     } else if (path === "/") {
       items.push({ label: "All Properties" });
     } else if (path === "/all-tasks") {
@@ -196,6 +211,8 @@ export default function Header() {
       items.push({ label: "Field Team Orders" });
     } else if (path === "/work-orders") {
       items.push({ label: "Work Orders" });
+    } else if (path === "/activity-feed") {
+      items.push({ label: "Activity Feed" });
     } else if (path === "/recurring-tasks") {
       items.push({ label: "Recurring Tasks" });
     } else if (path === "/vendors") {
@@ -206,7 +223,8 @@ export default function Header() {
       items.push({ label: "Vendors", href: "/vendors" });
       items.push({ label: vendorDisplayName ?? `Vendor ${vendorId}` });
     } else if (path === "/operations") {
-      items.push({ label: "Calendar" });
+      const opsTab = new URLSearchParams(location.search).get("tab");
+      items.push({ label: opsTab === "reminders" ? "Reminders" : "Calendar" });
     } else if (path === "/vendor-compliance") {
       items.push({ label: "Compliance" });
     } else if (path === "/record-bill") {
@@ -408,7 +426,7 @@ export default function Header() {
         });
       }
     }
-  }, [location.pathname, selectedTab, vendorDisplayName, propertyDisplayName, taskDisplayName]);
+  }, [location.pathname, location.search, selectedTab, vendorDisplayName, propertyDisplayName, taskDisplayName]);
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
@@ -718,6 +736,36 @@ export default function Header() {
             d="M5.16146 1H12.8385C13.3657 0.999984 13.8205 0.999969 14.195 1.03057C14.5904 1.06287 14.9836 1.13419 15.362 1.32698C15.9265 1.6146 16.3854 2.07354 16.673 2.63803C16.8658 3.01641 16.9371 3.40963 16.9694 3.80497C16.9969 4.14076 16.9997 4.54098 17 5.00003L11.1191 5.00001C10.6305 4.9999 10.1007 4.99977 9.64211 5.03724C9.12309 5.07964 8.43737 5.1846 7.73005 5.54499C6.78924 6.02436 6.02434 6.78926 5.54497 7.73007C5.18458 8.43739 5.07962 9.12311 5.03722 9.64213C4.99975 10.1007 4.99988 10.6305 4.99999 11.1192L5.00001 17C4.54097 16.9997 4.14075 16.9969 3.80497 16.9694C3.40963 16.9371 3.01641 16.8658 2.63803 16.673C2.07354 16.3854 1.6146 15.9265 1.32698 15.362C1.13419 14.9836 1.06287 14.5904 1.03057 14.195C0.999967 13.8205 0.999984 13.3658 1 12.8386V5.16148C0.999984 4.63437 0.999967 4.17952 1.03057 3.80497C1.06287 3.40963 1.13419 3.01641 1.32698 2.63803C1.6146 2.07354 2.07354 1.6146 2.63803 1.32698C3.01641 1.13419 3.40963 1.06287 3.80497 1.03057C4.17953 0.999969 4.63433 0.999984 5.16146 1Z"
             fill="currentColor"
           />
+        </svg>
+      ),
+      // Inspection Dashboard
+      "inspection-dashboard": (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="2" width="14" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M7 6h6M7 9.5h6M7 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="15" cy="15" r="3.5" fill="white" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M13.5 15l1 1 2-1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      // Dashboard
+      dashboard: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 10L10 3.33333L17.5 10V16.6667C17.5 17.0203 17.3595 17.3594 17.1095 17.6095C16.8594 17.8595 16.5203 18 16.1667 18H13.3333C12.9797 18 12.6406 17.8595 12.3905 17.6095C12.1405 17.3594 12 17.0203 12 16.6667V13.3333H8V16.6667C8 17.0203 7.85952 17.3594 7.60948 17.6095C7.35943 17.8595 7.02029 18 6.66667 18H3.83333C3.47971 18 3.14057 17.8595 2.89052 17.6095C2.64048 17.3594 2.5 17.0203 2.5 16.6667V10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      // Activity Feed
+      "activity-feed": (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3.33333 5H16.6667M3.33333 10H10M3.33333 15H13.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      // Reminders (calendar tab)
+      "operations-reminders": (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2.5" y="3.33334" width="15" height="13.3333" rx="1.66667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M13.3333 1.66667V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M6.66667 1.66667V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M2.5 8.33334H17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ),
     };

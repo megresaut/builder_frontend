@@ -141,6 +141,25 @@ export default function OperationsCalendar() {
     });
   }, []);
 
+  // Reposition FullCalendar's "+N more" popover so it never goes off-screen
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new MutationObserver(() => {
+      const popover = el.querySelector(".fc-more-popover") as HTMLElement | null;
+      if (!popover) return;
+      const rect = popover.getBoundingClientRect();
+      const vh = window.innerHeight;
+      if (rect.bottom > vh - 8) {
+        const overshoot = rect.bottom - (vh - 8);
+        const currentTop = parseFloat(popover.style.top || "0");
+        popover.style.top = `${Math.max(0, currentTop - overshoot)}px`;
+      }
+    });
+    observer.observe(el, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   // Disable parent scroll container so only the calendar's internal scrolling works
   useLayoutEffect(() => {
     const scrollParent = document.querySelector('[data-testid="main-content"]') as HTMLElement | null;
@@ -655,6 +674,20 @@ export default function OperationsCalendar() {
             .operations-calendar .fc .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
               color: #013764;
               font-weight: 700;
+            }
+
+            /* "+N more" popover — scrollable list */
+            .operations-calendar .fc .fc-more-popover {
+              max-height: 320px !important;
+              display: flex !important;
+              flex-direction: column !important;
+              overflow: hidden !important;
+              z-index: 1000;
+            }
+            .operations-calendar .fc .fc-more-popover .fc-popover-body {
+              overflow-y: auto !important;
+              flex: 1 !important;
+              min-height: 0 !important;
             }
 
             /* Day cell vertical alignment */

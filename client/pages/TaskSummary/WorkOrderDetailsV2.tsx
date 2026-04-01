@@ -36,6 +36,7 @@ import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import { formatUnitDisplayForTable } from "@/utils/unitLabel";
+import { WorkOrderEvaluation, WorkOrderEvaluationData } from "@/components/WorkOrderEvaluation";
 
 interface WorkOrder {
   id: number;
@@ -738,6 +739,19 @@ export default function WorkOrderDetailsV2({
   }
 
   const [bills, setBills] = useState<BillItem[]>([]);
+  const [evaluation, setEvaluation] = useState<WorkOrderEvaluationData | undefined>(undefined);
+
+  // Fetch existing evaluation on mount
+  useEffect(() => {
+    if (!workOrderId) return;
+    fetchJSON(`/maintenance/work-orders/id/${workOrderId}/evaluation`)
+      .then((data: any) => {
+        if (data) {
+          setEvaluation({ rating: data.rating, notes: data.feedback ?? "", submittedAt: data.created_at });
+        }
+      })
+      .catch(() => {});
+  }, [workOrderId]);
 
   // Initialize bills from API data
   useEffect(() => {
@@ -1804,6 +1818,37 @@ export default function WorkOrderDetailsV2({
               },
             ]}
           />
+
+          {/* Vendor Evaluation — only for completed work orders */}
+          {status === "completed" && (
+            <SectionCard
+              title="Vendor Evaluation"
+              padding="compact"
+              variant="white"
+              actions={
+                evaluation ? undefined : (
+                  <span className="text-[#717179] text-xs font-normal">Rate this work order</span>
+                )
+              }
+            >
+              <WorkOrderEvaluation
+                vendorName={displayVendorName}
+                existingEvaluation={evaluation}
+                onSubmit={async (data) => {
+                  if (!workOrderId) return;
+                  try {
+                    await fetchJSON(`/maintenance/work-orders/id/${workOrderId}/evaluation`, {
+                      method: "POST",
+                      body: JSON.stringify({ rating: data.rating, feedback: data.notes || null }),
+                    });
+                    setEvaluation(data);
+                  } catch {
+                    // submission failed silently — UI stays in edit mode
+                  }
+                }}
+              />
+            </SectionCard>
+          )}
         </div>
       </div>
 
@@ -1869,7 +1914,6 @@ export default function WorkOrderDetailsV2({
         onOpenChange={onUpdateWorkOrderModalOpenChange || (() => {})}
         mode="edit"
         hideTaskSelection={true}
-        hideSubheader={true}
         workOrderId={apiWorkOrder?.id || (workOrder?.id ? Number(workOrder.id) : undefined) || (workOrderId ? Number(workOrderId) : undefined)}
         initialData={{
           task: apiWorkOrder?.name || workOrder?.task || "",
@@ -1878,7 +1922,18 @@ export default function WorkOrderDetailsV2({
           vendor: apiWorkOrder?.vendor_name || workOrder?.vendorName || "",
           status: apiWorkOrder ? mapBackendStatusToFrontend(apiWorkOrder.status) : (workOrder?.status as "not_started" | "in_progress" | "completed" || "not_started"),
           priority: apiWorkOrder ? mapBackendPriorityToFrontend(apiWorkOrder.priority) : (workOrder?.priority as "low" | "normal" | "high" | "urgent" || "normal"),
-          dueDate: apiWorkOrder?.due_date ? new Date(apiWorkOrder.due_date) : (workOrder?.dueDate ? (workOrder.dueDate instanceof Date ? workOrder.dueDate : new Date(workOrder.dueDate)) : null),
+          dueDate: (() => {
+            if (apiWorkOrder?.due_date) {
+              const d = new Date(apiWorkOrder.due_date);
+              return isNaN(d.getTime()) ? null : d;
+            }
+            if (!workOrder?.dueDate) return null;
+            if (workOrder.dueDate instanceof Date) {
+              return isNaN(workOrder.dueDate.getTime()) ? null : workOrder.dueDate;
+            }
+            const d = new Date(workOrder.dueDate as string);
+            return isNaN(d.getTime()) ? null : d;
+          })(),
           notes: apiWorkOrder?.description || workOrder?.description || "",
           files: [],
         }}

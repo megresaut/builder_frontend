@@ -3,6 +3,14 @@ import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { FileUploadField } from "@/components/forms/FileUploadField";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
+import {
+  createOwner,
+  updateOwner,
+  linkOwnerToUnit,
+  uploadOwnerFile,
+  createOwnerDocument,
+} from "@/data/owners";
+import { createInsurancePolicy } from "@/data/insurance";
 import { toast } from "sonner";
 
 export interface OwnerFormData {
@@ -23,13 +31,17 @@ export interface OwnerFormData {
 interface AddOwnerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  unitId: number;
+  propertyId: number;
   editData: OwnerFormData | null;
-  onSaved: (owner: OwnerFormData) => void;
+  onSaved: () => void;
 }
 
 export default function AddOwnerModal({
   open,
   onOpenChange,
+  unitId,
+  propertyId,
   editData,
   onSaved,
 }: AddOwnerModalProps) {
@@ -121,37 +133,111 @@ export default function AddOwnerModal({
 
     setSaving(true);
     try {
-      // Mock save — in production this would call the API
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      let ownerId: number;
 
-      const owner: OwnerFormData = {
-        id: editData?.id,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        ownershipPercentage: pct,
-        ownerSince: ownerSince || new Date().toISOString().split("T")[0],
-        mailingAddress: mailingAddress.trim(),
-        status,
-        entityType,
-        entityName: entityName.trim(),
-        taxId: taxId.trim(),
-      };
-
-      toast.success(isEdit ? "Owner updated" : "Owner added");
-
-      // TODO: Upload ownership documents via owner documents API
-      if (ownershipFiles.length > 0) {
-        toast.success(`${ownershipFiles.length} ownership document(s) attached`);
+      if (isEdit && editData?.id) {
+        await updateOwner({
+          id: editData.id,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          ownership_percentage: pct,
+          owner_since: ownerSince || undefined,
+          mailing_address: mailingAddress.trim(),
+          status,
+          entity_type: entityType,
+          entity_name: entityName.trim(),
+          tax_id: taxId.trim(),
+        });
+        ownerId = editData.id;
+        toast.success("Owner updated");
+      } else {
+        const created = await createOwner({
+          property_id: propertyId,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          ownership_percentage: pct,
+          owner_since: ownerSince || new Date().toISOString().split("T")[0],
+          mailing_address: mailingAddress.trim(),
+          status,
+          entity_type: entityType,
+          entity_name: entityName.trim(),
+          tax_id: taxId.trim(),
+        });
+        ownerId = created.id;
+        await linkOwnerToUnit(ownerId, unitId);
+        toast.success("Owner added");
       }
 
-      // TODO: Create owner insurance policy via insurance API
-      if (insuranceFiles.length > 0 || insCarrier) {
-        toast.success("Owner insurance policy saved");
+      // Upload ownership documents (2-step: upload file → create record)
+      for (const f of ownershipFiles) {
+        if (!f.file) continue;
+        try {
+          const { object_key, mime } = await uploadOwnerFile(f.file);
+          await createOwnerDocument({
+            owner_id: ownerId,
+            document_type: "ownership",
+            document_label: f.file.name,
+            document_object_key: object_key,
+            document_mime: mime,
+          });
+        } catch {
+          toast.error(`Failed to upload ${f.file.name}`);
+        }
       }
 
-      onSaved(owner);
+      // Upload insurance doc and create policy record
+      if (insPolicyType && insCarrier && insEffective && insExpiration) {
+        let coiKey = "";
+        let coiMime = "";
+        for (const f of insuranceFiles) {
+          if (!f.file) continue;
+          try {
+            const { object_key, mime } = await uploadOwnerFile(f.file);
+            coiKey = object_key;
+            coiMime = mime;
+          } catch {
+            toast.error(`Failed to upload ${f.file.name}`);
+          }
+        }
+        try {
+          const premiumCents = insPremiumDollars
+            ? Math.round(parseFloat(insPremiumDollars) * 100)
+            : null;
+          const coverageCents = insCoverageDollars
+            ? Math.round(parseFloat(insCoverageDollars) * 100)
+            : null;
+          await createInsurancePolicy({
+            property_id: propertyId,
+            policy_type: insPolicyType,
+            policy_layer: "primary",
+            carrier_name: insCarrier,
+            policy_number: insPolicyNumber,
+            agent_name: "",
+            agent_firm: "",
+            agent_phone: "",
+            agent_email: "",
+            premium_cents: premiumCents,
+            coverage_amount_cents: coverageCents,
+            effective_date: insEffective,
+            expiration_date: insExpiration,
+            avm_master_policy: false,
+            policy_object_key: "",
+            policy_mime: "",
+            coi_object_key: coiKey,
+            coi_mime: coiMime,
+            notes: "",
+          });
+          toast.success("Insurance policy saved");
+        } catch {
+          toast.error("Failed to save insurance policy");
+        }
+      }
+
+      onSaved();
     } catch {
       toast.error("Failed to save owner");
     } finally {
@@ -373,7 +459,7 @@ export default function AddOwnerModal({
               <label className={labelClass}>Coverage Amount ($)</label>
               <input className={inputClass} type="number" step="0.01" min="0" value={insCoverageDollars} onChange={(e) => setInsCoverageDollars(e.target.value)} placeholder="0.00" />
             </div>
-            <div>{/* spacer for grid alignment */}</div>
+            <div>{/* spacer */}</div>
             <div>
               <label className={labelClass}>Effective Date</label>
               <input className={inputClass} type="date" value={insEffective} onChange={(e) => setInsEffective(e.target.value)} />
