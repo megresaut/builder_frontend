@@ -58,7 +58,7 @@ function parseOwnerNames(owners: unknown): string[] {
   if (typeof owners === "string") {
     try {
       const parsed = JSON.parse(owners);
-      return Array.isArray(parsed) ? parsed.map((o: any) => (o && o.name) || "").filter(Boolean) : [];
+      return Array.isArray(parsed) ? parsed.map((o: any) => (typeof o === "string" ? o : o?.name ?? "")).filter(Boolean) : [];
     } catch {
       return [];
     }
