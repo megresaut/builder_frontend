@@ -325,7 +325,9 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     ? `${propertyData.city}, ${propertyData.state}, ${propertyData.postal_code}`
     : "";
   const propertyType = propertyData?.property_type || "";
-  const ownerNames = propertyData?.owners?.map(owner => owner.name) || [];
+  const ownerNames = propertyData?.owners?.map((owner: any) =>
+    typeof owner === "string" ? owner : owner?.name ?? ""
+  ).filter(Boolean) || [];
   const rentalOwner = ownerNames.length > 0 ? ownerNames.join(", ") : "----";
   const propertyManager = propertyData?.manager_names?.join(", ") ?? "";
   const placeholderImage =
