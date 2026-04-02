@@ -170,6 +170,7 @@ interface ApiWorkOrder {
     storage_path: string;
     uploaded_by_type: string;
     uploaded_by: number;
+    uploaded_by_name?: string;
     label?: string;
     description?: string;
     created_at: string;
@@ -218,6 +219,7 @@ interface ApiWorkOrderAttachment {
   storage_path: string;
   uploaded_by_type: string;
   uploaded_by: number;
+  uploaded_by_name?: string;
   label: string | null;
   description: string | null;
   created_at: string;
@@ -629,7 +631,7 @@ export default function WorkOrderDetailsV2({
     url: `${API_BASE}/files/${a.storage_path}`,
     fileName: a.file_name,
     uploadedAt: formatCreatedDate(a.created_at),
-    uploadedBy: a.uploaded_by_type,
+    uploadedBy: a.uploaded_by_name ?? a.uploaded_by_type,
     label: (a.label as PhotoLabel) ?? undefined,
     caption: a.description ?? undefined,
   });

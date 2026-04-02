@@ -230,7 +230,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
         const backendInspections = await listInspections();
         
         // Fetch field team members
-        const fieldTeamData = await fetchJSON("/users/field-team");
+        const fieldTeamData = await fetchJSON("/users/all");
         const managers: FieldManager[] = fieldTeamData.map((user: any) => {
           const fullName = user.name || `${user.first_name} ${user.last_name}`;
           return {
