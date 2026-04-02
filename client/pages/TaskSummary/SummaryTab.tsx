@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PhotoGallery from "@/components/PhotoGallery";
+import type { Photo } from "@/components/PhotoGallery";
+import { AddPhotoModal } from "@/components/task";
+import type { PhotoUpload } from "@/components/task";
 import { EditIcon } from "@/components/icons";
 import {
   SectionActionTemplate,
@@ -83,6 +87,10 @@ interface SummaryTabProps {
   onUnlinkTask: (taskId: number) => void;
   onTaskClick: (taskId: number) => void;
   onAddUpdate: () => void;
+  photos: Photo[];
+  onAddPhotos: (uploads: PhotoUpload[], label: Photo["label"] | null, caption: string) => Promise<void>;
+  onDeletePhoto: (id: number) => void;
+  onEditPhoto: (updated: Photo) => void;
   onEditTask: () => void;
   onStatusChange: (newStatus: string) => void;
   onPriorityChange: (newPriority: string) => void;
@@ -138,6 +146,10 @@ export default function SummaryTab({
   onLinkTasks,
   onUnlinkTask,
   onTaskClick,
+  photos,
+  onAddPhotos,
+  onDeletePhoto,
+  onEditPhoto,
   onAddUpdate,
   onEditTask,
   onStatusChange,
@@ -152,6 +164,9 @@ export default function SummaryTab({
   subtasksCompleted = 0,
 }: SummaryTabProps) {
   const subtasksLeft = Math.max(0, (subtasksTotal ?? 0) - (subtasksCompleted ?? 0));
+
+  const [isAddPhotoOpen, setIsAddPhotoOpen] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const navigate = useNavigate();
 
   // Calculate total expense from work orders and field team orders
@@ -274,6 +289,18 @@ export default function SummaryTab({
           onUnlinkTask={onUnlinkTask}
           onTaskClick={onTaskClick}
         />
+
+        {/* Photos Section */}
+        <SectionCard padding="compact">
+          <div className="p-4">
+            <PhotoGallery
+              photos={photos}
+              onAdd={() => setIsAddPhotoOpen(true)}
+              onDelete={onDeletePhoto}
+              onEdit={onEditPhoto}
+            />
+          </div>
+        </SectionCard>
 
         {/* Updates Timeline */}
         <TaskUpdatesTimeline updates={updates} onAddUpdate={onAddUpdate} />
@@ -467,6 +494,23 @@ export default function SummaryTab({
           );
         })()}
       </div>
+
+      <AddPhotoModal
+        open={isAddPhotoOpen}
+        onOpenChange={setIsAddPhotoOpen}
+        onSubmit={async (uploads, label, caption) => {
+          setPhotoUploading(true);
+          try {
+            await onAddPhotos(uploads, label, caption);
+            setIsAddPhotoOpen(false);
+          } catch (err) {
+            console.error("Failed to upload photos:", err);
+          } finally {
+            setPhotoUploading(false);
+          }
+        }}
+        loading={photoUploading}
+      />
     </>
   );
 }

@@ -13,8 +13,11 @@ import { DateField } from "@/components/forms/DateField";
 import { StatusSelectField } from "@/components/forms/StatusSelectField";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import type { Note, File } from "@/components/templates";
-import { AddNoteModal, AddFileModal } from "@/components/task";
+import { AddNoteModal, AddFileModal, AddPhotoModal } from "@/components/task";
+import type { PhotoUpload } from "@/components/task";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
+import PhotoGallery from "@/components/PhotoGallery";
+import type { Photo, PhotoLabel } from "@/components/PhotoGallery";
 import SectionCard from "@/components/SectionCard";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 
@@ -121,6 +124,18 @@ function transformApiAttachmentToUiFile(api: ApiWorkOrderAttachment): File {
   };
 }
 
+function attachmentToPhoto(a: ApiWorkOrderAttachment): Photo {
+  return {
+    id: a.id,
+    url: `${API_BASE}/files/${a.storage_path}`,
+    fileName: a.file_name,
+    uploadedAt: formatDateTime(a.created_at),
+    uploadedBy: a.uploaded_by_type,
+    label: (a.label as PhotoLabel) ?? undefined,
+    caption: a.description ?? undefined,
+  };
+}
+
 export default function FtoWorkOrderDetail() {
   const { workOrderId } = useParams<{ workOrderId: string }>();
   const navigate = useNavigate();
@@ -135,6 +150,9 @@ export default function FtoWorkOrderDetail() {
   const [error, setError] = useState<string | null>(null);
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
   const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
+  const [isAddPhotoOpen, setIsAddPhotoOpen] = useState(false);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
@@ -234,7 +252,10 @@ export default function FtoWorkOrderDetail() {
         const apiAttachments: ApiWorkOrderAttachment[] = await fetchJSON(
           `/maintenance/work-orders/id/${workOrderId}/attachments`,
         );
-        setFiles((apiAttachments || []).map(transformApiAttachmentToUiFile));
+        const imageAttachments = (apiAttachments || []).filter(a => a.file_type?.startsWith("image/"));
+        const fileAttachments = (apiAttachments || []).filter(a => !a.file_type?.startsWith("image/"));
+        setPhotos(imageAttachments.map(attachmentToPhoto));
+        setFiles(fileAttachments.map(transformApiAttachmentToUiFile));
       } catch {
         setFiles([]);
       } finally {
@@ -378,6 +399,49 @@ export default function FtoWorkOrderDetail() {
     } catch (err) {
       console.error(err);
       alert("Failed to delete file. Please try again.");
+    }
+  };
+
+  const handleAddPhotos = async (
+    uploads: PhotoUpload[],
+    label: Photo["label"] | null,
+    caption: string,
+  ) => {
+    if (!workOrderId || !userId) return;
+    setPhotoUploading(true);
+    try {
+      for (const upload of uploads) {
+        const formData = new FormData();
+        formData.append("file", upload.file, upload.file.name);
+        const uploadRes = await authFetch("/maintenance/tasks/attachments/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (!uploadRes.ok) throw new Error("Upload failed");
+        const uploadData: { temp_object_key: string; original_name: string; file_type: string; file_size: number; } = await uploadRes.json();
+        const newAttachment = await fetchJSON(
+          `/maintenance/work-orders/id/${workOrderId}/attachments`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              file_name: uploadData.original_name,
+              file_type: uploadData.file_type,
+              file_size: uploadData.file_size,
+              storage_path: uploadData.temp_object_key,
+              uploaded_by_type: "user",
+              uploaded_by: userId,
+              label: label ?? null,
+              description: caption || null,
+            }),
+          },
+        );
+        setPhotos(prev => [attachmentToPhoto(newAttachment as ApiWorkOrderAttachment), ...prev]);
+      }
+    } catch (err) {
+      console.error("Failed to upload photos:", err);
+    } finally {
+      setPhotoUploading(false);
     }
   };
 
@@ -623,6 +687,18 @@ export default function FtoWorkOrderDetail() {
                 />
               )}
             </SectionCard>
+
+            {/* Photos */}
+            <SectionCard padding="compact" variant="white">
+              <div className="p-4">
+                <PhotoGallery
+                  photos={photos}
+                  onAdd={() => setIsAddPhotoOpen(true)}
+                  onDelete={(id) => { setPhotos(prev => prev.filter(p => p.id !== id)); fetchJSON(`/maintenance/work-orders/attachments/${id}`, { method: "DELETE" }).catch(console.error); }}
+                  onEdit={(updated) => { setPhotos(prev => prev.map(p => p.id === updated.id ? updated : p)); fetchJSON(`/maintenance/work-orders/attachments/${updated.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: updated.label ?? null, description: updated.caption ?? null }) }).catch(console.error); }}
+                />
+              </div>
+            </SectionCard>
           </>
         )}
         </div>
@@ -650,6 +726,13 @@ export default function FtoWorkOrderDetail() {
           initialDescription={editingFile?.description ?? ""}
           title={editingFileId ? "Edit File" : "Add File"}
           submitLabel="Save"
+        />
+
+        <AddPhotoModal
+          open={isAddPhotoOpen}
+          onOpenChange={setIsAddPhotoOpen}
+          onSubmit={handleAddPhotos}
+          loading={photoUploading}
         />
 
         <ModalTemplate

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { FileUploadField } from "@/components/forms/FileUploadField";
@@ -9,6 +9,8 @@ import {
   linkOwnerToUnit,
   uploadOwnerFile,
   createOwnerDocument,
+  fetchOwnersByProperty,
+  type Owner,
 } from "@/data/owners";
 import { createInsurancePolicy } from "@/data/insurance";
 import { toast } from "sonner";
@@ -60,6 +62,14 @@ export default function AddOwnerModal({
   const [taxId, setTaxId] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Existing owner picker
+  const [existingOwners, setExistingOwners] = useState<Owner[]>([]);
+  const [selectedOwnerLabel, setSelectedOwnerLabel] = useState<string | null>(null);
+  const [ownerSearch, setOwnerSearch] = useState("");
+  const [showOwnerDropdown, setShowOwnerDropdown] = useState(false);
+  const ownerSearchRef = useRef<HTMLDivElement>(null);
+  const ownerSearchInputRef = useRef<HTMLInputElement>(null);
+
   // Document uploads
   const [ownershipFiles, setOwnershipFiles] = useState<UploadedFile[]>([]);
   const [insuranceFiles, setInsuranceFiles] = useState<UploadedFile[]>([]);
@@ -72,6 +82,51 @@ export default function AddOwnerModal({
   const [insExpiration, setInsExpiration] = useState("");
   const [insPremiumDollars, setInsPremiumDollars] = useState("");
   const [insCoverageDollars, setInsCoverageDollars] = useState("");
+
+  useEffect(() => {
+    if (open && !editData) {
+      fetchOwnersByProperty(propertyId).then(setExistingOwners).catch(() => {});
+    }
+    if (!open) {
+      setOwnerSearch("");
+      setShowOwnerDropdown(false);
+      setSelectedOwnerLabel(null);
+    }
+  }, [open, editData, propertyId]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ownerSearchRef.current && !ownerSearchRef.current.contains(e.target as Node)) {
+        setShowOwnerDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function applyExistingOwner(owner: Owner) {
+    setFirstName(owner.first_name);
+    setLastName(owner.last_name);
+    setEmail(owner.email ?? "");
+    setPhone(owner.phone ?? "");
+    setMailingAddress(owner.mailing_address ?? "");
+    setEntityType(owner.entity_type as "individual" | "llc" | "trust");
+    setEntityName(owner.entity_name ?? "");
+    setTaxId(owner.tax_id ?? "");
+    setSelectedOwnerLabel(`${owner.first_name} ${owner.last_name}`);
+    setOwnerSearch("");
+    setShowOwnerDropdown(false);
+  }
+
+  function toggleOwnerDropdown() {
+    setShowOwnerDropdown((prev) => {
+      if (!prev) {
+        setOwnerSearch("");
+        setTimeout(() => ownerSearchInputRef.current?.focus(), 0);
+      }
+      return !prev;
+    });
+  }
 
   useEffect(() => {
     if (open && editData) {
@@ -266,6 +321,63 @@ export default function AddOwnerModal({
       }
     >
       <FormLayout>
+        {!isEdit && (
+          <div className="mb-2" ref={ownerSearchRef}>
+            <label className={labelClass}>Select from existing owner</label>
+            <div className="relative">
+              <button
+                type="button"
+                className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#1357D5]/20 focus:border-[#1357D5]"
+                onClick={toggleOwnerDropdown}
+              >
+                <span className={selectedOwnerLabel ? "text-[#303030]" : "text-[#A0A0A0]"}>
+                  {selectedOwnerLabel ?? "Select an existing owner..."}
+                </span>
+                <svg className={`w-4 h-4 text-[#71717A] transition-transform ${showOwnerDropdown ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {showOwnerDropdown && (
+                <div className="absolute z-50 mt-1 w-full rounded-lg border border-[#DADADA] bg-white shadow-lg">
+                  <div className="p-2 border-b border-[#F0F0F0]">
+                    <input
+                      ref={ownerSearchInputRef}
+                      className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-1.5 text-sm text-[#303030] placeholder:text-[#A0A0A0] focus:outline-none focus:ring-2 focus:ring-[#1357D5]/20 focus:border-[#1357D5]"
+                      placeholder="Search..."
+                      value={ownerSearch}
+                      onChange={(e) => setOwnerSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {existingOwners
+                      .filter((o) => {
+                        const full = `${o.first_name} ${o.last_name}`.toLowerCase();
+                        return ownerSearch === "" || full.includes(ownerSearch.toLowerCase());
+                      })
+                      .map((o) => (
+                        <button
+                          key={o.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm text-[#303030] hover:bg-[#F5F5F5] flex items-center justify-between"
+                          onMouseDown={() => applyExistingOwner(o)}
+                        >
+                          <span>{o.first_name} {o.last_name}</span>
+                          {o.email && <span className="text-xs text-[#A0A0A0]">{o.email}</span>}
+                        </button>
+                      ))}
+                    {existingOwners.filter((o) => {
+                      const full = `${o.first_name} ${o.last_name}`.toLowerCase();
+                      return ownerSearch === "" || full.includes(ownerSearch.toLowerCase());
+                    }).length === 0 && (
+                      <div className="px-3 py-2 text-sm text-[#A0A0A0]">No matching owners</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <FormSection title="Owner Information" showDivider>
           <div className="grid grid-cols-2 gap-3">
             <div>

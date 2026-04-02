@@ -17,6 +17,13 @@ import {
 import { fetchJSON } from "@/api/fetchJSON";
 import { openAuthPdf } from "@/api/openAuthPdf";
 
+interface MatchCandidate {
+  id: number;
+  name: string;
+  score: number;
+  strategy: string;
+}
+
 interface Bill {
   id: number;
   vendor: string;
@@ -41,6 +48,15 @@ interface Bill {
   importStatus?: string;
 
   isUtility?: boolean;
+
+  // Match / confidence fields from bill-draft parsing
+  vendorMatchScore?: number;
+  vendorMatchStatus?: string;   // auto | needs_review | unmatched | manual | pending
+  vendorMatchCandidates?: MatchCandidate[];
+  propertyMatchScore?: number;
+  propertyMatchStatus?: string;
+  propertyMatchCandidates?: MatchCandidate[];
+  parseConfidence?: number;
 }
 
 function generateVendorColor(name: string) {
@@ -141,7 +157,20 @@ function mapDraftRowToBill(row: any): Bill {
     importedAt: createdAtMs,
     exportedAt: undefined,
 
-    importStatus: row.status, // draft | parsed | receipt
+    importStatus: (() => {
+      if (row.parse_error && row.parse_error !== "none") return "Parse Failed";
+      if (row.status === "finalized") return "Exported";
+      if (row.status === "draft" && (!row.parse_error || row.parse_error === "none")) return "Parsing...";
+      return "Needs Review";
+    })(),
+
+    vendorMatchScore: row.vendor_match_score,
+    vendorMatchStatus: row.vendor_match_status,
+    vendorMatchCandidates: row.vendor_match_candidates,
+    propertyMatchScore: row.property_match_score,
+    propertyMatchStatus: row.property_match_status,
+    propertyMatchCandidates: row.property_match_candidates,
+    parseConfidence: row.parse_confidence,
   };
 }
 
@@ -324,6 +353,86 @@ const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
   </svg>
 );
 
+function getMatchDotColor(status?: string): string {
+  switch (status) {
+    case "auto":
+      return "bg-green-500";
+    case "needs_review":
+      return "bg-amber-400";
+    case "unmatched":
+      return "bg-red-500";
+    case "pending":
+      return "bg-gray-400";
+    case "manual":
+      return "bg-blue-500";
+    default:
+      return "";
+  }
+}
+
+function buildMatchTooltip(
+  label: string,
+  score?: number,
+  status?: string,
+  candidates?: MatchCandidate[],
+): string {
+  if (!status) return "";
+  const parts: string[] = [`${label}: ${status}`];
+  if (typeof score === "number") parts.push(`Score: ${score}`);
+  if (candidates && candidates.length > 0) {
+    parts.push(
+      "Top matches: " +
+        candidates
+          .slice(0, 3)
+          .map((c) => `${c.name} (${c.score})`)
+          .join(", "),
+    );
+  }
+  return parts.join("\n");
+}
+
+const MatchStatusDot = ({
+  status,
+  score,
+  candidates,
+  label,
+}: {
+  status?: string;
+  score?: number;
+  candidates?: MatchCandidate[];
+  label: string;
+}) => {
+  const dotColor = getMatchDotColor(status);
+  if (!dotColor) return null;
+
+  return (
+    <span
+      className={cn("inline-block w-2 h-2 rounded-full shrink-0", dotColor)}
+      title={buildMatchTooltip(label, score, status, candidates)}
+    />
+  );
+};
+
+function getImportStatusStyle(importStatus?: string): {
+  dotColor: string;
+  textColor: string;
+} {
+  switch (importStatus) {
+    case "Parsing...":
+      return { dotColor: "bg-gray-400", textColor: "text-gray-500" };
+    case "Ready":
+      return { dotColor: "bg-green-500", textColor: "text-green-700" };
+    case "Needs Review":
+      return { dotColor: "bg-amber-400", textColor: "text-amber-700" };
+    case "Exported":
+      return { dotColor: "bg-blue-500", textColor: "text-blue-700" };
+    case "Parse Failed":
+      return { dotColor: "bg-red-500", textColor: "text-red-700" };
+    default:
+      return { dotColor: "bg-gray-400", textColor: "text-gray-500" };
+  }
+}
+
 export default function Bills() {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
@@ -389,7 +498,9 @@ export default function Bills() {
     return () => clearTimeout(timer);
   };
 
-  const approvedBills = billsList.filter((b) => approvedBillIds.has(b.id));
+  const approvedBills = billsList
+    .filter((b) => approvedBillIds.has(b.id))
+    .sort((a, b) => (b.exportedAt ?? b.importedAt) - (a.exportedAt ?? a.importedAt));
   const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
   const tabBills = selectedTab === "approved" ? approvedBills : draftBills;
 
@@ -470,28 +581,31 @@ export default function Bills() {
     setCurrentPage(1);
   }, [filterVendor, filterProperty, filterDateFrom, filterDateTo]);
 
-  useEffect(() => {
-    async function loadBills() {
-      try {
-        const [approvedRows, draftRows] = await Promise.all([
-          fetchJSON("/utilities/bills/all"),
-          fetchJSON(
-            "/vendors/bill-drafts?status=draft,parsed,receipt&limit=200"
-          ),
-        ]);
-  
-        const approved = approvedRows.map(mapUtilityRowToBill);
-        const drafts = draftRows.map(mapDraftRowToBill);
-  
-        setBillsList([...approved, ...drafts]);
-        setApprovedBillIds(new Set(approved.map((b) => b.id)));
-      } catch (err) {
-        console.error("Error loading bills:", err);
-      }
+  const loadBills = useCallback(async () => {
+    try {
+      const [approvedRows, draftRows] = await Promise.all([
+        fetchJSON("/utilities/bills/all"),
+        fetchJSON(
+          "/vendors/bill-drafts?status=draft,parsed,receipt&limit=200"
+        ),
+      ]);
+
+      const approved = approvedRows.map(mapUtilityRowToBill);
+      const drafts = draftRows.map(mapDraftRowToBill);
+
+      setBillsList([...approved, ...drafts]);
+      setApprovedBillIds(new Set(approved.map((b) => b.id)));
+    } catch (err) {
+      console.error("Error loading bills:", err);
     }
-  
-    loadBills();
   }, []);
+
+  // Load on mount + auto-refresh every 30 seconds to pick up new drafts
+  useEffect(() => {
+    loadBills();
+    const interval = setInterval(loadBills, 30_000);
+    return () => clearInterval(interval);
+  }, [loadBills]);
   
   
   
@@ -902,9 +1016,13 @@ export default function Bills() {
   
       setBillsList([...approved, ...drafts]);
       setApprovedBillIds(new Set(approved.map((b) => b.id)));
-  
+
+      // Auto-switch to Drafts tab so user sees newly synced drafts
+      setSelectedTab("drafts");
+      setCurrentPage(1);
+
       setSyncState("synced");
-  
+
       setTimeout(() => {
         setSyncState("idle");
       }, 1500);
@@ -941,38 +1059,6 @@ export default function Bills() {
         </svg>
       ),
       onClick: () => setIsAddVendorModalOpen(true),
-    },
-    {
-      id: "sync",
-      label: "Sync",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ marginTop: "-1px" }}
-        >
-          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-          <path d="M21 3v5h-5" />
-          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-          <path d="M8 16H3v5" />
-        </svg>
-      ),
-      onClick: handleSync,
-      disabled: syncState !== "idle",
-      loading: syncState === "syncing",
-      loadingLabel:
-        syncState === "syncing"
-          ? "Syncing..."
-          : syncState === "synced"
-            ? "Synced"
-            : "Sync",
     },
     {
       id: "record-bill",
@@ -1061,6 +1147,11 @@ export default function Bills() {
               )}
             >
               Drafts
+              {draftBills.length > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-gray-200 text-xs font-medium text-gray-700">
+                  {draftBills.length}
+                </span>
+              )}
               {selectedTab === "drafts" && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
               )}
@@ -1171,6 +1262,14 @@ export default function Bills() {
                     <span className="text-gray-900 font-normal text-sm truncate">
                       {bill.vendor}
                     </span>
+                    {selectedTab === "drafts" && bill.vendorMatchStatus && (
+                      <MatchStatusDot
+                        status={bill.vendorMatchStatus}
+                        score={bill.vendorMatchScore}
+                        candidates={bill.vendorMatchCandidates}
+                        label="Vendor match"
+                      />
+                    )}
                   </div>
                 );
               }
@@ -1183,17 +1282,29 @@ export default function Bills() {
               }
               if (columnKey === "property") {
                 return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {bill.property}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.property}
+                    </span>
+                    {selectedTab === "drafts" && bill.propertyMatchStatus && (
+                      <MatchStatusDot
+                        status={bill.propertyMatchStatus}
+                        score={bill.propertyMatchScore}
+                        candidates={bill.propertyMatchCandidates}
+                        label="Property match"
+                      />
+                    )}
+                  </div>
                 );
               }
               if (columnKey === "status" && selectedTab === "drafts") {
+                const statusLabel = bill.importStatus ?? formatRelativeTime(bill.importedAt);
+                const { dotColor, textColor } = getImportStatusStyle(bill.importStatus);
                 return (
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span className="text-gray-900 font-normal text-sm">
-                      {bill.importStatus ?? formatRelativeTime(bill.importedAt)}
+                    <div className={cn("w-2 h-2 rounded-full shrink-0", dotColor)} />
+                    <span className={cn("font-normal text-sm", textColor)}>
+                      {statusLabel}
                     </span>
                   </div>
                 );

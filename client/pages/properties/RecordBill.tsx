@@ -292,9 +292,15 @@ const loadAttachmentIntoViewer = async (
   >
 ) => {
   try {
-    const res = a.StoragePath.startsWith("http")
-      ? await fetch(a.StoragePath, { credentials: "include" })
-      : await authFetch(a.StoragePath);
+    // Extract path from full URL for authFetch (which prepends API_BASE)
+    let fetchPath = a.StoragePath;
+    try {
+      const parsed = new URL(a.StoragePath);
+      fetchPath = parsed.pathname;
+    } catch {
+      // already a relative path
+    }
+    const res = await authFetch(fetchPath);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch PDF: ${res.status} ${res.statusText}`);
@@ -1162,11 +1168,24 @@ export const RecordBill = () => {
   
     const patchPayload = buildPatchPayload();
   
-    for (const li of patchPayload.line_items) {
-      if (!li.property_id || !li.gl_account_id) {
-        alert("Each line item must have a Property and GL Account before approving.");
-        return;
-      }
+    const liErrors: { [key: number]: Set<string> } = {};
+    for (let i = 0; i < patchPayload.line_items.length; i++) {
+      const li = patchPayload.line_items[i];
+      const errs = new Set<string>();
+      if (!li.property_id) errs.add("property");
+      if (!li.gl_account_id) errs.add("glAccount");
+      if (errs.size > 0) liErrors[i] = errs;
+    }
+    if (Object.keys(liErrors).length > 0) {
+      setFormErrors(new Set(["lineItems"]));
+      setLineItemErrors(liErrors);
+      // Build a readable message
+      const missingFields: string[] = [];
+      const allErrs = new Set(Object.values(liErrors).flatMap((s) => [...s]));
+      if (allErrs.has("property")) missingFields.push("Property");
+      if (allErrs.has("glAccount")) missingFields.push("GL Account");
+      alert(`Please select a ${missingFields.join(" and ")} for each line item before approving.`);
+      return;
     }
     // --------------------------
     // 1. Validate required fields
@@ -1403,9 +1422,9 @@ export const RecordBill = () => {
     return () => clearTimeout(timer);
   }, [lineItems, measureAndUpdateColumnWidths]);
 
-  // Auto-open PDF in read-only mode if there's only one file
+  // Auto-open PDF if there's a pre-loaded attachment (read-only or draft)
   useEffect(() => {
-    if (isReadOnly && uploadedFiles.length === 1 && !viewingFileUrl) {
+    if (uploadedFiles.length === 1 && !viewingFileUrl) {
       const file = uploadedFiles[0].file;
       const preview = (file as any).preview;
       if (preview) {
@@ -1413,7 +1432,7 @@ export const RecordBill = () => {
         setViewingFileIndex(0);
       }
     }
-  }, [isReadOnly, uploadedFiles, viewingFileUrl]);
+  }, [uploadedFiles, viewingFileUrl]);
   
 
   // const handleUpdateLineItem = (id: number, field: string, value: string) => {
@@ -1769,26 +1788,19 @@ export const RecordBill = () => {
 
   const buildLineItemPayload = () => {
     return lineItems.map((item) => {
-      // 🔒 property_id MUST be a number
-      const property_id = Number(item.property);
-  
-      // 🔒 GL account MUST exist
+      const property_id = Number(item.property) || 0;
       const gl = glAccountOptions.find(
         (g) => g.id.toString() === item.glAccount
       );
-  
-      if (!property_id || !gl) {
-        throw new Error("Invalid line item: property or GL account missing");
-      }
-  
+
       return {
         line_id: item.id,
-        property_id,               // number ONLY
-        unit: (item.unit === "__property__" || item.unit.startsWith("internal-")) ? "" : item.unit,
-  
-        gl_account_id: gl.id.toString(),
-        gl_account_name: gl.name,   // string, not ""
-  
+        property_id,
+        unit: (item.unit === "__property__" || item.unit?.startsWith("internal-")) ? "" : (item.unit || ""),
+
+        gl_account_id: gl?.id.toString() || "",
+        gl_account_name: gl?.name || "",
+
         description: item.description || "",
         amount_cents: toCents(item.total),
       };
