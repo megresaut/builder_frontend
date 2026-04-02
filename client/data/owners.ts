@@ -44,6 +44,10 @@ export async function fetchOwnersByUnit(unitId: number): Promise<Owner[]> {
   return fetchJSON(`/owners?unit_id=${unitId}`);
 }
 
+export async function fetchOwnersByProperty(propertyId: number): Promise<Owner[]> {
+  return fetchJSON(`/owners?property_id=${propertyId}`);
+}
+
 export async function createOwner(req: {
   property_id: number;
   first_name: string;

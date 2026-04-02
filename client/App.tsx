@@ -44,6 +44,7 @@ import InsuranceDashboard from "./pages/InsuranceDashboard";
 import InspectionDashboard from "./pages/InspectionDashboard";
 import VendorComplianceDashboard from "./pages/VendorComplianceDashboard";
 import Dashboard from "./pages/Dashboard";
+import PhotoGalleryDemo from "./pages/PhotoGalleryDemo";
 
 // FTO testing
 import FtoShellLayout from "./layout/FTOShellLayout";
@@ -507,6 +508,9 @@ export default function App() {
                     </RequireAuth>
                   }
                 />
+
+                {/* ---------- DEV / DESIGN PREVIEWS ---------- */}
+                <Route path="/dev/photo-gallery" element={<PhotoGalleryDemo />} />
 
                 {/* ---------- FTO APP (FTOShellLayout) ---------- */}
                 <Route

@@ -10,6 +10,8 @@ import {
   FilesTemplate,
   SectionActionTemplate,
 } from "@/components/templates";
+import PhotoGallery from "@/components/PhotoGallery";
+import type { Photo, PhotoLabel } from "@/components/PhotoGallery";
 import TaskStatusBadge from "@/components/TaskStatusBadge";
 import TaskPriorityBadge from "@/components/TaskPriorityBadge";
 import { StatusSelectField } from "@/components/forms/StatusSelectField";
@@ -17,7 +19,8 @@ import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
 import { DateField } from "@/components/forms/DateField";
 import { CurrencyField } from "@/components/forms/CurrencyField";
 import { cn } from "@/lib/utils";
-import { AddNoteModal, AddFileModal } from "@/components/task";
+import { AddNoteModal, AddFileModal, AddPhotoModal } from "@/components/task";
+import type { PhotoUpload } from "@/components/task";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import MsgViewerModal from "@/components/MsgViewerModal";
@@ -621,6 +624,16 @@ export default function WorkOrderDetailsV2({
     };
   };
 
+  const attachmentToPhotoWO = (a: ApiWorkOrderAttachment): Photo => ({
+    id: a.id,
+    url: `${API_BASE}/files/${a.storage_path}`,
+    fileName: a.file_name,
+    uploadedAt: formatCreatedDate(a.created_at),
+    uploadedBy: a.uploaded_by_type,
+    label: (a.label as PhotoLabel) ?? undefined,
+    caption: a.description ?? undefined,
+  });
+
   // Field state - use API data if available, otherwise fall back to prop
   // Cast to proper types for the select fields
   const [status, setStatus] = useState<"completed" | "not_started" | "in_progress">(() => {
@@ -794,6 +807,9 @@ export default function WorkOrderDetailsV2({
   // Modal states
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
   const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
+  const [isAddPhotoOpen, setIsAddPhotoOpen] = useState(false);
+  const [woPhotos, setWoPhotos] = useState<Photo[]>([]);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editingFileId, setEditingFileId] = useState<number | null>(null);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
@@ -1162,6 +1178,50 @@ export default function WorkOrderDetailsV2({
     }
   };
 
+  const handleAddPhotos = async (
+    uploads: PhotoUpload[],
+    label: Photo["label"] | null,
+    caption: string,
+  ) => {
+    if (!workOrderId || !userId) return;
+    setPhotoUploading(true);
+    try {
+      for (const upload of uploads) {
+        const formData = new FormData();
+        formData.append("file", upload.file, upload.file.name);
+        const uploadRes = await authFetch("/maintenance/tasks/attachments/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (!uploadRes.ok) throw new Error("Upload failed");
+        const uploadData: { temp_object_key: string; original_name: string; file_type: string; file_size: number; } = await uploadRes.json();
+        const newAttachment: ApiWorkOrderAttachment = await fetchJSON(
+          `/maintenance/work-orders/id/${workOrderId}/attachments`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              file_name: uploadData.original_name,
+              file_type: uploadData.file_type,
+              file_size: uploadData.file_size,
+              storage_path: uploadData.temp_object_key,
+              uploaded_by_type: "user",
+              uploaded_by: userId,
+              label: label ?? null,
+              description: caption || null,
+            }),
+          },
+        );
+        setWoPhotos(prev => [attachmentToPhotoWO(newAttachment), ...prev]);
+      }
+    } catch (err) {
+      console.error("Failed to upload photos:", err);
+      throw err;
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
   const handleDeleteFile = async (fileId: number) => {
     try {
       await fetchJSON(`/maintenance/work-orders/attachments/${fileId}`, {
@@ -1187,10 +1247,10 @@ export default function WorkOrderDetailsV2({
         const apiAttachments: ApiWorkOrderAttachment[] = await fetchJSON(
           `/maintenance/work-orders/id/${workOrderId}/attachments`,
         );
-        const transformedFiles = apiAttachments.map(
-          transformApiAttachmentToUiFile,
-        );
-        setFiles(transformedFiles);
+        const imageAttachments = apiAttachments.filter(a => a.file_type?.startsWith("image/"));
+        const fileAttachments = apiAttachments.filter(a => !a.file_type?.startsWith("image/"));
+        setWoPhotos(imageAttachments.map(attachmentToPhotoWO));
+        setFiles(fileAttachments.map(transformApiAttachmentToUiFile));
       } catch (err) {
         console.error("Error loading files:", err);
         setFiles([]);
@@ -1734,6 +1794,18 @@ export default function WorkOrderDetailsV2({
               }}
             />
           </SectionCard>
+
+          {/* Photos Section */}
+          <SectionCard padding="compact" variant="white">
+            <div className="p-4">
+              <PhotoGallery
+                photos={woPhotos}
+                onAdd={() => setIsAddPhotoOpen(true)}
+                onDelete={(id) => { setWoPhotos(prev => prev.filter(p => p.id !== id)); fetchJSON(`/maintenance/work-orders/attachments/${id}`, { method: "DELETE" }).catch(console.error); }}
+                onEdit={(updated) => { setWoPhotos(prev => prev.map(p => p.id === updated.id ? updated : p)); fetchJSON(`/maintenance/work-orders/attachments/${updated.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: updated.label ?? null, description: updated.caption ?? null }) }).catch(console.error); }}
+              />
+            </div>
+          </SectionCard>
         </div>
 
         {/* Right Sidebar */}
@@ -1887,6 +1959,13 @@ export default function WorkOrderDetailsV2({
         initialCategory={editingFile?.category}
         initialDescription={editingFile?.description}
         isEditMode={!!editingFileId}
+      />
+
+      <AddPhotoModal
+        open={isAddPhotoOpen}
+        onOpenChange={setIsAddPhotoOpen}
+        onSubmit={handleAddPhotos}
+        loading={photoUploading}
       />
 
       <PdfViewerModal

@@ -64,6 +64,8 @@ import { parseMsgFile } from "@/utils/parseMsgFile";
 import { parseEmlFile } from "@/utils/parseEmlFile";
 import type { ParsedMsg } from "@/utils/parseMsgFile";
 import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
+import type { Photo, PhotoLabel } from "@/components/PhotoGallery";
+import type { PhotoUpload } from "@/components/task";
 import { openAuthPdf } from "@/api/openAuthPdf";
 import { useAuth } from "@/auth/useAuth";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
@@ -1270,8 +1272,66 @@ export default function TaskSummary() {
     }
   }, []);
 
+  const handleAddPhotos = useCallback(async (
+    uploads: PhotoUpload[],
+    label: PhotoLabel | null,
+    caption: string,
+  ) => {
+    if (!taskId || !userId) throw new Error("Missing task ID or user ID");
+    for (const upload of uploads) {
+      const formData = new FormData();
+      formData.append("file", upload.file, upload.file.name);
+      const uploadRes = await authFetch("/maintenance/tasks/attachments/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!uploadRes.ok) {
+        const text = await uploadRes.text();
+        throw new Error(`Upload failed ${uploadRes.status}: ${text}`);
+      }
+      const uploadResponse: ApiFileUploadResponse = await uploadRes.json();
+      const newAttachment: ApiTaskAttachment = await fetchJSON(
+        `/maintenance/tasks/id/${taskId}/attachments`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            file_name: uploadResponse.original_name,
+            file_type: uploadResponse.file_type,
+            file_size: uploadResponse.file_size,
+            storage_path: uploadResponse.temp_object_key,
+            uploaded_by_type: "user",
+            uploaded_by: userId,
+            label: label ?? null,
+            description: caption || null,
+          }),
+        },
+      );
+      setPhotos(prev => [attachmentToPhoto(newAttachment), ...prev]);
+    }
+  }, [taskId, userId]);
+
+  const handleDeletePhoto = useCallback((photoId: number) => {
+    setPhotos(prev => prev.filter(p => p.id !== photoId));
+    fetchJSON(`/maintenance/attachments/${photoId}`, { method: "DELETE" })
+      .catch(err => console.error("Failed to delete photo:", err));
+  }, []);
+
+  const handleEditPhoto = useCallback((updated: Photo) => {
+    setPhotos(prev => prev.map(p => p.id === updated.id ? updated : p));
+    fetchJSON(`/maintenance/attachments/${updated.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        label: updated.label ?? null,
+        description: updated.caption ?? null,
+      }),
+    }).catch(err => console.error("Failed to update photo:", err));
+  }, []);
+
   // Files state - loaded from API
   const [files, setFiles] = useState<File[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
 
   /**
@@ -1311,6 +1371,16 @@ export default function TaskSummary() {
     };
   };
 
+  const attachmentToPhoto = (a: ApiTaskAttachment): Photo => ({
+    id: a.id,
+    url: `${API_BASE}/files/${a.storage_path}`,
+    fileName: a.file_name,
+    uploadedAt: formatTaskDateTime(a.created_at),
+    uploadedBy: a.uploaded_by_type,
+    label: (a.label as PhotoLabel) ?? undefined,
+    caption: a.description ?? undefined,
+  });
+
   // Load attachments from API
   const loadFiles = useCallback(async () => {
     if (!taskId) return;
@@ -1320,11 +1390,14 @@ export default function TaskSummary() {
       const apiAttachments: ApiTaskAttachment[] = await fetchJSON(
         `/maintenance/tasks/id/${taskId}/attachments`,
       );
-      const transformedFiles = apiAttachments.map(transformApiAttachmentToUiFile);
-      setFiles(transformedFiles);
+      const imageAttachments = apiAttachments.filter(a => a.file_type?.startsWith("image/"));
+      const fileAttachments = apiAttachments.filter(a => !a.file_type?.startsWith("image/"));
+      setPhotos(imageAttachments.map(attachmentToPhoto));
+      setFiles(fileAttachments.map(transformApiAttachmentToUiFile));
     } catch (error) {
       console.error("Error loading files:", error);
       setFiles([]);
+      setPhotos([]);
     } finally {
       setFilesLoading(false);
     }
@@ -3358,6 +3431,10 @@ export default function TaskSummary() {
               lastUpdatedTimestamp={formatTaskDateTime(lastUpdatedTimestamp)}
               workOrders={workOrders}
               fieldTeamOrders={fieldTeamOrders}
+              photos={photos}
+              onAddPhotos={handleAddPhotos}
+              onDeletePhoto={handleDeletePhoto}
+              onEditPhoto={handleEditPhoto}
               notes={notes}
               files={files}
               updates={updates}

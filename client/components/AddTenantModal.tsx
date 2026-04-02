@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { FileUploadField } from "@/components/forms/FileUploadField";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
-import { createTenant, updateTenant, uploadTenantDocument, createTenantDocument } from "@/data/tenants";
+import { createTenant, updateTenant, uploadTenantDocument, createTenantDocument, fetchTenantsByProperty } from "@/data/tenants";
 import { createRentersInsurance } from "@/data/insurance";
 import type { Tenant } from "@/types/tenant";
 import { toast } from "sonner";
@@ -44,6 +44,14 @@ export default function AddTenantModal({
   const [ecRelationship, setEcRelationship] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Existing tenant picker
+  const [existingTenants, setExistingTenants] = useState<Tenant[]>([]);
+  const [selectedTenantLabel, setSelectedTenantLabel] = useState<string | null>(null);
+  const [tenantSearch, setTenantSearch] = useState("");
+  const [showTenantDropdown, setShowTenantDropdown] = useState(false);
+  const tenantSearchRef = useRef<HTMLDivElement>(null);
+  const tenantSearchInputRef = useRef<HTMLInputElement>(null);
+
   // Document uploads
   const [leaseFiles, setLeaseFiles] = useState<UploadedFile[]>([]);
   const [insuranceFiles, setInsuranceFiles] = useState<UploadedFile[]>([]);
@@ -53,6 +61,50 @@ export default function AddTenantModal({
   const [insPolicyNumber, setInsPolicyNumber] = useState("");
   const [insEffective, setInsEffective] = useState("");
   const [insExpiration, setInsExpiration] = useState("");
+
+  useEffect(() => {
+    if (open && !editData) {
+      fetchTenantsByProperty(propertyId).then(setExistingTenants).catch(() => {});
+    }
+    if (!open) {
+      setTenantSearch("");
+      setShowTenantDropdown(false);
+      setSelectedTenantLabel(null);
+    }
+  }, [open, editData, propertyId]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (tenantSearchRef.current && !tenantSearchRef.current.contains(e.target as Node)) {
+        setShowTenantDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function applyExistingTenant(t: Tenant) {
+    setFirstName(t.first_name);
+    setLastName(t.last_name);
+    setEmail(t.email ?? "");
+    setPhone(t.phone ?? "");
+    setEcName(t.emergency_contact_name ?? "");
+    setEcPhone(t.emergency_contact_phone ?? "");
+    setEcRelationship(t.emergency_contact_relationship ?? "");
+    setSelectedTenantLabel(`${t.first_name} ${t.last_name}`);
+    setTenantSearch("");
+    setShowTenantDropdown(false);
+  }
+
+  function toggleTenantDropdown() {
+    setShowTenantDropdown((prev) => {
+      if (!prev) {
+        setTenantSearch("");
+        setTimeout(() => tenantSearchInputRef.current?.focus(), 0);
+      }
+      return !prev;
+    });
+  }
 
   useEffect(() => {
     if (open && editData) {
@@ -227,6 +279,63 @@ export default function AddTenantModal({
       }
     >
       <FormLayout>
+        {!isEdit && (
+          <div className="mb-2" ref={tenantSearchRef}>
+            <label className={labelClass}>Select from existing tenant</label>
+            <div className="relative">
+              <button
+                type="button"
+                className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#1357D5]/20 focus:border-[#1357D5]"
+                onClick={toggleTenantDropdown}
+              >
+                <span className={selectedTenantLabel ? "text-[#303030]" : "text-[#A0A0A0]"}>
+                  {selectedTenantLabel ?? "Select an existing tenant..."}
+                </span>
+                <svg className={`w-4 h-4 text-[#71717A] transition-transform ${showTenantDropdown ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {showTenantDropdown && (
+                <div className="absolute z-50 mt-1 w-full rounded-lg border border-[#DADADA] bg-white shadow-lg">
+                  <div className="p-2 border-b border-[#F0F0F0]">
+                    <input
+                      ref={tenantSearchInputRef}
+                      className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-1.5 text-sm text-[#303030] placeholder:text-[#A0A0A0] focus:outline-none focus:ring-2 focus:ring-[#1357D5]/20 focus:border-[#1357D5]"
+                      placeholder="Search..."
+                      value={tenantSearch}
+                      onChange={(e) => setTenantSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {existingTenants
+                      .filter((t) => {
+                        const full = `${t.first_name} ${t.last_name}`.toLowerCase();
+                        return tenantSearch === "" || full.includes(tenantSearch.toLowerCase());
+                      })
+                      .map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm text-[#303030] hover:bg-[#F5F5F5] flex items-center justify-between"
+                          onMouseDown={() => applyExistingTenant(t)}
+                        >
+                          <span>{t.first_name} {t.last_name}</span>
+                          {t.email && <span className="text-xs text-[#A0A0A0]">{t.email}</span>}
+                        </button>
+                      ))}
+                    {existingTenants.filter((t) => {
+                      const full = `${t.first_name} ${t.last_name}`.toLowerCase();
+                      return tenantSearch === "" || full.includes(tenantSearch.toLowerCase());
+                    }).length === 0 && (
+                      <div className="px-3 py-2 text-sm text-[#A0A0A0]">No matching tenants</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <FormSection title="Personal Information" showDivider>
           <div className="grid grid-cols-2 gap-3">
             <div>
