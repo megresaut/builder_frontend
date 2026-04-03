@@ -218,7 +218,7 @@ export default function App() {
 
                 {/* ---------- MAIN APP (ShellLayout) ---------- */}
                 <Route
-                  path="/dashboard"
+                  path="/"
                   element={
                     <RequireAuth>
                       <ShellLayout>
@@ -228,8 +228,10 @@ export default function App() {
                   }
                 />
 
+                <Route path="/dashboard" element={<Navigate to="/" replace />} />
+
                 <Route
-                  path="/"
+                  path="/properties"
                   element={
                     <RequireAuth>
                       <ShellLayout>
@@ -239,7 +241,7 @@ export default function App() {
                   }
                 />
 
-                <Route path="/all-properties" element={<Navigate to="/" replace />} />
+                <Route path="/all-properties" element={<Navigate to="/properties" replace />} />
 
                 <Route
                   path="/all-tasks"

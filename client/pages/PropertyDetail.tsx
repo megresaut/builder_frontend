@@ -263,7 +263,7 @@ export default function PropertyLayout() {
     try {
       await fetchJSON(`/properties/${propertyId}`, { method: "DELETE" });
       propertyCache.delete(propertyId);
-      navigate("/");
+      navigate("/properties");
     } catch (err: unknown) {
       alert("Failed to deactivate: " + (err instanceof Error ? err.message : String(err)));
     }

@@ -128,8 +128,8 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       if (path.startsWith("/fto/work-orders")) return "fto-work-orders";
       return null;
     }
-    if (path === "/dashboard") return "dashboard";
-    if (path === "/") return "properties";
+    if (path === "/") return "dashboard";
+    if (path === "/properties") return "properties";
     if (path === "/insurance") return "properties";
     if (path === "/inspection-dashboard") return "properties";
     if (path === "/bills") return "accounting";
@@ -574,14 +574,14 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     string,
     Array<{ label: string; path?: string; sectionId?: string }>
   > = {
-    dashboard: [{ label: "Dashboard", path: "/dashboard", sectionId: "dashboard" }],
+    dashboard: [{ label: "Dashboard", path: "/", sectionId: "dashboard" }],
     "fto-home": [{ label: "Home", path: "/fto", sectionId: "fto-home" }],
     "fto-inspections": [{ label: "Property Inspections", path: "/fto/inspections", sectionId: "fto-inspections" }],
     "fto-work-orders": [{ label: "Work Orders", path: "/fto/work-orders", sectionId: "fto-work-orders" }],
     properties: [
       {
         label: "All Properties",
-        path: "/",
+        path: "/properties",
         sectionId: "all-properties",
       },
       {

@@ -24,7 +24,7 @@ export interface PersistedTabState {
 }
 
 const defaultMetadata: Record<string, PersistedTabMetadata> = {
-  properties: { label: "Properties", route: "/" },
+  properties: { label: "Properties", route: "/properties" },
   portfolio: { label: "Portfolio", sectionId: "portfolio" },
   screening: { label: "Screening", sectionId: "screening" },
   bills: { label: "Bills", sectionId: "bills" },

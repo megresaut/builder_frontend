@@ -94,11 +94,11 @@ export default function Header() {
       }
     } else if (path === "/blank") {
       return { label: "New Tab", path, id: "blank" };
-    } else if (path === "/dashboard") {
+    } else if (path === "/") {
       return { label: "Dashboard", path, id: "dashboard" };
     } else if (path === "/inspection-dashboard") {
       return { label: "Inspections", path, id: "inspection-dashboard" };
-    } else if (path === "/") {
+    } else if (path === "/properties") {
       return { label: "All Properties", path, id: "properties" };
     } else if (path === "/all-tasks") {
       return { label: "All Tasks", path, id: "all-tasks" };
@@ -185,7 +185,7 @@ export default function Header() {
       const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
       if (match) {
         const tab = match[2];
-        items.push({ label: "Properties", href: "/" });
+        items.push({ label: "Properties", href: "/properties" });
         items.push({
           label: propertyDisplayName ?? propertyState?.address ?? "Property"
         });
@@ -194,13 +194,13 @@ export default function Header() {
           items.push({ label: tab });
         }
       }
-    } else if (path === "/dashboard") {
-      items.push({ label: "Dashboard" });
-    } else if (path === "/inspection-dashboard") {
-      items.push({ label: "Properties", href: "/" });
-      items.push({ label: "Inspections" });
     } else if (path === "/") {
+      items.push({ label: "Dashboard" });
+    } else if (path === "/properties") {
       items.push({ label: "All Properties" });
+    } else if (path === "/inspection-dashboard") {
+      items.push({ label: "Properties", href: "/properties" });
+      items.push({ label: "Inspections" });
     } else if (path === "/all-tasks") {
       items.push({ label: "All Tasks" });
     } else if (path === "/utilities") {
