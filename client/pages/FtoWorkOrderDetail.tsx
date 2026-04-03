@@ -7,6 +7,7 @@ import { useAuthBlobUrl } from "@/hooks/useAuthBlobUrl";
 import { formatUnitLabel } from "@/utils/unitLabel";
 import { useAuth } from "@/auth/useAuth";
 import { ChevronLeft } from "lucide-react";
+import { StarRatingInput } from "@/components/StarRatingInput";
 import { EditIcon } from "@/components/icons";
 import { NotesTemplate, FilesTemplate } from "@/components/templates";
 import { DateField } from "@/components/forms/DateField";
@@ -165,6 +166,17 @@ export default function FtoWorkOrderDetail() {
     "not_started" | "in_progress" | "completed"
   >("not_started");
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [showRatingStep, setShowRatingStep] = useState(false);
+  const [completedWorkOrderId, setCompletedWorkOrderId] = useState<number | null>(null);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingFeedback, setRatingFeedback] = useState("");
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
+  const [existingEvaluation, setExistingEvaluation] = useState<{
+    rating: number;
+    feedback: string;
+    submittedAt: string;
+    submittedBy?: string;
+  } | null>(null);
 
   const loadWorkOrder = useCallback(async () => {
     if (!workOrderId) return;
@@ -224,6 +236,23 @@ export default function FtoWorkOrderDetail() {
     };
     run();
   }, [workOrderId, loadWorkOrder]);
+
+  // Load existing evaluation
+  useEffect(() => {
+    if (!workOrderId) return;
+    fetchJSON(`/maintenance/work-orders/id/${workOrderId}/evaluation`)
+      .then((data: any) => {
+        if (data) {
+          setExistingEvaluation({
+            rating: data.rating,
+            feedback: data.feedback ?? "",
+            submittedAt: data.created_at,
+            submittedBy: data.rated_by_user_name ?? undefined,
+          });
+        }
+      })
+      .catch(() => {});
+  }, [workOrderId]);
 
   // Load notes
   useEffect(() => {
@@ -521,12 +550,48 @@ export default function FtoWorkOrderDetail() {
         due_date: updated.due_date ?? updated.dueDate ?? editDueDate,
         status: updated.status ?? editStatus,
       });
-      setIsEditWorkOrderModalOpen(false);
+      if (editStatus === "completed") {
+        setCompletedWorkOrderId(Number(workOrderId));
+        setRatingValue(0);
+        setRatingFeedback("");
+        setShowRatingStep(true);
+      } else {
+        setIsEditWorkOrderModalOpen(false);
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to update work order. Please try again.");
     } finally {
       setEditSubmitting(false);
+    }
+  };
+
+  const handleRatingSubmit = async () => {
+    if (!completedWorkOrderId || ratingValue === 0) return;
+    setRatingSubmitting(true);
+    try {
+      const ratedByUserID = userId ?? undefined;
+      const result: any = await fetchJSON(`/maintenance/work-orders/id/${completedWorkOrderId}/evaluation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating: ratingValue,
+          feedback: ratingFeedback.trim() || undefined,
+          rated_by_user_id: ratedByUserID,
+        }),
+      });
+      setExistingEvaluation({
+        rating: result.rating,
+        feedback: result.feedback ?? "",
+        submittedAt: result.created_at,
+        submittedBy: result.rated_by_user_name ?? undefined,
+      });
+    } catch (err) {
+      console.error("Failed to submit rating:", err);
+    } finally {
+      setRatingSubmitting(false);
+      setShowRatingStep(false);
+      setIsEditWorkOrderModalOpen(false);
     }
   };
 
@@ -636,6 +701,29 @@ export default function FtoWorkOrderDetail() {
               </div>
             </SectionCard>
 
+            {/* Vendor Evaluation — shown when work order is completed */}
+            {workOrder.status === "completed" && (
+              <SectionCard padding="none" variant="white">
+                <div className="px-4 pt-4 pb-1 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold text-gray-900">Vendor Evaluation</h3>
+                </div>
+                {existingEvaluation ? (
+                  <div className="px-4 py-4 flex flex-col gap-3">
+                    <StarRatingInput value={existingEvaluation.rating} onChange={() => {}} readOnly size={20} />
+                    {existingEvaluation.feedback && (
+                      <p className="text-sm text-gray-700">{existingEvaluation.feedback}</p>
+                    )}
+                    <p className="text-xs text-gray-400">
+                      Submitted{existingEvaluation.submittedBy ? ` by ${existingEvaluation.submittedBy}` : ""}{" "}·{" "}
+                      {new Date(existingEvaluation.submittedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="px-4 py-4 text-sm text-gray-400">No evaluation submitted yet.</div>
+                )}
+              </SectionCard>
+            )}
+
             {/* Notes */}
             <SectionCard padding="compact" variant="white">
               {notesLoading ? (
@@ -738,32 +826,61 @@ export default function FtoWorkOrderDetail() {
 
         <ModalTemplate
           open={isEditWorkOrderModalOpen}
-          onOpenChange={setIsEditWorkOrderModalOpen}
-          title="Edit Work Order Details"
+          onOpenChange={(open) => {
+            if (!open) { setShowRatingStep(false); }
+            setIsEditWorkOrderModalOpen(open);
+          }}
+          title={showRatingStep ? "Rate this Work Order" : "Edit Work Order Details"}
           size="sm"
           footer={
-            <ModalButtons
-              onCancel={() => setIsEditWorkOrderModalOpen(false)}
-              onConfirm={handleEditWorkOrderSubmit}
-              cancelLabel="Cancel"
-              confirmLabel="Save"
-              confirmDisabled={editSubmitting}
-            />
+            showRatingStep ? (
+              <ModalButtons
+                onCancel={() => { setShowRatingStep(false); setIsEditWorkOrderModalOpen(false); }}
+                onConfirm={handleRatingSubmit}
+                cancelLabel="Skip"
+                confirmLabel="Submit Rating"
+                confirmDisabled={ratingSubmitting || ratingValue === 0}
+              />
+            ) : (
+              <ModalButtons
+                onCancel={() => setIsEditWorkOrderModalOpen(false)}
+                onConfirm={handleEditWorkOrderSubmit}
+                cancelLabel="Cancel"
+                confirmLabel="Save"
+                confirmDisabled={editSubmitting}
+              />
+            )
           }
         >
-          <div className="flex flex-col gap-4">
-            <StatusSelectField
-              label="Status"
-              value={editStatus}
-              onChange={(v) => setEditStatus(v)}
-            />
-            <DateField
-              label="Due Date"
-              value={editDueDate}
-              onChange={(v) => setEditDueDate(v ? String(v).split("T")[0] : null)}
-              returnFormat="ISO"
-            />
-          </div>
+          {showRatingStep ? (
+            <div className="flex flex-col gap-5">
+              <p className="text-sm text-gray-600">How would you rate the quality of this work?</p>
+              <div className="flex justify-center">
+                <StarRatingInput value={ratingValue} onChange={setRatingValue} size={32} />
+              </div>
+              <textarea
+                placeholder="Optional feedback…"
+                value={ratingFeedback}
+                onChange={(e) => setRatingFeedback(e.target.value)}
+                rows={3}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <StatusSelectField
+                label="Status"
+                value={editStatus}
+                onChange={(v) => setEditStatus(v)}
+              />
+              <DateField
+                label="Due Date"
+                value={editDueDate}
+                onChange={(v) => setEditDueDate(v ? String(v).split("T")[0] : null)}
+                returnFormat="ISO"
+              />
+            </div>
+          )}
         </ModalTemplate>
 
         {viewingFileUrl && (

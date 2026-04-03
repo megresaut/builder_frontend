@@ -1034,8 +1034,14 @@ export default function Bills() {
   };
   
 
-  const handleDeleteBill = useCallback((bill: Bill) => {
-    setBillsList((prev) => prev.filter((b) => b.id !== bill.id));
+  const handleDeleteBill = useCallback(async (bill: Bill) => {
+    try {
+      await fetchJSON(`/vendors/bill-drafts/${bill.id}`, { method: "DELETE" });
+      setBillsList((prev) => prev.filter((b) => b.id !== bill.id));
+    } catch (err) {
+      console.error("Failed to delete bill draft:", err);
+      alert("Failed to delete bill draft.");
+    }
   }, []);
 
   const headerActions: PageHeaderAction[] = [

@@ -5,6 +5,7 @@ export interface WorkOrderEvaluationData {
   rating: number; // 1-5
   notes: string;
   submittedAt: string; // ISO string
+  submittedBy?: string;
 }
 
 interface WorkOrderEvaluationProps {
@@ -58,7 +59,7 @@ export function WorkOrderEvaluation({
         )}
         <div className="flex items-center justify-between">
           <p className="text-[#717179] text-xs">
-            Submitted{" "}
+            Submitted{existingEvaluation.submittedBy ? ` by ${existingEvaluation.submittedBy}` : ""}{" "}·{" "}
             {new Date(existingEvaluation.submittedAt).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
