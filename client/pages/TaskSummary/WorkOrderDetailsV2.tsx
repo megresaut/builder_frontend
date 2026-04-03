@@ -762,7 +762,7 @@ export default function WorkOrderDetailsV2({
     fetchJSON(`/maintenance/work-orders/id/${workOrderId}/evaluation`)
       .then((data: any) => {
         if (data) {
-          setEvaluation({ rating: data.rating, notes: data.feedback ?? "", submittedAt: data.created_at });
+          setEvaluation({ rating: data.rating, notes: data.feedback ?? "", submittedAt: data.created_at, submittedBy: data.rated_by_user_name ?? undefined });
         }
       })
       .catch(() => {});

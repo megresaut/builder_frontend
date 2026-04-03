@@ -1,30 +1,35 @@
-import { useState } from "react";
+import { useState, useId } from "react";
 
 interface StarRatingInputProps {
-  value: number; // 0 = unset, 1-5
+  value: number; // 0 = unset, 0.5–5 in 0.5 increments
   onChange: (rating: number) => void;
   size?: number;
   readOnly?: boolean;
 }
 
+const STAR_PATH =
+  "M11.5714 0.646026C11.163 0.451325 10.6886 0.451325 10.2802 0.646026C9.92723 0.81434 9.73259 1.10658 9.63444 1.2669C9.53297 1.43264 9.4288 1.64377 9.32728 1.84955L7.17154 6.21684L2.34949 6.92165C2.1225 6.95478 1.88959 6.98878 1.70068 7.0342C1.51792 7.07815 1.18001 7.1732 0.911096 7.45704C0.600004 7.78541 0.453702 8.23662 0.512923 8.68506C0.564113 9.07269 0.781958 9.34794 0.904158 9.49077C1.03048 9.63841 1.19913 9.80261 1.36349 9.96263L4.85128 13.3597L4.02832 18.158C3.98947 18.3843 3.94961 18.6164 3.93427 18.8101C3.91943 18.9975 3.90509 19.3484 4.09179 19.6922C4.30774 20.0897 4.69162 20.3686 5.13649 20.4511C5.5211 20.5224 5.85038 20.4003 6.02401 20.3282C6.20356 20.2537 6.41198 20.1441 6.61514 20.0372L10.9258 17.7702L15.2365 20.0372C15.4396 20.1441 15.6481 20.2537 15.8276 20.3282C16.0012 20.4003 16.3305 20.5224 16.7151 20.4511C17.16 20.3686 17.5439 20.0897 17.7598 19.6922C17.9465 19.3484 17.9322 18.9975 17.9173 18.8101C17.902 18.6164 17.8621 18.3843 17.8233 18.1581L17.0003 13.3597L20.4882 9.9626C20.6525 9.80258 20.8211 9.6384 20.9475 9.49077C21.0697 9.34794 21.2875 9.07269 21.3387 8.68506C21.3979 8.23662 21.2516 7.78541 20.9405 7.45704C20.6716 7.1732 20.3337 7.07815 20.1509 7.0342C19.962 6.98878 19.7291 6.95478 19.5021 6.92165L14.6801 6.21684L12.5244 1.84963C12.4228 1.64383 12.3187 1.43265 12.2172 1.2669C12.119 1.10658 11.9244 0.81434 11.5714 0.646026Z";
+
+// fill: "full" | "half" | "empty"
 function Star({
-  filled,
-  hovered,
+  fill,
   size,
-  onMouseEnter,
+  onMouseMove,
   onMouseLeave,
   onClick,
   readOnly,
+  clipId,
 }: {
-  filled: boolean;
-  hovered: boolean;
+  fill: "full" | "half" | "empty";
   size: number;
-  onMouseEnter?: () => void;
+  onMouseMove?: (e: React.MouseEvent<SVGSVGElement>) => void;
   onMouseLeave?: () => void;
   onClick?: () => void;
   readOnly?: boolean;
+  clipId: string;
 }) {
-  const active = filled || hovered;
+  const active = fill !== "empty";
+  const color = active ? "#F59E0B" : "#D1D5DB";
 
   return (
     <svg
@@ -33,16 +38,32 @@ function Star({
       viewBox="0 0 22 21"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      onMouseEnter={onMouseEnter}
+      onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       onClick={onClick}
       className={readOnly ? "cursor-default" : "cursor-pointer"}
       style={{ flexShrink: 0 }}
     >
+      <defs>
+        <clipPath id={clipId}>
+          <rect x="0" y="0" width="11" height="21" />
+        </clipPath>
+      </defs>
+
+      {/* Yellow fill — clipped to left half when "half" */}
+      {active && (
+        <path
+          d={STAR_PATH}
+          fill="#F59E0B"
+          clipPath={fill === "half" ? `url(#${clipId})` : undefined}
+        />
+      )}
+
+      {/* Outline */}
       <path
-        d="M11.5714 0.646026C11.163 0.451325 10.6886 0.451325 10.2802 0.646026C9.92723 0.81434 9.73259 1.10658 9.63444 1.2669C9.53297 1.43264 9.4288 1.64377 9.32728 1.84955L7.17154 6.21684L2.34949 6.92165C2.1225 6.95478 1.88959 6.98878 1.70068 7.0342C1.51792 7.07815 1.18001 7.1732 0.911096 7.45704C0.600004 7.78541 0.453702 8.23662 0.512923 8.68506C0.564113 9.07269 0.781958 9.34794 0.904158 9.49077C1.03048 9.63841 1.19913 9.80261 1.36349 9.96263L4.85128 13.3597L4.02832 18.158C3.98947 18.3843 3.94961 18.6164 3.93427 18.8101C3.91943 18.9975 3.90509 19.3484 4.09179 19.6922C4.30774 20.0897 4.69162 20.3686 5.13649 20.4511C5.5211 20.5224 5.85038 20.4003 6.02401 20.3282C6.20356 20.2537 6.41198 20.1441 6.61514 20.0372L10.9258 17.7702L15.2365 20.0372C15.4396 20.1441 15.6481 20.2537 15.8276 20.3282C16.0012 20.4003 16.3305 20.5224 16.7151 20.4511C17.16 20.3686 17.5439 20.0897 17.7598 19.6922C17.9465 19.3484 17.9322 18.9975 17.9173 18.8101C17.902 18.6164 17.8621 18.3843 17.8233 18.1581L17.0003 13.3597L20.4882 9.9626C20.6525 9.80258 20.8211 9.6384 20.9475 9.49077C21.0697 9.34794 21.2875 9.07269 21.3387 8.68506C21.3979 8.23662 21.2516 7.78541 20.9405 7.45704C20.6716 7.1732 20.3337 7.07815 20.1509 7.0342C19.962 6.98878 19.7291 6.95478 19.5021 6.92165L14.6801 6.21684L12.5244 1.84963C12.4228 1.64383 12.3187 1.43265 12.2172 1.2669C12.119 1.10658 11.9244 0.81434 11.5714 0.646026Z"
-        fill={active ? "#F59E0B" : "none"}
-        stroke={active ? "#F59E0B" : "#D1D5DB"}
+        d={STAR_PATH}
+        fill="none"
+        stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -51,15 +72,27 @@ function Star({
 }
 
 const LABELS: Record<number, string> = {
-  1: "Poor",
-  2: "Fair",
-  3: "Good",
-  4: "Very Good",
-  5: "Excellent",
+  0.5: "Poor",
+  1:   "Poor",
+  1.5: "Fair",
+  2:   "Fair",
+  2.5: "Good",
+  3:   "Good",
+  3.5: "Very Good",
+  4:   "Very Good",
+  4.5: "Excellent",
+  5:   "Excellent",
 };
+
+function starFill(n: number, value: number): "full" | "half" | "empty" {
+  if (value >= n) return "full";
+  if (value >= n - 0.5) return "half";
+  return "empty";
+}
 
 export function StarRatingInput({ value, onChange, size = 28, readOnly = false }: StarRatingInputProps) {
   const [hovered, setHovered] = useState(0);
+  const uid = useId();
 
   const display = hovered > 0 ? hovered : value;
 
@@ -70,10 +103,15 @@ export function StarRatingInput({ value, onChange, size = 28, readOnly = false }
           <Star
             key={n}
             size={size}
-            filled={n <= value}
-            hovered={!readOnly && n <= hovered}
-            onMouseEnter={() => !readOnly && setHovered(n)}
-            onClick={() => !readOnly && onChange(n)}
+            fill={starFill(n, display)}
+            clipId={`${uid}-star-${n}`}
+            onMouseMove={(e) => {
+              if (readOnly) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              setHovered(x < rect.width / 2 ? n - 0.5 : n);
+            }}
+            onClick={() => !readOnly && onChange(hovered > 0 ? hovered : n)}
             readOnly={readOnly}
           />
         ))}
