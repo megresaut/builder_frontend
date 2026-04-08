@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Tenant, TenantDocument } from "@/types/tenant";
+import type { Tenant, TenantDocument, TenantVehicle } from "@/types/tenant";
 import {
   fetchTenantsByUnit,
   deleteTenant,
@@ -7,12 +7,16 @@ import {
   uploadTenantDocument,
   createTenantDocument,
   deleteTenantDocument,
+  fetchTenantVehicles,
+  deleteTenantVehicle,
 } from "@/data/tenants";
 import AddTenantModal from "./AddTenantModal";
+import AddVehicleModal from "./AddVehicleModal";
 import { PlusIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { toast } from "sonner";
+import { API_BASE } from "@/api/fetchJSON";
 
 interface TenantsListProps {
   unitId: number;
@@ -54,6 +58,14 @@ export default function TenantsList({ unitId, propertyId }: TenantsListProps) {
   const [uploadingForTenant, setUploadingForTenant] = useState<number | null>(null);
   const [uploadDocType, setUploadDocType] = useState("lease");
 
+  // Vehicles per tenant
+  const [tenantVehicles, setTenantVehicles] = useState<Record<number, TenantVehicle[]>>({});
+  const [vehiclesLoading, setVehiclesLoading] = useState<Record<number, boolean>>({});
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
+  const [vehicleModalTenantId, setVehicleModalTenantId] = useState<number | null>(null);
+  const [editingVehicle, setEditingVehicle] = useState<TenantVehicle | null>(null);
+  const [deleteVehicleId, setDeleteVehicleId] = useState<{ tenantId: number; vehicleId: number } | null>(null);
+
   const loadTenants = useCallback(async () => {
     setLoading(true);
     try {
@@ -83,10 +95,26 @@ export default function TenantsList({ unitId, propertyId }: TenantsListProps) {
     }
   };
 
+  const loadTenantVehicles = async (tenantId: number) => {
+    if (tenantVehicles[tenantId] !== undefined) return;
+    setVehiclesLoading((prev) => ({ ...prev, [tenantId]: true }));
+    try {
+      const vehicles = await fetchTenantVehicles(tenantId);
+      setTenantVehicles((prev) => ({ ...prev, [tenantId]: vehicles }));
+    } catch {
+      setTenantVehicles((prev) => ({ ...prev, [tenantId]: [] }));
+    } finally {
+      setVehiclesLoading((prev) => ({ ...prev, [tenantId]: false }));
+    }
+  };
+
   const handleExpand = (tenantId: number) => {
     const isExpanded = expandedTenantId === tenantId;
     setExpandedTenantId(isExpanded ? null : tenantId);
-    if (!isExpanded) loadTenantDocs(tenantId);
+    if (!isExpanded) {
+      loadTenantDocs(tenantId);
+      loadTenantVehicles(tenantId);
+    }
   };
 
   const handleDelete = async () => {
@@ -147,6 +175,33 @@ export default function TenantsList({ unitId, propertyId }: TenantsListProps) {
     } catch {
       toast.error("Failed to remove document");
     }
+  };
+
+  const handleVehicleDelete = async () => {
+    if (!deleteVehicleId) return;
+    try {
+      await deleteTenantVehicle(deleteVehicleId.vehicleId);
+      setTenantVehicles((prev) => ({
+        ...prev,
+        [deleteVehicleId.tenantId]: (prev[deleteVehicleId.tenantId] || []).filter(
+          (v) => v.id !== deleteVehicleId.vehicleId,
+        ),
+      }));
+      toast.success("Vehicle removed");
+    } catch {
+      toast.error("Failed to remove vehicle");
+    } finally {
+      setDeleteVehicleId(null);
+    }
+  };
+
+  const handleVehicleSaved = (tenantId: number) => {
+    setShowVehicleModal(false);
+    setEditingVehicle(null);
+    setVehicleModalTenantId(null);
+    // Refresh vehicles for this tenant
+    setTenantVehicles((prev) => ({ ...prev, [tenantId]: undefined as any }));
+    loadTenantVehicles(tenantId);
   };
 
   const filteredTenants = statusFilter === "all"
@@ -412,6 +467,107 @@ export default function TenantsList({ unitId, propertyId }: TenantsListProps) {
                         </div>
                       )}
                     </div>
+
+                    {/* Vehicles */}
+                    <div className="border-t border-[#E4E4E7] pt-3 mt-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-[#71717A] tracking-wide">VEHICLES</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingVehicle(null);
+                            setVehicleModalTenantId(tenant.id);
+                            setShowVehicleModal(true);
+                          }}
+                          className="flex items-center gap-1.5 text-[#1357D5] text-sm font-medium hover:underline"
+                        >
+                          <PlusIcon width={14} height={14} className="text-[#1357D5]" />
+                          Add Vehicle
+                        </button>
+                      </div>
+                      {vehiclesLoading[tenant.id] ? (
+                        <div className="text-sm text-gray-400 mt-2">Loading...</div>
+                      ) : (tenantVehicles[tenant.id] ?? []).length === 0 ? (
+                        <div className="text-sm text-gray-400 mt-2">No vehicles registered</div>
+                      ) : (
+                        <div className="flex flex-col gap-2 mt-2">
+                          {(tenantVehicles[tenant.id] ?? []).map((vehicle) => {
+                            const isExpired = vehicle.registration_exp_date &&
+                              new Date(vehicle.registration_exp_date) < new Date();
+                            return (
+                              <div key={vehicle.id} className="flex items-center justify-between py-2.5 px-3 rounded-lg border border-[#F0F0F0] bg-[#FAFAFA] hover:bg-[#F5F5F5] transition-colors">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <svg className="w-5 h-5 text-[#71717A] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 17h.01M16 17h.01M3 11l1.5-5A2 2 0 016.4 4h11.2a2 2 0 011.9 1.4L21 11M3 11v6a1 1 0 001 1h1a2 2 0 004 0h6a2 2 0 004 0h1a1 1 0 001-1v-6M3 11h18" />
+                                  </svg>
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-sm font-medium text-[#303030] truncate">
+                                      {vehicle.year ? `${vehicle.year} ` : ""}{vehicle.make} {vehicle.model}
+                                      {vehicle.color ? ` — ${vehicle.color}` : ""}
+                                    </span>
+                                    <span className="text-xs text-[#71717A] truncate">
+                                      {vehicle.license_plate}
+                                      {vehicle.license_state ? ` (${vehicle.license_state})` : ""}
+                                      {vehicle.vin ? ` · VIN: ${vehicle.vin}` : ""}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+                                  {vehicle.registration_object_key && (
+                                    <a
+                                      href={`${API_BASE}/files?key=${encodeURIComponent(vehicle.registration_object_key)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                      Registration
+                                    </a>
+                                  )}
+                                  {vehicle.has_parking_permit && (
+                                    <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-700">
+                                      {vehicle.parking_spot ? `Spot ${vehicle.parking_spot}` : "Permit"}
+                                    </span>
+                                  )}
+                                  {vehicle.registration_exp_date && (
+                                    <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${
+                                      isExpired ? "bg-red-50 text-red-700" : "bg-gray-100 text-gray-600"
+                                    }`}>
+                                      {isExpired ? "Expired " : "Exp "}
+                                      {formatDate(vehicle.registration_exp_date)}
+                                    </span>
+                                  )}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingVehicle(vehicle);
+                                      setVehicleModalTenantId(tenant.id);
+                                      setShowVehicleModal(true);
+                                    }}
+                                    className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                                  >
+                                    <EditIcon width={14} height={14} color="#525252" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDeleteVehicleId({ tenantId: tenant.id, vehicleId: vehicle.id });
+                                    }}
+                                    className="p-1 hover:bg-red-50 rounded-md transition-colors"
+                                  >
+                                    <DeleteIcon width={14} height={14} color="#982740" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -454,6 +610,47 @@ export default function TenantsList({ unitId, propertyId }: TenantsListProps) {
           <FormSection showDivider={false}>
             <p className="text-sm text-[#303030]">
               Are you sure you want to delete this tenant? This will also remove their documents and insurance links.
+            </p>
+          </FormSection>
+        </FormLayout>
+      </ModalTemplate>
+
+      {vehicleModalTenantId && (
+        <AddVehicleModal
+          open={showVehicleModal}
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowVehicleModal(false);
+              setEditingVehicle(null);
+              setVehicleModalTenantId(null);
+            }
+          }}
+          tenantId={vehicleModalTenantId}
+          editData={editingVehicle}
+          onSaved={() => handleVehicleSaved(vehicleModalTenantId)}
+        />
+      )}
+
+      <ModalTemplate
+        open={deleteVehicleId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteVehicleId(null);
+        }}
+        title="Remove Vehicle"
+        size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => setDeleteVehicleId(null)}
+            onConfirm={handleVehicleDelete}
+            cancelLabel="Cancel"
+            confirmLabel="Remove"
+          />
+        }
+      >
+        <FormLayout>
+          <FormSection showDivider={false}>
+            <p className="text-sm text-[#303030]">
+              Are you sure you want to remove this vehicle?
             </p>
           </FormSection>
         </FormLayout>

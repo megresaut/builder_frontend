@@ -834,6 +834,7 @@ export default function Header() {
             nextTabId = openTabsArray[closedTabIndex + 1].id;
           }
           setSelectedTab(nextTabId);
+          navigateToTabRoute(nextTabId);
         }
 
         newTabs.delete(tabId);

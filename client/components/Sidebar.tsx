@@ -581,7 +581,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     properties: [
       {
         label: "All Properties",
-        path: "/",
+        path: "/all-properties",
         sectionId: "all-properties",
       },
       {

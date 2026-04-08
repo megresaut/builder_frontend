@@ -54,6 +54,55 @@ export interface CreateTenantRequest {
   emergency_contact_relationship?: string;
 }
 
+export interface TenantVehicle {
+  id: number;
+  tenant_id: number;
+  make: string;
+  model: string;
+  year: number | null;
+  color: string | null;
+  license_plate: string;
+  license_state: string | null;
+  vin: string | null;
+  registration_exp_date: string | null;
+  registration_object_key: string | null;
+  registration_mime: string | null;
+  has_parking_permit: boolean;
+  parking_spot: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateVehicleRequest {
+  tenant_id: number;
+  make: string;
+  model: string;
+  year?: number;
+  color?: string;
+  license_plate: string;
+  license_state?: string;
+  vin?: string;
+  registration_exp_date?: string;
+  registration_object_key?: string;
+  registration_mime?: string;
+  has_parking_permit?: boolean;
+  parking_spot?: string;
+}
+
+export interface UpdateVehicleRequest {
+  id: number;
+  make?: string;
+  model?: string;
+  year?: number;
+  color?: string;
+  license_plate?: string;
+  license_state?: string;
+  vin?: string;
+  registration_exp_date?: string;
+  has_parking_permit?: boolean;
+  parking_spot?: string;
+}
+
 export interface UpdateTenantRequest {
   id: number;
   first_name?: string;

@@ -1,5 +1,5 @@
 import { fetchJSON, authFetch, API_BASE } from "@/api/fetchJSON";
-import type { Tenant, TenantDocument, CreateTenantRequest, UpdateTenantRequest } from "@/types/tenant";
+import type { Tenant, TenantDocument, TenantVehicle, CreateTenantRequest, UpdateTenantRequest, CreateVehicleRequest, UpdateVehicleRequest } from "@/types/tenant";
 
 export async function fetchTenantsByUnit(unitId: number): Promise<Tenant[]> {
   return fetchJSON(`/tenants?unit_id=${unitId}`);
@@ -61,4 +61,46 @@ export async function createTenantDocument(req: {
 
 export async function deleteTenantDocument(id: number): Promise<void> {
   await fetchJSON(`/tenants/documents?id=${id}`, { method: "DELETE" });
+}
+
+// --- Vehicles ---
+
+export async function fetchTenantVehicles(tenantId: number): Promise<TenantVehicle[]> {
+  return fetchJSON(`/tenants/vehicles?tenant_id=${tenantId}`);
+}
+
+export async function createTenantVehicle(req: CreateVehicleRequest): Promise<TenantVehicle> {
+  return fetchJSON("/tenants/vehicles", {
+    method: "POST",
+    body: JSON.stringify(req),
+  });
+}
+
+export async function updateTenantVehicle(req: UpdateVehicleRequest): Promise<TenantVehicle> {
+  return fetchJSON("/tenants/vehicles", {
+    method: "PATCH",
+    body: JSON.stringify(req),
+  });
+}
+
+export async function deleteTenantVehicle(id: number): Promise<void> {
+  await fetchJSON(`/tenants/vehicles?id=${id}`, { method: "DELETE" });
+}
+
+export async function uploadVehicleRegistration(file: File): Promise<{ object_key: string; mime: string }> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await authFetch("/tenants/vehicles/registration/upload", {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) throw new Error("Upload failed");
+  return res.json();
+}
+
+export async function parseVehicleRegistration(objectKey: string): Promise<Partial<CreateVehicleRequest>> {
+  return fetchJSON("/tenants/vehicles/registration/parse", {
+    method: "POST",
+    body: JSON.stringify({ object_key: objectKey }),
+  });
 }

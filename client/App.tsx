@@ -233,13 +233,22 @@ export default function App() {
                   element={
                     <RequireAuth>
                       <ShellLayout>
-                        <AllProperties />
+                        <Dashboard />
                       </ShellLayout>
                     </RequireAuth>
                   }
                 />
 
-                <Route path="/all-properties" element={<Navigate to="/" replace />} />
+                <Route
+                  path="/all-properties"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AllProperties />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
 
                 <Route
                   path="/all-tasks"

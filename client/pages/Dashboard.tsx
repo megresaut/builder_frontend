@@ -142,9 +142,9 @@ const _d   = 86400000;
 // ─── Open Maintenance Types ───────────────────────────────────────────────────
 
 interface OpenTask        { id: number; name: string; property: string; priority: string; created_at: string; }
-interface OpenWorkOrder   { id: number; name: string; property: string; priority: string; status: string; created_at: string; }
+interface OpenWorkOrder   { id: number; name: string; property: string; priority: string; status: string; created_at: string; task_id: number | null; }
 interface OpenFTO         { id: number; name: string; property: string; priority: string; status: string; created_at: string; }
-interface OpenInspection  { id: number; name: string; property: string; status: string; due_date: string | null; }
+interface OpenInspection  { id: number; name: string; property: string; status: string; due_date: string | null; property_id: number | null; }
 
 interface OpenMaintenanceData {
   tasks:       OpenTask[];
@@ -396,7 +396,7 @@ function CardShell({ id, size, isCustomizing, isSelected, isDragging, isDragOver
           ? "ring-1 ring-gray-200 cursor-pointer hover:ring-2 hover:ring-gray-300"
           : ""
       }`}>
-        {children}
+        {isCustomizing ? <div className="pointer-events-none">{children}</div> : children}
       </div>
     </div>
   );
@@ -583,7 +583,7 @@ function OpenMaintenanceCard() {
               {activeTab === "tasks" && (
                 <div className="space-y-2">
                   {visibleTasks.length === 0 ? <p className="text-sm text-gray-400 text-center py-4">No open tasks</p> : visibleTasks.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div key={item.id} onClick={() => navigate(`/tasks/${item.id}`)} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
                         <p className="text-xs text-gray-400">{item.property || "—"}</p>
@@ -599,7 +599,7 @@ function OpenMaintenanceCard() {
               {activeTab === "work-orders" && (
                 <div className="space-y-2">
                   {visibleWorkOrders.length === 0 ? <p className="text-sm text-gray-400 text-center py-4">No open work orders</p> : visibleWorkOrders.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div key={item.id} onClick={() => item.task_id ? navigate(`/tasks/${item.task_id}/workorders/${item.id}`) : navigate("/work-orders")} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
                         <p className="text-xs text-gray-400">{item.property || "—"}</p>
@@ -615,7 +615,7 @@ function OpenMaintenanceCard() {
               {activeTab === "ftos" && (
                 <div className="space-y-2">
                   {visibleFtos.length === 0 ? <p className="text-sm text-gray-400 text-center py-4">No open FTOs</p> : visibleFtos.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div key={item.id} onClick={() => navigate(`/field-team-orders/approve/${item.id}`)} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
                         <p className="text-xs text-gray-400">{item.property || "—"}</p>
@@ -631,7 +631,7 @@ function OpenMaintenanceCard() {
               {activeTab === "inspections" && (
                 <div className="space-y-2">
                   {visibleInspections.length === 0 ? <p className="text-sm text-gray-400 text-center py-4">No open inspections</p> : visibleInspections.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div key={item.id} onClick={() => item.property_id ? navigate(`/property/${item.property_id}/Inspections?inspectionId=${item.id}`) : navigate("/inspection-dashboard")} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
                         <p className="text-xs text-gray-400">{item.property || "—"}</p>
@@ -1382,6 +1382,17 @@ export default function Dashboard() {
     dragCard.current = dragOverCard.current = null; setDragOverId(null); setIsDragging(false);
     setSelectedCard(null);
   }
+
+  // Document-level dragover so auto-scroll works even at the very top/bottom edges
+  useEffect(() => {
+    if (!isDragging) return;
+    function onDragOver(e: DragEvent) {
+      e.preventDefault();
+      updateScroll(e.clientY);
+    }
+    document.addEventListener("dragover", onDragOver);
+    return () => { document.removeEventListener("dragover", onDragOver); stopScroll(); };
+  }, [isDragging]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Arrow-key reordering when a card is selected in customize mode
   useEffect(() => {
