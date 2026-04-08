@@ -204,4 +204,29 @@ export const accountingAPI = {
     fetchJSON(`/accounting/invoices/${invoiceId}/payments`),
   voidPayment: (paymentId: number) =>
     fetchJSON(`/accounting/payments/${paymentId}`, { method: "DELETE" }),
+
+  // Bill Payments (AP vendor expense sync to QBO)
+  getBillPayments: (filters?: {
+    property_id?: number;
+    vendor_id?: number;
+    start_date?: string;
+    end_date?: string;
+    qbo_sync_status?: "unsynced" | "synced" | "failed";
+  }) => {
+    const params = new URLSearchParams();
+    if (filters?.property_id) params.set("property_id", String(filters.property_id));
+    if (filters?.vendor_id) params.set("vendor_id", String(filters.vendor_id));
+    if (filters?.start_date) params.set("start_date", filters.start_date);
+    if (filters?.end_date) params.set("end_date", filters.end_date);
+    if (filters?.qbo_sync_status) params.set("qbo_sync_status", filters.qbo_sync_status);
+    return fetchJSON(`/accounting/bill-payments?${params}`);
+  },
+  syncBillPaymentToQBO: (transactionId: number) =>
+    fetchJSON(`/accounting/bill-payments/${transactionId}/sync`, { method: "POST" }),
+  bulkSyncBillPaymentsToQBO: (ids: number[]) =>
+    fetchJSON("/accounting/bill-payments/bulk-sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    }),
 };

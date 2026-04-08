@@ -63,6 +63,7 @@ import AccountingPnL from "./pages/AccountingPnL";
 import AccountingARaging from "./pages/AccountingARaging";
 import AccountingAccountsReceivable from "./pages/AccountingAccountsReceivable";
 import AccountingPropertyComparison from "./pages/AccountingPropertyComparison";
+import AccountingBillPayments from "./pages/AccountingBillPayments";
 
 initConsoleCapture();
 
@@ -483,6 +484,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <AccountingPropertyComparison />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/bill-payments"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingBillPayments />
                       </ShellLayout>
                     </RequireAuth>
                   }

@@ -619,6 +619,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       { label: "Dashboard", path: "/accounting", sectionId: "accounting-dashboard" },
       { label: "Bills", path: "/bills", sectionId: "bills" },
       { label: "Transactions", path: "/accounting/transactions", sectionId: "accounting-transactions" },
+      { label: "Bill Payments", path: "/accounting/bill-payments", sectionId: "accounting-bill-payments" },
       { label: "Statements", path: "/accounting/statements", sectionId: "accounting-statements" },
       { label: "Chart of Accounts", path: "/accounting/chart-of-accounts", sectionId: "accounting-coa" },
       { label: "P&L Report", path: "/accounting/reports/pnl", sectionId: "accounting-pnl" },
