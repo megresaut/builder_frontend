@@ -755,6 +755,7 @@ export default function ApproveFTOPage() {
             file_type: uploadData.file_type || file.type,
             file_size: uploadData.file_size || file.size,
             storage_path: storagePath,
+            uploaded_by_type: "user",
           }),
         },
       );

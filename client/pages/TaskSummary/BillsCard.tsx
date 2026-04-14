@@ -48,8 +48,8 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendor
   useEffect(() => {
     const loadBills = async () => {
       try {
-        const data = await fetchJSON("/utilities/bills/all");
-        const rows = Array.isArray(data) ? data : [];
+        const res = await fetchJSON("/utilities/bills/all?limit=500");
+        const rows = Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
         const vendorBills = rows
           .filter((bill: any) => {
             // Only vendor bills (not utility bills)

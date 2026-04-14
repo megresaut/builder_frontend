@@ -55,6 +55,8 @@ interface GlobalTableProps {
   selectedIds?: Set<string | number>;
   /** Called when selection changes */
   onSelectionChange?: (selectedIds: Set<string | number>) => void;
+  /** When set, use this as total row count instead of data.length (for server-side pagination) */
+  serverTotal?: number;
 }
 
 export default function GlobalTable({
@@ -91,6 +93,7 @@ export default function GlobalTable({
   selectable = false,
   selectedIds,
   onSelectionChange,
+  serverTotal,
 }: GlobalTableProps) {
   const { handleSortClick, getSortIndicator, getSortedData } = sortingHook;
   const {
@@ -113,11 +116,14 @@ export default function GlobalTable({
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
   const sorted = getSortedData();
-  const totalRows = sorted.length;
+  const isServerPaginated = serverTotal !== undefined;
+  const totalRows = isServerPaginated ? serverTotal : sorted.length;
   const totalPages = Math.max(1, Math.ceil(totalRows / itemsPerPage));
 
   const getDisplayedRowsForPage = () => {
     if (!showPagination) return sorted;
+    // When server-paginated, data is already the correct page — don't slice
+    if (isServerPaginated) return sorted;
 
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;

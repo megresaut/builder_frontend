@@ -465,6 +465,7 @@ export default function Bills() {
 
   const [billsList, setBillsList] = useState<Bill[]>([]);
   const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(new Set());
+  const [approvedTotal, setApprovedTotal] = useState(0);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   // const [approvedTimestamp, setApprovedTimestamp] = useState(
   //   () => Date.now() - 3 * 60 * 1000,
@@ -499,8 +500,7 @@ export default function Bills() {
   };
 
   const approvedBills = billsList
-    .filter((b) => approvedBillIds.has(b.id))
-    .sort((a, b) => (b.exportedAt ?? b.importedAt) - (a.exportedAt ?? a.importedAt));
+    .filter((b) => approvedBillIds.has(b.id));
   const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
   const tabBills = selectedTab === "approved" ? approvedBills : draftBills;
 
@@ -511,43 +511,48 @@ export default function Bills() {
     new Set(tabBills.map((b) => b.property).filter((p) => p && p !== "—"))
   ).sort();
 
-  const searchLower = searchValue.trim().toLowerCase();
-  const filteredTabBills = tabBills.filter((bill) => {
-    const matchesSearch = !searchLower || (() => {
-      const vendor = (bill.vendor ?? "").toLowerCase();
-      const property = (bill.property ?? "").toLowerCase();
-      const memo = (bill.memo ?? "").toLowerCase();
-      const invoiceNumber = (bill.invoiceNumber ?? "").toLowerCase();
-      const amountStr = String(bill.amount ?? "");
-      const statementDate = (bill.statementDate ?? "").toLowerCase();
-      const dueDate = (bill.dueDate ?? "").toLowerCase();
-      return (
-        vendor.includes(searchLower) ||
-        property.includes(searchLower) ||
-        memo.includes(searchLower) ||
-        invoiceNumber.includes(searchLower) ||
-        amountStr.includes(searchLower) ||
-        statementDate.includes(searchLower) ||
-        dueDate.includes(searchLower)
-      );
-    })();
+  // For the approved tab, filtering + search happens server-side.
+  // For the drafts tab, filter client-side as before.
+  const filteredTabBills = selectedTab === "approved"
+    ? tabBills
+    : (() => {
+        const searchLower = searchValue.trim().toLowerCase();
+        return tabBills.filter((bill) => {
+          const matchesSearch = !searchLower || (() => {
+            const vendor = (bill.vendor ?? "").toLowerCase();
+            const property = (bill.property ?? "").toLowerCase();
+            const memo = (bill.memo ?? "").toLowerCase();
+            const invoiceNumber = (bill.invoiceNumber ?? "").toLowerCase();
+            const amountStr = String(bill.amount ?? "");
+            const statementDate = (bill.statementDate ?? "").toLowerCase();
+            const dueDate = (bill.dueDate ?? "").toLowerCase();
+            return (
+              vendor.includes(searchLower) ||
+              property.includes(searchLower) ||
+              memo.includes(searchLower) ||
+              invoiceNumber.includes(searchLower) ||
+              amountStr.includes(searchLower) ||
+              statementDate.includes(searchLower) ||
+              dueDate.includes(searchLower)
+            );
+          })();
 
-    if (!matchesSearch) return false;
+          if (!matchesSearch) return false;
+          if (filterVendor && bill.vendor !== filterVendor) return false;
+          if (filterProperty && bill.property !== filterProperty) return false;
 
-    if (filterVendor && bill.vendor !== filterVendor) return false;
-    if (filterProperty && bill.property !== filterProperty) return false;
+          if (filterDateFrom || filterDateTo) {
+            const billDateStr = bill.due_date
+              ? new Date(bill.due_date).toISOString().slice(0, 10)
+              : null;
+            if (!billDateStr) return false;
+            if (filterDateFrom && billDateStr < filterDateFrom) return false;
+            if (filterDateTo && billDateStr > filterDateTo) return false;
+          }
 
-    if (filterDateFrom || filterDateTo) {
-      const billDateStr = bill.due_date
-        ? new Date(bill.due_date).toISOString().slice(0, 10)
-        : null;
-      if (!billDateStr) return false;
-      if (filterDateFrom && billDateStr < filterDateFrom) return false;
-      if (filterDateTo && billDateStr > filterDateTo) return false;
-    }
-
-    return true;
-  });
+          return true;
+        });
+      })();
 
   const { handleSortClick, getSortIndicator, getSortedData } =
     useSortingTable(filteredTabBills);
@@ -577,35 +582,79 @@ export default function Bills() {
     "status",
   ]);
 
+  // Debounced search value for server requests
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(searchValue.trim());
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [searchValue]);
+
+  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [filterVendor, filterProperty, filterDateFrom, filterDateTo]);
 
-  const loadBills = useCallback(async () => {
+  // Load approved bills (server-paginated)
+  const loadApprovedBills = useCallback(async () => {
     try {
-      const [approvedRows, draftRows] = await Promise.all([
-        fetchJSON("/utilities/bills/all"),
-        fetchJSON(
-          "/vendors/bill-drafts?status=draft,parsed,receipt&limit=200"
-        ),
-      ]);
+      const params = new URLSearchParams();
+      params.set("limit", String(itemsPerPage));
+      params.set("offset", String((currentPage - 1) * itemsPerPage));
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      if (filterVendor) params.set("vendor", filterVendor);
+      if (filterProperty) params.set("property", filterProperty);
+      if (filterDateFrom) params.set("date_from", filterDateFrom);
+      if (filterDateTo) params.set("date_to", filterDateTo);
 
-      const approved = approvedRows.map(mapUtilityRowToBill);
-      const drafts = draftRows.map(mapDraftRowToBill);
+      const res = await fetchJSON(`/utilities/bills/all?${params.toString()}`);
+      const rows = Array.isArray(res.data) ? res.data : [];
+      const approved = rows.map(mapUtilityRowToBill);
 
-      setBillsList([...approved, ...drafts]);
-      setApprovedBillIds(new Set(approved.map((b) => b.id)));
+      setBillsList((prev) => {
+        const drafts = prev.filter((b) => !approvedBillIds.has(b.id));
+        return [...approved, ...drafts];
+      });
+      setApprovedBillIds(new Set(approved.map((b: Bill) => b.id)));
+      setApprovedTotal(typeof res.total === "number" ? res.total : rows.length);
     } catch (err) {
-      console.error("Error loading bills:", err);
+      console.error("Error loading approved bills:", err);
     }
-  }, []);
+  }, [currentPage, itemsPerPage, debouncedSearch, filterVendor, filterProperty, filterDateFrom, filterDateTo]);
 
-  // Load on mount + auto-refresh every 30 seconds to pick up new drafts
+  // Load draft bills (client-side, independent of pagination)
+  const loadDraftBills = useCallback(async () => {
+    try {
+      const draftRows = await fetchJSON(
+        "/vendors/bill-drafts?status=draft,parsed,receipt&limit=200"
+      );
+      const drafts = (Array.isArray(draftRows) ? draftRows : []).map(mapDraftRowToBill);
+
+      setBillsList((prev) => {
+        const approved = prev.filter((b) => approvedBillIds.has(b.id));
+        return [...approved, ...drafts];
+      });
+    } catch (err) {
+      console.error("Error loading draft bills:", err);
+    }
+  }, [approvedBillIds]);
+
+  // Fetch approved bills whenever page/filters change
   useEffect(() => {
-    loadBills();
-    const interval = setInterval(loadBills, 30_000);
+    loadApprovedBills();
+  }, [loadApprovedBills]);
+
+  // Load drafts on mount + auto-refresh every 30 seconds
+  useEffect(() => {
+    loadDraftBills();
+    const interval = setInterval(loadDraftBills, 30_000);
     return () => clearInterval(interval);
-  }, [loadBills]);
+  }, [loadDraftBills]);
   
   
   
@@ -1004,18 +1053,20 @@ export default function Bills() {
       });
   
       // 2️⃣ Reload bills + drafts from backend
-      const [approvedRows, draftRows] = await Promise.all([
-        fetchJSON("/utilities/bills/all"),
+      const [approvedRes, draftRows] = await Promise.all([
+        fetchJSON(`/utilities/bills/all?limit=${itemsPerPage}&offset=0`),
         fetchJSON(
           "/vendors/bill-drafts?status=draft,parsed,receipt&limit=200"
         ),
       ]);
-  
+
+      const approvedRows = Array.isArray(approvedRes.data) ? approvedRes.data : [];
       const approved = approvedRows.map(mapUtilityRowToBill);
-      const drafts = draftRows.map(mapDraftRowToBill);
-  
+      const drafts = (Array.isArray(draftRows) ? draftRows : []).map(mapDraftRowToBill);
+
       setBillsList([...approved, ...drafts]);
-      setApprovedBillIds(new Set(approved.map((b) => b.id)));
+      setApprovedBillIds(new Set(approved.map((b: Bill) => b.id)));
+      setApprovedTotal(typeof approvedRes.total === "number" ? approvedRes.total : approved.length);
 
       // Auto-switch to Drafts tab so user sees newly synced drafts
       setSelectedTab("drafts");
@@ -1383,7 +1434,11 @@ export default function Bills() {
             currentPage={currentPage}
             onPageChange={setCurrentPage}
             itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={setItemsPerPage}
+            onItemsPerPageChange={(size) => {
+              setItemsPerPage(size);
+              setCurrentPage(1);
+            }}
+            serverTotal={selectedTab === "approved" ? approvedTotal : undefined}
             showPageSizeDropdown={showPageSizeDropdown}
             onShowPageSizeDropdownChange={setShowPageSizeDropdown}
             openMenuId={openMenuId}

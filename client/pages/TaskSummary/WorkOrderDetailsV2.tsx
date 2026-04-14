@@ -770,7 +770,7 @@ export default function WorkOrderDetailsV2({
 
   // Initialize bills from API data
   useEffect(() => {
-    if (apiWorkOrder && apiWorkOrder.bill_id && apiWorkOrder.bill_invoice_number) {
+    if (apiWorkOrder && apiWorkOrder.bill_id) {
       // Convert bill_total_cents to dollars
       const billAmount = apiWorkOrder.bill_total_cents 
         ? (apiWorkOrder.bill_total_cents / 100).toFixed(2)
@@ -788,7 +788,7 @@ export default function WorkOrderDetailsV2({
         id: String(apiWorkOrder.bill_id),
         date: billDate,
         time: billTime,
-        invoiceNumber: apiWorkOrder.bill_invoice_number,
+        invoiceNumber: apiWorkOrder.bill_invoice_number || "—",
         vendorName: apiWorkOrder.bill_vendor_name || apiWorkOrder.vendor_name || "Unknown Vendor",
         amount: `$${billAmount}`,
         status: "Unpaid", // Default status, could be enhanced with additional API field
