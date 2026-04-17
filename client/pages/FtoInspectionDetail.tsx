@@ -127,7 +127,7 @@ export default function FtoInspectionDetail() {
     );
   }
 
-  if (error || !inspection) {
+  if (error || !inspection || !inspection.inspection) {
     return (
       <PageTemplate className="!px-4 !pt-6 !pb-24 max-w-none !min-w-0 lg:!px-6 lg:!py-9">
         <div className="flex flex-col items-center justify-center py-20 gap-4">

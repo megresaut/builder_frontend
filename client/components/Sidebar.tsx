@@ -124,6 +124,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     const path = location.pathname;
     if (isFtoMode) {
       if (path === "/fto" || path === "/fto/") return "fto-home";
+      if (path.startsWith("/fto/orders")) return "fto-orders";
       if (path.startsWith("/fto/inspections")) return "fto-inspections";
       if (path.startsWith("/fto/work-orders")) return "fto-work-orders";
       return null;
@@ -215,6 +216,22 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
+            </svg>
+          ),
+        },
+        {
+          id: "fto-orders",
+          label: "Field Team Orders",
+          iconLight: (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="3" width="16" height="18" rx="2" stroke="#717179" strokeWidth="1.5" />
+              <path d="M8 8h8M8 12h8M8 16h5" stroke="#717179" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          ),
+          iconDark: (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="3" width="16" height="18" rx="2" fill="#303030" stroke="white" strokeWidth="1.5" />
+              <path d="M8 8h8M8 12h8M8 16h5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           ),
         },
@@ -576,6 +593,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
   > = {
     dashboard: [{ label: "Dashboard", path: "/dashboard", sectionId: "dashboard" }],
     "fto-home": [{ label: "Home", path: "/fto", sectionId: "fto-home" }],
+    "fto-orders": [{ label: "Field Team Orders", path: "/fto/orders", sectionId: "fto-orders" }],
     "fto-inspections": [{ label: "Property Inspections", path: "/fto/inspections", sectionId: "fto-inspections" }],
     "fto-work-orders": [{ label: "Work Orders", path: "/fto/work-orders", sectionId: "fto-work-orders" }],
     properties: [
@@ -952,6 +970,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
               style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}
             >
               <button
+                onClick={() => navigate("/settings/bugs")}
                 className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
                 style={{ minHeight: "38px" }}
               >
@@ -1306,6 +1325,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
               style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}
             >
               <button
+                onClick={() => navigate("/settings/bugs")}
                 className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
                 style={{ minHeight: "38px" }}
               >
@@ -1658,6 +1678,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
           style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}
         >
           <button
+            onClick={() => navigate("/settings/bugs")}
             className="flex items-center gap-2 px-3 rounded-lg hover:bg-white transition-colors text-gray-700 text-base"
             style={{ minHeight: "38px" }}
           >

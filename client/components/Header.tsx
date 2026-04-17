@@ -146,6 +146,20 @@ export default function Header() {
         }
       }
       return { label: "Record Bill", path, id: pageId };
+    } else if (path.startsWith("/settings")) {
+      const sectionMap: Record<string, string> = {
+        bugs: "Bug Reports",
+        profile: "Profile",
+        notifications: "Notifications",
+        integrations: "Integrations",
+      };
+      const parts = path.split("/").filter(Boolean); // ["settings", "bugs", ":id"?]
+      const section = parts[1] || "bugs";
+      const sectionLabel = sectionMap[section] || "Settings";
+      if (section === "bugs" && parts[2]) {
+        return { label: `Settings - Bug Report`, path, id: `settings-bug-${parts[2]}` };
+      }
+      return { label: `Settings - ${sectionLabel}`, path, id: `settings-${section}` };
     }
 
     return null;

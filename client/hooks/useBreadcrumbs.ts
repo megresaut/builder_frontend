@@ -151,6 +151,23 @@ export const useBreadcrumbs = (): BreadcrumbItem[] => {
       items.push({ label: "Record Bill" });
     } else if (path === "/maintenance-work-orders") {
       items.push({ label: "Maintenance Work Orders" });
+    } else if (path.startsWith("/settings")) {
+      const sectionMap: Record<string, string> = {
+        bugs: "Bug Reports",
+        profile: "Profile",
+        notifications: "Notifications",
+        integrations: "Integrations",
+      };
+      const parts = path.split("/").filter(Boolean); // ["settings", "bugs", ":id"?]
+      const section = parts[1] || "bugs";
+      const sectionLabel = sectionMap[section] || "Bug Reports";
+      items.push({ label: "Settings", href: "/settings" });
+      if (section === "bugs" && parts[2]) {
+        items.push({ label: sectionLabel, href: "/settings/bugs" });
+        items.push({ label: "Bug Report" });
+      } else {
+        items.push({ label: sectionLabel });
+      }
     }
 
     return items;

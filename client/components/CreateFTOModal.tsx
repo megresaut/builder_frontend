@@ -646,14 +646,7 @@ export default function CreateFTOModal({
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {editingFTO && <AIGeneratedBanner entityType="fto" entityId={editingFTO.id} />}
         {/* Row 1: Property | Unit | Task */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "3fr 2fr 2fr",
-            gap: "12px",
-            width: "100%",
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr_2fr] gap-3 w-full">
           <div style={{ minWidth: 0 }}>
             {isPropertyLocked ? (
               <TextField

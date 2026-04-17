@@ -11,6 +11,9 @@ export interface Photo {
   uploadedBy: string;
   label?: PhotoLabel;
   caption?: string;
+  source?: "task" | "work_order" | "fto_receipt";
+  source_entity_id?: number | null;
+  source_entity_name?: string | null;
 }
 
 const LABEL_META: Record<PhotoLabel, { text: string; dot: string; badge: string }> = {
@@ -114,10 +117,11 @@ export function PhotoGallery({ photos, onAdd, onDelete, onEdit }: PhotoGalleryPr
         const remaining = photos.length - STRIP_VISIBLE;
         return (
           <button
-            key={photo.id}
+            key={`${photo.source ?? "task"}-${photo.id}`}
             onClick={() => setLightboxIndex(idx)}
             className="relative flex-shrink-0 rounded-md overflow-hidden bg-[#f3f3f3] hover:ring-2 hover:ring-[#2463EB] transition-shadow focus:outline-none focus:ring-2 focus:ring-[#2463EB]"
             style={{ width: 72, height: 72 }}
+            title={photo.source_entity_name ? `From ${photo.source_entity_name}` : photo.fileName}
           >
             <img src={photo.url} alt={photo.fileName} className="w-full h-full object-cover" loading="lazy" />
             {photo.label && (
@@ -126,6 +130,11 @@ export function PhotoGallery({ photos, onAdd, onDelete, onEdit }: PhotoGalleryPr
                 LABEL_META[photo.label].badge
               )}>
                 {LABEL_META[photo.label].text}
+              </span>
+            )}
+            {photo.source && photo.source !== "task" && (
+              <span className="absolute bottom-1 left-1 right-1 px-1 py-0 rounded bg-blue-600/85 text-white text-[9px] font-semibold truncate leading-tight">
+                WO
               </span>
             )}
             {isLast && remaining > 0 && (
@@ -177,10 +186,11 @@ export function PhotoGallery({ photos, onAdd, onDelete, onEdit }: PhotoGalleryPr
         <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
           {filteredForGrid.map((photo, idx) => (
             <button
-              key={photo.id}
+              key={`${photo.source ?? "task"}-${photo.id}`}
               onClick={() => setLightboxIndex(idx)}
               className="relative rounded-md overflow-hidden bg-[#f3f3f3] hover:ring-2 hover:ring-[#2463EB] transition-shadow focus:outline-none focus:ring-2 focus:ring-[#2463EB]"
               style={{ aspectRatio: "1/1" }}
+              title={photo.source_entity_name ? `From ${photo.source_entity_name}` : photo.fileName}
             >
               <img src={photo.url} alt={photo.fileName} className="w-full h-full object-cover" loading="lazy" />
               {photo.label && (
@@ -189,6 +199,11 @@ export function PhotoGallery({ photos, onAdd, onDelete, onEdit }: PhotoGalleryPr
                   LABEL_META[photo.label].badge
                 )}>
                   {LABEL_META[photo.label].text}
+                </span>
+              )}
+              {photo.source && photo.source !== "task" && (
+                <span className="absolute bottom-1 left-1 right-1 px-1.5 py-0.5 rounded bg-blue-600/85 text-white text-[10px] font-semibold truncate leading-tight">
+                  WO: {photo.source_entity_name ?? ""}
                 </span>
               )}
             </button>
@@ -205,7 +220,7 @@ export function PhotoGallery({ photos, onAdd, onDelete, onEdit }: PhotoGalleryPr
         {expanded ? expandedGrid : collapsedStrip}
       </div>
 
-      {/* Lightbox */}
+      {/* Lightbox — edit/delete disabled for photos aggregated from other entities */}
       {activeLb && lightboxIndex !== null && (
         <Lightbox
           photo={activeLb}
@@ -214,8 +229,8 @@ export function PhotoGallery({ photos, onAdd, onDelete, onEdit }: PhotoGalleryPr
           onPrev={() => setLightboxIndex((lightboxIndex - 1 + lightboxPhotos.length) % lightboxPhotos.length)}
           onNext={() => setLightboxIndex((lightboxIndex + 1) % lightboxPhotos.length)}
           onClose={() => setLightboxIndex(null)}
-          onDelete={onDelete}
-          onEdit={onEdit}
+          onDelete={activeLb.source && activeLb.source !== "task" ? undefined : onDelete}
+          onEdit={activeLb.source && activeLb.source !== "task" ? undefined : onEdit}
         />
       )}
     </>

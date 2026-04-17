@@ -12,6 +12,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import PageTemplate from "@/layout/PageTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
+import { toast } from "sonner";
 import { formatUnitLabel, formatUnitDisplayForTable, UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import HoursSummaryDrawer from "@/components/HoursSummaryDrawer";
 import { cn } from "@/lib/utils";
@@ -1030,16 +1031,30 @@ export default function FieldTeamOrders() {
   );
 
   const handleConfirmMerge = useCallback(
-    (primaryId: number, mergedIds: number[]) => {
-      // TODO: Call backend merge API when ready
-      console.log("Merge FTOs:", { primaryId, mergedIds });
-      setShowMergeModal(false);
-      setSelectedFtoIds(new Set());
-      setMergeMode(false);
-      // For now, just log — backend integration will come next
-      alert(
-        `Merge requested: Keep FTO #${primaryId}, merge in FTO(s) #${mergedIds.join(", #")}`
-      );
+    async (primaryId: number, mergedIds: number[]) => {
+      try {
+        await fetchJSON("/maintenance/ftos/merge", {
+          method: "POST",
+          body: JSON.stringify({
+            primary_id: primaryId,
+            source_ids: mergedIds,
+          }),
+        });
+        setShowMergeModal(false);
+        setSelectedFtoIds(new Set());
+        setMergeMode(false);
+        await fetchOrders();
+        toast.success(
+          mergedIds.length === 1
+            ? `Merged FTO #${mergedIds[0]} into FTO #${primaryId}`
+            : `Merged ${mergedIds.length} FTOs into FTO #${primaryId}`
+        );
+      } catch (err) {
+        console.error("Merge FTOs failed:", err);
+        toast.error(
+          err instanceof Error ? err.message : "Failed to merge FTOs"
+        );
+      }
     },
     []
   );

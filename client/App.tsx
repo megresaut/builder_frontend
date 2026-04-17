@@ -45,10 +45,18 @@ import InspectionDashboard from "./pages/InspectionDashboard";
 import VendorComplianceDashboard from "./pages/VendorComplianceDashboard";
 import Dashboard from "./pages/Dashboard";
 import PhotoGalleryDemo from "./pages/PhotoGalleryDemo";
+import SettingsLayout from "./pages/settings/SettingsLayout";
+import BugReports from "./pages/settings/BugReports";
+import BugReportDetail from "./pages/settings/BugReportDetail";
+import SettingsStub from "./pages/settings/SettingsStub";
+import { initConsoleCapture } from "./lib/consoleCapture";
+
+initConsoleCapture();
 
 // FTO testing
 import FtoShellLayout from "./layout/FTOShellLayout";
 import FTOHome from "./pages/FTOHome";
+import FTODashboard from "./pages/FTODashboard";
 import FtoSubmissionForm from "./pages/FtoSubmissionForm";
 import ApproveFtoPage from "./pages/ApproveFtoPage";
 import FtoInspections from "./pages/FtoInspections";
@@ -518,12 +526,42 @@ export default function App() {
                   }
                 />
 
+                {/* ---------- SETTINGS ---------- */}
+                <Route
+                  path="/settings"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <SettingsLayout />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                >
+                  <Route index element={<Navigate to="bugs" replace />} />
+                  <Route path="bugs" element={<BugReports />} />
+                  <Route path="bugs/:bugId" element={<BugReportDetail />} />
+                  <Route path="profile" element={<SettingsStub title="Profile" />} />
+                  <Route path="notifications" element={<SettingsStub title="Notifications" />} />
+                  <Route path="integrations" element={<SettingsStub title="Integrations" />} />
+                </Route>
+
                 {/* ---------- DEV / DESIGN PREVIEWS ---------- */}
                 <Route path="/dev/photo-gallery" element={<PhotoGalleryDemo />} />
 
                 {/* ---------- FTO APP (FTOShellLayout) ---------- */}
                 <Route
                   path="/fto"
+                  element={
+                    <RequireAuth>
+                      <FtoShellLayout>
+                        <FTODashboard />
+                      </FtoShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/fto/orders"
                   element={
                     <RequireAuth>
                       <FtoShellLayout>

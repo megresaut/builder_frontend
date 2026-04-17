@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import TableToggle from "@/components/TableToggle";
@@ -147,9 +147,11 @@ const transformSubmissionAPIData = (apiData: any[]): SubmissionRecord[] => {
 
 export default function FtoHome() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<"open" | "submissionHistory">(
     "open",
   );
+  const hasAutoOpenedRef = useRef(false);
   const isFetchingRef = useRef(false);
   const [allOrders, setAllOrders] = useState<FieldTeamOrder[]>([]);
   const [allFTOs, setAllFTOs] = useState<any[]>([]); // Store all FTOs for matching with submissions
@@ -200,6 +202,22 @@ export default function FtoHome() {
         return "pending-approval";
     }
   };
+
+  useEffect(() => {
+    const state = (location.state as any) ?? {};
+    const openOrderId = state.openOrderId;
+    const shouldAutoOpenFirst = state.openFirstOrder;
+    if (hasAutoOpenedRef.current) return;
+    if (!openOrderId && !shouldAutoOpenFirst) return;
+    if (allOrders.length === 0) return;
+    const target = openOrderId
+      ? allOrders.find((o) => o.id === openOrderId)
+      : allOrders[0];
+    if (!target) return;
+    hasAutoOpenedRef.current = true;
+    openViewTaskModal(target);
+    navigate(location.pathname, { replace: true });
+  }, [allOrders, location.state]);
 
   const openViewTaskModal = (row: FieldTeamOrder | SubmissionRecord) => {
     const isSubmission = "dateOfWork" in row;
@@ -658,10 +676,7 @@ export default function FtoHome() {
           )}
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Home</h1>
-            <p className="text-gray-600 mt-1 text-sm">
-              Welcome to Field Team Orders
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">Field Team Orders</h1>
           </div>
 
           <div className="flex items-center justify-between gap-3 w-full">
@@ -802,8 +817,7 @@ export default function FtoHome() {
 
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Home</h1>
-            <p className="text-gray-600 mt-2">Welcome to Field Team Orders</p>
+            <h1 className="text-3xl font-bold text-gray-900">Field Team Orders</h1>
           </div>
           <button
             onClick={() => navigate("/field-team-orders")}

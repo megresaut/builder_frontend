@@ -601,7 +601,7 @@ export default function TaskFieldTeamOrders({
                     : editingOrder.status === "approved"
                       ? "completed"
                       : "dispatched",
-                due_date: editingOrder.dueDateISO || editingOrder.dueDate,
+                due_date: editingOrder.dueDateISO,
                 property_id: editingOrder.propertyId || 1,
                 property_name: editingOrder.property,
                 task_id: editingOrder.task_id ?? undefined,

@@ -19,6 +19,7 @@ import { NotesTemplate } from "@/components/templates";
 import { FilesTemplate } from "@/components/templates";
 import type { Note } from "@/components/templates";
 import type { File } from "@/components/templates";
+import { formatUSD } from "@/lib/utils";
 
 // Helper function to get vendor href from vendor ID
 const getVendorHref = (vendorId: number | string): string | undefined => {
@@ -251,7 +252,7 @@ export default function SummaryTab({
           createdDate={createdTimestamp}
           lastUpdatedDate={lastUpdatedTimestamp}
           stats={[
-            { label: "TOTAL EXPENSE", value: `$${totalExpense}` },
+            { label: "TOTAL EXPENSE", value: formatUSD(totalExpense) },
             { label: "WORK ORDERS", value: workOrders.length.toString() },
             { label: "FTOs", value: fieldTeamOrders.length.toString() },
             { label: "SUBTASKS", value: subtasksLeft.toString() },

@@ -265,6 +265,9 @@ interface ApiTaskNote {
   is_visible_to_client: boolean;
   created_at: string;
   updated_at: string | null;
+  source?: "task" | "work_order";
+  source_entity_id?: number | null;
+  source_entity_name?: string | null;
 }
 
 /**
@@ -282,6 +285,9 @@ interface ApiTaskAttachment {
   label: string | null;
   description: string | null;
   created_at: string;
+  source?: "task" | "work_order" | "fto_receipt";
+  source_entity_id?: number | null;
+  source_entity_name?: string | null;
 }
 
 /**
@@ -377,6 +383,9 @@ function transformApiNoteToUiNote(
     is_visible_to_client: apiNote.is_visible_to_client,
     created_at: apiNote.created_at,
     updated_at: apiNote.updated_at,
+    source: apiNote.source ?? "task",
+    source_entity_id: apiNote.source_entity_id ?? null,
+    source_entity_name: apiNote.source_entity_name ?? null,
   };
 }
 
@@ -656,6 +665,11 @@ export default function TaskSummary() {
     Map<number, string>
   >(new Map());
 
+  // Combined uploader directory (PMs + field team) for matching file uploaders
+  const [uploadersById, setUploadersById] = useState<Map<number, string>>(
+    new Map(),
+  );
+
   // Property managers details (ID -> details) for matching update actors
   const [propertyManagerDetailsById, setPropertyManagerDetailsById] = useState<
     Map<number, { name: string; email: string; phone?: string; role: string }>
@@ -729,6 +743,34 @@ export default function TaskSummary() {
 
     fetchPropertyManagers();
   }, [taskData?.requested_by]);
+
+  // Fetch a combined uploader directory (PMs + field team) so file rows
+  // can show "uploaded by <name>" regardless of the uploader's role.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [pms, ft] = await Promise.all([
+          fetchJSON("/users/property-managers").catch(() => []),
+          fetchJSON("/users/field-team").catch(() => []),
+        ]);
+        if (cancelled) return;
+        const map = new Map<number, string>();
+        for (const u of [...(pms || []), ...(ft || [])]) {
+          const id = Number(u.id);
+          if (!id) continue;
+          const name = u.name || u.email || `User ${id}`;
+          if (!map.has(id)) map.set(id, name);
+        }
+        setUploadersById(map);
+      } catch (err) {
+        console.error("Failed to fetch uploader directory:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const initialsFromName = useCallback((name: string): string => {
     return name
@@ -1353,21 +1395,40 @@ export default function TaskSummary() {
       });
     };
 
-    // TODO: Construct file URL from storage_path if needed
-    // For now, we'll leave url undefined and handle it later if needed
+    const resolvedName = apiAttachment.uploaded_by
+      ? uploadersById.get(apiAttachment.uploaded_by)
+      : undefined;
+    const typeFallback: Record<string, string> = {
+      vendor: "Vendor",
+      client: "Client",
+      system: "System",
+      property_manager: "Property Manager",
+      admin: "Admin",
+      field_team_member: "Field Team",
+    };
+    // Prefer resolved name; fall back to a readable role label so the row still
+    // shows *something* even when the uploader id can't be mapped (e.g. vendors).
+    const uploaderName =
+      resolvedName ||
+      typeFallback[apiAttachment.uploaded_by_type] ||
+      undefined;
     return {
       id: apiAttachment.id,
       name: apiAttachment.file_name,
-      url: undefined, // TODO: Construct download URL from storage_path if needed
+      url: `${API_BASE}/files/${apiAttachment.storage_path}`,
       uploadedAt: formatDate(apiAttachment.created_at),
       category: apiAttachment.label || "",
       description: apiAttachment.description || "",
-      // Store API fields for potential future use
+      // Surfaced to FilesTemplate, which renders "· {author}" when present.
+      author: uploaderName,
       file_type: apiAttachment.file_type,
       file_size: apiAttachment.file_size,
       storage_path: apiAttachment.storage_path,
       uploaded_by_type: apiAttachment.uploaded_by_type,
       uploaded_by: apiAttachment.uploaded_by,
+      source: apiAttachment.source ?? "task",
+      source_entity_id: apiAttachment.source_entity_id ?? null,
+      source_entity_name: apiAttachment.source_entity_name ?? null,
     };
   };
 
@@ -1379,6 +1440,9 @@ export default function TaskSummary() {
     uploadedBy: a.uploaded_by_type,
     label: (a.label as PhotoLabel) ?? undefined,
     caption: a.description ?? undefined,
+    source: a.source ?? "task",
+    source_entity_id: a.source_entity_id ?? null,
+    source_entity_name: a.source_entity_name ?? null,
   });
 
   // Load attachments from API
@@ -1390,8 +1454,11 @@ export default function TaskSummary() {
       const apiAttachments: ApiTaskAttachment[] = await fetchJSON(
         `/maintenance/tasks/id/${taskId}/attachments`,
       );
-      const imageAttachments = apiAttachments.filter(a => a.file_type?.startsWith("image/"));
-      const fileAttachments = apiAttachments.filter(a => !a.file_type?.startsWith("image/"));
+      // Route FTO receipts to Files regardless of MIME; other sources split by image type.
+      const isPhoto = (a: ApiTaskAttachment) =>
+        a.source !== "fto_receipt" && a.file_type?.startsWith("image/");
+      const imageAttachments = apiAttachments.filter(isPhoto);
+      const fileAttachments = apiAttachments.filter((a) => !isPhoto(a));
       setPhotos(imageAttachments.map(attachmentToPhoto));
       setFiles(fileAttachments.map(transformApiAttachmentToUiFile));
     } catch (error) {
@@ -1401,7 +1468,7 @@ export default function TaskSummary() {
     } finally {
       setFilesLoading(false);
     }
-  }, [taskId]);
+  }, [taskId, uploadersById]);
 
   // Load files on mount and when taskId changes
   useEffect(() => {

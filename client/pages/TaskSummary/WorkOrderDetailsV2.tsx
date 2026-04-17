@@ -18,7 +18,7 @@ import { StatusSelectField } from "@/components/forms/StatusSelectField";
 import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
 import { DateField } from "@/components/forms/DateField";
 import { CurrencyField } from "@/components/forms/CurrencyField";
-import { cn } from "@/lib/utils";
+import { cn, formatUSD } from "@/lib/utils";
 import { AddNoteModal, AddFileModal, AddPhotoModal } from "@/components/task";
 import type { PhotoUpload } from "@/components/task";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
@@ -284,7 +284,7 @@ interface EstimateHistoryEntry {
 
 function formatEstimateValue(val: number | null): string {
   if (val === null || val === undefined) return "—";
-  return `$${val.toFixed(2)}`;
+  return formatUSD(val);
 }
 
 function formatHistoryDate(iso: string): string {
@@ -1608,7 +1608,7 @@ export default function WorkOrderDetailsV2({
                     ESTIMATE TOTAL
                   </div>
                   <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
-                    ${estimateTotal.toFixed(2)}
+                    {formatUSD(estimateTotal)}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1635,7 +1635,7 @@ export default function WorkOrderDetailsV2({
                   WORK ORDER TOTAL
                 </div>
                 <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
-                  ${workOrderTotal.toFixed(2)}
+                  {formatUSD(workOrderTotal)}
                 </div>
               </div>
             </SectionCard>

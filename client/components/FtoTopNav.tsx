@@ -9,18 +9,21 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { value: "home", label: "Home", path: "/fto" },
+  { value: "orders", label: "Field Team Orders", path: "/fto/orders" },
   { value: "inspections", label: "Property Inspections", path: "/fto/inspections" },
   { value: "work-orders", label: "Work Orders", path: "/fto/work-orders" },
 ] as const;
 
 function ActionsMenuContent({
   isHome,
+  isOrders,
   isInspections,
   isWorkOrders,
   onNavigate,
   onClose,
 }: {
   isHome: boolean;
+  isOrders: boolean;
   isInspections: boolean;
   isWorkOrders: boolean;
   onNavigate: (path: string) => void;
@@ -33,6 +36,7 @@ function ActionsMenuContent({
       {NAV_ITEMS.map((item, index) => {
         const isSelected =
           (item.value === "home" && isHome) ||
+          (item.value === "orders" && isOrders) ||
           (item.value === "inspections" && isInspections) ||
           (item.value === "work-orders" && isWorkOrders);
         const isHighlighted = hoveredIndex === index;
@@ -83,6 +87,7 @@ export default function FtoTopNav() {
   const [open, setOpen] = useState(false);
 
   const isHome = location.pathname === "/fto" || location.pathname === "/fto/";
+  const isOrders = location.pathname.startsWith("/fto/orders");
   const isInspections = location.pathname.startsWith("/fto/inspections");
   const isWorkOrders = location.pathname.startsWith("/fto/work-orders");
 
@@ -91,7 +96,7 @@ export default function FtoTopNav() {
     setOpen(false);
   };
 
-  // Plus button: submission on Home, new inspection on Inspections; hidden on Work Orders
+  // Plus button: new inspection on Inspections, submission on Orders; hidden elsewhere
   const handlePlusClick = () => {
     if (isInspections) {
       navigate("/fto/inspections/new");
@@ -99,7 +104,7 @@ export default function FtoTopNav() {
       navigate("/fto/submission");
     }
   };
-  const showPlusButton = !isWorkOrders;
+  const showPlusButton = isOrders || isInspections;
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -130,6 +135,11 @@ export default function FtoTopNav() {
               Home
             </span>
           )}
+          {isOrders && (
+            <span className="text-sm font-medium text-gray-900 truncate">
+              Field Team Orders
+            </span>
+          )}
           {isInspections && (
             <span className="text-sm font-medium text-gray-900 truncate">
               Property Inspections
@@ -140,9 +150,9 @@ export default function FtoTopNav() {
               Work Orders
             </span>
           )}
-          {!isHome && !isInspections && !isWorkOrders && (
+          {!isHome && !isOrders && !isInspections && !isWorkOrders && (
             <span className="text-sm font-medium text-gray-900 truncate">
-              Field Team Orders
+              Field Team
             </span>
           )}
         </div>
@@ -199,6 +209,7 @@ export default function FtoTopNav() {
             >
               <ActionsMenuContent
                 isHome={isHome}
+                isOrders={isOrders}
                 isInspections={isInspections}
                 isWorkOrders={isWorkOrders}
                 onNavigate={handleNavigate}

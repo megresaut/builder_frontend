@@ -87,14 +87,13 @@ const PropertyPageHeader = memo(function PropertyPageHeader({
     "Overview",
     ...(isConcierge ? [] : ["Units"]),
     ...(propertyLocationsCount > 0 ? ["Locations"] : []),
-    "Utilities",
-    "Maintenance",
     "Inspections",
-    "Vendors",
-    "Bills",
+    "Utilities",
     "Insurance",
-    "Notes",
+    "Maintenance",
+    "Bills",
     ...(isConcierge ? ["Invoicing"] : []),
+    "Notes",
   ];
 
   const handleTabClick = (tab: string) => {

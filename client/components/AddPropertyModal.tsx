@@ -144,7 +144,7 @@ const STATUS_OPTIONS = [
 
 // Backend property_type → UI select value
 const BackendPropertyTypeToUI: Record<string, string> = {
-  c: "commercial",
+  c: "concierge",
   comm: "commercial",
   r: "rental",
   or: "or",
@@ -153,11 +153,11 @@ const BackendPropertyTypeToUI: Record<string, string> = {
 
 // UI property type → backend enum
 const UIPropertyTypeToBackend: Record<string, string> = {
-  commercial: "COMM", // or "c" — choose ONE canonical value
+  concierge: "C",
+  commercial: "COMM",
   rental: "R",
   or: "OR",
   hoa: "HOA",
-  concierge: "C", // if supported by backend
 };
 
 

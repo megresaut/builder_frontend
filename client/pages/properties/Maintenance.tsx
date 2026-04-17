@@ -10,6 +10,7 @@ import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import { Vendors } from "./Vendors";
 import { useParams } from "react-router-dom";
 import { getInitials } from "@/utils/getInitials";
 import { fetchJSON } from "@/api/fetchJSON";
@@ -1026,7 +1027,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const propertyId = Number(propertyIdProp ?? propertyIdParam ?? 0);
 
   const [activeTab, setActiveTab] = usePageState<
-    "tasks" | "recurring" | "workorders" | "fieldteam"
+    "tasks" | "recurring" | "workorders" | "fieldteam" | "vendors"
   >("activeTab", "tasks");
   const [openMenuId, setOpenMenuId] = usePageState<number | null>(
     "openMenuId",
@@ -1687,6 +1688,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
     { id: "recurring" as const, label: "Recurring Tasks" },
     { id: "workorders" as const, label: "Work Orders" },
     { id: "fieldteam" as const, label: "Field Team Orders" },
+    { id: "vendors" as const, label: "Vendors" },
   ];
 
   const getPriorityBadgeColor = (priority: string) => {
@@ -2575,6 +2577,15 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
             }
           />
         )
+      )}
+
+      {/* Vendors Tab Content */}
+      {activeTab === "vendors" && (
+        <Vendors
+          propertyAddress={propertyAddress}
+          propertyType={propertyType}
+          propertyUnits={propertyUnits}
+        />
       )}
 
       {/* Create Task Modal */}

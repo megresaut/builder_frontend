@@ -568,7 +568,6 @@ function PolicyFormPanel({
         return updated;
       });
 
-      setPolicyFile(file);
       setParsed(true);
       const confidence = parseRes.confidence != null ? Math.round(parseRes.confidence * 100) : null;
       toast.success(
@@ -592,7 +591,47 @@ function PolicyFormPanel({
         setSaving(false);
         return;
       }
-      const payload = { ...form, policy_type: resolvedType };
+
+      // Upload policy file if a new one was selected (autofill path already sets form.policy_object_key)
+      let policyObjectKey = form.policy_object_key || "";
+      let policyMime = form.policy_mime || "";
+      if (policyFile) {
+        const fd = new FormData();
+        fd.append("file", policyFile);
+        const uploadRes = await authFetch("/insurance/policies/upload", {
+          method: "POST",
+          body: fd,
+        });
+        if (!uploadRes.ok) throw new Error("Policy upload failed");
+        const uploadData = await uploadRes.json();
+        policyObjectKey = uploadData.object_key;
+        policyMime = uploadData.mime;
+      }
+
+      // Upload COI if a new one was selected
+      let coiObjectKey = form.coi_object_key || "";
+      let coiMime = form.coi_mime || "";
+      if (coiFile) {
+        const fd = new FormData();
+        fd.append("file", coiFile);
+        const uploadRes = await authFetch("/insurance/policies/upload", {
+          method: "POST",
+          body: fd,
+        });
+        if (!uploadRes.ok) throw new Error("COI upload failed");
+        const uploadData = await uploadRes.json();
+        coiObjectKey = uploadData.object_key;
+        coiMime = uploadData.mime;
+      }
+
+      const payload = {
+        ...form,
+        policy_type: resolvedType,
+        policy_object_key: policyObjectKey || null,
+        policy_mime: policyMime || null,
+        coi_object_key: coiObjectKey || null,
+        coi_mime: coiMime || null,
+      };
       if (isEdit) {
         const patch: Record<string, any> = { id: initial!.id };
         const resolvedInitial = { ...initial, policy_type: isCustomType ? "other" : initial!.policy_type };
@@ -600,6 +639,14 @@ function PolicyFormPanel({
           if ((payload as any)[key] !== (resolvedInitial as any)[key]) {
             patch[key] = payload[key];
           }
+        }
+        if (policyFile) {
+          patch.policy_object_key = policyObjectKey;
+          patch.policy_mime = policyMime;
+        }
+        if (coiFile) {
+          patch.coi_object_key = coiObjectKey;
+          patch.coi_mime = coiMime;
         }
         await fetchJSON("/insurance/policies", {
           method: "PATCH",
@@ -637,6 +684,18 @@ function PolicyFormPanel({
           <div className="mb-5">
             <div
               onClick={() => !parsing && autofillInputRef.current?.click()}
+              onDragOver={(e) => !parsing && e.preventDefault()}
+              onDrop={(e) => {
+                if (parsing) return;
+                e.preventDefault();
+                const f = e.dataTransfer.files?.[0];
+                if (!f) return;
+                if (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")) {
+                  handleAutofill(f);
+                } else {
+                  toast.error("Only PDF files are supported");
+                }
+              }}
               className={cn(
                 "flex items-center justify-center gap-3 rounded-lg border-2 border-dashed px-4 py-4 cursor-pointer transition-colors",
                 parsing
@@ -667,7 +726,7 @@ function PolicyFormPanel({
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#013764" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                   <div>
                     <span className="text-sm font-medium text-[#013764]">Upload a policy PDF to autofill</span>
-                    <span className="block text-xs text-[#4a7a9b]">AI will extract carrier, dates, coverage, agent info and more</span>
+                    <span className="block text-xs text-[#4a7a9b]">AI will extract carrier, dates, coverage, agent info and more · drag & drop</span>
                   </div>
                 </>
               )}
@@ -843,9 +902,20 @@ function PolicyFormPanel({
           {/* Policy Document Upload */}
           <div
             onClick={() => policyInputRef.current?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const f = e.dataTransfer.files?.[0];
+              if (!f) return;
+              if (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")) {
+                setPolicyFile(f);
+              } else {
+                toast.error("Only PDF files are supported");
+              }
+            }}
             className={cn(
               "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 cursor-pointer transition-colors",
-              policyFile ? "border-green-300 bg-green-50" : "border-[#DADADA] bg-gray-50 hover:bg-gray-100 hover:border-gray-400"
+              policyFile || form.policy_object_key ? "border-green-300 bg-green-50" : "border-[#DADADA] bg-gray-50 hover:bg-gray-100 hover:border-gray-400"
             )}
           >
             <input
@@ -861,11 +931,17 @@ function PolicyFormPanel({
                 <span className="text-sm font-medium text-green-700 text-center truncate max-w-full">{policyFile.name}</span>
                 <span className="text-xs text-green-600">{(policyFile.size / 1024).toFixed(0)} KB</span>
               </>
+            ) : form.policy_object_key ? (
+              <>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span className="text-sm font-medium text-green-700">Policy uploaded</span>
+                <span className="text-xs text-green-600">Click or drop to replace</span>
+              </>
             ) : (
               <>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                 <span className="text-sm font-medium text-[#717179]">Upload Policy Document</span>
-                <span className="text-xs text-[#999]">PDF files only</span>
+                <span className="text-xs text-[#999]">PDF files only · drag & drop</span>
               </>
             )}
           </div>
@@ -873,9 +949,20 @@ function PolicyFormPanel({
           {/* COI Upload */}
           <div
             onClick={() => coiInputRef.current?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const f = e.dataTransfer.files?.[0];
+              if (!f) return;
+              if (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")) {
+                setCoiFile(f);
+              } else {
+                toast.error("Only PDF files are supported");
+              }
+            }}
             className={cn(
               "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 cursor-pointer transition-colors",
-              coiFile ? "border-green-300 bg-green-50" : "border-[#DADADA] bg-gray-50 hover:bg-gray-100 hover:border-gray-400"
+              coiFile || form.coi_object_key ? "border-green-300 bg-green-50" : "border-[#DADADA] bg-gray-50 hover:bg-gray-100 hover:border-gray-400"
             )}
           >
             <input
@@ -891,11 +978,17 @@ function PolicyFormPanel({
                 <span className="text-sm font-medium text-green-700 text-center truncate max-w-full">{coiFile.name}</span>
                 <span className="text-xs text-green-600">{(coiFile.size / 1024).toFixed(0)} KB</span>
               </>
+            ) : form.coi_object_key ? (
+              <>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span className="text-sm font-medium text-green-700">COI uploaded</span>
+                <span className="text-xs text-green-600">Click or drop to replace</span>
+              </>
             ) : (
               <>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                 <span className="text-sm font-medium text-[#717179]">Upload COI</span>
-                <span className="text-xs text-[#999]">Certificate of Insurance</span>
+                <span className="text-xs text-[#999]">Certificate of Insurance · drag & drop</span>
               </>
             )}
           </div>
@@ -1672,6 +1765,24 @@ export function Insurance({ propertyAddress, propertyType, propertyUnits, proper
   const [pdfViewer, setPdfViewer] = useState<{ url: string; title: string } | null>(null);
   const { blobUrl: pdfBlobUrl, loading: pdfLoading } = useAuthBlobUrl(pdfViewer?.url);
   const [openRentersMenuId, setOpenRentersMenuId] = useState<number | null>(null);
+  const [policyYearFilter, setPolicyYearFilter] = useState<string>("all");
+
+  const policyYears = Array.from(
+    new Set(
+      policies
+        .map((p) => (p.effective_date ? new Date(p.effective_date).getUTCFullYear() : null))
+        .filter((y): y is number => y != null && !Number.isNaN(y))
+    )
+  ).sort((a, b) => b - a);
+
+  const filteredPolicies =
+    policyYearFilter === "all"
+      ? policies
+      : policies.filter(
+          (p) =>
+            p.effective_date &&
+            String(new Date(p.effective_date).getUTCFullYear()) === policyYearFilter
+        );
 
   const refetchAll = () => {
     refetchPolicies();
@@ -1766,6 +1877,19 @@ export function Insurance({ propertyAddress, propertyType, propertyUnits, proper
         <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
             <h2 className="text-[#303030] font-medium text-[22px] leading-6">Property Policies</h2>
+            <select
+              value={policyYearFilter}
+              onChange={(e) => setPolicyYearFilter(e.target.value)}
+              className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-[#303030] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50"
+              aria-label="Filter policies by effective year"
+            >
+              <option value="all">All Years</option>
+              {policyYears.map((y) => (
+                <option key={y} value={String(y)}>
+                  {y}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="flex items-start gap-2.5">
             <button
@@ -1838,14 +1962,16 @@ export function Insurance({ propertyAddress, propertyType, propertyUnits, proper
               </tr>
             </thead>
             <tbody>
-              {policies.length === 0 && (
+              {filteredPolicies.length === 0 && (
                 <tr>
                   <td colSpan={10} className="px-3 py-6 text-center text-gray-400 text-sm">
-                    No policies found
+                    {policies.length === 0
+                      ? "No policies found"
+                      : `No policies with effective date in ${policyYearFilter}`}
                   </td>
                 </tr>
               )}
-              {policies.map((p) => {
+              {filteredPolicies.map((p) => {
                 const days = daysUntil(p.expiration_date);
                 return (
                   <tr
