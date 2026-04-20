@@ -89,7 +89,7 @@ export default function BugReports() {
       <div className="border border-gray-200 rounded-lg bg-white overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-gray-200 bg-gray-50">
           <Input
-            placeholder="Search bug title…"
+            placeholder="Search bug titel…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-64 h-9 bg-white"

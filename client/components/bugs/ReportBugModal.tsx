@@ -41,6 +41,7 @@ export default function ReportBugModal({ open, onOpenChange, onCreated }: Report
   const [files, setFiles] = useState<File[]>([]);
   const [showTechnical, setShowTechnical] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   const technicalContext = useMemo(() => {
     if (!open) return null;
@@ -96,11 +97,35 @@ export default function ReportBugModal({ open, onOpenChange, onCreated }: Report
     }
   };
 
+  const addFiles = (incoming: File[]) => {
+    const images = incoming.filter((f) => f.type.startsWith("image/"));
+    if (images.length === 0) return;
+    setFiles((prev) => [...prev, ...images].slice(0, 5));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const list = e.target.files;
-    if (!list) return;
-    const next = [...files, ...Array.from(list)].slice(0, 5);
-    setFiles(next);
+    if (!e.target.files) return;
+    addFiles(Array.from(e.target.files));
+    // Reset so re-selecting the same file still fires change.
+    e.target.value = "";
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    if (!dragActive) setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLLabelElement>) => {
+    // Only clear when leaving the dropzone itself, not bubbling from children.
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setDragActive(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setDragActive(false);
+    if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
+    addFiles(Array.from(e.dataTransfer.files));
   };
 
   return (
@@ -163,15 +188,25 @@ export default function ReportBugModal({ open, onOpenChange, onCreated }: Report
             <Label className="text-xs font-medium text-gray-700">Screenshots</Label>
             <label
               htmlFor="bug-screenshots"
-              className="mt-1 flex flex-col items-center justify-center w-full px-4 py-5 border border-dashed border-gray-300 rounded-md bg-gray-50 hover:bg-gray-100 hover:border-gray-400 cursor-pointer transition-colors"
+              onDragEnter={handleDragOver}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`mt-1 flex flex-col items-center justify-center w-full px-4 py-5 border border-dashed rounded-md cursor-pointer transition-colors ${
+                dragActive
+                  ? "border-[#013764] bg-[#013764]/5"
+                  : "border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-gray-400"
+              }`}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-1">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`mb-1 ${dragActive ? "text-[#013764]" : "text-gray-400"}`}>
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="17 8 12 3 7 8"/>
                 <line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
-              <span className="text-sm text-gray-700 font-medium">Click to upload images</span>
-              <span className="text-xs text-gray-500 mt-0.5">PNG, JPG · up to 5 files</span>
+              <span className="text-sm text-gray-700 font-medium pointer-events-none">
+                {dragActive ? "Drop images to upload" : "Drag and drop or click to upload"}
+              </span>
+              <span className="text-xs text-gray-500 mt-0.5 pointer-events-none">PNG, JPG · up to 5 files</span>
               <input
                 id="bug-screenshots"
                 type="file"
