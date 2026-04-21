@@ -385,7 +385,6 @@ export default function OperationsCalendar() {
           const series = await fetchJSON(`/maintenance/recurring/${item.id}`);
           setEditingRecurring({
             id: series.id,
-            task: item.title,
             series,
           });
           setRecurringModalOpen(true);

@@ -20,7 +20,6 @@ interface CreateRecurringTaskModalProps {
   onOpenChange: (open: boolean) => void;
   editData?: {
     id: number;
-    task: string;
     series: RecurringSeriesDetail;
   };
   /** When opening for create (no editData), preselect this property (e.g. from property page). */
@@ -57,6 +56,8 @@ interface RecurringSeriesDetail {
   id: number;
   property_id: number;
   unit_id: number | null;
+  name: string;
+  description: string;
   assignees: AssigneeInfo[];
   collaborators: AssigneeInfo[];
   priority: string | null;
@@ -235,8 +236,8 @@ export default function CreateRecurringTaskModal({
   useEffect(() => {
     if (editData && availableAssignees.length > 0) {
       const series = editData.series;
-      setTaskName(editData.task || "Recurring Task");
-      setDescription("");
+      setTaskName(series.name ?? "");
+      setDescription(series.description ?? "");
       setProperty(String(series.property_id));
       setUnit(series.unit_id ? String(series.unit_id) : "");
 
@@ -333,7 +334,7 @@ export default function CreateRecurringTaskModal({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     if (!taskName.trim()) {
-      newErrors.taskName = "Task Name is required";
+      newErrors.taskName = "Task name is required";
     }
     if (!property) {
       newErrors.property = "Property is required";
