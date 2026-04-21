@@ -26,3 +26,7 @@ dist-ssr
 .config/
 !.env
 .env.*
+
+# RA Triage scratchpad — generated inside worktrees, must never land in main
+TRIAGE.md
+.escalation/
