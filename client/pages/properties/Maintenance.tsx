@@ -893,6 +893,8 @@ interface ApiTask {
 interface ApiRecurringItem {
   id: number;
   property_id: number;
+  name?: string;
+  description?: string;
   category?: string | null;
   priority?: string | null;
   active: boolean;
@@ -905,6 +907,8 @@ interface ApiRecurringSeriesDetail {
   id: number;
   property_id: number;
   unit_id: number | null;
+  name: string;
+  description: string;
   assignees: Array<{ id: number; name: string; initials: string }>;
   collaborators: Array<{ id: number; name: string; initials: string }>;
   priority: string | null;
@@ -982,9 +986,10 @@ function mapApiTaskToTask(a: ApiTask): Task {
 function mapApiRecurringToRecurring(r: ApiRecurringItem): RecurringTask {
   const p = (r.priority || "normal").toLowerCase();
   const priority = (p === "high" ? "high" : p === "low" ? "low" : "normal") as "low" | "normal" | "high";
+  const name = (r.name ?? "").trim();
   return {
     id: r.id,
-    task: r.category || "Recurring",
+    task: name !== "" ? name : "Untitled Recurring Task",
     nextDate: formatDate(r.next_run_at),
     priority,
     category: r.category || "—",
@@ -2609,7 +2614,6 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
           editingRecurringTask && editingSeries
             ? {
                 id: editingSeries.id,
-                task: editingRecurringTask.task,
                 series: editingSeries,
               }
             : undefined

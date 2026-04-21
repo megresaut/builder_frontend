@@ -46,6 +46,8 @@ interface ApiRecurringSeriesDetail {
   id: number;
   property_id: number;
   unit_id: number | null;
+  name: string;
+  description: string;
   assignees: ApiAssignee[];
   collaborators: ApiAssignee[];
   priority: string | null;
@@ -71,6 +73,8 @@ interface ApiRecurringSeries {
   property_id: number;
   unit_id: number | null;
   template_task_id: number | null;
+  name: string;
+  description: string;
   assignees: ApiAssignee[];
   collaborators: number[];
   priority: string | null;
@@ -173,7 +177,10 @@ export default function RecurringTasks() {
 
           return {
             id: series.id,
-            task: "Recurring Task", // Placeholder until task name is stored
+            task:
+              series.name && series.name.trim() !== ""
+                ? series.name
+                : "Untitled Recurring Task",
             nextDate: formattedDate,
             priority,
             category: series.category || "",
@@ -531,7 +538,6 @@ export default function RecurringTasks() {
           editingTask && editingSeries
             ? {
                 id: editingSeries.id,
-                task: editingTask.task,
                 series: editingSeries,
               }
             : undefined
