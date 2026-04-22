@@ -11,8 +11,9 @@ import { StarRatingInput } from "@/components/StarRatingInput";
 import { EditIcon } from "@/components/icons";
 import { NotesTemplate, FilesTemplate } from "@/components/templates";
 import { DateField } from "@/components/forms/DateField";
+import { CurrencyField } from "@/components/forms/CurrencyField";
 import { StatusSelectField } from "@/components/forms/StatusSelectField";
-import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import { ModalTemplate, ModalButtons, ModalField } from "@/components/ui/ModalTemplate";
 import type { Note, File } from "@/components/templates";
 import { AddNoteModal, AddFileModal, AddPhotoModal } from "@/components/task";
 import type { PhotoUpload } from "@/components/task";
@@ -36,6 +37,9 @@ interface WorkOrderDetail {
   due_date: string | null;
   status: string;
   priority: string;
+  estimate_total: number | null;
+  estimate_parts: number | null;
+  estimate_labor: number | null;
 }
 
 interface TaskAssignee {
@@ -50,6 +54,7 @@ interface ApiWorkOrderNote {
   work_order_id: number;
   author_type: string;
   author_id: number;
+  author_name?: string | null;
   body: string;
   is_visible_to_client: boolean;
   created_at: string;
@@ -104,7 +109,7 @@ function transformApiNoteToUiNote(apiNote: ApiWorkOrderNote): Note {
     id: apiNote.id,
     text: apiNote.body,
     date: formatDateTime(apiNote.created_at),
-    author: "User",
+    author: apiNote.author_name?.trim() || "User",
     author_id: apiNote.author_id,
     created_at: apiNote.created_at,
     updated_at: apiNote.updated_at ?? undefined,
@@ -161,6 +166,13 @@ export default function FtoWorkOrderDetail() {
   const { blobUrl: viewingBlobUrl, loading: viewingFileLoading } = useAuthBlobUrl(viewingFileUrl);
   const [viewingFileName, setViewingFileName] = useState<string | null>(null);
   const [isEditWorkOrderModalOpen, setIsEditWorkOrderModalOpen] = useState(false);
+  // Estimate edit modal state. null drafts render as blank/$0 in the form.
+  const [isEditEstimateOpen, setIsEditEstimateOpen] = useState(false);
+  const [draftEstParts, setDraftEstParts] = useState<number | null>(null);
+  const [draftEstLabor, setDraftEstLabor] = useState<number | null>(null);
+  const [draftEstTotal, setDraftEstTotal] = useState<number>(0);
+  const [estTotalManuallyEdited, setEstTotalManuallyEdited] = useState(false);
+  const [estimateSubmitting, setEstimateSubmitting] = useState(false);
   const [editDueDate, setEditDueDate] = useState<string | null>(null);
   const [editStatus, setEditStatus] = useState<
     "not_started" | "in_progress" | "completed"
@@ -198,6 +210,9 @@ export default function FtoWorkOrderDetail() {
         due_date: wo.due_date ?? wo.dueDate ?? null,
         status: wo.status ?? "—",
         priority: wo.priority ?? "—",
+        estimate_total: wo.estimated_cost ?? wo.estimate_total ?? null,
+        estimate_parts: wo.estimate_parts ?? null,
+        estimate_labor: wo.estimate_labor ?? null,
       });
       if (wo.task_id) {
         try {
@@ -325,7 +340,7 @@ export default function FtoWorkOrderDetail() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              author_type: "user",
+              author_type: "field_team_member",
               author_id: userId,
               body: text,
               is_visible_to_client: false,
@@ -470,6 +485,8 @@ export default function FtoWorkOrderDetail() {
       }
     } catch (err) {
       console.error("Failed to upload photos:", err);
+      alert("Failed to upload photos. Please try again.");
+      throw err;
     } finally {
       setPhotoUploading(false);
     }
@@ -526,6 +543,45 @@ export default function FtoWorkOrderDetail() {
       setEditStatus(mapBackendStatusToFrontend(workOrder.status));
     }
   }, [isEditWorkOrderModalOpen, workOrder]);
+
+  const openEditEstimate = () => {
+    if (!workOrder) return;
+    setDraftEstParts(workOrder.estimate_parts);
+    setDraftEstLabor(workOrder.estimate_labor);
+    setDraftEstTotal(workOrder.estimate_total ?? 0);
+    setEstTotalManuallyEdited(false);
+    setIsEditEstimateOpen(true);
+  };
+
+  const handleSaveEstimate = async () => {
+    if (!workOrderId || !workOrder) return;
+    setEstimateSubmitting(true);
+    try {
+      const payload: Record<string, unknown> = {
+        estimated_cost: draftEstTotal,
+        updated_by: userId ?? undefined,
+      };
+      if (draftEstParts !== null) payload.estimate_parts = draftEstParts;
+      if (draftEstLabor !== null) payload.estimate_labor = draftEstLabor;
+
+      const updated: any = await fetchJSON(`/maintenance/work-orders/${workOrderId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+      setWorkOrder({
+        ...workOrder,
+        estimate_total: updated.estimated_cost ?? updated.estimate_total ?? draftEstTotal,
+        estimate_parts: updated.estimate_parts ?? draftEstParts,
+        estimate_labor: updated.estimate_labor ?? draftEstLabor,
+      });
+      setIsEditEstimateOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update estimate. Please try again.");
+    } finally {
+      setEstimateSubmitting(false);
+    }
+  };
 
   const handleEditWorkOrderSubmit = async () => {
     if (!workOrderId || !workOrder) return;
@@ -696,6 +752,46 @@ export default function FtoWorkOrderDetail() {
                         </li>
                       ))}
                     </ul>
+                  </div>
+                )}
+              </div>
+            </SectionCard>
+
+            {/* Estimate */}
+            <SectionCard padding="none" variant="white">
+              <div className="flex items-center justify-between px-4 pt-4 pb-2 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900">Estimate</h3>
+                <button
+                  onClick={openEditEstimate}
+                  className="inline-flex items-center gap-1 text-sm text-[#2463eb] hover:underline"
+                >
+                  <EditIcon width={14} height={14} />
+                  <span>Edit</span>
+                </button>
+              </div>
+              <div className="px-4 py-4 flex flex-col gap-2">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">Total</span>
+                  <span className="text-xl font-medium text-gray-900">
+                    {workOrder.estimate_total != null
+                      ? `$${workOrder.estimate_total.toFixed(2)}`
+                      : "—"}
+                  </span>
+                </div>
+                {(workOrder.estimate_parts != null || workOrder.estimate_labor != null) && (
+                  <div className="flex flex-col gap-1 pt-2 border-t border-gray-100 text-sm">
+                    {workOrder.estimate_parts != null && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Parts</span>
+                        <span className="text-gray-900">${workOrder.estimate_parts.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {workOrder.estimate_labor != null && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Labor</span>
+                        <span className="text-gray-900">${workOrder.estimate_labor.toFixed(2)}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -881,6 +977,75 @@ export default function FtoWorkOrderDetail() {
               />
             </div>
           )}
+        </ModalTemplate>
+
+        {/* Edit Estimate Modal */}
+        <ModalTemplate
+          open={isEditEstimateOpen}
+          onOpenChange={setIsEditEstimateOpen}
+          title="Update Estimate"
+          size="sm"
+          footer={
+            <ModalButtons
+              onCancel={() => setIsEditEstimateOpen(false)}
+              onConfirm={handleSaveEstimate}
+              confirmLabel={estimateSubmitting ? "Saving…" : "Save"}
+              cancelLabel="Cancel"
+            />
+          }
+        >
+          <div className="flex flex-col gap-4">
+            <ModalField label="Parts (optional)">
+              <CurrencyField
+                label=""
+                value={draftEstParts ?? 0}
+                onChange={(v) => {
+                  const n = Number(v) || 0;
+                  setDraftEstParts(n);
+                  if (!estTotalManuallyEdited) {
+                    const labor = draftEstLabor ?? 0;
+                    setDraftEstTotal(n + labor);
+                  }
+                }}
+                showCurrencySymbol
+                currencySymbol="$"
+                decimalPlaces={2}
+                placeholder="$0.00"
+              />
+            </ModalField>
+            <ModalField label="Labor (optional)">
+              <CurrencyField
+                label=""
+                value={draftEstLabor ?? 0}
+                onChange={(v) => {
+                  const n = Number(v) || 0;
+                  setDraftEstLabor(n);
+                  if (!estTotalManuallyEdited) {
+                    const parts = draftEstParts ?? 0;
+                    setDraftEstTotal(parts + n);
+                  }
+                }}
+                showCurrencySymbol
+                currencySymbol="$"
+                decimalPlaces={2}
+                placeholder="$0.00"
+              />
+            </ModalField>
+            <ModalField label="Total">
+              <CurrencyField
+                label=""
+                value={draftEstTotal}
+                onChange={(v) => {
+                  setDraftEstTotal(Number(v) || 0);
+                  setEstTotalManuallyEdited(true);
+                }}
+                showCurrencySymbol
+                currencySymbol="$"
+                decimalPlaces={2}
+                placeholder="$0.00"
+              />
+            </ModalField>
+          </div>
         </ModalTemplate>
 
         {viewingFileUrl && (

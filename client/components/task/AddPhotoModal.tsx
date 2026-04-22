@@ -150,7 +150,12 @@ export const AddPhotoModal: React.FC<AddPhotoModalProps> = ({
       setValidateError(true);
       return;
     }
-    await onSubmit(photos, label, caption.trim());
+    try {
+      await onSubmit(photos, label, caption.trim());
+      onOpenChange(false);
+    } catch {
+      // Caller already surfaced the error; keep the modal open so the user can retry.
+    }
   };
 
   const handleCancel = () => {

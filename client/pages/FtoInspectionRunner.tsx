@@ -103,6 +103,7 @@ export default function FtoInspectionRunner() {
 
   // Navigation state
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
+  const [viewingCategoryId, setViewingCategoryId] = useState<string | null>(null);
   const [sectionDropdownOpen, setSectionDropdownOpen] = useState(false);
   const [expandedDropdownSections, setExpandedDropdownSections] = useState<Set<string>>(new Set());
 
@@ -136,10 +137,17 @@ export default function FtoInspectionRunner() {
 
   const currentItem = actionableItems[currentItemIndex] || null;
 
-  // Photos for the current item
+  // When viewing a category, the active node is the category; otherwise the current item.
+  const viewingCategory = useMemo(
+    () => (viewingCategoryId ? checklist.find((n) => n.id === viewingCategoryId) ?? null : null),
+    [viewingCategoryId, checklist]
+  );
+  const activeNode: ChecklistNode | null = viewingCategory || currentItem;
+
+  // Photos for the active node (category or item).
   const currentItemPhotos = useMemo(
-    () => (currentItem ? photos.filter((p) => p.sectionNodeId === currentItem.id) : []),
-    [currentItem, photos]
+    () => (activeNode ? photos.filter((p) => p.sectionNodeId === activeNode.id) : []),
+    [activeNode, photos]
   );
 
   // Get node path
@@ -185,7 +193,11 @@ export default function FtoInspectionRunner() {
   );
 
   // Current section info for display
-  const currentSection = currentItem ? getSectionForNode(currentItem.id) : null;
+  const currentSection = viewingCategory
+    ? viewingCategory
+    : currentItem
+      ? getSectionForNode(currentItem.id)
+      : null;
 
   // --- Load data ---
 
@@ -198,7 +210,7 @@ export default function FtoInspectionRunner() {
         setInspectionData(data);
 
         const status = data.inspection.status;
-        setIsReadOnly(status !== "draft" && status !== "in_progress");
+        setIsReadOnly(status !== "draft" && status !== "scheduled" && status !== "in_progress");
 
         if (data.checklist) {
           setChecklist(convertBackendChecklistToNodes(data.checklist));
@@ -207,8 +219,8 @@ export default function FtoInspectionRunner() {
           setPhotos(mapBackendPhotosToUI(data.photos));
         }
 
-        // If draft, move to in_progress
-        if (status === "draft") {
+        // Starting the inspection promotes it out of the queued state into "in_progress".
+        if (status === "draft" || status === "scheduled") {
           try {
             await updateInspection(Number(inspectionId), { status: "in_progress" });
           } catch {
@@ -244,7 +256,7 @@ export default function FtoInspectionRunner() {
   };
 
   const handleUploadPhoto = async () => {
-    if (!newPhotoFile || !currentItem || !inspectionId) return;
+    if (!newPhotoFile || !activeNode || !inspectionId) return;
 
     const cond =
       newPhotoCondition && ["good", "fair", "poor"].includes(newPhotoCondition)
@@ -255,7 +267,7 @@ export default function FtoInspectionRunner() {
     try {
       await addInspectionPhotos(
         Number(inspectionId),
-        currentItem.id,
+        activeNode.id,
         newPhotoComment || "",
         [newPhotoFile],
         cond
@@ -276,6 +288,12 @@ export default function FtoInspectionRunner() {
     // Clear any in-progress new photo form
     clearNewPhotoForm();
     setEditingPhotoId(null);
+
+    // Leaving a category view drops the user back onto the current item in the flow.
+    if (viewingCategoryId) {
+      setViewingCategoryId(null);
+      return;
+    }
 
     if (direction === "next") {
       if (currentItemIndex < actionableItems.length - 1) {
@@ -315,7 +333,16 @@ export default function FtoInspectionRunner() {
   const handleJumpToItem = (itemIndex: number) => {
     clearNewPhotoForm();
     setEditingPhotoId(null);
+    setViewingCategoryId(null);
     setCurrentItemIndex(itemIndex);
+    setSectionDropdownOpen(false);
+    setExpandedDropdownSections(new Set());
+  };
+
+  const handleJumpToCategory = (sectionId: string) => {
+    clearNewPhotoForm();
+    setEditingPhotoId(null);
+    setViewingCategoryId(sectionId);
     setSectionDropdownOpen(false);
     setExpandedDropdownSections(new Set());
   };
@@ -484,6 +511,28 @@ export default function FtoInspectionRunner() {
 
                         {isExpanded && (
                           <div className="bg-gray-50">
+                            {(() => {
+                              const categoryPhotoCount = photos.filter(
+                                (p) => p.sectionNodeId === section.id
+                              ).length;
+                              return (
+                                <button
+                                  onClick={() => handleJumpToCategory(section.id)}
+                                  className={cn(
+                                    "w-full flex items-center gap-2 px-8 py-2.5 text-sm hover:bg-gray-100 transition-colors text-left border-b border-gray-200",
+                                    viewingCategoryId === section.id && "bg-blue-100"
+                                  )}
+                                >
+                                  <Camera className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                                  <span className="text-gray-700 flex-1 truncate">
+                                    Category photos
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {categoryPhotoCount}
+                                  </span>
+                                </button>
+                              );
+                            })()}
                             {sectionItems.map((item) => {
                               const globalIndex = actionableItems.indexOf(item);
                               const hasPhoto = photos.some(
@@ -543,11 +592,22 @@ export default function FtoInspectionRunner() {
           {/* Item header */}
           <div>
             <p className="text-xs text-gray-400 mb-1">
-              {currentItem ? getNodePath(currentItem.id) : ""}
+              {viewingCategory
+                ? `${viewingCategory.text} · Category photos`
+                : currentItem
+                  ? getNodePath(currentItem.id)
+                  : ""}
             </p>
             <h2 className="text-base font-semibold text-gray-900">
-              {currentItem?.text || ""}
+              {viewingCategory
+                ? `${viewingCategory.text} — overview photos`
+                : currentItem?.text || ""}
             </h2>
+            {viewingCategory && (
+              <p className="text-xs text-gray-500 mt-1">
+                Optional high-level photos for this section. Not required to complete the inspection.
+              </p>
+            )}
           </div>
 
           {/* Existing photos for this item */}
@@ -788,36 +848,52 @@ export default function FtoInspectionRunner() {
       {/* ===== BOTTOM NAV ===== */}
       <div className="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3 safe-area-pb">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
-          <button
-            onClick={() => handleNavigate("prev")}
-            disabled={isFirstItem}
-            className="flex items-center gap-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Prev
-          </button>
-
-          <span className="text-xs text-gray-500 whitespace-nowrap">
-            {currentItemIndex + 1} / {actionableItems.length}
-          </span>
-
-          {isLastItem ? (
+          {viewingCategory ? (
             <button
-              onClick={handleFinish}
-              disabled={isReadOnly}
-              className="flex items-center gap-1 px-3 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              onClick={() => {
+                clearNewPhotoForm();
+                setEditingPhotoId(null);
+                setViewingCategoryId(null);
+              }}
+              className="flex items-center gap-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors w-full justify-center"
             >
-              <Check className="w-4 h-4" />
-              Finish
+              <ChevronLeft className="w-4 h-4" />
+              Back to checklist
             </button>
           ) : (
-            <button
-              onClick={() => handleNavigate("next")}
-              className="flex items-center gap-1 px-3 py-2.5 bg-[#013764] text-white rounded-lg text-sm font-medium hover:bg-[#012a4e] transition-colors"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <>
+              <button
+                onClick={() => handleNavigate("prev")}
+                disabled={isFirstItem}
+                className="flex items-center gap-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Prev
+              </button>
+
+              <span className="text-xs text-gray-500 whitespace-nowrap">
+                {currentItemIndex + 1} / {actionableItems.length}
+              </span>
+
+              {isLastItem ? (
+                <button
+                  onClick={handleFinish}
+                  disabled={isReadOnly}
+                  className="flex items-center gap-1 px-3 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                  Finish
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleNavigate("next")}
+                  className="flex items-center gap-1 px-3 py-2.5 bg-[#013764] text-white rounded-lg text-sm font-medium hover:bg-[#012a4e] transition-colors"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

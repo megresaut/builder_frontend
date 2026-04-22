@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
-import type { Note, File } from "@/components/templates";
 import PageHeader from "@/components/PageHeader";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -49,6 +48,11 @@ interface WorkOrder {
   vendorName?: string;
   assignees: Assignee[];
   collaborators: Assignee[];
+}
+
+interface APITask {
+  id: number;
+  name: string;
 }
 
 interface APIWorkOrder {
@@ -614,6 +618,7 @@ export default function MaintenanceWorkOrders() {
   const [editingWorkOrderData, setEditingWorkOrderData] = useState<APIWorkOrder | null>(
     null,
   );
+  const [taskOptions, setTaskOptions] = useState<{ id: number; label: string }[]>([]);
   const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] =
     usePageState("isCreateWorkOrderModalOpen", false);
 
@@ -921,30 +926,33 @@ export default function MaintenanceWorkOrders() {
     [setIsCreateWorkOrderModalOpen],
   );
 
-  const handleWorkOrderUpdated = useCallback(
-    (updatedWorkOrder: any) => {
-      // Refresh the work orders list after update
-      const fetchWorkOrders = async () => {
-        try {
-          const raw = await fetchJSON("/maintenance/work-orders?limit=100");
-          
-          const apiData: APIWorkOrder[] = Array.isArray(raw)
-            ? raw
-            : raw?.data ?? raw?.items ?? raw?.results ?? [];
-          
-          const transformedWorkOrders = apiData.map(mapAPIWorkOrderToWorkOrder);
-          setWorkOrders(transformedWorkOrders);
-        } catch (error) {
-          console.error("Error fetching work orders:", error);
-        }
-      };
+  const refreshWorkOrders = useCallback(async () => {
+    try {
+      const raw = await fetchJSON("/maintenance/work-orders?limit=100");
+      const apiData: APIWorkOrder[] = Array.isArray(raw)
+        ? raw
+        : raw?.data ?? raw?.items ?? raw?.results ?? [];
+      setWorkOrders(apiData.map(mapAPIWorkOrderToWorkOrder));
+    } catch (error) {
+      console.error("Error fetching work orders:", error);
+    }
+  }, []);
 
-      fetchWorkOrders();
+  const handleWorkOrderUpdated = useCallback(
+    (_updatedWorkOrder: any) => {
+      refreshWorkOrders();
       setIsCreateWorkOrderModalOpen(false);
       setEditingWorkOrder(null);
       setEditingWorkOrderData(null);
     },
-    [],
+    [refreshWorkOrders, setIsCreateWorkOrderModalOpen],
+  );
+
+  const handleWorkOrderCreated = useCallback(
+    (_workOrder: any) => {
+      refreshWorkOrders();
+    },
+    [refreshWorkOrders],
   );
 
   // Fetch work orders from API
@@ -969,6 +977,22 @@ export default function MaintenanceWorkOrders() {
     };
 
     fetchWorkOrders();
+  }, []);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const raw = await fetchJSON("/maintenance/tasks?limit=500");
+        const apiData: APITask[] = Array.isArray(raw)
+          ? raw
+          : raw?.data ?? raw?.items ?? raw?.results ?? [];
+        setTaskOptions(apiData.map((t) => ({ id: t.id, label: t.name })));
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        setTaskOptions([]);
+      }
+    };
+    fetchTasks();
   }, []);
 
   useEffect(() => {
@@ -1279,6 +1303,7 @@ export default function MaintenanceWorkOrders() {
         }}
         mode={editingWorkOrder ? "edit" : "create"}
         workOrderId={editingWorkOrder?.id}
+        taskOptions={taskOptions}
         initialData={editingWorkOrder && editingWorkOrderData ? {
           workOrderName: editingWorkOrderData.name || editingWorkOrder.task,
           vendorId: editingWorkOrderData.vendor_id,
@@ -1319,85 +1344,7 @@ export default function MaintenanceWorkOrders() {
           notes: "",
         } : undefined}
         onWorkOrderUpdated={handleWorkOrderUpdated}
-        onDataUpdate={(data) => {
-          // This callback is only used for create mode now
-          if (editingWorkOrder) {
-            // Edit mode is handled by onWorkOrderUpdated
-            return;
-          }
-          const newId =
-            workOrders.length > 0
-              ? Math.max(...workOrders.map((wo) => wo.id)) + 1
-              : 1;
-
-          const newNotes: Note[] = data.notes
-            ? [
-                {
-                  id: 1,
-                  text: data.notes,
-                  date: new Date().toLocaleString(),
-                  author: "Julia LoSchiavo",
-                },
-              ]
-            : [];
-
-          const newFiles: File[] = data.files
-            ? data.files.map((uf, idx) => ({
-                id: idx + 1,
-                name: uf.name,
-                url: uf.storage_path || "#",
-                uploadedAt: new Date().toLocaleString(),
-                category: "Work Order",
-                description: "",
-              }))
-            : [];
-
-          const newWorkOrder = {
-            id: newId,
-            task: data.workOrderName || data.task || "New Work Order",
-            taskId: 1,
-            property: "Unassigned",
-            unit: "",
-            dueDate: data.dueDate
-              ? data.dueDate.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : "No due date",
-            updatedDate: new Date().toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }),
-            age: "Just now",
-            priority:
-              data.priority === "high"
-                ? "High"
-                : data.priority === "low"
-                  ? "Low"
-                  : "Normal",
-            status: data.status === "completed" ? "Completed" : "In Progress",
-            billStatus: "Awaiting Invoice",
-            billTotal: "No invoice",
-            assignees: [],
-            collaborators: [],
-            vendorName: data.vendor || "",
-            description: data.notes || "",
-            notes: newNotes,
-            files: newFiles,
-          };
-
-          setWorkOrders((prev) => [newWorkOrder as any, ...prev]);
-          setIsCreateWorkOrderModalOpen(false);
-
-          navigate(
-            `/tasks/${newWorkOrder.taskId}/workorders/${newWorkOrder.id}`,
-            {
-              state: { newWorkOrder },
-            },
-          );
-        }}
+        onWorkOrderCreated={handleWorkOrderCreated}
       />
 
       {/* Column Filter Modal */}

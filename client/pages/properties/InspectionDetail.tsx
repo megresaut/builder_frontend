@@ -415,12 +415,13 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [isEditing, setIsEditing] = useState(false);
   const [isChecklistFullScreen, setIsChecklistFullScreen] = useState(false);
   
-  // Initialize status from inspection prop if available, otherwise default
+  // Initialize status from inspection prop if available, otherwise default.
+  // A finished inspection (FTO hit Submit → backend status "submitted") should
+  // flip the PM view to Completed without requiring a manual toggle.
   const getInitialStatus = (): "In Progress" | "Completed" => {
     if (inspection?.status) {
-      // Map various status formats to our frontend format
       const statusLower = inspection.status.toLowerCase();
-      if (statusLower === "completed" || statusLower === "reviewed") {
+      if (statusLower === "completed" || statusLower === "submitted" || statusLower === "reviewed") {
         return "Completed";
       }
     }
@@ -433,10 +434,13 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [checklistId, setChecklistId] = useState<number | null>(inspection?.checklist_id || null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
-  // Helper function to map backend status to frontend status
+  // Helper function to map backend status to frontend status.
+  // Both "submitted" (FTO finished the run) and "reviewed" (PM signed off) count
+  // as Completed in the two-state UI — the moment the FTO hits 100% and taps
+  // Submit, this view flips automatically.
   const mapBackendStatusToFrontend = (backendStatus: string): "In Progress" | "Completed" => {
     // Backend statuses: draft, scheduled, in_progress, submitted, reviewed, cancelled
-    if (backendStatus === "reviewed") {
+    if (backendStatus === "submitted" || backendStatus === "reviewed") {
       return "Completed";
     }
     // Default to "In Progress" for all other statuses

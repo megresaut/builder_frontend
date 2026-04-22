@@ -54,6 +54,7 @@ const convertBackendChecklistToNodes = (
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   draft: { label: "Draft", color: "text-gray-700", bg: "bg-gray-100", icon: <FileText className="w-4 h-4" /> },
+  scheduled: { label: "Scheduled", color: "text-purple-700", bg: "bg-purple-100", icon: <Clock className="w-4 h-4" /> },
   in_progress: { label: "In Progress", color: "text-blue-700", bg: "bg-blue-100", icon: <Clock className="w-4 h-4" /> },
   submitted: { label: "Submitted", color: "text-green-700", bg: "bg-green-100", icon: <CheckCircle2 className="w-4 h-4" /> },
   reviewed: { label: "Reviewed", color: "text-green-700", bg: "bg-green-100", icon: <CheckCircle2 className="w-4 h-4" /> },
@@ -114,7 +115,7 @@ export default function FtoInspectionDetail() {
 
   const status = inspection?.inspection?.status || "draft";
   const sc = statusConfig[status] || statusConfig.draft;
-  const isEditable = status === "draft" || status === "in_progress";
+  const isEditable = status === "draft" || status === "scheduled" || status === "in_progress";
   const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
   if (loading) {
@@ -144,13 +145,22 @@ export default function FtoInspectionDetail() {
   }
 
   const { inspection: insp, checklist: checklistData } = inspection;
-  const dueDate = insp.due_date
-    ? new Date(insp.due_date).toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })
-    : "No date set";
+  // Show time next to the date when the backend stored a real time. Legacy
+  // rows (migration 037 widened DATE → TIMESTAMPTZ at UTC midnight) skip the
+  // time portion so they still render as "April 29, 2026".
+  const dueDate = (() => {
+    if (!insp.due_date) return "No date set";
+    const d = new Date(insp.due_date);
+    const datePart = d.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+    const hasTime = !(d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0);
+    if (!hasTime) return datePart;
+    const timePart = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    return `${datePart} · ${timePart}`;
+  })();
 
   return (
     <PageTemplate className="!px-4 !pt-6 !pb-24 max-w-none !min-w-0 lg:!px-6 lg:!py-9">

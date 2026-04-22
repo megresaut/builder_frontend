@@ -4,12 +4,16 @@ import PageTemplate from "@/layout/PageTemplate";
 import BlueButton from "@/components/BlueButton";
 import { CloseIcon } from "@/components/icons";
 import { SelectField, DateField, ComboboxField } from "@/components/forms";
+import { DateTimeField } from "@/components/forms/DateTimeField";
+import { NumberField } from "@/components/forms/NumberField";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
 import {
   BackendInspectionChecklist,
   createInspection,
+  createRecurringInspection,
   listChecklists,
+  InspectionFrequency,
 } from "@/api/inspections";
 import {
   PROPERTY_LEVEL_LABEL,
@@ -32,12 +36,20 @@ export default function FtoInspectionCreate() {
     return null;
   }, [authUserId]);
 
-  const [date, setDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
+  // ISO string "YYYY-MM-DDTHH:MM" — format used by DateTimeField.
+  const initialDateTime = useMemo(() => {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }, []);
+  const [dateTime, setDateTime] = useState<string>(initialDateTime);
   const [propertyId, setPropertyId] = useState<string | null>(null);
   const [unitId, setUnitId] = useState<string | null>(null);
   const [templateId, setTemplateId] = useState<string | null>(null);
+  const [isRecurring, setIsRecurring] = useState<boolean>(false);
+  const [frequency, setFrequency] = useState<InspectionFrequency>("monthly");
+  const [intervalCount, setIntervalCount] = useState<number>(1);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // API State
@@ -137,7 +149,7 @@ export default function FtoInspectionCreate() {
 
   const handleCreate = async () => {
     const errors: typeof validationErrors = {};
-    if (!date) errors.date = "Date is required";
+    if (!dateTime) errors.date = "Date and time are required";
     if (!propertyId) errors.property = "Property is required";
     if (!templateId) errors.template = "Template is required";
 
@@ -157,17 +169,33 @@ export default function FtoInspectionCreate() {
         ? Number(unitId)
         : null;
 
+    const basePayload = {
+      property_id: parsedPropertyId,
+      unit_id: parsedUnitId,
+      checklist_id: parsedTemplateId,
+      assigned_field_team_member_id: userId ?? null,
+      status: isRecurring ? "scheduled" : "draft",
+      due_date: new Date(dateTime).toISOString(),
+    };
+
     setIsSubmitting(true);
     try {
-      const created = await createInspection({
-        property_id: parsedPropertyId,
-        unit_id: parsedUnitId,
-        checklist_id: parsedTemplateId,
-        assigned_field_team_member_id: userId ?? null,
-        status: "draft",
-        due_date: new Date(date).toISOString(),
-      });
-      navigate(`/fto/inspections/${created.id}`);
+      if (isRecurring) {
+        const result = await createRecurringInspection(basePayload, {
+          frequency,
+          interval_count: intervalCount,
+          end_at: endDate ? endDate.toISOString() : null,
+        });
+        const first = result.occurrences?.[0];
+        if (first) {
+          navigate(`/fto/inspections/${first.id}`);
+        } else {
+          navigate("/fto/inspections");
+        }
+      } else {
+        const created = await createInspection(basePayload);
+        navigate(`/fto/inspections/${created.id}`);
+      }
     } catch (error) {
       console.error("Failed to create inspection:", error);
       alert("Failed to create inspection. Please try again.");
@@ -175,6 +203,12 @@ export default function FtoInspectionCreate() {
       setIsSubmitting(false);
     }
   };
+
+  const frequencyOptions: { value: InspectionFrequency; label: string }[] = [
+    { value: "daily", label: "Daily" },
+    { value: "weekly", label: "Weekly" },
+    { value: "monthly", label: "Monthly" },
+  ];
 
   return (
     <PageTemplate className="!px-4 !pt-6 !pb-24 max-w-none !min-w-0 lg:!px-6 lg:!py-9">
@@ -206,14 +240,11 @@ export default function FtoInspectionCreate() {
             </h2>
 
             <div className="flex flex-col gap-4">
-              <DateField
-                label="Date"
+              <DateTimeField
+                label="Date & Time"
                 required
-                value={date}
-                onChange={(d) =>
-                  setDate(d instanceof Date ? d.toISOString().split("T")[0] : d)
-                }
-                placeholder="mm/dd/yyyy"
+                value={dateTime}
+                onChange={(v) => setDateTime(v)}
                 error={validationErrors.date}
               />
 
@@ -284,6 +315,41 @@ export default function FtoInspectionCreate() {
                 disabled={!propertyId || (!!propertyId && templatesLoading[propertyId])}
                 error={validationErrors.template}
               />
+
+              <label className="flex items-center gap-2 text-sm text-[#303030]">
+                <input
+                  type="checkbox"
+                  checked={isRecurring}
+                  onChange={(e) => setIsRecurring(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                Repeat this inspection
+              </label>
+
+              {isRecurring && (
+                <div className="flex flex-col gap-4 pl-6 border-l-2 border-[#E5E5E5]">
+                  <SelectField
+                    label="Frequency"
+                    options={frequencyOptions}
+                    value={frequency}
+                    onChange={(v) => setFrequency((typeof v === "string" ? v : v[0]) as InspectionFrequency)}
+                    placeholder="Select frequency"
+                  />
+                  <NumberField
+                    label={`Every N ${frequency === "daily" ? "days" : frequency === "weekly" ? "weeks" : "months"}`}
+                    value={intervalCount}
+                    onChange={(v) => setIntervalCount(typeof v === "number" ? v : 1)}
+                    min={1}
+                  />
+                  <DateField
+                    label="End Date (optional)"
+                    value={endDate}
+                    onChange={(d) => setEndDate(d instanceof Date ? d : d ? new Date(d) : null)}
+                    placeholder="Leave blank to generate up to 52 occurrences"
+                    returnFormat="Date"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

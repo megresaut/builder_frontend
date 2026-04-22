@@ -116,6 +116,17 @@ function humanizeStatus(s: string): string {
   return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// Returns a time string (e.g. "1:10 PM") when the timestamp has a non-midnight-UTC
+// time component. Legacy inspections stored as a DATE were widened to TIMESTAMPTZ
+// at midnight UTC (migration 037), so those render without a time.
+function formatTimeIfPresent(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  if (d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0) return null;
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
 function toInputDate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -416,6 +427,9 @@ export default function FTODashboard() {
                         {TYPE_LABEL[item.type]}
                       </span>
                       <span className="text-xs text-gray-500">{item.status}</span>
+                      {formatTimeIfPresent(item.dueDate) && (
+                        <span className="text-xs text-gray-500">· {formatTimeIfPresent(item.dueDate)}</span>
+                      )}
                     </div>
 
                     {item.property && (

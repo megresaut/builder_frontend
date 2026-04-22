@@ -10,9 +10,48 @@ export interface BackendInspection {
   checklist_id: number;
   assigned_field_team_member_id?: number | null;
   status: string; // "draft" | "in_progress" | "submitted" | "reviewed" | "cancelled"
-  due_date?: string | null; // ISO8601
+  due_date?: string | null; // ISO8601 datetime (timestamptz)
+  series_id?: number | null;
+  occurrence_index?: number | null;
   created_at: string;
   updated_at: string;
+}
+
+export type InspectionFrequency = "daily" | "weekly" | "monthly";
+
+export interface InspectionRecurrenceInput {
+  frequency: InspectionFrequency;
+  interval_count: number;
+  end_at?: string | null;       // ISO8601
+  occurrence_count?: number | null;
+  timezone?: string;
+}
+
+export interface BackendInspectionSeries {
+  id: number;
+  property_id: number;
+  unit_id?: number | null;
+  location_id?: number | null;
+  checklist_id?: number | null;
+  assigned_field_team_member_id?: number | null;
+  name?: string | null;
+  start_at: string;
+  frequency: InspectionFrequency;
+  interval_count: number;
+  end_at?: string | null;
+  occurrence_count?: number | null;
+  timezone: string;
+  outlook_event_id?: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Response shape of POST /inspections — single for one-off, series+occurrences for recurring.
+export interface CreateInspectionResult {
+  inspection?: BackendInspection;
+  series?: BackendInspectionSeries;
+  occurrences?: BackendInspection[];
 }
 
 export interface BackendInspectionChecklist {
@@ -69,14 +108,35 @@ export async function getInspectionFull(id: number): Promise<BackendInspectionFu
 }
 
 /**
- * Create a new inspection
+ * Create a new inspection (one-off). Backend returns a CreateInspectionResult;
+ * for a one-off the `inspection` field is populated. Kept returning the bare
+ * inspection for backward compatibility with existing callers.
  */
 export async function createInspection(
   payload: Omit<BackendInspection, "id" | "created_at" | "updated_at">
 ): Promise<BackendInspection> {
-  return fetchJSON("/inspections", {
+  const res: CreateInspectionResult = await fetchJSON("/inspections", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+  if (!res.inspection) {
+    throw new Error("createInspection: expected single inspection in response");
+  }
+  return res.inspection;
+}
+
+/**
+ * Create a recurring inspection series. Backend inserts an inspection_series
+ * row plus one inspection per occurrence and pushes a single recurring event
+ * to Outlook tied to the series.
+ */
+export async function createRecurringInspection(
+  payload: Omit<BackendInspection, "id" | "created_at" | "updated_at">,
+  recurrence: InspectionRecurrenceInput
+): Promise<CreateInspectionResult> {
+  return fetchJSON("/inspections", {
+    method: "POST",
+    body: JSON.stringify({ ...payload, recurrence }),
   });
 }
 

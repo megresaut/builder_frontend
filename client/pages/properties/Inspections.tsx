@@ -7,17 +7,21 @@ import GlobalTable from "@/components/GlobalTable";
 import BlueButton from "@/components/BlueButton";
 import PersonAvatars from "@/components/PersonAvatars";
 import InspectionDetail from "./InspectionDetail";
-import ScheduleInspectionModal from "./ScheduleInspectionModal";
+import ScheduleInspectionModal, { EditingInspection } from "./ScheduleInspectionModal";
 import AddTemplateModal from "./AddTemplateModal";
 import {
   listInspections,
   listInspectionPhotos,
   createInspection,
+  createRecurringInspection,
   listChecklists,
   createChecklist,
   deleteInspection,
+  updateInspection,
+  getInspection,
   BackendInspection,
   BackendInspectionChecklist,
+  InspectionRecurrenceInput,
 } from "@/api/inspections";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
@@ -149,6 +153,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     inspectionIdFromUrl ? Number(inspectionIdFromUrl) : null
   );
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [editingInspection, setEditingInspection] = useState<EditingInspection | null>(null);
   const [showAddTemplateModal, setShowAddTemplateModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fieldManagers, setFieldManagers] = useState<FieldManager[]>(mockFieldManagers);
@@ -364,13 +369,91 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     }
   }, []);
 
-  const handleEditInspection = useCallback((inspection: Inspection) => {
-    setSelectedInspectionId(inspection.id);
-  }, []);
-
   const handleViewInspection = useCallback((inspection: Inspection) => {
     setSelectedInspectionId(inspection.id);
   }, []);
+
+  const handleEditInspection = useCallback(async (inspection: Inspection) => {
+    try {
+      const backend = await getInspection(inspection.id);
+      setEditingInspection({
+        id: inspection.id,
+        inspectionName: inspection.name,
+        templateName: inspection.templateName,
+        inspectorId: backend.assigned_field_team_member_id ?? null,
+        dueISO: backend.due_date ?? new Date().toISOString(),
+      });
+      setShowScheduleModal(true);
+    } catch (err) {
+      console.error("Failed to load inspection for edit:", err);
+      alert("Couldn't load this inspection for editing.");
+    }
+  }, []);
+
+  const handleSaveInspection = useCallback(async (
+    id: number,
+    fieldManager: FieldManager,
+    dueISO: string,
+    templateName: string,
+    inspectionName: string,
+  ) => {
+    try {
+      // Resolve checklist for the possibly-renamed template.
+      let checklistId: number | undefined;
+      const existing = templates.find((t) => t.name === templateName);
+      if (existing) {
+        checklistId = existing.id;
+      } else if (propertyId && userId) {
+        const tmpl = DEFAULT_INSPECTION_TEMPLATES.find((t) => t.name === templateName);
+        const checklistJson = tmpl ? { sections: tmpl.sections } : { sections: [] };
+        const created = await createChecklist({
+          property_id: Number(propertyId),
+          name: templateName,
+          checklist_json: checklistJson,
+          created_by_type: "user",
+          created_by_id: userId,
+          is_active: true,
+        });
+        checklistId = created.id;
+        setTemplates((prev) => [...prev, created]);
+      }
+
+      const updated = await updateInspection(id, {
+        assigned_field_team_member_id: fieldManager.id,
+        due_date: dueISO,
+      });
+
+      const formatDisplay = (iso: string) =>
+        new Date(iso).toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+
+      setInspectionsList((prev) =>
+        prev.map((row) =>
+          row.id === id
+            ? {
+                ...row,
+                name: inspectionName,
+                inspector: fieldManager,
+                templateName,
+                checklist_id: checklistId ?? row.checklist_id,
+                inspectionDate: updated.due_date ? formatDisplay(updated.due_date) : row.inspectionDate,
+                updated: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+              }
+            : row,
+        ),
+      );
+      setShowScheduleModal(false);
+      setEditingInspection(null);
+    } catch (err) {
+      console.error("Failed to save inspection:", err);
+      alert("Failed to save changes.");
+    }
+  }, [propertyId, userId, templates]);
 
   const handleMarkAsComplete = useCallback((inspection: Inspection) => {
     setInspectionsList((prev) =>
@@ -380,7 +463,13 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     );
   }, []);
 
-  const handleScheduleInspection = useCallback(async (fieldManager: FieldManager, fullDate: string, templateName: string, inspectionName: string) => {
+  const handleScheduleInspection = useCallback(async (
+    fieldManager: FieldManager,
+    startISO: string,
+    templateName: string,
+    inspectionName: string,
+    recurrence: InspectionRecurrenceInput | null,
+  ) => {
     if (!propertyId || !userId) return;
 
     try {
@@ -392,10 +481,9 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
       if (existingChecklist) {
         checklistId = existingChecklist.id;
       } else {
-        // Create new checklist from template
         const template = DEFAULT_INSPECTION_TEMPLATES.find((t) => t.name === templateName);
         const checklistJson = template ? { sections: template.sections } : { sections: [] };
-        
+
         const newChecklist = await createChecklist({
           property_id: Number(propertyId),
           name: templateName,
@@ -405,38 +493,61 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
           is_active: true,
         });
         checklistId = newChecklist.id;
-        
-        // Add the new checklist to templates list
         setTemplates((prev) => [...prev, newChecklist]);
       }
 
-      // 2. Create inspection
-      const dueDate = new Date(fullDate);
-      const backendInspection = await createInspection({
+      // 2. Create inspection(s) — single if no recurrence, otherwise a series.
+      const basePayload = {
         property_id: Number(propertyId),
         unit_id: null,
         checklist_id: checklistId,
         assigned_field_team_member_id: fieldManager.id,
-        status: "In Progress",
-        due_date: dueDate.toISOString(),
-      });
-
-      // 3. Add to UI list
-      const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-      const newInspection: Inspection = {
-        id: backendInspection.id,
-        name: inspectionName,
-        inspector: fieldManager,
-        inspectionDate: fullDate,
-        submitted: "",
-        status: "In Progress",
-        issues: 0,
-        photos: 0,
-        updated: today,
-        templateName,
+        status: "scheduled",
+        due_date: startISO,
       };
 
-      setInspectionsList((prev) => [newInspection, ...prev]);
+      const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const formatDisplay = (iso: string) =>
+        new Date(iso).toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+
+      if (recurrence) {
+        const result = await createRecurringInspection(basePayload, recurrence);
+        const occurrences = result.occurrences ?? [];
+        const newRows: Inspection[] = occurrences.map((occ) => ({
+          id: occ.id,
+          name: inspectionName,
+          inspector: fieldManager,
+          inspectionDate: occ.due_date ? formatDisplay(occ.due_date) : "",
+          submitted: "",
+          status: "Upcoming",
+          issues: 0,
+          photos: 0,
+          updated: today,
+          templateName,
+        }));
+        setInspectionsList((prev) => [...newRows, ...prev]);
+      } else {
+        const backendInspection = await createInspection(basePayload);
+        const newInspection: Inspection = {
+          id: backendInspection.id,
+          name: inspectionName,
+          inspector: fieldManager,
+          inspectionDate: formatDisplay(startISO),
+          submitted: "",
+          status: "Upcoming",
+          issues: 0,
+          photos: 0,
+          updated: today,
+          templateName,
+        };
+        setInspectionsList((prev) => [newInspection, ...prev]);
+      }
       setShowScheduleModal(false);
     } catch (error) {
       console.error("Failed to schedule inspection:", error);
@@ -449,6 +560,11 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
       label: "View Inspection",
       icon: <EditIcon width={18} height={18} />,
       onClick: handleViewInspection,
+    },
+    {
+      label: "Edit Inspection",
+      icon: <EditIcon width={18} height={18} />,
+      onClick: handleEditInspection,
     },
     {
       label: "Mark as Complete",
@@ -511,10 +627,15 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
       {/* Schedule Inspection Modal */}
       <ScheduleInspectionModal
         open={showScheduleModal}
-        onOpenChange={setShowScheduleModal}
+        onOpenChange={(open) => {
+          setShowScheduleModal(open);
+          if (!open) setEditingInspection(null);
+        }}
         fieldManagers={fieldManagers}
         templates={templates}
         onConfirm={handleScheduleInspection}
+        editing={editingInspection}
+        onSave={handleSaveInspection}
       />
 
       {/* Add Template Modal */}

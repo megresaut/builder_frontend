@@ -155,6 +155,8 @@ interface ApiWorkOrder {
   entry_preference?: string;
   assignee?: string;
   estimated_cost?: number;
+  estimate_parts?: number;
+  estimate_labor?: number;
   actual_cost?: number;
   dispatched_at?: string;
   completed_at?: string;
@@ -201,6 +203,7 @@ interface ApiWorkOrderNote {
   work_order_id: number;
   author_type: string;
   author_id: number;
+  author_name?: string | null;
   body: string;
   is_visible_to_client: boolean;
   created_at: string;
@@ -253,9 +256,11 @@ function transformApiNoteToUiNote(
     });
   };
 
-  // Look up property manager name by author_id, fallback to "User" if not found
+  // Prefer the name the API joined in; fall back to the PM map, then "User".
   const authorName =
-    propertyManagers?.get(apiNote.author_id) || "User";
+    apiNote.author_name?.trim() ||
+    propertyManagers?.get(apiNote.author_id) ||
+    "User";
 
   return {
     id: apiNote.id,
@@ -271,13 +276,20 @@ function transformApiNoteToUiNote(
   };
 }
 
-/** Shape for estimate history entries (matches backend API) */
+/** Shape for estimate history entries (matches backend API).
+ *  old_value / new_value track the total. parts/labor track component deltas
+ *  and are nullable — historical rows written before migration 038 only have
+ *  the total populated. */
 interface EstimateHistoryEntry {
   id: number;
   work_order_id?: number;
   changed_by?: number | null;
   old_value: number | null;
   new_value: number | null;
+  old_parts?: number | null;
+  new_parts?: number | null;
+  old_labor?: number | null;
+  new_labor?: number | null;
   created_at: string;
   changed_by_name?: string | null;
 }
@@ -302,7 +314,7 @@ function formatHistoryDate(iso: string): string {
 function EstimateHistoryTimeline({
   entries,
 }: {
-  entries: Array<Pick<EstimateHistoryEntry, "id" | "changed_by_name" | "old_value" | "new_value" | "created_at">>;
+  entries: Array<EstimateHistoryEntry>;
 }) {
   const safeEntries = Array.isArray(entries) ? entries : [];
   if (safeEntries.length === 0) {
@@ -356,6 +368,29 @@ function EstimateHistoryTimeline({
                     </>
                   )}
                 </div>
+                {(entry.new_parts != null || entry.new_labor != null ||
+                  entry.old_parts != null || entry.old_labor != null) && (
+                  <div className="text-[#525252] text-xs flex flex-wrap gap-x-3">
+                    {(entry.old_parts != null || entry.new_parts != null) && (
+                      <span>
+                        Parts: {formatEstimateValue(entry.old_parts ?? null)}
+                        {" → "}
+                        <span className="text-[#303030] font-medium">
+                          {formatEstimateValue(entry.new_parts ?? null)}
+                        </span>
+                      </span>
+                    )}
+                    {(entry.old_labor != null || entry.new_labor != null) && (
+                      <span>
+                        Labor: {formatEstimateValue(entry.old_labor ?? null)}
+                        {" → "}
+                        <span className="text-[#303030] font-medium">
+                          {formatEstimateValue(entry.new_labor ?? null)}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div className="text-[#717179] text-xs">
                   {formatHistoryDate(entry.created_at)}
                 </div>
@@ -675,10 +710,12 @@ export default function WorkOrderDetailsV2({
       if (apiWorkOrder.updated_at || apiWorkOrder.last_updated) {
         setLastUpdated(formatDateTime(apiWorkOrder.updated_at || apiWorkOrder.last_updated));
       }
-      // Set estimate total
+      // Set estimate total + optional parts/labor breakdown
       if (apiWorkOrder.estimated_cost !== undefined || apiWorkOrder.estimate_total !== undefined) {
         setEstimateTotal(apiWorkOrder.estimated_cost || apiWorkOrder.estimate_total || 0);
       }
+      setEstimateParts(apiWorkOrder.estimate_parts ?? null);
+      setEstimateLabor(apiWorkOrder.estimate_labor ?? null);
       // Map attachments to files
       if (apiWorkOrder.attachments && apiWorkOrder.attachments.length > 0) {
         const mappedFiles: File[] =
@@ -837,7 +874,15 @@ export default function WorkOrderDetailsV2({
   const [estimateHistoryLoading, setEstimateHistoryLoading] = useState(false);
   const [estimateHistoryError, setEstimateHistoryError] = useState<string | null>(null);
   const [estimateTotal, setEstimateTotal] = useState<number>(0);
+  const [estimateParts, setEstimateParts] = useState<number | null>(null);
+  const [estimateLabor, setEstimateLabor] = useState<number | null>(null);
   const [draftEstimateTotal, setDraftEstimateTotal] = useState<number>(0);
+  // Parts/labor are optional breakdowns. null in draft state = field blank.
+  const [draftEstimateParts, setDraftEstimateParts] = useState<number | null>(null);
+  const [draftEstimateLabor, setDraftEstimateLabor] = useState<number | null>(null);
+  // Track whether the user manually edited the total so we can stop auto-syncing
+  // total = parts + labor after an explicit override.
+  const [totalManuallyEdited, setTotalManuallyEdited] = useState(false);
 
   const handleDismissNotification = (id: number) => {
     setNotifications(notifications.filter((n) => n.id !== id));
@@ -845,6 +890,9 @@ export default function WorkOrderDetailsV2({
 
   const handleOpenEstimateTotalModal = () => {
     setDraftEstimateTotal(estimateTotal);
+    setDraftEstimateParts(estimateParts);
+    setDraftEstimateLabor(estimateLabor);
+    setTotalManuallyEdited(false);
     setIsEstimateTotalModalOpen(true);
   };
 
@@ -860,18 +908,27 @@ export default function WorkOrderDetailsV2({
     }
 
     try {
-      // Update the estimate cost via PATCH endpoint
+      // Update estimate breakdown via PATCH. Parts/labor are optional — only
+      // include them in the payload when the user entered a value. We send
+      // 0 for a cleared field so the backend writes NULL-equivalent null;
+      // omitting the key leaves the stored value untouched.
+      const payload: Record<string, unknown> = {
+        estimated_cost: draftEstimateTotal,
+        updated_by: userId,
+      };
+      if (draftEstimateParts !== null) payload.estimate_parts = draftEstimateParts;
+      if (draftEstimateLabor !== null) payload.estimate_labor = draftEstimateLabor;
+
       await fetchJSON(`/maintenance/work-orders/${workOrderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          estimated_cost: draftEstimateTotal,
-          updated_by: userId,
-        }),
+        body: JSON.stringify(payload),
       });
 
       // Update local state
       setEstimateTotal(draftEstimateTotal);
+      setEstimateParts(draftEstimateParts);
+      setEstimateLabor(draftEstimateLabor);
       
       // Refresh work order data to get updated timestamp
       try {
@@ -880,10 +937,12 @@ export default function WorkOrderDetailsV2({
         if (refreshedData.updated_at || refreshedData.last_updated) {
           setLastUpdated(formatDateTime(refreshedData.updated_at || refreshedData.last_updated));
         }
-        // Update estimate total from refreshed data
+        // Update estimate total + parts/labor from refreshed data
         if (refreshedData.estimated_cost !== undefined || refreshedData.estimate_total !== undefined) {
           setEstimateTotal(refreshedData.estimated_cost || refreshedData.estimate_total || 0);
         }
+        setEstimateParts(refreshedData.estimate_parts ?? null);
+        setEstimateLabor(refreshedData.estimate_labor ?? null);
       } catch (err) {
         console.error("Failed to refresh work order after update:", err);
       }
@@ -1610,6 +1669,26 @@ export default function WorkOrderDetailsV2({
                   <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
                     {formatUSD(estimateTotal)}
                   </div>
+                  {(estimateParts !== null || estimateLabor !== null) && (
+                    <div className="mt-2 flex flex-col gap-1 w-full max-w-[220px] text-xs">
+                      {estimateParts !== null && (
+                        <div className="flex justify-between">
+                          <span className="text-[#717179]">Parts</span>
+                          <span className="text-[#303030] font-medium">
+                            {formatUSD(estimateParts)}
+                          </span>
+                        </div>
+                      )}
+                      {estimateLabor !== null && (
+                        <div className="flex justify-between">
+                          <span className="text-[#717179]">Labor</span>
+                          <span className="text-[#303030] font-medium">
+                            {formatUSD(estimateLabor)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <button
@@ -2066,7 +2145,7 @@ export default function WorkOrderDetailsV2({
       <ModalTemplate
         open={isEstimateTotalModalOpen}
         onOpenChange={setIsEstimateTotalModalOpen}
-        title="Update Estimate Total"
+        title="Update Estimate"
         size="sm"
         footer={
           <ModalButtons
@@ -2077,20 +2156,60 @@ export default function WorkOrderDetailsV2({
           />
         }
       >
-        <ModalField label="Estimate Total">
-          <CurrencyField
-            label=""
-            value={draftEstimateTotal}
-            onChange={(value) => {
-              // CurrencyInput always passes a number, so we can directly use it
-              setDraftEstimateTotal(value);
-            }}
-            showCurrencySymbol={true}
-            currencySymbol="$"
-            decimalPlaces={2}
-            placeholder="$0.00"
-          />
-        </ModalField>
+        <div className="flex flex-col gap-4">
+          <ModalField label="Parts (optional)">
+            <CurrencyField
+              label=""
+              value={draftEstimateParts ?? 0}
+              onChange={(value) => {
+                const n = Number(value) || 0;
+                setDraftEstimateParts(n);
+                // Auto-sync total = parts + labor unless the user has manually
+                // edited total since opening the modal.
+                if (!totalManuallyEdited) {
+                  const labor = draftEstimateLabor ?? 0;
+                  setDraftEstimateTotal(n + labor);
+                }
+              }}
+              showCurrencySymbol={true}
+              currencySymbol="$"
+              decimalPlaces={2}
+              placeholder="$0.00"
+            />
+          </ModalField>
+          <ModalField label="Labor (optional)">
+            <CurrencyField
+              label=""
+              value={draftEstimateLabor ?? 0}
+              onChange={(value) => {
+                const n = Number(value) || 0;
+                setDraftEstimateLabor(n);
+                if (!totalManuallyEdited) {
+                  const parts = draftEstimateParts ?? 0;
+                  setDraftEstimateTotal(parts + n);
+                }
+              }}
+              showCurrencySymbol={true}
+              currencySymbol="$"
+              decimalPlaces={2}
+              placeholder="$0.00"
+            />
+          </ModalField>
+          <ModalField label="Total">
+            <CurrencyField
+              label=""
+              value={draftEstimateTotal}
+              onChange={(value) => {
+                setDraftEstimateTotal(Number(value) || 0);
+                setTotalManuallyEdited(true);
+              }}
+              showCurrencySymbol={true}
+              currencySymbol="$"
+              decimalPlaces={2}
+              placeholder="$0.00"
+            />
+          </ModalField>
+        </div>
       </ModalTemplate>
 
       {/* Estimate Update History Modal */}

@@ -199,8 +199,17 @@ export default function FtoInspections() {
           }
         });
 
-        // Sort by ID descending to show newest first
-        setInspections(Array.from(uniqueMap.values()).sort((a, b) => b.id - a.id));
+        // Completed inspections drop to the bottom; within each group sort by
+        // id descending so the newest work is at the top.
+        const isDone = (s: string) => s === "Completed" || s === "Submitted" || s === "Reviewed";
+        setInspections(
+          Array.from(uniqueMap.values()).sort((a, b) => {
+            const aDone = isDone(a.status);
+            const bDone = isDone(b.status);
+            if (aDone !== bDone) return aDone ? 1 : -1;
+            return b.id - a.id;
+          }),
+        );
       } catch (err) {
         console.error("Failed to load inspections:", err);
         setError(err instanceof Error ? err.message : "Failed to load inspections");

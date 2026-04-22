@@ -46,6 +46,9 @@ interface VendorDetail {
   phone: string;
   address?: string;
   website?: string;
+  hourlyRate?: number | null;
+  emergencyHourlyRate?: number | null;
+  notes?: string;
   servicesProvided?: string | string[];
 }
 
@@ -823,10 +826,26 @@ export default function VendorDetail() {
 
   const [activeTab, setActiveTab] = useState<VendorTab>("Overview");
 
+  const mapApiVendor = useCallback((apiVendor: any): VendorDetail => ({
+    id: apiVendor.id,
+    name: apiVendor.name,
+    category: apiVendor.category || "Uncategorized",
+    email: apiVendor.primary_email ?? "",
+    phone: apiVendor.phone ?? "",
+    address: apiVendor.address ?? undefined,
+    website: apiVendor.website ?? undefined,
+    hourlyRate: apiVendor.hourly_rate_cents ?? null,
+    emergencyHourlyRate: apiVendor.emergency_hourly_rate_cents ?? null,
+    notes: apiVendor.notes ?? undefined,
+    servicesProvided: apiVendor.category
+      ? String(apiVendor.category).split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [],
+  }), []);
+
   // Mock data state for vendor detail
   const [vendor, setVendor] = useState<VendorDetail | null>(() => {
     if (!routeVendor) return null;
-  
+
     return {
       id: routeVendor.id,
       name: routeVendor.name,
@@ -834,42 +853,42 @@ export default function VendorDetail() {
       // Handle both 'email' (from list page) and 'primary_email' (from API) fields
       email: (routeVendor as any).email || routeVendor.primary_email || "",
       phone: routeVendor.phone ?? "",
-      address: undefined,
-      website: routeVendor.domain ?? undefined,
+      address: routeVendor.address ?? undefined,
+      website: routeVendor.website ?? undefined,
+      hourlyRate: (routeVendor as any).hourly_rate_cents ?? (routeVendor as any).hourlyRate ?? null,
+      emergencyHourlyRate:
+        (routeVendor as any).emergency_hourly_rate_cents ?? (routeVendor as any).emergencyHourlyRate ?? null,
+      notes: routeVendor.notes ?? undefined,
       servicesProvided: routeVendor.category
         ? [routeVendor.category]
         : [],
     };
   });
-  
+
+  const refreshVendor = useCallback(async () => {
+    if (!id || isNaN(id)) return;
+    try {
+      const apiVendor = await fetchJSON(`/vendors/${id}`);
+      if (apiVendor) setVendor(mapApiVendor(apiVendor));
+    } catch (err) {
+      console.error("Failed to refresh vendor:", err);
+    }
+  }, [id, mapApiVendor]);
+
   // Fetch vendor detail if not provided via route state
   useEffect(() => {
     if (!vendor && id && !isNaN(id)) {
       (async () => {
         try {
-          // Try to fetch from real API endpoint first
-          // Note: This endpoint may not exist yet, so we fall back to mock
           let fetchedVendor: VendorDetail | null = null;
           try {
             const apiVendor = await fetchJSON(`/vendors/${id}`);
-            // Map API response to VendorDetail format
-            if (apiVendor) {
-              fetchedVendor = {
-                id: apiVendor.id,
-                name: apiVendor.name,
-                category: apiVendor.category || "Uncategorized",
-                email: apiVendor.primary_email ?? "",
-                phone: apiVendor.phone || "",
-                address: undefined,
-                website: apiVendor.domain || undefined,
-                servicesProvided: apiVendor.category ? [apiVendor.category] : [],
-              };
-            }
+            if (apiVendor) fetchedVendor = mapApiVendor(apiVendor);
           } catch (apiErr) {
             // API endpoint doesn't exist or failed, fall back to mock
             fetchedVendor = await mockFetchVendorDetail(id);
           }
-          
+
           if (fetchedVendor) {
             setVendor(fetchedVendor);
           }
@@ -878,7 +897,7 @@ export default function VendorDetail() {
         }
       })();
     }
-  }, [vendor, id]);
+  }, [vendor, id, mapApiVendor]);
 
   useEffect(() => {
     if (vendor?.name) setVendorDisplayName(vendor.name);
@@ -1370,6 +1389,20 @@ export default function VendorDetail() {
                           value: (vendorDraft || vendor).website,
                         },
                         {
+                          label: "HOURLY RATE",
+                          value: (() => {
+                            const v = (vendorDraft || vendor).hourlyRate;
+                            return v == null ? "" : `$${(v / 100).toFixed(2)}/hr`;
+                          })(),
+                        },
+                        {
+                          label: "EMERGENCY HOURLY RATE",
+                          value: (() => {
+                            const v = (vendorDraft || vendor).emergencyHourlyRate;
+                            return v == null ? "" : `$${(v / 100).toFixed(2)}/hr`;
+                          })(),
+                        },
+                        {
                           label: "SERVICES PROVIDED",
                           value: (vendorDraft || vendor).servicesProvided,
                         },
@@ -1834,20 +1867,8 @@ export default function VendorDetail() {
         onOpenChange={setIsEditVendorOpen}
         edit={true}
         initialVendor={vendorDraft || undefined}
-        onEditVendor={(updatedVendor) => {
-          if (vendor) {
-            const updatedVendorData = {
-              ...vendor,
-              name: updatedVendor.name,
-              email: updatedVendor.email,
-              phone: updatedVendor.phone,
-              website: updatedVendor.website,
-              servicesProvided: updatedVendor.servicesProvided,
-            };
-            // Update main vendor data for display
-            // In a real app, this would call an API to persist changes
-            setVendorDraft(updatedVendorData);
-          }
+        onEditVendor={() => {
+          refreshVendor();
           setIsEditVendorOpen(false);
         }}
       />
