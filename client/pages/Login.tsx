@@ -1,10 +1,12 @@
 import { loginRequest } from "@/api/auth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 
 export const Login = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -60,8 +62,8 @@ export const Login = () => {
       // Clear stale tab state so RestoreTabUrlSync doesn't override the redirect
       sessionStorage.removeItem("avm-tab-state");
 
-      // Navigate to main app
-      if (result.role === "field_team_member") {
+      // Mobile always routes to the field team portal, regardless of role.
+      if (isMobile || result.role === "field_team_member") {
         navigate("/fto", { replace: true });
       } else {
         navigate("/", { replace: true });
