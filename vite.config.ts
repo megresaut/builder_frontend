@@ -4,6 +4,7 @@ import path from "path";
 
 export default defineConfig({
   root: path.resolve(__dirname, "client"),
+  envDir: __dirname,
   server: {
     host: "::",
     port: 5173,
