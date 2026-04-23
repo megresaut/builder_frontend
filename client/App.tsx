@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useAuth } from "./auth/useAuth";
+import { isMobileDevice } from "./lib/detectMobile";
 
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
@@ -84,6 +85,7 @@ const RequireAuth = ({
   allowedRoles?: string[];
 }) => {
   const { isAuthenticated, role, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     // Still checking token / attempting refresh — show nothing to avoid flash
@@ -92,6 +94,12 @@ const RequireAuth = ({
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Mobile/tablet users only use the FTO portal. Catches cached-session
+  // deep links into admin routes; login-time redirect lives in Login.tsx.
+  if (isMobileDevice() && !location.pathname.startsWith("/fto")) {
+    return <Navigate to="/fto" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(role || "")) {

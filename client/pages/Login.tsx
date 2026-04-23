@@ -1,12 +1,11 @@
 import { loginRequest } from "@/api/auth";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { isMobileDevice } from "@/lib/detectMobile";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 
 export const Login = () => {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -62,8 +61,17 @@ export const Login = () => {
       // Clear stale tab state so RestoreTabUrlSync doesn't override the redirect
       sessionStorage.removeItem("avm-tab-state");
 
+      // Normalize role: fall back to the copy loginRequest persisted to
+      // localStorage in case the decoded JWT claim was empty/whitespace.
+      const rawRole =
+        result.role || localStorage.getItem("avm_role") || "";
+      const role = rawRole.trim().toLowerCase();
+      if (!role) {
+        console.warn("[login] missing role in JWT; defaulting route");
+      }
+
       // Mobile always routes to the field team portal, regardless of role.
-      if (isMobile || result.role === "field_team_member") {
+      if (isMobileDevice() || role === "field_team_member") {
         navigate("/fto", { replace: true });
       } else {
         navigate("/", { replace: true });
