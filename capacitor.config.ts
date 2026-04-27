@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.reasonableautomations.rafield",
+  appId: "com.reasonableautomations.ravm",
   appName: "RA Field",
   webDir: "client/dist/spa",
   server: {
