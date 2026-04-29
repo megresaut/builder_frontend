@@ -64,6 +64,16 @@ import AccountingARaging from "./pages/AccountingARaging";
 import AccountingAccountsReceivable from "./pages/AccountingAccountsReceivable";
 import AccountingPropertyComparison from "./pages/AccountingPropertyComparison";
 import AccountingBillPayments from "./pages/AccountingBillPayments";
+import AccountingBankAccounts from "./pages/AccountingBankAccounts";
+import AccountingBankAccountDetail from "./pages/AccountingBankAccountDetail";
+import AccountingCreditCards from "./pages/AccountingCreditCards";
+import AccountingCreditCardDetail from "./pages/AccountingCreditCardDetail";
+import AccountingGeneralLedger from "./pages/AccountingGeneralLedger";
+import AccountingTrialBalance from "./pages/AccountingTrialBalance";
+import AccountingBankReconcile from "./pages/AccountingBankReconcile";
+import AccountingJournalEntries from "./pages/AccountingJournalEntries";
+import AccountingJournalEntryEditor from "./pages/AccountingJournalEntryEditor";
+import AccountingJournalEntryDetail from "./pages/AccountingJournalEntryDetail";
 
 initConsoleCapture();
 
@@ -495,6 +505,116 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <AccountingBillPayments />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/bank-accounts"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingBankAccounts />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/bank-accounts/:id"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingBankAccountDetail />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/bank-accounts/:id/reconcile"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingBankReconcile />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/credit-cards"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingCreditCards />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/credit-cards/:id"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingCreditCardDetail />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/general-ledger"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingGeneralLedger />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/general-ledger/trial-balance"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingTrialBalance />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/journal-entries"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingJournalEntries />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/journal-entries/new"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingJournalEntryEditor />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/journal-entries/:id"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <AccountingJournalEntryDetail />
                       </ShellLayout>
                     </RequireAuth>
                   }

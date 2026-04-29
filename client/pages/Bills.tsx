@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import AddVendorModal from "@/components/AddVendorModal";
+import BillPaymentManager from "@/components/BillPaymentManager";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
@@ -16,6 +17,7 @@ import {
 } from "@/components/BillsPageHeader";
 import { fetchJSON } from "@/api/fetchJSON";
 import { openAuthPdf } from "@/api/openAuthPdf";
+import { toast } from "sonner";
 
 interface MatchCandidate {
   id: number;
@@ -29,6 +31,7 @@ interface Bill {
   vendor: string;
   vendorColor: string;
   property: string;
+  propertyId?: number | null;
   statementDate: string;
   dueDate: string;
   due_date?: string; // raw ISO date for filtering
@@ -57,6 +60,18 @@ interface Bill {
   propertyMatchStatus?: string;
   propertyMatchCandidates?: MatchCandidate[];
   parseConfidence?: number;
+
+  // Payment tracking (added with bill_payments module)
+  paymentStatus?: "unpaid" | "partial" | "paid" | "void";
+  paidAmountCents?: number;
+  invoiceAmountCents?: number;
+  markupPercent?: number;
+
+  // Where the bill originated. "manual" = created here; "buildium_pull" = pulled
+  // from Buildium (its PDF lives in buildiumFileKeys, line items in buildiumLines).
+  source?: "manual" | "buildium_pull";
+  buildiumFileKeys?: string[];
+  buildiumLines?: any[];
 }
 
 function generateVendorColor(name: string) {
@@ -74,11 +89,43 @@ function mapUtilityRowToBill(row: any): Bill {
     ? new Date(row.created_at).getTime()
     : Date.now();
 
+  const source: "manual" | "buildium_pull" =
+    row.source === "buildium_pull" ? "buildium_pull" : "manual";
+
+  // For buildium_pull bills, surface the cached PDF object_keys + parsed line
+  // items so the bill detail page can render them without a separate fetch.
+  let fileKeys: string[] = [];
+  let parsedLines: any[] = [];
+  let firstGlName = "";
+  if (source === "buildium_pull") {
+    try {
+      const files = Array.isArray(row.buildium_files) ? row.buildium_files : [];
+      fileKeys = files
+        .map((f: any) => f?.object_key)
+        .filter((k: any): k is string => typeof k === "string" && k.length > 0);
+    } catch {
+      /* ignore */
+    }
+    try {
+      const lines = Array.isArray(row.buildium_lines) ? row.buildium_lines : [];
+      parsedLines = lines;
+      firstGlName = parsedLines[0]?.GLAccount?.Name ?? "";
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const vendorName =
+    source === "buildium_pull"
+      ? row.vendor_name || `Buildium vendor #${row.buildium_bill_id ?? "—"}`
+      : row.source_name || "—";
+
   return {
     id: row.id,
-    vendor: row.source_name || "—",
-    vendorColor: generateVendorColor(row.source_name || ""),
+    vendor: vendorName,
+    vendorColor: generateVendorColor(vendorName),
     property: row.property_name || "—",
+    propertyId: row.property_id ?? null,
     statementDate: row.statement_date
       ? new Date(row.statement_date).toLocaleDateString("en-US", {
           month: "short",
@@ -94,16 +141,27 @@ function mapUtilityRowToBill(row: any): Bill {
         })
       : "—",
     due_date: row.due_date ?? undefined,
-    status: row.push_status === "pushed" ? "pushed" : "push-failed",
+    status: row.push_status === "pushed" || source === "buildium_pull" ? "pushed" : "push-failed",
     memo: row.memo || "",
     invoiceNumber: row.reference_number || "",
     amount: (row.amount_cents ?? 0) / 100,
-    glAccount: "",
+    glAccount: firstGlName,
     importedAt: createdAtMs,
-    exportedAt: row.push_status === "pushed" ? createdAtMs : undefined,
+    exportedAt:
+      row.push_status === "pushed" || source === "buildium_pull"
+        ? createdAtMs
+        : undefined,
 
-    // ⭐ this is the key
     isUtility: Boolean(row.provider_id),
+
+    paymentStatus: row.payment_status || "unpaid",
+    paidAmountCents: row.paid_amount_cents ?? 0,
+    invoiceAmountCents: row.invoice_amount_cents ?? row.amount_cents ?? 0,
+    markupPercent: row.markup_percent ?? 0,
+
+    source,
+    buildiumFileKeys: fileKeys,
+    buildiumLines: parsedLines,
   };
 }
 
@@ -173,7 +231,6 @@ function mapDraftRowToBill(row: any): Bill {
     parseConfidence: row.parse_confidence,
   };
 }
-
 
 const bills: Bill[] = [
   {
@@ -318,24 +375,55 @@ const bills: Bill[] = [
   },
 ];
 
-const buildBillState = (bill: Bill) => ({
-  vendorName: bill.vendor,
-  referenceNumber: bill.invoiceNumber,
-  invoiceDate: bill.statementDate,
-  dueDate: bill.dueDate,
-  memo: bill.memo,
-  lineItems: [
-    {
-      id: bill.id,
-      property: bill.property,
-      unit: "",
-      workOrder: "",
-      description: bill.memo,
-      glAccount: bill.glAccount,
-      total: `$${bill.amount.toFixed(2)}`,
-    },
-  ],
-});
+const buildBillState = (bill: Bill) => {
+  // Buildium-only bills carry parsed line items in `buildiumLines`. Each line has
+  // PropertyName, UnitName (resolved server-side), GLAccount{Name,AccountNumber},
+  // Amount, Memo. Map them to the LineItem shape RecordBill expects.
+  let lineItems: any[];
+  if (bill.source === "buildium_pull" && Array.isArray(bill.buildiumLines)) {
+    lineItems = bill.buildiumLines.map((l: any, idx: number) => {
+      const propertyName = l?.PropertyName ?? "";
+      const unitName = l?.UnitName ?? "";
+      const ae = l?.AccountingEntity ?? {};
+      const unitId = ae?.Unit?.Id ? String(ae.Unit.Id) : "";
+      const glName = l?.GLAccount?.Name ?? "";
+      const glNum = l?.GLAccount?.AccountNumber;
+      const amount = typeof l?.Amount === "number" ? l.Amount : 0;
+      return {
+        id: bill.id * 100 + idx,
+        property: propertyName,
+        unit: unitId,
+        unitName,
+        workOrder: "",
+        description: l?.Memo ?? "",
+        glAccount: glNum ? `${glNum} - ${glName}` : glName,
+        total: `$${amount.toFixed(2)}`,
+      };
+    });
+  } else {
+    lineItems = [
+      {
+        id: bill.id,
+        property: bill.property,
+        unit: "",
+        workOrder: "",
+        description: bill.memo,
+        glAccount: bill.glAccount,
+        total: `$${bill.amount.toFixed(2)}`,
+      },
+    ];
+  }
+  return {
+    vendorName: bill.vendor,
+    referenceNumber: bill.invoiceNumber,
+    invoiceDate: bill.statementDate,
+    dueDate: bill.dueDate,
+    memo: bill.memo,
+    source: bill.source,
+    buildiumFileKeys: bill.buildiumFileKeys,
+    lineItems,
+  };
+};
 
 const VendorAvatar = ({ name, color }: { name: string; color: string }) => (
   <svg
@@ -435,9 +523,10 @@ function getImportStatusStyle(importStatus?: string): {
 
 export default function Bills() {
   const navigate = useNavigate();
-  const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
+  const [paymentBill, setPaymentBill] = useState<Bill | null>(null);
+  const [selectedTab, setSelectedTab] = usePageState<"all" | "unpaid" | "paid">(
     "selectedTab",
-    "approved",
+    "all",
   );
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
@@ -465,6 +554,8 @@ export default function Bills() {
 
   const [billsList, setBillsList] = useState<Bill[]>([]);
   const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(new Set());
+  const approvedBillIdsRef = useRef<Set<number>>(new Set());
+  useEffect(() => { approvedBillIdsRef.current = approvedBillIds; }, [approvedBillIds]);
   const [approvedTotal, setApprovedTotal] = useState(0);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   // const [approvedTimestamp, setApprovedTimestamp] = useState(
@@ -499,10 +590,10 @@ export default function Bills() {
     return () => clearTimeout(timer);
   };
 
-  const approvedBills = billsList
-    .filter((b) => approvedBillIds.has(b.id));
-  const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
-  const tabBills = selectedTab === "approved" ? approvedBills : draftBills;
+  // Approved bills (manual + buildium_pull) come from /utilities/bills/all.
+  // The drafts pipeline has been retired — every row in billsList is approved.
+  const approvedBills = billsList.filter((b) => approvedBillIds.has(b.id));
+  const tabBills = approvedBills;
 
   const uniqueVendors = Array.from(
     new Set(tabBills.map((b) => b.vendor).filter((v) => v && v !== "—"))
@@ -511,48 +602,10 @@ export default function Bills() {
     new Set(tabBills.map((b) => b.property).filter((p) => p && p !== "—"))
   ).sort();
 
-  // For the approved tab, filtering + search happens server-side.
-  // For the drafts tab, filter client-side as before.
-  const filteredTabBills = selectedTab === "approved"
-    ? tabBills
-    : (() => {
-        const searchLower = searchValue.trim().toLowerCase();
-        return tabBills.filter((bill) => {
-          const matchesSearch = !searchLower || (() => {
-            const vendor = (bill.vendor ?? "").toLowerCase();
-            const property = (bill.property ?? "").toLowerCase();
-            const memo = (bill.memo ?? "").toLowerCase();
-            const invoiceNumber = (bill.invoiceNumber ?? "").toLowerCase();
-            const amountStr = String(bill.amount ?? "");
-            const statementDate = (bill.statementDate ?? "").toLowerCase();
-            const dueDate = (bill.dueDate ?? "").toLowerCase();
-            return (
-              vendor.includes(searchLower) ||
-              property.includes(searchLower) ||
-              memo.includes(searchLower) ||
-              invoiceNumber.includes(searchLower) ||
-              amountStr.includes(searchLower) ||
-              statementDate.includes(searchLower) ||
-              dueDate.includes(searchLower)
-            );
-          })();
-
-          if (!matchesSearch) return false;
-          if (filterVendor && bill.vendor !== filterVendor) return false;
-          if (filterProperty && bill.property !== filterProperty) return false;
-
-          if (filterDateFrom || filterDateTo) {
-            const billDateStr = bill.due_date
-              ? new Date(bill.due_date).toISOString().slice(0, 10)
-              : null;
-            if (!billDateStr) return false;
-            if (filterDateFrom && billDateStr < filterDateFrom) return false;
-            if (filterDateTo && billDateStr > filterDateTo) return false;
-          }
-
-          return true;
-        });
-      })();
+  // Filtering + search runs server-side on /utilities/bills/all (including the
+  // payment_status filter wired below). The pills here are payment-status
+  // shortcuts on top of that.
+  const filteredTabBills = tabBills;
 
   const { handleSortClick, getSortIndicator, getSortedData } =
     useSortingTable(filteredTabBills);
@@ -578,6 +631,7 @@ export default function Bills() {
     "invoiceNumber",
     "memo",
     "amount",
+    "paymentStatus",
     "exportedAt",
     "status",
   ]);
@@ -600,7 +654,8 @@ export default function Bills() {
     setCurrentPage(1);
   }, [filterVendor, filterProperty, filterDateFrom, filterDateTo]);
 
-  // Load approved bills (server-paginated)
+  // Load approved bills (server-paginated). The selectedTab pill maps directly
+  // onto the payment_status query param so server-side filtering stays in sync.
   const loadApprovedBills = useCallback(async () => {
     try {
       const params = new URLSearchParams();
@@ -611,53 +666,51 @@ export default function Bills() {
       if (filterProperty) params.set("property", filterProperty);
       if (filterDateFrom) params.set("date_from", filterDateFrom);
       if (filterDateTo) params.set("date_to", filterDateTo);
+      if (selectedTab === "paid" || selectedTab === "unpaid") {
+        params.set("payment_status", selectedTab);
+      }
 
       const res = await fetchJSON(`/utilities/bills/all?${params.toString()}`);
       const rows = Array.isArray(res.data) ? res.data : [];
       const approved = rows.map(mapUtilityRowToBill);
 
+      const newApprovedIds = new Set<number>(approved.map((b: Bill) => b.id));
       setBillsList((prev) => {
-        const drafts = prev.filter((b) => !approvedBillIds.has(b.id));
-        return [...approved, ...drafts];
+        const others = prev.filter(
+          (b) => !approvedBillIdsRef.current.has(b.id) && !newApprovedIds.has(b.id),
+        );
+        return [...approved, ...others];
       });
-      setApprovedBillIds(new Set(approved.map((b: Bill) => b.id)));
+      approvedBillIdsRef.current = newApprovedIds;
+      setApprovedBillIds(newApprovedIds);
       setApprovedTotal(typeof res.total === "number" ? res.total : rows.length);
     } catch (err) {
       console.error("Error loading approved bills:", err);
     }
-  }, [currentPage, itemsPerPage, debouncedSearch, filterVendor, filterProperty, filterDateFrom, filterDateTo]);
+  }, [currentPage, itemsPerPage, debouncedSearch, filterVendor, filterProperty, filterDateFrom, filterDateTo, selectedTab]);
 
-  // Load draft bills (client-side, independent of pagination)
+  // Drafts pipeline retired — left as a no-op stub so existing call sites keep
+  // compiling while we migrate them off.
   const loadDraftBills = useCallback(async () => {
     try {
-      const draftRows = await fetchJSON(
-        "/vendors/bill-drafts?status=draft,parsed,receipt&limit=200"
-      );
-      const drafts = (Array.isArray(draftRows) ? draftRows : []).map(mapDraftRowToBill);
-
-      setBillsList((prev) => {
-        const approved = prev.filter((b) => approvedBillIds.has(b.id));
-        return [...approved, ...drafts];
-      });
+      // no-op: drafts tab removed
     } catch (err) {
       console.error("Error loading draft bills:", err);
     }
-  }, [approvedBillIds]);
+  }, []);
 
   // Fetch approved bills whenever page/filters change
   useEffect(() => {
     loadApprovedBills();
   }, [loadApprovedBills]);
 
-  // Load drafts on mount + auto-refresh every 30 seconds
+  // Auto-refresh approved bills every 60s so freshly-pulled buildium bills
+  // appear without a manual reload.
   useEffect(() => {
-    loadDraftBills();
-    const interval = setInterval(loadDraftBills, 30_000);
+    const interval = setInterval(loadApprovedBills, 60_000);
     return () => clearInterval(interval);
-  }, [loadDraftBills]);
-  
-  
-  
+  }, [loadApprovedBills]);
+
 
   const columns = [
     {
@@ -792,6 +845,23 @@ export default function Bills() {
         >
           <line x1="12" x2="12" y1="2" y2="22" />
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      ),
+    },
+    {
+      key: "paymentStatus",
+      label: "Payment Status",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.39 0 4.68.94 6.36 2.64" />
+          <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
       ),
     },
@@ -1068,8 +1138,6 @@ export default function Bills() {
       setApprovedBillIds(new Set(approved.map((b: Bill) => b.id)));
       setApprovedTotal(typeof approvedRes.total === "number" ? approvedRes.total : approved.length);
 
-      // Auto-switch to Drafts tab so user sees newly synced drafts
-      setSelectedTab("drafts");
       setCurrentPage(1);
 
       setSyncState("synced");
@@ -1170,49 +1238,36 @@ export default function Bills() {
             actions={headerActions}
           />
 
-          {/* Tab Bar - same design as Field Team Orders */}
+          {/* Status pills — All / Unpaid / Paid (replaces the old Approved/Drafts tabs) */}
           <div className="flex gap-1 border-b border-[#E5E5E5]">
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedTab("approved");
-                setCurrentPage(1);
-              }}
-              className={cn(
-                "px-4 py-2.5 text-sm font-medium transition-colors relative",
-                selectedTab === "approved"
-                  ? "text-[#013764]"
-                  : "text-[#717179] hover:text-[#303030]"
-              )}
-            >
-              Approved
-              {selectedTab === "approved" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedTab("drafts");
-                setCurrentPage(1);
-              }}
-              className={cn(
-                "px-4 py-2.5 text-sm font-medium transition-colors relative",
-                selectedTab === "drafts"
-                  ? "text-[#013764]"
-                  : "text-[#717179] hover:text-[#303030]"
-              )}
-            >
-              Drafts
-              {draftBills.length > 0 && (
-                <span className="ml-1.5 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-gray-200 text-xs font-medium text-gray-700">
-                  {draftBills.length}
-                </span>
-              )}
-              {selectedTab === "drafts" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
-              )}
-            </button>
+            {([
+              { key: "all", label: "All" },
+              { key: "unpaid", label: "Unpaid" },
+              { key: "paid", label: "Paid" },
+            ] as const).map((opt) => {
+              const active = selectedTab === opt.key;
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => {
+                    setSelectedTab(opt.key);
+                    setCurrentPage(1);
+                  }}
+                  className={cn(
+                    "px-4 py-2.5 text-sm font-medium transition-colors relative",
+                    active
+                      ? "text-[#013764]"
+                      : "text-[#717179] hover:text-[#303030]"
+                  )}
+                >
+                  {opt.label}
+                  {active && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Filter bar - toggled by Filter button */}
@@ -1301,12 +1356,8 @@ export default function Bills() {
           {/* Bills Table - Using GlobalTable Component */}
           <GlobalTable
             columns={columns.filter((col) => {
-              if (col.key === "status" && selectedTab !== "drafts") {
-                return false;
-              }
-              if (col.key === "exportedAt" && selectedTab !== "approved") {
-                return false;
-              }
+              // Drafts tab is gone — drop its status column from the schema.
+              if (col.key === "status") return false;
               return true;
             })}
             data={getSortedData()}
@@ -1319,13 +1370,13 @@ export default function Bills() {
                     <span className="text-gray-900 font-normal text-sm truncate">
                       {bill.vendor}
                     </span>
-                    {selectedTab === "drafts" && bill.vendorMatchStatus && (
-                      <MatchStatusDot
-                        status={bill.vendorMatchStatus}
-                        score={bill.vendorMatchScore}
-                        candidates={bill.vendorMatchCandidates}
-                        label="Vendor match"
-                      />
+                    {bill.source === "buildium_pull" && (
+                      <span
+                        className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-[#013764]/10 text-[#013764] border border-[#013764]/20"
+                        title="Created in Buildium directly — mirrored read-only into our system."
+                      >
+                        From Buildium
+                      </span>
                     )}
                   </div>
                 );
@@ -1343,30 +1394,10 @@ export default function Bills() {
                     <span className="text-gray-900 font-normal text-sm truncate">
                       {bill.property}
                     </span>
-                    {selectedTab === "drafts" && bill.propertyMatchStatus && (
-                      <MatchStatusDot
-                        status={bill.propertyMatchStatus}
-                        score={bill.propertyMatchScore}
-                        candidates={bill.propertyMatchCandidates}
-                        label="Property match"
-                      />
-                    )}
                   </div>
                 );
               }
-              if (columnKey === "status" && selectedTab === "drafts") {
-                const statusLabel = bill.importStatus ?? formatRelativeTime(bill.importedAt);
-                const { dotColor, textColor } = getImportStatusStyle(bill.importStatus);
-                return (
-                  <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full shrink-0", dotColor)} />
-                    <span className={cn("font-normal text-sm", textColor)}>
-                      {statusLabel}
-                    </span>
-                  </div>
-                );
-              }
-              if (columnKey === "exportedAt" && selectedTab === "approved") {
+              if (columnKey === "exportedAt") {
                 const ts = bill.exportedAt ?? bill.importedAt;
               
                 return (
@@ -1396,9 +1427,49 @@ export default function Bills() {
                 );
               }
               if (columnKey === "amount") {
+                const hasMarkup =
+                  bill.markupPercent && bill.markupPercent > 0 &&
+                  bill.invoiceAmountCents && bill.invoiceAmountCents !== Math.round(bill.amount * 100);
+                if (hasMarkup) {
+                  return (
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      ${bill.amount.toLocaleString()}{" "}
+                      <span className="text-gray-400">→</span>{" "}
+                      <span className="text-gray-700 font-medium">
+                        ${((bill.invoiceAmountCents ?? 0) / 100).toLocaleString()}
+                      </span>
+                    </span>
+                  );
+                }
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
                     ${bill.amount}
+                  </span>
+                );
+              }
+              if (columnKey === "paymentStatus") {
+                const ps = bill.paymentStatus ?? "unpaid";
+                const cls =
+                  ps === "paid"
+                    ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                    : ps === "partial"
+                      ? "bg-amber-100 text-amber-800 border-amber-200"
+                      : ps === "void"
+                        ? "bg-red-100 text-red-800 border-red-200"
+                        : "bg-gray-100 text-gray-700 border-gray-200";
+                const label =
+                  ps === "paid"
+                    ? "Paid"
+                    : ps === "partial"
+                      ? "Partial"
+                      : ps === "void"
+                        ? "Void"
+                        : "Unpaid";
+                return (
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${cls}`}
+                  >
+                    {label}
                   </span>
                 );
               }
@@ -1410,15 +1481,7 @@ export default function Bills() {
               getSortedData,
             }}
             columnManagementHook={{
-              columnOrder: columnOrder.filter((col) => {
-                if (col === "status" && selectedTab !== "drafts") {
-                  return false;
-                }
-                if (col === "exportedAt" && selectedTab !== "approved") {
-                  return false;
-                }
-                return true;
-              }),
+              columnOrder: columnOrder.filter((col) => col !== "status"),
               visibleColumns,
               draggedColumn,
               dropTargetColumn,
@@ -1438,15 +1501,17 @@ export default function Bills() {
               setItemsPerPage(size);
               setCurrentPage(1);
             }}
-            serverTotal={selectedTab === "approved" ? approvedTotal : undefined}
+            serverTotal={approvedTotal}
             showPageSizeDropdown={showPageSizeDropdown}
             onShowPageSizeDropdownChange={setShowPageSizeDropdown}
             openMenuId={openMenuId}
             onOpenMenuIdChange={setOpenMenuId}
             title={
-              selectedTab === "approved"
-                ? "Approved & Exported Bills"
-                : "Draft Bills"
+              selectedTab === "paid"
+                ? "Paid Bills"
+                : selectedTab === "unpaid"
+                  ? "Unpaid Bills"
+                  : "All Bills"
             }
             onFilterClick={() => {
               setShowPageSizeDropdown(false);
@@ -1498,56 +1563,7 @@ export default function Bills() {
               setCurrentPage(1);
             }}
             actions={
-              selectedTab === "drafts"
-                ? [
-                    {
-                      label: "Edit Bill",
-                      icon: (
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 18 18"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252ZM1.875 16.1252L3.41859 12.1119C3.52905 11.8248 3.58428 11.6812 3.67901 11.6154C3.76179 11.5579 3.86423 11.5362 3.96322 11.5551C4.0765 11.5767 4.18529 11.6855 4.40286 11.9031L6.09718 13.5974C6.31475 13.815 6.42354 13.9237 6.44517 14.037C6.46408 14.136 6.44234 14.2385 6.38486 14.3212C6.31908 14.416 6.17549 14.4712 5.8883 14.5817L1.875 16.1252Z"
-                            stroke="var(--color-text-secondary)"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      ),
-                      onClick: (bill: Bill) => {
-                        navigate(`/bills/record?billId=${bill.id}`, {
-                          state: { bill: buildBillState(bill) },
-                        });
-                      },
-                    },
-                    {
-                      label: "Delete",
-                      icon: (
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 18 18"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
-                            stroke="var(--color-status-error)"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      ),
-                      onClick: handleDeleteBill,
-                    },
-                  ]
-                : [
+              [
                     {
                       label: "View Bill",
                       icon: (
@@ -1580,29 +1596,37 @@ export default function Bills() {
                         );
                       },
                     },
+                    {
+                      label: "Manage Payments",
+                      icon: (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="var(--color-text-secondary)"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <rect x="2" y="5" width="20" height="14" rx="2" />
+                          <line x1="2" y1="10" x2="22" y2="10" />
+                        </svg>
+                      ),
+                      onClick: (bill: Bill) => setPaymentBill(bill),
+                    },
                   ]
             }
             onRowClick={(bill) => {
-              // ✅ Approved bills
-              if (selectedTab === "approved") {
-                // Utility / provider-backed bills → PDF (same as View Bill)
-                if (bill.isUtility) {
-                  openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
-                  return;
-                }
-            
-                // Non-utility approved bills → RecordBill (read-only)
-                navigate(
-                  `/bills/record?readOnly=true&billId=${bill.id}`,
-                  { state: { bill: buildBillState(bill) } }
-                );
+              // Utility / provider-backed bills → open the source PDF.
+              if (bill.isUtility) {
+                openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
                 return;
               }
-            
-              // 📝 Draft bills → always editable RecordBill
+              // Everything else (manual + buildium_pull) → read-only RecordBill.
               navigate(
-                `/bills/record?billId=${bill.id}`,
-                { state: { bill: buildBillState(bill) } }
+                `/bills/record?readOnly=true&billId=${bill.id}`,
+                { state: { bill: buildBillState(bill) } },
               );
             }}
             
@@ -1624,15 +1648,7 @@ export default function Bills() {
         isOpen={showColumnModal}
         position={columnMenuPos}
         columns={columns
-          .filter((col) => {
-            if (col.key === "status" && selectedTab !== "drafts") {
-              return false;
-            }
-            if (col.key === "exportedAt" && selectedTab !== "approved") {
-              return false;
-            }
-            return true;
-          })
+          .filter((col) => col.key !== "status")
           .map((col) => ({
             key: col.key,
             label: col.label,
@@ -1642,6 +1658,35 @@ export default function Bills() {
         onToggleColumn={toggleColumnVisibility}
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
+      />
+
+      {/* Bill Payment Manager */}
+      <BillPaymentManager
+        open={paymentBill !== null}
+        onOpenChange={(o) => !o && setPaymentBill(null)}
+        billId={paymentBill?.id ?? null}
+        propertyId={paymentBill?.propertyId ?? null}
+        billLabel={
+          paymentBill
+            ? `${paymentBill.vendor} · ${paymentBill.invoiceNumber || `#${paymentBill.id}`}`
+            : undefined
+        }
+        onUpdated={(status) => {
+          // Update the row in-place so the status chip refreshes immediately.
+          setBillsList((prev) =>
+            prev.map((b) =>
+              b.id === status.bill_id
+                ? {
+                    ...b,
+                    paymentStatus: status.payment_status,
+                    paidAmountCents: status.paid_amount_cents,
+                    invoiceAmountCents: status.invoice_amount_cents,
+                    markupPercent: status.markup_percent,
+                  }
+                : b,
+            ),
+          );
+        }}
       />
     </PageTemplate>
   );

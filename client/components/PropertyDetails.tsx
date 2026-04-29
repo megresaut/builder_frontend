@@ -51,6 +51,15 @@ type PropertyData = {
   owners?: { name: string }[];
   image_url?: string;
   image_storage_key?: string;
+  operating_bank_account_id?: number | null;
+  operating_bank_account_name?: string | null;
+};
+
+type BankAccountOption = {
+  id: number;
+  name: string;
+  buildium_bank_account_id?: string | null;
+  is_active: boolean;
 };
 
 type BackendNote = {
@@ -209,16 +218,23 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [emergencyRate, setEmergencyRate] = useState("$0 / hour");
   const isValidPropertyId = Number.isFinite(propertyId) && propertyId > 0;
 
+  // Operating bank account: the default account this property's bills are
+  // paid from. Pre-fills the Record Payment modal so users don't have to pick
+  // every time. NULL means none configured — the pay flow will show an error
+  // until it's set.
+  const [bankAccounts, setBankAccounts] = useState<BankAccountOption[]>([]);
+  const [operatingBankSaving, setOperatingBankSaving] = useState(false);
+
   // Fetch property data
   useEffect(() => {
     if (!isValidPropertyId) return;
-  
+
     const fetchPropertyData = async () => {
       try {
         setLoading(true);
         const data = await fetchJSON(`/properties/${propertyId}`);
         setPropertyData(data);
-  
+
         setMonthlyRate(formatCentsToMonthly(data.management_fee_cents));
         setDefaultRate(formatCentsToHourly(data.hourly_rate_cents));
         setEmergencyRate(formatCentsToHourly(data.emergency_hourly_rate_cents));
@@ -228,9 +244,50 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         setLoading(false);
       }
     };
-  
+
     fetchPropertyData();
   }, [propertyId, isValidPropertyId]);
+
+  // Fetch bank accounts for the operating-bank dropdown. Cheap, runs once.
+  // Endpoint returns { accounts: [...] } so we unwrap.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetchJSON(`/accounting/bank-accounts`);
+        if (!cancelled) {
+          const rawList = res?.accounts ?? res ?? [];
+          setBankAccounts(Array.isArray(rawList) ? rawList : []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch bank accounts:", err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleOperatingBankChange = async (rawValue: string) => {
+    if (!isValidPropertyId || !propertyData) return;
+    const newId = rawValue === "" ? null : Number(rawValue);
+    setOperatingBankSaving(true);
+    try {
+      await fetchJSON(`/properties/patch-operating-bank/${propertyId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ bank_account_id: newId }),
+        headers: { "Content-Type": "application/json" },
+      });
+      const matched = bankAccounts.find((b) => b.id === newId);
+      setPropertyData({
+        ...propertyData,
+        operating_bank_account_id: newId,
+        operating_bank_account_name: matched ? matched.name : null,
+      });
+    } catch (err) {
+      console.error("Failed to update operating bank:", err);
+    } finally {
+      setOperatingBankSaving(false);
+    }
+  };
 
   // Fetch notes
   useEffect(() => {
@@ -724,6 +781,45 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   >
                     {showMoreRates ? "Show less" : "Show more"}
                   </button>
+                </div>
+
+                <div className="flex mt-5 w-full flex-col">
+                  <div className="text-[#303030] text-base leading-[1.38]">
+                    Operating Bank Account
+                  </div>
+                  <div className="text-xs text-[#71717A] mt-1 leading-[1.33]">
+                    Default bank used when paying this property's bills.
+                  </div>
+                  <div className="mt-3 max-w-md">
+                    <Select
+                      value={
+                        propertyData?.operating_bank_account_id != null
+                          ? String(propertyData.operating_bank_account_id)
+                          : ""
+                      }
+                      onValueChange={handleOperatingBankChange}
+                      disabled={operatingBankSaving}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a bank account..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {bankAccounts
+                          .filter((b) => b.is_active)
+                          .map((b) => (
+                            <SelectItem key={b.id} value={String(b.id)}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {propertyData?.operating_bank_account_id == null && (
+                    <div className="text-xs text-amber-700 mt-2 leading-[1.33]">
+                      Set an operating bank account before recording payments
+                      against this property.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

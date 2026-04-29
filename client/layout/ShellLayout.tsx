@@ -164,7 +164,11 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
             className="flex-1 overflow-auto bg-white flex flex-col"
             style={{ borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
           >
-            <div className="flex-1">
+            <div
+              className={`flex-1 ${
+                isModalLikePage(location.pathname) ? "flex flex-col min-h-0" : ""
+              }`}
+            >
               {children}
             </div>
           </div>

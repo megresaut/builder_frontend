@@ -178,9 +178,54 @@ export const accountingAPI = {
   getPropertyComparison: (month?: string) =>
     fetchJSON(`/accounting/reports/property-comparison${month ? `?month=${month}` : ""}`),
 
-  // QBO Chart of Accounts
+  // QBO Chart of Accounts (live fetch, legacy)
   getChartOfAccounts: (accountType?: string) =>
     fetchJSON(`/accounting/qbo/chart-of-accounts${accountType ? `?account_type=${accountType}` : ""}`),
+
+  // Cached Chart of Accounts (preferred for dropdowns)
+  getCachedChartOfAccounts: (accountType?: string, includeInactive = false) => {
+    const params = new URLSearchParams();
+    if (accountType) params.set("account_type", accountType);
+    if (includeInactive) params.set("include_inactive", "true");
+    const qs = params.toString();
+    return fetchJSON(`/accounting/chart-of-accounts${qs ? `?${qs}` : ""}`);
+  },
+  syncChartOfAccounts: () =>
+    fetchJSON("/accounting/chart-of-accounts/sync", { method: "POST" }),
+  getCoABankAccounts: () =>
+    fetchJSON("/accounting/chart-of-accounts/bank-accounts"),
+  importChartOfAccountsCSV: (path?: string) =>
+    fetchJSON("/accounting/chart-of-accounts/import-csv", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: path ?? "" }),
+    }),
+
+  // Bill Payments (AP — per-bill payments)
+  listBillPayments: (billId: number) =>
+    fetchJSON(`/bills/${billId}/payments`),
+  recordBillPayment: (
+    billId: number,
+    data: {
+      amount_cents: number;
+      payment_date: string;
+      payment_method: "check" | "ach" | "credit_card" | "cash" | "other";
+      bank_account_id?: number;
+      paid_from_account_id?: string;
+      account_category?: string;
+      reference_number?: string;
+      memo?: string;
+    },
+  ) =>
+    fetchJSON(`/bills/${billId}/payments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  voidBillPayment: (billId: number, paymentId: number) =>
+    fetchJSON(`/bills/${billId}/payments/${paymentId}`, { method: "DELETE" }),
+  recalculateBillMarkup: (billId: number) =>
+    fetchJSON(`/bills/${billId}/calculate-markup`, { method: "PATCH" }),
 
   // Reconciliation matching
   getSuggestedMatches: (statementId: number) =>
@@ -229,4 +274,215 @@ export const accountingAPI = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids }),
     }),
+
+  // Accounting config (Phase 0)
+  getConfig: () => fetchJSON("/accounting/config"),
+  patchConfig: (data: {
+    payment_source_of_truth?: "manual" | "buildium_pull";
+    buildium_pull_interval_min?: number;
+    gl_refresh_interval_min?: number;
+    bank_txn_sync_interval_min?: number;
+    default_currency?: string;
+  }) =>
+    fetchJSON("/accounting/config", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+
+  // Bank Accounts (Phase A)
+  listBankAccounts: (activeOnly = true) =>
+    fetchJSON(`/accounting/bank-accounts${activeOnly ? "" : "?active=false"}`),
+  getBankAccount: (id: number) => fetchJSON(`/accounting/bank-accounts/${id}`),
+  updateBankAccount: (
+    id: number,
+    data: Partial<{
+      purpose: string;
+      holder_name: string;
+      routing_last4: string;
+      account_last4: string;
+      notes: string;
+    }>,
+  ) =>
+    fetchJSON(`/accounting/bank-accounts/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  syncBankAccountsBuildium: () =>
+    fetchJSON("/accounting/bank-accounts/sync-buildium", { method: "POST" }),
+  getBankTransactions: (
+    id: number,
+    filters?: { date_from?: string; date_to?: string; kind?: string },
+  ) => {
+    const params = new URLSearchParams();
+    if (filters?.date_from) params.set("date_from", filters.date_from);
+    if (filters?.date_to) params.set("date_to", filters.date_to);
+    if (filters?.kind) params.set("kind", filters.kind);
+    const qs = params.toString();
+    return fetchJSON(`/accounting/bank-accounts/${id}/transactions${qs ? `?${qs}` : ""}`);
+  },
+  syncBankTransactions: (id: number, since?: string, until?: string) => {
+    const params = new URLSearchParams();
+    if (since) params.set("since", since);
+    if (until) params.set("until", until);
+    const qs = params.toString();
+    return fetchJSON(
+      `/accounting/bank-accounts/${id}/sync-transactions${qs ? `?${qs}` : ""}`,
+      { method: "POST" },
+    );
+  },
+  getBankAccountChecks: (
+    id: number,
+    filters?: { date_from?: string; date_to?: string },
+  ) => {
+    const params = new URLSearchParams();
+    if (filters?.date_from) params.set("date_from", filters.date_from);
+    if (filters?.date_to) params.set("date_to", filters.date_to);
+    const qs = params.toString();
+    return fetchJSON(
+      `/accounting/bank-accounts/${id}/checks${qs ? `?${qs}` : ""}`,
+    );
+  },
+  syncBankAccountChecks: (id: number, since?: string, until?: string) => {
+    const params = new URLSearchParams();
+    if (since) params.set("since", since);
+    if (until) params.set("until", until);
+    const qs = params.toString();
+    return fetchJSON(
+      `/accounting/bank-accounts/${id}/sync-checks${qs ? `?${qs}` : ""}`,
+      { method: "POST" },
+    );
+  },
+  syncAllBankAccountChecks: (since?: string, until?: string) => {
+    const params = new URLSearchParams();
+    if (since) params.set("since", since);
+    if (until) params.set("until", until);
+    const qs = params.toString();
+    return fetchJSON(
+      `/accounting/bank-accounts/sync-all-checks${qs ? `?${qs}` : ""}`,
+      { method: "POST" },
+    );
+  },
+
+  // Credit Cards (Phase B)
+  listCreditCardAccounts: (activeOnly = true) =>
+    fetchJSON(`/accounting/credit-cards${activeOnly ? "" : "?active=false"}`),
+  getCreditCardAccount: (id: number) => fetchJSON(`/accounting/credit-cards/${id}`),
+  updateCreditCardAccount: (
+    id: number,
+    data: Partial<{
+      card_last4: string;
+      network: string;
+      holder_name: string;
+      billing_day: number;
+      credit_limit_cents: number;
+      notes: string;
+    }>,
+  ) =>
+    fetchJSON(`/accounting/credit-cards/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+
+  // General Ledger (Phase C)
+  refreshGL: (since?: string, until?: string) =>
+    fetchJSON("/accounting/general-ledger/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ since, until }),
+    }),
+  listGL: (filters?: {
+    account_id?: number;
+    property_id?: number;
+    date_from?: string;
+    date_to?: string;
+    source?: string;
+    search?: string;
+    page?: number;
+    page_size?: number;
+  }) => {
+    const params = new URLSearchParams();
+    if (filters?.account_id) params.set("account_id", String(filters.account_id));
+    if (filters?.property_id) params.set("property_id", String(filters.property_id));
+    if (filters?.date_from) params.set("date_from", filters.date_from);
+    if (filters?.date_to) params.set("date_to", filters.date_to);
+    if (filters?.source) params.set("source", filters.source);
+    if (filters?.search) params.set("search", filters.search);
+    if (filters?.page) params.set("page", String(filters.page));
+    if (filters?.page_size) params.set("page_size", String(filters.page_size));
+    const qs = params.toString();
+    return fetchJSON(`/accounting/general-ledger${qs ? `?${qs}` : ""}`);
+  },
+  getTrialBalance: (asOf: string) =>
+    fetchJSON(`/accounting/general-ledger/trial-balance?as_of=${asOf}`),
+
+  // Buildium payment pull (Phase D)
+  pullBuildiumPayments: () =>
+    fetchJSON("/accounting/buildium/pull-payments", { method: "POST" }),
+  getBuildiumSyncStatus: () => fetchJSON("/accounting/buildium/sync-status"),
+
+  // Reconciliation sessions (Phase E)
+  openReconciliationSession: (data: {
+    account_kind: "bank" | "credit_card";
+    account_id: number;
+    period_start: string;
+    period_end: string;
+    statement_balance_cents: number;
+    notes?: string;
+  }) =>
+    fetchJSON("/accounting/reconciliation/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  getReconciliationSession: (id: number) =>
+    fetchJSON(`/accounting/reconciliation/sessions/${id}`),
+  getReconciliationSuggestions: (id: number) =>
+    fetchJSON(`/accounting/reconciliation/sessions/${id}/suggestions`),
+  confirmReconciliationMatches: (
+    id: number,
+    matches: { bank_txn_id: number; bill_payment_id?: number; invoice_payment_id?: number }[],
+  ) =>
+    fetchJSON(`/accounting/reconciliation/sessions/${id}/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matches }),
+    }),
+  clearReconciliationTxns: (id: number, bankTxnIds: number[]) =>
+    fetchJSON(`/accounting/reconciliation/sessions/${id}/clear`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bank_txn_ids: bankTxnIds }),
+    }),
+  finalizeReconciliationSession: (id: number) =>
+    fetchJSON(`/accounting/reconciliation/sessions/${id}/finalize`, { method: "POST" }),
+  rejectReconciliationSession: (id: number) =>
+    fetchJSON(`/accounting/reconciliation/sessions/${id}/reject`, { method: "POST" }),
+
+  // Journal Entries (Phase F)
+  listJournalEntries: (filters?: { date_from?: string; date_to?: string; status?: string }) => {
+    const params = new URLSearchParams();
+    if (filters?.date_from) params.set("date_from", filters.date_from);
+    if (filters?.date_to) params.set("date_to", filters.date_to);
+    if (filters?.status) params.set("status", filters.status);
+    const qs = params.toString();
+    return fetchJSON(`/accounting/journal-entries${qs ? `?${qs}` : ""}`);
+  },
+  getJournalEntry: (id: number) => fetchJSON(`/accounting/journal-entries/${id}`),
+  createJournalEntry: (data: {
+    txn_date: string;
+    memo?: string;
+    lines: { account_id: number; debit_cents: number; credit_cents: number; memo?: string; property_id?: number; vendor_id?: number }[];
+  }) =>
+    fetchJSON("/accounting/journal-entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  postJournalEntry: (id: number) =>
+    fetchJSON(`/accounting/journal-entries/${id}/post`, { method: "POST" }),
+  voidJournalEntry: (id: number) =>
+    fetchJSON(`/accounting/journal-entries/${id}/void`, { method: "POST" }),
 };

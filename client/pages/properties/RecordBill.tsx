@@ -12,6 +12,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
 
 import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
+import BillPaymentManager from "@/components/BillPaymentManager";
 import glAccounts from "@/data/gl_accounts.json";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import MsgViewerModal from "@/components/MsgViewerModal";
@@ -227,10 +228,24 @@ const buildEditableBillFromState = (stateBill?: ViewBillState) => {
 };
 
 const buildReadOnlyBillFromState = (stateBill?: ViewBillState) => {
-  const vendor =
-    (stateBill?.vendorName &&
-      mockVendors.find((v) => v.name === stateBill.vendorName)) ||
-    placeholderBill.vendor;
+  // Prefer the real vendor name from state. mockVendors is a sample set used
+  // for the placeholder shape only; if the bill's vendor isn't there (which
+  // is true for every real bill), construct a synthetic Vendor so the UI
+  // renders the correct name instead of falling back to "David Smith".
+  let vendor: Vendor;
+  const vendorName = stateBill?.vendorName?.trim();
+  if (vendorName && vendorName !== "—") {
+    vendor =
+      mockVendors.find((v) => v.name === vendorName) ?? {
+        id: 0,
+        name: vendorName,
+        phone: "",
+        email: "",
+        notes: "",
+      };
+  } else {
+    vendor = placeholderBill.vendor;
+  }
 
   const referenceNumber =
     stateBill?.referenceNumber ?? placeholderBill.referenceNumber;
@@ -392,6 +407,7 @@ export const RecordBill = () => {
     ? buildReadOnlyBillFromState(stateBill)
     : null;
   const [draft, setDraft] = useState<any>(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   const editableBill =
     !isReadOnly && stateBill ? buildEditableBillFromState(stateBill) : null;
@@ -441,6 +457,19 @@ export const RecordBill = () => {
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
   const [viewingFileUrl, setViewingFileUrl] = useState<string | null>(null);
   const [viewingFileIndex, setViewingFileIndex] = useState<number | null>(null);
+
+  // Buildium-pulled bills ship with their cached attachment object_keys in
+  // navigation state. Auto-show the first one in the left viewer instead of
+  // the upload zone — these bills are read-only.
+  useEffect(() => {
+    if (stateBill?.source === "buildium_pull") {
+      const key: string | undefined = stateBill.buildiumFileKeys?.[0];
+      if (key) {
+        setViewingFileUrl(`${API_BASE}/files/${key}`);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [msgViewer, setMsgViewer] = useState<{
     isOpen: boolean;
     title: string;
@@ -2166,7 +2195,7 @@ minHeight: 0,
                   <div>Bill Details</div>
                   <div
                     className="h-px bg-gray-200 mt-5"
-                    style={{ width: "790px" }}
+                    style={{ width: "100%", maxWidth: "800px" }}
                   />
                 </div>
 
@@ -2174,7 +2203,7 @@ minHeight: 0,
                 {selectedVendor && complianceWarnings.length > 0 && (
                   <div
                     className="flex items-start gap-2 mt-4 px-4 py-3 rounded-lg border border-amber-300 bg-amber-50 text-sm text-amber-900"
-                    style={{ maxWidth: "790px" }}
+                    style={{ width: "100%", maxWidth: "800px" }}
                   >
                     <span className="mt-0.5 shrink-0">&#9888;</span>
                     <span>
@@ -2186,7 +2215,7 @@ minHeight: 0,
                 {/* Form Fields */}
                 <div
                   className="flex mt-3 flex-col gap-5"
-                  style={{ width: "600px", alignSelf: "start" }}
+                  style={{ width: "100%", maxWidth: "800px", alignSelf: "start" }}
                 >
                   <div
                     className="flex flex-col"
@@ -2199,7 +2228,7 @@ minHeight: 0,
                     {/* Vendor and Reference Number Row */}
                     <div
                       className="flex items-end gap-4"
-                      style={{ width: "600px" }}
+                      style={{ width: "100%" }}
                     >
                       {/* Vendor Select */}
                       <div className="flex flex-col flex-1 min-w-[240px]">
@@ -2376,7 +2405,7 @@ minHeight: 0,
                         <div className="font-semibold">Line Items</div>
                         <div
                           className="h-px bg-gray-200 mt-5"
-                          style={{ width: "790px" }}
+                          style={{ width: "100%", maxWidth: "800px" }}
                         />
                       </div>
                     </div>
@@ -2466,6 +2495,13 @@ minHeight: 0,
                               className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.property}px` }}
                             >
+                              {isReadOnly ? (
+                                <span className="text-[13px] text-gray-700 truncate">
+                                  {properties.find(
+                                    (p) => p.id.toString() === item.property,
+                                  )?.name || item.property || "—"}
+                                </span>
+                              ) : (
                               <Select
                                 value={item.property}
                                 disabled={isReadOnly}
@@ -2520,6 +2556,7 @@ minHeight: 0,
                                   </div>
                                 </SelectContent>
                               </Select>
+                              )}
                             </div>
 
                             {/* Unit */}
@@ -2527,6 +2564,23 @@ minHeight: 0,
                               className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.unit}px` }}
                             >
+                              {isReadOnly ? (
+                                <span className="text-[13px] text-gray-700 truncate">
+                                  {(() => {
+                                    if (item.unit === "__property__") return "Property Level";
+                                    const units = unitsByProperty[item.property] || [];
+                                    const matched = units.find(
+                                      (u) =>
+                                        (u.buildium_unit_id?.toString() ?? `internal-${u.id}`) === item.unit,
+                                    );
+                                    return (
+                                      matched?.unit_name ||
+                                      item.unitName ||
+                                      (item.unit ? `Unit #${item.unit}` : "—")
+                                    );
+                                  })()}
+                                </span>
+                              ) : (
                               <SelectFieldCell
                                 value={item.unit}
                                 onChange={(value) => {
@@ -2575,6 +2629,7 @@ minHeight: 0,
                                 ]}
                                 disabled={isReadOnly || !item.property}
                               />
+                              )}
                             </div>
 
                             {/* Work Order (Radix Select is OK here) */}
@@ -2656,6 +2711,13 @@ minHeight: 0,
                               className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.glAccount}px` }}
                             >
+                              {isReadOnly ? (
+                                <span className="text-[13px] text-gray-700 truncate">
+                                  {glAccountOptions.find(
+                                    (g) => g.id.toString() === item.glAccount,
+                                  )?.name || item.glAccount || "—"}
+                                </span>
+                              ) : (
                               <Select
                                 value={item.glAccount}
                                 disabled={isReadOnly}
@@ -2712,6 +2774,7 @@ minHeight: 0,
                                   </div>
                                 </SelectContent>
                               </Select>
+                              )}
                             </div>
 
 
@@ -2824,6 +2887,18 @@ minHeight: 0,
             >
               <span>Cancel</span>
             </button>
+            {isReadOnly && billId !== null && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setPaymentModalOpen(true);
+                }}
+                className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-[#013764] text-white hover:bg-[#003a73]"
+              >
+                <span>Manage Payments</span>
+              </button>
+            )}
             {isReadOnly && (
               <button
                 disabled
@@ -2921,6 +2996,20 @@ minHeight: 0,
         data={msgViewer.data}
         loading={msgViewer.loading}
         error={msgViewer.error}
+      />
+
+      <BillPaymentManager
+        open={paymentModalOpen}
+        onOpenChange={setPaymentModalOpen}
+        billId={billId}
+        propertyId={Number(lineItems[0]?.property) || null}
+        billLabel={
+          selectedVendor?.name
+            ? `${selectedVendor.name} · ${referenceNumber || `#${billId}`}`
+            : billId !== null
+            ? `Bill #${billId}`
+            : undefined
+        }
       />
     </div>
   );
