@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import { usePageState } from "@/hooks/usePageState";
@@ -19,6 +19,7 @@ import {
   PlusIcon,
 } from "@/components/icons";
 import { fetchJSON } from "@/api/fetchJSON";
+import { toast } from "sonner";
 
 interface BaseVendor {
   id: number;
@@ -200,9 +201,21 @@ export default function Vendors() {
     },
   ];
 
+  // Soft-deletes the vendor on the backend, then removes it from the list.
+  // Related work orders, bills, compliance docs, etc. are preserved.
   const handleDeleteVendor = useCallback(
-    (vendor: BaseVendor) => {
-      setVendors((prev) => prev.filter((v) => v.id !== vendor.id));
+    async (vendor: BaseVendor) => {
+      const ok = window.confirm(
+        `Deactivate "${vendor.name}"?\n\nThe vendor will be hidden from this list, but their work orders, bills, and compliance history will be preserved. You can restore them later from the vendor detail page.`,
+      );
+      if (!ok) return;
+      try {
+        await fetchJSON(`/vendors/deactivate/${vendor.id}`, { method: "POST" });
+        setVendors((prev) => prev.filter((v) => v.id !== vendor.id));
+        toast.success("Vendor deactivated");
+      } catch (err: any) {
+        toast.error(err?.message ?? "Failed to deactivate vendor");
+      }
     },
     [],
   );
@@ -217,21 +230,76 @@ export default function Vendors() {
   );
 
   const [search, setSearch] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [missingContactOnly, setMissingContactOnly] = useState(false);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const filterMenuRef = useRef<HTMLDivElement>(null);
+
+  // Build category list from the loaded vendors so the filter only offers
+  // categories that actually exist in the data.
+  const availableCategories = useMemo(() => {
+    const set = new Set<string>();
+    for (const v of vendors) {
+      for (const s of v.servicesProvided) {
+        if (s && s.trim()) set.add(s.trim());
+      }
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [vendors]);
+
   const filteredVendors = vendors.filter((vendor) => {
-    if (!search.trim()) return true;
-  
-    const q = search.toLowerCase();
-  
-    return (
-      vendor.name.toLowerCase().includes(q) ||
-      vendor.email.toLowerCase().includes(q) ||
-      vendor.phone.toLowerCase().includes(q) ||
-      vendor.notes.toLowerCase().includes(q) ||
-      vendor.servicesProvided.some((s) =>
-        s.toLowerCase().includes(q)
-      )
-    );
+    // Search
+    const q = search.trim().toLowerCase();
+    if (q) {
+      const match =
+        vendor.name.toLowerCase().includes(q) ||
+        vendor.email.toLowerCase().includes(q) ||
+        vendor.phone.toLowerCase().includes(q) ||
+        vendor.notes.toLowerCase().includes(q) ||
+        vendor.servicesProvided.some((s) => s.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+    // Category filter
+    if (selectedCategories.size > 0) {
+      const hasMatch = vendor.servicesProvided.some((s) => selectedCategories.has(s));
+      if (!hasMatch) return false;
+    }
+    // Missing contact filter
+    if (missingContactOnly) {
+      const hasContact = !!(vendor.email?.trim() || vendor.phone?.trim());
+      if (hasContact) return false;
+    }
+    return true;
   });
+
+  const activeFilterCount = (selectedCategories.size > 0 ? 1 : 0) + (missingContactOnly ? 1 : 0);
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      return next;
+    });
+  };
+
+  const clearAllFilters = () => {
+    setSelectedCategories(new Set());
+    setMissingContactOnly(false);
+  };
+
+  // Close the filter popover on outside click
+  useEffect(() => {
+    if (!showFilterMenu) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (filterMenuRef.current && !filterMenuRef.current.contains(target)) {
+        setShowFilterMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [showFilterMenu]);
 
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(filteredVendors, "vendors");
   
@@ -314,6 +382,7 @@ export default function Vendors() {
             data={filteredVendors}
             searchValue={search}
             onSearchChange={setSearch}
+            onFilterClick={() => setShowFilterMenu((v) => !v)}
             rowKey="id"
             renderCell={(vendor, columnKey) => {
               if (columnKey === "name") {
@@ -421,7 +490,7 @@ export default function Vendors() {
                 onClick: handleEditVendor,
               },
               {
-                label: "Delete",
+                label: "Deactivate",
                 icon: <DeleteIcon width={18} height={18} color="#982740" />,
                 onClick: handleDeleteVendor,
               },
@@ -456,6 +525,63 @@ export default function Vendors() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
+
+      {showFilterMenu && (
+        <div
+          ref={filterMenuRef}
+          className="absolute z-50 mt-2 right-6 top-32 w-72 bg-white rounded-lg border border-[#DADADA] shadow-lg p-4"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-semibold text-[#303030]">Filters</h4>
+            {activeFilterCount > 0 && (
+              <button
+                onClick={clearAllFilters}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <label className="flex items-center gap-2 text-sm text-[#303030] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={missingContactOnly}
+                onChange={(e) => setMissingContactOnly(e.target.checked)}
+              />
+              Missing email & phone
+            </label>
+          </div>
+
+          <div className="mb-1 text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Service Category
+          </div>
+          <div className="max-h-60 overflow-y-auto pr-1">
+            {availableCategories.length === 0 ? (
+              <div className="text-xs text-gray-400 py-2">No categories yet.</div>
+            ) : (
+              availableCategories.map((cat) => (
+                <label
+                  key={cat}
+                  className="flex items-center gap-2 text-sm text-[#303030] py-1 cursor-pointer hover:bg-gray-50 rounded px-1"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.has(cat)}
+                    onChange={() => toggleCategory(cat)}
+                  />
+                  <span className="truncate">{cat}</span>
+                </label>
+              ))
+            )}
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
+            Showing {filteredVendors.length} of {vendors.length}
+          </div>
+        </div>
+      )}
     </PageTemplate>
   );
 }

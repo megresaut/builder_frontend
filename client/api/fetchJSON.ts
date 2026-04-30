@@ -78,7 +78,19 @@ export async function fetchJSON(path: string, options: RequestInit = {}) {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`API error ${res.status}: ${text}`);
+    let message = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed && typeof parsed === "object") {
+        message = parsed.error || parsed.message || parsed.detail || text;
+      }
+    } catch {
+      // Body wasn't JSON — fall back to raw text
+    }
+    if (!message || !message.trim()) {
+      message = `Request failed (${res.status})`;
+    }
+    throw new Error(message);
   }
 
   // 204 No Content (e.g. DELETE) has no body

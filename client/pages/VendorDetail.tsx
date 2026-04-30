@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, authFetch, API_BASE } from "@/api/fetchJSON";
+import { toast } from "sonner";
 
 import PageTemplate from "@/layout/PageTemplate";
 import PageHeader from "@/components/PageHeader";
@@ -14,7 +15,8 @@ import AddNoteModal from "@/components/AddNoteModal";
 import AddFileModal from "@/components/AddFileModal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useDelayedAction } from "@/hooks/useDelayedAction";
-import { EmailIcon, EditIcon } from "@/components/icons";
+import { EmailIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import { TextField, SelectField } from "@/components/forms";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
@@ -107,6 +109,21 @@ interface VendorPerformanceAPI {
     completed_at: string | null;
     created_at: string;
     rating: number | null;
+  }[];
+  bills_total: number;
+  bills_amount_cents: number;
+  bills: {
+    id: number;
+    invoice_number: string | null;
+    statement_date: string;
+    due_date: string | null;
+    amount_cents: number;
+    property_id: number | null;
+    property_name: string | null;
+    push_status: string | null;
+    memo: string | null;
+    pdf_object_key: string | null;
+    created_at: string;
   }[];
 }
 
@@ -260,38 +277,69 @@ function toISODate(dateStr: string): string {
   return dateStr; // already ISO or other format
 }
 
+async function apiUploadComplianceFile(file: File): Promise<{ object_key: string; mime: string; filename: string }> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await authFetch(`/vendors/compliance/upload`, {
+    method: "POST",
+    body: fd,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "upload failed");
+  }
+  return res.json();
+}
+
 async function apiAddVendorCompliance(
   vendorId: number,
   doc: Omit<VendorComplianceDoc, "id">,
+  uploadInfo?: { object_key: string; mime: string; filename: string },
 ): Promise<VendorComplianceDoc> {
-  const resp = await fetchJSON(`/vendors/compliance/docs/${vendorId}`, {
-    method: "POST",
-    body: JSON.stringify({
-      document_type: doc.documentType,
-      document_name: doc.documentName,
-      provider: doc.provider || "",
-      policy_number: doc.policyNumber || "",
-      license_number: doc.licenseNumber || "",
-      expiration_date: toISODate(doc.expirationDate),
-    }),
-  });
-  return {
-    id: resp.id,
-    documentType: resp.document_type as VendorComplianceDoc["documentType"],
-    documentName: resp.document_name,
-    provider: resp.provider ?? undefined,
-    policyNumber: resp.policy_number ?? undefined,
-    licenseNumber: resp.license_number ?? undefined,
-    expirationDate: resp.expiration_date,
-    uploadedBy: "You",
-    uploadedAt: new Date().toLocaleString(),
+  const body: Record<string, any> = {
+    document_type: doc.documentType,
+    document_name: doc.documentName,
+    provider: doc.provider || "",
+    policy_number: doc.policyNumber || "",
+    license_number: doc.licenseNumber || "",
+    expiration_date: toISODate(doc.expirationDate),
   };
+  if (uploadInfo) {
+    body.document_object_key = uploadInfo.object_key;
+    body.document_mime = uploadInfo.mime;
+    body.file_name = uploadInfo.filename;
+  }
+  const resp: BackendComplianceDoc = await fetchJSON(`/vendors/compliance/docs/${vendorId}`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  // Use the canonical mapper so uploaded_by + file_url match the rest of the
+  // list (avoids the "Uploaded by You" vs "Uploaded by <real name>" drift).
+  return mapBackendDoc(resp);
 }
 
 async function apiDeleteVendorCompliance(docId: number): Promise<void> {
   await fetchJSON(`/vendors/compliance/docs/delete/${docId}`, {
     method: "DELETE",
   });
+}
+
+async function apiUpdateVendorCompliance(
+  docId: number,
+  patch: Partial<Omit<VendorComplianceDoc, "id" | "uploadedBy" | "uploadedAt">>,
+): Promise<VendorComplianceDoc> {
+  const body: Record<string, any> = {};
+  if (patch.documentType !== undefined) body.document_type = patch.documentType;
+  if (patch.documentName !== undefined) body.document_name = patch.documentName;
+  if (patch.provider !== undefined) body.provider = patch.provider;
+  if (patch.policyNumber !== undefined) body.policy_number = patch.policyNumber;
+  if (patch.licenseNumber !== undefined) body.license_number = patch.licenseNumber;
+  if (patch.expirationDate !== undefined) body.expiration_date = toISODate(patch.expirationDate);
+  const resp: BackendComplianceDoc = await fetchJSON(`/vendors/compliance/docs/update/${docId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+  return mapBackendDoc(resp);
 }
 
 let mockCustomFieldsStorage: Record<number, VendorCustomField[]> = {
@@ -812,6 +860,61 @@ function VendorPerformanceTab({ vendorId }: { vendorId: number }) {
           )}
         </SectionRowTemplate>
       </SectionGroupCardTemplate>
+
+      {/* Bills */}
+      <SectionGroupCardTemplate>
+        <SectionRowTemplate isLast={true}>
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">Bills</h2>
+            {perf.bills_total > 0 && (
+              <div className="text-xs text-[#71717A]">
+                {perf.bills_total} bill{perf.bills_total === 1 ? "" : "s"} ·
+                {" "}Total: ${(perf.bills_amount_cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            )}
+          </div>
+          {perf.bills.length === 0 ? (
+            <p className="text-sm text-[#71717A]">No bills associated with this vendor.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#e5e5e5]">
+                    <th className="text-left py-2 pr-4 font-medium text-[#71717A] text-xs uppercase tracking-wider">Invoice #</th>
+                    <th className="text-left py-2 pr-4 font-medium text-[#71717A] text-xs uppercase tracking-wider">Statement Date</th>
+                    <th className="text-left py-2 pr-4 font-medium text-[#71717A] text-xs uppercase tracking-wider">Due Date</th>
+                    <th className="text-left py-2 pr-4 font-medium text-[#71717A] text-xs uppercase tracking-wider">Property</th>
+                    <th className="text-left py-2 pr-4 font-medium text-[#71717A] text-xs uppercase tracking-wider">Status</th>
+                    <th className="text-right py-2 font-medium text-[#71717A] text-xs uppercase tracking-wider">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {perf.bills.map((b) => {
+                    const stmt = b.statement_date ? new Date(b.statement_date).toLocaleDateString() : "—";
+                    const due = b.due_date ? new Date(b.due_date).toLocaleDateString() : "—";
+                    return (
+                      <tr
+                        key={b.id}
+                        className="border-b border-[#f4f4f5] last:border-b-0 hover:bg-[#f9f9f9] cursor-pointer"
+                        onClick={() => navigate(`/bills/record?readOnly=true&billId=${b.id}`)}
+                      >
+                        <td className="py-2.5 pr-4 text-[#303030] font-medium">{b.invoice_number ?? "—"}</td>
+                        <td className="py-2.5 pr-4 text-[#71717A]">{stmt}</td>
+                        <td className="py-2.5 pr-4 text-[#71717A]">{due}</td>
+                        <td className="py-2.5 pr-4 text-[#71717A]">{b.property_name ?? "—"}</td>
+                        <td className="py-2.5 pr-4 text-[#71717A]">{b.push_status || "—"}</td>
+                        <td className="py-2.5 text-right text-[#303030]">
+                          ${(b.amount_cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionRowTemplate>
+      </SectionGroupCardTemplate>
     </div>
   );
 }
@@ -869,15 +972,22 @@ export default function VendorDetail() {
     if (!id || isNaN(id)) return;
     try {
       const apiVendor = await fetchJSON(`/vendors/${id}`);
-      if (apiVendor) setVendor(mapApiVendor(apiVendor));
+      if (apiVendor) {
+        setVendor(mapApiVendor(apiVendor));
+        setIsInactive(!!apiVendor.deactivated_at);
+      }
     } catch (err) {
       console.error("Failed to refresh vendor:", err);
     }
   }, [id, mapApiVendor]);
 
-  // Fetch vendor detail if not provided via route state
+  // Always fetch the full vendor record from the API on mount, even when a
+  // partial vendor was supplied via route state. The list page only carries a
+  // few columns, so without this the Edit Vendor modal opens with empty
+  // fields for website/address/hourly_rate/notes — making it look like saves
+  // aren't persisting when in fact they are.
   useEffect(() => {
-    if (!vendor && id && !isNaN(id)) {
+    if (id && !isNaN(id)) {
       (async () => {
         try {
           let fetchedVendor: VendorDetail | null = null;
@@ -897,7 +1007,11 @@ export default function VendorDetail() {
         }
       })();
     }
-  }, [vendor, id, mapApiVendor]);
+    // Intentionally exclude `vendor` from deps — the previous gate prevented
+    // an infinite loop, but it also stopped the fetch entirely whenever route
+    // state pre-filled vendor. Now we run once per id change, which is what
+    // we want.
+  }, [id, mapApiVendor]);
 
   useEffect(() => {
     if (vendor?.name) setVendorDisplayName(vendor.name);
@@ -911,71 +1025,111 @@ export default function VendorDetail() {
   const [mockFiles, setMockFiles] = useState<VendorFile[]>([]);
 
 
-  // Load mock notes on mount
+  // Map backend vendor note → NotesTemplate-compatible shape.
+  // Backend returns { id, vendor_id, author_id, author_name, note, note_type, created_at }
+  // NotesTemplate expects { id, text, date, author }.
+  const mapApiNote = useCallback((n: any): VendorNote => ({
+    id: n.id,
+    text: n.note ?? "",
+    author: n.author_name || "Unknown",
+    date: n.created_at
+      ? new Date(n.created_at).toLocaleString(undefined, {
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })
+      : "",
+  }), []);
+
+  // Load notes from the backend on mount.
   useEffect(() => {
+    if (!id || isNaN(id)) return;
     (async () => {
       try {
-        const fetchedNotes = await mockFetchVendorNotes(id);
-        setNotes(fetchedNotes);
+        const data: any[] = await fetchJSON(`/vendors/notes/${id}`);
+        setNotes((data || []).map(mapApiNote));
       } catch (err) {
-        console.error("Failed to load notes");
+        console.error("Failed to load notes:", err);
       }
     })();
-  }, [id]);
+  }, [id, mapApiNote]);
 
-  // Load mock files on mount
+  // Map backend vendor file → FilesTemplate-compatible shape.
+  // Backend: { id, vendor_id, filename, object_key, mime, size_bytes,
+  //            category, description, uploaded_by_user_id, uploaded_by_name, created_at }
+  // Template: { id, name, url, uploadedAt, category, description, author }
+  const mapApiFile = useCallback((f: any): VendorFile & { author?: string; objectKey?: string } => ({
+    id: f.id,
+    name: f.filename ?? "Untitled",
+    url: f.object_key ? `${API_BASE}/files/${f.object_key}` : undefined,
+    uploadedAt: f.created_at
+      ? new Date(f.created_at).toLocaleString(undefined, {
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })
+      : "",
+    type: f.mime ?? undefined,
+    category: f.category ?? undefined,
+    description: f.description ?? undefined,
+    author: f.uploaded_by_name ?? undefined,
+    objectKey: f.object_key ?? undefined,
+  }), []);
+
+  // Load files from the backend on mount.
   useEffect(() => {
+    if (!id || isNaN(id)) return;
     (async () => {
       try {
-        const fetchedFiles = await mockFetchVendorFiles(id);
-        setMockFiles(fetchedFiles);
+        const data: any[] = await fetchJSON(`/vendors/files/${id}`);
+        setMockFiles((data || []).map(mapApiFile));
       } catch (err) {
-        console.error("Failed to load files");
+        console.error("Failed to load files:", err);
       }
     })();
-  }, [id]);
+  }, [id, mapApiFile]);
 
-  // Mock note operations
+  // Real-API note operations (replaces the previous in-memory mocks).
   const addNote = useCallback(async (text: string) => {
     try {
-      const newNote = await mockCreateVendorNote(id, text);
-      setNotes((prev) => [newNote as VendorNote, ...prev]);
+      const created: any = await fetchJSON(`/vendors/notes/${id}`, {
+        method: "POST",
+        body: JSON.stringify({ note: text, note_type: "general" }),
+      });
+      setNotes((prev) => [mapApiNote(created), ...prev]);
     } catch (err) {
-      console.error("Failed to add note");
+      console.error("Failed to add note:", err);
     }
-  }, [id]);
+  }, [id, mapApiNote]);
 
   const removeNote = useCallback(async (noteId: number) => {
     try {
-      await mockDeleteVendorNote(id, noteId);
+      await fetchJSON(`/vendors/notes/${noteId}`, { method: "DELETE" });
       setNotes((prev) => prev.filter((n) => n.id !== noteId));
     } catch (err) {
-      console.error("Failed to delete note");
+      console.error("Failed to delete note:", err);
     }
-  }, [id]);
+  }, []);
 
   const editNote = useCallback(async (noteId: number, text: string) => {
     try {
-      const updated = await mockUpdateVendorNote(id, noteId, text);
-      if (updated) {
-        setNotes((prev) =>
-          prev.map((n) =>
-            n.id === noteId
-              ? {
-                  ...n,
-                  text: updated.text,
-                  date: updated.date,
-                }
-              : n,
-          ),
-        );
-      }
+      await fetchJSON(`/vendors/notes/${noteId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ note: text, note_type: "general" }),
+      });
+      setNotes((prev) =>
+        prev.map((n) => (n.id === noteId ? { ...n, text } : n)),
+      );
     } catch (err) {
-      console.error("Failed to edit note");
+      console.error("Failed to edit note:", err);
     }
-  }, [id]);
+  }, []);
 
-  // Mock file operations
+  // Real-API file operations.
   const uploadFile = useCallback(
     async (
       file: File,
@@ -984,50 +1138,58 @@ export default function VendorDetail() {
       fileName?: string,
     ) => {
       try {
-        const newFile = await mockUploadVendorFile(
-          id,
-          file,
-          category,
-          description,
-          fileName,
-        );
-        setMockFiles((prev) => [...prev, newFile]);
+        const fd = new FormData();
+        fd.append("file", file);
+        if (category) fd.append("category", category);
+        if (description) fd.append("description", description);
+        if (fileName) fd.append("filename", fileName);
+
+        const res = await authFetch(`/vendors/files/${id}`, {
+          method: "POST",
+          body: fd,
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || "upload failed");
+        }
+        const created = await res.json();
+        setMockFiles((prev) => [mapApiFile(created), ...prev]);
       } catch (err) {
-        console.error("Failed to upload file");
+        console.error("Failed to upload file:", err);
       }
     },
-    [id],
+    [id, mapApiFile],
   );
 
   const updateFile = useCallback(
     async (fileId: number, updates: Partial<Pick<VendorFile, "name" | "category" | "description">>) => {
       try {
-        await mockUpdateVendorFile(id, fileId, updates);
+        const body: Record<string, any> = {};
+        if (updates.name !== undefined) body.filename = updates.name;
+        if (updates.category !== undefined) body.category = updates.category;
+        if (updates.description !== undefined) body.description = updates.description;
+        const updated = await fetchJSON(`/vendors/files/${fileId}`, {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        });
         setMockFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileId
-              ? {
-                  ...f,
-                  ...updates,
-                }
-              : f,
-          ),
+          prev.map((f) => (f.id === fileId ? mapApiFile(updated) : f)),
         );
       } catch (err) {
-        console.error("Failed to update file");
+        console.error("Failed to update file:", err);
       }
     },
-    [id],
+    [mapApiFile],
   );
 
   const deleteFile = useCallback(async (fileId: number) => {
     try {
-      await mockDeleteVendorFile(id, fileId);
+      await fetchJSON(`/vendors/files/${fileId}`, { method: "DELETE" });
       setMockFiles((prev) => prev.filter((f) => f.id !== fileId));
     } catch (err) {
-      console.error("Failed to delete file");
+      console.error("Failed to delete file:", err);
     }
-  }, [id]);
+  }, []);
 
   // Mock data state for compliance documents
   const [compliance, setCompliance] = useState<VendorComplianceDoc[]>([]);
@@ -1081,6 +1243,23 @@ export default function VendorDetail() {
     }
   }, [id]);
 
+  const updateComplianceDoc = useCallback(
+    async (
+      docId: number,
+      patch: Partial<Omit<VendorComplianceDoc, "id" | "uploadedBy" | "uploadedAt">>,
+    ) => {
+      try {
+        const updated = await apiUpdateVendorCompliance(docId, patch);
+        setCompliance((prev) =>
+          prev.map((d) => (d.id === docId ? { ...d, ...updated } : d)),
+        );
+      } catch (err) {
+        console.error("Failed to update compliance document", err);
+      }
+    },
+    [],
+  );
+
   // Mock custom field operations
   const addField = useCallback(
     async (name: string, value: string) => {
@@ -1111,6 +1290,15 @@ export default function VendorDetail() {
   const [isViewNoteOpen, setIsViewNoteOpen] = useState(false);
 
   const [isAddComplianceOpen, setIsAddComplianceOpen] = useState(false);
+  // When set, the compliance modal is in "edit" mode and Save will PATCH instead of POST.
+  const [editingComplianceId, setEditingComplianceId] = useState<number | null>(null);
+  // The actual File binary captured from the upload input — kept separate from
+  // complianceFileName because the input value can't be set programmatically.
+  const [complianceFile, setComplianceFile] = useState<File | null>(null);
+  const [complianceParsing, setComplianceParsing] = useState(false);
+  const [complianceParsed, setComplianceParsed] = useState(false);
+  const [complianceParseError, setComplianceParseError] = useState<string | null>(null);
+  const complianceAutofillRef = useRef<HTMLInputElement>(null);
   const [complianceDocType, setComplianceDocType] = useState<VendorComplianceDoc["documentType"]>("certificate_of_insurance");
   const [complianceDocName, setComplianceDocName] = useState("");
   const [complianceProvider, setComplianceProvider] = useState("");
@@ -1154,9 +1342,25 @@ export default function VendorDetail() {
     });
   }, []);
 
+  // Persist deactivate/reactivate against the backend. Optimistically flips
+  // the local toggle, refreshes the canonical vendor record afterward so
+  // deactivated_at is in sync.
   const handleConfirmInactivate = useDelayedAction({
     onClose: setIsInactivateConfirmOpen,
-    onAction: () => setIsInactive((v) => !v),
+    onAction: async () => {
+      const targetActive = isInactive; // we're toggling — if currently inactive, target is active
+      try {
+        await fetchJSON(
+          `/vendors/${targetActive ? "reactivate" : "deactivate"}/${id}`,
+          { method: "POST" },
+        );
+        setIsInactive((v) => !v);
+        await refreshVendor();
+        toast.success(targetActive ? "Vendor reactivated" : "Vendor deactivated");
+      } catch (err: any) {
+        toast.error(err?.message ?? "Failed to update vendor status");
+      }
+    },
     delayMs: 600,
   });
 
@@ -1190,29 +1394,7 @@ export default function VendorDetail() {
     }
   };
 
-  const handleAddCompliance = async () => {
-    const docName = complianceDocName.trim();
-    const expirationDate = complianceExpirationDate.trim();
-    if (!docName || !expirationDate) return;
-
-    await addComplianceDoc({
-      documentType: complianceDocType,
-      documentName: docName,
-      provider: complianceProvider.trim() || undefined,
-      policyNumber: compliancePolicyNumber.trim() || undefined,
-      licenseNumber: complianceLicenseNumber.trim() || undefined,
-      expirationDate,
-      fileName: complianceFileName.trim() || undefined,
-      uploadedBy: "Current User",
-      uploadedAt: new Date().toLocaleString(undefined, {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-    });
-
+  const resetComplianceForm = () => {
     setComplianceDocType("certificate_of_insurance");
     setComplianceDocName("");
     setComplianceProvider("");
@@ -1220,6 +1402,153 @@ export default function VendorDetail() {
     setComplianceLicenseNumber("");
     setComplianceExpirationDate("");
     setComplianceFileName("");
+    setComplianceFile(null);
+    setEditingComplianceId(null);
+    setComplianceParsing(false);
+    setComplianceParsed(false);
+    setComplianceParseError(null);
+  };
+
+  // AI autofill — works for all doc types via the type-aware compliance
+  // parser endpoint. The backend returns a normalized shape so we can map it
+  // uniformly into the form fields.
+  const handleComplianceAutofill = async (file: File) => {
+    setComplianceParsing(true);
+    setComplianceParseError(null);
+    try {
+      // 1. Upload to the compliance storage endpoint to get an object_key.
+      const uploaded = await apiUploadComplianceFile(file);
+
+      // 2. Run the AI parser with the current document type so it knows what
+      //    to look for.
+      const parsed: any = await fetchJSON("/vendors/compliance/parse-pdf", {
+        method: "POST",
+        body: JSON.stringify({
+          object_key: uploaded.object_key,
+          document_type: complianceDocType,
+        }),
+      });
+
+      // 3. Apply parsed fields conservatively — only set when non-empty so we
+      //    don't blow away anything the user already typed.
+      if (parsed.document_name && !complianceDocName.trim()) {
+        setComplianceDocName(parsed.document_name);
+      }
+      if (parsed.provider) setComplianceProvider(parsed.provider);
+      if (parsed.policy_number) setCompliancePolicyNumber(parsed.policy_number);
+      if (parsed.license_number) setComplianceLicenseNumber(parsed.license_number);
+      if (parsed.expiration_date) {
+        // Backend returns ISO yyyy-mm-dd; the form expects mm/dd/yyyy.
+        const m = String(parsed.expiration_date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        setComplianceExpirationDate(m ? `${m[2]}/${m[3]}/${m[1]}` : parsed.expiration_date);
+      }
+
+      // 4. Stash the file so save uploads it and links to the doc row.
+      setComplianceFile(file);
+      setComplianceFileName(file.name);
+      setComplianceParsed(true);
+    } catch (err: any) {
+      console.error("AI autofill failed", err);
+      setComplianceParseError(err?.message ?? "Failed to parse the document");
+    } finally {
+      setComplianceParsing(false);
+    }
+  };
+
+  // Refetch the compliance list from the backend. Used after create/update so
+  // the row reflects canonical data including the real uploaded_by name (the
+  // create endpoint returns a different shape than the list endpoint).
+  const refreshCompliance = useCallback(async () => {
+    if (!id || isNaN(id)) return;
+    try {
+      const fetched = await fetchVendorCompliance(id);
+      setCompliance(fetched);
+    } catch (err) {
+      console.error("Failed to refresh compliance list", err);
+    }
+  }, [id]);
+
+  // Strip the storage path + timestamp prefix so the form displays the
+  // friendly original filename. Backend currently stores file_name as the
+  // raw object_key (e.g. "vendors/compliance/1777506011286-logo.png"); we
+  // peel that down to just "logo.png" for display.
+  const prettifyFileName = (raw?: string | null): string => {
+    if (!raw) return "";
+    // Drop any directory portion
+    const base = raw.split("/").pop() || raw;
+    // Drop a leading "<digits>-" timestamp prefix
+    return base.replace(/^\d+-/, "");
+  };
+
+  const openEditComplianceDoc = (doc: VendorComplianceDoc) => {
+    setEditingComplianceId(doc.id);
+    setComplianceDocType(doc.documentType);
+    setComplianceDocName(doc.documentName);
+    setComplianceProvider(doc.provider ?? "");
+    setCompliancePolicyNumber(doc.policyNumber ?? "");
+    setComplianceLicenseNumber(doc.licenseNumber ?? "");
+    setComplianceExpirationDate(doc.expirationDate);
+    setComplianceFileName(prettifyFileName(doc.fileName));
+    setIsAddComplianceOpen(true);
+  };
+
+  const handleAddCompliance = async () => {
+    const docName = complianceDocName.trim();
+    const expirationDate = complianceExpirationDate.trim();
+    if (!docName || !expirationDate) return;
+
+    try {
+      // If the user attached a new file, upload the binary first and pass
+      // along the resulting object_key/mime in the doc payload.
+      let uploadInfo: { object_key: string; mime: string; filename: string } | undefined;
+      if (complianceFile) {
+        uploadInfo = await apiUploadComplianceFile(complianceFile);
+      }
+
+      if (editingComplianceId != null) {
+        // PATCH the row (filename only saved if a new file was uploaded)
+        const patch: Record<string, any> = {
+          document_type: complianceDocType,
+          document_name: docName,
+          provider: complianceProvider.trim(),
+          policy_number: compliancePolicyNumber.trim(),
+          license_number: complianceLicenseNumber.trim(),
+          expiration_date: toISODate(expirationDate),
+        };
+        if (uploadInfo) {
+          patch.document_object_key = uploadInfo.object_key;
+          patch.document_mime = uploadInfo.mime;
+        }
+        await fetchJSON(`/vendors/compliance/docs/update/${editingComplianceId}`, {
+          method: "PATCH",
+          body: JSON.stringify(patch),
+        });
+      } else {
+        await apiAddVendorCompliance(
+          id,
+          {
+            documentType: complianceDocType,
+            documentName: docName,
+            provider: complianceProvider.trim() || undefined,
+            policyNumber: compliancePolicyNumber.trim() || undefined,
+            licenseNumber: complianceLicenseNumber.trim() || undefined,
+            expirationDate,
+            uploadedBy: "",
+            uploadedAt: "",
+          },
+          uploadInfo,
+        );
+      }
+
+      // Always refetch from the server so the row shows the canonical
+      // uploaded_by name and computed file_url, regardless of which path
+      // (create vs update) was taken.
+      await refreshCompliance();
+    } catch (err) {
+      console.error("Failed to save compliance document", err);
+    }
+
+    resetComplianceForm();
     setIsAddComplianceOpen(false);
   };
 
@@ -1456,8 +1785,41 @@ export default function VendorDetail() {
                           <RecordRowTemplate
                             key={doc.id}
                             isLast={idx === compliance.length - 1}
+                            rightSlot={
+                              <PopoverActionsDropdown
+                                row={doc}
+                                rowKey="id"
+                                actions={[
+                                  {
+                                    label: "Edit",
+                                    icon: <EditIcon width={18} height={18} color="#303030" />,
+                                    onClick: () => openEditComplianceDoc(doc),
+                                  },
+                                  {
+                                    label: "Delete",
+                                    icon: <DeleteIcon width={18} height={18} color="#982740" />,
+                                    onClick: () => {
+                                      if (confirm("Delete this compliance document?")) {
+                                        removeComplianceDoc(doc.id);
+                                      }
+                                    },
+                                  },
+                                ]}
+                              />
+                            }
                             leftSlot={
-                              <div className="flex-1 text-[#303030] text-sm font-normal leading-[1.29]">
+                              <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => openEditComplianceDoc(doc)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    openEditComplianceDoc(doc);
+                                  }
+                                }}
+                                className="flex-1 text-[#303030] text-sm font-normal leading-[1.29] cursor-pointer hover:bg-gray-50 rounded -mx-1 px-1 py-0.5"
+                              >
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium">{doc.documentName}</span>
                                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-medium">
@@ -1494,7 +1856,7 @@ export default function VendorDetail() {
                                     className="text-[#1357D5] text-xs mt-1 flex items-center gap-1 hover:underline bg-transparent border-none cursor-pointer p-0"
                                   >
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                    {doc.fileName}
+                                    View document
                                   </button>
                                 )}
                                 <div className="text-[#A1A1AA] text-[11px] mt-1.5">
@@ -1505,42 +1867,6 @@ export default function VendorDetail() {
                           />
                         );
                       })}
-                    </RecordListTemplate>
-                  )}
-                </SectionRowTemplate>
-
-                {/* Custom Fields Section */}
-                <SectionRowTemplate isLast={false}>
-                  <div className="flex items-center justify-between gap-4 flex-wrap font-medium">
-                    <h2 className="text-[#303030] text-xl font-medium leading-[1.1]">
-                      Custom Fields
-                    </h2>
-                    <SectionActionTemplate
-                      label="Add"
-                      onClick={() => setIsAddCustomFieldOpen(true)}
-                    />
-                  </div>
-
-                  {fields.length === 0 ? (
-                    <EmptyStateTemplate message="There are no custom fields created to track additional information in this location. Contact your administrator to add custom fields." />
-                  ) : (
-                    <RecordListTemplate>
-                      {fields.map((field, idx) => (
-                        <RecordRowTemplate
-                          key={field.id}
-                          isLast={idx === fields.length - 1}
-                          leftSlot={
-                            <div className="flex gap-6 flex-1">
-                              <div className="text-[#303030] text-sm font-normal leading-[1.29] w-[220px]">
-                                <div className="font-medium">{field.name}</div>
-                                <div className="text-[#71717A] text-xs mt-1">
-                                  {field.value}
-                                </div>
-                              </div>
-                            </div>
-                          }
-                        />
-                      ))}
                     </RecordListTemplate>
                   )}
                 </SectionRowTemplate>
@@ -1604,7 +1930,13 @@ export default function VendorDetail() {
           setIsViewComplianceDocOpen(open);
           if (!open) setViewingComplianceDoc(null);
         }}
-        title={viewingComplianceDoc?.fileName || "Document Preview"}
+        title={
+          viewingComplianceDoc
+            ? prettifyFileName(viewingComplianceDoc.fileName) ||
+              viewingComplianceDoc.documentName ||
+              "Document Preview"
+            : "Document Preview"
+        }
         url={viewingComplianceDoc?.fileUrl}
       />
 
@@ -1663,36 +1995,26 @@ export default function VendorDetail() {
         ) : null}
       </ModalTemplate>
 
-      {/* Add Compliance Document Dialog */}
+      {/* Add / Edit Compliance Document Dialog */}
       <ModalTemplate
         open={isAddComplianceOpen}
         onOpenChange={(open) => {
           setIsAddComplianceOpen(open);
           if (!open) {
-            setComplianceDocType("certificate_of_insurance");
-            setComplianceDocName("");
-            setComplianceProvider("");
-            setCompliancePolicyNumber("");
-            setComplianceExpirationDate("");
-            setComplianceFileName("");
+            resetComplianceForm();
           }
         }}
-        title="Add Compliance Document"
+        title={editingComplianceId ? "Edit Compliance Document" : "Add Compliance Document"}
         size="sm"
         footer={
           <ModalButtons
             onCancel={() => {
-              setComplianceDocType("certificate_of_insurance");
-              setComplianceDocName("");
-              setComplianceProvider("");
-              setCompliancePolicyNumber("");
-              setComplianceExpirationDate("");
-              setComplianceFileName("");
+              resetComplianceForm();
               setIsAddComplianceOpen(false);
             }}
             onConfirm={handleAddCompliance}
             cancelLabel="Cancel"
-            confirmLabel="Save"
+            confirmLabel={editingComplianceId ? "Save Changes" : "Save"}
             confirmDisabled={
               complianceDocName.trim().length === 0 ||
               complianceExpirationDate.trim().length === 0
@@ -1702,6 +2024,74 @@ export default function VendorDetail() {
       >
         <FormLayout>
           <FormSection showDivider={false}>
+            {/* AI Autofill — available for all doc types on create */}
+            {!editingComplianceId && (
+              <>
+                {!complianceParsed && (
+                  <div
+                    onClick={() => !complianceParsing && complianceAutofillRef.current?.click()}
+                    onDragOver={(e) => !complianceParsing && e.preventDefault()}
+                    onDrop={(e) => {
+                      if (complianceParsing) return;
+                      e.preventDefault();
+                      const f = e.dataTransfer.files?.[0];
+                      if (!f) return;
+                      if (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")) {
+                        handleComplianceAutofill(f);
+                      } else {
+                        setComplianceParseError("Only PDF files are supported");
+                      }
+                    }}
+                    className={
+                      "flex items-center justify-center gap-3 rounded-lg border-2 border-dashed px-4 py-4 transition-colors mb-3 " +
+                      (complianceParsing
+                        ? "border-blue-300 bg-blue-50 cursor-wait"
+                        : "border-[#013764] bg-[#f0f6fb] hover:bg-[#e0eef8] cursor-pointer")
+                    }
+                  >
+                    <input
+                      ref={complianceAutofillRef}
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleComplianceAutofill(f);
+                      }}
+                    />
+                    {complianceParsing ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-[#013764]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-sm font-medium text-[#013764]">Parsing document...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#013764" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                        <div>
+                          <span className="text-sm font-medium text-[#013764]">Upload a document to autofill</span>
+                          <span className="block text-xs text-[#4a7a9b]">AI will extract fields based on the selected document type · drag &amp; drop</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                {complianceParsed && (
+                  <div className="mb-3 flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span className="text-sm text-green-800 font-medium">Fields autofilled — review and adjust before saving</span>
+                  </div>
+                )}
+                {complianceParseError && !complianceParsing && (
+                  <div className="mb-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+                    {complianceParseError}
+                  </div>
+                )}
+              </>
+            )}
+
             <SelectField
               label="Document Type"
               value={complianceDocType}
@@ -1767,7 +2157,10 @@ export default function VendorDetail() {
                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) setComplianceFileName(file.name);
+                    if (file) {
+                      setComplianceFileName(file.name);
+                      setComplianceFile(file);
+                    }
                   }}
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-gray-300 file:text-sm file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50 file:cursor-pointer"
                 />

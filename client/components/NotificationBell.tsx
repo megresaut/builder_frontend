@@ -19,7 +19,7 @@ import {
 // Mode config
 // ---------------------------------------------------------------------------
 
-export type NotificationMode = "reminders" | "activity";
+export type NotificationMode = "reminders";
 
 const MODE_CONFIG: Record<
   NotificationMode,
@@ -56,33 +56,6 @@ const MODE_CONFIG: Record<
         <line x1="16" y1="2" x2="16" y2="6" />
         <line x1="8" y1="2" x2="8" y2="6" />
         <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
-  },
-  activity: {
-    title: "Activity",
-    types: [
-      "task_closed",
-      "work_order_completed",
-      "fto_completed",
-      "fto_submitted",
-      "schedule_overload",
-    ],
-    emptyText: "No recent activity",
-    icon: (
-      // Heartbeat / activity monitor icon
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-gray-700"
-      >
-        <polyline points="2,12 6,12 8,6 10,18 13,9 15,13 17,12 22,12" />
       </svg>
     ),
   },
@@ -131,13 +104,8 @@ const SEVERITY_BADGE: Record<
 const TYPE_LABELS: Record<string, string> = {
   deadline_1day: "Deadline Reminder (24h)",
   deadline_1hour: "Starting Soon (1h)",
-  task_closed: "Task Closed",
-  fto_completed: "FTO Completed",
-  fto_submitted: "FTO Submission",
-  work_order_completed: "Work Order Completed",
   conflict_detected: "Scheduling Conflict",
   overdue_warning: "Overdue Warning",
-  schedule_overload: "Schedule Overload",
 };
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -252,18 +220,16 @@ export default function NotificationBell({
   }, [open, selected]);
 
   // ---- Actions ----
+  // Mark-read removes the item from the bell view (matches the backend's
+  // ListForUser, which now excludes already-read notifications). Once read
+  // or dismissed, a notification stays gone — the dedup_key on the row keeps
+  // the intelligence agent from regenerating it on the next tick.
   const handleMarkRead = useCallback(
     async (id: number) => {
       if (!userId) return;
       try {
         await markNotificationRead(id, userId);
-        setNotifications((prev) =>
-          prev.map((n) =>
-            n.id === id
-              ? { ...n, read_by_user_ids: [...n.read_by_user_ids, userId] }
-              : n,
-          ),
-        );
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
         setUnreadCount((c) => Math.max(0, c - 1));
       } catch {
         // ignore
@@ -288,14 +254,7 @@ export default function NotificationBell({
   const handleMarkAllRead = useCallback(async () => {
     if (!userId) return;
     await markAllNotificationsRead(userId);
-    setNotifications((prev) =>
-      prev.map((n) => ({
-        ...n,
-        read_by_user_ids: n.read_by_user_ids.includes(userId)
-          ? n.read_by_user_ids
-          : [...n.read_by_user_ids, userId],
-      })),
-    );
+    setNotifications([]);
     setUnreadCount(0);
   }, [userId]);
 
@@ -372,29 +331,6 @@ export default function NotificationBell({
                   </svg>
                 </button>
               )}
-              {mode === "activity" && (
-                <button
-                  onClick={() => {
-                    setOpen(false);
-                    navigate("/activity-feed");
-                  }}
-                  title="Go to Activity"
-                  className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="2,12 6,12 8,6 10,18 13,9 15,13 17,12 22,12" />
-                  </svg>
-                </button>
-              )}
             </div>
             {notifications.some((n) => !isRead(n)) && (
               <button
@@ -423,26 +359,16 @@ export default function NotificationBell({
                   fill="none"
                   className="text-gray-300 mb-3"
                 >
-                  {mode === "reminders" ? (
-                    <>
-                      <path
-                        d="M10.268 21a2 2 0 0 0 3.464 0"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      />
-                      <path
-                        d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      />
-                    </>
-                  ) : (
-                    <polyline
-                      points="2,12 6,12 8,6 10,18 13,9 15,13 17,12 22,12"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    />
-                  )}
+                  <path
+                    d="M10.268 21a2 2 0 0 0 3.464 0"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
                 </svg>
                 <p className="text-sm text-gray-500">{cfg.emptyText}</p>
               </div>

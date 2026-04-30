@@ -79,21 +79,352 @@ function SummaryCard({
   value,
   subtitle,
   accentColor,
+  onClick,
 }: {
   label: string;
   value: string | number;
   subtitle?: string;
   accentColor: string;
+  onClick?: () => void;
 }) {
+  const clickable = !!onClick;
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border-l-4 p-5 ${accentColor}`}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (clickable && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`bg-white rounded-lg shadow-sm border-l-4 p-5 ${accentColor} ${
+        clickable
+          ? "cursor-pointer hover:shadow-md hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
+          : ""
+      }`}
     >
       <div className="text-3xl font-bold text-gray-900">{value}</div>
       <div className="text-sm text-gray-500 mt-1">{label}</div>
       {subtitle && (
         <div className="text-xs text-gray-400 mt-0.5">{subtitle}</div>
       )}
+      {clickable && (
+        <div className="text-xs text-blue-600 mt-2 font-medium">View details →</div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// KPI Drilldown Modal
+// ---------------------------------------------------------------------------
+
+type DrilldownCategory = "active" | "expiring" | "lapsed" | "renters_covered";
+
+interface DrilldownPolicyRow {
+  id: number;
+  property_id: number;
+  property_name: string;
+  property_type: string;
+  policy_type: string;
+  carrier_name: string;
+  renewal_status: string;
+  expiration_date: string;
+  days_remaining: number;
+  category: string;
+}
+
+interface DrilldownUnitRow {
+  unit_id: number;
+  unit_name: string;
+  property_id: number;
+  property_name: string;
+  tenant_name: string | null;
+  has_coverage: boolean;
+  category: string;
+}
+
+interface DrilldownPayload {
+  policies: DrilldownPolicyRow[];
+  units: DrilldownUnitRow[];
+}
+
+const CATEGORY_LABELS: Record<DrilldownCategory, string> = {
+  active: "Active",
+  expiring: "Expiring Soon",
+  lapsed: "Lapsed / Expired",
+  renters_covered: "Renters Coverage",
+};
+
+function KpiDrilldownModal({
+  initialCategory,
+  onClose,
+}: {
+  initialCategory: DrilldownCategory;
+  onClose: () => void;
+}) {
+  const [data, setData] = useState<DrilldownPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState<DrilldownCategory>(initialCategory);
+  const [search, setSearch] = useState("");
+  // For the renters tile, sub-toggle between covered and uncovered.
+  const [rentersFilter, setRentersFilter] = useState<"covered" | "uncovered">("uncovered");
+
+  useEffect(() => {
+    fetchJSON("/insurance/dashboard/drilldown")
+      .then((d: DrilldownPayload) => setData(d))
+      .catch((err) => setError(err?.message || "Failed to load details"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // ESC closes
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const counts = {
+    active: data?.policies.filter((p) => p.category === "active").length ?? 0,
+    expiring: data?.policies.filter((p) => p.category === "expiring").length ?? 0,
+    lapsed: data?.policies.filter((p) => p.category === "lapsed").length ?? 0,
+    renters_covered: data?.units.filter((u) => u.category === "covered").length ?? 0,
+    renters_uncovered: data?.units.filter((u) => u.category === "uncovered").length ?? 0,
+  };
+
+  const isRenters = category === "renters_covered";
+
+  const visiblePolicies = (data?.policies ?? [])
+    .filter((p) => p.category === category)
+    .filter((p) => p.property_name.toLowerCase().includes(search.toLowerCase()));
+  const visibleUnits = (data?.units ?? [])
+    .filter((u) => u.category === rentersFilter)
+    .filter(
+      (u) =>
+        u.property_name.toLowerCase().includes(search.toLowerCase()) ||
+        u.unit_name.toLowerCase().includes(search.toLowerCase()) ||
+        (u.tenant_name?.toLowerCase().includes(search.toLowerCase()) ?? false),
+    );
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative w-full max-w-[1100px] max-h-[85vh] overflow-hidden flex flex-col rounded-xl border border-[#E5E5E5] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] bg-white">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-gray-200">
+          <h3 className="text-[#303030] font-semibold text-lg">Insurance Details</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Filter pills + search */}
+        <div className="p-5 border-b border-gray-200 flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(CATEGORY_LABELS) as DrilldownCategory[]).map((cat) => {
+              const isSelected = category === cat;
+              const count =
+                cat === "renters_covered"
+                  ? counts.renters_covered + counts.renters_uncovered
+                  : counts[cat];
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    isSelected
+                      ? "bg-[#013764] text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {CATEGORY_LABELS[cat]} ({count})
+                </button>
+              );
+            })}
+          </div>
+          <input
+            type="text"
+            placeholder={isRenters ? "Search property, unit, tenant..." : "Search by property..."}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="ml-auto px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+          />
+        </div>
+
+        {/* Renters sub-toggle */}
+        {isRenters && (
+          <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
+            <button
+              onClick={() => setRentersFilter("uncovered")}
+              className={`px-3 py-1 rounded-md text-xs font-medium ${
+                rentersFilter === "uncovered"
+                  ? "bg-red-100 text-red-700"
+                  : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              Uncovered ({counts.renters_uncovered})
+            </button>
+            <button
+              onClick={() => setRentersFilter("covered")}
+              className={`px-3 py-1 rounded-md text-xs font-medium ${
+                rentersFilter === "covered"
+                  ? "bg-green-100 text-green-700"
+                  : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              Covered ({counts.renters_covered})
+            </button>
+          </div>
+        )}
+
+        {/* Body */}
+        <div className="flex-1 overflow-auto">
+          {loading ? (
+            <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+              Loading...
+            </div>
+          ) : error ? (
+            <div className="m-5 p-4 bg-red-50 text-red-700 text-sm rounded-lg">
+              {error}
+            </div>
+          ) : isRenters ? (
+            visibleUnits.length === 0 ? (
+              <div className="text-center py-10 text-gray-400 text-sm">
+                {search ? "No units match your search." : "No units in this category."}
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Property
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Unit
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tenant
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {visibleUnits.map((u) => (
+                    <tr key={u.unit_id} className={u.has_coverage ? "" : "bg-red-50"}>
+                      <td className="px-4 py-3 text-sm">
+                        <Link
+                          to={`/property/${u.property_id}/Insurance`}
+                          onClick={onClose}
+                          className="text-blue-600 hover:underline font-medium"
+                        >
+                          {u.property_name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{u.unit_name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{u.tenant_name ?? "--"}</td>
+                      <td className="px-4 py-3 text-sm">
+                        {u.has_coverage ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            Covered
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                            Uncovered
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
+          ) : visiblePolicies.length === 0 ? (
+            <div className="text-center py-10 text-gray-400 text-sm">
+              {search ? "No policies match your search." : "No policies in this category."}
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50 sticky top-0">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Property
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Policy Type
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Carrier
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Expiration
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {visiblePolicies.map((p) => (
+                  <tr
+                    key={p.id}
+                    className={
+                      p.category === "lapsed"
+                        ? "bg-red-50"
+                        : p.category === "expiring"
+                        ? "bg-yellow-50"
+                        : ""
+                    }
+                  >
+                    <td className="px-4 py-3 text-sm">
+                      <Link
+                        to={`/property/${p.property_id}/Insurance`}
+                        onClick={onClose}
+                        className="text-blue-600 hover:underline font-medium"
+                      >
+                        {p.property_name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {formatPolicyType(p.policy_type)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{p.carrier_name}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <StatusBadge
+                        status={p.category === "expiring" ? "expiring" : p.category === "lapsed" ? "lapsed" : p.renewal_status}
+                        daysRemaining={p.category === "expiring" ? p.days_remaining : undefined}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      <ExpirationLabel
+                        daysRemaining={p.days_remaining}
+                        dateStr={p.expiration_date}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-200 px-5 py-3 text-xs text-gray-500">
+          {isRenters
+            ? `Showing ${visibleUnits.length} of ${counts.renters_covered + counts.renters_uncovered} units`
+            : `Showing ${visiblePolicies.length} ${CATEGORY_LABELS[category].toLowerCase()} policies`}
+        </div>
+      </div>
     </div>
   );
 }
@@ -181,6 +512,9 @@ export default function InsuranceDashboard() {
 
   // Search
   const [search, setSearch] = useState("");
+
+  // KPI drilldown modal state
+  const [drilldown, setDrilldown] = useState<DrilldownCategory | null>(null);
 
   useEffect(() => {
     fetchJSON("/insurance/dashboard/summary")
@@ -276,22 +610,26 @@ export default function InsuranceDashboard() {
             label="Total Active Policies"
             value={summary.total_active_policies}
             accentColor="border-green-500"
+            onClick={() => setDrilldown("active")}
           />
           <SummaryCard
             label="Expiring Soon (60 days)"
             value={summary.expiring_soon}
             accentColor="border-yellow-500"
+            onClick={() => setDrilldown("expiring")}
           />
           <SummaryCard
             label="Lapsed / Missing"
             value={summary.lapsed_or_missing}
             accentColor="border-red-500"
+            onClick={() => setDrilldown("lapsed")}
           />
           <SummaryCard
             label="Renters Coverage"
             value={`${summary.renters_coverage_pct.toFixed(2)}%`}
             subtitle={`${summary.units_with_renters} / ${summary.total_units} units`}
             accentColor="border-blue-500"
+            onClick={() => setDrilldown("renters_covered")}
           />
         </div>
       ) : null}
@@ -529,6 +867,13 @@ export default function InsuranceDashboard() {
           </div>
         )}
       </div>
+
+      {drilldown && (
+        <KpiDrilldownModal
+          initialCategory={drilldown}
+          onClose={() => setDrilldown(null)}
+        />
+      )}
     </PageTemplate>
   );
 }

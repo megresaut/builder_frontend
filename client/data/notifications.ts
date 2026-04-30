@@ -2,7 +2,7 @@ import { fetchJSON } from "@/api/fetchJSON";
 
 export interface CalendarNotification {
   id: number;
-  notification_type: string; // conflict_detected | availability_change | schedule_overload | overdue_warning
+  notification_type: string; // conflict_detected | availability_change | overdue_warning | deadline_1day | deadline_1hour
   severity: string; // info | warning | critical
   title: string;
   message: string;

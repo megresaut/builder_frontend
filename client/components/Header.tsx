@@ -7,6 +7,7 @@ import { getDraftCount } from "@/api/aiDrafts";
 import { useAuth } from "@/auth/useAuth";
 import NotificationPanel from "@/components/NotificationPanel";
 import NotificationBell from "@/components/NotificationBell";
+import ActivityBell from "@/components/ActivityBell";
 
 // Global state for fullscreen mode using localStorage
 const FULLSCREEN_KEY = "app-fullscreen-mode";
@@ -98,6 +99,8 @@ export default function Header() {
       return { label: "Dashboard", path, id: "dashboard" };
     } else if (path === "/inspection-dashboard") {
       return { label: "Inspections", path, id: "inspection-dashboard" };
+    } else if (path === "/insurance") {
+      return { label: "Insurance", path, id: "insurance" };
     } else if (path === "/") {
       return { label: "All Properties", path, id: "properties" };
     } else if (path === "/all-tasks") {
@@ -213,6 +216,9 @@ export default function Header() {
     } else if (path === "/inspection-dashboard") {
       items.push({ label: "Properties", href: "/" });
       items.push({ label: "Inspections" });
+    } else if (path === "/insurance") {
+      items.push({ label: "Properties", href: "/" });
+      items.push({ label: "Insurance" });
     } else if (path === "/") {
       items.push({ label: "All Properties" });
     } else if (path === "/all-tasks") {
@@ -761,6 +767,13 @@ export default function Header() {
           <path d="M13.5 15l1 1 2-1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ),
+      // Insurance dashboard
+      insurance: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 2L3.33333 4.16667V9.16667C3.33333 13.3333 6.16667 16.875 10 18C13.8333 16.875 16.6667 13.3333 16.6667 9.16667V4.16667L10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M7.5 9.58333L9.16667 11.25L12.5 7.91667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
       // Dashboard
       dashboard: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1200,8 +1213,8 @@ export default function Header() {
             {/* Reminders (deadlines, conflicts) — only for user ID 5 */}
             {showDraftNotifications && <NotificationBell mode="reminders" />}
 
-            {/* Activity feed (task closed, WO completed, FTO submitted, etc.) — only for user ID 5 */}
-            {showDraftNotifications && <NotificationBell mode="activity" />}
+            {/* Activity feed — only for user ID 5 */}
+            {showDraftNotifications && <ActivityBell />}
 
             {/* Notification Button → opens panel — only for user ID 5 */}
             {showDraftNotifications && (

@@ -10,6 +10,7 @@ import { CurrencyField } from "@/components/forms/CurrencyField";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchJSON } from "@/api/fetchJSON";
+import { toast } from "sonner";
 
 interface AddVendorModalProps {
   open: boolean;
@@ -184,6 +185,7 @@ export default function AddVendorModal({
           servicesProvided,
         });
 
+        toast.success("Vendor updated");
         onOpenChange(false);
         return;
       }

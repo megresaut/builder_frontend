@@ -50,6 +50,8 @@ type RentersInsurance = {
   status: "active" | "expiring" | "lapsed" | "untracked";
   document_object_key: string | null;
   document_mime: string | null;
+  coi_object_key: string | null;
+  coi_mime: string | null;
   notes: string | null;
   last_edited_by_user_id: number | null;
   created_at: string;
@@ -79,6 +81,39 @@ const POLICY_TYPE_LABELS: Record<string, string> = {
 
 function formatPolicyType(code: string): string {
   return POLICY_TYPE_LABELS[code] ?? code;
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  unit_id: "Unit",
+  property_id: "Property",
+  tenant_name: "Tenant name",
+  carrier_name: "Carrier",
+  policy_number: "Policy number",
+  policy_type: "Policy type",
+  effective_date: "Effective date",
+  expiration_date: "Expiration date",
+  coverage_amount_cents: "Coverage amount",
+  premium_cents: "Premium",
+  agent_name: "Agent name",
+  agent_email: "Agent email",
+  agent_phone: "Agent phone",
+};
+
+function humanizeError(raw: unknown): string {
+  const msg = String((raw as any)?.message ?? raw ?? "").trim();
+  if (!msg) return "Something went wrong. Please try again.";
+  // Pattern: "<field> is required" → "<Label> is required"
+  const requiredMatch = msg.match(/^([a-z_]+)\s+is\s+required$/i);
+  if (requiredMatch) {
+    const label = FIELD_LABELS[requiredMatch[1]] ?? requiredMatch[1].replace(/_/g, " ");
+    return `${label} is required.`;
+  }
+  // Pattern: "invalid <field>" or "<field> invalid"
+  const invalidMatch = msg.match(/^(?:invalid\s+)?([a-z_]+)(?:\s+invalid)?$/i);
+  if (invalidMatch && FIELD_LABELS[invalidMatch[1]]) {
+    return `${FIELD_LABELS[invalidMatch[1]]} is invalid.`;
+  }
+  return msg;
 }
 
 function formatCents(cents: number | null): string {
@@ -170,6 +205,14 @@ function StatusBadge({
   status: string;
   daysRemaining?: number | null;
 }) {
+  // A "renewed" policy whose expiration date has passed is treated as expired.
+  // The renewal record still exists in the DB, but for the user it has no
+  // active coverage — show it the same way as a lapsed policy.
+  const renewedAndExpired = status === "renewed" && daysRemaining != null && daysRemaining < 0;
+  if (renewedAndExpired) {
+    status = "lapsed";
+  }
+
   const label =
     status === "active" || status === "renewed" || status === "renewal_in_progress" || status === "lapsed" || status === "untracked"
       ? renewalStatusLabel(status)
@@ -662,7 +705,7 @@ function PolicyFormPanel({
       onSaved();
       onClose();
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to save policy");
+      toast.error(humanizeError(err));
     } finally {
       setSaving(false);
     }
@@ -1076,7 +1119,7 @@ function RenewalPanel({
       onSaved();
       onClose();
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to update renewal");
+      toast.error(humanizeError(err));
     } finally {
       setSaving(false);
     }
@@ -1383,6 +1426,18 @@ function RentersFormPanel({
   };
 
   const handleSave = async () => {
+    if (!form.unit_id) {
+      toast.error("Please select a unit before saving.");
+      return;
+    }
+    if (!form.carrier_name?.trim()) {
+      toast.error("Carrier name is required.");
+      return;
+    }
+    if (!form.effective_date || !form.expiration_date) {
+      toast.error("Effective and expiration dates are required.");
+      return;
+    }
     setSaving(true);
     try {
       // Upload document if a new file was selected
@@ -1454,7 +1509,7 @@ function RentersFormPanel({
       onSaved();
       onClose();
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to save renters insurance");
+      toast.error(humanizeError(err));
     } finally {
       setSaving(false);
     }
@@ -1527,7 +1582,7 @@ function RentersFormPanel({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {!isEdit && (
             <label className="block">
-              <span className="text-[#717179] text-sm font-medium">Unit*</span>
+              <span className="text-[#717179] text-sm font-medium">Unit <span className="text-red-500">*</span></span>
               <select
                 className="mt-1 block w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030]"
                 value={form.unit_id ?? ""}
@@ -1980,7 +2035,9 @@ export function Insurance({ propertyAddress, propertyType, propertyUnits, proper
                     className={cn(
                       "border-b border-gray-200",
                       p.renewal_status === "expiring" && "bg-yellow-50",
-                      p.renewal_status === "lapsed" && "bg-red-50"
+                      (p.renewal_status === "lapsed" ||
+                        (p.renewal_status === "renewed" && days != null && days < 0)) &&
+                        "bg-red-50"
                     )}
                   >
                     <td className="px-3 py-3 border-r border-gray-200">
@@ -2153,7 +2210,9 @@ export function Insurance({ propertyAddress, propertyType, propertyUnits, proper
                     className={cn(
                       "border-b border-gray-200",
                       r.status === "expiring" && "bg-yellow-50",
-                      r.status === "lapsed" && "bg-red-50"
+                      (r.status === "lapsed" ||
+                        ((r.status as string) === "renewed" && days != null && days < 0)) &&
+                        "bg-red-50"
                     )}
                   >
                     <td className="px-3 py-3 border-r border-gray-200">
@@ -2178,18 +2237,31 @@ export function Insurance({ propertyAddress, propertyType, propertyUnits, proper
                       <StatusBadge status={r.status} daysRemaining={days} />
                     </td>
                     <td className="px-3 py-3 border-r border-gray-200">
-                      {r.document_object_key ? (
-                        <button
-                          onClick={() => setPdfViewer({ url: `${API_BASE}/files/${r.document_object_key}`, title: `Renters Insurance — ${r.tenant_name ?? r.unit_name}` })}
-                          className="inline-flex items-center gap-1 rounded-md border border-[#DADADA] bg-white px-2 py-1 text-xs text-[#303030] hover:bg-gray-50 transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]"
-                          title="View document"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                          View
-                        </button>
-                      ) : (
-                        <span className="text-gray-400 text-sm">--</span>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {r.document_object_key && (
+                          <button
+                            onClick={() => setPdfViewer({ url: `${API_BASE}/files/${r.document_object_key}`, title: `Renters Insurance — ${r.tenant_name ?? r.unit_name}` })}
+                            className="inline-flex items-center gap-1 rounded-md border border-[#DADADA] bg-white px-2 py-1 text-xs text-[#303030] hover:bg-gray-50 transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]"
+                            title="View renters policy document"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            Policy
+                          </button>
+                        )}
+                        {r.coi_object_key && (
+                          <button
+                            onClick={() => setPdfViewer({ url: `${API_BASE}/files/${r.coi_object_key}`, title: `COI — Renters Insurance — ${r.tenant_name ?? r.unit_name}` })}
+                            className="inline-flex items-center gap-1 rounded-md border border-[#DADADA] bg-white px-2 py-1 text-xs text-[#303030] hover:bg-gray-50 transition-colors shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]"
+                            title="View certificate of insurance"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            COI
+                          </button>
+                        )}
+                        {!r.document_object_key && !r.coi_object_key && (
+                          <span className="text-gray-400 text-sm">--</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-3">
                       <InsuranceActionButton
