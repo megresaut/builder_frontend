@@ -775,16 +775,20 @@ export default function FieldTeamOrders() {
 
   const filteredOrders = orders.filter((order) => {
     const searchLower = searchValue.toLowerCase();
+    // Any of these fields can be null/undefined on freshly-created or partial
+    // FTOs — guard each call so the filter doesn't blow up the whole page.
+    const lc = (v: unknown) =>
+      typeof v === "string" ? v.toLowerCase() : "";
     const matchesSearch =
       !searchLower ||
-      order.name.toLowerCase().includes(searchLower) ||
-      order.property.toLowerCase().includes(searchLower) ||
-      order.description.toLowerCase().includes(searchLower) ||
-      order.dueDate.toLowerCase().includes(searchLower) ||
-      order.status.toLowerCase().includes(searchLower) ||
-      order.priority.toLowerCase().includes(searchLower) ||
-      order.fieldTeam.some((member) =>
-        member.name.toLowerCase().includes(searchLower)
+      lc(order.name).includes(searchLower) ||
+      lc(order.property).includes(searchLower) ||
+      lc(order.description).includes(searchLower) ||
+      lc(order.dueDate).includes(searchLower) ||
+      lc(order.status).includes(searchLower) ||
+      lc(order.priority).includes(searchLower) ||
+      (order.fieldTeam ?? []).some((member) =>
+        lc(member?.name).includes(searchLower)
       );
     if (!matchesSearch) return false;
 
@@ -1460,7 +1464,7 @@ export default function FieldTeamOrders() {
                     },
                   ]}
                   onRowClick={(order) => {
-                    openEditFTO(order);
+                    handleApproveOrder(order);
                   }}
                   showColumnModal={showColumnModal}
                   onShowColumnModalChange={setShowColumnModal}

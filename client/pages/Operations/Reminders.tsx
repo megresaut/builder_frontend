@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { fetchReminders, type ReminderItem } from "@/data/reminders";
+import { fetchJSON } from "@/api/fetchJSON";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -246,17 +247,35 @@ export default function Reminders() {
 
   const groups = useMemo(() => groupByWeek(filtered), [filtered]);
 
-  function handleItemClick(item: ReminderItem) {
+  async function handleItemClick(item: ReminderItem) {
     switch (item.type) {
       case "task":
-      case "recurring_task":
         navigate(`/tasks/${item.id}`);
         break;
-      case "work_order":
-        navigate(`/work-orders`);
+      case "recurring_task":
+        // Recurring series have no standalone detail page — open the edit
+        // modal on the Recurring Tasks list instead. The list reads ?edit=
+        // and auto-opens the modal pre-filled.
+        navigate(`/recurring-tasks?edit=${item.id}`);
         break;
+      case "work_order": {
+        // Work order detail lives at /tasks/<task_id>/workorders/<wo_id>.
+        // The reminders payload doesn't carry task_id, so fetch it on click.
+        try {
+          const wo: any = await fetchJSON(`/maintenance/work-orders/${item.id}`);
+          if (wo?.task_id) {
+            navigate(`/tasks/${wo.task_id}/workorders/${item.id}`);
+          } else {
+            navigate(`/work-orders`);
+          }
+        } catch {
+          navigate(`/work-orders`);
+        }
+        break;
+      }
       case "field_team_order":
-        navigate(`/field-team-orders`);
+        // Approval / submission view, same destination as the FTO row click.
+        navigate(`/field-team-orders/approve/${item.id}`);
         break;
       case "inspection":
         if (item.property_id) {

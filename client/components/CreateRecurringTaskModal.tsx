@@ -74,6 +74,28 @@ interface RecurringSeriesDetail {
   active: boolean;
 }
 
+// Parse a date string from the API (either "YYYY-MM-DD" or
+// "YYYY-MM-DDTHH:MM:SSZ") as a local-midnight Date so the calendar picker
+// shows the same day the user originally selected. Without this, midnight-UTC
+// values shift back a day in any negative-offset timezone.
+function parseLocalDate(s: string): Date {
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return new Date(s);
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+
+// Inverse of parseLocalDate — emits an RFC3339 timestamp pinned to noon UTC
+// on the local calendar day. The backend expects time.Time (RFC3339), and
+// noon UTC is the same calendar day in every timezone from UTC-11 to UTC+11,
+// so when PostgreSQL truncates to its `date` column we get exactly what the
+// user picked.
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}T12:00:00Z`;
+}
+
 export default function CreateRecurringTaskModal({
   open,
   onOpenChange,
@@ -246,11 +268,14 @@ export default function CreateRecurringTaskModal({
       setDueAfterUnit(dueAfter.unit);
 
       setRepeat(resolveRepeatValue(series.frequency, series.interval));
-      setStartDate(series.start_date ? new Date(series.start_date) : null);
+      // Parse as local-midnight Date so the picker shows the same calendar day
+      // the user originally selected. `new Date("2026-05-01T00:00:00Z")` would
+      // shift back a day in any UTC-negative timezone.
+      setStartDate(series.start_date ? parseLocalDate(series.start_date) : null);
 
       if (series.end_date) {
         setEndCondition("onDate");
-        setEndDate(new Date(series.end_date));
+        setEndDate(parseLocalDate(series.end_date));
         setEndAfterTimes("");
       } else {
         setEndCondition("never");
@@ -454,7 +479,9 @@ export default function CreateRecurringTaskModal({
         day_of_month: dayOfMonth,
         week_of_month: repeatConfig.weekOfMonth,
         weekday_of_month: repeatConfig.weekdayOfMonth,
-        start_date: startDate!.toISOString(),
+        // Send as a local YYYY-MM-DD string so the date column doesn't shift
+        // when round-tripped through UTC midnight in a negative-offset TZ.
+        start_date: formatLocalDate(startDate!),
         end_mode: endMode,
         requested_by: userId || 1, // Fallback to 1 if userId not available
       };
@@ -472,7 +499,7 @@ export default function CreateRecurringTaskModal({
       }
 
       if (endMode === "on_date" && endDate) {
-        payload.end_date = endDate.toISOString();
+        payload.end_date = formatLocalDate(endDate);
       } else if (endMode === "after_n_times") {
         const occurrences = repeat === "once" ? 1 : (endAfterTimes ? Number(endAfterTimes) : null);
         if (occurrences && occurrences > 0) {
@@ -480,10 +507,20 @@ export default function CreateRecurringTaskModal({
         }
       }
 
-      await fetchJSON("/maintenance/recurring", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      // Edit mode → PUT to update the existing series.
+      // Create mode → POST a new one. Without this branch, "Edit" was
+      // silently inserting a duplicate series instead of patching the row.
+      if (editData) {
+        await fetchJSON(`/maintenance/recurring/${editData.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await fetchJSON("/maintenance/recurring", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      }
 
       const refreshPropertyId = property ? Number(property) : defaultPropertyId;
       window.dispatchEvent(
@@ -493,9 +530,10 @@ export default function CreateRecurringTaskModal({
       );
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Failed to create recurring task:", error);
+      const verb = editData ? "update" : "create";
+      console.error(`Failed to ${verb} recurring task:`, error);
       setErrors({
-        submit: error.message || "Failed to create recurring task. Please try again.",
+        submit: error.message || `Failed to ${verb} recurring task. Please try again.`,
       });
     } finally {
       setIsSubmitting(false);

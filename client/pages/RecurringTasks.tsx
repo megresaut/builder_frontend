@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CreateRecurringTaskModal from "@/components/CreateRecurringTaskModal";
@@ -210,6 +211,26 @@ export default function RecurringTasks() {
   useEffect(() => {
     fetchRecurringTasks();
   }, [fetchRecurringTasks]);
+
+  // Auto-open the edit modal when arriving with ?edit=<id>. Used by the
+  // Reminders page (recurring tasks have no standalone detail page so the
+  // entire interaction lives in this modal).
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (!editId) return;
+    if (recurringTasks.length === 0) return; // wait for the list to load
+    const numericId = Number(editId);
+    const match = recurringTasks.find((t) => t.id === numericId);
+    if (match) {
+      handleEditTask(match);
+    }
+    // Clear the param so refreshing the page doesn't reopen the modal.
+    const next = new URLSearchParams(searchParams);
+    next.delete("edit");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recurringTasks, searchParams]);
 
   // Listen for refresh events
   useEffect(() => {

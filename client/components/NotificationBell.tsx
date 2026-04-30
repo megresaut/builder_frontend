@@ -113,6 +113,9 @@ const ENTITY_LABELS: Record<string, string> = {
   field_team_order: "FTO",
   work_order: "Work Order",
   calendar_event: "Calendar Event",
+  recurring_task: "Recurring Task",
+  inspection: "Inspection",
+  personal_todo: "To-Do",
 };
 
 // ---------------------------------------------------------------------------
@@ -489,7 +492,12 @@ export default function NotificationBell({
                               </span>
                               <span className="text-xs font-medium text-gray-700">
                                 {ENTITY_LABELS[selected.metadata.entity_type] ??
-                                  selected.metadata.entity_type}{" "}
+                                  // Fallback: strip underscores and title-case
+                                  // unknown entity types so we never show
+                                  // raw enum values like "recurring_task".
+                                  String(selected.metadata.entity_type)
+                                    .replace(/_/g, " ")
+                                    .replace(/\b\w/g, (c) => c.toUpperCase())}{" "}
                                 #{selected.metadata.entity_id}
                               </span>
                             </div>
