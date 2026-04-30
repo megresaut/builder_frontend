@@ -92,6 +92,14 @@ const SEVERITY_BAR: Record<string, string> = {
   info: "bg-blue-400",
 };
 
+// Soft row tint per severity — used in the dropdown panel so the user can
+// scan urgency at a glance. Light enough to coexist with the hover state.
+const SEVERITY_ROW_TINT: Record<string, string> = {
+  critical: "bg-red-50 hover:bg-red-100",
+  warning: "bg-amber-50 hover:bg-amber-100",
+  info: "bg-green-50 hover:bg-green-100",
+};
+
 const SEVERITY_BADGE: Record<
   string,
   { bg: string; text: string; label: string }
@@ -373,7 +381,9 @@ export default function NotificationBell({
               <div
                 key={n.id}
                 onClick={() => handleNotificationClick(n)}
-                className="px-4 py-3 flex items-start gap-3 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer"
+                className={`px-4 py-3 flex items-start gap-3 border-b border-gray-50 last:border-b-0 transition-colors cursor-pointer ${
+                  SEVERITY_ROW_TINT[n.severity] ?? "hover:bg-gray-50"
+                }`}
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">

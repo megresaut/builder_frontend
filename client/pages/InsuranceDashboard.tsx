@@ -436,16 +436,17 @@ function StatusBadge({
   status: string;
   daysRemaining?: number;
 }) {
+  // whitespace-nowrap keeps the pill on one line — without it narrow status
+  // columns wrap mid-word ("activ\ne"). Status text also gets a friendlier
+  // capitalization pass instead of dumping raw enum values.
+  const base = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap";
+
   if (status === "lapsed") {
-    return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-        Lapsed
-      </span>
-    );
+    return <span className={`${base} bg-red-100 text-red-800`}>Lapsed</span>;
   }
   if (status === "expiring") {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+      <span className={`${base} gap-1 bg-yellow-100 text-yellow-800`}>
         Expiring
         {daysRemaining != null && (
           <span className="text-xs">({daysRemaining}d)</span>
@@ -453,11 +454,20 @@ function StatusBadge({
       </span>
     );
   }
-  return (
-    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-      {status}
-    </span>
-  );
+  if (status === "active") {
+    return <span className={`${base} bg-green-100 text-green-800`}>Active</span>;
+  }
+  if (status === "renewed") {
+    return <span className={`${base} bg-green-100 text-green-700`}>Renewed</span>;
+  }
+  if (status === "renewal_in_progress") {
+    return <span className={`${base} bg-blue-100 text-blue-700`}>Renewal in Progress</span>;
+  }
+  // Fallback: title-case any unknown status with underscores stripped.
+  const label = status
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return <span className={`${base} bg-gray-100 text-gray-700`}>{label}</span>;
 }
 
 function ExpirationLabel({ daysRemaining, dateStr }: { daysRemaining: number; dateStr: string }) {
