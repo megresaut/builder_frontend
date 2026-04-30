@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   fetchActivityFeed,
@@ -6,7 +6,47 @@ import {
   type ActivityEventType,
 } from "@/data/activityData";
 
-const ACTIVITY_LIMIT = 15;
+const ACTIVITY_LIMIT = 50;
+const UNSEEN_WINDOW_HOURS = 24;
+const POLL_INTERVAL_MS = 30_000;
+const VIEWPORT_THRESHOLD = 0.5;
+
+// Per-user storage of "seen" event IDs → timestamp seen.
+// Pruned to UNSEEN_WINDOW_HOURS on every load so the set stays bounded.
+function seenStorageKey(userId: number | null): string {
+  return `activity_seen_${userId ?? "anon"}`;
+}
+
+function loadSeenIds(userId: number | null): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(seenStorageKey(userId));
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, number>;
+    if (!parsed || typeof parsed !== "object") return {};
+    const cutoff = Date.now() - UNSEEN_WINDOW_HOURS * 60 * 60 * 1000;
+    const pruned: Record<string, number> = {};
+    for (const [id, ts] of Object.entries(parsed)) {
+      if (typeof ts === "number" && ts > cutoff) pruned[id] = ts;
+    }
+    return pruned;
+  } catch {
+    return {};
+  }
+}
+
+function persistSeenIds(userId: number | null, seen: Record<string, number>) {
+  try {
+    localStorage.setItem(seenStorageKey(userId), JSON.stringify(seen));
+  } catch {
+    // ignore quota errors
+  }
+}
+
+function isWithinUnseenWindow(occurredAt: string): boolean {
+  const t = new Date(occurredAt).getTime();
+  if (Number.isNaN(t)) return false;
+  return Date.now() - t < UNSEEN_WINDOW_HOURS * 60 * 60 * 1000;
+}
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -105,6 +145,31 @@ export default function ActivityBell() {
   const [loading, setLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const userId = useMemo(() => {
+    const raw = localStorage.getItem("avm_user_id");
+    return raw ? Number(raw) : null;
+  }, []);
+
+  // "Seen" set: { eventId → timestamp } for the rolling 24h window.
+  // Each event row registers with an IntersectionObserver in the dropdown's
+  // scroll container; once ≥50% of a row is visible, its id lands in here.
+  const [seenIds, setSeenIds] = useState<Record<string, number>>(() =>
+    loadSeenIds(userId),
+  );
+
+  const markSeen = useCallback(
+    (id: string) => {
+      setSeenIds((prev) => {
+        if (prev[id]) return prev;
+        const next = { ...prev, [id]: Date.now() };
+        persistSeenIds(userId, next);
+        return next;
+      });
+    },
+    [userId],
+  );
 
   const loadEvents = useCallback(async () => {
     try {
@@ -118,9 +183,66 @@ export default function ActivityBell() {
     }
   }, []);
 
+  // Background poller: keep events fresh so the badge updates without the
+  // dropdown being open.
+  useEffect(() => {
+    loadEvents();
+    const interval = setInterval(loadEvents, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [loadEvents]);
+
   useEffect(() => {
     if (open) loadEvents();
   }, [open, loadEvents]);
+
+  // Dropdown body shows only events from the last 24h — matches the badge's
+  // window so the panel never surfaces stale items from weeks ago.
+  const recentEvents = useMemo(
+    () => events.filter((e) => isWithinUnseenWindow(e.occurred_at)),
+    [events],
+  );
+
+  // Unseen count = events in last 24h whose id isn't in the seen set.
+  const unseenCount = useMemo(() => {
+    return recentEvents.filter((e) => !seenIds[e.id]).length;
+  }, [recentEvents, seenIds]);
+
+  // Refs for each rendered row so the IntersectionObserver can track them.
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const setItemRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) itemRefs.current.set(id, el);
+    else itemRefs.current.delete(id);
+  }, []);
+
+  // Wire up the viewport observer when the dropdown is open. Items entering
+  // the dropdown's scroll container at ≥50% visibility are marked seen.
+  useEffect(() => {
+    if (!open) return;
+    const root = scrollContainerRef.current;
+    if (!root) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= VIEWPORT_THRESHOLD) {
+            const id = (entry.target as HTMLElement).dataset.activityId;
+            if (id) markSeen(id);
+          }
+        }
+      },
+      { root, threshold: [VIEWPORT_THRESHOLD] },
+    );
+
+    // Observe whatever rows are mounted right now. Layout settles in a tick.
+    const id = window.requestAnimationFrame(() => {
+      itemRefs.current.forEach((el) => observer.observe(el));
+    });
+
+    return () => {
+      window.cancelAnimationFrame(id);
+      observer.disconnect();
+    };
+  }, [open, events, markSeen]);
 
   useEffect(() => {
     if (!open) return;
@@ -197,7 +319,7 @@ export default function ActivityBell() {
       <button
         ref={buttonRef}
         onClick={() => setOpen((v) => !v)}
-        title="Activity"
+        title={unseenCount > 0 ? `${unseenCount} new activities` : "Activity"}
         className={`p-2 hover:bg-gray-100 rounded-lg border transition-colors flex-shrink-0 relative ${
           open ? "border-[#2463eb] bg-blue-50" : "border-gray-300"
         }`}
@@ -215,6 +337,11 @@ export default function ActivityBell() {
         >
           <polyline points="2,12 6,12 8,6 10,18 13,9 15,13 17,12 22,12" />
         </svg>
+        {unseenCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+            {unseenCount > 99 ? "99+" : unseenCount}
+          </span>
+        )}
       </button>
 
       {open && (
@@ -250,14 +377,14 @@ export default function ActivityBell() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
-            {loading && events.length === 0 && (
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
+            {loading && recentEvents.length === 0 && (
               <div className="flex items-center justify-center py-12">
                 <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
               </div>
             )}
 
-            {!loading && events.length === 0 && (
+            {!loading && recentEvents.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center px-4">
                 <svg
                   width="36"
@@ -272,13 +399,15 @@ export default function ActivityBell() {
                     strokeWidth="1.5"
                   />
                 </svg>
-                <p className="text-sm text-gray-500">No recent activity</p>
+                <p className="text-sm text-gray-500">No activity in the last 24 hours</p>
               </div>
             )}
 
-            {events.map((item) => (
+            {recentEvents.map((item) => (
               <div
                 key={item.id}
+                ref={(el) => setItemRef(item.id, el)}
+                data-activity-id={item.id}
                 onClick={() => handleActivityClick(item)}
                 className="px-4 py-3 flex items-start gap-3 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer"
               >
@@ -309,7 +438,7 @@ export default function ActivityBell() {
             ))}
           </div>
 
-          {events.length > 0 && (
+          {recentEvents.length > 0 && (
             <div className="px-4 py-2.5 border-t border-gray-100">
               <button
                 onClick={() => {

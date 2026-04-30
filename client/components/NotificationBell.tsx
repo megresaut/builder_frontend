@@ -299,10 +299,10 @@ export default function NotificationBell({
       {open && (
         <div
           ref={panelRef}
-          className="absolute right-0 top-full mt-2 w-[360px] bg-white rounded-lg border border-gray-200 shadow-lg z-50 flex flex-col"
-          style={{ maxHeight: "400px" }}
+          className="absolute right-0 top-full mt-2 w-[380px] bg-white rounded-lg border border-gray-200 shadow-lg z-50 flex flex-col"
+          style={{ maxHeight: "440px" }}
         >
-          {/* Header */}
+          {/* Header — sized + spaced to match the Activity dropdown */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-gray-900">
@@ -312,7 +312,7 @@ export default function NotificationBell({
                 <button
                   onClick={() => {
                     setOpen(false);
-                    navigate("/operations");
+                    navigate("/operations?tab=reminders");
                   }}
                   title="Go to Reminders"
                   className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
@@ -335,14 +335,6 @@ export default function NotificationBell({
                 </button>
               )}
             </div>
-            {notifications.some((n) => !isRead(n)) && (
-              <button
-                onClick={handleMarkAllRead}
-                className="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                Mark all as read
-              </button>
-            )}
           </div>
 
           {/* Content */}
@@ -380,59 +372,71 @@ export default function NotificationBell({
             {notifications.map((n) => (
               <div
                 key={n.id}
-                className={`flex border-b border-gray-50 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  !isRead(n) ? "bg-blue-50/50" : ""
-                }`}
                 onClick={() => handleNotificationClick(n)}
+                className="px-4 py-3 flex items-start gap-3 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer"
               >
-                {/* Severity bar */}
-                <div
-                  className={`w-1 flex-shrink-0 ${SEVERITY_BAR[n.severity] ?? "bg-gray-300"}`}
-                />
-
-                {/* Content */}
-                <div className="flex-1 min-w-0 px-3 py-2.5">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {n.title}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
-                        {n.message}
-                      </p>
-                      <p className="text-[11px] text-gray-400 mt-1">
-                        {timeAgo(n.created_at)}
-                      </p>
-                    </div>
-
-                    {/* Dismiss button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDismiss(n.id);
-                      }}
-                      className="flex-shrink-0 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="Dismiss"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                      >
-                        <path
-                          d="M15 5L5 15M5 5L15 15"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </button>
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {n.title}
+                    </p>
+                    <span className="text-[11px] text-gray-400 flex-shrink-0 whitespace-nowrap mt-0.5">
+                      {timeAgo(n.created_at)}
+                    </span>
                   </div>
+                  <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">
+                    {n.message}
+                  </p>
                 </div>
+
+                {/* Dismiss — kept per the user's request, styled subtle */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDismiss(n.id);
+                  }}
+                  className="flex-shrink-0 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors mt-0.5"
+                  title="Dismiss"
+                >
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+                    <path
+                      d="M15 5L5 15M5 5L15 15"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
               </div>
             ))}
           </div>
+
+          {/* Footer — mirrors the Activity dropdown's "View all" link */}
+          {mode === "reminders" && notifications.length > 0 && (
+            <div className="px-4 py-2.5 border-t border-gray-100">
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/operations?tab=reminders");
+                }}
+                className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg text-sm text-gray-500 hover:text-gray-800 hover:bg-gray-50 transition-colors"
+              >
+                View all reminders
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
