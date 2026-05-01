@@ -26,6 +26,8 @@ import RecordBillModal, {
 import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
 import { openAuthPdf } from "@/api/openAuthPdf";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
+import { PostToBuildiumModal, type ConciergeDefaults } from "@/components/PostToBuildiumModal";
+import { RecordPaymentModal } from "@/components/RecordPaymentModal";
 
 import glAccounts from "@/data/gl_accounts.json";  
 
@@ -53,6 +55,7 @@ interface InvoicingProps {
 
 interface InvoiceHistoryApiItem {
   id: number;
+  invoice_month: string;
   created_at: string;
   total_amount: number;
   pdf_object_key: string;
@@ -127,6 +130,49 @@ function getVendorAvatar(vendorName: string): VendorAvatar {
     VENDOR_AVATARS.DEFAULT
   );
 }
+
+const STATUS_BADGE_STYLES: Record<string, { bg: string; fg: string; label: string }> = {
+  draft:     { bg: "#F3F4F6", fg: "#525252", label: "Draft" },
+  finalized: { bg: "#DBEAFE", fg: "#1D4ED8", label: "Finalized" },
+  posted:    { bg: "#FEF3C7", fg: "#92400E", label: "Posted" },
+  paid:      { bg: "#D1FAE5", fg: "#047857", label: "Paid" },
+  void:      { bg: "#F3F4F6", fg: "#7C7C7C", label: "Void" },
+};
+
+const InvoiceStatusBadge: React.FC<{ status: string }> = ({ status }) => {
+  const s = STATUS_BADGE_STYLES[status] || STATUS_BADGE_STYLES.draft;
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+      style={{ backgroundColor: s.bg, color: s.fg }}
+    >
+      {s.label}
+    </span>
+  );
+};
+
+const BillPaymentPill: React.FC<{ status: string }> = ({ status }) => {
+  if (status === "paid") {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#D1FAE5] text-[#047857]">
+        Paid
+      </span>
+    );
+  }
+  if (status === "partial") {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FEF3C7] text-[#92400E]">
+        Partial
+      </span>
+    );
+  }
+  if (status === "void") return null;
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FEE2E2] text-[#B91C1C]">
+      Unpaid
+    </span>
+  );
+};
 
 
 export const Invoicing: React.FC<InvoicingProps> = ({
@@ -407,6 +453,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     status: InvoiceItemStatus;
     statusColor: string;
     statusBg: string;
+    // Phase A: underlying bill payment_status for vendor/utility line items.
+    // Empty string for non-bill source types (FTO, management fee).
+    paymentStatus?: string;
   }
 
 
@@ -479,6 +528,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   }
 
   const [currentInvoiceId, setCurrentInvoiceId] = useState<number | null>(null);
+  const [currentInvoiceStatus, setCurrentInvoiceStatus] = useState<string>("draft");
+  const [currentInvoiceTotalCents, setCurrentInvoiceTotalCents] = useState<number>(0);
+  const [currentInvoiceBuildiumIds, setCurrentInvoiceBuildiumIds] = useState<{
+    self_bill?: number | null;
+    payment?: number | null;
+    offset_je?: number | null;
+    deposit?: number | null;
+  }>({});
+  const [conciergeDefaults, setConciergeDefaults] = useState<ConciergeDefaults | null>(null);
+  const [postToBuildiumOpen, setPostToBuildiumOpen] = useState(false);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [loadingInvoice, setLoadingInvoice] = useState(false);
   const [propertyOwnerName, setPropertyOwnerName] = useState<string>("");
   const [fetchedPropertyLocation, setFetchedPropertyLocation] = useState<string>("");
@@ -580,13 +641,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       // 3️⃣ Transform API → UI table shape
       const mappedItems: InvoiceItem[] = apiItems.map((li: any) => {
         const avatar = getVendorAvatar(li.vendor_name || "");
-        
+
         // Normalize FTO source values to "FTO Submission" for consistency
         let normalizedSource = li.source;
         if (li.source === "Field Team Hours" || li.source === "Field Team Expense") {
           normalizedSource = "FTO Submission";
         }
-      
+
         return {
           id: li.id,
           vendor: li.vendor_name || "—",
@@ -603,11 +664,33 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             li.status === "approved" ? "#059669" : "#D97706",
           statusBg:
             li.status === "approved" ? "#D1FAE5" : "#FEF3C7",
+          paymentStatus: li.payment_status || "",
         };
       });
-      
-      
+
+
       setInvoiceItems(mappedItems);
+
+      // 4️⃣ Phase A — load full invoice (status, total, buildium IDs)
+      try {
+        const invRes = await authFetch(`/invoicing/get?id=${invoiceId}`);
+        if (invRes.ok) {
+          const invJson = await invRes.json();
+          const inv = invJson?.invoice;
+          if (inv) {
+            setCurrentInvoiceStatus(inv.status || "draft");
+            setCurrentInvoiceTotalCents(Math.round(((inv.total_amount || 0) as number) * 100));
+            setCurrentInvoiceBuildiumIds({
+              self_bill: inv.buildium_self_bill_id ?? null,
+              payment: inv.buildium_payment_id ?? null,
+              offset_je: inv.buildium_offset_je_id ?? null,
+              deposit: inv.buildium_deposit_id ?? null,
+            });
+          }
+        }
+      } catch (_) {
+        // non-fatal — UI will treat as draft
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -626,7 +709,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   
       const mapped: InvoiceHistoryItem[] = apiItems.map((inv) => {
         const created = new Date(inv.created_at);
-  
+        // Invoice Month is the period the invoice covers (invoice_month), NOT
+        // when the row was created. Pre-Phase-A this list was mislabelled
+        // because it derived month from created_at.
+        const monthSrc = inv.invoice_month ? new Date(inv.invoice_month) : created;
+
         return {
           id: inv.id,
           dateCreated: created.toLocaleDateString("en-US", {
@@ -634,9 +721,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             day: "numeric",
             year: "numeric",
           }),
-          invoiceMonth: created.toLocaleDateString("en-US", {
+          invoiceMonth: monthSrc.toLocaleDateString("en-US", {
             month: "long",
             year: "numeric",
+            timeZone: "UTC",
           }),
           amount: `$${inv.total_amount.toFixed(2)}`,
           lineItems: [], // lazy-load later if needed
@@ -656,6 +744,40 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     loadInvoiceForProperty();
     loadInvoiceHistory();
   }, [propertyId, selectedInvoiceMonth]);
+
+  // Phase A — load Concierge defaults once for the modals.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await authFetch(`/invoicing/concierge-defaults`);
+        if (!res.ok) return;
+        const data: ConciergeDefaults = await res.json();
+        if (!cancelled) setConciergeDefaults(data);
+      } catch (_) {
+        // dev environments without accounting_config will hit this; keep null.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleFinalize = async () => {
+    if (!currentInvoiceId) return;
+    setActionError(null);
+    try {
+      const res = await authFetch(`/invoicing/finalize?id=${currentInvoiceId}`, { method: "POST" });
+      const text = await res.text();
+      let body: any = {};
+      try { body = JSON.parse(text); } catch (_) {}
+      if (!res.ok) {
+        setActionError(body?.error || `Failed (status ${res.status})`);
+        return;
+      }
+      await loadInvoiceForProperty();
+    } catch (e: any) {
+      setActionError(e?.message || "Network error");
+    }
+  };
 
   // Fetch property owner name and location (city, state, zip)
   useEffect(() => {
@@ -1160,6 +1282,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 <span className="text-[#303030] font-medium text-lg">
                   {currentInvoiceMonthName} {currentInvoiceYear} Invoice
                 </span>
+                <InvoiceStatusBadge status={currentInvoiceStatus} />
                 <button
                   onClick={handleNextMonth}
                   className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
@@ -1288,7 +1411,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     </div>
                   );
                 case "status":
-                  return <StatusBadge status={item.status} />;
+                  return (
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={item.status} />
+                      {item.paymentStatus ? <BillPaymentPill status={item.paymentStatus} /> : null}
+                    </div>
+                  );
                 case "glAccount":
                 case "description":
                 case "amount":
@@ -1338,10 +1466,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
                     return sum + amount;
                   }, 0)
-                  .toFixed(0)}
+                  .toFixed(2)}
               </div>
             </div>
-            <div className="flex items-start gap-2.5">
+            <div className="flex items-start gap-2.5 flex-wrap">
               <BlueButton
                 onClick={() =>
                   openInvoicePreview({
@@ -1352,15 +1480,63 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       amount: item.amount,
                     })),
                     invoiceDate: currentInvoiceMonth,
-                    showCommitButton: true,
+                    showCommitButton: currentInvoiceStatus === "draft",
                   })
                 }
                 className="h-10"
               >
                 Preview PDF
               </BlueButton>
+
+              {/* Drafts: finalize via Preview PDF → "Commit Invoice" (uploads PDF
+                  to object storage AND calls runFinalize). Bypassing this with
+                  a standalone Finalize button would skip PDF generation, leaving
+                  Post to Buildium with nothing to attach. */}
+
+              {currentInvoiceStatus === "finalized" && (
+                <button
+                  onClick={() => setPostToBuildiumOpen(true)}
+                  disabled={!conciergeDefaults}
+                  className="h-10 px-4 rounded-lg bg-[#013764] text-white font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50"
+                >
+                  Post to Buildium
+                </button>
+              )}
+
+              {currentInvoiceStatus === "posted" && (
+                <button
+                  onClick={() => setRecordPaymentOpen(true)}
+                  disabled={!conciergeDefaults}
+                  className="h-10 px-4 rounded-lg bg-[#013764] text-white font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50"
+                >
+                  Record Payment
+                </button>
+              )}
             </div>
           </div>
+
+          {actionError && (
+            <div className="mx-4 mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 whitespace-pre-wrap">
+              {actionError}
+            </div>
+          )}
+
+          {(currentInvoiceStatus === "posted" || currentInvoiceStatus === "paid") && (
+            <div className="mx-4 mb-4 rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-3 text-sm text-[#525252] grid gap-1">
+              {currentInvoiceBuildiumIds.self_bill ? (
+                <div>Buildium Bill ID: {currentInvoiceBuildiumIds.self_bill}</div>
+              ) : null}
+              {currentInvoiceBuildiumIds.payment ? (
+                <div>Buildium Payment ID: {currentInvoiceBuildiumIds.payment}</div>
+              ) : null}
+              {currentInvoiceBuildiumIds.offset_je ? (
+                <div>Buildium Offset JE ID: {currentInvoiceBuildiumIds.offset_je}</div>
+              ) : null}
+              {currentInvoiceBuildiumIds.deposit ? (
+                <div>Buildium Deposit ID: {currentInvoiceBuildiumIds.deposit}</div>
+              ) : null}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1629,6 +1805,29 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         unit={UNIT_EMPTY_DISPLAY}
         fieldTeamAssignee="Field Team"
       />
+
+      {/* Concierge Phase A modals */}
+      {currentInvoiceId && (
+        <>
+          <PostToBuildiumModal
+            open={postToBuildiumOpen}
+            onClose={() => setPostToBuildiumOpen(false)}
+            invoiceId={currentInvoiceId}
+            invoiceTotal={currentInvoiceTotalCents / 100}
+            invoiceMonthLabel={currentInvoiceMonth}
+            defaults={conciergeDefaults}
+            onSuccess={() => loadInvoiceForProperty()}
+          />
+          <RecordPaymentModal
+            open={recordPaymentOpen}
+            onClose={() => setRecordPaymentOpen(false)}
+            invoiceId={currentInvoiceId}
+            invoiceTotalCents={currentInvoiceTotalCents}
+            defaults={conciergeDefaults}
+            onSuccess={() => loadInvoiceForProperty()}
+          />
+        </>
+      )}
     </div>
   );
 };
