@@ -775,17 +775,17 @@ export default function FieldTeamOrders() {
 
   const filteredOrders = orders.filter((order) => {
     const searchLower = searchValue.toLowerCase();
+    const inField = (v: unknown) =>
+      typeof v === "string" && v.toLowerCase().includes(searchLower);
     const matchesSearch =
       !searchLower ||
-      order.name.toLowerCase().includes(searchLower) ||
-      order.property.toLowerCase().includes(searchLower) ||
-      order.description.toLowerCase().includes(searchLower) ||
-      order.dueDate.toLowerCase().includes(searchLower) ||
-      order.status.toLowerCase().includes(searchLower) ||
-      order.priority.toLowerCase().includes(searchLower) ||
-      order.fieldTeam.some((member) =>
-        member.name.toLowerCase().includes(searchLower)
-      );
+      inField(order.name) ||
+      inField(order.property) ||
+      inField(order.description) ||
+      inField(order.dueDate) ||
+      inField(order.status) ||
+      inField(order.priority) ||
+      (order.fieldTeam ?? []).some((member) => inField(member?.name));
     if (!matchesSearch) return false;
 
     if (filterDateFrom || filterDateTo) {

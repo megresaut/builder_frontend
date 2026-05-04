@@ -540,6 +540,57 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [postToBuildiumOpen, setPostToBuildiumOpen] = useState(false);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [qboInvoiceId, setQboInvoiceId] = useState<string | null>(null);
+  const [qboSyncing, setQboSyncing] = useState(false);
+
+  // QBO "Receive Payment" modal state
+  const [qboPayOpen, setQboPayOpen] = useState(false);
+  const [qboPayDate, setQboPayDate] = useState<string>(
+    new Date().toISOString().slice(0, 10),
+  );
+  const [qboPayMethod, setQboPayMethod] = useState<string>("check");
+  const [qboPayDepositId, setQboPayDepositId] = useState<string>("");
+  const [qboPayReference, setQboPayReference] = useState<string>("");
+  const [qboPayMemo, setQboPayMemo] = useState<string>("");
+  const [qboPaySubmitting, setQboPaySubmitting] = useState(false);
+  const [qboPayError, setQboPayError] = useState<string | null>(null);
+  const [qboPayBankAccounts, setQboPayBankAccounts] = useState<
+    { id: string; name: string; account_type?: string }[]
+  >([]);
+  // QBO chart-of-accounts map (qbo_account_id → name) for the GL Account column.
+  const [qboAccountMap, setQboAccountMap] = useState<Record<string, string>>({});
+
+  // Resolves a line's GL account name. Hard-codes management-fee lines to
+  // "Management Fees - Concierge" (QBO id 1150040000) per product preference.
+  const resolveGlAccount = (li: any): string => {
+    if (li?.source === "Management Fee") return "Management Fees - Concierge";
+    const id = li?.gl_account_id;
+    if (!id) return "—";
+    if (qboAccountMap[id]) return qboAccountMap[id];
+    if (GL_ACCOUNT_MAP[id]) return GL_ACCOUNT_MAP[id];
+    return `Unknown (${id})`;
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res: any = await fetchJSON("/accounting/chart-of-accounts");
+        const rows: any[] = Array.isArray(res) ? res : (res?.accounts ?? []);
+        const map: Record<string, string> = {};
+        for (const a of rows) {
+          const id = String(a.qbo_account_id || a.id || "");
+          if (id) map[id] = a.fully_qualified_name || a.name;
+        }
+        if (!cancelled) setQboAccountMap(map);
+      } catch {
+        // fallback to static GL_ACCOUNT_MAP
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [loadingInvoice, setLoadingInvoice] = useState(false);
   const [propertyOwnerName, setPropertyOwnerName] = useState<string>("");
   const [fetchedPropertyLocation, setFetchedPropertyLocation] = useState<string>("");
@@ -654,7 +705,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           vendorIcon: avatar.icon,
           vendorBg: avatar.bg,
           vendorBorder: avatar.border,
-          glAccount: getGlAccountName(li.gl_account_id),
+          glAccount: resolveGlAccount(li),
           description: li.description || "",
           amount: `$${li.amount.toFixed(2)}`,
           source: normalizedSource,
@@ -686,6 +737,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               offset_je: inv.buildium_offset_je_id ?? null,
               deposit: inv.buildium_deposit_id ?? null,
             });
+            setQboInvoiceId(inv.qbo_invoice_id ?? null);
           }
         }
       } catch (_) {
@@ -776,6 +828,97 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       await loadInvoiceForProperty();
     } catch (e: any) {
       setActionError(e?.message || "Network error");
+    }
+  };
+
+  const openReceivePaymentQBO = async () => {
+    setQboPayError(null);
+    setQboPayDate(new Date().toISOString().slice(0, 10));
+    setQboPayMethod("check");
+    setQboPayDepositId("");
+    setQboPayReference("");
+    setQboPayMemo("");
+    setQboPayOpen(true);
+
+    try {
+      const res: any = await fetchJSON(
+        "/accounting/chart-of-accounts/bank-accounts",
+      );
+      const rows: any[] = Array.isArray(res) ? res : (res?.accounts ?? []);
+      const banks = rows
+        .filter((a) => a.active !== false && (a.qbo_account_id || a.id))
+        .map((a) => ({
+          id: String(a.qbo_account_id || a.id),
+          name: a.fully_qualified_name || a.name,
+          account_type: a.account_type,
+        }));
+      setQboPayBankAccounts(banks);
+    } catch {
+      setQboPayBankAccounts([]);
+    }
+  };
+
+  const handleQboReceivePayment = async () => {
+    if (!currentInvoiceId) return;
+    if (!qboPayDepositId) {
+      setQboPayError("Pick a deposit account");
+      return;
+    }
+    setQboPaySubmitting(true);
+    setQboPayError(null);
+    try {
+      const res = await authFetch(
+        `/accounting/qbo/record-invoice-payment/${currentInvoiceId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            payment_date: qboPayDate,
+            payment_method: qboPayMethod,
+            deposit_account_id: qboPayDepositId,
+            reference_number: qboPayReference,
+            memo: qboPayMemo,
+          }),
+        },
+      );
+      const text = await res.text();
+      let body: any = {};
+      try { body = JSON.parse(text); } catch (_) {}
+      if (!res.ok) {
+        setQboPayError(body?.error || `Failed (status ${res.status})`);
+        return;
+      }
+      setQboPayOpen(false);
+      await loadInvoiceForProperty();
+    } catch (e: any) {
+      setQboPayError(e?.message || "Network error");
+    } finally {
+      setQboPaySubmitting(false);
+    }
+  };
+
+  const handleSyncToQBO = async () => {
+    if (!currentInvoiceId) return;
+    setActionError(null);
+    setQboSyncing(true);
+    try {
+      const res = await authFetch(
+        `/accounting/qbo/sync-invoice/${currentInvoiceId}`,
+        { method: "POST" },
+      );
+      const text = await res.text();
+      let body: any = {};
+      try { body = JSON.parse(text); } catch (_) {}
+      if (!res.ok) {
+        setActionError(body?.error || `Failed (status ${res.status})`);
+        return;
+      }
+      setQboInvoiceId(body?.qbo_invoice_id ?? null);
+      await loadInvoiceForProperty();
+    } catch (e: any) {
+      setActionError(e?.message || "Network error");
+    } finally {
+      setQboSyncing(false);
     }
   };
 
@@ -1283,6 +1426,17 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   {currentInvoiceMonthName} {currentInvoiceYear} Invoice
                 </span>
                 <InvoiceStatusBadge status={currentInvoiceStatus} />
+                {currentInvoiceId && (
+                  qboInvoiceId ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      QBO Synced ({qboInvoiceId})
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                      QBO Not Synced
+                    </span>
+                  )
+                )}
                 <button
                   onClick={handleNextMonth}
                   className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
@@ -1502,6 +1656,30 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   Post to Buildium
                 </button>
               )}
+
+              {(currentInvoiceStatus === "finalized" ||
+                currentInvoiceStatus === "posted" ||
+                currentInvoiceStatus === "paid") &&
+                !qboInvoiceId && (
+                  <button
+                    onClick={handleSyncToQBO}
+                    disabled={qboSyncing}
+                    className="h-10 px-4 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
+                  >
+                    {qboSyncing ? "Syncing..." : "Sync to QBO"}
+                  </button>
+                )}
+
+              {qboInvoiceId &&
+                currentInvoiceStatus !== "paid" &&
+                currentInvoiceStatus !== "void" && (
+                  <button
+                    onClick={openReceivePaymentQBO}
+                    className="h-10 px-4 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-colors"
+                  >
+                    Receive Payment (QBO)
+                  </button>
+                )}
 
               {currentInvoiceStatus === "posted" && (
                 <button
@@ -1826,6 +2004,144 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             defaults={conciergeDefaults}
             onSuccess={() => loadInvoiceForProperty()}
           />
+
+          {/* QBO "Receive Payment" — posts a Payment to QBO linked to the
+              invoice, deposits to the picked QBO bank account, and marks our
+              local invoice paid. Independent of Buildium. */}
+          {qboPayOpen && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+              onClick={() => !qboPaySubmitting && setQboPayOpen(false)}
+            >
+              <div
+                className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-[#303030]">
+                    Receive Payment (QBO)
+                  </h2>
+                  <button
+                    onClick={() => setQboPayOpen(false)}
+                    disabled={qboPaySubmitting}
+                    className="text-gray-400 hover:text-gray-600 text-xl leading-none disabled:opacity-50"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-900">
+                  Posts a Payment to QBO linked to invoice {qboInvoiceId},
+                  deposits ${(currentInvoiceTotalCents / 100).toFixed(2)} into
+                  the chosen account, and marks the invoice paid here.
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Payment Date
+                    </label>
+                    <input
+                      type="date"
+                      value={qboPayDate}
+                      onChange={(e) => setQboPayDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Method
+                    </label>
+                    <select
+                      value={qboPayMethod}
+                      onChange={(e) => setQboPayMethod(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    >
+                      <option value="check">Check</option>
+                      <option value="ach">ACH</option>
+                      <option value="credit_card">Credit Card</option>
+                      <option value="cash">Cash</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Deposit To (QBO account)
+                    </label>
+                    <select
+                      value={qboPayDepositId}
+                      onChange={(e) => setQboPayDepositId(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    >
+                      <option value="">— Select account —</option>
+                      {qboPayBankAccounts.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name}
+                          {a.account_type ? ` (${a.account_type})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {qboPayBankAccounts.length === 0 && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        No QBO bank/CC accounts cached. Run "Sync Chart of
+                        Accounts" on the QBO settings page.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Reference Number (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={qboPayReference}
+                      onChange={(e) => setQboPayReference(e.target.value)}
+                      placeholder="check #, txn id, etc."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Memo (optional)
+                    </label>
+                    <textarea
+                      value={qboPayMemo}
+                      onChange={(e) => setQboPayMemo(e.target.value)}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                  </div>
+
+                  {qboPayError && (
+                    <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                      {qboPayError}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2 mt-5">
+                  <button
+                    onClick={() => setQboPayOpen(false)}
+                    disabled={qboPaySubmitting}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleQboReceivePayment}
+                    disabled={qboPaySubmitting || !qboPayDepositId}
+                    className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg disabled:opacity-50"
+                  >
+                    {qboPaySubmitting ? "Recording..." : "Receive Payment"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

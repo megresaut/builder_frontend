@@ -72,6 +72,9 @@ interface Bill {
   source?: "manual" | "buildium_pull";
   buildiumFileKeys?: string[];
   buildiumLines?: any[];
+
+  qboPurchaseId?: string | null;
+  qboSyncedAt?: string | null;
 }
 
 function generateVendorColor(name: string) {
@@ -162,6 +165,9 @@ function mapUtilityRowToBill(row: any): Bill {
     source,
     buildiumFileKeys: fileKeys,
     buildiumLines: parsedLines,
+
+    qboPurchaseId: row.qbo_purchase_id ?? null,
+    qboSyncedAt: row.qbo_synced_at ?? null,
   };
 }
 
@@ -632,6 +638,7 @@ export default function Bills() {
     "memo",
     "amount",
     "paymentStatus",
+    "qboStatus",
     "exportedAt",
     "status",
   ]);
@@ -862,6 +869,22 @@ export default function Bills() {
         >
           <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.39 0 4.68.94 6.36 2.64" />
           <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      ),
+    },
+    {
+      key: "qboStatus",
+      label: "QBO",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <polyline points="20 6 9 17 4 12" />
         </svg>
       ),
     },
@@ -1444,6 +1467,23 @@ export default function Bills() {
                 return (
                   <span className="text-gray-900 font-normal text-sm truncate">
                     ${bill.amount}
+                  </span>
+                );
+              }
+              if (columnKey === "qboStatus") {
+                if (bill.qboPurchaseId) {
+                  return (
+                    <span
+                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200"
+                      title={`QBO Bill ${bill.qboPurchaseId}`}
+                    >
+                      Synced
+                    </span>
+                  );
+                }
+                return (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                    —
                   </span>
                 );
               }

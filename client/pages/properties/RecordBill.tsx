@@ -12,6 +12,8 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
 
 import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
+import { accountingAPI } from "@/api/accounting";
+import { toast } from "sonner";
 import BillPaymentManager from "@/components/BillPaymentManager";
 import glAccounts from "@/data/gl_accounts.json";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
@@ -409,6 +411,10 @@ export const RecordBill = () => {
   const [draft, setDraft] = useState<any>(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
+  const [qboPurchaseId, setQboPurchaseId] = useState<string | null>(null);
+  const [qboSyncedAt, setQboSyncedAt] = useState<string | null>(null);
+  const [qboSyncing, setQboSyncing] = useState(false);
+
   const editableBill =
     !isReadOnly && stateBill ? buildEditableBillFromState(stateBill) : null;
 
@@ -550,12 +556,49 @@ export const RecordBill = () => {
   
 
   useEffect(() => {
-    const normalized = glAccounts.map((gl: any) => ({
-      id: parseInt(gl.Id, 10),
-      name: gl.Name,
-    }));
+    let cancelled = false;
 
-    setGLAccountOptions(normalized);
+    async function loadGLAccounts() {
+      try {
+        // Pull live chart of accounts from QBO (filtered to Expense accounts).
+        // Falls back to bundled gl_accounts.json if the QBO fetch fails.
+        const res: any = await fetchJSON(
+          "/accounting/chart-of-accounts?account_type=Expense",
+        );
+        const rows: any[] = Array.isArray(res) ? res : (res?.accounts ?? []);
+        const qboAccounts = rows
+          .filter((a) => a.active !== false && (a.qbo_account_id || a.id))
+          .map((a) => ({
+            id: parseInt(a.qbo_account_id || a.id, 10),
+            name: a.fully_qualified_name || a.name,
+          }))
+          .filter((a) => !Number.isNaN(a.id));
+
+        if (cancelled) return;
+        if (qboAccounts.length > 0) {
+          setGLAccountOptions(qboAccounts);
+          return;
+        }
+        // Fall back if QBO returned nothing
+        const fallback = glAccounts.map((gl: any) => ({
+          id: parseInt(gl.Id, 10),
+          name: gl.Name,
+        }));
+        setGLAccountOptions(fallback);
+      } catch {
+        if (cancelled) return;
+        const fallback = glAccounts.map((gl: any) => ({
+          id: parseInt(gl.Id, 10),
+          name: gl.Name,
+        }));
+        setGLAccountOptions(fallback);
+      }
+    }
+
+    loadGLAccounts();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Measure and update column widths - expands and shrinks as needed
@@ -652,6 +695,8 @@ export const RecordBill = () => {
         if (isReadOnly) {
           const bill = await fetchJSON(`/utilities/bills/${billId}`);
           setDraft({ ApprovedBill: bill });
+          setQboPurchaseId(bill?.qbo_purchase_id ?? null);
+          setQboSyncedAt(bill?.qbo_synced_at ?? null);
           return;
         }
   
@@ -1190,6 +1235,21 @@ export const RecordBill = () => {
 
   const [createdBillId, setCreatedBillId] = useState<number | null>(null);
   const effectiveBillId = billId ?? createdBillId;
+
+  const handleSyncToQBO = async () => {
+    if (!effectiveBillId) return;
+    setQboSyncing(true);
+    try {
+      const res: any = await accountingAPI.syncBillToQBO(effectiveBillId);
+      setQboPurchaseId(res?.qbo_purchase_id ?? null);
+      setQboSyncedAt(res?.qbo_synced_at ?? null);
+      toast.success("Bill synced to QuickBooks");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to sync bill to QBO");
+    } finally {
+      setQboSyncing(false);
+    }
+  };
 
   const handleApproveBill = async () => {
     const formFieldErrors = new Set<string>();
@@ -2192,7 +2252,32 @@ minHeight: 0,
               >
                 {/* Bill Details Header */}
                 <div className="flex w-full flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-                  <div>Bill Details</div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div>Bill Details</div>
+                    {isReadOnly && effectiveBillId && (
+                      <>
+                        {qboPurchaseId ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Synced{` (${qboPurchaseId})`}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                            Not Synced
+                          </span>
+                        )}
+                        {!qboPurchaseId && (
+                          <button
+                            type="button"
+                            onClick={handleSyncToQBO}
+                            disabled={qboSyncing}
+                            className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                          >
+                            {qboSyncing ? "Syncing..." : "Sync to QBO"}
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                   <div
                     className="h-px bg-gray-200 mt-5"
                     style={{ width: "100%", maxWidth: "800px" }}

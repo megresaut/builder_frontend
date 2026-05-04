@@ -51,10 +51,11 @@ interface BillStatus {
 }
 
 interface BankAccount {
-  id: number;
+  // QBO account id (string). Sent to backend as paid_from_account_id.
+  id: string;
   name: string;
-  buildium_bank_account_id?: string | null;
-  is_active: boolean;
+  account_type?: string;
+  active?: boolean;
 }
 
 interface Props {
@@ -113,18 +114,15 @@ export default function BillPaymentManager({
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [status, setStatus] = useState<BillStatus | null>(null);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [defaultBankId, setDefaultBankId] = useState<number | null>(null);
-  const [defaultBankName, setDefaultBankName] = useState<string | null>(null);
 
   // Form state
   const [showForm, setShowForm] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [paymentDate, setPaymentDate] = useState<string>(today());
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("check");
-  // bankAccountId is the local bank_accounts.id used for the Buildium push.
-  // 0 = "use property default" (resolved server-side); a positive value is an
-  // explicit override.
-  const [bankAccountId, setBankAccountId] = useState<number>(0);
+  // qboBankId is the QBO account id (string) of the selected "Pay From" bank
+  // or credit card account. Sent to backend as paid_from_account_id.
+  const [qboBankId, setQboBankId] = useState<string>("");
   const [accountCategory, setAccountCategory] = useState<AccountCategory>("");
   const [reference, setReference] = useState<string>("");
   const [memo, setMemo] = useState<string>("");
@@ -140,7 +138,7 @@ export default function BillPaymentManager({
       setAmount("");
       setPaymentDate(today());
       setPaymentMethod("check");
-      setBankAccountId(0);
+      setQboBankId("");
       setAccountCategory("");
       setReference("");
       setMemo("");
@@ -157,28 +155,23 @@ export default function BillPaymentManager({
     setLoading(true);
     Promise.all([
       accountingAPI.listBillPayments(billId),
-      fetchJSON("/accounting/bank-accounts").catch(() => ({ accounts: [] })),
-      propertyId
-        ? fetchJSON(`/properties/${propertyId}`).catch(() => null)
-        : Promise.resolve(null),
+      fetchJSON("/accounting/chart-of-accounts/bank-accounts").catch(() => ({
+        accounts: [],
+      })),
     ])
-      .then(([list, banks, prop]: any[]) => {
+      .then(([list, banks]: any[]) => {
         setPayments(list?.payments ?? []);
         setStatus(list?.bill ?? null);
-        // The bank-accounts endpoint returns { accounts: [...] } — unwrap.
         const rawList = banks?.accounts ?? banks ?? [];
-        const bankList: BankAccount[] = Array.isArray(rawList) ? rawList : [];
+        const bankList: BankAccount[] = (Array.isArray(rawList) ? rawList : [])
+          .filter((a: any) => a.active !== false && a.id)
+          .map((a: any) => ({
+            id: String(a.qbo_account_id || a.id),
+            name: a.fully_qualified_name || a.name,
+            account_type: a.account_type,
+            active: a.active,
+          }));
         setBankAccounts(bankList);
-        const defaultId: number | null =
-          prop?.operating_bank_account_id ?? null;
-        setDefaultBankId(defaultId);
-        setDefaultBankName(prop?.operating_bank_account_name ?? null);
-        // Pre-fill the dropdown with the property's default bank, if any.
-        // 0 means "use property default", which the backend will resolve, so
-        // the user-visible dropdown still mirrors what'll get used.
-        if (defaultId != null) {
-          setBankAccountId(defaultId);
-        }
       })
       .catch((err: any) =>
         toast.error(err?.message || "Failed to load payments"),
@@ -203,8 +196,8 @@ export default function BillPaymentManager({
     }
     if (!paymentDate) e.paymentDate = "Required";
     if (!paymentMethod) e.paymentMethod = "Required";
-    if (!bankAccountId && defaultBankId == null) {
-      e.bank = "Select a bank account, or set an operating bank on this property";
+    if (!qboBankId) {
+      e.bank = "Select a bank or credit card account";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -219,15 +212,15 @@ export default function BillPaymentManager({
         amount_cents: cents,
         payment_date: paymentDate,
         payment_method: paymentMethod,
-        bank_account_id: bankAccountId || undefined,
+        // QBO-only path: send the QBO account id directly. Backend skips
+        // Buildium and pushes to QBO when bill has qbo_purchase_id.
+        paid_from_account_id: qboBankId,
         account_category: accountCategory || undefined,
         reference_number: reference || undefined,
         memo: memo || undefined,
       });
       const bankName =
-        bankAccounts.find((b) => b.id === bankAccountId)?.name ||
-        defaultBankName ||
-        "bank";
+        bankAccounts.find((b) => b.id === qboBankId)?.name || "bank";
       const checkNo = res?.payment?.check_number;
       toast.success(
         checkNo
@@ -477,39 +470,28 @@ export default function BillPaymentManager({
                 </ModalField>
                 <ModalField label="Pay From">
                   <select
-                    value={bankAccountId ? String(bankAccountId) : ""}
-                    onChange={(e) =>
-                      setBankAccountId(
-                        e.target.value === "" ? 0 : Number(e.target.value),
-                      )
-                    }
+                    value={qboBankId}
+                    onChange={(e) => setQboBankId(e.target.value)}
                     className={
                       "w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 " +
                       (errors.bank ? "border-red-500" : "border-gray-300")
                     }
                   >
-                    <option value="">— Select bank —</option>
-                    {bankAccounts
-                      .filter((a) => a.is_active)
-                      .map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name}
-                          {defaultBankId === a.id ? " (property default)" : ""}
-                        </option>
-                      ))}
+                    <option value="">— Select QBO account —</option>
+                    {bankAccounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                        {a.account_type ? ` (${a.account_type})` : ""}
+                      </option>
+                    ))}
                   </select>
                   {errors.bank && (
                     <p className="text-xs text-red-600 mt-1">{errors.bank}</p>
                   )}
                   {bankAccounts.length === 0 && (
                     <p className="text-xs text-amber-600 mt-1">
-                      No bank accounts synced from Buildium yet.
-                    </p>
-                  )}
-                  {defaultBankId == null && propertyId && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      No operating bank set on this property — pick one above
-                      or configure a default on the property page.
+                      No QBO bank or credit card accounts cached. Run "Sync
+                      Chart of Accounts" on the QBO settings page.
                     </p>
                   )}
                 </ModalField>
@@ -522,7 +504,7 @@ export default function BillPaymentManager({
                 </ModalField>
                 <ModalField label="Check Number">
                   <Input
-                    value="(auto-assigned by Buildium)"
+                    value="(not used in QBO mode)"
                     disabled
                     className="text-gray-400 italic"
                   />

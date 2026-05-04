@@ -107,6 +107,8 @@ export const accountingAPI = {
     fetchJSON(`/accounting/invoices/${id}/void`, { method: "POST" }),
   syncInvoiceToQBO: (id: number) =>
     fetchJSON(`/accounting/invoices/${id}/sync`, { method: "POST" }),
+  syncBillToQBO: (id: number) =>
+    fetchJSON(`/accounting/qbo/sync-bill/${id}`, { method: "POST" }),
 
   // QBO
   getQBOAuthUrl: () => fetchJSON("/accounting/qbo/auth-url"),

@@ -631,7 +631,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       // { label: "P&L Report", path: "/accounting/reports/pnl", sectionId: "accounting-pnl" },
       // { label: "Accounts Receivable", path: "/accounting/reports/ar-aging", sectionId: "accounting-ar-aging" },
       // { label: "Property Comparison", path: "/accounting/reports/property-comparison", sectionId: "accounting-property-comparison" },
-      // { label: "QBO Settings", path: "/accounting/qbo", sectionId: "accounting-qbo" },
+      { label: "QBO Settings", path: "/accounting/qbo", sectionId: "accounting-qbo" },
     ],
     maintenance: [
       {

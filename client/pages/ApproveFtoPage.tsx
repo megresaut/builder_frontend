@@ -59,6 +59,8 @@ interface ExpenseRow {
   id: string;
   date: string;
   vendor: string;
+  /** Local vendors.id — preserved across patch round-trips so QBO sync can resolve the vendor without a name lookup. */
+  vendorId?: number;
   receiptNote: string;
   avmExpense: boolean;
   chargeType: "personal" | "avm" | "client";
@@ -93,6 +95,7 @@ interface ApproveFTOPageProps {
 interface ExpenseLine {
   date_of_work: string;
   vendor_name: string;
+  vendor_id?: number;
   note?: string;
   is_avm_expense: boolean;
   amount_cents: number;
@@ -278,6 +281,7 @@ const parseMoneyToCents = (value: string): number => {
 const buildHoursJSON = (hourRows: HourRow[]) => {
   return hourRows.map((row, index) => {
     const upchargeCents = parseMoneyToCents(row.upcharge);
+    const amountCents = parseMoneyToCents(row.amount);
     const out: Record<string, unknown> = {
       date_of_work: row.date,
       hours_decimal: parseFloat(row.hours) || 0,
@@ -285,8 +289,9 @@ const buildHoursJSON = (hourRows: HourRow[]) => {
       no_charge: row.noFee,
       emergency: row.emergency,
       hour_index: row.hourIndex ?? index,
+      amount_cents: amountCents,
+      upcharge_cents: upchargeCents,
     };
-    if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
     return out;
   });
 };
@@ -315,9 +320,10 @@ const buildMaterialsJSON = (
       amount_cents: parseMoneyToCents(row.amount),
       material_index: row.materialIndex,
     };
+    if (row.vendorId && row.vendorId > 0) out.vendor_id = row.vendorId;
+    if (row.glAccountId) out.gl_account_id = String(row.glAccountId);
     if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
     if (includeAvmreFields) {
-      if (row.glAccountId) out.gl_account_id = row.glAccountId;
       out.exported_to_buildium = row.exportedToBuildium ?? false;
     }
     return out;
@@ -786,11 +792,37 @@ export default function ApproveFTOPage() {
     }
   };
 
-  // GL Account options (same data as Record Bill)
+  // GL Account options — fetched from QBO chart-of-accounts so the IDs we
+  // store on materials.gl_account_id are real QBO account IDs that the QBO
+  // sync can actually use as AccountRef values. Falls back to the bundled
+  // static JSON if the cached chart-of-accounts isn't available.
   const [glSearch, setGlSearch] = useState("");
+  const [qboGLAccounts, setQboGLAccounts] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res: any = await fetchJSON("/accounting/chart-of-accounts?account_type=Expense");
+        const rows: any[] = Array.isArray(res) ? res : (res?.accounts ?? []);
+        const opts = rows
+          .filter((a) => a.active !== false && (a.qbo_account_id || a.id))
+          .map((a) => ({
+            id: String(a.qbo_account_id || a.id),
+            name: a.fully_qualified_name || a.name,
+          }));
+        if (!cancelled) setQboGLAccounts(opts);
+      } catch {
+        // fall through to static JSON
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
   const glAccountOptions = useMemo(
-    () => (glAccountsData as any[]).map((gl) => ({ id: gl.Id as string, name: gl.Name as string })),
-    [],
+    () => {
+      if (qboGLAccounts.length > 0) return qboGLAccounts;
+      return (glAccountsData as any[]).map((gl) => ({ id: String(gl.Id), name: gl.Name as string }));
+    },
+    [qboGLAccounts],
   );
   const filteredGLAccounts = useMemo(
     () =>
@@ -1147,6 +1179,7 @@ export default function ApproveFTOPage() {
 
                     date: formatDate(new Date(expense.date_of_work)),
                     vendor: formatVendorName(expense.vendor_name || ""),
+                    vendorId: expense.vendor_id,
                     receiptNote: expense.note || "",
                     avmExpense: expense.is_avm_expense,
                     chargeType: expenseLineToChargeType(expense),
@@ -1154,7 +1187,10 @@ export default function ApproveFTOPage() {
                     upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
                     assignee: assigneeById[submission.FieldTeamMemberID] || "",
                     assigneeId: submission.FieldTeamMemberID,
-                    glAccountId: expense.gl_account_id ?? "",
+                    glAccountId:
+                      typeof expense.gl_account_id === "number"
+                        ? String(expense.gl_account_id)
+                        : (expense.gl_account_id ?? ""),
                     exportedToBuildium: expense.exported_to_buildium ?? false,
                   });
                 });
@@ -1327,37 +1363,16 @@ export default function ApproveFTOPage() {
         throw new Error("No hours or expenses to approve");
       }
 
-      // Pre-validate Buildium fields before approving (so we don't approve then fail to export)
-      let vendorCache: Record<string, { id: number; buildiumVendorId: string | null }> | null = null;
-      if (expenseRows.length > 0 && canExportToBuildium) {
+      // Validate that each expense row has a GL Account picked — required so
+      // the QBO Bill push can route the line to the right account.
+      if (expenseRows.length > 0) {
         const missingGL = expenseRows.some((r) => !r.glAccountId);
         if (missingGL) {
-          throw new Error("Select a GL Account for each expense row before exporting to Buildium.");
+          throw new Error("Select a GL Account for each expense row before approving.");
         }
-
-        vendorCache = {};
-        for (const row of expenseRows) {
-          const vendorName = row.vendor.trim();
-          if (!vendorName) throw new Error("Each expense row must have a vendor.");
-          if (!vendorCache[vendorName]) {
-            try {
-              const results = await fetchJSON(`/vendors?search=${encodeURIComponent(vendorName)}&limit=1`);
-              const match = Array.isArray(results) && results.length > 0 ? results[0] : null;
-              if (!match) {
-                throw new Error(`Vendor "${vendorName}" not found in the system. Please select a vendor from the dropdown.`);
-              }
-              vendorCache[vendorName] = {
-                id: Number(match.id),
-                buildiumVendorId: match.buildium_vendor_id ?? null,
-              };
-            } catch (fetchErr) {
-              if (fetchErr instanceof Error && (fetchErr.message.startsWith("Vendor") || fetchErr.message.startsWith("Each"))) throw fetchErr;
-              throw new Error(`Failed to look up vendor "${vendorName}".`);
-            }
-          }
-          if (!vendorCache[vendorName].buildiumVendorId) {
-            throw new Error(`Vendor "${vendorName}" is not linked to Buildium. Add a Buildium Vendor ID in vendor settings before exporting.`);
-          }
+        const missingVendor = expenseRows.some((r) => !r.vendor.trim());
+        if (missingVendor) {
+          throw new Error("Each expense row must have a vendor.");
         }
       }
 
@@ -1366,7 +1381,7 @@ export default function ApproveFTOPage() {
         const subHourRows = hourRows.filter((r) => r.submissionId === submissionId);
         const subExpenseRows = expenseRows.filter((r) => r.submissionId === submissionId);
         const hoursJSON = buildHoursJSON(subHourRows);
-        const materialsJSON = buildMaterialsJSON(subExpenseRows, { includeAvmreFields: canExportToBuildium });
+        const materialsJSON = buildMaterialsJSON(subExpenseRows, { includeAvmreFields: true });
         const assigneeId = loadedSubmissionToAssignee[submissionId];
         await patchSubmission(submissionId, {
           hours_json: hoursJSON,
@@ -1388,7 +1403,7 @@ export default function ApproveFTOPage() {
           const assigneeNewHours = newHourRows.filter((r) => r.assigneeId === assigneeId);
           const assigneeNewExpenses = newExpenseRows.filter((r) => r.assigneeId === assigneeId);
           const hoursJSON = buildHoursJSON(assigneeNewHours);
-          const materialsJSON = buildMaterialsJSON(assigneeNewExpenses, { includeAvmreFields: canExportToBuildium });
+          const materialsJSON = buildMaterialsJSON(assigneeNewExpenses, { includeAvmreFields: true });
           await createSubmissionForAssignee(
             ftoIdNum,
             assigneeId,
@@ -1414,82 +1429,46 @@ export default function ApproveFTOPage() {
         await approveFto(ftoIdNum);
       }
 
-      // --- Export expenses to Buildium when property has Buildium ID (both misc and FTO mode) ---
-      if (expenseRows.length > 0 && canExportToBuildium && vendorCache) {
-        const buildiumErrors: string[] = [];
-        const exportedRowIds = new Set<string>();
-
-        for (let i = 0; i < expenseRows.length; i++) {
-          const row = expenseRows[i];
-          try {
-            const parsedDate = row.date;
-            const dateObj = new Date(parsedDate);
-            const dueDateObj = new Date(dateObj);
-            dueDateObj.setDate(dueDateObj.getDate() + 7);
-
-            const toYMD = (d: Date) => d.toISOString().split("T")[0];
-            const dateStr = toYMD(dateObj);
-            const dueDateStr = toYMD(dueDateObj);
-
-            const amountCentsVal = parseMoneyToCents(row.amount);
-            const receiptNote = row.receiptNote || (isMiscMode ? "Misc expense" : "FTO expense");
-
-            const vendorInfo = vendorCache[row.vendor.trim()];
-
-            const receiptAttachmentId = row.attachmentIds?.[0] ?? null;
-
-            const exportPayload: Record<string, unknown> = {
-              vendor_id: vendorInfo.id,
-              statement_date: dateStr + "T00:00:00Z",
-              due_date: dueDateStr + "T00:00:00Z",
-              memo: receiptNote,
-              line_items: [
-                {
-                  line_id: 1,
-                  gl_account_id: String(row.glAccountId),
-                  description: receiptNote,
-                  amount_cents: amountCentsVal,
-                },
-              ],
-            };
-            if (receiptAttachmentId != null) {
-              exportPayload.attachment_id = receiptAttachmentId;
+      // --- Push each submission's material expenses to QBO as Bills ---
+      // QBO is the only downstream target on this branch; Buildium export
+      // has been removed. Best-effort: failures are surfaced in an alert
+      // but don't block navigation back.
+      const qboSubmissionIds: number[] =
+        isMiscMode && submissionIdNum !== null
+          ? [submissionIdNum]
+          : loadedSubmissionIds.slice();
+      const qboBillSummaries: string[] = [];
+      const qboErrors: string[] = [];
+      for (const subId of qboSubmissionIds) {
+        try {
+          const res: any = await fetchJSON(
+            `/accounting/qbo/post-submission-expenses/${subId}`,
+            { method: "POST" },
+          );
+          const results: any[] = res?.results ?? [];
+          for (const r of results) {
+            if (r.error) {
+              qboErrors.push(`Submission ${subId} expense ${r.material_index}: ${r.error}`);
+            } else {
+              qboBillSummaries.push(
+                `${r.vendor_name || "expense"} $${(r.amount_cents / 100).toFixed(2)} → QBO Bill ${r.qbo_purchase_id || "?"}`,
+              );
             }
-            if (propertyBuildiumDetails) {
-              exportPayload.buildium_property_id = propertyBuildiumDetails.buildium_property_id;
-              exportPayload.property_type = propertyBuildiumDetails.property_type;
-            }
-
-            await fetchJSON("/vendors/export-misc-expense-to-buildium", {
-              method: "POST",
-              body: JSON.stringify(exportPayload),
-            });
-            exportedRowIds.add(row.id);
-          } catch (billErr) {
-            buildiumErrors.push(`Row ${i + 1}: ${billErr instanceof Error ? billErr.message : String(billErr)}`);
           }
+        } catch (qboErr: any) {
+          qboErrors.push(
+            `Submission ${subId}: ${qboErr instanceof Error ? qboErr.message : String(qboErr)}`,
+          );
         }
-
-        // Persist exported_to_buildium for rows that succeeded (even on partial failure)
-        if (exportedRowIds.size > 0) {
-          const updatedRows = expenseRows.map((r) => ({
-            ...r,
-            exportedToBuildium: exportedRowIds.has(r.id) ? true : (r.exportedToBuildium ?? false),
-          }));
-          const submissionIds = [...new Set(updatedRows.map((r) => r.submissionId).filter((id) => id > 0))];
-          for (const subId of submissionIds) {
-            const subExpenseRows = updatedRows.filter((r) => r.submissionId === subId);
-            await patchSubmission(subId, {
-              materials_json: buildMaterialsJSON(subExpenseRows, { includeAvmreFields: true }),
-            });
-          }
-        }
-
-        if (buildiumErrors.length > 0) {
-          alert("Expenses approved, but some Buildium exports failed:\n\n" + buildiumErrors.join("\n"));
-          navigate(-1);
-          return;
-        }
+      }
+      if (qboBillSummaries.length > 0) {
+        console.log("[QBO] expenses booked:\n" + qboBillSummaries.join("\n"));
+      }
+      if (qboErrors.length > 0) {
+        alert(
+          "Approval done. QBO expense push had issues:\n\n" +
+            qboErrors.join("\n"),
+        );
       }
 
       navigate(-1);
@@ -1550,7 +1529,7 @@ export default function ApproveFTOPage() {
 
   const isExpensesCellInvalid = (row: ExpenseRow, field: keyof ExpenseRow) => {
     const requiredFields = ['date', 'vendor', 'assignee', 'amount'];
-    if (canExportToBuildium) requiredFields.push('glAccountId');
+    requiredFields.push('glAccountId');
     if (!requiredFields.includes(field)) return false;
 
     // Special case: 'assignee' field should check assigneeId (the numeric value)
@@ -2240,7 +2219,7 @@ export default function ApproveFTOPage() {
                             Charge Type <span className="text-red-600">*</span>
                           </span>
                         </div>
-                        {canExportToBuildium && (
+                        {(
                           <div
                             className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
                             style={{ width: "200px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
@@ -2493,14 +2472,14 @@ export default function ApproveFTOPage() {
                           </div>
 
                           {/* GL Account Cell */}
-                          {canExportToBuildium && (
+                          {(
                             <div
                               className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                               style={{
                                 width: "200px",
                                 borderBottom: "1px solid #DADADA",
                                 borderRight: "1px solid #DADADA",
-                                boxShadow: attemptedSubmit && canExportToBuildium && !row.glAccountId ? "inset 0 0 0 2px #dc2626" : "none",
+                                boxShadow: attemptedSubmit && !row.glAccountId ? "inset 0 0 0 2px #dc2626" : "none",
                               }}
                             >
                               <Select
@@ -2702,21 +2681,8 @@ export default function ApproveFTOPage() {
             >
               <span>Reject</span>
             </button>
-            <BlueButton
-              onClick={handleApprove}
-              disabled={
-                canExportToBuildium &&
-                expenseRows.length > 0 &&
-                expenseRows.every((r) => r.exportedToBuildium)
-              }
-            >
-              {canExportToBuildium &&
-              expenseRows.length > 0 &&
-              expenseRows.every((r) => r.exportedToBuildium)
-                ? "Already exported"
-                : isMiscMode
-                  ? "Approve Expense"
-                  : "Approve Field Team Order"}
+            <BlueButton onClick={handleApprove}>
+              {isMiscMode ? "Approve Expense" : "Approve Field Team Order"}
             </BlueButton>
           </div>
         </div>
