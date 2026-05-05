@@ -51,6 +51,7 @@ interface LineItem {
   unitName: string;      // display name for the unit
   description: string;
   glAccount: string;
+  glAccountName?: string; // human-readable name from bill_lines.gl_account_name
   total: string;
   workOrder?: string;
 }
@@ -523,7 +524,10 @@ export const RecordBill = () => {
   };
   // Real vendors + properties
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [properties, setProperties] = useState<{ id: number; name: string }[]>([]);
+  const [properties, setProperties] = useState<{ id: number; name: string; property_type?: string }[]>([]);
+  // When the bill is for an HOA property, the user can override the default
+  // "HOA owns its own books" routing and post the bill to AVMRE's books instead.
+  const [bookToAvmre, setBookToAvmre] = useState<boolean>(false);
   const [propertyMap, setPropertyMap] = useState<Record<string, number>>({});
   const [columnWidths, setColumnWidths] = useState(defaultColumnWidths);
   const [glAccountOptions, setGLAccountOptions] = useState<
@@ -560,38 +564,20 @@ export const RecordBill = () => {
 
     async function loadGLAccounts() {
       try {
-        // Pull live chart of accounts from QBO (filtered to Expense accounts).
-        // Falls back to bundled gl_accounts.json if the QBO fetch fails.
-        const res: any = await fetchJSON(
-          "/accounting/chart-of-accounts?account_type=Expense",
-        );
+        // Canonical chart of accounts from the gl_accounts table — every row
+        // carries both qbo_account_id and buildium_gl_account_id, so the id
+        // we store on the bill line will match whatever realm we push to.
+        const res: any = await fetchJSON("/accounting/gl-accounts?account_type=Expense");
         const rows: any[] = Array.isArray(res) ? res : (res?.accounts ?? []);
-        const qboAccounts = rows
-          .filter((a) => a.active !== false && (a.qbo_account_id || a.id))
-          .map((a) => ({
-            id: parseInt(a.qbo_account_id || a.id, 10),
-            name: a.fully_qualified_name || a.name,
-          }))
-          .filter((a) => !Number.isNaN(a.id));
-
-        if (cancelled) return;
-        if (qboAccounts.length > 0) {
-          setGLAccountOptions(qboAccounts);
-          return;
-        }
-        // Fall back if QBO returned nothing
-        const fallback = glAccounts.map((gl: any) => ({
-          id: parseInt(gl.Id, 10),
-          name: gl.Name,
-        }));
-        setGLAccountOptions(fallback);
-      } catch {
-        if (cancelled) return;
-        const fallback = glAccounts.map((gl: any) => ({
-          id: parseInt(gl.Id, 10),
-          name: gl.Name,
-        }));
-        setGLAccountOptions(fallback);
+        const opts = rows
+          .filter((a) => a.active !== false && a.qbo_account_id)
+          .map((a) => ({ id: parseInt(a.qbo_account_id, 10), name: a.name }))
+          .filter((a) => !Number.isNaN(a.id))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        if (!cancelled) setGLAccountOptions(opts);
+      } catch (err) {
+        console.error("Failed to load GL accounts:", err);
+        if (!cancelled) setGLAccountOptions([]);
       }
     }
 
@@ -726,6 +712,7 @@ export const RecordBill = () => {
         const formatted = propList.map((p: any) => ({
           id: p.id,
           name: p.name || p.address_line1 || `Property ${p.id}`,
+          property_type: p.property_type,
         }));
   
         // 🔥 Print formatted mapping so you can confirm it's correct
@@ -986,6 +973,7 @@ export const RecordBill = () => {
       glAccount: item.GLAccountID
         ? item.GLAccountID.toString()
         : "",
+      glAccountName: item.GLAccountName || "",
       total: item.AmountCents
         ? `$${(item.AmountCents / 100).toFixed(2)}`
         : "",
@@ -1400,12 +1388,31 @@ export const RecordBill = () => {
       // });
 
       // =====================================================
-      // 📒 SYNC TO QUICKBOOKS
+      // 📒 PUSH BILL TO QUICKBOOKS
       // =====================================================
+      // Push the just-approved bill into QBO as an AP Bill. The bill itself
+      // is already persisted in AVM at this point, so we surface (rather than
+      // swallow) any QBO error — the user needs to know if the bill won't
+      // appear in QuickBooks.
       try {
-        await fetchJSON(`/accounting/qbo/sync`, { method: "POST" });
-      } catch (qbErr) {
-        console.error("QBO sync failed (bill still saved):", qbErr);
+        const qboRes: any = await fetchJSON(
+          `/accounting/qbo/sync-bill/${approvedBillId}`,
+          { method: "POST" },
+        );
+        if (qboRes?.qbo_purchase_id) {
+          setQboPurchaseId(qboRes.qbo_purchase_id);
+          setQboSyncedAt(qboRes.qbo_synced_at ?? null);
+        }
+      } catch (qbErr: any) {
+        const msg = qbErr?.message || String(qbErr);
+        const lower = msg.toLowerCase();
+        const isAuth = lower.includes("token") || lower.includes("401") || lower.includes("unauthor");
+        console.error("QBO push failed (bill still saved):", qbErr);
+        alert(
+          isAuth
+            ? `Bill saved, but QuickBooks push failed: the QBO connection needs to be reauthorized.\n\nReconnect under Accounting → QuickBooks Settings.\n\nDetails: ${msg}`
+            : `Bill saved, but QuickBooks push failed.\n\nDetails: ${msg}`,
+        );
       }
 
       // Link bill to work order if we came from a work order page
@@ -1442,23 +1449,26 @@ export const RecordBill = () => {
       const raw = err?.message || err?.error || String(err);
       const lower = raw.toLowerCase();
 
+      // Buildium push is currently disabled — the only external target is QBO.
+      // Error messages reflect that. Buildium-specific branches are kept
+      // commented out in case the push is re-enabled later.
       let userMsg: string;
-      if (lower.includes("memo") && lower.includes("exceed") || lower.includes("memo") && lower.includes("240")) {
-        userMsg = "The line item description is too long for Buildium (max 240 characters). Please shorten the description and try again.";
-      } else if (lower.includes("buildium unit")) {
-        userMsg = "Invalid Buildium unit mapping — please update the unit in Buildium before exporting.";
-      } else if (lower.includes("buildium_vendor_id")) {
-        userMsg = "This vendor does not have a Buildium Vendor ID. Please link the vendor to Buildium before exporting.";
-      } else if (lower.includes("buildium_property_id")) {
-        userMsg = "This property does not have a Buildium Property ID. Please link the property to Buildium before exporting.";
-      } else if (lower.includes("gl_account")) {
+      if (lower.includes("gl_account")) {
         userMsg = "Invalid GL Account on one or more line items. Please check and try again.";
-      } else if (lower.includes("attachment failed")) {
-        userMsg = "Bill was created in Buildium, but the PDF attachment failed to upload. You can attach it manually in Buildium.";
-      } else if (lower.includes("payload build failed")) {
-        userMsg = "Could not build the Buildium export payload. Please check that the vendor and property are linked to Buildium.";
+      // } else if (lower.includes("memo") && (lower.includes("exceed") || lower.includes("240"))) {
+      //   userMsg = "The line item description is too long for Buildium (max 240 characters). Please shorten the description and try again.";
+      // } else if (lower.includes("buildium unit")) {
+      //   userMsg = "Invalid Buildium unit mapping — please update the unit in Buildium before exporting.";
+      // } else if (lower.includes("buildium_vendor_id")) {
+      //   userMsg = "This vendor does not have a Buildium Vendor ID. Please link the vendor to Buildium before exporting.";
+      // } else if (lower.includes("buildium_property_id")) {
+      //   userMsg = "This property does not have a Buildium Property ID. Please link the property to Buildium before exporting.";
+      // } else if (lower.includes("attachment failed")) {
+      //   userMsg = "Bill was created in Buildium, but the PDF attachment failed to upload. You can attach it manually in Buildium.";
+      // } else if (lower.includes("payload build failed")) {
+      //   userMsg = "Could not build the Buildium export payload. Please check that the vendor and property are linked to Buildium.";
       } else {
-        userMsg = `Bill was approved, but exporting to Buildium failed.\n\nDetails: ${raw}`;
+        userMsg = `Failed to approve and export bill to QuickBooks.\n\nDetails: ${raw}`;
       }
 
       alert(userMsg);
@@ -1730,14 +1740,28 @@ export const RecordBill = () => {
   
 
   const handleRemoveFile = (index: number) => {
+    let removedFile: File | undefined;
     setUploadedFiles((prev) => {
       const file = prev[index]?.file;
+      removedFile = file;
       const preview = (file as any)?.preview;
       if (preview) {
         URL.revokeObjectURL(preview);
       }
       return prev.filter((_, i) => i !== index);
     });
+
+    // If the removed file was the one already uploaded to the server (only the
+    // first file is uploaded pre-save in the current flow), delete the object
+    // on the server too and clear the staged metadata so a subsequent save
+    // doesn't reference an orphaned key.
+    const stagedKey = uploadedPdfMeta?.pdf_object_key;
+    if (stagedKey && removedFile && !billId) {
+      authFetch(`/vendors/bills/upload-pdf?key=${encodeURIComponent(stagedKey)}`, {
+        method: "DELETE",
+      }).catch((err) => console.error("Failed to delete uploaded PDF:", err));
+      setUploadedPdfMeta(null);
+    }
   };
   
   const formatFileSize = (bytes: number) => {
@@ -1920,7 +1944,10 @@ export const RecordBill = () => {
       statement_date: invoiceDate ? invoiceDate.toISOString() : null,
       due_date: dueDate ? dueDate.toISOString() : null,
       memo: memo || null,
-  
+      // Only honored server-side when the selected property is an HOA; the
+      // backend ignores it otherwise so a stale toggle can't misroute books.
+      book_to_avmre: bookToAvmre,
+
       // The important part:
       line_items: buildLineItemPayload(),
     };
@@ -2147,9 +2174,9 @@ minHeight: 0,
                 style={{ display: "flex", flexDirection: "column" }}
               >
                 <button
-                  onClick={closeViewer}
+                  onClick={handleDeleteFile}
                   className="absolute top-2 right-2 z-10 rounded-md p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200/80 transition-colors"
-                  title="Close"
+                  title="Remove file"
                 >
                   <svg
                     className="w-5 h-5"
@@ -2479,6 +2506,29 @@ minHeight: 0,
                     disabled={isReadOnly}
                     autoGrow
                   />
+
+                  {/* "Book to AVMRE" override — only meaningful when the
+                      selected property is an HOA, since non-HOAs already
+                      route to AVMRE by default. */}
+                  {(() => {
+                    const firstPropId = lineItems[0]?.property;
+                    const propertyType = firstPropId
+                      ? properties.find((p) => p.id === Number(firstPropId))?.property_type
+                      : undefined;
+                    if (propertyType !== "HOA") return null;
+                    return (
+                      <label className="mt-3 flex items-center gap-2 text-sm text-[#303030] cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={bookToAvmre}
+                          onChange={(e) => !isReadOnly && setBookToAvmre(e.target.checked)}
+                          disabled={isReadOnly}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                        Book to AVMRE instead of this HOA
+                      </label>
+                    );
+                  })()}
                 </div>
 
                 {/* Line Items Section */}
@@ -2798,9 +2848,12 @@ minHeight: 0,
                             >
                               {isReadOnly ? (
                                 <span className="text-[13px] text-gray-700 truncate">
-                                  {glAccountOptions.find(
-                                    (g) => g.id.toString() === item.glAccount,
-                                  )?.name || item.glAccount || "—"}
+                                  {item.glAccountName ||
+                                    glAccountOptions.find(
+                                      (g) => g.id.toString() === item.glAccount,
+                                    )?.name ||
+                                    item.glAccount ||
+                                    "—"}
                                 </span>
                               ) : (
                               <Select
@@ -2817,7 +2870,7 @@ minHeight: 0,
                                 }}
                               >
                                 <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent"
+                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent justify-start gap-1"
                                 >
                                   <SelectValue placeholder="Select an Account" />
                                 </SelectTrigger>

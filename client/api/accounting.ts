@@ -213,7 +213,7 @@ export const accountingAPI = {
       payment_date: string;
       payment_method: "check" | "ach" | "credit_card" | "cash" | "other";
       bank_account_id?: number;
-      paid_from_account_id?: string;
+      paid_from_account_id?: number;
       account_category?: string;
       reference_number?: string;
       memo?: string;
@@ -293,8 +293,13 @@ export const accountingAPI = {
     }),
 
   // Bank Accounts (Phase A)
-  listBankAccounts: (activeOnly = true) =>
-    fetchJSON(`/accounting/bank-accounts${activeOnly ? "" : "?active=false"}`),
+  listBankAccounts: (activeOnly = true, kind?: "bank" | "credit_card") => {
+    const params = new URLSearchParams();
+    if (!activeOnly) params.set("active", "false");
+    if (kind) params.set("kind", kind);
+    const qs = params.toString();
+    return fetchJSON(`/accounting/bank-accounts${qs ? `?${qs}` : ""}`);
+  },
   getBankAccount: (id: number) => fetchJSON(`/accounting/bank-accounts/${id}`),
   updateBankAccount: (
     id: number,
@@ -367,10 +372,14 @@ export const accountingAPI = {
     );
   },
 
-  // Credit Cards (Phase B)
-  listCreditCardAccounts: (activeOnly = true) =>
-    fetchJSON(`/accounting/credit-cards${activeOnly ? "" : "?active=false"}`),
-  getCreditCardAccount: (id: number) => fetchJSON(`/accounting/credit-cards/${id}`),
+  // Credit Cards. Storage was unified into bank_accounts in migration 072 —
+  // these helpers query the same endpoints with kind=credit_card.
+  listCreditCardAccounts: (activeOnly = true) => {
+    const params = new URLSearchParams({ kind: "credit_card" });
+    if (!activeOnly) params.set("active", "false");
+    return fetchJSON(`/accounting/bank-accounts?${params.toString()}`);
+  },
+  getCreditCardAccount: (id: number) => fetchJSON(`/accounting/bank-accounts/${id}`),
   updateCreditCardAccount: (
     id: number,
     data: Partial<{
@@ -382,7 +391,7 @@ export const accountingAPI = {
       notes: string;
     }>,
   ) =>
-    fetchJSON(`/accounting/credit-cards/${id}`, {
+    fetchJSON(`/accounting/bank-accounts/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -462,6 +471,52 @@ export const accountingAPI = {
     fetchJSON(`/accounting/reconciliation/sessions/${id}/finalize`, { method: "POST" }),
   rejectReconciliationSession: (id: number) =>
     fetchJSON(`/accounting/reconciliation/sessions/${id}/reject`, { method: "POST" }),
+
+  // CC / Bank statement import + per-txn labeling (cc_statements module).
+  // Routes are mounted bare (no /accounting prefix) because the module is
+  // shared between bank and credit-card accounts.
+  ccImportStatement: (
+    bankAccountID: number,
+    file: File,
+    inflowSign?: "positive" | "negative",
+  ) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const qs = inflowSign ? `?inflow_sign=${inflowSign}` : "";
+    return authUpload(
+      `/bank-accounts/${bankAccountID}/import-statement${qs}`,
+      formData,
+    );
+  },
+  ccListUnlabeled: (
+    bankAccountID: number,
+    filters?: { from?: string; to?: string },
+  ) => {
+    const params = new URLSearchParams();
+    if (filters?.from) params.set("from", filters.from);
+    if (filters?.to) params.set("to", filters.to);
+    const qs = params.toString();
+    return fetchJSON(
+      `/bank-accounts/${bankAccountID}/unlabeled-transactions${qs ? `?${qs}` : ""}`,
+    );
+  },
+  ccLabelTransaction: (
+    txnID: number,
+    data: {
+      vendor_id: number;
+      gl_account_qbo_id: string;
+      gl_account_name: string;
+      bill_id?: number;
+      memo?: string;
+    },
+  ) =>
+    fetchJSON(`/bank-transactions/${txnID}/label`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  ccUnlabelTransaction: (txnID: number) =>
+    fetchJSON(`/bank-transactions/${txnID}/unlabel`, { method: "POST" }),
 
   // Journal Entries (Phase F)
   listJournalEntries: (filters?: { date_from?: string; date_to?: string; status?: string }) => {

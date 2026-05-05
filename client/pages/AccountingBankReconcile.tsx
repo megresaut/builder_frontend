@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { accountingAPI } from "@/api/accounting";
 import { toast } from "sonner";
 import PageTemplate from "@/layout/PageTemplate";
@@ -43,6 +43,10 @@ function defaultPeriod() {
 
 export default function AccountingBankReconcile() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const kindParam = searchParams.get("kind");
+  const accountKind: "bank" | "credit_card" =
+    kindParam === "credit_card" ? "credit_card" : "bank";
   const accountId = Number(id);
   const [session, setSession] = useState<Session | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -63,7 +67,7 @@ export default function AccountingBankReconcile() {
     setCreating(true);
     try {
       const res: Session = await accountingAPI.openReconciliationSession({
-        account_kind: "bank",
+        account_kind: accountKind,
         account_id: accountId,
         period_start: periodStart,
         period_end: periodEnd,
@@ -144,16 +148,22 @@ export default function AccountingBankReconcile() {
   const balanced = session
     ? session.cleared_total_cents === session.statement_balance_cents
     : false;
+  const isCC = accountKind === "credit_card";
+  const backHref = isCC
+    ? `/accounting/credit-cards/${accountId}`
+    : `/accounting/bank-accounts/${accountId}`;
+  const backLabel = isCC ? "← Credit card" : "← Bank account";
+  const heading = isCC ? "Reconcile Credit Card Statement" : "Reconcile Bank Account";
 
   return (
     <PageTemplate>
       <div className="text-sm text-gray-500 mb-2">
-        <Link to={`/accounting/bank-accounts/${accountId}`} className="hover:underline">
-          ← Bank account
+        <Link to={backHref} className="hover:underline">
+          {backLabel}
         </Link>
       </div>
 
-      <h1 className="text-2xl font-semibold text-gray-900 mb-4">Reconcile Bank Account</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 mb-4">{heading}</h1>
 
       {!session ? (
         <div className="bg-gray-50 rounded p-4 max-w-lg">

@@ -163,10 +163,13 @@ export default function BillPaymentManager({
         setPayments(list?.payments ?? []);
         setStatus(list?.bill ?? null);
         const rawList = banks?.accounts ?? banks ?? [];
+        // Use bank_accounts.id (surfaced as `local_account_id` — the API's
+        // top-level `id` is the QBO account id, not a FK target). This is
+        // what bill_payments.paid_from_account_id references.
         const bankList: BankAccount[] = (Array.isArray(rawList) ? rawList : [])
-          .filter((a: any) => a.active !== false && a.id)
+          .filter((a: any) => a.active !== false && (a.local_account_id || a.id))
           .map((a: any) => ({
-            id: String(a.qbo_account_id || a.id),
+            id: String(a.local_account_id || a.id),
             name: a.fully_qualified_name || a.name,
             account_type: a.account_type,
             active: a.active,
@@ -212,9 +215,9 @@ export default function BillPaymentManager({
         amount_cents: cents,
         payment_date: paymentDate,
         payment_method: paymentMethod,
-        // QBO-only path: send the QBO account id directly. Backend skips
-        // Buildium and pushes to QBO when bill has qbo_purchase_id.
-        paid_from_account_id: qboBankId,
+        // bank_accounts.id (int). The service uses this to look up the row's
+        // qbo_account_id when pushing the BillPayment to QBO.
+        paid_from_account_id: Number.parseInt(qboBankId, 10),
         account_category: accountCategory || undefined,
         reference_number: reference || undefined,
         memo: memo || undefined,

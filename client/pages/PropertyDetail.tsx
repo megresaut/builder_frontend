@@ -16,7 +16,7 @@ import { Bills } from "./properties/Bills";
 import { Notes } from "./properties/Notes";
 import { Invoicing } from "./properties/Invoicing";
 import { Insurance } from "./properties/Insurance";
-import { PropertyAccounting } from "./properties/PropertyAccounting";
+import Statements from "./properties/Statements";
 
 // API response from GET /properties/{id} – may include extra fields
 type BackendProperty = {
@@ -230,9 +230,9 @@ export function PropertyTabContent() {
           propertyId={property.id}
         />
       );
-    case "Accounting":
+    case "Financials":
       return (
-        <PropertyAccounting
+        <Statements
           propertyAddress={propertyAddress}
           propertyType={propertyType}
           propertyUnits={propertyUnits}

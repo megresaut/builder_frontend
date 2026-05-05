@@ -1,3422 +1,2630 @@
 [
-    {
-      "Id": 964451,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "30 Elmcroft Condominium Association Inc - Checking",
-      "Comments": "Checking account for the condo at 30 Elmcroft Road in Stamford\nWells Fargo",
-      "Status": "Active"
-    },
-    {
-      "Id": 972423,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "40 Haviland Insurance",
-      "Comments": "Account to track insurance payments for 40 Haviland Road repairs",
-      "Status": "Active"
-    },
-    {
-      "Id": 973245,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "88 Maple Tree Condominium Association",
-      "Comments": "Wells Fargo Account used as the operating account for 88 Maple Tree Condominum",
-      "Status": "Active"
-    },
-    {
-      "Id": 1021781,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "7100 Dryer Vent",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 900205,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "A/V Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 900203,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "A/V Work",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1002745,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Access Easement",
-      "Comments": "Stillman Court - Access Easement - (1,3,5,7 - Stillman)",
-      "Status": "Active"
-    },
-    {
-      "Id": 7,
-      "Type": "Current Liability",
-      "Fund Type": "N/A",
-      "Number": "",
-      "Name": "Accounts Payable",
-      "Comments": "Accounts Payable",
-      "Status": "Active"
-    },
-    {
-      "Id": 1,
-      "Type": "Current Asset",
-      "Fund Type": "N/A",
-      "Number": "",
-      "Name": "Accounts Receivable",
-      "Comments": "Accounts Receivable",
-      "Status": "Active"
-    },
-    {
-      "Id": 960957,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "ADOW Pools Loan",
-      "Comments": "Money owed to AVM by Adow Pools (Bob Adow)",
-      "Status": "Active"
-    },
-    {
-      "Id": 13110,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Advertising",
-      "Comments": "Advertising",
-      "Status": "Active"
-    },
-    {
-      "Id": 882775,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Alarm Service Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 880085,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Application Fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 12,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Application Fee Income",
-      "Comments": "Application Fee Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 871581,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Appraisal",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 872411,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Appraisal Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1001510,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Architect Work",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 969500,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "AT&T income",
-      "Comments": "AT&T rooftop",
-      "Status": "Active"
-    },
-    {
-      "Id": 13112,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Auto and Travel",
-      "Comments": "Auto and Travel",
-      "Status": "Active"
-    },
-    {
-      "Id": 969057,
-      "Type": "Long Term Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Auto Loan",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 908577,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "AVMRE Management Account",
-      "Comments": "Use for Concierge and Company expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 977409,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Balance forward Income",
-      "Comments": "Balance outstanding",
-      "Status": "Active"
-    },
-    {
-      "Id": 14,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Bank Fees",
-      "Comments": "Bank Fees",
-      "Status": "Active"
-    },
-    {
-      "Id": 993291,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Basin Cleaning",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 940526,
-      "Type": "Long Term Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Blackrock - Mortgage Liability",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1004495,
-      "Type": "Current Asset",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Capital Improvement",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 919207,
-      "Type": "Current Liability",
-      "Fund Type": "Reserve",
-      "Number": "",
-      "Name": "CD Account",
-      "Comments": "For Reserve Funds That Are Invested In To Short Term Certificates Of Deposits",
-      "Status": "Active"
-    },
-    {
-      "Id": 13105,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Cleaning & Maintenance Income",
-      "Comments": "Cleaning and Maint Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 559579,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Parking Lot Cleaning Income",
-      "Comments": "Parking Lot Cleaning",
-      "Status": "Active"
-    },
-    {
-      "Id": 590651,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "CLS Group LLC",
-      "Comments": "Brokerage account for all rent collections",
-      "Status": "Active"
-    },
-    {
-      "Id": 970674,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "CLS Group LLC (High-Yield Savings)",
-      "Comments": "Used a operating account Security Deposit Savings for CLS Group",
-      "Status": "Active"
-    },
-    {
-      "Id": 593262,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "CLS Group LLC - (legacy Security Deposit acct)",
-      "Comments": "Dec 2024: This account is now for Willow Park Security Deposits (113-115 Park Ave.)",
-      "Status": "Active"
-    },
-    {
-      "Id": 690100,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "CLS Group Management",
-      "Comments": "This bank account is used to track CLS Group Management",
-      "Status": "Active"
-    },
-    {
-      "Id": 610241,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Coleman Properties LLC",
-      "Comments": "This account is used to track all of the Coleman properties.",
-      "Status": "Active"
-    },
-    {
-      "Id": 839854,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Commission Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13114,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Commissions",
-      "Comments": "Rental Commissions",
-      "Status": "Active"
-    },
-    {
-      "Id": 924463,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Common Area Repairs - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 924462,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Common Area Repairs - Non-Operating Expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 937779,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Appliances/Materials - Non-operating expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 927145,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Carpet - Non-operating expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 925722,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Elevator Repair - Non-operating expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 933205,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Convenience Fee Expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 15,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Convenience Fee Income",
-      "Comments": "Convenience Fee",
-      "Status": "Active"
-    },
-    {
-      "Id": 642075,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Credit Card Purchases",
-      "Comments": "This account is only used to track credit card purchases",
-      "Status": "Active"
-    },
-    {
-      "Id": 642077,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Credit Card Tracking",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 847859,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Deposit Transfer",
-      "Comments": "For transferring tenant security deposit to owner to hold",
-      "Status": "Active"
-    },
-    {
-      "Id": 13115,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Depreciation Expense",
-      "Comments": "Depreciation Expense",
-      "Status": "Active"
-    },
-    {
-      "Id": 895935,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Design",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1002678,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Design Review Board - Expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 996883,
-      "Type": "Long Term Liability",
-      "Fund Type": "Reserve",
-      "Number": "",
-      "Name": "Design Review Board Deposit",
-      "Comments": "Account used for Sherwood Farms HOA owner deposits",
-      "Status": "Active"
-    },
-    {
-      "Id": 996959,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Design Review Board Deposit - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 958378,
-      "Type": "Current Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Developer Capital Reserve Charge - Sono Maritime",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 959245,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Developer Income",
-      "Comments": "Sono Maritime",
-      "Status": "Active"
-    },
-    {
-      "Id": 990451,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Dolce Credt",
-      "Comments": "THIS IS NOT A REAL BANK ACCOUNT. Used to tracked monies owed to AVMRE by Dolce.",
-      "Status": "Active"
-    },
-    {
-      "Id": 937890,
-      "Type": "Equity",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Donation",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1002328,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Donations",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 996971,
-      "Type": "Equity",
-      "Fund Type": "Reserve",
-      "Number": "",
-      "Name": "DRB Deposit",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 999726,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Dryer Vent",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 460516,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Dummy Account",
-      "Comments": "Used for not literal transactions",
-      "Status": "Active"
-    },
-    {
-      "Id": 1006763,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Eastport Ridges Association Inc. (Checking)",
-      "Comments": "First County Bank used for operating expenses for Eastport Ridges Association Inc.\nChunli Yu & Rafael Panyno are signers",
-      "Status": "Active"
-    },
-    {
-      "Id": 986239,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Electric Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1014558,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Electrical Vehicle Fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 851090,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Elevator Maintenance Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1003345,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Emergency",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 908559,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Ernesto D'Onofrio",
-      "Comments": "571 Cheese Spring Road security deposit",
-      "Status": "Active"
-    },
-    {
-      "Id": 879110,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Extermination income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 959252,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Fencing",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 968284,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Forest Square Condominiums Inc",
-      "Comments": "Wells Fargo",
-      "Status": "Active"
-    },
-    {
-      "Id": 969989,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Forest Square Condominiums Inc. Savings",
-      "Comments": "This is a savings reserve account.",
-      "Status": "Active"
-    },
-    {
-      "Id": 255633,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Garbage collection",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 885054,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Garbage Removal Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 415069,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "GBT Management Account",
-      "Comments": "GBT Management Account",
-      "Status": "Active"
-    },
-    {
-      "Id": 959023,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "General Income",
-      "Comments": "Sono Maritime",
-      "Status": "Active"
-    },
-    {
-      "Id": 877667,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Generator Service",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 909043,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Generator Service - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 865351,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Grocery Invoice",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 865350,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Grocery Invoice - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 970320,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Gutter Maintenance",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1004047,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Gutter Maintenance - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 914471,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Hamilton Green GBT Checking",
-      "Comments": "Hamilton Green Condominium at Greenwich Bank and Trust\nSigners are Pat, Luz, and Paul",
-      "Status": "Active"
-    },
-    {
-      "Id": 840898,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Harbor House",
-      "Comments": "165 Shore Road, Harbor House Association Wells Fargo Account",
-      "Status": "Active"
-    },
-    {
-      "Id": 852834,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Reserve",
-      "Number": "",
-      "Name": "Harbor House Reserve",
-      "Comments": "Reserve account for Harbor House Association",
-      "Status": "Active"
-    },
-    {
-      "Id": 1010047,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Hawley Commons (Checking)",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 695283,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Hemingway Gardens Association, Inc.",
-      "Comments": "This accounts is for Hemingway Gardens Association",
-      "Status": "Active"
-    },
-    {
-      "Id": 1017209,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "HOA - Air Bleeder",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1017913,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "HOA - New Toilet",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1017816,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "HOA - Thermostat",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1017208,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "HOA - Valve Replacement",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1017815,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "HOA - Zone Valve",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 928209,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Hold Over Charge Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 719959,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "HRE",
-      "Comments": "HRE",
-      "Status": "Active"
-    },
-    {
-      "Id": 97206,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Hud payment Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 841147,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "HVAC Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 345044,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "HVAC: Service Agreement",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1006542,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "HVAC: Service Agreement - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 927842,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Imperial Condominiums",
-      "Comments": "49 Stuart Ave, Norwalk association bank account\nChase Bank",
-      "Status": "Active"
-    },
-    {
-      "Id": 947036,
-      "Type": "Long Term Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Indian Harbor Condo - Patriot Loan",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 963444,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Indian Harbor Condominium Association",
-      "Comments": "Chase Bank\nThis is the second account after original was closed",
-      "Status": "Active"
-    },
-    {
-      "Id": 947026,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Indian Harbor Condominium Old Checking",
-      "Comments": "25 Indian Harbor, Greenwich - condo checking account located at Chase Bank",
-      "Status": "Active"
-    },
-    {
-      "Id": 976201,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Initial Bank Deposit",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 386369,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Inspection Fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 386370,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Inspection Fee Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 876239,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Insurance Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 942842,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Insurance pay-out",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 908570,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Jhonnier Ortiz Alvarez",
-      "Comments": "113 South Water St #1 security deposit",
-      "Status": "Active"
-    },
-    {
-      "Id": 908568,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Jose Mendoza",
-      "Comments": "113 South Water St #6 security deposit",
-      "Status": "Active"
-    },
-    {
-      "Id": 845166,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Labor",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 921099,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Labor - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 19,
-      "Type": "Current Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Last Month's Rent",
-      "Comments": "Last Month's Rent",
-      "Status": "Active"
-    },
-    {
-      "Id": 951076,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Legal and Professional Fees - Capital Expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 841966,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Legal Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 914545,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Licenses and Permits - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 967045,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Loan interest",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 971735,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Loan Payment",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 971736,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Loan payment",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 967046,
-      "Type": "Current Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Loan principal",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 848344,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Lock-out Fee Income",
-      "Comments": "Lock-out Fee Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 900832,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Locksmith",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 966236,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Mason",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 990301,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Masonry",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 838990,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Materials Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 378316,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Misc",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1006177,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Misc Landscaping",
-      "Comments": "for non-budget and emergency landscaping costs",
-      "Status": "Active"
-    },
-    {
-      "Id": 13121,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Mortgage",
-      "Comments": "Mortgage Interest",
-      "Status": "Active"
-    },
-    {
-      "Id": 951826,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Moving Charges",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1010782,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Moving Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 992042,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "MS Landscaping Credits",
-      "Comments": "NOT A REAL BANK ACCOUNT. Used to track payments for Adriano",
-      "Status": "Active"
-    },
-    {
-      "Id": 959102,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Non-operating plumbing income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 940527,
-      "Type": "Long Term Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Norton Park - Mortgage Liability",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "NSF Fee Income",
-      "Comments": "NSF Fee Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 13129,
-      "Type": "Equity",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Opening Balance Equity",
-      "Comments": "Opening Balance Equity",
-      "Status": "Active"
-    },
-    {
-      "Id": 13122,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Other Expenses",
-      "Comments": "Other Expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 264026,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Rental fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 274516,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Security to owner Account",
-      "Comments": "Owner to hold security",
-      "Status": "Active"
-    },
-    {
-      "Id": 845912,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Storage Fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13106,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Other Income",
-      "Comments": "Other Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 886110,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Open Receivable Income",
-      "Comments": "To Recognize Open Receivables",
-      "Status": "Active"
-    },
-    {
-      "Id": 10,
-      "Type": "Equity",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Owner Contribution",
-      "Comments": "Owner Contribution",
-      "Status": "Active"
-    },
-    {
-      "Id": 17,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Owner Contribution Convenience Fee Income",
-      "Comments": "Owner Contribution Convenience Fee",
-      "Status": "Active"
-    },
-    {
-      "Id": 843623,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Owner Distribution",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 11,
-      "Type": "Equity",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Owner Draw",
-      "Comments": "Owner Draw",
-      "Status": "Active"
-    },
-    {
-      "Id": 944046,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Owner Expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 944047,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Owner Expense - Income",
-      "Comments": "Owners paying back to Association",
-      "Status": "Active"
-    },
-    {
-      "Id": 847860,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Owner Held Deposits",
-      "Comments": "Dummy account for tenant security deposits that are in holding by their respective owner",
-      "Status": "Active"
-    },
-    {
-      "Id": 904389,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Owner Held Security Deposit Return Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 890463,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Painting",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 885066,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Painting income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 960387,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Parking Fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 943078,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Paving",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 685861,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Pet Fee Income",
-      "Comments": "Pet Fee",
-      "Status": "Active"
-    },
-    {
-      "Id": 1011103,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Plant Care",
-      "Comments": "For work related to plantings or plant care",
-      "Status": "Active"
-    },
-    {
-      "Id": 885062,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "PM Contract Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 989106,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Pond Maintenance",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 989107,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Pond Maintenance Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 900920,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Pool Service Contract",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 901559,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Pool Service Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 901989,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Portable Restroom Rental",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 885059,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Portable Restroom Rental Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 885058,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Postage income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 951664,
-      "Type": "Equity",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Preferred Distribution",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 741264,
-      "Type": "Current Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Prepaid Rent Liability",
-      "Comments": "Prepaid Rent Liability",
-      "Status": "Active"
-    },
-    {
-      "Id": 18,
-      "Type": "Current Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Prepayments",
-      "Comments": "Prepayments",
-      "Status": "Active"
-    },
-    {
-      "Id": 461896,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Property Inspection",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 372273,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "property reserve",
-      "Comments": "Birtwell Chse reserve account",
-      "Status": "Active"
-    },
-    {
-      "Id": 877664,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Pump Service",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 907041,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Pump Service - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1012299,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Referral Expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1012297,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Referral Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 582442,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Refund Credit (Expense)",
-      "Comments": "Refund Credit (Expense)",
-      "Status": "Active"
-    },
-    {
-      "Id": 582412,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Refund Credit Income",
-      "Comments": "Refund Credit",
-      "Status": "Active"
-    },
-    {
-      "Id": 1004127,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Regency Meadows (Money Market)",
-      "Comments": "JP Morgan account composed of investments for HOA.\nAcct#740-72303\n\nREGENCY MEADOWS AT TRUMBULL\nCONDOMINIUM ASSOCIATION INC\nATTN: PAMELA HANOVER",
-      "Status": "Active"
-    },
-    {
-      "Id": 1000497,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Regency Meadows (Operating)",
-      "Comments": "Chase Bank account used for operating expenses & collecting monthly HOA fees",
-      "Status": "Active"
-    },
-    {
-      "Id": 1004153,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Regency Meadows (Savings)",
-      "Comments": "Chase savings account used to reserve funds for HOA",
-      "Status": "Active"
-    },
-    {
-      "Id": 973810,
-      "Type": "Current Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Reimbursement",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 997084,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Reimbursement: Plantings Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 938337,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Renovations",
-      "Comments": "Categories for Blackrock renovations",
-      "Status": "Active"
-    },
-    {
-      "Id": 941567,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Appliances/materials/cabinetry(non-operating reno)",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 941570,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Architect/design work (non-operating reno)",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 941574,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Electrical (non-operating reno)",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 941575,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Flooring (non-operating reno)",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 941573,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Painting (non-operating reno)",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 941572,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Plumbing (non-operating reno)",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 3,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Rent Income",
-      "Comments": "Rent Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 16,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Renters Insurance Income",
-      "Comments": "Renters Insurance Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 587584,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Repairs (Management Fee)",
-      "Comments": "Repairs (Management Fee)",
-      "Status": "Active"
-    },
-    {
-      "Id": 13108,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Repairs Income",
-      "Comments": "Repairs Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 1022884,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 7200,
-      "Name": "Electrical Repairs Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1022883,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 7300,
-      "Name": "Plumbing Repairs Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 969033,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Resale Package Expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 935339,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Resale Package Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 882584,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Rescheduling Fee Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 842889,
-      "Type": "Long Term Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Reserve",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 958375,
-      "Type": "Current Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Residential Capital Reserve - Sono Maritime",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 959244,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Residential Income",
-      "Comments": "Sono Maritime",
-      "Status": "Active"
-    },
-    {
-      "Id": 961858,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Restore Wellness",
-      "Comments": "Security deposit for Restore Wellness store at 3 Riversville Rd\nColeman Account\nRiverside Bank and Trust",
-      "Status": "Active"
-    },
-    {
-      "Id": 9,
-      "Type": "Equity",
-      "Fund Type": "N/A",
-      "Number": "",
-      "Name": "Retained Earnings",
-      "Comments": "Retained Earnings / Year End Profit-Loss",
-      "Status": "Active"
-    },
-    {
-      "Id": 372820,
-      "Type": "Equity",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Chase reserve account",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 943179,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Retaining Wall",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 993286,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Returns",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 992192,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Roof Reserve Assesment",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 941569,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Roofing",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 898865,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sales Tax",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 898866,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sales Tax - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 938370,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "SBA LOAN",
-      "Comments": "Absolute Value Management Corp SBA Loan",
-      "Status": "Active"
-    },
-    {
-      "Id": 5,
-      "Type": "Current Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Security Deposit Liability",
-      "Comments": "Security Deposit Liability",
-      "Status": "Active"
-    },
-    {
-      "Id": 856747,
-      "Type": "Current Liability",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Owner Held Security Deposit",
-      "Comments": "Tenant deposits that are held by owner, NOT CLS",
-      "Status": "Active"
-    },
-    {
-      "Id": 937065,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Security deposits applied as credit at closing",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 139169,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Security returned",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 922886,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Septic Service",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 922887,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Septic Service - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 977406,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sewer Fee Income",
-      "Comments": "Sewer fee",
-      "Status": "Active"
-    },
-    {
-      "Id": 987577,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sherwood Farms Homeowners Association (Checking)",
-      "Comments": "Greenwich Bank & Trust\nChecking Account for Sherwood Farms",
-      "Status": "Active"
-    },
-    {
-      "Id": 985941,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sherwood Farms Owners Association (Reserve)",
-      "Comments": "Chase Bank - Used at reserve for Sherwood Farms Home Owner's Association",
-      "Status": "Active"
-    },
-    {
-      "Id": 976018,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Developer (Commercial)",
-      "Comments": "Expenses of the commercial units",
-      "Status": "Active"
-    },
-    {
-      "Id": 976135,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Dev Comm Garbage Collection",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976138,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Dev Comm Snow Removal",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 978588,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Developer (Commercial) Capital Reserve",
-      "Comments": "Developer Capital Reserve Charge",
-      "Status": "Active"
-    },
-    {
-      "Id": 958383,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Maritime - Operating (General)",
-      "Comments": "Wells Fargo",
-      "Status": "Active"
-    },
-    {
-      "Id": 976025,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Operating (General)",
-      "Comments": "Expenses of the entire building",
-      "Status": "Active"
-    },
-    {
-      "Id": 976140,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen Accounting",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976146,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen Alarm Response",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976141,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen Bank Fees",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976023,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen Fire & Security Alarm System",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976134,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen Insurance",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976184,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen Parking",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976144,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen Postage",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976180,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen Resale Package Fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976030,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen Rooter Service",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976175,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Op Gen State Filing Fees",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976136,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Parking",
-      "Comments": "Expenses of the parking garage",
-      "Status": "Active"
-    },
-    {
-      "Id": 976016,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Parking Permit Fees",
-      "Comments": "Monthly Parking Permit Fee Expense",
-      "Status": "Active"
-    },
-    {
-      "Id": 976026,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Residential",
-      "Comments": "Expenses of the residential units",
-      "Status": "Active"
-    },
-    {
-      "Id": 976024,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Res Building Repairs",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976142,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Res Cleaning",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976187,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Res Fire Extinguishers Service",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 976143,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Res Gas",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 978589,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sono Residential Capital Reserve",
-      "Comments": "Residential Capital Reserve Charge",
-      "Status": "Active"
-    },
-    {
-      "Id": 996477,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Special Assessment - Expense Reimbursement",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 966674,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Special Assessment - Insurance",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 961766,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Special Assessment - Lighting Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 964917,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Special Assessment - Loan Repayment",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 942870,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Special Assessment - Paving Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1002250,
-      "Type": "Non-operating Income",
-      "Fund Type": "Reserve",
-      "Number": "",
-      "Name": "Special Assessment - Reserve Replenishment",
-      "Comments": "Funds to replenish reserve account.",
-      "Status": "Active"
-    },
-    {
-      "Id": 941689,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Special Assessment - Roofing Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 998393,
-      "Type": "Non-operating Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Special Assessment - Stairs",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 933277,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Stockbridge Capital LLC - 0072",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 885053,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Storage Fee Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13126,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Supplies",
-      "Comments": "Supplies",
-      "Status": "Active"
-    },
-    {
-      "Id": 13127,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Taxes",
-      "Comments": "Taxes",
-      "Status": "Active"
-    },
-    {
-      "Id": 942577,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Interest on tax",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 554510,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Taxes Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 93158,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "TD Sec Dep Acct",
-      "Comments": "sec dep held",
-      "Status": "Active"
-    },
-    {
-      "Id": 648802,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Tenant Work Credit (expense)",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 648801,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Tenant Work Credit Income",
-      "Comments": "credit for tenants - allow mgmt fees collected",
-      "Status": "Active"
-    },
-    {
-      "Id": 917452,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Test Association Bank Account",
-      "Comments": "Test",
-      "Status": "Active"
-    },
-    {
-      "Id": 982211,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "The Crosswinds Condominium (Reserve) 8377",
-      "Comments": "Chase saving account ending x8377 for reserve funds",
-      "Status": "Active"
-    },
-    {
-      "Id": 976514,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "The Crosswinds Condominium Association Inc",
-      "Comments": "Checking account for the condo at 30 Glenbrook Rd, Stamford, CT 06902",
-      "Status": "Active"
-    },
-    {
-      "Id": 1011427,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Reserve",
-      "Number": "",
-      "Name": "The Crosswinds Condominium CD's (Reserve)",
-      "Comments": "Crosswinds CD's saving",
-      "Status": "Active"
-    },
-    {
-      "Id": 984060,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "The Elms of Greenwich",
-      "Comments": "Wells Fargo checking account for The Elms condo association",
-      "Status": "Active"
-    },
-    {
-      "Id": 1013742,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "The Landings Condominium Association",
-      "Comments": "M&T Bank\nAccount manager: Nektaria Kouginoumtzidis\n(203) 454-8411",
-      "Status": "Active"
-    },
-    {
-      "Id": 1020165,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "The Landings Condominium Association (Operating)",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 882418,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "The Ledges Checking",
-      "Comments": "292 Davis Avenue, Greenwich CT\nCondo Association \nDBA The Ledges Condominium Association \nGreenwich Bank and Trust Riverside",
-      "Status": "Active"
-    },
-    {
-      "Id": 882419,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "The Ledges Savings",
-      "Comments": "Reserve account for 292 Davis Avenue Condominium Inc\nDBA The Ledges Condominium Association\nGreenwich Bank and Trust Riverside",
-      "Status": "Active"
-    },
-    {
-      "Id": 981051,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "towing",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 2,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "N/A",
-      "Number": "",
-      "Name": "Undeposited Funds",
-      "Comments": "Undeposited Funds",
-      "Status": "Active"
-    },
-    {
-      "Id": 962411,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Violation Fine - Expense",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 881296,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Wardwell Manor Association",
-      "Comments": "Bankwell Bank",
-      "Status": "Active"
-    },
-    {
-      "Id": 893285,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Wardwell Reserve",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 914769,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Wash/Dry",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 914770,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Wash/Dry - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 970412,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "water damage remediation",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1005507,
-      "Type": "Non-operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Water pipe leak",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 881454,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Water Treatment",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 988987,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Weaver Street Condominium",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 933293,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Willow Park Partners LLC - 2262 Capex",
-      "Comments": "2nd bank account for 113-115 Park Ave owners to use",
-      "Status": "Active"
-    },
-    {
-      "Id": 930613,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Willow Park Partners LLC - 2950 Savings",
-      "Comments": "113-115 Park Ave tenant security deposit account",
-      "Status": "Active"
-    },
-    {
-      "Id": 927588,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Willow Park Partners LLC - 4837 Checking",
-      "Comments": "Bank account for Park Ave apts in Danbury",
-      "Status": "Active"
-    },
-    {
-      "Id": 948738,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Willow Park Partners LLC - 6414 Reserves",
-      "Comments": "Berkshire Bank - Reserve account for 113-115 Park Ave",
-      "Status": "Active"
-    },
-    {
-      "Id": 1020394,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Yearly Tip",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1004170,
-      "Type": "Equity",
-      "Fund Type": "Reserve",
-      "Number": 1301,
-      "Name": "Money Market Account - 2303",
-      "Comments": "Used to track funds allocated to reserve accounts",
-      "Status": "Active"
-    },
-    {
-      "Id": 1004171,
-      "Type": "Equity",
-      "Fund Type": "Reserve",
-      "Number": 1501,
-      "Name": "Savings Account - 3201",
-      "Comments": "Used to track funds allocated to reserve accounts",
-      "Status": "Active"
-    },
-    {
-      "Id": 13109,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 2001,
-      "Name": "Utilities - Income",
-      "Comments": "Utility Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 1008342,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 2005,
-      "Name": "Utilities: Water - Income",
-      "Comments": "Income for water charges",
-      "Status": "Active"
-    },
-    {
-      "Id": 1012688,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 2006,
-      "Name": "Utilities: Heating Oil - Income",
-      "Comments": "Income for heating oil charges",
-      "Status": "Active"
-    },
-    {
-      "Id": 1012689,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 2007,
-      "Name": "Utilities: Propane - Income",
-      "Comments": "Income for propane charges",
-      "Status": "Active"
-    },
-    {
-      "Id": 13128,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 2100,
-      "Name": "Utilities",
-      "Comments": "Utilities",
-      "Status": "Active"
-    },
-    {
-      "Id": 332552,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 2200,
-      "Name": "Utilities: Electric",
-      "Comments": "Electric utility expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 434836,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 2300,
-      "Name": "Utilities: Gas",
-      "Comments": "Gas utility expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 934485,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 2400,
-      "Name": "Utilities: Internet",
-      "Comments": "Internet utility expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 332553,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 2500,
-      "Name": "Utilities: Water",
-      "Comments": "Water utility expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 307547,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 2600,
-      "Name": "Utilities: Heating Oil",
-      "Comments": "Heating oil utility expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 854101,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 2700,
-      "Name": "Utilities: Propane",
-      "Comments": "Propane utility expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 647468,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 2800,
-      "Name": "Utilities: Sewer",
-      "Comments": "Sewer utility expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 884603,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 2900,
-      "Name": "Utilities: Phone",
-      "Comments": "Phone services utility expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 4,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4000,
-      "Name": "Association Fee Income - HOA",
-      "Comments": "Association Fee Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 960534,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4003,
-      "Name": "Association Fee - Rental Surcharge Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13103,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4005,
-      "Name": "Interest Income",
-      "Comments": "Interest Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 13107,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4010,
-      "Name": "Parking Income",
-      "Comments": "Parking Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 8,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4020,
-      "Name": "Late Fee Income",
-      "Comments": "Late Fee Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 13104,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4030,
-      "Name": "Laundry Income",
-      "Comments": "Laundry Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 952632,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4040,
-      "Name": "Move-in/Move out fee Income",
-      "Comments": "Fee for Crosswinds moving",
-      "Status": "Active"
-    },
-    {
-      "Id": 931354,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4050,
-      "Name": "Violation Fine Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 947635,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4070,
-      "Name": "Locksmith income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13111,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 4100,
-      "Name": "Association Fees",
-      "Comments": "Homeowners Association Fees",
-      "Status": "Active"
-    },
-    {
-      "Id": 13123,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 4500,
-      "Name": "Other Interest Expense",
-      "Comments": "Other Interest Expense",
-      "Status": "Active"
-    },
-    {
-      "Id": 1014429,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 4600,
-      "Name": "Security Deposit Interest",
-      "Comments": "Represents interest income when returning a security deposit",
-      "Status": "Active"
-    },
-    {
-      "Id": 1011420,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 4740,
-      "Name": "Owners Reimbursement",
-      "Comments": "Owners paying back to Association",
-      "Status": "Active"
-    },
-    {
-      "Id": 563573,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 5001,
-      "Name": "Management Fee Income",
-      "Comments": "Management Fee",
-      "Status": "Active"
-    },
-    {
-      "Id": 1012684,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 5002,
-      "Name": "Project Management Fee - Income",
-      "Comments": "income for project management fees",
-      "Status": "Active"
-    },
-    {
-      "Id": 838991,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 5003,
-      "Name": "Man Hours Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13120,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 5100,
-      "Name": "Management Fees",
-      "Comments": "Management Fees",
-      "Status": "Active"
-    },
-    {
-      "Id": 1012332,
-      "Type": "Current Asset (cash)",
-      "Fund Type": "Operating",
-      "Number": 5200,
-      "Name": "Project Management Fee",
-      "Comments": "Management fee paid to AVMRE for managing ongoing work/project(s)",
-      "Status": "Active"
-    },
-    {
-      "Id": 855176,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 5300,
-      "Name": "Man Hours",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1013444,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 5900,
-      "Name": "Pool Service/Repairs",
-      "Comments": "Used for repairs or pool services",
-      "Status": "Active"
-    },
-    {
-      "Id": 1014335,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6000,
-      "Name": "Grounds Maintenance",
-      "Comments": "All Fees Related to Landscaping, Tree Work, Misc., & Misc. Grounds Work Expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 13117,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6010,
-      "Name": "Landscaping",
-      "Comments": "Additional/ Extra Expenses for Landscaping",
-      "Status": "Active"
-    },
-    {
-      "Id": 1006176,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6011,
-      "Name": "Landscaping Contract",
-      "Comments": "for budgeted landscaping costs",
-      "Status": "Active"
-    },
-    {
-      "Id": 849826,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6020,
-      "Name": "Snow Removal",
-      "Comments": "Additional/ Extra expenses for snow removal",
-      "Status": "Active"
-    },
-    {
-      "Id": 1021896,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6021,
-      "Name": "Snow Removal Contract",
-      "Comments": "For budgeted snow removal costs",
-      "Status": "Active"
-    },
-    {
-      "Id": 877665,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6030,
-      "Name": "Irrigation/ Drainage",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1006178,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6040,
-      "Name": "Tree Maintenance",
-      "Comments": "tree removal/maintenance",
-      "Status": "Active"
-    },
-    {
-      "Id": 1004042,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6070,
-      "Name": "Paving/ Road Maintenance",
-      "Comments": "Road Repair Expenses",
-      "Status": "Active"
-    },
-    {
-      "Id": 1014339,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6080,
-      "Name": "Pest Control",
-      "Comments": "REGENCY MEADOWS: Lawn treatment for pest & misc.",
-      "Status": "Active"
-    },
-    {
-      "Id": 990436,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6090,
-      "Name": "Power Washing",
-      "Comments": "Power Washing",
-      "Status": "Active"
-    },
-    {
-      "Id": 843599,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 6001,
-      "Name": "Landscaping Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 559577,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 6002,
-      "Name": "Snow Removal - Income",
-      "Comments": "Snow Removal",
-      "Status": "Active"
-    },
-    {
-      "Id": 885061,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 6003,
-      "Name": "Irrigation/ Drainage - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1014336,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 6004,
-      "Name": "Tree Maintenance - Income",
-      "Comments": "Income for Tree Work",
-      "Status": "Active"
-    },
-    {
-      "Id": 1004032,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 6007,
-      "Name": "Paving/Road Maintenance - Income",
-      "Comments": "Road Repair Income",
-      "Status": "Active"
-    },
-    {
-      "Id": 1014338,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 6008,
-      "Name": "Pest Control - Income",
-      "Comments": "REGENCY MEADOWS: Lawn treatment for pest & misc.",
-      "Status": "Active"
-    },
-    {
-      "Id": 1014340,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 6009,
-      "Name": "Power Washing - Income",
-      "Comments": "Power Washing",
-      "Status": "Active"
-    },
-    {
-      "Id": 273768,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6100,
-      "Name": "Extermination",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13116,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6200,
-      "Name": "Insurance",
-      "Comments": "Insurance",
-      "Status": "Active"
-    },
-    {
-      "Id": 13118,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6300,
-      "Name": "Legal and Professional Fees",
-      "Comments": "Legal and Professional Fees",
-      "Status": "Active"
-    },
-    {
-      "Id": 990437,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6310,
-      "Name": "Tax Filing/ Tax Return fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 992716,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6320,
-      "Name": "Annual Report Filing",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13124,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6330,
-      "Name": "Postage and Delivery",
-      "Comments": "Postage and Delivery",
-      "Status": "Active"
-    },
-    {
-      "Id": 854698,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6400,
-      "Name": "Elevator Service Contract",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1021034,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6410,
-      "Name": "Elevator Certification",
-      "Comments": "Used for Commercial Elevator Certifications",
-      "Status": "Active"
-    },
-    {
-      "Id": 340043,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6500,
-      "Name": "Business Expenses",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 340047,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Entertainment",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 855045,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "IT Support",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 340046,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Marketing",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 340050,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Misc",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 340048,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Office Supplies",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 340045,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Travel",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1022772,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6501,
-      "Name": "Business Expense: Gas",
-      "Comments": "Gas expenses for company vehicles related to business operations",
-      "Status": "Active"
-    },
-    {
-      "Id": 340044,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6510,
-      "Name": "Payroll",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 990401,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6520,
-      "Name": "Payroll Tax",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1011279,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6530,
-      "Name": "Payroll Fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1011576,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6540,
-      "Name": "Worker's Compensation",
-      "Comments": "WC Insurance",
-      "Status": "Active"
-    },
-    {
-      "Id": 1011280,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6550,
-      "Name": "Health Insurance",
-      "Comments": "Super Health Insurance",
-      "Status": "Active"
-    },
-    {
-      "Id": 1013179,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6560,
-      "Name": "Property Tax",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1011570,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6600,
-      "Name": "Intercom/ Butterfly",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 434943,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6610,
-      "Name": "Alarm service",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 891008,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6620,
-      "Name": "Security System",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 974791,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6630,
-      "Name": "Fire extinguisher service",
-      "Comments": "Extinguisher service",
-      "Status": "Active"
-    },
-    {
-      "Id": 967453,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6640,
-      "Name": "Fire & Security Monitoring",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13113,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6800,
-      "Name": "Cleaning & Maintenance",
-      "Comments": "Cleaning and Maintenance",
-      "Status": "Active"
-    },
-    {
-      "Id": 846901,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6810,
-      "Name": "Materials",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 854026,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Appliances",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 274938,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 6820,
-      "Name": "Rental Fee",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13125,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 7000,
-      "Name": "Repairs",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 900204,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Carpentry Repairs",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 541902,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Repair materials",
-      "Comments": "Materials for repair work",
-      "Status": "Active"
-    },
-    {
-      "Id": 877663,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Sewer Emergency Repairs",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 990371,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 7010,
-      "Name": "Boiler Repairs",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 900201,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 7020,
-      "Name": "Electrical Repairs",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 900202,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 7030,
-      "Name": "Plumbing Repairs",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1013183,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 7040,
-      "Name": "Roof repair",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 967451,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 7050,
-      "Name": "HVAC Repairs",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1013022,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 7005,
-      "Name": "Engineering - Income",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 945021,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 7400,
-      "Name": "Repair/rooter service/sewer/drain clean out",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 940276,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 7500,
-      "Name": "Engineering",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 13119,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 7510,
-      "Name": "Licenses and Permits",
-      "Comments": "Licenses and Permits",
-      "Status": "Active"
-    },
-    {
-      "Id": 1013173,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": 8000,
-      "Name": "CAPITAL PROJECTS",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1013175,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Heating system",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1013174,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Parking Lot",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1013176,
-      "Type": "Operating Expense",
-      "Fund Type": "Operating",
-      "Number": "",
-      "Name": "Roof",
-      "Comments": "",
-      "Status": "Active"
-    },
-    {
-      "Id": 1006540,
-      "Type": "Income",
-      "Fund Type": "Operating",
-      "Number": 9001,
-      "Name": "Fire & Security Monitoring - Income",
-      "Comments": "",
-      "Status": "Active"
-    }
-  ]
+  {
+    "Id": 964451,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "30 Elmcroft Condominium Association Inc - Checking",
+    "Comments": "Checking account for the condo at 30 Elmcroft Road in Stamford\nWells Fargo",
+    "Status": "Active"
+  },
+  {
+    "Id": 972423,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "40 Haviland Insurance",
+    "Comments": "Account to track insurance payments for 40 Haviland Road repairs",
+    "Status": "Active"
+  },
+  {
+    "Id": 973245,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "88 Maple Tree Condominium Association",
+    "Comments": "Wells Fargo Account used as the operating account for 88 Maple Tree Condominum",
+    "Status": "Active"
+  },
+  {
+    "Id": 1021781,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "7100 Dryer Vent",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 900205,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "A/V Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 900203,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "A/V Work",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1002745,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Access Easement",
+    "Comments": "Stillman Court - Access Easement - (1,3,5,7 - Stillman)",
+    "Status": "Active"
+  },
+  {
+    "Id": 7,
+    "Type": "Current Liability",
+    "Fund Type": "N/A",
+    "Number": "",
+    "Name": "Accounts Payable",
+    "Comments": "Accounts Payable",
+    "Status": "Active"
+  },
+  {
+    "Id": 1,
+    "Type": "Current Asset",
+    "Fund Type": "N/A",
+    "Number": "",
+    "Name": "Accounts Receivable",
+    "Comments": "Accounts Receivable",
+    "Status": "Active"
+  },
+  {
+    "Id": 960957,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "ADOW Pools Loan",
+    "Comments": "Money owed to AVM by Adow Pools (Bob Adow)",
+    "Status": "Active"
+  },
+  {
+    "Id": 13110,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Advertising",
+    "Comments": "Advertising",
+    "Status": "Active"
+  },
+  {
+    "Id": 882775,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Alarm Service Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 880085,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Application Fee",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 12,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Application Fee Income",
+    "Comments": "Application Fee Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 871581,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Appraisal",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 872411,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Appraisal Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1001510,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Architect Work",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 969500,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "AT&T income",
+    "Comments": "AT&T rooftop",
+    "Status": "Active"
+  },
+  {
+    "Id": 13112,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Auto and Travel",
+    "Comments": "Auto and Travel",
+    "Status": "Active"
+  },
+  {
+    "Id": 969057,
+    "Type": "Long Term Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Auto Loan",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 908577,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "AVMRE Management Account",
+    "Comments": "Use for Concierge and Company expenses",
+    "Status": "Active"
+  },
+  {
+    "Id": 977409,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Balance forward Income",
+    "Comments": "Balance outstanding",
+    "Status": "Active"
+  },
+  {
+    "Id": 14,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Bank Fees",
+    "Comments": "Bank Fees",
+    "Status": "Active"
+  },
+  {
+    "Id": 993291,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Basin Cleaning",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 940526,
+    "Type": "Long Term Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Blackrock - Mortgage Liability",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1004495,
+    "Type": "Current Asset",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Capital Improvement",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 919207,
+    "Type": "Current Liability",
+    "Fund Type": "Reserve",
+    "Number": "",
+    "Name": "CD Account",
+    "Comments": "For Reserve Funds That Are Invested In To Short Term Certificates Of Deposits",
+    "Status": "Active"
+  },
+  {
+    "Id": 13105,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Cleaning & Maintenance Income",
+    "Comments": "Cleaning and Maint Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 590651,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "CLS Group LLC",
+    "Comments": "Brokerage account for all rent collections",
+    "Status": "Active"
+  },
+  {
+    "Id": 970674,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "CLS Group LLC (High-Yield Savings)",
+    "Comments": "Used a operating account Security Deposit Savings for CLS Group",
+    "Status": "Active"
+  },
+  {
+    "Id": 593262,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "CLS Group LLC - (legacy Security Deposit acct)",
+    "Comments": "Dec 2024: This account is now for Willow Park Security Deposits (113-115 Park Ave.)",
+    "Status": "Active"
+  },
+  {
+    "Id": 690100,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "CLS Group Management",
+    "Comments": "This bank account is used to track CLS Group Management",
+    "Status": "Active"
+  },
+  {
+    "Id": 610241,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Coleman Properties LLC",
+    "Comments": "This account is used to track all of the Coleman properties.",
+    "Status": "Active"
+  },
+  {
+    "Id": 839854,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Commission Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13114,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Commissions",
+    "Comments": "Rental Commissions",
+    "Status": "Active"
+  },
+  {
+    "Id": 924463,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Common Area Repairs - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 924462,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Common Area Repairs - Non-Operating Expense",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 933205,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Convenience Fee Expense",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 15,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Convenience Fee Income",
+    "Comments": "Convenience Fee",
+    "Status": "Active"
+  },
+  {
+    "Id": 642075,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Credit Card Purchases",
+    "Comments": "This account is only used to track credit card purchases",
+    "Status": "Active"
+  },
+  {
+    "Id": 642077,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Credit Card Tracking",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 847859,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Deposit Transfer",
+    "Comments": "For transferring tenant security deposit to owner to hold",
+    "Status": "Active"
+  },
+  {
+    "Id": 13115,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Depreciation Expense",
+    "Comments": "Depreciation Expense",
+    "Status": "Active"
+  },
+  {
+    "Id": 895935,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Design",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1002678,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Design Review Board - Expense",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 996883,
+    "Type": "Long Term Liability",
+    "Fund Type": "Reserve",
+    "Number": "",
+    "Name": "Design Review Board Deposit",
+    "Comments": "Account used for Sherwood Farms HOA owner deposits",
+    "Status": "Active"
+  },
+  {
+    "Id": 996959,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Design Review Board Deposit - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 958378,
+    "Type": "Current Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Developer Capital Reserve Charge - Sono Maritime",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 959245,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Developer Income",
+    "Comments": "Sono Maritime",
+    "Status": "Active"
+  },
+  {
+    "Id": 990451,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Dolce Credt",
+    "Comments": "THIS IS NOT A REAL BANK ACCOUNT. Used to tracked monies owed to AVMRE by Dolce.",
+    "Status": "Active"
+  },
+  {
+    "Id": 937890,
+    "Type": "Equity",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Donation",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1002328,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Donations",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 996971,
+    "Type": "Equity",
+    "Fund Type": "Reserve",
+    "Number": "",
+    "Name": "DRB Deposit",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 999726,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Dryer Vent",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 460516,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Dummy Account",
+    "Comments": "Used for not literal transactions",
+    "Status": "Active"
+  },
+  {
+    "Id": 1006763,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Eastport Ridges Association Inc. (Checking)",
+    "Comments": "First County Bank used for operating expenses for Eastport Ridges Association Inc.\nChunli Yu & Rafael Panyno are signers",
+    "Status": "Active"
+  },
+  {
+    "Id": 986239,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Electric Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1014558,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Electrical Vehicle Fee",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 851090,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Elevator Maintenance Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1003345,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Emergency",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 908559,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Ernesto D'Onofrio",
+    "Comments": "571 Cheese Spring Road security deposit",
+    "Status": "Active"
+  },
+  {
+    "Id": 879110,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Extermination income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 959252,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Fencing",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 968284,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Forest Square Condominiums Inc",
+    "Comments": "Wells Fargo",
+    "Status": "Active"
+  },
+  {
+    "Id": 969989,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Forest Square Condominiums Inc. Savings",
+    "Comments": "This is a savings reserve account.",
+    "Status": "Active"
+  },
+  {
+    "Id": 255633,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Garbage collection",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 885054,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Garbage Removal Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 415069,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "GBT Management Account",
+    "Comments": "GBT Management Account",
+    "Status": "Active"
+  },
+  {
+    "Id": 959023,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "General Income",
+    "Comments": "Sono Maritime",
+    "Status": "Active"
+  },
+  {
+    "Id": 877667,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Generator Service",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 909043,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Generator Service - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 865351,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Grocery Invoice",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 865350,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Grocery Invoice - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 970320,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Gutter Maintenance",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1004047,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Gutter Maintenance - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 914471,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Hamilton Green GBT Checking",
+    "Comments": "Hamilton Green Condominium at Greenwich Bank and Trust\nSigners are Pat, Luz, and Paul",
+    "Status": "Active"
+  },
+  {
+    "Id": 840898,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Harbor House",
+    "Comments": "165 Shore Road, Harbor House Association Wells Fargo Account",
+    "Status": "Active"
+  },
+  {
+    "Id": 852834,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Reserve",
+    "Number": "",
+    "Name": "Harbor House Reserve",
+    "Comments": "Reserve account for Harbor House Association",
+    "Status": "Active"
+  },
+  {
+    "Id": 1010047,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Hawley Commons (Checking)",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1017209,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "HOA - Air Bleeder",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1017913,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "HOA - New Toilet",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1017816,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "HOA - Thermostat",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1017208,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "HOA - Valve Replacement",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1017815,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "HOA - Zone Valve",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 928209,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Hold Over Charge Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 719959,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "HRE",
+    "Comments": "HRE",
+    "Status": "Active"
+  },
+  {
+    "Id": 97206,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Hud payment Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 841147,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "HVAC Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 345044,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "HVAC: Service Agreement",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1006542,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "HVAC: Service Agreement - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 927842,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Imperial Condominiums",
+    "Comments": "49 Stuart Ave, Norwalk association bank account\nChase Bank",
+    "Status": "Active"
+  },
+  {
+    "Id": 947036,
+    "Type": "Long Term Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Indian Harbor Condo - Patriot Loan",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 963444,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Indian Harbor Condominium Association",
+    "Comments": "Chase Bank\nThis is the second account after original was closed",
+    "Status": "Active"
+  },
+  {
+    "Id": 947026,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Indian Harbor Condominium Old Checking",
+    "Comments": "25 Indian Harbor, Greenwich - condo checking account located at Chase Bank",
+    "Status": "Active"
+  },
+  {
+    "Id": 976201,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Initial Bank Deposit",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 386369,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Inspection Fee",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 386370,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Inspection Fee Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 876239,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Insurance Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 942842,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Insurance pay-out",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 908570,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Jhonnier Ortiz Alvarez",
+    "Comments": "113 South Water St #1 security deposit",
+    "Status": "Active"
+  },
+  {
+    "Id": 908568,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Jose Mendoza",
+    "Comments": "113 South Water St #6 security deposit",
+    "Status": "Active"
+  },
+  {
+    "Id": 845166,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Labor",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 921099,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Labor - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 19,
+    "Type": "Current Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Last Month's Rent",
+    "Comments": "Last Month's Rent",
+    "Status": "Active"
+  },
+  {
+    "Id": 951076,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Legal and Professional Fees - Capital Expense",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 841966,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Legal Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 914545,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Licenses and Permits - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 967045,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Loan interest",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 971735,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Loan Payment",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 971736,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Loan payment",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 967046,
+    "Type": "Current Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Loan principal",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 848344,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Lock-out Fee Income",
+    "Comments": "Lock-out Fee Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 900832,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Locksmith",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 966236,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Mason",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 990301,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Masonry",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 838990,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Materials Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 378316,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Misc",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1006177,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Misc Landscaping",
+    "Comments": "for non-budget and emergency landscaping costs",
+    "Status": "Active"
+  },
+  {
+    "Id": 13121,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Mortgage",
+    "Comments": "Mortgage Interest",
+    "Status": "Active"
+  },
+  {
+    "Id": 951826,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Moving Charges",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1010782,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Moving Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 959102,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Non-operating plumbing income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 940527,
+    "Type": "Long Term Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Norton Park - Mortgage Liability",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "NSF Fee Income",
+    "Comments": "NSF Fee Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 13129,
+    "Type": "Equity",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Opening Balance Equity",
+    "Comments": "Opening Balance Equity",
+    "Status": "Active"
+  },
+  {
+    "Id": 13122,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Other Expenses",
+    "Comments": "Other Expenses",
+    "Status": "Active"
+  },
+  {
+    "Id": 264026,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Rental fee",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13106,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Other Income",
+    "Comments": "Other Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 10,
+    "Type": "Equity",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Owner Contribution",
+    "Comments": "Owner Contribution",
+    "Status": "Active"
+  },
+  {
+    "Id": 17,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Owner Contribution Convenience Fee Income",
+    "Comments": "Owner Contribution Convenience Fee",
+    "Status": "Active"
+  },
+  {
+    "Id": 843623,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Owner Distribution",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 11,
+    "Type": "Equity",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Owner Draw",
+    "Comments": "Owner Draw",
+    "Status": "Active"
+  },
+  {
+    "Id": 944046,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Owner Expense",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 944047,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Owner Expense - Income",
+    "Comments": "Owners paying back to Association",
+    "Status": "Active"
+  },
+  {
+    "Id": 847860,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Owner Held Deposits",
+    "Comments": "Dummy account for tenant security deposits that are in holding by their respective owner",
+    "Status": "Active"
+  },
+  {
+    "Id": 904389,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Owner Held Security Deposit Return Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 890463,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Painting",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 885066,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Painting income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 960387,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Parking Fee",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 943078,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Paving",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 685861,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Pet Fee Income",
+    "Comments": "Pet Fee",
+    "Status": "Active"
+  },
+  {
+    "Id": 1011103,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Plant Care",
+    "Comments": "For work related to plantings or plant care",
+    "Status": "Active"
+  },
+  {
+    "Id": 885062,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "PM Contract Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 989106,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Pond Maintenance",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 989107,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Pond Maintenance Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 900920,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Pool Service Contract",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 901559,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Pool Service Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 901989,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Portable Restroom Rental",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 885059,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Portable Restroom Rental Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 885058,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Postage income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 951664,
+    "Type": "Equity",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Preferred Distribution",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 741264,
+    "Type": "Current Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Prepaid Rent Liability",
+    "Comments": "Prepaid Rent Liability",
+    "Status": "Active"
+  },
+  {
+    "Id": 18,
+    "Type": "Current Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Prepayments",
+    "Comments": "Prepayments",
+    "Status": "Active"
+  },
+  {
+    "Id": 461896,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Property Inspection",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 372273,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "property reserve",
+    "Comments": "Birtwell Chse reserve account",
+    "Status": "Active"
+  },
+  {
+    "Id": 877664,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Pump Service",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 907041,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Pump Service - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1012299,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Referral Expense",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1012297,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Referral Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 582442,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Refund Credit (Expense)",
+    "Comments": "Refund Credit (Expense)",
+    "Status": "Active"
+  },
+  {
+    "Id": 582412,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Refund Credit Income",
+    "Comments": "Refund Credit",
+    "Status": "Active"
+  },
+  {
+    "Id": 1004127,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Regency Meadows (Money Market)",
+    "Comments": "JP Morgan account composed of investments for HOA.\nAcct#740-72303\n\nREGENCY MEADOWS AT TRUMBULL\nCONDOMINIUM ASSOCIATION INC\nATTN: PAMELA HANOVER",
+    "Status": "Active"
+  },
+  {
+    "Id": 1000497,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Regency Meadows (Operating)",
+    "Comments": "Chase Bank account used for operating expenses & collecting monthly HOA fees",
+    "Status": "Active"
+  },
+  {
+    "Id": 1004153,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Regency Meadows (Savings)",
+    "Comments": "Chase savings account used to reserve funds for HOA",
+    "Status": "Active"
+  },
+  {
+    "Id": 973810,
+    "Type": "Current Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Reimbursement",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 997084,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Reimbursement: Plantings Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 938337,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Renovations",
+    "Comments": "Categories for Blackrock renovations",
+    "Status": "Active"
+  },
+  {
+    "Id": 3,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Rent Income",
+    "Comments": "Rent Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 16,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Renters Insurance Income",
+    "Comments": "Renters Insurance Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 587584,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Repairs (Management Fee)",
+    "Comments": "Repairs (Management Fee)",
+    "Status": "Active"
+  },
+  {
+    "Id": 13108,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Repairs Income",
+    "Comments": "Repairs Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 969033,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Resale Package Expense",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 935339,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Resale Package Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 882584,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Rescheduling Fee Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 842889,
+    "Type": "Long Term Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Reserve",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 958375,
+    "Type": "Current Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Residential Capital Reserve - Sono Maritime",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 959244,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Residential Income",
+    "Comments": "Sono Maritime",
+    "Status": "Active"
+  },
+  {
+    "Id": 961858,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Restore Wellness",
+    "Comments": "Security deposit for Restore Wellness store at 3 Riversville Rd\nColeman Account\nRiverside Bank and Trust",
+    "Status": "Active"
+  },
+  {
+    "Id": 9,
+    "Type": "Equity",
+    "Fund Type": "N/A",
+    "Number": "",
+    "Name": "Retained Earnings",
+    "Comments": "Retained Earnings / Year End Profit-Loss",
+    "Status": "Active"
+  },
+  {
+    "Id": 943179,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Retaining Wall",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 993286,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Returns",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 992192,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Roof Reserve Assesment",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 941569,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Roofing",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 898865,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sales Tax",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 898866,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sales Tax - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 938370,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "SBA LOAN",
+    "Comments": "Absolute Value Management Corp SBA Loan",
+    "Status": "Active"
+  },
+  {
+    "Id": 5,
+    "Type": "Current Liability",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Security Deposit Liability",
+    "Comments": "Security Deposit Liability",
+    "Status": "Active"
+  },
+  {
+    "Id": 937065,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Security deposits applied as credit at closing",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 139169,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Security returned",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 922886,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Septic Service",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 922887,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Septic Service - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 977406,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sewer Fee Income",
+    "Comments": "Sewer fee",
+    "Status": "Active"
+  },
+  {
+    "Id": 987577,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sherwood Farms Homeowners Association (Checking)",
+    "Comments": "Greenwich Bank & Trust\nChecking Account for Sherwood Farms",
+    "Status": "Active"
+  },
+  {
+    "Id": 985941,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sherwood Farms Owners Association (Reserve)",
+    "Comments": "Chase Bank - Used at reserve for Sherwood Farms Home Owner's Association",
+    "Status": "Active"
+  },
+  {
+    "Id": 976018,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sono Developer (Commercial)",
+    "Comments": "Expenses of the commercial units",
+    "Status": "Active"
+  },
+  {
+    "Id": 978588,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sono Developer (Commercial) Capital Reserve",
+    "Comments": "Developer Capital Reserve Charge",
+    "Status": "Active"
+  },
+  {
+    "Id": 976025,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sono Operating (General)",
+    "Comments": "Expenses of the entire building",
+    "Status": "Active"
+  },
+  {
+    "Id": 976136,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sono Parking",
+    "Comments": "Expenses of the parking garage",
+    "Status": "Active"
+  },
+  {
+    "Id": 976026,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sono Residential",
+    "Comments": "Expenses of the residential units",
+    "Status": "Active"
+  },
+  {
+    "Id": 978589,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Sono Residential Capital Reserve",
+    "Comments": "Residential Capital Reserve Charge",
+    "Status": "Active"
+  },
+  {
+    "Id": 996477,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Special Assessment - Expense Reimbursement",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 966674,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Special Assessment - Insurance",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 961766,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Special Assessment - Lighting Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 964917,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Special Assessment - Loan Repayment",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 942870,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Special Assessment - Paving Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1002250,
+    "Type": "Non-operating Income",
+    "Fund Type": "Reserve",
+    "Number": "",
+    "Name": "Special Assessment - Reserve Replenishment",
+    "Comments": "Funds to replenish reserve account.",
+    "Status": "Active"
+  },
+  {
+    "Id": 941689,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Special Assessment - Roofing Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 998393,
+    "Type": "Non-operating Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Special Assessment - Stairs",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 885053,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Storage Fee Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13126,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Supplies",
+    "Comments": "Supplies",
+    "Status": "Active"
+  },
+  {
+    "Id": 13127,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Taxes",
+    "Comments": "Taxes",
+    "Status": "Active"
+  },
+  {
+    "Id": 554510,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Taxes Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 93158,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "TD Sec Dep Acct",
+    "Comments": "sec dep held",
+    "Status": "Active"
+  },
+  {
+    "Id": 648802,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Tenant Work Credit (expense)",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 648801,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Tenant Work Credit Income",
+    "Comments": "credit for tenants - allow mgmt fees collected",
+    "Status": "Active"
+  },
+  {
+    "Id": 917452,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Test Association Bank Account",
+    "Comments": "Test",
+    "Status": "Active"
+  },
+  {
+    "Id": 982211,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "The Crosswinds Condominium (Reserve) 8377",
+    "Comments": "Chase saving account ending x8377 for reserve funds",
+    "Status": "Active"
+  },
+  {
+    "Id": 976514,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "The Crosswinds Condominium Association Inc",
+    "Comments": "Checking account for the condo at 30 Glenbrook Rd, Stamford, CT 06902",
+    "Status": "Active"
+  },
+  {
+    "Id": 1011427,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Reserve",
+    "Number": "",
+    "Name": "The Crosswinds Condominium CD's (Reserve)",
+    "Comments": "Crosswinds CD's saving",
+    "Status": "Active"
+  },
+  {
+    "Id": 984060,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "The Elms of Greenwich",
+    "Comments": "Wells Fargo checking account for The Elms condo association",
+    "Status": "Active"
+  },
+  {
+    "Id": 1013742,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "The Landings Condominium Association",
+    "Comments": "M&T Bank\nAccount manager: Nektaria Kouginoumtzidis\n(203) 454-8411",
+    "Status": "Active"
+  },
+  {
+    "Id": 1020165,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "The Landings Condominium Association (Operating)",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 882418,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "The Ledges Checking",
+    "Comments": "292 Davis Avenue, Greenwich CT\nCondo Association \nDBA The Ledges Condominium Association \nGreenwich Bank and Trust Riverside",
+    "Status": "Active"
+  },
+  {
+    "Id": 882419,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "The Ledges Savings",
+    "Comments": "Reserve account for 292 Davis Avenue Condominium Inc\nDBA The Ledges Condominium Association\nGreenwich Bank and Trust Riverside",
+    "Status": "Active"
+  },
+  {
+    "Id": 981051,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "towing",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 2,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "N/A",
+    "Number": "",
+    "Name": "Undeposited Funds",
+    "Comments": "Undeposited Funds",
+    "Status": "Active"
+  },
+  {
+    "Id": 962411,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Violation Fine - Expense",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 881296,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Wardwell Manor Association",
+    "Comments": "Bankwell Bank",
+    "Status": "Active"
+  },
+  {
+    "Id": 893285,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Wardwell Reserve",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 914769,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Wash/Dry",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 914770,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Wash/Dry - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 970412,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "water damage remediation",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1005507,
+    "Type": "Non-operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Water pipe leak",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 881454,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Water Treatment",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 988987,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Weaver Street Condominium",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1020394,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Yearly Tip",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1004170,
+    "Type": "Equity",
+    "Fund Type": "Reserve",
+    "Number": 1301,
+    "Name": "Money Market Account - 2303",
+    "Comments": "Used to track funds allocated to reserve accounts",
+    "Status": "Active"
+  },
+  {
+    "Id": 1004171,
+    "Type": "Equity",
+    "Fund Type": "Reserve",
+    "Number": 1501,
+    "Name": "Savings Account - 3201",
+    "Comments": "Used to track funds allocated to reserve accounts",
+    "Status": "Active"
+  },
+  {
+    "Id": 13109,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 2001,
+    "Name": "Utilities - Income",
+    "Comments": "Utility Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 13128,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 2100,
+    "Name": "Utilities",
+    "Comments": "Utilities",
+    "Status": "Active"
+  },
+  {
+    "Id": 4,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4000,
+    "Name": "Association Fee Income - HOA",
+    "Comments": "Association Fee Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 960534,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4003,
+    "Name": "Association Fee - Rental Surcharge Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13103,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4005,
+    "Name": "Interest Income",
+    "Comments": "Interest Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 13107,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4010,
+    "Name": "Parking Income",
+    "Comments": "Parking Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 8,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4020,
+    "Name": "Late Fee Income",
+    "Comments": "Late Fee Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 13104,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4030,
+    "Name": "Laundry Income",
+    "Comments": "Laundry Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 952632,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4040,
+    "Name": "Move-in/Move out fee Income",
+    "Comments": "Fee for Crosswinds moving",
+    "Status": "Active"
+  },
+  {
+    "Id": 931354,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4050,
+    "Name": "Violation Fine Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 947635,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4070,
+    "Name": "Locksmith income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13111,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 4100,
+    "Name": "Association Fees",
+    "Comments": "Homeowners Association Fees",
+    "Status": "Active"
+  },
+  {
+    "Id": 13123,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 4500,
+    "Name": "Other Interest Expense",
+    "Comments": "Other Interest Expense",
+    "Status": "Active"
+  },
+  {
+    "Id": 1014429,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 4600,
+    "Name": "Security Deposit Interest",
+    "Comments": "Represents interest income when returning a security deposit",
+    "Status": "Active"
+  },
+  {
+    "Id": 1011420,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 4740,
+    "Name": "Owners Reimbursement",
+    "Comments": "Owners paying back to Association",
+    "Status": "Active"
+  },
+  {
+    "Id": 563573,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 5001,
+    "Name": "Management Fee Income",
+    "Comments": "Management Fee",
+    "Status": "Active"
+  },
+  {
+    "Id": 1012684,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 5002,
+    "Name": "Project Management Fee - Income",
+    "Comments": "income for project management fees",
+    "Status": "Active"
+  },
+  {
+    "Id": 838991,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 5003,
+    "Name": "Man Hours Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13120,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 5100,
+    "Name": "Management Fees",
+    "Comments": "Management Fees",
+    "Status": "Active"
+  },
+  {
+    "Id": 1012332,
+    "Type": "Current Asset (cash)",
+    "Fund Type": "Operating",
+    "Number": 5200,
+    "Name": "Project Management Fee",
+    "Comments": "Management fee paid to AVMRE for managing ongoing work/project(s)",
+    "Status": "Active"
+  },
+  {
+    "Id": 855176,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 5300,
+    "Name": "Man Hours",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1013444,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 5900,
+    "Name": "Pool Service/Repairs",
+    "Comments": "Used for repairs or pool services",
+    "Status": "Active"
+  },
+  {
+    "Id": 1014335,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6000,
+    "Name": "Grounds Maintenance",
+    "Comments": "All Fees Related to Landscaping, Tree Work, Misc., & Misc. Grounds Work Expenses",
+    "Status": "Active"
+  },
+  {
+    "Id": 843599,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 6001,
+    "Name": "Landscaping Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 559577,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 6002,
+    "Name": "Snow Removal - Income",
+    "Comments": "Snow Removal",
+    "Status": "Active"
+  },
+  {
+    "Id": 885061,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 6003,
+    "Name": "Irrigation/ Drainage - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1014336,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 6004,
+    "Name": "Tree Maintenance - Income",
+    "Comments": "Income for Tree Work",
+    "Status": "Active"
+  },
+  {
+    "Id": 1004032,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 6007,
+    "Name": "Paving/Road Maintenance - Income",
+    "Comments": "Road Repair Income",
+    "Status": "Active"
+  },
+  {
+    "Id": 1014338,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 6008,
+    "Name": "Pest Control - Income",
+    "Comments": "REGENCY MEADOWS: Lawn treatment for pest & misc.",
+    "Status": "Active"
+  },
+  {
+    "Id": 1014340,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 6009,
+    "Name": "Power Washing - Income",
+    "Comments": "Power Washing",
+    "Status": "Active"
+  },
+  {
+    "Id": 273768,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6100,
+    "Name": "Extermination",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13116,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6200,
+    "Name": "Insurance",
+    "Comments": "Insurance",
+    "Status": "Active"
+  },
+  {
+    "Id": 13118,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6300,
+    "Name": "Legal and Professional Fees",
+    "Comments": "Legal and Professional Fees",
+    "Status": "Active"
+  },
+  {
+    "Id": 990437,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6310,
+    "Name": "Tax Filing/ Tax Return fee",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 992716,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6320,
+    "Name": "Annual Report Filing",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13124,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6330,
+    "Name": "Postage and Delivery",
+    "Comments": "Postage and Delivery",
+    "Status": "Active"
+  },
+  {
+    "Id": 854698,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6400,
+    "Name": "Elevator Service Contract",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1021034,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6410,
+    "Name": "Elevator Certification",
+    "Comments": "Used for Commercial Elevator Certifications",
+    "Status": "Active"
+  },
+  {
+    "Id": 340050,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": "",
+    "Name": "Misc",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1011570,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6600,
+    "Name": "Intercom/ Butterfly",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 434943,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6610,
+    "Name": "Alarm service",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 891008,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6620,
+    "Name": "Security System",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 974791,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6630,
+    "Name": "Fire extinguisher service",
+    "Comments": "Extinguisher service",
+    "Status": "Active"
+  },
+  {
+    "Id": 967453,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6640,
+    "Name": "Fire & Security Monitoring",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13113,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6800,
+    "Name": "Cleaning & Maintenance",
+    "Comments": "Cleaning and Maintenance",
+    "Status": "Active"
+  },
+  {
+    "Id": 846901,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6810,
+    "Name": "Materials",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 274938,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 6820,
+    "Name": "Rental Fee",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13125,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 7000,
+    "Name": "Repairs",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1013022,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 7005,
+    "Name": "Engineering - Income",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 945021,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 7400,
+    "Name": "Repair/rooter service/sewer/drain clean out",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 940276,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 7500,
+    "Name": "Engineering",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 13119,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 7510,
+    "Name": "Licenses and Permits",
+    "Comments": "Licenses and Permits",
+    "Status": "Active"
+  },
+  {
+    "Id": 1013173,
+    "Type": "Operating Expense",
+    "Fund Type": "Operating",
+    "Number": 8000,
+    "Name": "CAPITAL PROJECTS",
+    "Comments": "",
+    "Status": "Active"
+  },
+  {
+    "Id": 1006540,
+    "Type": "Income",
+    "Fund Type": "Operating",
+    "Number": 9001,
+    "Name": "Fire & Security Monitoring - Income",
+    "Comments": "",
+    "Status": "Active"
+  }
+]
