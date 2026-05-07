@@ -63,6 +63,9 @@ export default function ScheduleInspectionModal({
   // Stored as ISO string "YYYY-MM-DDTHH:MM" from DateTimeField.
   const [dueDateTime, setDueDateTime] = useState<string>("");
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  // When true, the inspection is created with no checklist; only general
+  // photos can be attached. Sends an empty templateName to the parent.
+  const [noTemplate, setNoTemplate] = useState<boolean>(false);
   const [isRecurring, setIsRecurring] = useState<boolean>(false);
   const [frequency, setFrequency] = useState<InspectionFrequency>("monthly");
   const [intervalCount, setIntervalCount] = useState<number>(1);
@@ -83,6 +86,7 @@ export default function ScheduleInspectionModal({
       setSelectedManagerId("");
       setDueDateTime("");
       setSelectedTemplate("");
+      setNoTemplate(false);
       setIsRecurring(false);
       setFrequency("monthly");
       setIntervalCount(1);
@@ -95,6 +99,7 @@ export default function ScheduleInspectionModal({
     if (editing) {
       setInspectionName(editing.inspectionName);
       setSelectedTemplate(editing.templateName);
+      setNoTemplate(!editing.templateName);
       setSelectedManagerId(editing.inspectorId != null ? String(editing.inspectorId) : "");
       const d = new Date(editing.dueISO);
       const pad = (n: number) => String(n).padStart(2, "0");
@@ -107,7 +112,7 @@ export default function ScheduleInspectionModal({
   const handleConfirm = () => {
     const newErrors: Record<string, string> = {};
     if (!inspectionName.trim()) newErrors.inspectionName = "Please enter an inspection name";
-    if (!selectedTemplate) newErrors.template = "Please select or create a template";
+    if (!noTemplate && !selectedTemplate) newErrors.template = "Please select or create a template";
     if (!selectedManagerId) newErrors.fieldManager = "Please select a field manager";
     if (!dueDateTime) newErrors.dueDate = "Please select a date and time";
     if (isRecurring) {
@@ -122,9 +127,12 @@ export default function ScheduleInspectionModal({
     if (!manager || !dueDateTime) return;
 
     const startISO = new Date(dueDateTime).toISOString();
+    // Templateless inspections send an empty name; the parent treats this
+    // as "no checklist" and creates the inspection with checklist_id=null.
+    const templateNameToSend = noTemplate ? "" : selectedTemplate;
 
     if (isEditing && editing && onSave) {
-      onSave(editing.id, manager, startISO, selectedTemplate, inspectionName);
+      onSave(editing.id, manager, startISO, templateNameToSend, inspectionName);
       return;
     }
 
@@ -136,7 +144,7 @@ export default function ScheduleInspectionModal({
         }
       : null;
 
-    onConfirm(manager, startISO, selectedTemplate, inspectionName, recurrence);
+    onConfirm(manager, startISO, templateNameToSend, inspectionName, recurrence);
   };
 
   const fieldManagerOptions = fieldManagers.map((fm) => ({
@@ -182,19 +190,38 @@ export default function ScheduleInspectionModal({
           error={errors.inspectionName}
         />
 
-        <ComboboxFieldWithCustomInput
-          label="Inspection Template"
-          options={templateOptions}
-          value={selectedTemplate}
-          onChange={(value) => {
-            setSelectedTemplate(value);
-            setErrors((prev) => ({ ...prev, template: "" }));
-          }}
-          placeholder="Select or create a template"
-          customInputPlaceholder="Enter new template name"
-          customButtonLabel="template"
-          error={errors.template}
-        />
+        <div className="flex flex-col gap-2">
+          {!noTemplate && (
+            <ComboboxFieldWithCustomInput
+              label="Inspection Template"
+              options={templateOptions}
+              value={selectedTemplate}
+              onChange={(value) => {
+                setSelectedTemplate(value);
+                setErrors((prev) => ({ ...prev, template: "" }));
+              }}
+              placeholder="Select or create a template"
+              customInputPlaceholder="Enter new template name"
+              customButtonLabel="template"
+              error={errors.template}
+            />
+          )}
+          <label className="flex items-center gap-2 text-sm text-[#303030]">
+            <input
+              type="checkbox"
+              checked={noTemplate}
+              onChange={(e) => {
+                setNoTemplate(e.target.checked);
+                if (e.target.checked) {
+                  setSelectedTemplate("");
+                  setErrors((prev) => ({ ...prev, template: "" }));
+                }
+              }}
+              className="h-4 w-4"
+            />
+            No template — just upload photos
+          </label>
+        </div>
 
         <SelectField
           label="Field Manager"

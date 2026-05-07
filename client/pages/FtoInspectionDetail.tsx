@@ -222,12 +222,14 @@ export default function FtoInspectionDetail() {
                     {inspection.photos?.length || 0} uploaded
                   </p>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">
-                    Checklist Items
-                  </p>
-                  <p className="text-sm text-gray-900 mt-0.5">{totalItems} items</p>
-                </div>
+                {totalItems > 0 && (
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">
+                      Checklist Items
+                    </p>
+                    <p className="text-sm text-gray-900 mt-0.5">{totalItems} items</p>
+                  </div>
+                )}
               </div>
 
               {/* Progress */}

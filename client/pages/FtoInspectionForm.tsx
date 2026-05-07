@@ -39,6 +39,11 @@ import {
 
 // --- Types ---
 
+// Sentinel section_id used when an inspection has no template and photos
+// are attached at the inspection level. Stored in inspection_photos.section_id
+// (which is NOT NULL in the DB) for templateless inspections.
+const GENERAL_PHOTO_SECTION = "general";
+
 interface InspectionPhoto {
   id: string;
   url: string;
@@ -657,7 +662,10 @@ export default function FtoInspectionForm() {
   };
 
   const handlePhotoCommentSubmit = async (file: File, comment: string, condition?: string) => {
-    if (!selectedNodeId) {
+    // Templateless inspections (no checklist) use the GENERAL_PHOTO_SECTION sentinel.
+    const isTemplateless = !templateId && !loadedChecklist;
+    const targetNodeId = selectedNodeId || (isTemplateless ? GENERAL_PHOTO_SECTION : "");
+    if (!targetNodeId) {
       alert("Please select a checklist item first.");
       return;
     }
@@ -672,7 +680,7 @@ export default function FtoInspectionForm() {
       uploadedAt: new Date().toISOString(),
       comment: comment || undefined,
       condition: cond,
-      sectionNodeId: selectedNodeId,
+      sectionNodeId: targetNodeId,
       file,
       isUploaded: false,
     };
@@ -682,7 +690,7 @@ export default function FtoInspectionForm() {
         setIsUploadingPhoto(true);
         await addInspectionPhotos(
           Number(inspectionId),
-          selectedNodeId,
+          targetNodeId,
           comment || "",
           [file],
           cond
@@ -819,13 +827,6 @@ export default function FtoInspectionForm() {
       errors.property = "Property is required";
     }
     
-    // For new inspections, template is required
-    if (!inspectionId && !templateId) {
-      setValidationErrors({ ...errors, property: "Template is required" });
-      alert("Please select an inspection template.");
-      return;
-    }
-
     if (photos.length === 0) {
       errors.photos = "At least one photo is required";
     }
@@ -857,16 +858,10 @@ export default function FtoInspectionForm() {
       let resolvedInspectionId = inspectionId ? Number(inspectionId) : null;
 
       if (!resolvedInspectionId) {
-        // This is a new inspection - create it first
+        // This is a new inspection - create it first.
+        // checklist_id is optional: a null template creates a templateless
+        // inspection where photos attach under GENERAL_PHOTO_SECTION.
         const parsedTemplateId = templateId ? Number(templateId) : null;
-        if (!parsedTemplateId) {
-          alert("Please select an inspection template.");
-          return;
-        }
-        
-        // Get the template name to use as inspection name
-        const template = templatesByProperty[propertyId]?.find(t => t.id === parsedTemplateId);
-        const inspectionName = template?.name || "Inspection";
 
         const created = await createInspection({
           property_id: parsedPropertyId,
@@ -885,17 +880,16 @@ export default function FtoInspectionForm() {
         });
       }
 
-      // Upload all pending photos
+      // Upload all pending photos. Photos without a sectionNodeId
+      // (templateless inspections) attach under GENERAL_PHOTO_SECTION.
       const pendingUploads = photos.filter((p) => p.file && !p.isUploaded);
       for (const photo of pendingUploads) {
-        if (!photo.file || !photo.sectionNodeId || !resolvedInspectionId) {
+        if (!photo.file || !resolvedInspectionId) {
           continue;
         }
-        // Note: condition is not stored in InspectionPhoto type for pending uploads
-        // This is fine as condition is typically set during upload via modal
         await addInspectionPhotos(
           resolvedInspectionId,
-          photo.sectionNodeId,
+          photo.sectionNodeId || GENERAL_PHOTO_SECTION,
           photo.comment || "",
           [photo.file]
         );
@@ -1274,20 +1268,20 @@ export default function FtoInspectionForm() {
                     />
                     
                     <SelectField
-                      label="Inspection Template"
-                      required
+                      label="Inspection Template (optional)"
                       options={getTemplateOptions(propertyId)}
                       value={templateId || ""}
                       onChange={(value) => {
                         const newTemplateId = typeof value === 'string' ? value : value[0] || null;
                         setTemplateId(newTemplateId);
-                        
-                        // Load the checklist for this template
+
                         if (newTemplateId && propertyId) {
                           const template = templatesByProperty[propertyId]?.find(t => t.id === Number(newTemplateId));
                           if (template) {
                             setLoadedChecklist(convertBackendChecklistToNodes(template));
                           }
+                        } else {
+                          setLoadedChecklist(null);
                         }
                       }}
                       placeholder={
@@ -1295,7 +1289,7 @@ export default function FtoInspectionForm() {
                           ? "Select property first"
                           : templatesLoading[propertyId]
                           ? "Loading templates…"
-                          : "Select Template"
+                          : "No template — photos only"
                       }
                       disabled={!propertyId || templatesLoading[propertyId] || isReadOnly}
                     />
@@ -1327,27 +1321,29 @@ export default function FtoInspectionForm() {
               </div>
             </div>
 
-            {/* 2. Inspection Checklist Card */}
-            <div className={cn(
-              "bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col gap-6",
-              isChecklistFullScreen ? "fixed inset-0 z-50 h-screen w-screen rounded-none p-6 overflow-y-auto" : "rounded-xl p-6"
-            )}>
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-lg font-medium text-gray-900">Inspection Checklist</h2>
-                <button
-                  onClick={() => setIsChecklistFullScreen(!isChecklistFullScreen)}
-                  className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 transition-colors flex-shrink-0"
-                  title={isChecklistFullScreen ? "Exit Full Screen" : "Full Screen"}
-                >
-                  {isChecklistFullScreen ? (
-                    <Minimize2 className="w-4 h-4" />
-                  ) : (
-                    <Maximize2 className="w-4 h-4" />
-                  )}
-                </button>
+            {/* 2. Inspection Checklist Card — hidden for templateless inspections */}
+            {(templateId || loadedChecklist) && (
+              <div className={cn(
+                "bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col gap-6",
+                isChecklistFullScreen ? "fixed inset-0 z-50 h-screen w-screen rounded-none p-6 overflow-y-auto" : "rounded-xl p-6"
+              )}>
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="text-lg font-medium text-gray-900">Inspection Checklist</h2>
+                  <button
+                    onClick={() => setIsChecklistFullScreen(!isChecklistFullScreen)}
+                    className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 transition-colors flex-shrink-0"
+                    title={isChecklistFullScreen ? "Exit Full Screen" : "Full Screen"}
+                  >
+                    {isChecklistFullScreen ? (
+                      <Minimize2 className="w-4 h-4" />
+                    ) : (
+                      <Maximize2 className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                {renderChecklist()}
               </div>
-              {renderChecklist()}
-            </div>
+            )}
 
             {/* 3. Photos Card */}
             <div className="rounded-xl bg-white border border-[#E5E5E5] shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-6 flex flex-col gap-6">
@@ -1362,42 +1358,50 @@ export default function FtoInspectionForm() {
               </div>
 
               {/* Upload Area */}
-              {!isReadOnly && (
-                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3">
-                  <NestedChecklistSelect
-                    label="Associate with Checklist Item"
-                    value={selectedNodeId}
-                    onChange={(value) => setSelectedNodeId(value)}
-                    placeholder="Select a checklist item..."
-                    checklist={currentChecklist}
-                    getNodePath={getNodePath}
-                  />
-
-                  <div
-                    className={cn(
-                      "border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors",
-                      !selectedNodeId ? "opacity-50 cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400" : "border-gray-300 text-gray-400 hover:bg-white bg-gray-50"
+              {!isReadOnly && (() => {
+                const isTemplateless = !templateId && !loadedChecklist;
+                const canUpload = isTemplateless || !!selectedNodeId;
+                return (
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-3">
+                    {!isTemplateless && (
+                      <NestedChecklistSelect
+                        label="Associate with Checklist Item"
+                        value={selectedNodeId}
+                        onChange={(value) => setSelectedNodeId(value)}
+                        placeholder="Select a checklist item..."
+                        checklist={currentChecklist}
+                        getNodePath={getNodePath}
+                      />
                     )}
-                    onClick={() => {
-                      if (selectedNodeId) photoInputRef.current?.click();
-                      else alert("Please select a checklist item first");
-                    }}
-                  >
-                    <PlusIcon width={24} height={24} />
-                    <span className="mt-2 text-sm font-medium text-gray-600">Add Photos</span>
-                    <span className="text-xs mt-1 text-gray-400">Supports JPG, PNG</span>
-                    <input
-                      ref={photoInputRef}
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePhotoUpload}
-                      disabled={!selectedNodeId}
-                    />
+
+                    <div
+                      className={cn(
+                        "border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors",
+                        !canUpload ? "opacity-50 cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400" : "border-gray-300 text-gray-400 hover:bg-white bg-gray-50"
+                      )}
+                      onClick={() => {
+                        if (canUpload) photoInputRef.current?.click();
+                        else alert("Please select a checklist item first");
+                      }}
+                    >
+                      <PlusIcon width={24} height={24} />
+                      <span className="mt-2 text-sm font-medium text-gray-600">
+                        {isTemplateless ? "Add Photos (General)" : "Add Photos"}
+                      </span>
+                      <span className="text-xs mt-1 text-gray-400">Supports JPG, PNG</span>
+                      <input
+                        ref={photoInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoUpload}
+                        disabled={!canUpload}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Photos Grouped by Checklist Node */}
               {photos.length > 0 ? (
@@ -1405,7 +1409,7 @@ export default function FtoInspectionForm() {
                   // Group photos by node
                   const photosByNode: Record<string, typeof photos> = {};
                   photos.forEach(photo => {
-                    const nodeId = photo.sectionNodeId || 'uncategorized';
+                    const nodeId = photo.sectionNodeId || GENERAL_PHOTO_SECTION;
                     if (!photosByNode[nodeId]) {
                       photosByNode[nodeId] = [];
                     }
@@ -1416,7 +1420,8 @@ export default function FtoInspectionForm() {
                     <div className="flex flex-col gap-3">
                       {Object.entries(photosByNode).map(([nodeId, nodePhotos]) => {
                         const node = currentChecklist.find(n => n.id === nodeId);
-                        const nodePath = getNodePath(nodeId);
+                        const isGeneral = nodeId === GENERAL_PHOTO_SECTION;
+                        const nodePath = isGeneral ? "General Photos" : getNodePath(nodeId);
                         const isNodeExpanded = expandedSections.has(nodeId);
 
                         return (

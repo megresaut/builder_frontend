@@ -39,6 +39,11 @@ import {
 } from "@/api/inspections";
 import { API_BASE } from "@/api/fetchJSON";
 
+// Sentinel section_id used when an inspection has no template. Photos for
+// templateless inspections attach under this single virtual bucket — the
+// inspection_photos.section_id column is NOT NULL text, so we use a string.
+const GENERAL_PHOTO_SECTION = "general";
+
 interface InspectionDetailProps {
   isNew?: boolean;
   isEdit?: boolean;
@@ -562,9 +567,12 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const [selectedNodeId, setSelectedNodeId] = useState<string>("");
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  // Photo Comment Modal State
+  // Photo Comment Modal State. Holds the full batch of files picked at once;
+  // we walk through them one by one, re-opening the modal for each so the user
+  // can tag condition/comment per photo.
   const [isPhotoCommentModalOpen, setIsPhotoCommentModalOpen] = useState(false);
-  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
+  const [pendingPhotoFiles, setPendingPhotoFiles] = useState<File[]>([]);
+  const [pendingPhotoIndex, setPendingPhotoIndex] = useState(0);
 
   // Photo Modal States
   const [selectedPhotoForModal, setSelectedPhotoForModal] = useState<InspectionPhoto | null>(null);
@@ -582,7 +590,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   const photosByNode = useMemo(() => {
     const grouped: Record<string, InspectionPhoto[]> = {};
     photos.forEach((p) => {
-      const nodeId = p.sectionNodeId || 'uncategorized';
+      const nodeId = p.sectionNodeId || GENERAL_PHOTO_SECTION;
       if (!grouped[nodeId]) {
         grouped[nodeId] = [];
       }
@@ -903,15 +911,19 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
   // --- Handlers: Photos ---
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!selectedNodeId) {
+    // Templateless inspections (no checklist) skip the per-item association
+    // and attach photos under GENERAL_PHOTO_SECTION at submit time.
+    const isTemplateless = !checklistId;
+    if (!isTemplateless && !selectedNodeId) {
       alert("Please select a checklist item first.");
       if (photoInputRef.current) photoInputRef.current.value = "";
       return;
     }
 
     if (e.target.files && e.target.files.length > 0) {
-      // Store the selected file and open the modal
-      setPendingPhotoFile(e.target.files[0]);
+      // Queue the whole batch; modal walks through them one at a time.
+      setPendingPhotoFiles(Array.from(e.target.files));
+      setPendingPhotoIndex(0);
       setIsPhotoCommentModalOpen(true);
       if (photoInputRef.current) photoInputRef.current.value = "";
     }
@@ -930,10 +942,12 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         ? (condition as "good" | "fair" | "poor")
         : undefined;
 
-      // Upload photo to backend
+      // Upload photo to backend. For templateless inspections (no checklist),
+      // the photo attaches under the GENERAL_PHOTO_SECTION sentinel.
+      const targetNodeId = selectedNodeId || GENERAL_PHOTO_SECTION;
       const result = await addInspectionPhotos(
         inspectionId,
-        selectedNodeId,
+        targetNodeId,
         comment,
         [file],
         cond
@@ -942,7 +956,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       if (result.uploaded > 0) {
         // Fetch updated photos list from backend
         const backendPhotos = await listInspectionPhotos(inspectionId);
-        
+
         // Convert backend photos to frontend format
         const frontendPhotos: InspectionPhoto[] = backendPhotos.map((bp) => ({
           id: bp.id.toString(),
@@ -955,7 +969,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         }));
 
         setPhotos(frontendPhotos);
-        
+
         // Set photo notes from comments
         const notes: Record<string, string> = {};
         frontendPhotos.forEach((photo) => {
@@ -965,8 +979,15 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         });
         setPhotoNotes(notes);
 
-        // Close the modal
-        setIsPhotoCommentModalOpen(false);
+        // If there are more files queued, advance to the next one and keep
+        // the modal open. Otherwise clear the queue and close.
+        if (pendingPhotoIndex + 1 < pendingPhotoFiles.length) {
+          setPendingPhotoIndex(pendingPhotoIndex + 1);
+        } else {
+          setPendingPhotoFiles([]);
+          setPendingPhotoIndex(0);
+          setIsPhotoCommentModalOpen(false);
+        }
       }
     } catch (error) {
       console.error("Failed to upload photo:", error);
@@ -1320,9 +1341,11 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
             {inspection?.name || "Inspection"}
           </h1>
-          <p className="text-[#717179] font-medium text-base">
-            {templateName || "No Template"}
-          </p>
+          {templateName ? (
+            <p className="text-[#717179] font-medium text-base">{templateName}</p>
+          ) : !checklistId ? (
+            <p className="text-[#717179] font-medium text-base italic">Photos only</p>
+          ) : null}
         </div>
 
         {/* Header Controls */}
@@ -1334,23 +1357,27 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
             <DownloadIcon width={16} height={16} className="text-gray-500" />
             Export
           </button>
-          <BlueButton
-            onClick={() => {
-              if (isEditing) {
-                handleSaveChecklist();
-              } else {
-                setIsEditing(true);
-              }
-            }}
-            icon={<EditIcon width={16} height={16} />}
-          >
-            {isEditing ? "Done Editing" : "Edit Checklist"}
-          </BlueButton>
+          {checklistId && (
+            <BlueButton
+              onClick={() => {
+                if (isEditing) {
+                  handleSaveChecklist();
+                } else {
+                  setIsEditing(true);
+                }
+              }}
+              icon={<EditIcon width={16} height={16} />}
+            >
+              {isEditing ? "Done Editing" : "Edit Checklist"}
+            </BlueButton>
+          )}
         </div>
       </div>
 
-      {/* No checklist notice */}
-      {!isLoadingChecklist && (!checklistId || nodes.length === 0) && (
+      {/* No checklist notice — only shown when a checklist *was* expected
+          (i.e., checklist_id exists but loaded zero nodes). Templateless
+          inspections (no checklist_id) intentionally skip the checklist UI. */}
+      {!isLoadingChecklist && checklistId && nodes.length === 0 && (
         <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
           <span>No checklist has been assigned to this inspection. Please assign a checklist template to begin.</span>
@@ -1371,6 +1398,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
               onDueDateChange={handleDueDateChange}
             />
           </SectionCard>
+          {checklistId && (
           <SectionCard
             title="Inspection Checklist"
             variant="white"
@@ -1560,6 +1588,7 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
               </div>
             </div>
           </SectionCard>
+          )}
         </div>
         {/* End of Left Column */}
 
@@ -1592,48 +1621,61 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
           <SectionCard title={`Inspection Photos (${photos.length} total)`} variant="white">
             <div className="flex flex-col gap-6">
 
-              {/* Upload Controls - Always visible */}
-              <div className="p-4 bg-white border border-gray-200 rounded-lg flex flex-col gap-3">
-                <NestedChecklistSelect
-                  label="Associate with Checklist Item"
-                  value={selectedNodeId}
-                  onChange={(value) => setSelectedNodeId(value)}
-                  placeholder="Select a checklist item..."
-                  checklist={nodes}
-                  getNodePath={getNodePath}
-                />
+              {/* Upload Controls - Always visible. Templateless inspections
+                  (no checklist) skip the per-item dropdown and upload directly
+                  into a single GENERAL_PHOTO_SECTION bucket. */}
+              {(() => {
+                const isTemplateless = !checklistId;
+                const canUpload = isTemplateless || !!selectedNodeId;
+                return (
+                  <div className="p-4 bg-white border border-gray-200 rounded-lg flex flex-col gap-3">
+                    {!isTemplateless && (
+                      <NestedChecklistSelect
+                        label="Associate with Checklist Item"
+                        value={selectedNodeId}
+                        onChange={(value) => setSelectedNodeId(value)}
+                        placeholder="Select a checklist item..."
+                        checklist={nodes}
+                        getNodePath={getNodePath}
+                      />
+                    )}
 
-                <div
-                  className={cn(
-                    "border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
-                    !selectedNodeId ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-gray-50 bg-white"
-                  )}
-                  onClick={() => {
-                    if (selectedNodeId) photoInputRef.current?.click();
-                    else alert("Please select a checklist item first");
-                  }}
-                >
-                  <div className="text-gray-400">
-                    <PlusIcon width={24} height={24} />
+                    <div
+                      className={cn(
+                        "border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors",
+                        !canUpload ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:bg-gray-50 bg-white"
+                      )}
+                      onClick={() => {
+                        if (canUpload) photoInputRef.current?.click();
+                        else alert("Please select a checklist item first");
+                      }}
+                    >
+                      <div className="text-gray-400">
+                        <PlusIcon width={24} height={24} />
+                      </div>
+                      <span className="mt-1 text-sm text-gray-600 font-medium">
+                        {isTemplateless ? "Click to Upload (General Photos)" : "Click to Upload"}
+                      </span>
+                      <input
+                        ref={photoInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoUpload}
+                        disabled={!canUpload}
+                      />
+                    </div>
                   </div>
-                  <span className="mt-1 text-sm text-gray-600 font-medium">Click to Upload</span>
-                  <input
-                    ref={photoInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                    disabled={!selectedNodeId}
-                  />
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Photos Grouped by Checklist Node */}
               {photos.length > 0 ? (
                 <div className="flex flex-col gap-2">
                   {Object.entries(photosByNode).map(([nodeId, nodePhotos]) => {
-                    const nodePath = getNodePath(nodeId);
+                    const isGeneral = nodeId === GENERAL_PHOTO_SECTION;
+                    const nodePath = isGeneral ? "General Photos" : getNodePath(nodeId);
                     const isNodeExpanded = expandedPhotoNodes.has(nodeId);
 
                     return (
@@ -1728,11 +1770,20 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
       {/* Photo Comment Modal - For uploading new photos */}
       <PhotoCommentModal
         open={isPhotoCommentModalOpen}
-        onOpenChange={setIsPhotoCommentModalOpen}
+        onOpenChange={(open) => {
+          setIsPhotoCommentModalOpen(open);
+          if (!open) {
+            // User cancelled mid-batch — drop the rest of the queue.
+            setPendingPhotoFiles([]);
+            setPendingPhotoIndex(0);
+          }
+        }}
         onSubmit={handlePhotoCommentSubmit}
         title={selectedNodeId ? getNodePath(selectedNodeId) : "Add Photo"}
         submitLabel="Upload Photo"
-        initialFile={pendingPhotoFile}
+        initialFile={pendingPhotoFiles[pendingPhotoIndex] ?? null}
+        fileIndex={pendingPhotoIndex}
+        fileTotal={pendingPhotoFiles.length}
         isLoading={isUploadingPhoto}
       />
 
@@ -1778,6 +1829,10 @@ interface PhotoCommentModalProps {
   title: string;
   submitLabel: string;
   initialFile: File | null;
+  // When the user picks a batch, fileIndex/fileTotal show "Photo X of N" and
+  // gate the form reset between photos.
+  fileIndex?: number;
+  fileTotal?: number;
   isLoading?: boolean;
 }
 
@@ -1788,17 +1843,31 @@ function PhotoCommentModal({
   title,
   submitLabel,
   initialFile,
+  fileIndex = 0,
+  fileTotal = 0,
   isLoading = false,
 }: PhotoCommentModalProps) {
   const [comment, setComment] = React.useState("");
   const [condition, setCondition] = React.useState("");
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
 
+  // Reset comment/condition between photos in a batch and when the modal closes.
   React.useEffect(() => {
-    if (!open) {
-      setComment("");
-      setCondition("");
+    setComment("");
+    setCondition("");
+  }, [open, fileIndex, initialFile]);
+
+  // Generate a preview blob URL for the current file. Revoke on change/unmount
+  // so we don't leak object URLs.
+  React.useEffect(() => {
+    if (!initialFile) {
+      setPreviewUrl(null);
+      return;
     }
-  }, [open]);
+    const url = URL.createObjectURL(initialFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [initialFile]);
 
   const handleConfirm = async () => {
     if (!initialFile) return;
@@ -1811,26 +1880,45 @@ function PhotoCommentModal({
     }
   };
 
+  const isBatch = fileTotal > 1;
+  const remaining = isBatch ? fileTotal - fileIndex - 1 : 0;
+  const confirmLabel = isLoading
+    ? "Uploading..."
+    : remaining > 0
+      ? `${submitLabel} & Next`
+      : submitLabel;
+
   return (
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
-      title={title}
+      title={isBatch ? `${title} — Photo ${fileIndex + 1} of ${fileTotal}` : title}
       size="sm"
       footer={
         <ModalButtons
           onCancel={handleCancel}
           onConfirm={handleConfirm}
           cancelLabel="Cancel"
-          confirmLabel={isLoading ? "Uploading..." : submitLabel}
+          confirmLabel={confirmLabel}
           confirmDisabled={!initialFile || isLoading}
         />
       }
     >
       <div className="flex flex-col gap-4">
-        <div className="text-sm text-gray-600">
-          <strong>File:</strong> {initialFile ? initialFile.name : "No file selected"}
-        </div>
+        {previewUrl ? (
+          <img
+            src={previewUrl}
+            alt={initialFile?.name ?? "Selected photo"}
+            className="w-full max-h-64 object-contain rounded-lg bg-gray-50 border border-gray-200"
+          />
+        ) : (
+          <div className="text-sm text-gray-600">
+            <strong>File:</strong> {initialFile ? initialFile.name : "No file selected"}
+          </div>
+        )}
+        {initialFile && (
+          <div className="text-xs text-gray-500 truncate">{initialFile.name}</div>
+        )}
         <SelectField
           label="Condition"
           value={condition}

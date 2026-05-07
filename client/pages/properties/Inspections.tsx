@@ -287,7 +287,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
             issues: 0, // Not tracked yet
             photos: photoCounts[index] ?? 0,
             updated: new Date(bi.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-            templateName: checklist?.name || "Default Template",
+            templateName: checklist?.name ?? (bi.checklist_id ? "Default Template" : ""),
             checklist_id: bi.checklist_id,
           };
         });
@@ -473,27 +473,30 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     if (!propertyId || !userId) return;
 
     try {
-      // 1. Find or create checklist for this template
-      const existingChecklists = await listChecklists(Number(propertyId));
-      let checklistId: number;
+      // 1. Find or create checklist for this template. When templateName is
+      // empty (the "No template" checkbox), skip this and create a
+      // templateless inspection — photos attach under section_id="general".
+      let checklistId: number | null = null;
+      if (templateName) {
+        const existingChecklists = await listChecklists(Number(propertyId));
+        const existingChecklist = existingChecklists.find((c) => c.name === templateName);
+        if (existingChecklist) {
+          checklistId = existingChecklist.id;
+        } else {
+          const template = DEFAULT_INSPECTION_TEMPLATES.find((t) => t.name === templateName);
+          const checklistJson = template ? { sections: template.sections } : { sections: [] };
 
-      const existingChecklist = existingChecklists.find((c) => c.name === templateName);
-      if (existingChecklist) {
-        checklistId = existingChecklist.id;
-      } else {
-        const template = DEFAULT_INSPECTION_TEMPLATES.find((t) => t.name === templateName);
-        const checklistJson = template ? { sections: template.sections } : { sections: [] };
-
-        const newChecklist = await createChecklist({
-          property_id: Number(propertyId),
-          name: templateName,
-          checklist_json: checklistJson,
-          created_by_type: "user",
-          created_by_id: userId,
-          is_active: true,
-        });
-        checklistId = newChecklist.id;
-        setTemplates((prev) => [...prev, newChecklist]);
+          const newChecklist = await createChecklist({
+            property_id: Number(propertyId),
+            name: templateName,
+            checklist_json: checklistJson,
+            created_by_type: "user",
+            created_by_id: userId,
+            is_active: true,
+          });
+          checklistId = newChecklist.id;
+          setTemplates((prev) => [...prev, newChecklist]);
+        }
       }
 
       // 2. Create inspection(s) — single if no recurrence, otherwise a series.

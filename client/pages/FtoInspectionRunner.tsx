@@ -19,6 +19,10 @@ import {
 
 // --- Types ---
 
+// Sentinel section_id used when an inspection has no template. Photos for
+// templateless inspections attach under this single virtual node.
+const GENERAL_PHOTO_SECTION = "general";
+
 interface InspectionPhoto {
   id: string;
   url: string;
@@ -214,6 +218,19 @@ export default function FtoInspectionRunner() {
 
         if (data.checklist) {
           setChecklist(convertBackendChecklistToNodes(data.checklist));
+        } else {
+          // Templateless inspection: synthesize a single "General Photos" node
+          // so the runner's checklist-driven flow has one item to walk.
+          setChecklist([
+            {
+              id: GENERAL_PHOTO_SECTION,
+              parentId: null,
+              orderIndex: 0,
+              type: "item",
+              text: "General Photos",
+              depth: 1,
+            },
+          ]);
         }
         if (data.photos?.length) {
           setPhotos(mapBackendPhotosToUI(data.photos));

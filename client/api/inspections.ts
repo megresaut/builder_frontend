@@ -7,7 +7,7 @@ export interface BackendInspection {
   property_id: number;
   property_name?: string | null;
   unit_id?: number | null;
-  checklist_id: number;
+  checklist_id: number | null;
   assigned_field_team_member_id?: number | null;
   status: string; // "draft" | "in_progress" | "submitted" | "reviewed" | "cancelled"
   due_date?: string | null; // ISO8601 datetime (timestamptz)

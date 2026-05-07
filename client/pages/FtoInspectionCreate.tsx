@@ -151,7 +151,6 @@ export default function FtoInspectionCreate() {
     const errors: typeof validationErrors = {};
     if (!dateTime) errors.date = "Date and time are required";
     if (!propertyId) errors.property = "Property is required";
-    if (!templateId) errors.template = "Template is required";
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -160,7 +159,7 @@ export default function FtoInspectionCreate() {
     setValidationErrors({});
 
     const parsedPropertyId = Number(propertyId);
-    const parsedTemplateId = Number(templateId);
+    const parsedTemplateId = templateId ? Number(templateId) : null;
     const parsedUnitId =
       unitId &&
       unitId !== "na" &&
@@ -296,8 +295,7 @@ export default function FtoInspectionCreate() {
               />
 
               <SelectField
-                label="Inspection Template"
-                required
+                label="Inspection Template (optional)"
                 options={getTemplateOptions(propertyId)}
                 value={templateId || ""}
                 onChange={(value) =>
@@ -310,7 +308,7 @@ export default function FtoInspectionCreate() {
                     ? "Select property first"
                     : templatesLoading[propertyId!]
                     ? "Loading templates…"
-                    : "Select Template"
+                    : "No template — photos only"
                 }
                 disabled={!propertyId || (!!propertyId && templatesLoading[propertyId])}
                 error={validationErrors.template}
