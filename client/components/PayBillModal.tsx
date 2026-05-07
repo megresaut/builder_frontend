@@ -1,0 +1,292 @@
+import { useEffect, useMemo, useState } from "react";
+import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import { FieldShell } from "@/components/forms/FieldShell";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { fetchJSON } from "@/api/fetchJSON";
+import { authFetch } from "@/api/fetchJSON";
+import { toast } from "sonner";
+
+// Returned by GET /payment-accounts (DB-backed: chart_of_accounts rows
+// where both qbo_id and buildium_id are populated). The frontend only needs
+// the canonical coa_id + name + type for the dropdown — the backend resolves
+// QBO and Buildium ids on its side using coa_id.
+interface PaymentAccount {
+  coa_id: number;
+  name: string;
+  qbo_account_type: string; // "Bank" or "Credit Card"
+}
+
+interface PayBillModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  bill: {
+    id: number;
+    vendorName: string;
+    propertyName: string;
+    referenceNumber?: string;
+    qboBalanceCents: number; // outstanding (defaults the amount field)
+  };
+  onPaid?: (result: {
+    qbo_billpayment_id: string;
+    qbo_balance_cents: number | null;
+    qbo_paid_at: string | null;
+    // Echoed back so the caller can render the "Paid" panel without a refetch.
+    paid_on?: string;
+    paid_from_name?: string;
+    paid_doc_number?: string;
+    paid_memo?: string;
+  }) => void;
+}
+
+const todayISO = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const cents = (dollars: string): number => {
+  // Tolerant of "$75.35", "75.35", "75", "1,234.56"
+  const cleaned = dollars.replace(/[^0-9.]/g, "");
+  const num = parseFloat(cleaned);
+  if (!Number.isFinite(num)) return NaN;
+  return Math.round(num * 100);
+};
+
+export default function PayBillModal({
+  open,
+  onOpenChange,
+  bill,
+  onPaid,
+}: PayBillModalProps) {
+  const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [accountCOAID, setAccountCOAID] = useState<number | null>(null);
+  const [amount, setAmount] = useState<string>("");
+  const [txnDate, setTxnDate] = useState<string>("");
+  const [docNumber, setDocNumber] = useState<string>("");
+  const [memo, setMemo] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const outstanding = bill.qboBalanceCents;
+  const outstandingDollars = (outstanding / 100).toFixed(2);
+
+  // Reset state on open. Load payment accounts.
+  useEffect(() => {
+    if (!open) {
+      setAccountCOAID(null);
+      setAmount("");
+      setTxnDate("");
+      setDocNumber("");
+      setMemo("");
+      setError(null);
+      return;
+    }
+    setAmount(outstandingDollars);
+    setTxnDate(todayISO());
+
+    let cancelled = false;
+    setLoadingAccounts(true);
+    fetchJSON("/payment-accounts")
+      .then((res) => {
+        if (cancelled) return;
+        const list: PaymentAccount[] = Array.isArray(res?.accounts) ? res.accounts : [];
+        setAccounts(list);
+        if (list.length === 1) setAccountCOAID(list[0].coa_id);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError("Failed to load payment accounts: " + (err?.message ?? String(err)));
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoadingAccounts(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, outstandingDollars]);
+
+  const selectedAccount = useMemo(
+    () => accounts.find((a) => a.coa_id === accountCOAID),
+    [accounts, accountCOAID],
+  );
+  const payTypeLabel = selectedAccount?.qbo_account_type === "Credit Card" ? "Credit Card" : "Check";
+
+  const handleSubmit = async () => {
+    setError(null);
+    if (!accountCOAID || !selectedAccount) {
+      setError("Please choose a Pay From account.");
+      return;
+    }
+    const amountCents = cents(amount);
+    if (!Number.isFinite(amountCents) || amountCents <= 0) {
+      setError("Amount must be greater than $0.");
+      return;
+    }
+    if (amountCents > outstanding) {
+      setError(`Amount cannot exceed the outstanding balance of $${outstandingDollars}.`);
+      return;
+    }
+    if (!txnDate) {
+      setError("Payment date is required.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await authFetch(`/vendors/bills/${bill.id}/pay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          payment_account_coa_id: accountCOAID,
+          amount_cents: amountCents,
+          txn_date: txnDate,
+          doc_number: docNumber || undefined,
+          memo: memo || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Payment failed (status ${res.status})`);
+      }
+      const data = await res.json();
+      toast.success(
+        amountCents === outstanding
+          ? `Paid ${bill.vendorName} — $${(amountCents / 100).toFixed(2)}`
+          : `Paid $${(amountCents / 100).toFixed(2)} of $${outstandingDollars} to ${bill.vendorName}`,
+      );
+      onPaid?.({
+        qbo_billpayment_id: data.qbo_billpayment_id,
+        qbo_balance_cents: data.qbo_balance_cents ?? null,
+        qbo_paid_at: data.qbo_paid_at ?? null,
+        paid_on: txnDate || undefined,
+        paid_from_name: selectedAccount?.name,
+        paid_doc_number: docNumber || undefined,
+        paid_memo: memo || undefined,
+      });
+      onOpenChange(false);
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Pay Bill"
+      size="sm"
+      footer={
+        <ModalButtons
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleSubmit}
+          cancelLabel="Cancel"
+          confirmLabel={submitting ? "Paying…" : "Pay"}
+          cancelDisabled={submitting}
+        />
+      }
+    >
+      {/* Bill summary header */}
+      <div className="text-sm text-[#717179] mb-4">
+        <div>
+          <span className="text-[#303030] font-medium">{bill.vendorName}</span>
+          {bill.referenceNumber ? <span> · Ref {bill.referenceNumber}</span> : null}
+        </div>
+        <div>{bill.propertyName}</div>
+        <div className="mt-1">
+          Outstanding: <span className="text-[#303030] font-medium">${outstandingDollars}</span>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell label="Pay From" htmlFor="pay-account">
+          <select
+            id="pay-account"
+            value={accountCOAID == null ? "" : String(accountCOAID)}
+            onChange={(e) => setAccountCOAID(e.target.value ? Number(e.target.value) : null)}
+            disabled={loadingAccounts || submitting}
+            className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764]"
+          >
+            <option value="">{loadingAccounts ? "Loading…" : "Select an account"}</option>
+            {accounts.map((a) => (
+              <option key={a.coa_id} value={a.coa_id}>
+                {a.name} ({a.qbo_account_type})
+              </option>
+            ))}
+          </select>
+          {selectedAccount && (
+            <div className="text-xs text-[#717179] mt-1">
+              Will post to QBO + Buildium · PayType: {payTypeLabel}
+            </div>
+          )}
+        </FieldShell>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell label="Amount" htmlFor="pay-amount">
+          <Input
+            id="pay-amount"
+            type="text"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder={outstandingDollars}
+            disabled={submitting}
+          />
+        </FieldShell>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell label="Payment Date" htmlFor="pay-date">
+          <Input
+            id="pay-date"
+            type="date"
+            value={txnDate}
+            onChange={(e) => setTxnDate(e.target.value)}
+            disabled={submitting}
+          />
+        </FieldShell>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell
+          label={payTypeLabel === "Check" ? "Check # (optional)" : "Reference (optional)"}
+          htmlFor="pay-doc"
+        >
+          <Input
+            id="pay-doc"
+            type="text"
+            value={docNumber}
+            onChange={(e) => setDocNumber(e.target.value)}
+            placeholder={payTypeLabel === "Check" ? "1234" : ""}
+            disabled={submitting}
+          />
+        </FieldShell>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell label="Memo (optional)" htmlFor="pay-memo">
+          <Textarea
+            id="pay-memo"
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
+            placeholder="e.g. Paid via online bill pay"
+            autoGrow
+          />
+        </FieldShell>
+      </div>
+
+      {error && (
+        <div className="text-sm text-red-600 mt-2 whitespace-pre-wrap">
+          {error}
+        </div>
+      )}
+    </ModalTemplate>
+  );
+}

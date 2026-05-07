@@ -134,6 +134,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     if (path === "/insurance") return "properties";
     if (path === "/inspection-dashboard") return "properties";
     if (path === "/bills") return "accounting";
+    if (path === "/chart-of-accounts") return "accounting";
     if (
       path.includes("/all-tasks") ||
       path.includes("/recurring-tasks") ||
@@ -615,7 +616,14 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     ],
     screening: [],
     leases: [],
-    accounting: [{ label: "Bills", path: "/bills", sectionId: "bills" }],
+    accounting: [
+      { label: "Bills", path: "/bills", sectionId: "bills" },
+      {
+        label: "Chart of Accounts",
+        path: "/chart-of-accounts",
+        sectionId: "chart-of-accounts",
+      },
+    ],
     maintenance: [
       {
         label: "All Tasks",

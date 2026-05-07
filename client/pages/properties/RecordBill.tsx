@@ -12,7 +12,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { StickyBottomBar } from "@/components/StickyBottomBar";
 
 import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
-import glAccounts from "@/data/gl_accounts.json";
+import { fetchChartOfAccounts } from "@/data/chartOfAccounts";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import MsgViewerModal from "@/components/MsgViewerModal";
 import { parseMsgFile } from "@/utils/parseMsgFile";
@@ -20,6 +20,8 @@ import { parseEmlFile } from "@/utils/parseEmlFile";
 import type { ParsedMsg } from "@/utils/parseMsgFile";
 
 import AddVendorModal from "@/components/AddVendorModal";
+import PayBillModal from "@/components/PayBillModal";
+import ViewPaymentModal from "@/components/ViewPaymentModal";
 import { SelectField } from "@/components/forms/SelectField";
 import { SelectFieldCell } from "@/components/forms/SelectFieldCell";
 import { TextField } from "@/components/forms/TextField";
@@ -59,6 +61,17 @@ interface ViewBillState {
   dueDate?: string;
   memo?: string;
   lineItems?: LineItem[];
+  qboPaidAt?: string;
+  qboBalanceCents?: number;
+  qboTotalCents?: number;
+  qboBillId?: string;
+  qboBillPaymentId?: string;
+  buildiumBillId?: string;
+  buildiumBillPaymentId?: string;
+  paidOn?: string;
+  paidFromName?: string;
+  paidDocNumber?: string;
+  paidMemo?: string;
 }
 
 interface BillAttachment {
@@ -461,6 +474,37 @@ export const RecordBill = () => {
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showAddVendorModal, setShowAddVendorModal] = useState(false);
+  const [showPayBillModal, setShowPayBillModal] = useState(false);
+  const [showViewPaymentModal, setShowViewPaymentModal] = useState(false);
+  // Mirror of QBO + payment state coming from navigation (Bills.tsx → buildBillState).
+  // Updated optimistically after a successful Pay Bill submission so the
+  // footer button updates and the View Payment modal can render fresh data
+  // without a page reload.
+  const [qboPaymentState, setQboPaymentState] = useState<{
+    qboPaidAt?: string;
+    qboBalanceCents?: number;
+    qboTotalCents?: number;
+    qboBillId?: string;
+    qboBillPaymentId?: string;
+    buildiumBillId?: string;
+    buildiumBillPaymentId?: string;
+    paidOn?: string;
+    paidFromName?: string;
+    paidDocNumber?: string;
+    paidMemo?: string;
+  }>({
+    qboPaidAt: stateBill?.qboPaidAt,
+    qboBalanceCents: stateBill?.qboBalanceCents,
+    qboTotalCents: stateBill?.qboTotalCents,
+    qboBillId: stateBill?.qboBillId,
+    qboBillPaymentId: stateBill?.qboBillPaymentId,
+    buildiumBillId: stateBill?.buildiumBillId,
+    buildiumBillPaymentId: stateBill?.buildiumBillPaymentId,
+    paidOn: stateBill?.paidOn,
+    paidFromName: stateBill?.paidFromName,
+    paidDocNumber: stateBill?.paidDocNumber,
+    paidMemo: stateBill?.paidMemo,
+  });
   const [lineItems, setLineItems] = useState<LineItem[]>(
     isReadOnly
       ? (readOnlyBill?.lineItems ?? placeholderBill.lineItems)
@@ -520,13 +564,34 @@ export const RecordBill = () => {
   );
   
 
+  // GL accounts come from our canonical chart_of_accounts table. We filter to:
+  //   - account_type === 'expense' (bills' line items only ever debit expense
+  //     accounts; bank/equity/asset accounts here would fail accounting rules
+  //     in both QBO and Buildium)
+  //   - has qbo_id AND has buildium_id (so the bill can flow to both systems
+  //     atomically; an account missing either id can't participate in dual-push)
+  // The id we store in line_items.gl_account_id is the chart_of_accounts.id;
+  // the backend resolves it to QBO + Buildium ids at push time.
   useEffect(() => {
-    const normalized = glAccounts.map((gl: any) => ({
-      id: parseInt(gl.Id, 10),
-      name: gl.Name,
-    }));
-
-    setGLAccountOptions(normalized);
+    let cancelled = false;
+    fetchChartOfAccounts({ activeOnly: true })
+      .then((accounts) => {
+        if (cancelled) return;
+        const usable = accounts
+          .filter((a) =>
+            a.account_type === "expense" &&
+            a.qbo_id !== null && a.qbo_id !== "" &&
+            a.buildium_id !== null,
+          )
+          .map((a) => ({ id: a.id, name: a.name }));
+        setGLAccountOptions(usable);
+      })
+      .catch((err) => {
+        console.error("Failed to load chart of accounts:", err);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Measure and update column widths - expands and shrinks as needed
@@ -1344,23 +1409,20 @@ export const RecordBill = () => {
       const raw = err?.message || err?.error || String(err);
       const lower = raw.toLowerCase();
 
+      // Surface the backend message verbatim by default — the dual-push
+      // handler returns actionable text (e.g. "GL account 'Pest Control'
+      // (coa.id=139) has no buildium_id mapped — set chart_of_accounts.buildium_id
+      // for this account before pushing"). Only override for specific cases
+      // where the backend message is unhelpful or needs context.
       let userMsg: string;
       if (lower.includes("memo") && lower.includes("exceed") || lower.includes("memo") && lower.includes("240")) {
         userMsg = "The line item description is too long for Buildium (max 240 characters). Please shorten the description and try again.";
       } else if (lower.includes("buildium unit")) {
         userMsg = "Invalid Buildium unit mapping — please update the unit in Buildium before exporting.";
-      } else if (lower.includes("buildium_vendor_id")) {
-        userMsg = "This vendor does not have a Buildium Vendor ID. Please link the vendor to Buildium before exporting.";
-      } else if (lower.includes("buildium_property_id")) {
-        userMsg = "This property does not have a Buildium Property ID. Please link the property to Buildium before exporting.";
-      } else if (lower.includes("gl_account")) {
-        userMsg = "Invalid GL Account on one or more line items. Please check and try again.";
       } else if (lower.includes("attachment failed")) {
-        userMsg = "Bill was created in Buildium, but the PDF attachment failed to upload. You can attach it manually in Buildium.";
-      } else if (lower.includes("payload build failed")) {
-        userMsg = "Could not build the Buildium export payload. Please check that the vendor and property are linked to Buildium.";
+        userMsg = "Bill was created, but the PDF attachment failed to upload. You can attach it manually in QBO/Buildium.";
       } else {
-        userMsg = `Bill was approved, but exporting to Buildium failed.\n\nDetails: ${raw}`;
+        userMsg = `Push failed.\n\n${raw}`;
       }
 
       alert(userMsg);
@@ -2174,6 +2236,24 @@ minHeight: 0,
                   </div>
                 )}
 
+                {/* Payment status pill — clickable when paid; opens the
+                    full-detail modal. Replaces the older inline banner. */}
+                {qboPaymentState.qboPaidAt && (
+                  <button
+                    type="button"
+                    onClick={() => setShowViewPaymentModal(true)}
+                    className="self-start inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-sm text-emerald-900 hover:bg-emerald-100 transition-colors"
+                  >
+                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="font-medium">
+                      Paid{qboPaymentState.qboBalanceCents === 0 ? " in full" : ""}
+                    </span>
+                    <span className="text-emerald-700 underline-offset-2 underline">
+                      View payment
+                    </span>
+                  </button>
+                )}
+
                 {/* Form Fields */}
                 <div
                   className="flex mt-3 flex-col gap-5"
@@ -2815,7 +2895,43 @@ minHeight: 0,
             >
               <span>Cancel</span>
             </button>
-            {isReadOnly && (
+            {/* Pay Bill button — visible when the bill has been pushed to QBO
+                and still has an outstanding balance. Sits between Cancel and
+                the export status button per UX request. */}
+            {isReadOnly &&
+              billId !== null &&
+              !qboPaymentState.qboPaidAt &&
+              qboPaymentState.qboBalanceCents != null &&
+              qboPaymentState.qboBalanceCents > 0 && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowPayBillModal(true);
+                  }}
+                  className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-emerald-600 text-white font-medium hover:bg-emerald-700"
+                >
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.25 6.75H15.75M2.25 9H15.75M3 4.5H15C15.8284 4.5 16.5 5.17157 16.5 6V13.5C16.5 14.3284 15.8284 15 15 15H3C2.17157 15 1.5 14.3284 1.5 13.5V6C1.5 5.17157 2.17157 4.5 3 4.5Z"
+                          stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="text-sm">Pay Bill</span>
+                </button>
+              )}
+            {isReadOnly && qboPaymentState.qboPaidAt && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowViewPaymentModal(true);
+                }}
+                className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                <span>Paid · View Payment</span>
+              </button>
+            )}
+            {isReadOnly && !qboPaymentState.qboPaidAt && (
               <button
                 disabled
                 className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -2912,6 +3028,53 @@ minHeight: 0,
         data={msgViewer.data}
         loading={msgViewer.loading}
         error={msgViewer.error}
+      />
+      {showPayBillModal && billId !== null && (
+        <PayBillModal
+          open={showPayBillModal}
+          onOpenChange={setShowPayBillModal}
+          bill={{
+            id: billId,
+            vendorName: selectedVendor?.name ?? "",
+            propertyName: lineItems[0]?.property ?? "",
+            referenceNumber: referenceNumber || undefined,
+            qboBalanceCents: qboPaymentState.qboBalanceCents ?? 0,
+          }}
+          onPaid={(result) => {
+            // Optimistically populate the payment state so the View Payment
+            // modal renders fresh data without a refetch.
+            setQboPaymentState((prev) => ({
+              ...prev,
+              qboPaidAt: result.qbo_paid_at ?? new Date().toISOString(),
+              qboBalanceCents: result.qbo_balance_cents ?? 0,
+              qboBillPaymentId: result.qbo_billpayment_id,
+              paidOn: result.paid_on,
+              paidFromName: result.paid_from_name,
+              paidDocNumber: result.paid_doc_number,
+              paidMemo: result.paid_memo,
+            }));
+          }}
+        />
+      )}
+      <ViewPaymentModal
+        open={showViewPaymentModal}
+        onOpenChange={setShowViewPaymentModal}
+        bill={{
+          vendorName: selectedVendor?.name,
+          propertyName: lineItems[0]?.property,
+          referenceNumber: referenceNumber || undefined,
+          totalCents: qboPaymentState.qboTotalCents ?? toCents(calculateTotal()),
+          qboBalanceCents: qboPaymentState.qboBalanceCents,
+          qboPaidAt: qboPaymentState.qboPaidAt,
+          qboBillId: qboPaymentState.qboBillId,
+          qboBillPaymentId: qboPaymentState.qboBillPaymentId,
+          buildiumBillId: qboPaymentState.buildiumBillId,
+          buildiumBillPaymentId: qboPaymentState.buildiumBillPaymentId,
+          paidOn: qboPaymentState.paidOn,
+          paidFromName: qboPaymentState.paidFromName,
+          paidDocNumber: qboPaymentState.paidDocNumber,
+          paidMemo: qboPaymentState.paidMemo,
+        }}
       />
     </div>
   );

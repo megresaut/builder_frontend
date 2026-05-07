@@ -12,6 +12,7 @@ import { isMobileDevice } from "./lib/detectMobile";
 import FieldTeamOrders from "./pages/FieldTeamOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
 import Bills from "./pages/Bills";
+import ChartOfAccounts from "./pages/ChartOfAccounts";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
 import RecurringTasks from "./pages/RecurringTasks";
@@ -328,6 +329,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <Bills />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/chart-of-accounts"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <ChartOfAccounts />
                       </ShellLayout>
                     </RequireAuth>
                   }
