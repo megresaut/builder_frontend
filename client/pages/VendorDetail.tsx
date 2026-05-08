@@ -45,13 +45,16 @@ interface VendorDetail {
   name: string;
   category: string;
   email: string;
+  altEmail?: string;
   phone: string;
+  altPhone?: string;
   address?: string;
   website?: string;
   hourlyRate?: number | null;
   emergencyHourlyRate?: number | null;
   notes?: string;
   servicesProvided?: string | string[];
+  serviceAreaTags?: string[];
 }
 
 interface VendorNote {
@@ -934,7 +937,9 @@ export default function VendorDetail() {
     name: apiVendor.name,
     category: apiVendor.category || "Uncategorized",
     email: apiVendor.primary_email ?? "",
+    altEmail: apiVendor.alt_email ?? undefined,
     phone: apiVendor.phone ?? "",
+    altPhone: apiVendor.alt_phone ?? undefined,
     address: apiVendor.address ?? undefined,
     website: apiVendor.website ?? undefined,
     hourlyRate: apiVendor.hourly_rate_cents ?? null,
@@ -942,6 +947,9 @@ export default function VendorDetail() {
     notes: apiVendor.notes ?? undefined,
     servicesProvided: apiVendor.category
       ? String(apiVendor.category).split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [],
+    serviceAreaTags: Array.isArray(apiVendor.service_area_tags)
+      ? apiVendor.service_area_tags
       : [],
   }), []);
 
@@ -955,7 +963,9 @@ export default function VendorDetail() {
       category: routeVendor.category ?? "Uncategorized",
       // Handle both 'email' (from list page) and 'primary_email' (from API) fields
       email: (routeVendor as any).email || routeVendor.primary_email || "",
+      altEmail: (routeVendor as any).alt_email ?? (routeVendor as any).altEmail ?? undefined,
       phone: routeVendor.phone ?? "",
+      altPhone: (routeVendor as any).alt_phone ?? (routeVendor as any).altPhone ?? undefined,
       address: routeVendor.address ?? undefined,
       website: routeVendor.website ?? undefined,
       hourlyRate: (routeVendor as any).hourly_rate_cents ?? (routeVendor as any).hourlyRate ?? null,
@@ -964,6 +974,11 @@ export default function VendorDetail() {
       notes: routeVendor.notes ?? undefined,
       servicesProvided: routeVendor.category
         ? [routeVendor.category]
+        : [],
+      serviceAreaTags: Array.isArray((routeVendor as any).service_area_tags)
+        ? (routeVendor as any).service_area_tags
+        : Array.isArray((routeVendor as any).serviceAreaTags)
+        ? (routeVendor as any).serviceAreaTags
         : [],
     };
   });
@@ -1706,8 +1721,19 @@ export default function VendorDetail() {
                           ) : undefined,
                         },
                         {
+                          label: "ALT EMAIL",
+                          value: (vendorDraft || vendor).altEmail,
+                          icon: (vendorDraft || vendor).altEmail ? (
+                            <EmailIcon width={14} height={14} />
+                          ) : undefined,
+                        },
+                        {
                           label: "PHONE",
                           value: (vendorDraft || vendor).phone,
+                        },
+                        {
+                          label: "ALT PHONE",
+                          value: (vendorDraft || vendor).altPhone,
                         },
                         {
                           label: "ADDRESS",
@@ -1734,6 +1760,25 @@ export default function VendorDetail() {
                         {
                           label: "SERVICES PROVIDED",
                           value: (vendorDraft || vendor).servicesProvided,
+                        },
+                        {
+                          label: "SERVICE AREAS",
+                          value: (() => {
+                            const tags = (vendorDraft || vendor).serviceAreaTags ?? [];
+                            if (tags.length === 0) return undefined;
+                            return (
+                              <div className="flex flex-wrap gap-1">
+                                {tags.map((t) => (
+                                  <span
+                                    key={t}
+                                    className="inline-flex items-center px-2 py-0.5 rounded bg-[#f0f0f0] text-[#303030] text-xs capitalize"
+                                  >
+                                    {t}
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                          })(),
                         },
                       ],
                     },

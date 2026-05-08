@@ -7,6 +7,7 @@ import {
 import { FieldShell } from "@/components/forms/FieldShell";
 import { SelectField } from "@/components/forms/SelectField";
 import { CurrencyField } from "@/components/forms/CurrencyField";
+import { MultiInputField } from "@/components/forms/MultiInputField";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchJSON } from "@/api/fetchJSON";
@@ -21,34 +22,43 @@ interface AddVendorModalProps {
     id: number;
     name: string;
     email: string;
+    altEmail?: string;
     phone: string;
+    altPhone?: string;
     website?: string;
     address?: string;
     hourlyRate?: number | null;
     emergencyHourlyRate?: number | null;
     notes?: string;
     servicesProvided?: string | string[];
+    serviceAreaTags?: string[];
   };
 
   onAddVendor?: (vendor: {
     id: number;
     name: string;
     email: string;
+    altEmail?: string;
     phone: string;
+    altPhone?: string;
     servicesProvided: string[];
+    serviceAreaTags: string[];
     notes: string;
   }) => void;
 
   onEditVendor?: (vendor: {
     name: string;
     email: string;
+    altEmail?: string;
     phone: string;
+    altPhone?: string;
     website?: string;
     address?: string;
     hourlyRate?: number | null;
     emergencyHourlyRate?: number | null;
     notes?: string;
     servicesProvided: string[];
+    serviceAreaTags: string[];
   }) => void;
 }
 
@@ -63,12 +73,15 @@ export default function AddVendorModal({
 }: AddVendorModalProps) {
   const [vendorName, setVendorName] = useState("");
   const [email, setEmail] = useState("");
+  const [altEmail, setAltEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [altPhone, setAltPhone] = useState("");
   const [website, setWebsite] = useState("");
   const [address, setAddress] = useState("");
   const [hourlyRate, setHourlyRate] = useState<number | string>("");
   const [emergencyHourlyRate, setEmergencyHourlyRate] = useState<number | string>("");
   const [servicesProvided, setServicesProvided] = useState<string[]>([]);
+  const [serviceAreaTags, setServiceAreaTags] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<{ vendorName?: string }>({});
   const [submitting, setSubmitting] = useState(false);
@@ -95,7 +108,9 @@ export default function AddVendorModal({
     if (edit && initialVendor) {
       setVendorName(initialVendor.name || "");
       setEmail(initialVendor.email || "");
+      setAltEmail(initialVendor.altEmail || "");
       setPhone(initialVendor.phone || "");
+      setAltPhone(initialVendor.altPhone || "");
       setWebsite(initialVendor.website || "");
       setAddress(initialVendor.address || "");
       setHourlyRate(
@@ -113,17 +128,21 @@ export default function AddVendorModal({
           ? [initialVendor.servicesProvided]
           : [],
       );
+      setServiceAreaTags(initialVendor.serviceAreaTags ?? []);
       setNotes(initialVendor.notes || "");
     } else {
       // Add mode
       setVendorName("");
       setEmail("");
+      setAltEmail("");
       setPhone("");
+      setAltPhone("");
       setWebsite("");
       setAddress("");
       setHourlyRate("");
       setEmergencyHourlyRate("");
       setServicesProvided([]);
+      setServiceAreaTags([]);
       setNotes("");
     }
 
@@ -162,20 +181,25 @@ export default function AddVendorModal({
           body: JSON.stringify({
             name: vendorName,
             primary_email: email,
+            alt_email: altEmail,
             phone,
+            alt_phone: altPhone,
             website,
             address,
             hourly_rate_cents: toCents(hourlyRate),
             emergency_hourly_rate_cents: toCents(emergencyHourlyRate),
             notes,
             category,
+            service_area_tags: serviceAreaTags,
           }),
         });
 
         onEditVendor?.({
           name: vendorName,
           email,
+          altEmail,
           phone,
+          altPhone,
           website,
           address,
           hourlyRate: typeof hourlyRate === "number" ? hourlyRate : null,
@@ -183,6 +207,7 @@ export default function AddVendorModal({
             typeof emergencyHourlyRate === "number" ? emergencyHourlyRate : null,
           notes,
           servicesProvided,
+          serviceAreaTags,
         });
 
         toast.success("Vendor updated");
@@ -198,9 +223,12 @@ export default function AddVendorModal({
         body: JSON.stringify({
           name: vendorName,
           primary_email: email || "",
+          alt_email: altEmail || "",
           phone: phone || "",
+          alt_phone: altPhone || "",
           notes: notes || "",
           category,
+          service_area_tags: serviceAreaTags,
           requires_1099: true,
           has_insurance: true,
         }),
@@ -210,8 +238,11 @@ export default function AddVendorModal({
         id: res.id,
         name: vendorName,
         email,
+        altEmail,
         phone,
+        altPhone,
         servicesProvided,
+        serviceAreaTags,
         notes,
       });
 
@@ -285,12 +316,36 @@ export default function AddVendorModal({
       </ModalField>
 
       <ModalField spacing="tight">
+        <FieldShell label="Alternate Email" htmlFor="alt-email">
+          <Input
+            id="alt-email"
+            type="email"
+            value={altEmail}
+            onChange={(e) => setAltEmail(e.target.value)}
+            placeholder="alternate@example.com"
+          />
+        </FieldShell>
+      </ModalField>
+
+      <ModalField spacing="tight">
         <FieldShell label="Vendor Phone Number" htmlFor="vendor-phone">
           <Input
             id="vendor-phone"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            placeholder="(123) 456-7890"
+          />
+        </FieldShell>
+      </ModalField>
+
+      <ModalField spacing="tight">
+        <FieldShell label="Alternate Phone Number" htmlFor="alt-phone">
+          <Input
+            id="alt-phone"
+            type="tel"
+            value={altPhone}
+            onChange={(e) => setAltPhone(e.target.value)}
             placeholder="(123) 456-7890"
           />
         </FieldShell>
@@ -349,6 +404,18 @@ export default function AddVendorModal({
           options={availableServices}
           placeholder="Select services..."
           multiple
+        />
+      </ModalField>
+
+      <ModalField spacing="tight">
+        <MultiInputField
+          label="Service Areas"
+          id="service-area-tags"
+          value={serviceAreaTags}
+          onChange={setServiceAreaTags}
+          placeholder="Add cities or regions"
+          addPlaceholder="e.g. North Shore"
+          addButtonLabel="Add area"
         />
       </ModalField>
 
