@@ -1,5 +1,6 @@
 import { loginRequest } from "@/api/auth";
 import { isMobileDevice } from "@/lib/detectMobile";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,6 +14,7 @@ export const Login = () => {
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [showSignUpTooltip, setShowSignUpTooltip] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
@@ -263,36 +265,53 @@ export const Login = () => {
               >
                 Password
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="••••••••"
-                className={`w-full px-4 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
-                  errors.password
-                    ? "border-red-300 focus:ring-red-200 bg-red-50"
-                    : "border-gray-300"
-                }`}
-                style={
-                  !errors.password
-                    ? {
-                        borderColor: "rgb(36, 99, 235)",
-                        outlineColor: "rgb(36, 99, 235)",
-                      }
-                    : {}
-                }
-                onFocus={(e) => {
-                  if (!errors.password) {
-                    e.target.style.boxShadow =
-                      "0 0 0 2px rgba(36, 99, 235, 0.1)";
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  className={`w-full pl-4 pr-12 py-2.5 rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-offset-0 ${
+                    errors.password
+                      ? "border-red-300 focus:ring-red-200 bg-red-50"
+                      : "border-gray-300"
+                  }`}
+                  style={
+                    !errors.password
+                      ? {
+                          borderColor: "rgb(36, 99, 235)",
+                          outlineColor: "rgb(36, 99, 235)",
+                        }
+                      : {}
                   }
-                }}
-                onBlur={(e) => {
-                  e.target.style.boxShadow = "";
-                }}
-              />
+                  onFocus={(e) => {
+                    if (!errors.password) {
+                      e.target.style.boxShadow =
+                        "0 0 0 2px rgba(36, 99, 235, 0.1)";
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                  tabIndex={-1}
+                  className="absolute inset-y-0 right-0 flex items-center justify-center w-11 text-gray-500 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-0 rounded-r-lg"
+                  style={{ touchAction: "manipulation" }}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="w-5 h-5" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
