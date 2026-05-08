@@ -13,6 +13,8 @@ import FieldTeamOrders from "./pages/FieldTeamOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
 import Bills from "./pages/Bills";
 import ChartOfAccounts from "./pages/ChartOfAccounts";
+import Reimbursements from "./pages/Reimbursements";
+import Reconciliation from "./pages/Reconciliation";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
 import RecurringTasks from "./pages/RecurringTasks";
@@ -340,6 +342,28 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <ChartOfAccounts />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/reimbursements"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <Reimbursements />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/reconciliation"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <Reconciliation />
                       </ShellLayout>
                     </RequireAuth>
                   }

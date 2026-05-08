@@ -135,6 +135,8 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     if (path === "/inspection-dashboard") return "properties";
     if (path === "/bills") return "accounting";
     if (path === "/chart-of-accounts") return "accounting";
+    if (path === "/reimbursements") return "accounting";
+    if (path === "/reconciliation") return "accounting";
     if (
       path.includes("/all-tasks") ||
       path.includes("/recurring-tasks") ||
@@ -618,6 +620,16 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     leases: [],
     accounting: [
       { label: "Bills", path: "/bills", sectionId: "bills" },
+      {
+        label: "Reimbursements",
+        path: "/reimbursements",
+        sectionId: "reimbursements",
+      },
+      {
+        label: "Reconciliation",
+        path: "/reconciliation",
+        sectionId: "reconciliation",
+      },
       {
         label: "Chart of Accounts",
         path: "/chart-of-accounts",

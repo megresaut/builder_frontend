@@ -20,6 +20,18 @@ export interface InvoiceLineItem {
   amount: string;
 }
 
+// LifecycleStatus drives the lifecycle banner + Commit gating in the preview
+// modal. 'draft' = at least one passthrough bill unpaid (cannot export);
+// 'ready' = export unlocked; 'sent' = already exported (record payment now);
+// 'paid' = fully closed; 'void' = cancelled. Values mirror the backend.
+export type InvoiceLifecycleStatus =
+  | "draft"
+  | "ready"
+  | "sent"
+  | "paid"
+  | "void"
+  | undefined;
+
 interface InvoicePreviewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,6 +44,13 @@ interface InvoicePreviewModalProps {
   onCommit?: (pdfBlob: Blob) => void;
   pendingUnapprovedCount?: number;
   rentalOwner?: string;
+  // Lifecycle additions (Phase 3).
+  derivedStatus?: InvoiceLifecycleStatus;
+  unpaidPassthroughCount?: number;
+  onRecordPayment?: () => void;
+  qboPushStatus?: string | null;
+  qboLastError?: string | null;
+  onRetryQBOSync?: () => void;
 }
 
 export default function InvoicePreviewModal({
@@ -46,6 +65,12 @@ export default function InvoicePreviewModal({
   onCommit,
   pendingUnapprovedCount = 0,
   rentalOwner,
+  derivedStatus,
+  unpaidPassthroughCount = 0,
+  onRecordPayment,
+  qboPushStatus,
+  qboLastError,
+  onRetryQBOSync,
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] =
@@ -729,6 +754,83 @@ export default function InvoicePreviewModal({
       >
         <DialogContent className="max-w-[95vw] md:max-w-[880px] max-h-[95vh] flex flex-col p-0">
           <DialogTitle className="sr-only">Invoice Preview</DialogTitle>
+
+          {derivedStatus && (
+            <div
+              className={
+                "no-print flex-shrink-0 px-6 py-3 text-sm font-medium border-b " +
+                (derivedStatus === "draft"
+                  ? "bg-amber-50 border-amber-200 text-amber-900"
+                  : derivedStatus === "ready"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                  : derivedStatus === "sent"
+                  ? "bg-blue-50 border-blue-200 text-blue-900"
+                  : derivedStatus === "paid"
+                  ? "bg-gray-100 border-gray-200 text-gray-700"
+                  : "bg-rose-50 border-rose-200 text-rose-900")
+              }
+            >
+              {derivedStatus === "draft" && (
+                <>
+                  <span className="font-semibold">DRAFT</span> ·{" "}
+                  {unpaidPassthroughCount > 0
+                    ? `${unpaidPassthroughCount} passthrough line item${
+                        unpaidPassthroughCount === 1 ? "" : "s"
+                      } not yet paid. Cannot export until resolved.`
+                    : "Pending. Cannot export yet."}
+                </>
+              )}
+              {derivedStatus === "ready" && (
+                <>
+                  <span className="font-semibold">READY</span> · All
+                  passthroughs paid. Ready to send.
+                </>
+              )}
+              {derivedStatus === "sent" && (
+                <span className="flex items-center justify-between gap-3">
+                  <span>
+                    <span className="font-semibold">SENT</span> · Invoice
+                    exported. Record payment when received.
+                  </span>
+                  {onRecordPayment && (
+                    <button
+                      type="button"
+                      onClick={onRecordPayment}
+                      className="px-3 py-1 rounded-md bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700"
+                    >
+                      Record Payment
+                    </button>
+                  )}
+                </span>
+              )}
+              {derivedStatus === "paid" && (
+                <>
+                  <span className="font-semibold">PAID</span> · Invoice closed.
+                </>
+              )}
+              {derivedStatus === "void" && (
+                <>
+                  <span className="font-semibold">VOID</span> · Invoice
+                  cancelled.
+                </>
+              )}
+              {qboPushStatus === "failed" && (
+                <div className="mt-1 text-xs text-rose-700 flex items-center gap-2">
+                  <span>QBO sync failed{qboLastError ? `: ${qboLastError}` : ""}.</span>
+                  {onRetryQBOSync && (
+                    <button
+                      type="button"
+                      onClick={onRetryQBOSync}
+                      className="underline hover:no-underline"
+                    >
+                      Retry sync
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex-1 overflow-y-auto bg-white flex justify-center items-start p-4">
             {/* Invoice Container - Letter Size 8.5x11 inches = 816x1056px */}
             <div
@@ -1293,9 +1395,17 @@ export default function InvoicePreviewModal({
               <button
                 type="button"
                 onClick={handleCommit}
-                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors"
+                disabled={derivedStatus === "draft"}
+                title={
+                  derivedStatus === "draft"
+                    ? "Cannot export — at least one passthrough line item is unpaid. Resolve the underlying bills first."
+                    : undefined
+                }
+                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
               >
-                <span className="text-white font-medium text-base">Commit</span>
+                <span className="text-white font-medium text-base">
+                  Send to QBO
+                </span>
               </button>
             )}
 
@@ -1325,10 +1435,11 @@ export default function InvoicePreviewModal({
       <AlertDialog open={showCommitConfirm} onOpenChange={setShowCommitConfirm}>
         <AlertDialogContentRoot>
           <AlertDialogHeader>
-            <AlertDialogTitle>Commit invoice?</AlertDialogTitle>
+            <AlertDialogTitle>Send invoice to QBO?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to commit? There are unapproved bills
-              outstanding.
+              This will finalize the invoice, attach the PDF, and push it to
+              QuickBooks. There are unapproved bills outstanding — sending
+              now will lock those amounts in.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1342,7 +1453,7 @@ export default function InvoicePreviewModal({
                 onOpenChange(false);
               }}
             >
-              Commit
+              Send to QBO
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContentRoot>

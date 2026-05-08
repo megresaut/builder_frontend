@@ -31,7 +31,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import glAccountsData from "@/data/gl_accounts.json";
+import { fetchChartOfAccounts } from "@/data/chartOfAccounts";
+import NewVendorModal, { type CreatedVendor } from "@/components/NewVendorModal";
 import {
   Select,
   SelectContent,
@@ -73,6 +74,10 @@ interface ExpenseRow {
   glAccountId: string;
   /** Set when expense was exported to Buildium (AVMRE only); used to disable re-approve */
   exportedToBuildium?: boolean;
+  /** ID of the bills row created from this expense (idempotency on re-approve) */
+  billId?: number;
+  /** Who fronted the cash. "personal_card" + concierge property → reimbursement bill. */
+  paymentMethod: "company_card" | "personal_card";
 }
 
 interface ApproveFTOPageProps {
@@ -101,6 +106,8 @@ interface ExpenseLine {
   /** Optional: only present when booking to AVMRE */
   gl_account_id?: string;
   exported_to_buildium?: boolean;
+  /** ID of bills row created from this material; set on successful dual-push */
+  bill_id?: number;
 }
 
 
@@ -209,7 +216,12 @@ const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]
 };
 
 // Fetch a single submission by ID (for misc expenses)
-const fetchSubmissionById = async (submissionId: number): Promise<{ submission: BackendSubmission; property_name?: string; property_id?: number }> => {
+const fetchSubmissionById = async (submissionId: number): Promise<{
+  submission: BackendSubmission;
+  property_name?: string;
+  property_id?: number;
+  date_of_work?: string;
+}> => {
   const res = await authFetch(
     `/maintenance/submissions/${submissionId}`,
     {
@@ -244,8 +256,9 @@ const fetchSubmissionById = async (submissionId: number): Promise<{ submission: 
       MaterialsJSON: sub.MaterialsJSON || sub.materials,
       HoursJSON: sub.HoursJSON || sub.hours,
     },
-    property_name: sub.property_name,
-    property_id: sub.property_id || sub.PropertyID,
+    property_name: sub.PropertyName || sub.property_name,
+    property_id: sub.PropertyID || sub.property_id,
+    date_of_work: sub.DateOfWork || sub.date_of_work,
   };
 };
 
@@ -314,11 +327,13 @@ const buildMaterialsJSON = (
       expense_type: chargeTypeToExpenseType(row.chargeType),
       amount_cents: parseMoneyToCents(row.amount),
       material_index: row.materialIndex,
+      payment_method: row.paymentMethod || "company_card",
     };
     if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
     if (includeAvmreFields) {
       if (row.glAccountId) out.gl_account_id = row.glAccountId;
       out.exported_to_buildium = row.exportedToBuildium ?? false;
+      if (row.billId) out.bill_id = row.billId;
     }
     return out;
   });
@@ -377,11 +392,9 @@ const createSubmissionForAssignee = async (
   ftoId: number,
   techId: number,
   hoursJSON: any[],
-  materialsJSON: any[]
+  materialsJSON: any[],
+  propertyId: number | null,
 ): Promise<number> => {
-  // Debugging logs removed
-  console.groupEnd();
-
   // Helper to convert date string (YYYY-MM-DD) to ISO format
   const toISODate = (dateStr: string): string => {
     return new Date(dateStr).toISOString();
@@ -395,9 +408,12 @@ const createSubmissionForAssignee = async (
     note: h.note || "",
     no_charge: h.no_charge || false,
     emergency: h.emergency || false,
+    ...(propertyId != null ? { property_id: propertyId } : {}),
   }));
 
-  // Build expense entries for the request
+  // Build expense entries for the request. property_id is REQUIRED — the
+  // backend dereferences it unconditionally on the service side, so omitting
+  // it nil-derefs and returns 500.
   const expenseEntries = materialsJSON.map((m) => ({
     fto_id: ftoId,
     date_of_work: toISODate(m.date_of_work),
@@ -406,6 +422,7 @@ const createSubmissionForAssignee = async (
     note: m.note || "",
     vendor_name: m.vendor_name || "",
     attachments: [],
+    ...(propertyId != null ? { property_id: propertyId } : {}),
   }));
 
   const res = await authFetch(
@@ -631,6 +648,22 @@ export default function ApproveFTOPage() {
   const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>([]);
 
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  // Tracks whether handleApprove is in flight so we can disable the button
+  // and prevent the double-click race that creates duplicate bills.
+  const [isApproving, setIsApproving] = useState(false);
+
+  // New-vendor modal: opened from handleApprove when a typed vendor name
+  // doesn't match any existing vendor. resolveNewVendor returns a Promise
+  // that resolves with the created vendor (or null if cancelled), so the
+  // approve flow can pause inline until the PM finishes the modal.
+  const [newVendorTarget, setNewVendorTarget] = useState<string | null>(null);
+  const newVendorResolverRef = useRef<((v: CreatedVendor | null) => void) | null>(null);
+  const resolveNewVendor = (name: string): Promise<CreatedVendor | null> =>
+    new Promise((resolve) => {
+      newVendorResolverRef.current = resolve;
+      setNewVendorTarget(name);
+    });
+
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(true);
   const [assigneeById, setAssigneeById] = useState<Record<number, string>>({});
   const [hasNoSubmissions, setHasNoSubmissions] = useState(false);
@@ -705,22 +738,27 @@ export default function ApproveFTOPage() {
 
       let targetSubmissionId = row.submissionId;
 
-      // If this is a new (unsaved) row, create a submission first
+      // If this is a new (unsaved) row, create a submission first.
       if (targetSubmissionId === 0) {
-        if (!row.assigneeId || row.assigneeId === 0) {
-          alert("Please select an assignee before attaching a receipt.");
-          return;
-        }
-        const materialsJSON = buildMaterialsJSON([row]);
-        if (ftoIdNum) {
+        if (isMiscMode && submissionIdNum) {
+          // Misc mode: the submission already exists (created via the
+          // CreateMiscExpenseModal). Just attach to it.
+          targetSubmissionId = submissionIdNum;
+        } else if (ftoIdNum) {
+          if (!row.assigneeId || row.assigneeId === 0) {
+            alert("Please select an assignee before attaching a receipt.");
+            return;
+          }
+          const materialsJSON = buildMaterialsJSON([row]);
           targetSubmissionId = await createSubmissionForAssignee(
             ftoIdNum,
             row.assigneeId,
             [],
             materialsJSON,
+            propertyId,
           );
         } else {
-          throw new Error("Cannot create submission — no FTO ID");
+          throw new Error("Cannot create submission — no FTO or misc submission context");
         }
         // Update the row's submissionId so future operations target the right submission
         setExpenseRows((prev) =>
@@ -788,10 +826,30 @@ export default function ApproveFTOPage() {
 
   // GL Account options (same data as Record Bill)
   const [glSearch, setGlSearch] = useState("");
-  const glAccountOptions = useMemo(
-    () => (glAccountsData as any[]).map((gl) => ({ id: gl.Id as string, name: gl.Name as string })),
-    [],
-  );
+  // GL accounts are loaded from our canonical chart_of_accounts table,
+  // filtered to expense accounts that have BOTH qbo_id and buildium_id (so
+  // the resulting bill can dual-push without a missing-mapping error).
+  // Same filter as RecordBill.tsx so the two pages stay in sync.
+  const [glAccountOptions, setGlAccountOptions] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    fetchChartOfAccounts({ activeOnly: true })
+      .then((accounts) => {
+        if (cancelled) return;
+        const usable = accounts
+          .filter((a) =>
+            a.account_type === "expense" &&
+            a.qbo_id !== null && a.qbo_id !== "" &&
+            a.buildium_id !== null,
+          )
+          .map((a) => ({ id: String(a.id), name: a.name }));
+        setGlAccountOptions(usable);
+      })
+      .catch((err) => console.error("Failed to load chart of accounts:", err));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const filteredGLAccounts = useMemo(
     () =>
       glSearch
@@ -1036,15 +1094,27 @@ export default function ApproveFTOPage() {
 
         if (isMiscMode && submissionIdNum) {
           // Misc mode: load single submission by ID
-          const { submission, property_name, property_id } = await fetchSubmissionById(submissionIdNum);
+          const { submission, property_name, property_id, date_of_work } = await fetchSubmissionById(submissionIdNum);
           submissions = [submission];
-          
-          // Update property info from submission if not already set
-          if (property_name && !property) {
+
+          // Property: prefer the API value (always fresh) over any nav-state
+          // value (might be stale on refresh).
+          if (property_name) {
             setProperty(property_name);
           }
           if (property_id) {
             setPropertyId(property_id);
+          }
+          // Date: backend stores `date_of_work`. Mirror it into the page-level
+          // dueDate state so the field shows the work date instead of staying
+          // blank (FTO mode uses dueDate from the FTO; misc has no FTO).
+          if (date_of_work) {
+            const d = typeof date_of_work === "string"
+              ? new Date(date_of_work)
+              : (date_of_work as unknown as Date);
+            if (!Number.isNaN(d.getTime())) {
+              setDueDate(d);
+            }
           }
 
           // Fetch attachments for this submission
@@ -1156,6 +1226,12 @@ export default function ApproveFTOPage() {
                     assigneeId: submission.FieldTeamMemberID,
                     glAccountId: expense.gl_account_id ?? "",
                     exportedToBuildium: expense.exported_to_buildium ?? false,
+                    billId: expense.bill_id,
+                    paymentMethod:
+                      (expense as { payment_method?: string }).payment_method ===
+                      "personal_card"
+                        ? "personal_card"
+                        : "company_card",
                   });
                 });
               }
@@ -1278,6 +1354,21 @@ export default function ApproveFTOPage() {
 
   const addExpenseRow = () => {
     const newId = `expense-new-${Date.now()}`;
+    // In misc mode the submission already exists (created by the modal), so
+    // attach the new row to it directly instead of submissionId=0 (which the
+    // attachment handler interprets as "needs a new submission" — that's the
+    // FTO-only path and throws when no FTO ID is present).
+    const initialSubmissionId =
+      isMiscMode && submissionIdNum ? submissionIdNum : 0;
+    // Material index has to be unique within the submission so attachments
+    // bind to the right row. Use the next free index for that submission.
+    const usedIndexesForSub = new Set(
+      expenseRows
+        .filter((r) => r.submissionId === initialSubmissionId)
+        .map((r) => r.materialIndex),
+    );
+    let nextMatIndex = 0;
+    while (usedIndexesForSub.has(nextMatIndex)) nextMatIndex++;
     setExpenseRows([
       ...expenseRows,
       {
@@ -1291,11 +1382,12 @@ export default function ApproveFTOPage() {
         upcharge: "$0",
         assignee: "",
         assigneeId: 0,
-        submissionId: 0,
-        materialIndex: 0,
+        submissionId: initialSubmissionId,
+        materialIndex: nextMatIndex,
         attachmentIds: [],
         submissionHasAttachments: false,
         glAccountId: "",
+        paymentMethod: "company_card",
       },
     ]);
   };
@@ -1311,6 +1403,8 @@ export default function ApproveFTOPage() {
   const grandTotal = hoursTotal + expensesTotal;
 
   const handleApprove = async () => {
+    if (isApproving) return; // belt-and-suspenders against double submit
+    setIsApproving(true);
     try {
       setAttemptedSubmit(true);
 
@@ -1327,37 +1421,60 @@ export default function ApproveFTOPage() {
         throw new Error("No hours or expenses to approve");
       }
 
-      // Pre-validate Buildium fields before approving (so we don't approve then fail to export)
-      let vendorCache: Record<string, { id: number; buildiumVendorId: string | null }> | null = null;
+      // Pre-validate before approving (so we don't approve then fail to push).
+      // For each expense row we need: GL chosen + a vendor that exists in our
+      // DB with both qbo_vendor_id AND buildium_vendor_id. Free-text vendor
+      // names that don't match get resolved via the New Vendor modal here,
+      // before the approve action actually fires.
+      let vendorCache: Record<string, { id: number; buildiumVendorId: string | null; qboVendorId: string | null }> | null = null;
       if (expenseRows.length > 0 && canExportToBuildium) {
         const missingGL = expenseRows.some((r) => !r.glAccountId);
         if (missingGL) {
-          throw new Error("Select a GL Account for each expense row before exporting to Buildium.");
+          throw new Error("Select a GL Account for each expense row before exporting.");
         }
 
         vendorCache = {};
         for (const row of expenseRows) {
           const vendorName = row.vendor.trim();
           if (!vendorName) throw new Error("Each expense row must have a vendor.");
-          if (!vendorCache[vendorName]) {
-            try {
-              const results = await fetchJSON(`/vendors?search=${encodeURIComponent(vendorName)}&limit=1`);
-              const match = Array.isArray(results) && results.length > 0 ? results[0] : null;
-              if (!match) {
-                throw new Error(`Vendor "${vendorName}" not found in the system. Please select a vendor from the dropdown.`);
-              }
-              vendorCache[vendorName] = {
-                id: Number(match.id),
-                buildiumVendorId: match.buildium_vendor_id ?? null,
-              };
-            } catch (fetchErr) {
-              if (fetchErr instanceof Error && (fetchErr.message.startsWith("Vendor") || fetchErr.message.startsWith("Each"))) throw fetchErr;
-              throw new Error(`Failed to look up vendor "${vendorName}".`);
+          if (vendorCache[vendorName]) continue;
+
+          // 1. Look up by exact case-insensitive name first.
+          let match: any = null;
+          try {
+            const results = await fetchJSON(`/vendors?search=${encodeURIComponent(vendorName)}&limit=10`);
+            const list = Array.isArray(results) ? results : [];
+            match = list.find((v: any) =>
+              (v.name || "").trim().toLowerCase() === vendorName.toLowerCase(),
+            ) ?? null;
+          } catch {
+            // soft-fail; treated as no match
+          }
+
+          // 2. No match → open New Vendor modal, await PM resolution.
+          if (!match) {
+            const created = await resolveNewVendor(vendorName);
+            if (!created) {
+              throw new Error(`Vendor resolution cancelled for "${vendorName}".`);
             }
+            match = {
+              id: created.id,
+              buildium_vendor_id: created.buildium_vendor_id,
+              qbo_vendor_id: created.qbo_vendor_id,
+            };
           }
-          if (!vendorCache[vendorName].buildiumVendorId) {
-            throw new Error(`Vendor "${vendorName}" is not linked to Buildium. Add a Buildium Vendor ID in vendor settings before exporting.`);
+
+          if (!match.buildium_vendor_id) {
+            throw new Error(`Vendor "${vendorName}" is not linked to Buildium yet. Open the vendor in settings and re-link, or pick a different vendor.`);
           }
+          if (!match.qbo_vendor_id) {
+            throw new Error(`Vendor "${vendorName}" is not linked to QBO yet. Open the vendor in settings and re-link, or pick a different vendor.`);
+          }
+          vendorCache[vendorName] = {
+            id: Number(match.id),
+            buildiumVendorId: match.buildium_vendor_id,
+            qboVendorId: match.qbo_vendor_id,
+          };
         }
       }
 
@@ -1376,6 +1493,11 @@ export default function ApproveFTOPage() {
       }
 
       // 2) Create new submissions for any rows with submissionId === 0 (new rows) — only in FTO mode (misc has no FTO to attach to)
+      // Track which new rows now belong to which created submission so the
+      // post-export bill_id writeback can target the right submission. Without
+      // this, bill_id never gets persisted for fresh rows and re-approve
+      // creates duplicate bills.
+      const newSubmissionIdByAssignee: Record<number, number> = {};
       if (ftoIdNum) {
         const newHourRows = hourRows.filter((r) => r.submissionId === 0);
         const newExpenseRows = expenseRows.filter((r) => r.submissionId === 0);
@@ -1389,12 +1511,41 @@ export default function ApproveFTOPage() {
           const assigneeNewExpenses = newExpenseRows.filter((r) => r.assigneeId === assigneeId);
           const hoursJSON = buildHoursJSON(assigneeNewHours);
           const materialsJSON = buildMaterialsJSON(assigneeNewExpenses, { includeAvmreFields: canExportToBuildium });
-          await createSubmissionForAssignee(
+          const newSubId = await createSubmissionForAssignee(
             ftoIdNum,
             assigneeId,
             hoursJSON,
-            materialsJSON
+            materialsJSON,
+            propertyId,
           );
+          newSubmissionIdByAssignee[assigneeId] = newSubId;
+        }
+
+        // Patch newly-created submission ids back into local row state so the
+        // export loop below uses the right source_id and the post-export
+        // patch can find the submission to write bill_id into.
+        if (Object.keys(newSubmissionIdByAssignee).length > 0) {
+          setExpenseRows((prev) =>
+            prev.map((r) =>
+              r.submissionId === 0 && newSubmissionIdByAssignee[r.assigneeId]
+                ? { ...r, submissionId: newSubmissionIdByAssignee[r.assigneeId] }
+                : r,
+            ),
+          );
+          setHourRows((prev) =>
+            prev.map((r) =>
+              r.submissionId === 0 && newSubmissionIdByAssignee[r.assigneeId]
+                ? { ...r, submissionId: newSubmissionIdByAssignee[r.assigneeId] }
+                : r,
+            ),
+          );
+          // expenseRows in scope below is the captured-at-render value so we
+          // also patch it locally — the setState above is for the next render.
+          for (let i = 0; i < expenseRows.length; i++) {
+            if (expenseRows[i].submissionId === 0 && newSubmissionIdByAssignee[expenseRows[i].assigneeId]) {
+              expenseRows[i].submissionId = newSubmissionIdByAssignee[expenseRows[i].assigneeId];
+            }
+          }
         }
       }
 
@@ -1414,13 +1565,17 @@ export default function ApproveFTOPage() {
         await approveFto(ftoIdNum);
       }
 
-      // --- Export expenses to Buildium when property has Buildium ID (both misc and FTO mode) ---
+      // --- Export expenses as bills (dual-push QBO + Buildium) ---
+      // Skip rows that already have a bill_id (idempotent on re-approve) so
+      // we never double-book in either system.
+      const newlyCreatedBillIds: Record<string, number> = {};
       if (expenseRows.length > 0 && canExportToBuildium && vendorCache) {
         const buildiumErrors: string[] = [];
         const exportedRowIds = new Set<string>();
 
         for (let i = 0; i < expenseRows.length; i++) {
           const row = expenseRows[i];
+          if (row.billId) continue; // already booked
           try {
             const parsedDate = row.date;
             const dateObj = new Date(parsedDate);
@@ -1455,26 +1610,52 @@ export default function ApproveFTOPage() {
             if (receiptAttachmentId != null) {
               exportPayload.attachment_id = receiptAttachmentId;
             }
-            if (propertyBuildiumDetails) {
-              exportPayload.buildium_property_id = propertyBuildiumDetails.buildium_property_id;
-              exportPayload.property_type = propertyBuildiumDetails.property_type;
+            // The unified bill flow needs the canonical property_id (we resolve
+            // QBO + Buildium ids server-side from there). source_type/source_id
+            // give the resulting bill row a back-pointer to its origin so it
+            // can be traced from the Bills page.
+            if (propertyId != null) {
+              exportPayload.property_id = propertyId;
+            }
+            exportPayload.source_type = isMiscMode ? "misc_expense" : "fto_expense";
+            if (row.submissionId && row.submissionId > 0) {
+              exportPayload.source_id = row.submissionId;
             }
 
-            await fetchJSON("/vendors/export-misc-expense-to-buildium", {
+            // Reimbursement: personal-card lines on a concierge property become
+            // is_reimbursement=true bills tagged to the field-team submitter.
+            // Backend re-validates property_type='C' as defense-in-depth.
+            const isConcierge =
+              propertyBuildiumDetails?.property_type === "C";
+            if (
+              !isMiscMode &&
+              row.paymentMethod === "personal_card" &&
+              isConcierge &&
+              row.assigneeId > 0
+            ) {
+              exportPayload.is_reimbursement = true;
+              exportPayload.reimbursee_user_id = row.assigneeId;
+            }
+
+            const exportRes = await fetchJSON("/vendors/export-misc-expense-to-buildium", {
               method: "POST",
               body: JSON.stringify(exportPayload),
             });
             exportedRowIds.add(row.id);
+            if (exportRes && typeof exportRes === "object" && (exportRes as any).bill_id) {
+              newlyCreatedBillIds[row.id] = Number((exportRes as any).bill_id);
+            }
           } catch (billErr) {
             buildiumErrors.push(`Row ${i + 1}: ${billErr instanceof Error ? billErr.message : String(billErr)}`);
           }
         }
 
-        // Persist exported_to_buildium for rows that succeeded (even on partial failure)
+        // Persist exported_to_buildium + bill_id for rows that succeeded (even on partial failure).
         if (exportedRowIds.size > 0) {
           const updatedRows = expenseRows.map((r) => ({
             ...r,
             exportedToBuildium: exportedRowIds.has(r.id) ? true : (r.exportedToBuildium ?? false),
+            billId: newlyCreatedBillIds[r.id] ?? r.billId,
           }));
           const submissionIds = [...new Set(updatedRows.map((r) => r.submissionId).filter((id) => id > 0))];
           for (const subId of submissionIds) {
@@ -1500,6 +1681,8 @@ export default function ApproveFTOPage() {
           ? err.message
           : "Failed to approve submission"
       );
+    } finally {
+      setIsApproving(false);
     }
   };
   
@@ -2240,6 +2423,14 @@ export default function ApproveFTOPage() {
                             Charge Type <span className="text-red-600">*</span>
                           </span>
                         </div>
+                        <div
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                        >
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            Card
+                          </span>
+                        </div>
                         {canExportToBuildium && (
                           <div
                             className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
@@ -2492,6 +2683,36 @@ export default function ApproveFTOPage() {
                             </Popover>
                           </div>
 
+                          {/* Card Cell - Company vs Personal */}
+                          <div
+                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{
+                              width: "140px",
+                              borderBottom: "1px solid #DADADA",
+                              borderRight: "1px solid #DADADA",
+                            }}
+                          >
+                            <select
+                              value={row.paymentMethod}
+                              onChange={(e) =>
+                                updateExpenseRow(
+                                  row.id,
+                                  "paymentMethod",
+                                  e.target.value as "company_card" | "personal_card",
+                                )
+                              }
+                              className="w-full h-9 px-2 rounded-md bg-white text-[13px] cursor-pointer border-0 focus:outline-none"
+                              style={{
+                                fontFamily:
+                                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                                color: "var(--color-text-primary, #303030)",
+                              }}
+                            >
+                              <option value="company_card">Company</option>
+                              <option value="personal_card">Personal</option>
+                            </select>
+                          </div>
+
                           {/* GL Account Cell */}
                           {canExportToBuildium && (
                             <div
@@ -2705,18 +2926,21 @@ export default function ApproveFTOPage() {
             <BlueButton
               onClick={handleApprove}
               disabled={
-                canExportToBuildium &&
-                expenseRows.length > 0 &&
-                expenseRows.every((r) => r.exportedToBuildium)
+                isApproving ||
+                (canExportToBuildium &&
+                  expenseRows.length > 0 &&
+                  expenseRows.every((r) => r.exportedToBuildium))
               }
             >
-              {canExportToBuildium &&
-              expenseRows.length > 0 &&
-              expenseRows.every((r) => r.exportedToBuildium)
-                ? "Already exported"
-                : isMiscMode
-                  ? "Approve Expense"
-                  : "Approve Field Team Order"}
+              {isApproving
+                ? (isMiscMode ? "Approving…" : "Exporting…")
+                : canExportToBuildium &&
+                    expenseRows.length > 0 &&
+                    expenseRows.every((r) => r.exportedToBuildium)
+                  ? "Already exported"
+                  : isMiscMode
+                    ? "Approve Expense"
+                    : "Approve Field Team Order"}
             </BlueButton>
           </div>
         </div>
@@ -2838,6 +3062,39 @@ export default function ApproveFTOPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* New Vendor modal — opened by handleApprove when a typed vendor isn't
+          in our DB. Resolves the awaiting Promise on submit/cancel so the
+          approve flow continues inline. */}
+      <NewVendorModal
+        open={newVendorTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            // If the modal closes via the X without explicit submit/cancel,
+            // treat as cancel so the approve flow doesn't hang.
+            if (newVendorResolverRef.current) {
+              newVendorResolverRef.current(null);
+              newVendorResolverRef.current = null;
+            }
+            setNewVendorTarget(null);
+          }
+        }}
+        initialName={newVendorTarget ?? ""}
+        onCreated={(vendor) => {
+          if (newVendorResolverRef.current) {
+            newVendorResolverRef.current(vendor);
+            newVendorResolverRef.current = null;
+          }
+          setNewVendorTarget(null);
+        }}
+        onCancel={() => {
+          if (newVendorResolverRef.current) {
+            newVendorResolverRef.current(null);
+            newVendorResolverRef.current = null;
+          }
+          setNewVendorTarget(null);
+        }}
+      />
     </div>
   );
 }
