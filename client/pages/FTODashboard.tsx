@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
+import { BuildingIcon } from "@/components/icons";
 
 type ItemType = "fto" | "inspection" | "work_order";
 type Priority = "low" | "normal" | "high";
@@ -289,11 +290,22 @@ export default function FTODashboard() {
 
   return (
     <div className="px-4 py-5 sm:px-6 sm:py-6 max-w-3xl mx-auto">
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold text-gray-900">Home</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Welcome to your field team dashboard
-        </p>
+      <div className="mb-5 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Home</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Welcome to your field team dashboard
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/field-team-orders")}
+          className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-[#303030]"
+        >
+          <BuildingIcon width={20} height={20} />
+          <span className="font-medium text-base leading-normal">
+            Main Portal
+          </span>
+        </button>
       </div>
 
       <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

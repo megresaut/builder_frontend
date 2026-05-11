@@ -1226,8 +1226,10 @@ export const RecordBill = () => {
 
   const [createdBillId, setCreatedBillId] = useState<number | null>(null);
   const effectiveBillId = billId ?? createdBillId;
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleApproveBill = async () => {
+    if (isExporting) return;
     const formFieldErrors = new Set<string>();
     let hasErrors = false;
   
@@ -1279,7 +1281,8 @@ export const RecordBill = () => {
       setFormErrors(formFieldErrors);
       return;
     }
-  
+
+    setIsExporting(true);
     try {
       let approvedBillId: number | null = null;
   
@@ -1406,6 +1409,10 @@ export const RecordBill = () => {
   
     } catch (err: any) {
       console.error("Failed to approve and export bill:", err);
+      // Backend deletes the bill row on terminal push failure so the platform
+      // mirrors QBO+Buildium — reset local state so any retry creates a fresh
+      // row instead of pointing at a deleted id.
+      setCreatedBillId(null);
       const raw = err?.message || err?.error || String(err);
       const lower = raw.toLowerCase();
 
@@ -1417,6 +1424,8 @@ export const RecordBill = () => {
       let userMsg: string;
       if (lower.includes("memo") && lower.includes("exceed") || lower.includes("memo") && lower.includes("240")) {
         userMsg = "The line item description is too long for Buildium (max 240 characters). Please shorten the description and try again.";
+      } else if (lower.includes("inactive vendor")) {
+        userMsg = "This vendor is inactive in Buildium. Reactivate the vendor in Buildium before recording this bill — the bill was not saved.";
       } else if (lower.includes("buildium unit")) {
         userMsg = "Invalid Buildium unit mapping — please update the unit in Buildium before exporting.";
       } else if (lower.includes("attachment failed")) {
@@ -1426,6 +1435,8 @@ export const RecordBill = () => {
       }
 
       alert(userMsg);
+    } finally {
+      setIsExporting(false);
     }
   };
   
@@ -2948,9 +2959,12 @@ minHeight: 0,
                   <span>Save</span>
                 </button>
                 <button
+                  disabled={isExporting}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+
+                    if (isExporting) return;
 
                     // Validate top-level form fields (same as Save button)
                     const formFieldErrors = new Set<string>();
@@ -2977,27 +2991,44 @@ minHeight: 0,
                     // If quick validation passes, run full validation including line items
                     handleApproveBill();
                   }}
-                  className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-[#013764] border-2 border-white hover:bg-[#0a2e4d]"
+                  className={`rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-[#013764] border-2 border-white ${isExporting ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0a2e4d]"}`}
                   style={{
                     boxShadow:
                       "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 45, 90) 0px 0px 0px 1px, rgba(0, 0, 0, 0.2) 0px 0px 10px -5px",
                   }}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  {isExporting ? (
+                    <svg
+                      className="animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
                   <span className="text-white text-sm font-medium leading-5">
-                    Approve & Export
+                    {isExporting ? "Exporting…" : "Approve & Export"}
                   </span>
                 </button>
               </>

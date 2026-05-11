@@ -15,6 +15,9 @@ import Bills from "./pages/Bills";
 import ChartOfAccounts from "./pages/ChartOfAccounts";
 import Reimbursements from "./pages/Reimbursements";
 import Reconciliation from "./pages/Reconciliation";
+import Invoices from "./pages/Invoices";
+import GeneralLedger from "./pages/GeneralLedger";
+import TransactionList from "./pages/TransactionList";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
 import RecurringTasks from "./pages/RecurringTasks";
@@ -364,6 +367,39 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <Reconciliation />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/invoices"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <Invoices />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/general-ledger"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <GeneralLedger />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/transaction-list"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <TransactionList />
                       </ShellLayout>
                     </RequireAuth>
                   }

@@ -111,6 +111,10 @@ export default function Header() {
       return { label: "Bills", path, id: "bills" };
     } else if (path === "/chart-of-accounts") {
       return { label: "Chart of Accounts", path, id: "chart-of-accounts" };
+    } else if (path === "/accounting/general-ledger") {
+      return { label: "General Ledger", path, id: "general-ledger" };
+    } else if (path === "/accounting/transaction-list") {
+      return { label: "Transaction List", path, id: "transaction-list" };
     } else if (path === "/field-team-orders") {
       return { label: "Field Team Orders", path, id: "field-team-orders" };
     } else if (path === "/work-orders") {
@@ -252,6 +256,10 @@ export default function Header() {
     } else if (path === "/record-bill") {
       items.push({ label: "Bills", href: "/bills" });
       items.push({ label: "Record Bill" });
+    } else if (path === "/accounting/general-ledger") {
+      items.push({ label: "General Ledger" });
+    } else if (path === "/accounting/transaction-list") {
+      items.push({ label: "Transaction List" });
     }
 
     return items;

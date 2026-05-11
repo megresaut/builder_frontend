@@ -482,15 +482,6 @@ const formatDate = (date: Date): string => {
 };
 
 
-const formatVendorName = (raw: string): string => {
-  if (!raw) return "";
-
-  return raw
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
-
 /** Map backend is_avm_expense to UI chargeType. false → client, true → avm. */
 const isAvmExpenseToChargeType = (isAvm: boolean): "avm" | "client" =>
   isAvm ? "avm" : "client";
@@ -1216,7 +1207,7 @@ export default function ApproveFTOPage() {
                     submissionHasAttachments: submission.HasAttachments ?? false,
 
                     date: formatDate(new Date(expense.date_of_work)),
-                    vendor: formatVendorName(expense.vendor_name || ""),
+                    vendor: expense.vendor_name || "",
                     receiptNote: expense.note || "",
                     avmExpense: expense.is_avm_expense,
                     chargeType: expenseLineToChargeType(expense),
@@ -1651,6 +1642,9 @@ export default function ApproveFTOPage() {
         }
 
         // Persist exported_to_buildium + bill_id for rows that succeeded (even on partial failure).
+        // Include hours_json alongside materials_json so the writeback never
+        // clears hours — partial-PATCH semantics are enforced on the backend
+        // now, but sending both sides keeps the intent explicit.
         if (exportedRowIds.size > 0) {
           const updatedRows = expenseRows.map((r) => ({
             ...r,
@@ -1660,7 +1654,9 @@ export default function ApproveFTOPage() {
           const submissionIds = [...new Set(updatedRows.map((r) => r.submissionId).filter((id) => id > 0))];
           for (const subId of submissionIds) {
             const subExpenseRows = updatedRows.filter((r) => r.submissionId === subId);
+            const subHourRows = hourRows.filter((r) => r.submissionId === subId);
             await patchSubmission(subId, {
+              hours_json: buildHoursJSON(subHourRows),
               materials_json: buildMaterialsJSON(subExpenseRows, { includeAvmreFields: true }),
             });
           }

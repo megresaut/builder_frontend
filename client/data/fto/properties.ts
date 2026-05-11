@@ -37,6 +37,14 @@ export const CHARGE_TYPES = [
   { value: "avm-expense", label: "AVM Expense" },
 ];
 
+// Card / payment method used to front the expense. Drives reimbursement
+// handling on the approve page: "personal_card" lines get flagged as
+// is_reimbursement=true when their bill is created.
+export const CARD_OPTIONS = [
+  { value: "company_card", label: "Company" },
+  { value: "personal_card", label: "Personal" },
+];
+
 export const TASKS = [
   { value: "task-1", label: "Doors Need To Be Repaired" },
   { value: "task-2", label: "HVAC Inspection" },
