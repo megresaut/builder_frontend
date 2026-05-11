@@ -134,6 +134,10 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     if (path === "/insurance") return "properties";
     if (path === "/inspection-dashboard") return "properties";
     if (path === "/bills") return "accounting";
+    if (path === "/chart-of-accounts") return "accounting";
+    if (path === "/reimbursements") return "accounting";
+    if (path === "/reconciliation") return "accounting";
+    if (path.startsWith("/accounting/")) return "accounting";
     if (
       path.includes("/all-tasks") ||
       path.includes("/recurring-tasks") ||
@@ -615,7 +619,39 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     ],
     screening: [],
     leases: [],
-    accounting: [{ label: "Bills", path: "/bills", sectionId: "bills" }],
+    accounting: [
+      { label: "Bills", path: "/bills", sectionId: "bills" },
+      {
+        label: "Invoices",
+        path: "/accounting/invoices",
+        sectionId: "invoices",
+      },
+      {
+        label: "Reimbursements",
+        path: "/reimbursements",
+        sectionId: "reimbursements",
+      },
+      {
+        label: "Reconciliation",
+        path: "/reconciliation",
+        sectionId: "reconciliation",
+      },
+      {
+        label: "General Ledger",
+        path: "/accounting/general-ledger",
+        sectionId: "general-ledger",
+      },
+      {
+        label: "Transaction List",
+        path: "/accounting/transaction-list",
+        sectionId: "transaction-list",
+      },
+      {
+        label: "Chart of Accounts",
+        path: "/chart-of-accounts",
+        sectionId: "chart-of-accounts",
+      },
+    ],
     maintenance: [
       {
         label: "All Tasks",

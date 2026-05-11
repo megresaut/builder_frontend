@@ -18,12 +18,15 @@ import {
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import InvoicePreviewModal, {
   type InvoiceLineItem,
+  type InvoiceLifecycleStatus,
 } from "@/components/InvoicePreviewModal";
+import RecordPaymentDialog from "@/components/RecordPaymentDialog";
 import RecordBillModal, {
   type RecordBillModalData,
   type RecordBillModalMode,
 } from "@/components/RecordBillModal";
 import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
+import { toast } from "sonner";
 import { openAuthPdf } from "@/api/openAuthPdf";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 
@@ -479,6 +482,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   }
 
   const [currentInvoiceId, setCurrentInvoiceId] = useState<number | null>(null);
+  const [currentInvoiceStatus, setCurrentInvoiceStatus] =
+    useState<InvoiceLifecycleStatus>(undefined);
+  const [unpaidPassthroughCount, setUnpaidPassthroughCount] = useState(0);
+  const [currentInvoiceTotalCents, setCurrentInvoiceTotalCents] = useState(0);
+  const [currentQBOPushStatus, setCurrentQBOPushStatus] = useState<string | null>(null);
+  const [currentQBOLastError, setCurrentQBOLastError] = useState<string | null>(null);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [recordPaymentInvoiceId, setRecordPaymentInvoiceId] = useState<number | null>(null);
+  const [recordPaymentDefaultCents, setRecordPaymentDefaultCents] = useState(0);
   const [loadingInvoice, setLoadingInvoice] = useState(false);
   const [propertyOwnerName, setPropertyOwnerName] = useState<string>("");
   const [fetchedPropertyLocation, setFetchedPropertyLocation] = useState<string>("");
@@ -511,34 +523,31 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         }
       );
 
-      let invoiceId: number;
-
+      // Generate is idempotent for terminal-state invoices — it returns the
+      // existing snapshot instead of erroring, so we don't need a fallback
+      // path here. Any non-200 is a real failure.
       if (!generateRes.ok) {
-        if (generateRes.status === 400) {
-          // 👇 Invoice already exists, fetch the current draft invoice
-          setGenerateInvoiceError(null);
-          
-          const draftRes = await authFetch(
-            `/invoicing/current-draft?property_id=${propertyId}`
-          );
-          
-          if (!draftRes.ok) {
-            setGenerateInvoiceError("Invoice already generated for this month, but could not load it.");
-            return;
-          }
-          
-          const draftData = await draftRes.json();
-          invoiceId = draftData.id;
-          setCurrentInvoiceId(invoiceId);
-        } else {
-          throw new Error("Failed to generate invoice");
-        }
-      } else {
-        // ✅ success path - invoice was just generated
-        setGenerateInvoiceError(null);
-        const generateData = await generateRes.json();
-        invoiceId = generateData.invoice.id;
-        setCurrentInvoiceId(invoiceId);
+        const errBody = await generateRes.text();
+        let parsedErr = errBody;
+        try { parsedErr = JSON.parse(errBody)?.error ?? errBody; } catch {}
+        setGenerateInvoiceError(parsedErr || "Failed to load invoice");
+        return;
+      }
+      setGenerateInvoiceError(null);
+      const invoiceData: any = await generateRes.json();
+      const invoiceId: number = invoiceData.invoice.id;
+      setCurrentInvoiceId(invoiceId);
+
+      // Capture lifecycle state for the preview modal.
+      if (invoiceData?.invoice) {
+        setCurrentInvoiceStatus(
+          (invoiceData.derived_status || invoiceData.invoice.status) as InvoiceLifecycleStatus,
+        );
+        setCurrentInvoiceTotalCents(
+          Math.round((invoiceData.invoice.total_amount || 0) * 100),
+        );
+        setCurrentQBOPushStatus(invoiceData.invoice.qbo_push_status ?? null);
+        setCurrentQBOLastError(invoiceData.invoice.qbo_last_error ?? null);
       }
 
   
@@ -552,6 +561,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       }
   
       const apiItems = await itemsRes.json();
+
+      // Count passthrough lines that are still unpaid — drives the DRAFT banner.
+      const passthroughUnpaid = (apiItems as any[]).filter((li) => {
+        const isPassthrough =
+          li.source_type === "vendor" ||
+          li.source_type === "utility" ||
+          li.source_type === "fto_expense";
+        const isUnpaid =
+          li.payment_status === "unpaid" || li.payment_status === "unknown";
+        return isPassthrough && isUnpaid;
+      }).length;
+      setUnpaidPassthroughCount(passthroughUnpaid);
 
       const SOURCE_PRESETS = {
         vendor: {
@@ -593,7 +614,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           vendorIcon: avatar.icon,
           vendorBg: avatar.bg,
           vendorBorder: avatar.border,
-          glAccount: getGlAccountName(li.gl_account_id),
+          // Backend resolves the display name authoritatively (handles both
+          // canonical chart_of_accounts.id and legacy buildium_id). Fall back
+          // to the local Buildium-keyed map only if the backend didn't supply
+          // a name (older invoice rows pre-2026-05-08).
+          glAccount:
+            li.gl_account_name ||
+            getGlAccountName(li.gl_account_id),
           description: li.description || "",
           amount: `$${li.amount.toFixed(2)}`,
           source: normalizedSource,
@@ -890,12 +917,16 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const handleCommitInvoice = async (pdfBlob: Blob) => {
     if (!currentInvoiceId) return;
-  
+
+    const toastId = toast.loading("Sending invoice to QBO…", {
+      description: "Uploading PDF and creating QuickBooks invoice",
+    });
+
     try {
       // 1️⃣ Upload PDF
       const formData = new FormData();
       formData.append("file", pdfBlob, "invoice.pdf");
-  
+
       const uploadRes = await authFetch(
         `/vendors/bills/upload-pdf`,
         {
@@ -903,26 +934,21 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           body: formData,
         }
       );
-      
-      // ⚠️ Read raw text first
+
       const uploadText = await uploadRes.text();
-      
-      // Then parse JSON safely
       let uploadJson;
       try {
         uploadJson = JSON.parse(uploadText);
       } catch (e) {
-        throw new Error("Upload response is not valid JSON");
+        throw new Error("PDF upload response was not valid JSON");
       }
-      
+
       const { pdf_object_key, sha256_pdf } = uploadJson;
-      
       if (!pdf_object_key || !sha256_pdf) {
-        throw new Error("Upload did not return pdf_object_key or sha256_pdf");
+        throw new Error("PDF upload did not return a storage key");
       }
-      
-  
-      // 2️⃣ Finalize invoice WITH PDF
+
+      // 2️⃣ Finalize invoice WITH PDF (and trigger QBO push server-side)
       const finalizeRes = await authFetch(
         `/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
         {
@@ -934,16 +960,48 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           }),
         }
       );
-  
+
       if (!finalizeRes.ok) {
-        throw new Error("Finalize failed");
+        const errBody = await finalizeRes.text();
+        let parsedErr = errBody;
+        try {
+          parsedErr = JSON.parse(errBody)?.error ?? errBody;
+        } catch {}
+        throw new Error(parsedErr || "Finalize failed");
       }
-  
+
+      // The response is the updated invoice; inspect qbo_push_status to see
+      // whether the QBO leg succeeded. Lifecycle is committed either way —
+      // QBO failure is recoverable via the Retry QBO Sync button.
+      const finalizedInvoice = await finalizeRes.json();
+      if (finalizedInvoice?.qbo_push_status === "pushed" && finalizedInvoice?.qbo_invoice_id) {
+        toast.success("Invoice sent to QBO", {
+          id: toastId,
+          description: `QBO Invoice #${finalizedInvoice.qbo_invoice_id} created and PDF attached.`,
+        });
+      } else if (finalizedInvoice?.qbo_push_status === "failed") {
+        toast.error("Invoice marked Sent, but QBO sync failed", {
+          id: toastId,
+          description:
+            finalizedInvoice?.qbo_last_error ??
+            "Use Retry QBO Sync once the underlying issue is fixed.",
+        });
+      } else {
+        toast.success("Invoice marked Sent", {
+          id: toastId,
+          description: "QBO push not configured — only platform state was updated.",
+        });
+      }
+
       // 3️⃣ Refresh UI
       await loadInvoiceForProperty();
-  
-    } catch (err) {
+      await loadInvoiceHistory();
+    } catch (err: any) {
       console.error("Commit failed:", err);
+      toast.error("Send to QBO failed", {
+        id: toastId,
+        description: err?.message ?? "Unexpected error",
+      });
     }
   };
   
@@ -1167,6 +1225,36 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
+                {currentInvoiceStatus && (
+                  <span
+                    className={
+                      "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border " +
+                      (currentInvoiceStatus === "draft"
+                        ? "bg-amber-50 text-amber-800 border-amber-200"
+                        : currentInvoiceStatus === "ready"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : currentInvoiceStatus === "sent"
+                        ? "bg-blue-50 text-blue-800 border-blue-200"
+                        : currentInvoiceStatus === "paid"
+                        ? "bg-gray-100 text-gray-700 border-gray-200"
+                        : "bg-rose-50 text-rose-800 border-rose-200")
+                    }
+                    title={
+                      currentInvoiceStatus === "draft" && unpaidPassthroughCount > 0
+                        ? `${unpaidPassthroughCount} passthrough line item${
+                            unpaidPassthroughCount === 1 ? "" : "s"
+                          } not yet paid`
+                        : undefined
+                    }
+                  >
+                    {currentInvoiceStatus.toUpperCase()}
+                    {currentInvoiceStatus === "draft" && unpaidPassthroughCount > 0 && (
+                      <span className="ml-1 opacity-75">
+                        · {unpaidPassthroughCount} unpaid
+                      </span>
+                    )}
+                  </span>
+                )}
               </div>
             }
             headerActions={
@@ -1341,24 +1429,134 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   .toFixed(0)}
               </div>
             </div>
-            <div className="flex items-start gap-2.5">
-              <BlueButton
-                onClick={() =>
-                  openInvoicePreview({
-                    lineItems: invoiceItemsWithManagementFeeFirst.map((item) => ({
-                      id: item.id,
-                      vendor: item.vendor,
-                      description: item.description,
-                      amount: item.amount,
-                    })),
-                    invoiceDate: currentInvoiceMonth,
-                    showCommitButton: true,
-                  })
-                }
-                className="h-10"
-              >
-                Preview PDF
-              </BlueButton>
+            <div className="flex flex-col items-end gap-2">
+              {currentQBOPushStatus === "failed" && currentQBOLastError && (
+                <div className="text-xs text-rose-700 max-w-md text-right">
+                  QBO sync failed: {currentQBOLastError}
+                </div>
+              )}
+              <div className="flex items-start gap-2.5">
+                <button
+                  type="button"
+                  onClick={() =>
+                    openInvoicePreview({
+                      lineItems: invoiceItemsWithManagementFeeFirst.map((item) => ({
+                        id: item.id,
+                        vendor: item.vendor,
+                        description: item.description,
+                        amount: item.amount,
+                      })),
+                      invoiceDate: currentInvoiceMonth,
+                      showCommitButton: false,
+                    })
+                  }
+                  className="h-10 inline-flex items-center px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Preview PDF
+                </button>
+
+                {currentInvoiceStatus !== "sent" &&
+                  currentInvoiceStatus !== "paid" &&
+                  currentInvoiceStatus !== "void" && (
+                    <button
+                      type="button"
+                      disabled={
+                        currentInvoiceStatus === "draft" || !currentInvoiceId
+                      }
+                      title={
+                        currentInvoiceStatus === "draft"
+                          ? `Cannot send — ${unpaidPassthroughCount} passthrough line item${
+                              unpaidPassthroughCount === 1 ? "" : "s"
+                            } unpaid. Resolve underlying bills first.`
+                          : "Generate PDF + push to QuickBooks"
+                      }
+                      onClick={async () => {
+                        if (!currentInvoiceId) return;
+                        try {
+                          // Reuse the existing PDF generation flow by opening
+                          // the modal in commit mode — keeps PDF rendering in
+                          // one place. The modal will auto-close after commit.
+                          openInvoicePreview({
+                            lineItems: invoiceItemsWithManagementFeeFirst.map(
+                              (item) => ({
+                                id: item.id,
+                                vendor: item.vendor,
+                                description: item.description,
+                                amount: item.amount,
+                              }),
+                            ),
+                            invoiceDate: currentInvoiceMonth,
+                            showCommitButton: true,
+                          });
+                        } catch (e) {
+                          console.error("send to qbo failed", e);
+                        }
+                      }}
+                      className="h-10 inline-flex items-center px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none text-white font-medium"
+                    >
+                      Send to QBO
+                    </button>
+                  )}
+
+                {currentInvoiceStatus === "sent" &&
+                  currentInvoiceId &&
+                  currentQBOPushStatus !== "failed" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecordPaymentInvoiceId(currentInvoiceId);
+                        setRecordPaymentDefaultCents(currentInvoiceTotalCents);
+                        setRecordPaymentOpen(true);
+                      }}
+                      className="h-10 inline-flex items-center px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors text-white font-medium"
+                    >
+                      Record Payment
+                    </button>
+                  )}
+
+                {currentQBOPushStatus === "failed" && currentInvoiceId && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const toastId = toast.loading("Retrying QBO sync…");
+                      try {
+                        const res = await authFetch(
+                          `/invoicing/qbo-retry-invoice?id=${currentInvoiceId}`,
+                          { method: "POST" },
+                        );
+                        if (!res.ok) {
+                          const errBody = await res.text();
+                          let parsedErr = errBody;
+                          try { parsedErr = JSON.parse(errBody)?.error ?? errBody; } catch {}
+                          throw new Error(parsedErr || "Retry failed");
+                        }
+                        const inv = await res.json();
+                        await loadInvoiceForProperty();
+                        if (inv?.qbo_push_status === "pushed" && inv?.qbo_invoice_id) {
+                          toast.success("QBO sync succeeded", {
+                            id: toastId,
+                            description: `QBO Invoice #${inv.qbo_invoice_id} created.`,
+                          });
+                        } else {
+                          toast.error("QBO sync still failing", {
+                            id: toastId,
+                            description: inv?.qbo_last_error ?? "See server logs for details.",
+                          });
+                        }
+                      } catch (e: any) {
+                        console.error("retry qbo sync failed", e);
+                        toast.error("Retry failed", {
+                          id: toastId,
+                          description: e?.message ?? "Unexpected error",
+                        });
+                      }
+                    }}
+                    className="h-10 inline-flex items-center px-4 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 transition-colors text-rose-800 font-medium"
+                  >
+                    Retry QBO Sync
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1499,7 +1697,128 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         showCommitButton={invoicePreviewShowCommitButton}
         onCommit={handleCommitInvoice}
         pendingUnapprovedCount={pendingApprovalBills.length}
+        derivedStatus={currentInvoiceStatus}
+        unpaidPassthroughCount={unpaidPassthroughCount}
+        qboPushStatus={currentQBOPushStatus}
+        qboLastError={currentQBOLastError}
+        onRecordPayment={
+          currentInvoiceStatus === "sent" &&
+          currentInvoiceId &&
+          currentQBOPushStatus !== "failed"
+            ? () => {
+                setRecordPaymentInvoiceId(currentInvoiceId);
+                setRecordPaymentDefaultCents(currentInvoiceTotalCents);
+                setRecordPaymentOpen(true);
+                setShowInvoicePreview(false);
+              }
+            : undefined
+        }
+        onRetryQBOSync={
+          currentInvoiceId && currentQBOPushStatus === "failed"
+            ? async () => {
+                const toastId = toast.loading("Retrying QBO sync…");
+                try {
+                  const res = await authFetch(
+                    `/invoicing/qbo-retry-invoice?id=${currentInvoiceId}`,
+                    { method: "POST" },
+                  );
+                  if (!res.ok) {
+                    const errBody = await res.text();
+                    let parsedErr = errBody;
+                    try { parsedErr = JSON.parse(errBody)?.error ?? errBody; } catch {}
+                    throw new Error(parsedErr || "Retry failed");
+                  }
+                  const inv = await res.json();
+                  await loadInvoiceForProperty();
+                  if (inv?.qbo_push_status === "pushed" && inv?.qbo_invoice_id) {
+                    toast.success("QBO sync succeeded", {
+                      id: toastId,
+                      description: `QBO Invoice #${inv.qbo_invoice_id} created.`,
+                    });
+                  } else {
+                    toast.error("QBO sync still failing", {
+                      id: toastId,
+                      description: inv?.qbo_last_error ?? "See server logs for details.",
+                    });
+                  }
+                } catch (e: any) {
+                  console.error("retry qbo sync failed", e);
+                  toast.error("Retry failed", {
+                    id: toastId,
+                    description: e?.message ?? "Unexpected error",
+                  });
+                }
+              }
+            : undefined
+        }
       />
+
+      {recordPaymentInvoiceId && (
+        <RecordPaymentDialog
+          open={recordPaymentOpen}
+          onOpenChange={setRecordPaymentOpen}
+          defaultAmountCents={recordPaymentDefaultCents}
+          invoiceId={recordPaymentInvoiceId}
+          onSubmit={async ({
+            amountCents,
+            dateISO,
+            depositAccountCoaId,
+            paymentMethod,
+            reference,
+            memo,
+          }) => {
+            const toastId = toast.loading("Recording payment…");
+            try {
+              const res = await authFetch(
+                `/invoicing/record-payment?id=${recordPaymentInvoiceId}`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    amount_cents: amountCents,
+                    date: dateISO,
+                    deposit_account_coa_id: depositAccountCoaId,
+                    payment_method: paymentMethod || undefined,
+                    reference,
+                    memo,
+                  }),
+                },
+              );
+              if (!res.ok) {
+                const body = await res.text();
+                let parsed = body;
+                try { parsed = JSON.parse(body)?.error ?? body; } catch {}
+                throw new Error(parsed || "Failed to record payment");
+              }
+              const inv = await res.json();
+              await loadInvoiceForProperty();
+              await loadInvoiceHistory();
+              if (inv?.qbo_payment_push_status === "pushed" && inv?.qbo_payment_id) {
+                toast.success("Payment recorded", {
+                  id: toastId,
+                  description: `QBO Payment #${inv.qbo_payment_id} created against the invoice.`,
+                });
+              } else if (inv?.qbo_payment_push_status === "failed") {
+                toast.error("Payment recorded, but QBO sync failed", {
+                  id: toastId,
+                  description: inv?.qbo_payment_last_error ?? "Use the Retry button on the invoice.",
+                });
+              } else {
+                toast.success("Payment recorded", {
+                  id: toastId,
+                  description: "Platform updated; QBO push not configured.",
+                });
+              }
+            } catch (e: any) {
+              toast.error("Failed to record payment", {
+                id: toastId,
+                description: e?.message ?? "Unexpected error",
+              });
+              throw e; // surface in dialog inline error too
+            }
+          }}
+        />
+      )}
 
       {showAddAdditionalBillsModal && (
         <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">

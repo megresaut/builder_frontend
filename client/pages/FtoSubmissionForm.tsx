@@ -29,6 +29,7 @@ import type { MultiSelectOption } from "@/components/forms";
 import {
   PROPERTIES,
   CHARGE_TYPES,
+  CARD_OPTIONS,
   TASKS,
   YES_NO_OPTIONS,
   BILLING_OPTIONS,
@@ -91,6 +92,7 @@ interface ExpenseEntry {
   taskId: string | null;
   amount: number | string;
   chargeType: string | null;
+  paymentMethod: "company_card" | "personal_card";
   vendorId: string | null;
   note: string;
   files: {
@@ -199,6 +201,8 @@ interface ApiExpenseLine {
   amount_cents: number;
   is_avm_expense: boolean;
   note: string;
+
+  payment_method?: string;
 
   material_index: number;
 }
@@ -397,6 +401,7 @@ export default function FtoSubmissionForm() {
       taskId: null,
       amount: "",
       chargeType: "client-expense",
+      paymentMethod: "company_card",
       vendorId: null,
       note: "",
       files: [],
@@ -840,6 +845,8 @@ export default function FtoSubmissionForm() {
 
         amount: m.amount_cents / 100,
         chargeType: m.is_avm_expense ? "avm-expense" : "client-expense",
+        paymentMethod:
+          m.payment_method === "personal_card" ? "personal_card" : "company_card",
         vendorId: null,
         note: m.note ?? "",
 
@@ -1232,10 +1239,12 @@ export default function FtoSubmissionForm() {
         isExpanded: true,
         date: getTodayDate(),
         propertyId: null,
+        locationId: null,
         unitId: null,
         taskId: null,
         amount: "",
         chargeType: "client-expense",
+        paymentMethod: "company_card",
         vendorId: null,
         note: "",
         files: [],
@@ -1663,6 +1672,7 @@ export default function FtoSubmissionForm() {
         note: e.note ?? "",
         is_avm_expense: e.chargeType === "avm-expense",
         amount_cents: Math.round((Number(e.amount) || 0) * 100),
+        payment_method: e.paymentMethod,
         material_index: idx,
         unit_id: getUnitIdAsNumber(e.unitId),
       }));
@@ -1710,6 +1720,7 @@ export default function FtoSubmissionForm() {
       note: e.note,
       expense_type: e.chargeType,        // string | null
       vendor_name: e.vendorId,           // string | null (id or custom input)
+      payment_method: e.paymentMethod,   // "company_card" | "personal_card"
       attachments: e.files
         .filter((f) => f.storage_path)
         .map((f) => ({
@@ -2491,6 +2502,23 @@ export default function FtoSubmissionForm() {
                               return newErrors;
                             });
                             updateExpenseEntry(entry.id, "chargeType", value);
+                          }}
+                          placeholder="Select An Option"
+                          disabled={isApproved}
+                        />
+
+                        <SelectField
+                          label="Card"
+                          required
+                          options={CARD_OPTIONS}
+                          value={entry.paymentMethod}
+                          onChange={(value) => {
+                            if (isApproved) return;
+                            updateExpenseEntry(
+                              entry.id,
+                              "paymentMethod",
+                              value,
+                            );
                           }}
                           placeholder="Select An Option"
                           disabled={isApproved}

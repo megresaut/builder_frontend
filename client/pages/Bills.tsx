@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import AddVendorModal from "@/components/AddVendorModal";
+import PayBillModal from "@/components/PayBillModal";
+import ViewPaymentModal from "@/components/ViewPaymentModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
@@ -35,6 +37,20 @@ interface Bill {
 
   status: "pushed" | "push-failed";
   memo: string;
+
+  // QBO payment state — sourced from /utilities/bills/all (qbo_paid_at IS NOT NULL == paid)
+  qboPaidAt?: string;
+  qboBalanceCents?: number;
+  qboTotalCents?: number;
+  qboBillId?: string;
+  buildiumBillId?: string;
+
+  // Payment metadata (set after a successful Pay Bill)
+  buildiumBillPaymentId?: string;
+  paidOn?: string;
+  paidFromName?: string;
+  paidDocNumber?: string;
+  paidMemo?: string;
 
   // 🔁 rename semantic meaning: reference number
   invoiceNumber: string;
@@ -101,6 +117,18 @@ function mapUtilityRowToBill(row: any): Bill {
     glAccount: "",
     importedAt: createdAtMs,
     exportedAt: row.push_status === "pushed" ? createdAtMs : undefined,
+
+    qboPaidAt: row.qbo_paid_at ?? undefined,
+    qboBalanceCents: row.qbo_balance_cents ?? undefined,
+    qboTotalCents: row.qbo_total_cents ?? undefined,
+    qboBillId: row.qbo_bill_id ?? undefined,
+    buildiumBillId: row.buildium_bill_id ?? undefined,
+
+    buildiumBillPaymentId: row.buildium_bill_payment_id ?? undefined,
+    paidOn: row.paid_on ?? undefined,
+    paidFromName: row.paid_from_name ?? undefined,
+    paidDocNumber: row.paid_doc_number ?? undefined,
+    paidMemo: row.paid_memo ?? undefined,
 
     // ⭐ this is the key
     isUtility: Boolean(row.provider_id),
@@ -324,6 +352,20 @@ const buildBillState = (bill: Bill) => ({
   invoiceDate: bill.statementDate,
   dueDate: bill.dueDate,
   memo: bill.memo,
+  // QBO payment state — passed through so RecordBill can render the Pay Bill
+  // button + View Payment modal without an extra API round-trip.
+  qboPaidAt: bill.qboPaidAt,
+  qboBalanceCents: bill.qboBalanceCents,
+  qboTotalCents: bill.qboTotalCents,
+  qboBillId: bill.qboBillId,
+  buildiumBillId: bill.buildiumBillId,
+
+  // Payment metadata for the View Payment modal
+  buildiumBillPaymentId: bill.buildiumBillPaymentId,
+  paidOn: bill.paidOn,
+  paidFromName: bill.paidFromName,
+  paidDocNumber: bill.paidDocNumber,
+  paidMemo: bill.paidMemo,
   lineItems: [
     {
       id: bill.id,
@@ -435,9 +477,9 @@ function getImportStatusStyle(importStatus?: string): {
 
 export default function Bills() {
   const navigate = useNavigate();
-  const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
+  const [selectedTab, setSelectedTab] = usePageState<"all" | "paid" | "unpaid">(
     "selectedTab",
-    "approved",
+    "all",
   );
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
@@ -466,6 +508,8 @@ export default function Bills() {
   const [billsList, setBillsList] = useState<Bill[]>([]);
   const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(new Set());
   const [approvedTotal, setApprovedTotal] = useState(0);
+  const [payBillTarget, setPayBillTarget] = useState<Bill | null>(null);
+  const [viewPaymentTarget, setViewPaymentTarget] = useState<Bill | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   // const [approvedTimestamp, setApprovedTimestamp] = useState(
   //   () => Date.now() - 3 * 60 * 1000,
@@ -499,10 +543,10 @@ export default function Bills() {
     return () => clearTimeout(timer);
   };
 
-  const approvedBills = billsList
-    .filter((b) => approvedBillIds.has(b.id));
-  const draftBills = billsList.filter((b) => !approvedBillIds.has(b.id));
-  const tabBills = selectedTab === "approved" ? approvedBills : draftBills;
+  // Server filters by tab via ?tab=all|paid|unpaid, so the page just renders
+  // whatever came back. (approvedBillIds / approvedBills retained for legacy
+  // event handlers below; not used for tab partitioning anymore.)
+  const tabBills = billsList;
 
   const uniqueVendors = Array.from(
     new Set(tabBills.map((b) => b.vendor).filter((v) => v && v !== "—"))
@@ -511,48 +555,9 @@ export default function Bills() {
     new Set(tabBills.map((b) => b.property).filter((p) => p && p !== "—"))
   ).sort();
 
-  // For the approved tab, filtering + search happens server-side.
-  // For the drafts tab, filter client-side as before.
-  const filteredTabBills = selectedTab === "approved"
-    ? tabBills
-    : (() => {
-        const searchLower = searchValue.trim().toLowerCase();
-        return tabBills.filter((bill) => {
-          const matchesSearch = !searchLower || (() => {
-            const vendor = (bill.vendor ?? "").toLowerCase();
-            const property = (bill.property ?? "").toLowerCase();
-            const memo = (bill.memo ?? "").toLowerCase();
-            const invoiceNumber = (bill.invoiceNumber ?? "").toLowerCase();
-            const amountStr = String(bill.amount ?? "");
-            const statementDate = (bill.statementDate ?? "").toLowerCase();
-            const dueDate = (bill.dueDate ?? "").toLowerCase();
-            return (
-              vendor.includes(searchLower) ||
-              property.includes(searchLower) ||
-              memo.includes(searchLower) ||
-              invoiceNumber.includes(searchLower) ||
-              amountStr.includes(searchLower) ||
-              statementDate.includes(searchLower) ||
-              dueDate.includes(searchLower)
-            );
-          })();
-
-          if (!matchesSearch) return false;
-          if (filterVendor && bill.vendor !== filterVendor) return false;
-          if (filterProperty && bill.property !== filterProperty) return false;
-
-          if (filterDateFrom || filterDateTo) {
-            const billDateStr = bill.due_date
-              ? new Date(bill.due_date).toISOString().slice(0, 10)
-              : null;
-            if (!billDateStr) return false;
-            if (filterDateFrom && billDateStr < filterDateFrom) return false;
-            if (filterDateTo && billDateStr > filterDateTo) return false;
-          }
-
-          return true;
-        });
-      })();
+  // All tabs are server-filtered (search/vendor/property/date all forwarded
+  // to /utilities/bills/all alongside ?tab=).
+  const filteredTabBills = tabBills;
 
   const { handleSortClick, getSortIndicator, getSortedData } =
     useSortingTable(filteredTabBills);
@@ -600,12 +605,13 @@ export default function Bills() {
     setCurrentPage(1);
   }, [filterVendor, filterProperty, filterDateFrom, filterDateTo]);
 
-  // Load approved bills (server-paginated)
+  // Load bills for the active tab (server-paginated; server applies the tab filter).
   const loadApprovedBills = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       params.set("limit", String(itemsPerPage));
       params.set("offset", String((currentPage - 1) * itemsPerPage));
+      params.set("tab", selectedTab);
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (filterVendor) params.set("vendor", filterVendor);
       if (filterProperty) params.set("property", filterProperty);
@@ -614,47 +620,27 @@ export default function Bills() {
 
       const res = await fetchJSON(`/utilities/bills/all?${params.toString()}`);
       const rows = Array.isArray(res.data) ? res.data : [];
-      const approved = rows.map(mapUtilityRowToBill);
+      const bills = rows.map(mapUtilityRowToBill);
 
-      setBillsList((prev) => {
-        const drafts = prev.filter((b) => !approvedBillIds.has(b.id));
-        return [...approved, ...drafts];
-      });
-      setApprovedBillIds(new Set(approved.map((b: Bill) => b.id)));
+      setBillsList(bills);
+      setApprovedBillIds(new Set(bills.map((b: Bill) => b.id)));
       setApprovedTotal(typeof res.total === "number" ? res.total : rows.length);
     } catch (err) {
-      console.error("Error loading approved bills:", err);
+      console.error("Error loading bills:", err);
     }
-  }, [currentPage, itemsPerPage, debouncedSearch, filterVendor, filterProperty, filterDateFrom, filterDateTo]);
+  }, [currentPage, itemsPerPage, selectedTab, debouncedSearch, filterVendor, filterProperty, filterDateFrom, filterDateTo]);
 
-  // Load draft bills (client-side, independent of pagination)
+  // Drafts are no longer surfaced in this view — the All / Paid / Unpaid tabs
+  // are sourced solely from the bills table. Draft bills live in bill_drafts
+  // and are accessed via the Record Bill workflow.
   const loadDraftBills = useCallback(async () => {
-    try {
-      const draftRows = await fetchJSON(
-        "/vendors/bill-drafts?status=draft,parsed,receipt&limit=200"
-      );
-      const drafts = (Array.isArray(draftRows) ? draftRows : []).map(mapDraftRowToBill);
+    /* no-op: drafts are not part of the All/Paid/Unpaid model */
+  }, []);
 
-      setBillsList((prev) => {
-        const approved = prev.filter((b) => approvedBillIds.has(b.id));
-        return [...approved, ...drafts];
-      });
-    } catch (err) {
-      console.error("Error loading draft bills:", err);
-    }
-  }, [approvedBillIds]);
-
-  // Fetch approved bills whenever page/filters change
+  // Fetch bills whenever tab/page/filters change
   useEffect(() => {
     loadApprovedBills();
   }, [loadApprovedBills]);
-
-  // Load drafts on mount + auto-refresh every 30 seconds
-  useEffect(() => {
-    loadDraftBills();
-    const interval = setInterval(loadDraftBills, 30_000);
-    return () => clearInterval(interval);
-  }, [loadDraftBills]);
   
   
   
@@ -1068,8 +1054,9 @@ export default function Bills() {
       setApprovedBillIds(new Set(approved.map((b: Bill) => b.id)));
       setApprovedTotal(typeof approvedRes.total === "number" ? approvedRes.total : approved.length);
 
-      // Auto-switch to Drafts tab so user sees newly synced drafts
-      setSelectedTab("drafts");
+      // After a sync, default to All so user sees both newly-pushed and
+      // pending bills.
+      setSelectedTab("all");
       setCurrentPage(1);
 
       setSyncState("synced");
@@ -1170,49 +1157,30 @@ export default function Bills() {
             actions={headerActions}
           />
 
-          {/* Tab Bar - same design as Field Team Orders */}
+          {/* Tab Bar — All / Paid / Unpaid driven by bills.qbo_paid_at via the
+              ?tab= query param on /utilities/bills/all */}
           <div className="flex gap-1 border-b border-[#E5E5E5]">
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedTab("approved");
-                setCurrentPage(1);
-              }}
-              className={cn(
-                "px-4 py-2.5 text-sm font-medium transition-colors relative",
-                selectedTab === "approved"
-                  ? "text-[#013764]"
-                  : "text-[#717179] hover:text-[#303030]"
-              )}
-            >
-              Approved
-              {selectedTab === "approved" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedTab("drafts");
-                setCurrentPage(1);
-              }}
-              className={cn(
-                "px-4 py-2.5 text-sm font-medium transition-colors relative",
-                selectedTab === "drafts"
-                  ? "text-[#013764]"
-                  : "text-[#717179] hover:text-[#303030]"
-              )}
-            >
-              Drafts
-              {draftBills.length > 0 && (
-                <span className="ml-1.5 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-gray-200 text-xs font-medium text-gray-700">
-                  {draftBills.length}
-                </span>
-              )}
-              {selectedTab === "drafts" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
-              )}
-            </button>
+            {(["all", "paid", "unpaid"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => {
+                  setSelectedTab(tab);
+                  setCurrentPage(1);
+                }}
+                className={cn(
+                  "px-4 py-2.5 text-sm font-medium transition-colors relative capitalize",
+                  selectedTab === tab
+                    ? "text-[#013764]"
+                    : "text-[#717179] hover:text-[#303030]"
+                )}
+              >
+                {tab}
+                {selectedTab === tab && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
+                )}
+              </button>
+            ))}
           </div>
 
           {/* Filter bar - toggled by Filter button */}
@@ -1301,12 +1269,9 @@ export default function Bills() {
           {/* Bills Table - Using GlobalTable Component */}
           <GlobalTable
             columns={columns.filter((col) => {
-              if (col.key === "status" && selectedTab !== "drafts") {
-                return false;
-              }
-              if (col.key === "exportedAt" && selectedTab !== "approved") {
-                return false;
-              }
+              // "status" was for draft parse status; not relevant in
+              // the bills-only (All/Paid/Unpaid) view.
+              if (col.key === "status") return false;
               return true;
             })}
             data={getSortedData()}
@@ -1319,14 +1284,6 @@ export default function Bills() {
                     <span className="text-gray-900 font-normal text-sm truncate">
                       {bill.vendor}
                     </span>
-                    {selectedTab === "drafts" && bill.vendorMatchStatus && (
-                      <MatchStatusDot
-                        status={bill.vendorMatchStatus}
-                        score={bill.vendorMatchScore}
-                        candidates={bill.vendorMatchCandidates}
-                        label="Vendor match"
-                      />
-                    )}
                   </div>
                 );
               }
@@ -1343,41 +1300,21 @@ export default function Bills() {
                     <span className="text-gray-900 font-normal text-sm truncate">
                       {bill.property}
                     </span>
-                    {selectedTab === "drafts" && bill.propertyMatchStatus && (
-                      <MatchStatusDot
-                        status={bill.propertyMatchStatus}
-                        score={bill.propertyMatchScore}
-                        candidates={bill.propertyMatchCandidates}
-                        label="Property match"
-                      />
-                    )}
                   </div>
                 );
               }
-              if (columnKey === "status" && selectedTab === "drafts") {
-                const statusLabel = bill.importStatus ?? formatRelativeTime(bill.importedAt);
-                const { dotColor, textColor } = getImportStatusStyle(bill.importStatus);
-                return (
-                  <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full shrink-0", dotColor)} />
-                    <span className={cn("font-normal text-sm", textColor)}>
-                      {statusLabel}
-                    </span>
-                  </div>
-                );
-              }
-              if (columnKey === "exportedAt" && selectedTab === "approved") {
+              if (columnKey === "exportedAt") {
                 const ts = bill.exportedAt ?? bill.importedAt;
-              
+                const isPaid = !!bill.qboPaidAt;
                 return (
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <div className={cn("w-2 h-2 rounded-full", isPaid ? "bg-green-500" : "bg-amber-500")} />
                     <span className="text-gray-900 font-normal text-sm">
-                      {formatRelativeTime(ts)}
+                      {isPaid ? "Paid" : formatRelativeTime(ts)}
                     </span>
                   </div>
                 );
-              }              
+              }
               if (columnKey === "memo") {
                 return (
                   <span
@@ -1411,12 +1348,9 @@ export default function Bills() {
             }}
             columnManagementHook={{
               columnOrder: columnOrder.filter((col) => {
-                if (col === "status" && selectedTab !== "drafts") {
-                  return false;
-                }
-                if (col === "exportedAt" && selectedTab !== "approved") {
-                  return false;
-                }
+                // "status" was for drafts (parse status); not relevant in
+                // bills-only view.
+                if (col === "status") return false;
                 return true;
               }),
               visibleColumns,
@@ -1438,15 +1372,17 @@ export default function Bills() {
               setItemsPerPage(size);
               setCurrentPage(1);
             }}
-            serverTotal={selectedTab === "approved" ? approvedTotal : undefined}
+            serverTotal={approvedTotal}
             showPageSizeDropdown={showPageSizeDropdown}
             onShowPageSizeDropdownChange={setShowPageSizeDropdown}
             openMenuId={openMenuId}
             onOpenMenuIdChange={setOpenMenuId}
             title={
-              selectedTab === "approved"
-                ? "Approved & Exported Bills"
-                : "Draft Bills"
+              selectedTab === "paid"
+                ? "Paid Bills"
+                : selectedTab === "unpaid"
+                  ? "Unpaid Bills"
+                  : "All Bills"
             }
             onFilterClick={() => {
               setShowPageSizeDropdown(false);
@@ -1498,7 +1434,7 @@ export default function Bills() {
               setCurrentPage(1);
             }}
             actions={
-              selectedTab === "drafts"
+              false
                 ? [
                     {
                       label: "Edit Bill",
@@ -1580,28 +1516,45 @@ export default function Bills() {
                         );
                       },
                     },
+                    {
+                      label: "Pay Bill",
+                      // Hidden when the bill is already paid OR has never been
+                      // pushed to QBO (qboBalanceCents is undefined until first sync).
+                      hidden: (bill: Bill) =>
+                        !!bill.qboPaidAt ||
+                        bill.qboBalanceCents == null ||
+                        bill.qboBalanceCents <= 0,
+                      icon: (
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M2.25 6.75H15.75M2.25 9H15.75M3 4.5H15C15.8284 4.5 16.5 5.17157 16.5 6V13.5C16.5 14.3284 15.8284 15 15 15H3C2.17157 15 1.5 14.3284 1.5 13.5V6C1.5 5.17157 2.17157 4.5 3 4.5Z"
+                                stroke="var(--color-text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      ),
+                      onClick: (bill: Bill) => setPayBillTarget(bill),
+                    },
+                    {
+                      label: "View Payment",
+                      // Mirror of Pay Bill: visible exactly when the bill is paid.
+                      hidden: (bill: Bill) => !bill.qboPaidAt,
+                      icon: (
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M1.5 9C1.5 9 4.5 3.75 9 3.75C13.5 3.75 16.5 9 16.5 9C16.5 9 13.5 14.25 9 14.25C4.5 14.25 1.5 9 1.5 9Z"
+                                stroke="var(--color-text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <circle cx="9" cy="9" r="2.25" stroke="var(--color-text-secondary)" strokeWidth="1.5" />
+                        </svg>
+                      ),
+                      onClick: (bill: Bill) => setViewPaymentTarget(bill),
+                    },
                   ]
             }
             onRowClick={(bill) => {
-              // ✅ Approved bills
-              if (selectedTab === "approved") {
-                // Utility / provider-backed bills → PDF (same as View Bill)
-                if (bill.isUtility) {
-                  openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
-                  return;
-                }
-            
-                // Non-utility approved bills → RecordBill (read-only)
-                navigate(
-                  `/bills/record?readOnly=true&billId=${bill.id}`,
-                  { state: { bill: buildBillState(bill) } }
-                );
+              // Bills are read-only here — drafts live in the Record Bill workflow.
+              if (bill.isUtility) {
+                openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
                 return;
               }
-            
-              // 📝 Draft bills → always editable RecordBill
               navigate(
-                `/bills/record?billId=${bill.id}`,
+                `/bills/record?readOnly=true&billId=${bill.id}`,
                 { state: { bill: buildBillState(bill) } }
               );
             }}
@@ -1625,12 +1578,9 @@ export default function Bills() {
         position={columnMenuPos}
         columns={columns
           .filter((col) => {
-            if (col.key === "status" && selectedTab !== "drafts") {
-              return false;
-            }
-            if (col.key === "exportedAt" && selectedTab !== "approved") {
-              return false;
-            }
+            // "status" was for draft parse status; not relevant in
+            // bills-only view.
+            if (col.key === "status") return false;
             return true;
           })
           .map((col) => ({
@@ -1643,6 +1593,66 @@ export default function Bills() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
+
+      {/* View Payment Modal */}
+      {viewPaymentTarget && (
+        <ViewPaymentModal
+          open={!!viewPaymentTarget}
+          onOpenChange={(open) => {
+            if (!open) setViewPaymentTarget(null);
+          }}
+          bill={{
+            vendorName: viewPaymentTarget.vendor,
+            propertyName: viewPaymentTarget.property,
+            referenceNumber: viewPaymentTarget.invoiceNumber,
+            totalCents: viewPaymentTarget.qboTotalCents ?? Math.round(viewPaymentTarget.amount * 100),
+            qboBalanceCents: viewPaymentTarget.qboBalanceCents,
+            qboPaidAt: viewPaymentTarget.qboPaidAt,
+            qboBillId: viewPaymentTarget.qboBillId,
+            buildiumBillId: viewPaymentTarget.buildiumBillId,
+            buildiumBillPaymentId: viewPaymentTarget.buildiumBillPaymentId,
+            paidOn: viewPaymentTarget.paidOn,
+            paidFromName: viewPaymentTarget.paidFromName,
+            paidDocNumber: viewPaymentTarget.paidDocNumber,
+            paidMemo: viewPaymentTarget.paidMemo,
+          }}
+        />
+      )}
+
+      {/* Pay Bill Modal */}
+      {payBillTarget && (
+        <PayBillModal
+          open={!!payBillTarget}
+          onOpenChange={(open) => {
+            if (!open) setPayBillTarget(null);
+          }}
+          bill={{
+            id: payBillTarget.id,
+            vendorName: payBillTarget.vendor,
+            propertyName: payBillTarget.property,
+            referenceNumber: payBillTarget.invoiceNumber,
+            qboBalanceCents: payBillTarget.qboBalanceCents ?? 0,
+          }}
+          onPaid={(result) => {
+            // Optimistically update the row so the user sees feedback before
+            // the webhook arrives. The webhook (or refresh) will write the
+            // authoritative state shortly after.
+            setBillsList((prev) =>
+              prev.map((b) =>
+                b.id === payBillTarget.id
+                  ? {
+                      ...b,
+                      qboBalanceCents: result.qbo_balance_cents ?? 0,
+                      qboPaidAt: result.qbo_paid_at ?? b.qboPaidAt,
+                    }
+                  : b,
+              ),
+            );
+            // Re-fetch the current tab to drop the row if it moved out of Unpaid.
+            loadApprovedBills();
+          }}
+        />
+      )}
     </PageTemplate>
   );
 }

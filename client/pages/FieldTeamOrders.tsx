@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import CreateMiscExpenseModal from "@/components/CreateMiscExpenseModal";
 import MergeFTOsModal from "@/components/MergeFTOsModal";
 import PageHeader from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -623,6 +624,7 @@ export default function FieldTeamOrders() {
   );
   const [editingFTOId, setEditingFTOId] = useState<number | null>(null);
   const [showFTOModal, setShowFTOModal] = usePageState("showFTOModal", false);
+  const [showCreateMiscModal, setShowCreateMiscModal] = useState(false);
   const [searchValue, setSearchValue] = usePageState("searchValue", "");
   const [miscSearchValue, setMiscSearchValue] = usePageState("miscSearchValue", "");
   const [showHoursSummaryDrawer, setShowHoursSummaryDrawer] = useState(false);
@@ -1136,12 +1138,21 @@ export default function FieldTeamOrders() {
               </span>
             </button>
             <button
-              onClick={() => setShowFTOModal(true)}
+              onClick={() => {
+                if (selectedTab === "misc") {
+                  // PM-side quick-create: pick property+date, server creates
+                  // an empty misc submission, then jump to the approve page
+                  // where the PM adds expense rows + approves in one shot.
+                  setShowCreateMiscModal(true);
+                } else {
+                  setShowFTOModal(true);
+                }
+              }}
               className="flex h-9 items-center gap-2 px-3 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A] hover:bg-[#003a73] transition-colors"
             >
               <PlusIcon width={20} height={20} className="text-white" />
               <span className="text-white font-medium text-base leading-normal">
-                Create FTO
+                {selectedTab === "misc" ? "Create Misc Expense" : "Create FTO"}
               </span>
             </button>
           </div>
@@ -1604,6 +1615,15 @@ export default function FieldTeamOrders() {
           )}
         </div>
       </div>
+      <CreateMiscExpenseModal
+        open={showCreateMiscModal}
+        onOpenChange={setShowCreateMiscModal}
+        onCreated={(submissionId) => {
+          // Land directly on the approve page in misc mode so the PM can add
+          // expense rows + approve in one shot.
+          navigate(`/field-team-orders/approve/submission/${submissionId}`);
+        }}
+      />
       <CreateFTOModal
         open={showFTOModal}
         onOpenChange={(open) => {
