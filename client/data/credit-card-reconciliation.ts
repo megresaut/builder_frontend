@@ -1,4 +1,4 @@
-import { fetchJSON } from "@/api/fetchJSON";
+import { authFetch, fetchJSON } from "@/api/fetchJSON";
 
 export interface CreditCardAccount {
   id: number;
@@ -21,7 +21,7 @@ export interface CreditCardActivityRow {
 
 export interface CreditCardActivityResponse {
   account: CreditCardAccount;
-  since_date: string;
+  start_date: string;
   end_date: string;
   rows: CreditCardActivityRow[];
   uncleared_count: number;
@@ -43,14 +43,76 @@ export async function fetchCreditCardAccounts(): Promise<CreditCardAccount[]> {
 
 export async function fetchCreditCardActivity(
   coaID: number,
-  sinceDate: string,
+  startDate: string,
+  endDate: string,
   refresh = false,
 ): Promise<CreditCardActivityResponse> {
-  const params = new URLSearchParams({ since: sinceDate });
+  const params = new URLSearchParams({
+    start_date: startDate,
+    end_date: endDate,
+  });
   if (refresh) params.set("refresh", "1");
   return await fetchJSON(
     `/reconciliation/credit-cards/${coaID}/activity?${params.toString()}`,
   );
+}
+
+export interface StatementRow {
+  date: string;
+  description: string;
+  amount_cents: number;
+  source_row: number;
+}
+
+export interface MatchPair {
+  statement: StatementRow;
+  qbo: CreditCardActivityRow;
+  confidence: "exact" | "fuzzy_date";
+}
+
+export interface StatementMatchResponse {
+  account: CreditCardAccount;
+  start_date: string;
+  end_date: string;
+  statement_total_cents: number;
+  qbo_total_cents: number;
+  matched: MatchPair[];
+  unmatched_statement: StatementRow[];
+  unmatched_qbo: CreditCardActivityRow[];
+  warnings?: string[];
+}
+
+export async function uploadStatementForMatch(
+  coaID: number,
+  startDate: string,
+  endDate: string,
+  file: File,
+): Promise<StatementMatchResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("start_date", startDate);
+  form.append("end_date", endDate);
+  const res = await authFetch(
+    `/reconciliation/credit-cards/${coaID}/statement-match`,
+    {
+      method: "POST",
+      body: form,
+    },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    let message = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed && typeof parsed === "object") {
+        message = parsed.error || parsed.message || text;
+      }
+    } catch {
+      // raw text fallback
+    }
+    throw new Error(message || `Upload failed (${res.status})`);
+  }
+  return (await res.json()) as StatementMatchResponse;
 }
 
 // qboReconcileURL is the deep-link to QBO's reconcile screen for a given
