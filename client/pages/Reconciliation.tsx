@@ -18,6 +18,14 @@ import {
   type SystemStatus,
   type SystemTotals,
 } from "@/data/reconciliation";
+import CreditCardReconciliation from "@/pages/CreditCardReconciliation";
+
+type TopTabKey = "cross_platform" | "cc";
+
+const TOP_TABS: { id: TopTabKey; label: string }[] = [
+  { id: "cross_platform", label: "Cross-Platform Reconciliation" },
+  { id: "cc", label: "CC Reconciliation" },
+];
 
 type TabKey = "bills" | "payments" | "reimbursements";
 
@@ -106,6 +114,7 @@ const STATUS_LABEL: Record<SystemStatus, string> = {
 };
 
 export default function Reconciliation() {
+  const [topTab, setTopTab] = useState<TopTabKey>("cross_platform");
   const [tab, setTab] = useState<TabKey>("bills");
   const [startDate, setStartDate] = useState(monthStartYMD());
   const [endDate, setEndDate] = useState(monthEndYMD());
@@ -118,6 +127,7 @@ export default function Reconciliation() {
   const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
+    if (topTab !== "cross_platform") return;
     let cancelled = false;
     const isRefresh = refreshTick > 0;
     setLoading(true);
@@ -154,7 +164,7 @@ export default function Reconciliation() {
     };
     // refreshTick must be in deps so clicking Refresh re-fetches even with
     // unchanged tab/date.
-  }, [tab, startDate, endDate, refreshTick]);
+  }, [topTab, tab, startDate, endDate, refreshTick]);
 
   const cachedAt =
     tab === "reimbursements" ? reimbResult?.cached_at : result?.cached_at;
@@ -173,9 +183,34 @@ export default function Reconciliation() {
       <div className="flex flex-col gap-6 w-fit min-w-full">
         <PageHeader
           title="Reconciliation"
-          description="Compare concierge bills across the platform, QBO, and Buildium for a given date range. Surfaces sync drift only — does not auto-fix."
+          description="Compare bills across the platform, QBO, and Buildium, or pre-flight a QBO credit-card reconciliation."
         />
 
+        <div className="flex gap-1 border-b border-[#E5E5E5]">
+          {TOP_TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTopTab(t.id)}
+              className={cn(
+                "px-4 py-2.5 text-sm font-medium transition-colors relative",
+                topTab === t.id
+                  ? "text-[#013764]"
+                  : "text-[#717179] hover:text-[#303030]",
+              )}
+            >
+              {t.label}
+              {topTab === t.id && (
+                <span className="absolute left-0 right-0 -bottom-[1px] h-0.5 bg-[#013764]" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {topTab === "cc" && <CreditCardReconciliation />}
+
+        {topTab === "cross_platform" && (
+        <>
         <div className="border border-amber-200 bg-amber-50 text-amber-900 rounded-md px-4 py-3 text-sm">
           Comparing concierge transactions only. QBO bank balances will not
           match the actual bank account during the cutover transition.
@@ -289,6 +324,8 @@ export default function Reconciliation() {
 
         {tab === "reimbursements" && reimbResult && (
           <ReimbursementsView result={reimbResult} />
+        )}
+        </>
         )}
       </div>
     </PageTemplate>
