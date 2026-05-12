@@ -115,6 +115,16 @@ export default function Header() {
       return { label: "General Ledger", path, id: "general-ledger" };
     } else if (path === "/accounting/transaction-list") {
       return { label: "Transaction List", path, id: "transaction-list" };
+    } else if (path === "/accounting/invoices") {
+      return { label: "Invoices", path, id: "accounting-invoices" };
+    } else if (path === "/reconciliation") {
+      return { label: "Reconciliation", path, id: "reconciliation" };
+    } else if (path === "/reimbursements") {
+      return { label: "Reimbursements", path, id: "reimbursements" };
+    } else if (path === "/vendor-compliance") {
+      return { label: "Vendor Compliance", path, id: "vendor-compliance" };
+    } else if (path === "/all-properties") {
+      return { label: "All Properties", path, id: "all-properties" };
     } else if (path === "/field-team-orders") {
       return { label: "Field Team Orders", path, id: "field-team-orders" };
     } else if (path === "/work-orders") {
@@ -169,6 +179,18 @@ export default function Header() {
         return { label: `Settings - Bug Report`, path, id: `settings-bug-${parts[2]}` };
       }
       return { label: `Settings - ${sectionLabel}`, path, id: `settings-${section}` };
+    }
+
+    // Fallback: derive a sensible label from the path so any unmapped route
+    // still updates the tab label instead of leaving it stale.
+    const segments = path.split("/").filter(Boolean);
+    if (segments.length > 0) {
+      const last = segments[segments.length - 1];
+      const label = last
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+      return { label, path, id: segments.join("-") };
     }
 
     return null;
@@ -457,6 +479,53 @@ export default function Header() {
       }
     }
   }, [location.pathname, location.search, selectedTab, vendorDisplayName, propertyDisplayName, taskDisplayName]);
+
+  // Maintain a per-tab history stack so the back/forward arrows are scoped to
+  // the active tab, not the shared browser-window history.
+  useEffect(() => {
+    if (!selectedTab) return;
+    const meta = tabMetadataRef.current[selectedTab] ?? { label: "" };
+    const history = meta.history ?? [];
+    const idx = meta.historyIndex ?? -1;
+    const path = location.pathname + location.search;
+
+    if (history[idx] === path) return; // already pointing at this path
+    if (history[idx + 1] === path) {
+      setTabMetadata(selectedTab, { ...meta, historyIndex: idx + 1 });
+      return;
+    }
+    if (idx > 0 && history[idx - 1] === path) {
+      setTabMetadata(selectedTab, { ...meta, historyIndex: idx - 1 });
+      return;
+    }
+    const next = [...history.slice(0, idx + 1), path];
+    setTabMetadata(selectedTab, {
+      ...meta,
+      history: next,
+      historyIndex: next.length - 1,
+    });
+  }, [selectedTab, location.pathname, location.search, setTabMetadata]);
+
+  const currentTabHistory = tabMetadata[selectedTab]?.history ?? [];
+  const currentTabHistoryIdx = tabMetadata[selectedTab]?.historyIndex ?? 0;
+  const canGoBack = currentTabHistoryIdx > 0;
+  const canGoForward = currentTabHistoryIdx < currentTabHistory.length - 1;
+
+  const goBack = useCallback(() => {
+    const meta = tabMetadataRef.current[selectedTab];
+    const history = meta?.history ?? [];
+    const idx = meta?.historyIndex ?? 0;
+    if (idx <= 0) return;
+    navigate(history[idx - 1], { replace: true });
+  }, [selectedTab, navigate]);
+
+  const goForward = useCallback(() => {
+    const meta = tabMetadataRef.current[selectedTab];
+    const history = meta?.history ?? [];
+    const idx = meta?.historyIndex ?? 0;
+    if (idx >= history.length - 1) return;
+    navigate(history[idx + 1], { replace: true });
+  }, [selectedTab, navigate]);
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
@@ -1103,8 +1172,9 @@ export default function Header() {
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Navigation Buttons */}
             <button
-              onClick={() => window.history.back()}
-              className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+              onClick={goBack}
+              disabled={!canGoBack}
+              className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-default"
               aria-label="Go back"
             >
               <svg
@@ -1120,8 +1190,9 @@ export default function Header() {
               </svg>
             </button>
             <button
-              onClick={() => window.history.forward()}
-              className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+              onClick={goForward}
+              disabled={!canGoForward}
+              className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-default"
               aria-label="Go forward"
             >
               <svg
