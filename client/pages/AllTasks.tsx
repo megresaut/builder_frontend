@@ -36,6 +36,9 @@ interface ApiTask {
   property_id: number;
   property_name: string;
   property_address: string;
+  location_id?: number | null;
+  location_name?: string | null;
+  location_address?: string | null;
   unit_id: number | null;
   unit_name: string | null;
   status: string;
@@ -135,6 +138,8 @@ function transformApiTaskToUiTask(apiTask: ApiTask, sequentialNumber?: number): 
     property_id: apiTask.property_id,
     property_name: apiTask.property_name,
     property_address: apiTask.property_address,
+    location_id: apiTask.location_id ?? undefined,
+    location_address: apiTask.location_address ?? undefined,
     unit: unitLabel || undefined,
     unit_id: apiTask.unit_id ?? undefined,
     status: mapStatus(apiTask.status),
@@ -773,9 +778,16 @@ export default function AllTasks() {
               const propLabel = propertyLabels[task.property] || task.property;
 
               return (
-                <span className="text-gray-900 font-normal text-sm truncate">
-                  {propLabel}
-                </span>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-gray-900 font-normal text-sm truncate">
+                    {propLabel}
+                  </span>
+                  {task.location_address && (
+                    <span className="text-gray-500 text-xs truncate">
+                      {task.location_address}
+                    </span>
+                  )}
+                </div>
               );
             }
             if (columnKey === "unit") {

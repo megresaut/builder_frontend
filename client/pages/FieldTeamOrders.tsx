@@ -42,6 +42,7 @@ interface FieldTeamOrder {
   task_id?: number | null;
   property: string;
   property_id: number | null;
+  location_address?: string;
   description: string;
   dueDate: string;
   due_date: string;
@@ -82,6 +83,9 @@ interface APIFTOResponse {
   property_id: number;
   property_name: string;
   property_address?: string | null;
+  location_id?: number | null;
+  location_name?: string | null;
+  location_address?: string | null;
   task_id?: number;
   field_team_member_ids: number[];
   pm_assignee_ids: number[];
@@ -459,6 +463,7 @@ const transformAPIToFieldTeamOrder = (
       name: fto.name,
       property: fto.property_name,
       property_id: fto.property_id,
+      location_address: fto.location_address ?? undefined,
       description: fto.description,
       dueDate,              // formatted for table
       due_date: fto.due_date, // ✅ KEEP RAW DATE
@@ -1343,9 +1348,16 @@ export default function FieldTeamOrders() {
                           <span className="text-sm font-medium">Not set</span>
                         </div>
                       ) : (
-                        <span className="text-gray-900 font-normal text-sm truncate">
-                          {order.property}
-                        </span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-gray-900 font-normal text-sm truncate">
+                            {order.property}
+                          </span>
+                          {order.location_address && (
+                            <span className="text-gray-500 text-xs truncate">
+                              {order.location_address}
+                            </span>
+                          )}
+                        </div>
                       );
                     }
                     if (columnKey === "unit") {

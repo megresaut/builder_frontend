@@ -16,6 +16,8 @@ export interface Task {
   property_id?: number;
   property_name?: string;
   property_address?: string;
+  location_id?: number;
+  location_address?: string;
   unit?: string;
   unit_id?: number;
   category?: string;

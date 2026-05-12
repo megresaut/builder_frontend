@@ -36,6 +36,7 @@ interface WorkOrder {
   task: string;
   taskId: number;
   property: string;
+  locationAddress?: string;
   unit: string;
   dueDate: string;
   due_date?: string | null;
@@ -69,6 +70,9 @@ interface APIWorkOrder {
   created_at: string;
   updated_at: string;
   property_name?: string;
+  location_id?: number;
+  location_name?: string;
+  location_address?: string;
   unit_id?: number;
   unit_name?: string;
   bill_total_cents?: number;
@@ -140,6 +144,7 @@ const mapAPIWorkOrderToWorkOrder = (apiWO: APIWorkOrder): WorkOrder => {
     task: apiWO.description || apiWO.name,
     taskId: apiWO.task_id,
     property: apiWO.property_name || "Unknown Property",
+    locationAddress: apiWO.location_address || undefined,
     unit: formatUnitLabel({
       unitId: apiWO.unit_id,
       unitName: apiWO.unit_name,
@@ -1148,9 +1153,16 @@ export default function MaintenanceWorkOrders() {
               }
               if (columnKey === "property") {
                 return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {workOrder.property}
-                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {workOrder.property}
+                    </span>
+                    {workOrder.locationAddress && (
+                      <span className="text-gray-500 text-xs truncate">
+                        {workOrder.locationAddress}
+                      </span>
+                    )}
+                  </div>
                 );
               }
               if (columnKey === "unit") {
