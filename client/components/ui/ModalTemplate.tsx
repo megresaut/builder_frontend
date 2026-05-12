@@ -108,7 +108,7 @@ export const ModalTemplate = React.forwardRef<
 
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <Modal size={size} hideCloseButton={true}>
+        <Modal size={size} hideCloseButton={true} aria-describedby={undefined}>
           <DialogTitle className="sr-only">{title}</DialogTitle>
           {/* Header */}
           <div

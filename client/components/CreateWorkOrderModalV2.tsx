@@ -33,6 +33,8 @@ import { useAuth } from "@/auth/useAuth";
 export interface TaskOption {
   id: number;
   label: string;
+  /** Property the task belongs to. When provided, the modal uses this instead of the top-level propertyId prop. */
+  propertyId?: number;
 }
 
 interface CreateWorkOrderModalV2Props {
@@ -533,7 +535,12 @@ export default function CreateWorkOrderModalV2({
           newErrors.task = "Task ID is required";
         }
       }
-      if (!propertyId) {
+      // propertyId may come from the prop OR from the selected task option
+      const selectedTaskOption = taskOptions?.find(
+        (t) => t.id.toString() === formData.task,
+      );
+      const effectivePropertyId = propertyId ?? selectedTaskOption?.propertyId;
+      if (!effectivePropertyId) {
         newErrors.property = "Property ID is required";
       }
     }
@@ -688,10 +695,16 @@ export default function CreateWorkOrderModalV2({
           ? (formData.task ? parseInt(formData.task, 10) : undefined)
           : taskId;
 
+        // When taskOptions supply the task, fall back to the selected task's propertyId
+        const selectedTaskOption = taskOptions?.find(
+          (t) => t.id.toString() === formData.task,
+        );
+        const effectivePropertyId = propertyId ?? selectedTaskOption?.propertyId;
+
         // Prepare the request body
         const requestBody: any = {
           task_id: effectiveTaskId,
-          property_id: propertyId,
+          property_id: effectivePropertyId,
           name: formData.workOrderName,
           description: formData.notes || "",
           status: backendStatus,
@@ -883,10 +896,6 @@ export default function CreateWorkOrderModalV2({
                       side="bottom"
                       align="start"
                       avoidCollisions={false}
-                      onOpenAutoFocus={(event) => {
-                        event.preventDefault();
-                        vendorSearchInputRef.current?.focus();
-                      }}
                     >
                       {/* Search input - outside Viewport */}
                       <div className="p-2 border-b border-[#E5E7EB] sticky top-0 bg-white z-10">
