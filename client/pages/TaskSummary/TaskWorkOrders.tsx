@@ -1002,8 +1002,6 @@ export default function TaskWorkOrders({
           task: defaultTask,
         }}
         onWorkOrderCreated={async (workOrder) => {
-          // Refresh work orders list in the background
-          console.log("Work order created:", workOrder);
           if (onRefetchWorkOrders) {
             try {
               await onRefetchWorkOrders();
@@ -1011,90 +1009,6 @@ export default function TaskWorkOrders({
               console.error("Error refetching work orders:", error);
             }
           }
-        }}
-        onDataUpdate={(data) => {
-          const newId =
-            workOrders.length > 0
-              ? Math.max(...workOrders.map((wo) => wo.id)) + 1
-              : 1;
-
-          // Process notes and files from modal
-          const newNotes: Note[] = data.notes
-            ? [
-                {
-                  id: 1,
-                  text: data.notes,
-                  date: new Date().toLocaleString(),
-                  author: "Julia LoSchiavo",
-                },
-              ]
-            : [];
-
-          const newFiles: File[] = data.files
-            ? data.files.map((uf, idx) => ({
-                id: idx + 1,
-                name: uf.name,
-                url: uf.url || "#",
-                uploadedAt: new Date().toLocaleString(),
-                category: "Work Order",
-                description: "",
-              }))
-            : [];
-
-          // Store the original Date object for newly created work order (will be converted to string when added to list)
-          const newWorkOrder: WorkOrder = {
-            id: newId,
-            task: data.workOrderName || data.task || "New Work Order",
-            taskId: parseInt(taskId),
-            property: defaultProperty || "",
-            unit: defaultUnit || UNIT_EMPTY_DISPLAY,
-            dueDate: data.dueDate || null,
-            updatedDate: new Date().toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }),
-            age: "Just now",
-            priority: data.priority || "normal",
-            status: data.status || "not_started",
-            billStatus: "Awaiting Invoice",
-            billTotal: "No invoice",
-            assignees: [],
-            collaborators: [],
-            vendorName: data.vendor || "",
-            description: data.notes || "",
-            notes: newNotes,
-            files: newFiles,
-          };
-          // Convert dueDate to string format for the list, but keep Date object in navigation state for immediate rendering
-          const workOrderForList = {
-            ...newWorkOrder,
-            dueDate: data.dueDate
-              ? data.dueDate.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : "No due date",
-          };
-          // Add to work orders list (with formatted dueDate string)
-          onWorkOrdersChange([...workOrders, workOrderForList]);
-          // Update parent state to select the new work order
-          if (onWorkOrderSelect) {
-            onWorkOrderSelect(newId);
-          }
-          // Close the modal
-          setIsCreateWorkOrderModalOpen(false);
-          // Navigate to the work orders list page
-          // Preserve existing navigation state (task data)
-          const currentState = (location.state as any) || {};
-          navigate(`/tasks/${taskId}/workorders`, {
-            state: {
-              ...currentState,
-              taskData: currentState.taskData || currentState.task,
-              task: currentState.task || currentState.taskData,
-            },
-          });
         }}
       />
 

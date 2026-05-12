@@ -170,17 +170,30 @@ export default function App() {
   const setTabMetadata = useCallback((tabId: string, metadata: TabMetadata) => {
     setTabMetadataState((prev) => {
       const existing = prev[tabId] || {};
-      return {
-        ...prev,
-        [tabId]: {
-          ...existing,
-          ...metadata,
-          pageState: {
-            ...(existing.pageState || {}),
-            ...(metadata.pageState || {}),
-          },
+      const merged = {
+        ...existing,
+        ...metadata,
+        pageState: {
+          ...(existing.pageState || {}),
+          ...(metadata.pageState || {}),
         },
       };
+      // Log every write so we can see who clobbers what.
+      const existingTyped = existing as TabMetadata;
+      const routeChanged = existingTyped.route !== merged.route;
+      const labelChanged = existingTyped.label !== merged.label;
+      if (routeChanged || labelChanged) {
+        // eslint-disable-next-line no-console
+        console.log(`[TAB-DEBUG] setTabMetadata ${tabId}`, {
+          beforeRoute: existingTyped.route,
+          afterRoute: merged.route,
+          beforeLabel: existingTyped.label,
+          afterLabel: merged.label,
+          incomingKeys: Object.keys(metadata),
+          stack: new Error().stack?.split("\n").slice(2, 9).join(" | "),
+        });
+      }
+      return { ...prev, [tabId]: merged };
     });
   }, []);
 
