@@ -593,10 +593,11 @@ export default function FtoSubmissionForm() {
       fto_id: number;
       task: string;
       description: string;
+      date: string;
     }>;
 
     // Check if we have any data to prefill
-    if (!state.property && !state.property_id && !state.unit && !state.task && !state.description && !state.fto_id)
+    if (!state.property && !state.property_id && !state.unit && !state.task && !state.description && !state.fto_id && !state.date)
       return;
 
     const normalize = (value: string) => value.trim().toLowerCase();
@@ -651,6 +652,7 @@ export default function FtoSubmissionForm() {
         if (idx !== 0) return entry;
         return {
           ...entry,
+          date: state.date ?? entry.date,
           propertyId: entry.propertyId ?? propertyId,
           unitId: entry.unitId ?? unitId,
           taskId: entry.taskId ?? taskId,
@@ -663,6 +665,7 @@ export default function FtoSubmissionForm() {
         if (idx !== 0) return entry;
         return {
           ...entry,
+          date: state.date ?? entry.date,
           propertyId: entry.propertyId ?? propertyId,
           unitId: entry.unitId ?? unitId,
           taskId: entry.taskId ?? taskId,

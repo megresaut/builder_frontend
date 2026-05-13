@@ -4,6 +4,7 @@ import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import GlobalTable from "@/components/GlobalTable";
 import InspectionCard from "@/components/InspectionCard";
+import TableToggle from "@/components/TableToggle";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
@@ -107,11 +108,19 @@ export default function FtoInspections() {
   const [inspections, setInspections] = useState<InspectionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"open" | "completed">("open");
   const focusRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const tabbedInspections = useMemo(() => {
+    if (activeTab === "completed") {
+      return inspections.filter((i) => i.status === "Completed");
+    }
+    return inspections.filter((i) => i.status !== "Completed");
+  }, [inspections, activeTab]);
 
   // Sorting hook
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
-    inspections,
+    tabbedInspections,
     "ftoInspections",
   );
 
@@ -323,6 +332,18 @@ export default function FtoInspections() {
           }
         />
 
+        <TableToggle
+          tabs={[
+            { id: "open", label: "Open" },
+            { id: "completed", label: "Completed" },
+          ]}
+          activeTab={activeTab}
+          onTabChange={(tabId) => {
+            setActiveTab(tabId as "open" | "completed");
+            setCurrentPage(1);
+          }}
+        />
+
         {/* Loading State */}
         {loading && (
           <div className="text-center py-8 text-gray-500 text-sm">
@@ -342,7 +363,7 @@ export default function FtoInspections() {
           <>
             <GlobalTable
               columns={columns}
-              data={inspections}
+              data={tabbedInspections}
               rowKey="id"
               renderCell={(row, columnKey) => {
                 switch (columnKey) {
@@ -443,8 +464,8 @@ export default function FtoInspections() {
         {/* Mobile Card View */}
         {!loading && !error && isMobile && (
           <div className="grid grid-cols-1 gap-3">
-            {inspections.length > 0 ? (
-              inspections.map((inspection) => (
+            {tabbedInspections.length > 0 ? (
+              tabbedInspections.map((inspection) => (
                 <InspectionCard
                   key={inspection.id}
                   id={inspection.id}
@@ -459,7 +480,7 @@ export default function FtoInspections() {
               ))
             ) : (
               <div className="text-center py-8 text-gray-500 text-sm">
-                No inspections found
+                No {activeTab === "completed" ? "completed" : "open"} inspections found
               </div>
             )}
           </div>

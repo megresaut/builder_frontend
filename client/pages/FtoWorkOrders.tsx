@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import GlobalTable from "@/components/GlobalTable";
+import TableToggle from "@/components/TableToggle";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
@@ -59,6 +60,7 @@ export default function FtoWorkOrders() {
   const [rows, setRows] = useState<WorkOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"open" | "completed">("open");
 
   const [currentPage, setCurrentPage] = usePageState("ftoWorkOrdersPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("ftoWorkOrdersPerPage", 50);
@@ -108,8 +110,15 @@ export default function FtoWorkOrders() {
   );
   const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 
+  const isClosedStatus = (s: string): boolean => {
+    const v = (s || "").toLowerCase();
+    return v === "completed" || v === "cancelled";
+  };
+
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
+      if (activeTab === "open" && isClosedStatus(r.status)) return false;
+      if (activeTab === "completed" && !isClosedStatus(r.status)) return false;
       if (filterVendor) {
         const v = (r.vendor_name ?? "").trim() || "—";
         if (v !== filterVendor) return false;
@@ -139,6 +148,7 @@ export default function FtoWorkOrders() {
     });
   }, [
     rows,
+    activeTab,
     filterVendor,
     filterProperty,
     filterStatus,
@@ -286,6 +296,7 @@ export default function FtoWorkOrders() {
   useEffect(() => {
     setCurrentPage(1);
   }, [
+    activeTab,
     filterDateFrom,
     filterDateTo,
     filterVendor,
@@ -328,9 +339,18 @@ export default function FtoWorkOrders() {
           leftContent={
             <div className="flex flex-col gap-1">
               <h1 className="text-2xl font-semibold text-gray-900">Work Orders</h1>
-              <p className="text-sm text-gray-600">Open Work Orders</p>
+              <p className="text-sm text-gray-600">Work Orders</p>
             </div>
           }
+        />
+
+        <TableToggle
+          tabs={[
+            { id: "open", label: "Open" },
+            { id: "completed", label: "Completed" },
+          ]}
+          activeTab={activeTab}
+          onTabChange={(tabId) => setActiveTab(tabId as "open" | "completed")}
         />
 
         {loading && (

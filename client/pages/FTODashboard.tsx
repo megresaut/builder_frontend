@@ -17,6 +17,10 @@ interface MyDayItem {
   dueDate: string | null;
   priority?: Priority;
   status: string;
+  propertyId: number | null;
+  propertyName: string | null;
+  unitId: number | null;
+  unitName: string | null;
 }
 
 function cleanAddress(propertyName: string | undefined | null): string {
@@ -168,6 +172,10 @@ export default function FTODashboard() {
             dueDate: f.due_date,
             priority: (f.priority as Priority) ?? "normal",
             status: humanizeStatus(f.status ?? "pending"),
+            propertyId: f.property_id ?? null,
+            propertyName: f.property_name ?? null,
+            unitId: f.unit_id ?? null,
+            unitName: f.unit_name ?? null,
           }));
 
         const inspectionItems: MyDayItem[] = (Array.isArray(inspections) ? inspections : [])
@@ -181,6 +189,10 @@ export default function FTODashboard() {
             address: cleanAddress(i.property_name),
             dueDate: i.due_date,
             status: humanizeStatus(i.status ?? "draft"),
+            propertyId: i.property_id ?? null,
+            propertyName: i.property_name ?? null,
+            unitId: i.unit_id ?? null,
+            unitName: i.unit_name ?? null,
           }));
 
         const workOrderItems: MyDayItem[] = (Array.isArray(workOrders) ? workOrders : [])
@@ -195,6 +207,10 @@ export default function FTODashboard() {
             dueDate: w.due_date,
             priority: (w.priority as Priority) ?? "normal",
             status: humanizeStatus(w.status ?? "scheduled"),
+            propertyId: w.property_id ?? null,
+            propertyName: w.property_name ?? null,
+            unitId: w.unit_id ?? null,
+            unitName: w.unit_name ?? null,
           }));
 
         const combined = [...ftoItems, ...inspectionItems, ...workOrderItems];
@@ -232,7 +248,17 @@ export default function FTODashboard() {
 
   const handleItemClick = (item: MyDayItem) => {
     if (item.type === "fto") {
-      navigate("/fto/orders", { state: { openOrderId: item.id } });
+      navigate("/fto/submission", {
+        state: {
+          fto_id: item.id,
+          task: item.title,
+          property_id: item.propertyId ?? undefined,
+          property: item.propertyName ?? undefined,
+          unit_id: item.unitId ?? undefined,
+          unit: item.unitName ?? undefined,
+          date: toInputDate(selectedDate),
+        },
+      });
     } else if (item.type === "inspection") {
       navigate(`/fto/inspections/${item.id}`);
     } else {
@@ -299,7 +325,7 @@ export default function FTODashboard() {
         </div>
         <button
           onClick={() => navigate("/field-team-orders")}
-          className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-[#303030]"
+          className="hidden sm:flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors text-[#303030]"
         >
           <BuildingIcon width={20} height={20} />
           <span className="font-medium text-base leading-normal">

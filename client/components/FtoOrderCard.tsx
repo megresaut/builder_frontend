@@ -18,6 +18,7 @@ interface FtoOrderCardProps {
   property: string;
   propertyId?: number | null;
   unit: string;
+  unitId?: number | null;
   priority: "low" | "normal" | "high";
   createdBy: string;
   isApproved?: boolean;
@@ -33,6 +34,7 @@ export default function FtoOrderCard({
   property,
   propertyId,
   unit,
+  unitId,
   priority,
   createdBy,
   isApproved = false,
@@ -86,8 +88,23 @@ export default function FtoOrderCard({
   const handleSubmitClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // Navigate to empty new submission page (same as overall submit button)
-    navigate("/fto/submission");
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, "0");
+    const d = String(today.getDate()).padStart(2, "0");
+    const todayStr = `${y}-${m}-${d}`;
+
+    navigate("/fto/submission", {
+      state: {
+        fto_id: id,
+        task: name,
+        property_id: propertyId ?? undefined,
+        property,
+        unit_id: unitId ?? undefined,
+        unit,
+        date: todayStr,
+      },
+    });
   };
 
   return (
