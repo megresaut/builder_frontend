@@ -70,6 +70,8 @@ export default function PayBillModal({
   const [memo, setMemo] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const outstanding = bill.qboBalanceCents;
   const outstandingDollars = (outstanding / 100).toFixed(2);
@@ -83,6 +85,7 @@ export default function PayBillModal({
       setDocNumber("");
       setMemo("");
       setError(null);
+      setErrorCode(null);
       return;
     }
     setAmount(outstandingDollars);
@@ -118,6 +121,7 @@ export default function PayBillModal({
 
   const handleSubmit = async () => {
     setError(null);
+    setErrorCode(null);
     if (!accountCOAID || !selectedAccount) {
       setError("Please choose a Pay From account.");
       return;
@@ -150,8 +154,21 @@ export default function PayBillModal({
         }),
       });
       if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `Payment failed (status ${res.status})`);
+        // Parse the structured error body {error, code} from the API and fall
+        // back to the raw text only if the server returned something else.
+        let message = `Payment failed (status ${res.status}).`;
+        let code: string | null = null;
+        try {
+          const body = await res.json();
+          if (body?.error) message = String(body.error);
+          if (body?.code) code = String(body.code);
+        } catch {
+          const text = await res.text().catch(() => "");
+          if (text) message = text;
+        }
+        setErrorCode(code);
+        setError(message);
+        return;
       }
       const data = await res.json();
       toast.success(
@@ -173,6 +190,28 @@ export default function PayBillModal({
       setError(err?.message ?? String(err));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Re-pull QBO/Buildium state for this bill via the existing refresh endpoint,
+  // then close the modal so the parent table can reload. Shown when the API
+  // tells us the bill is already paid in Buildium and the platform is stale.
+  const handleRefreshFromBuildium = async () => {
+    setRefreshing(true);
+    try {
+      const res = await authFetch(`/vendors/bills/${bill.id}/refresh-qbo`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || `Refresh failed (status ${res.status})`);
+      }
+      toast.success("Refreshed bill status from QBO and Buildium.");
+      onOpenChange(false);
+    } catch (err: any) {
+      setError(`Refresh failed: ${err?.message ?? String(err)}`);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -283,8 +322,20 @@ export default function PayBillModal({
       </div>
 
       {error && (
-        <div className="text-sm text-red-600 mt-2 whitespace-pre-wrap">
-          {error}
+        <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div>{error}</div>
+          {(errorCode === "bill_already_paid_in_buildium" ||
+            errorCode === "bill_already_paid" ||
+            errorCode === "bill_overpay") && (
+            <button
+              type="button"
+              onClick={handleRefreshFromBuildium}
+              disabled={refreshing}
+              className="mt-2 inline-flex items-center rounded-md border border-red-300 bg-white px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+            >
+              {refreshing ? "Refreshing…" : "Refresh from Buildium"}
+            </button>
+          )}
         </div>
       )}
     </ModalTemplate>

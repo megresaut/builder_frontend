@@ -1602,6 +1602,7 @@ export default function Bills() {
             if (!open) setViewPaymentTarget(null);
           }}
           bill={{
+            id: viewPaymentTarget.id,
             vendorName: viewPaymentTarget.vendor,
             propertyName: viewPaymentTarget.property,
             referenceNumber: viewPaymentTarget.invoiceNumber,
