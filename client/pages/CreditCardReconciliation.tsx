@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import StartReconciliationModal from "@/components/StartReconciliationModal";
 import {
+  discardReconciliation,
   fetchCreditCardAccounts,
   fetchCreditCardActivity,
-  qboReconcileURL,
-  uploadStatementForMatch,
+  listReconciliations,
   type CCActivityStatus,
   type CreditCardAccount,
   type CreditCardActivityResponse,
   type CreditCardActivityRow,
-  type MatchPair,
-  type StatementMatchResponse,
-  type StatementRow,
+  type ReconciliationSummary,
 } from "@/data/credit-card-reconciliation";
 
 const formatCents = (cents: number): string =>
@@ -19,6 +19,16 @@ const formatCents = (cents: number): string =>
     style: "currency",
     currency: "USD",
   });
+
+// formatDateOnly renders an ISO timestamp (or YYYY-MM-DD) as "YYYY-MM-DD".
+// We avoid `toLocaleDateString` because we want server-rendered dates to land
+// in the user's wall clock day deterministically regardless of locale + TZ.
+const formatDateOnly = (s: string | undefined | null): string => {
+  if (!s) return "—";
+  // ISO timestamps come back as "2026-05-13T17:32:11Z" — we only need the
+  // date prefix. YYYY-MM-DD strings pass through unchanged.
+  return s.slice(0, 10);
+};
 
 const daysAgoYMD = (days: number): string => {
   const d = new Date();
@@ -59,12 +69,13 @@ export default function CreditCardReconciliation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
-  const [matchResult, setMatchResult] = useState<StatementMatchResponse | null>(
-    null,
-  );
-  const [matchLoading, setMatchLoading] = useState(false);
-  const [matchError, setMatchError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Persistent reconciliation engine (Phase 1).
+  const [reconciliations, setReconciliations] = useState<ReconciliationSummary[]>([]);
+  const [recsLoading, setRecsLoading] = useState(false);
+  const [startOpen, setStartOpen] = useState(false);
+  const [recsTick, setRecsTick] = useState(0);
+  const navigate = useNavigate();
 
   // Load the account list once on mount.
   useEffect(() => {
@@ -85,6 +96,52 @@ export default function CreditCardReconciliation() {
       cancelled = true;
     };
   }, []);
+
+  // Load reconciliations list whenever the selected account changes.
+  useEffect(() => {
+    if (selectedID == null) {
+      setReconciliations([]);
+      return;
+    }
+    let cancelled = false;
+    setRecsLoading(true);
+    listReconciliations(selectedID)
+      .then((list) => !cancelled && setReconciliations(list))
+      .catch(() => {
+        // Non-fatal — Phase 1 surface is additive. Activity view still works.
+        if (!cancelled) setReconciliations([]);
+      })
+      .finally(() => !cancelled && setRecsLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedID, recsTick]);
+
+  const inProgressRec = useMemo(
+    () => reconciliations.find((r) => r.status === "in_progress"),
+    [reconciliations],
+  );
+  // History covers anything that's not in-progress — both `finalized` and
+  // `needs_review`. Sort newest-first so the most recently finalized rec
+  // sits at the top of the list. We assume the API ordering may not be
+  // stable, so we explicitly sort by finalized_at desc, falling back to
+  // created_at when finalized_at is missing.
+  const historyRecs = useMemo(() => {
+    const rows = reconciliations.filter(
+      (r) => r.status === "finalized" || r.status === "needs_review",
+    );
+    return rows.slice().sort((a, b) => {
+      const ad = a.finalized_at || a.created_at;
+      const bd = b.finalized_at || b.created_at;
+      return bd.localeCompare(ad);
+    });
+  }, [reconciliations]);
+  const finalizedRecs = useMemo(
+    () => reconciliations.filter((r) => r.status === "finalized"),
+    [reconciliations],
+  );
+  const lastFinalized = finalizedRecs[0];
+  const [historyExpanded, setHistoryExpanded] = useState(false);
 
   // Load activity whenever the selection or date range changes.
   useEffect(() => {
@@ -113,45 +170,13 @@ export default function CreditCardReconciliation() {
     [accounts, selectedID],
   );
 
-  // Clear the match result whenever the account or date range changes — the
-  // match is only valid for the parameters it was computed against.
-  useEffect(() => {
-    setMatchResult(null);
-    setMatchError(null);
-  }, [selectedID, startDate, endDate]);
-
-  const handleFileSelected = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    // Reset the input so re-selecting the same file fires onChange.
-    e.target.value = "";
-    if (!file || selectedID == null) return;
-    setMatchLoading(true);
-    setMatchError(null);
-    setMatchResult(null);
-    try {
-      const res = await uploadStatementForMatch(
-        selectedID,
-        startDate,
-        endDate,
-        file,
-      );
-      setMatchResult(res);
-    } catch (err) {
-      setMatchError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setMatchLoading(false);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-6">
       <div className="border border-sky-200 bg-sky-50 text-sky-900 rounded-md px-4 py-3 text-sm">
-        QBO is the system of record for credit-card reconciliation. This view
-        mirrors QBO's transaction list and lets you eyeball activity since your
-        last reconcile. The actual <em>mark as reconciled</em> step happens in
-        QBO — click "Reconcile in QBO" when you're ready.
+        Pick an account and a date range to eyeball recent QBO activity. To
+        actually reconcile a statement, start a reconciliation from the section
+        below — that opens a workspace where you can upload the statement,
+        auto-match against QBO, and persist matches.
       </div>
 
       <div className="flex flex-wrap gap-4 items-end">
@@ -203,47 +228,159 @@ export default function CreditCardReconciliation() {
         >
           ↻ Refresh
         </button>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={matchLoading || selectedID == null}
-          className={cn(
-            "px-3 py-1.5 text-sm font-medium rounded-md border border-[#E5E5E5] bg-white pb-1.5",
-            matchLoading || selectedID == null
-              ? "text-[#717179] cursor-not-allowed"
-              : "text-[#303030] hover:bg-[#F8F8F8]",
-          )}
-          title="Upload a CSV or XLSX statement to auto-match against QBO activity"
-        >
-          {matchLoading ? "Matching…" : "Upload statement (CSV / XLSX)"}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          onChange={handleFileSelected}
-          className="hidden"
-        />
-        {selected && (
-          <a
-            href={qboReconcileURL(selected.qbo_id)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-3 py-1.5 text-sm font-medium rounded-md border border-[#013764] bg-[#013764] text-white hover:bg-[#012a4e] pb-1.5"
-          >
-            Reconcile in QBO ↗
-          </a>
-        )}
         {loading && (
           <div className="text-sm text-[#717179] pb-1.5">Loading…</div>
         )}
       </div>
 
-      {matchError && (
-        <div className="text-sm text-rose-600">{matchError}</div>
+      {selected && (
+        <section className="border border-[#E5E5E5] rounded-md bg-white px-4 py-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-[#303030]">
+                Reconciliations · {selected.qbo_name}
+              </div>
+              <div className="text-xs text-[#717179] mt-0.5">
+                {recsLoading && "Loading…"}
+                {!recsLoading && inProgressRec && (
+                  <>
+                    In progress: {inProgressRec.period_start} → {inProgressRec.period_end}
+                  </>
+                )}
+                {!recsLoading && !inProgressRec && lastFinalized && (
+                  <>
+                    Last finalized: {lastFinalized.period_end}
+                    {finalizedRecs.length > 1 && ` (${finalizedRecs.length} total)`}
+                  </>
+                )}
+                {!recsLoading && !inProgressRec && !lastFinalized && (
+                  <>No reconciliations yet for this account.</>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              {inProgressRec ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (
+                        !window.confirm(
+                          `Discard the in-progress reconciliation for ${inProgressRec.period_start} → ${inProgressRec.period_end}? Persisted matches will be deleted. This cannot be undone.`,
+                        )
+                      ) {
+                        return;
+                      }
+                      try {
+                        await discardReconciliation(inProgressRec.id);
+                        setRecsTick((t) => t + 1);
+                      } catch (err) {
+                        alert(
+                          err instanceof Error
+                            ? err.message
+                            : "Discard failed",
+                        );
+                      }
+                    }}
+                    className="text-xs text-[#717179] hover:text-rose-700 underline"
+                  >
+                    Discard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/reconciliations/${inProgressRec.id}`)}
+                    className="px-3 py-1.5 text-sm font-medium rounded-md border border-[#013764] bg-[#013764] text-white hover:bg-[#012a4e]"
+                  >
+                    Resume reconciliation →
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setStartOpen(true)}
+                  className="px-3 py-1.5 text-sm font-medium rounded-md border border-[#013764] bg-[#013764] text-white hover:bg-[#012a4e]"
+                >
+                  Start reconciliation
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
       )}
 
-      {matchResult && <MatchResults result={matchResult} />}
+      {selected && (
+        <section className="border border-[#E5E5E5] rounded-md bg-white">
+          <button
+            type="button"
+            onClick={() => setHistoryExpanded((v) => !v)}
+            className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-[#F8F8F8] border-b border-[#F0F0F0]"
+            aria-expanded={historyExpanded}
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-sm font-semibold text-[#303030]">
+                History
+              </div>
+              <span className="text-xs text-[#717179]">
+                {recsLoading
+                  ? "Loading…"
+                  : `${historyRecs.length} reconciliation${
+                      historyRecs.length === 1 ? "" : "s"
+                    }`}
+              </span>
+            </div>
+            <span className="text-xs text-[#717179]">
+              {historyExpanded ? "Collapse" : "Expand"}
+            </span>
+          </button>
+          {historyExpanded && (
+            <>
+              {historyRecs.length === 0 ? (
+                <div className="p-6 text-sm text-[#717179] text-center">
+                  No finalized reconciliations yet.
+                </div>
+              ) : (
+                <ul className="divide-y divide-[#F0F0F0]">
+                  {historyRecs.map((r) => {
+                    const isNeedsReview = r.status === "needs_review";
+                    return (
+                      <li
+                        key={r.id}
+                        onClick={() => navigate(`/reconciliations/${r.id}`)}
+                        className="px-4 py-3 grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center cursor-pointer hover:bg-[#F8F8F8]"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-sm text-[#303030] truncate">
+                            {r.period_start} → {r.period_end}
+                          </div>
+                          <div className="text-xs text-[#717179]">
+                            Finalized {formatDateOnly(r.finalized_at)}
+                          </div>
+                        </div>
+                        <div className="text-sm font-medium text-[#303030] tabular-nums shrink-0">
+                          {formatCents(r.ending_balance_cents)}
+                        </div>
+                        <span
+                          className={cn(
+                            "px-2 py-0.5 text-xs font-medium border rounded-full shrink-0",
+                            isNeedsReview
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-slate-50 text-slate-700 border-slate-200",
+                          )}
+                        >
+                          {isNeedsReview ? "Needs review" : "Finalized"}
+                        </span>
+                        <span className="text-xs text-[#013764] shrink-0">
+                          View →
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </>
+          )}
+        </section>
+      )}
 
       {accountsError && (
         <div className="text-sm text-rose-600">{accountsError}</div>
@@ -258,35 +395,56 @@ export default function CreditCardReconciliation() {
 
       {activity && <SummaryGrid activity={activity} />}
       {activity && <ActivityTable rows={activity.rows} />}
+
+      <StartReconciliationModal
+        open={startOpen}
+        onOpenChange={setStartOpen}
+        account={selected ?? null}
+        defaultBeginningBalanceCents={lastFinalized?.ending_balance_cents ?? 0}
+        defaultPeriodStart={startDate}
+        defaultPeriodEnd={endDate}
+        onCreated={(rec) => {
+          setRecsTick((t) => t + 1);
+          navigate(`/reconciliations/${rec.id}`);
+        }}
+      />
     </div>
   );
 }
 
 function SummaryGrid({ activity }: { activity: CreditCardActivityResponse }) {
-  const items: Array<{ label: string; count: number; cents: number; tone: string }> = [
+  // Platform-side bucketing — what OUR reconciliation engine knows. Replaces
+  // the older QBO-native Uncleared/Cleared/Reconciled bucket, which reflected
+  // QBO's own reconcile flow (we don't drive that flow, so those KPIs never
+  // moved when the user finalized a rec on the platform).
+  const items: Array<{ label: string; count: number; cents: number; tone: string; help: string }> = [
     {
-      label: "Uncleared",
-      count: activity.uncleared_count,
-      cents: activity.uncleared_cents,
+      label: "Open",
+      count: activity.platform_open_count,
+      cents: activity.platform_open_cents,
       tone: "text-slate-700",
+      help: "Transactions not yet part of any reconciliation.",
     },
     {
-      label: "Cleared",
-      count: activity.cleared_count,
-      cents: activity.cleared_cents,
-      tone: "text-sky-700",
+      label: "In progress",
+      count: activity.platform_in_progress_count,
+      cents: activity.platform_in_progress_cents,
+      tone: "text-amber-700",
+      help: "Transactions matched in a reconciliation that's still in progress.",
     },
     {
       label: "Reconciled",
-      count: activity.reconciled_count,
-      cents: activity.reconciled_cents,
+      count: activity.platform_reconciled_count,
+      cents: activity.platform_reconciled_cents,
       tone: "text-emerald-700",
+      help: "Transactions cleared as part of a finalized reconciliation.",
     },
     {
-      label: "Running total",
+      label: "Total activity",
       count: activity.rows.length,
       cents: activity.running_total_cents,
       tone: "text-[#303030]",
+      help: "All QBO transactions on this account in the date range.",
     },
   ];
   return (
@@ -294,6 +452,7 @@ function SummaryGrid({ activity }: { activity: CreditCardActivityResponse }) {
       {items.map((it) => (
         <div
           key={it.label}
+          title={it.help}
           className="border border-[#E5E5E5] rounded-md bg-white px-4 py-3"
         >
           <div className="text-xs text-[#717179] uppercase tracking-wide">
@@ -371,263 +530,3 @@ function ActivityTable({ rows }: { rows: CreditCardActivityRow[] }) {
   );
 }
 
-function MatchResults({ result }: { result: StatementMatchResponse }) {
-  const totalsAgree =
-    result.statement_total_cents === result.qbo_total_cents;
-  return (
-    <div className="flex flex-col gap-4 mt-2">
-      <div className="border border-[#E5E5E5] rounded-md bg-white">
-        <div className="px-4 py-3 border-b border-[#E5E5E5] flex flex-wrap gap-4 items-baseline">
-          <h2 className="text-base font-semibold text-[#303030]">
-            Statement match
-          </h2>
-          <span className="text-xs text-[#717179]">
-            {result.matched.length} matched ·{" "}
-            <span className="text-rose-700">
-              {result.unmatched_statement.length} missing from QBO
-            </span>{" "}
-            ·{" "}
-            <span className="text-amber-800">
-              {result.unmatched_qbo.length} missing from statement
-            </span>
-          </span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[#E5E5E5]">
-          <SumCell label="Statement total" cents={result.statement_total_cents} />
-          <SumCell label="QBO total" cents={result.qbo_total_cents} />
-          <SumCell
-            label="Difference"
-            cents={result.statement_total_cents - result.qbo_total_cents}
-            tone={totalsAgree ? "text-emerald-700" : "text-rose-700"}
-          />
-        </div>
-      </div>
-
-      {result.warnings && result.warnings.length > 0 && (
-        <div className="border border-amber-200 bg-amber-50 text-amber-900 rounded-md px-4 py-3 text-sm">
-          <div className="font-medium mb-1">
-            Parser warnings ({result.warnings.length})
-          </div>
-          <ul className="list-disc ml-5 space-y-0.5">
-            {result.warnings.slice(0, 10).map((w, i) => (
-              <li key={i}>{w}</li>
-            ))}
-            {result.warnings.length > 10 && (
-              <li className="text-xs">
-                …and {result.warnings.length - 10} more
-              </li>
-            )}
-          </ul>
-        </div>
-      )}
-
-      {result.unmatched_statement.length > 0 && (
-        <Section
-          title="Missing from QBO"
-          subtitle="On your statement but not in QBO — someone needs to enter these (or push the bill through the platform) before reconciling."
-          tone="rose"
-        >
-          <StatementOnlyTable rows={result.unmatched_statement} />
-        </Section>
-      )}
-
-      {result.unmatched_qbo.length > 0 && (
-        <Section
-          title="Missing from statement"
-          subtitle="In QBO but not on your statement — usually pending charges, or charges entered with a wrong date/amount in QBO."
-          tone="amber"
-        >
-          <QBOOnlyTable rows={result.unmatched_qbo} />
-        </Section>
-      )}
-
-      {result.matched.length > 0 && (
-        <Section
-          title={`Matched (${result.matched.length})`}
-          subtitle="Statement lines that lined up with a QBO transaction by amount and date (±3 days)."
-          tone="emerald"
-        >
-          <MatchedTable rows={result.matched} />
-        </Section>
-      )}
-    </div>
-  );
-}
-
-function SumCell({
-  label,
-  cents,
-  tone,
-}: {
-  label: string;
-  cents: number;
-  tone?: string;
-}) {
-  return (
-    <div className="bg-white px-4 py-3">
-      <div className="text-xs text-[#717179] uppercase tracking-wide">
-        {label}
-      </div>
-      <div className={cn("text-lg font-semibold mt-1", tone ?? "text-[#303030]")}>
-        {formatCents(cents)}
-      </div>
-    </div>
-  );
-}
-
-function Section({
-  title,
-  subtitle,
-  tone,
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  tone: "rose" | "amber" | "emerald";
-  children: React.ReactNode;
-}) {
-  const dot =
-    tone === "rose"
-      ? "bg-rose-500"
-      : tone === "amber"
-        ? "bg-amber-500"
-        : "bg-emerald-500";
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-baseline gap-2">
-        <span className={cn("inline-block w-2 h-2 rounded-full", dot)} />
-        <h3 className="text-sm font-semibold text-[#303030]">{title}</h3>
-      </div>
-      <p className="text-xs text-[#717179]">{subtitle}</p>
-      {children}
-    </div>
-  );
-}
-
-function StatementOnlyTable({ rows }: { rows: StatementRow[] }) {
-  return (
-    <div className="border border-[#E5E5E5] rounded-md overflow-hidden">
-      <table className="min-w-full text-sm">
-        <thead className="bg-[#F8F8F8] text-[#717179] text-xs uppercase tracking-wide">
-          <tr>
-            <th className="text-left px-4 py-3 font-medium">Date</th>
-            <th className="text-left px-4 py-3 font-medium">Description</th>
-            <th className="text-right px-4 py-3 font-medium">Amount</th>
-            <th className="text-right px-4 py-3 font-medium">Statement row</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.source_row} className="border-t border-[#F0F0F0]">
-              <td className="px-4 py-2.5 whitespace-nowrap">{r.date}</td>
-              <td className="px-4 py-2.5">{r.description || "—"}</td>
-              <td className="px-4 py-2.5 text-right tabular-nums">
-                {formatCents(r.amount_cents)}
-              </td>
-              <td className="px-4 py-2.5 text-right text-[#717179] tabular-nums">
-                {r.source_row}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function QBOOnlyTable({ rows }: { rows: CreditCardActivityRow[] }) {
-  return (
-    <div className="border border-[#E5E5E5] rounded-md overflow-hidden">
-      <table className="min-w-full text-sm">
-        <thead className="bg-[#F8F8F8] text-[#717179] text-xs uppercase tracking-wide">
-          <tr>
-            <th className="text-left px-4 py-3 font-medium">Date</th>
-            <th className="text-left px-4 py-3 font-medium">Type</th>
-            <th className="text-left px-4 py-3 font-medium">Vendor</th>
-            <th className="text-left px-4 py-3 font-medium">Memo</th>
-            <th className="text-right px-4 py-3 font-medium">Amount</th>
-            <th className="text-left px-4 py-3 font-medium">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr
-              key={`${r.txn_date}-${r.doc_num ?? ""}-${i}`}
-              className="border-t border-[#F0F0F0]"
-            >
-              <td className="px-4 py-2.5 whitespace-nowrap">{r.txn_date}</td>
-              <td className="px-4 py-2.5 whitespace-nowrap">
-                {r.txn_type || "—"}
-              </td>
-              <td className="px-4 py-2.5">{r.vendor || "—"}</td>
-              <td className="px-4 py-2.5 text-[#525252] max-w-[280px] truncate">
-                {r.memo || "—"}
-              </td>
-              <td className="px-4 py-2.5 text-right tabular-nums">
-                {formatCents(r.amount_cents)}
-              </td>
-              <td className="px-4 py-2.5">
-                <span
-                  className={cn(
-                    "inline-block border rounded-full px-2 py-0.5 text-xs font-medium",
-                    STATUS_BADGE[r.status],
-                  )}
-                >
-                  {STATUS_LABEL[r.status]}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function MatchedTable({ rows }: { rows: MatchPair[] }) {
-  return (
-    <div className="border border-[#E5E5E5] rounded-md overflow-hidden">
-      <table className="min-w-full text-sm">
-        <thead className="bg-[#F8F8F8] text-[#717179] text-xs uppercase tracking-wide">
-          <tr>
-            <th className="text-left px-4 py-3 font-medium">Statement date</th>
-            <th className="text-left px-4 py-3 font-medium">Description</th>
-            <th className="text-left px-4 py-3 font-medium">QBO date</th>
-            <th className="text-left px-4 py-3 font-medium">QBO vendor</th>
-            <th className="text-right px-4 py-3 font-medium">Amount</th>
-            <th className="text-left px-4 py-3 font-medium">Match</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((m, i) => (
-            <tr key={i} className="border-t border-[#F0F0F0]">
-              <td className="px-4 py-2.5 whitespace-nowrap">
-                {m.statement.date}
-              </td>
-              <td className="px-4 py-2.5 max-w-[260px] truncate">
-                {m.statement.description || "—"}
-              </td>
-              <td className="px-4 py-2.5 whitespace-nowrap">{m.qbo.txn_date}</td>
-              <td className="px-4 py-2.5">{m.qbo.vendor || "—"}</td>
-              <td className="px-4 py-2.5 text-right tabular-nums">
-                {formatCents(m.statement.amount_cents)}
-              </td>
-              <td className="px-4 py-2.5">
-                <span
-                  className={cn(
-                    "inline-block border rounded-full px-2 py-0.5 text-xs font-medium",
-                    m.confidence === "exact"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-amber-50 text-amber-800 border-amber-200",
-                  )}
-                >
-                  {m.confidence === "exact" ? "Exact" : "±date"}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
