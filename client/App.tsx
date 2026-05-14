@@ -15,6 +15,8 @@ import Bills from "./pages/Bills";
 import ChartOfAccounts from "./pages/ChartOfAccounts";
 import Reimbursements from "./pages/Reimbursements";
 import Reconciliation from "./pages/Reconciliation";
+import CreditCardReconciliationWorkspace from "./pages/CreditCardReconciliationWorkspace";
+import CreditCardReconciliationReport from "./pages/CreditCardReconciliationReport";
 import Invoices from "./pages/Invoices";
 import GeneralLedger from "./pages/GeneralLedger";
 import TransactionList from "./pages/TransactionList";
@@ -380,6 +382,28 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <Reconciliation />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/reconciliations/:recId"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <CreditCardReconciliationWorkspace />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/reconciliations/:recId/report"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <CreditCardReconciliationReport />
                       </ShellLayout>
                     </RequireAuth>
                   }
