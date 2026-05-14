@@ -24,6 +24,14 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>RA Field uses your camera to capture inspection photos and attach them to work orders.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>RA Field needs microphone access when recording video for inspections.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>RA Field saves inspection photos to your photo library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>RA Field needs access to your photo library to attach existing photos to inspections and work orders.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

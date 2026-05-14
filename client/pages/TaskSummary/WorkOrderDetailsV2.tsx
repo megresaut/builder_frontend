@@ -157,6 +157,8 @@ interface ApiWorkOrder {
   estimated_cost?: number;
   estimate_parts?: number;
   estimate_labor?: number;
+  estimate_tax_rate?: number;
+  estimate_tax_amount?: number;
   actual_cost?: number;
   dispatched_at?: string;
   completed_at?: string;
@@ -290,6 +292,10 @@ interface EstimateHistoryEntry {
   new_parts?: number | null;
   old_labor?: number | null;
   new_labor?: number | null;
+  old_tax_rate?: number | null;
+  new_tax_rate?: number | null;
+  old_tax_amount?: number | null;
+  new_tax_amount?: number | null;
   created_at: string;
   changed_by_name?: string | null;
 }
@@ -369,7 +375,9 @@ function EstimateHistoryTimeline({
                   )}
                 </div>
                 {(entry.new_parts != null || entry.new_labor != null ||
-                  entry.old_parts != null || entry.old_labor != null) && (
+                  entry.old_parts != null || entry.old_labor != null ||
+                  entry.new_tax_rate != null || entry.old_tax_rate != null ||
+                  entry.new_tax_amount != null || entry.old_tax_amount != null) && (
                   <div className="text-[#525252] text-xs flex flex-wrap gap-x-3">
                     {(entry.old_parts != null || entry.new_parts != null) && (
                       <span>
@@ -386,6 +394,22 @@ function EstimateHistoryTimeline({
                         {" → "}
                         <span className="text-[#303030] font-medium">
                           {formatEstimateValue(entry.new_labor ?? null)}
+                        </span>
+                      </span>
+                    )}
+                    {(entry.old_tax_rate != null || entry.new_tax_rate != null ||
+                      entry.old_tax_amount != null || entry.new_tax_amount != null) && (
+                      <span>
+                        Tax:{" "}
+                        {entry.old_tax_rate != null ? `${entry.old_tax_rate}%` : "—"}
+                        {" ("}
+                        {formatEstimateValue(entry.old_tax_amount ?? null)}
+                        {") → "}
+                        <span className="text-[#303030] font-medium">
+                          {entry.new_tax_rate != null ? `${entry.new_tax_rate}%` : "—"}
+                          {" ("}
+                          {formatEstimateValue(entry.new_tax_amount ?? null)}
+                          {")"}
                         </span>
                       </span>
                     )}
@@ -716,6 +740,8 @@ export default function WorkOrderDetailsV2({
       }
       setEstimateParts(apiWorkOrder.estimate_parts ?? null);
       setEstimateLabor(apiWorkOrder.estimate_labor ?? null);
+      setEstimateTaxRate(apiWorkOrder.estimate_tax_rate ?? null);
+      setEstimateTaxAmount(apiWorkOrder.estimate_tax_amount ?? null);
       // Map attachments to files
       if (apiWorkOrder.attachments && apiWorkOrder.attachments.length > 0) {
         const mappedFiles: File[] =
@@ -876,12 +902,18 @@ export default function WorkOrderDetailsV2({
   const [estimateTotal, setEstimateTotal] = useState<number>(0);
   const [estimateParts, setEstimateParts] = useState<number | null>(null);
   const [estimateLabor, setEstimateLabor] = useState<number | null>(null);
+  const [estimateTaxRate, setEstimateTaxRate] = useState<number | null>(null);
+  const [estimateTaxAmount, setEstimateTaxAmount] = useState<number | null>(null);
   const [draftEstimateTotal, setDraftEstimateTotal] = useState<number>(0);
-  // Parts/labor are optional breakdowns. null in draft state = field blank.
+  // Parts/labor/tax are optional breakdowns. null in draft state = field blank.
   const [draftEstimateParts, setDraftEstimateParts] = useState<number | null>(null);
   const [draftEstimateLabor, setDraftEstimateLabor] = useState<number | null>(null);
+  // Tax rate is what the user types (e.g. 8.25 = 8.25%). Tax amount is the
+  // computed dollars snapshotted at save time.
+  const [draftEstimateTaxRate, setDraftEstimateTaxRate] = useState<number | null>(null);
+  const [draftEstimateTaxAmount, setDraftEstimateTaxAmount] = useState<number | null>(null);
   // Track whether the user manually edited the total so we can stop auto-syncing
-  // total = parts + labor after an explicit override.
+  // total = parts + labor + tax after an explicit override.
   const [totalManuallyEdited, setTotalManuallyEdited] = useState(false);
 
   const handleDismissNotification = (id: number) => {
@@ -892,6 +924,8 @@ export default function WorkOrderDetailsV2({
     setDraftEstimateTotal(estimateTotal);
     setDraftEstimateParts(estimateParts);
     setDraftEstimateLabor(estimateLabor);
+    setDraftEstimateTaxRate(estimateTaxRate);
+    setDraftEstimateTaxAmount(estimateTaxAmount);
     setTotalManuallyEdited(false);
     setIsEstimateTotalModalOpen(true);
   };
@@ -918,6 +952,8 @@ export default function WorkOrderDetailsV2({
       };
       if (draftEstimateParts !== null) payload.estimate_parts = draftEstimateParts;
       if (draftEstimateLabor !== null) payload.estimate_labor = draftEstimateLabor;
+      if (draftEstimateTaxRate !== null) payload.estimate_tax_rate = draftEstimateTaxRate;
+      if (draftEstimateTaxAmount !== null) payload.estimate_tax_amount = draftEstimateTaxAmount;
 
       await fetchJSON(`/maintenance/work-orders/${workOrderId}`, {
         method: "PATCH",
@@ -929,6 +965,8 @@ export default function WorkOrderDetailsV2({
       setEstimateTotal(draftEstimateTotal);
       setEstimateParts(draftEstimateParts);
       setEstimateLabor(draftEstimateLabor);
+      setEstimateTaxRate(draftEstimateTaxRate);
+      setEstimateTaxAmount(draftEstimateTaxAmount);
       
       // Refresh work order data to get updated timestamp
       try {
@@ -943,6 +981,8 @@ export default function WorkOrderDetailsV2({
         }
         setEstimateParts(refreshedData.estimate_parts ?? null);
         setEstimateLabor(refreshedData.estimate_labor ?? null);
+        setEstimateTaxRate(refreshedData.estimate_tax_rate ?? null);
+        setEstimateTaxAmount(refreshedData.estimate_tax_amount ?? null);
       } catch (err) {
         console.error("Failed to refresh work order after update:", err);
       }
@@ -1669,7 +1709,7 @@ export default function WorkOrderDetailsV2({
                   <div className="text-[#303030] font-['Geist',sans-serif] text-2xl font-medium leading-7">
                     {formatUSD(estimateTotal)}
                   </div>
-                  {(estimateParts !== null || estimateLabor !== null) && (
+                  {(estimateParts !== null || estimateLabor !== null || estimateTaxRate !== null || estimateTaxAmount !== null) && (
                     <div className="mt-2 flex flex-col gap-1 w-full max-w-[220px] text-xs">
                       {estimateParts !== null && (
                         <div className="flex justify-between">
@@ -1684,6 +1724,16 @@ export default function WorkOrderDetailsV2({
                           <span className="text-[#717179]">Labor</span>
                           <span className="text-[#303030] font-medium">
                             {formatUSD(estimateLabor)}
+                          </span>
+                        </div>
+                      )}
+                      {(estimateTaxRate !== null || estimateTaxAmount !== null) && (
+                        <div className="flex justify-between">
+                          <span className="text-[#717179]">
+                            Tax{estimateTaxRate !== null ? ` (${estimateTaxRate}%)` : ""}
+                          </span>
+                          <span className="text-[#303030] font-medium">
+                            {formatUSD(estimateTaxAmount ?? 0)}
                           </span>
                         </div>
                       )}
@@ -2164,11 +2214,15 @@ export default function WorkOrderDetailsV2({
               onChange={(value) => {
                 const n = Number(value) || 0;
                 setDraftEstimateParts(n);
-                // Auto-sync total = parts + labor unless the user has manually
-                // edited total since opening the modal.
+                // Auto-sync total = parts + labor + tax unless the user has
+                // manually edited total since opening the modal. Tax recomputes
+                // off the new base so the displayed amount stays in sync.
+                const labor = draftEstimateLabor ?? 0;
+                const rate = draftEstimateTaxRate;
+                const tax = rate != null ? Math.round((n + labor) * rate) / 100 : 0;
+                setDraftEstimateTaxAmount(rate != null ? tax : null);
                 if (!totalManuallyEdited) {
-                  const labor = draftEstimateLabor ?? 0;
-                  setDraftEstimateTotal(n + labor);
+                  setDraftEstimateTotal(n + labor + tax);
                 }
               }}
               showCurrencySymbol={true}
@@ -2184,9 +2238,12 @@ export default function WorkOrderDetailsV2({
               onChange={(value) => {
                 const n = Number(value) || 0;
                 setDraftEstimateLabor(n);
+                const parts = draftEstimateParts ?? 0;
+                const rate = draftEstimateTaxRate;
+                const tax = rate != null ? Math.round((parts + n) * rate) / 100 : 0;
+                setDraftEstimateTaxAmount(rate != null ? tax : null);
                 if (!totalManuallyEdited) {
-                  const parts = draftEstimateParts ?? 0;
-                  setDraftEstimateTotal(parts + n);
+                  setDraftEstimateTotal(parts + n + tax);
                 }
               }}
               showCurrencySymbol={true}
@@ -2195,6 +2252,56 @@ export default function WorkOrderDetailsV2({
               placeholder="$0.00"
             />
           </ModalField>
+          {(() => {
+            const base = (draftEstimateParts ?? 0) + (draftEstimateLabor ?? 0);
+            const taxDisabled = base <= 0;
+            return (
+              <ModalField label="Tax rate (optional)">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={100}
+                    step={0.01}
+                    disabled={taxDisabled}
+                    value={draftEstimateTaxRate ?? ""}
+                    placeholder="0.00"
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === "") {
+                        setDraftEstimateTaxRate(null);
+                        setDraftEstimateTaxAmount(null);
+                        if (!totalManuallyEdited) {
+                          setDraftEstimateTotal(base);
+                        }
+                        return;
+                      }
+                      const rate = Number(raw);
+                      if (Number.isNaN(rate)) return;
+                      setDraftEstimateTaxRate(rate);
+                      const tax = Math.round(base * rate) / 100;
+                      setDraftEstimateTaxAmount(tax);
+                      if (!totalManuallyEdited) {
+                        setDraftEstimateTotal(base + tax);
+                      }
+                    }}
+                    className="flex-1 h-10 rounded-md border border-[#e5e5e5] px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2463eb] disabled:bg-[#f5f5f5] disabled:text-[#a1a1a1]"
+                  />
+                  <span className="text-sm text-[#717179]">%</span>
+                </div>
+                {taxDisabled ? (
+                  <div className="text-xs text-[#717179] mt-1">
+                    Add Parts or Labor to apply tax.
+                  </div>
+                ) : draftEstimateTaxAmount != null ? (
+                  <div className="text-xs text-[#717179] mt-1">
+                    Tax: {formatUSD(draftEstimateTaxAmount)}
+                  </div>
+                ) : null}
+              </ModalField>
+            );
+          })()}
           <ModalField label="Total">
             <CurrencyField
               label=""

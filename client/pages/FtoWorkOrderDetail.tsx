@@ -40,6 +40,8 @@ interface WorkOrderDetail {
   estimate_total: number | null;
   estimate_parts: number | null;
   estimate_labor: number | null;
+  estimate_tax_rate: number | null;
+  estimate_tax_amount: number | null;
 }
 
 interface TaskAssignee {
@@ -170,6 +172,8 @@ export default function FtoWorkOrderDetail() {
   const [isEditEstimateOpen, setIsEditEstimateOpen] = useState(false);
   const [draftEstParts, setDraftEstParts] = useState<number | null>(null);
   const [draftEstLabor, setDraftEstLabor] = useState<number | null>(null);
+  const [draftEstTaxRate, setDraftEstTaxRate] = useState<number | null>(null);
+  const [draftEstTaxAmount, setDraftEstTaxAmount] = useState<number | null>(null);
   const [draftEstTotal, setDraftEstTotal] = useState<number>(0);
   const [estTotalManuallyEdited, setEstTotalManuallyEdited] = useState(false);
   const [estimateSubmitting, setEstimateSubmitting] = useState(false);
@@ -213,6 +217,8 @@ export default function FtoWorkOrderDetail() {
         estimate_total: wo.estimated_cost ?? wo.estimate_total ?? null,
         estimate_parts: wo.estimate_parts ?? null,
         estimate_labor: wo.estimate_labor ?? null,
+        estimate_tax_rate: wo.estimate_tax_rate ?? null,
+        estimate_tax_amount: wo.estimate_tax_amount ?? null,
       });
       if (wo.task_id) {
         try {
@@ -548,6 +554,8 @@ export default function FtoWorkOrderDetail() {
     if (!workOrder) return;
     setDraftEstParts(workOrder.estimate_parts);
     setDraftEstLabor(workOrder.estimate_labor);
+    setDraftEstTaxRate(workOrder.estimate_tax_rate);
+    setDraftEstTaxAmount(workOrder.estimate_tax_amount);
     setDraftEstTotal(workOrder.estimate_total ?? 0);
     setEstTotalManuallyEdited(false);
     setIsEditEstimateOpen(true);
@@ -563,6 +571,8 @@ export default function FtoWorkOrderDetail() {
       };
       if (draftEstParts !== null) payload.estimate_parts = draftEstParts;
       if (draftEstLabor !== null) payload.estimate_labor = draftEstLabor;
+      if (draftEstTaxRate !== null) payload.estimate_tax_rate = draftEstTaxRate;
+      if (draftEstTaxAmount !== null) payload.estimate_tax_amount = draftEstTaxAmount;
 
       const updated: any = await fetchJSON(`/maintenance/work-orders/${workOrderId}`, {
         method: "PATCH",
@@ -573,6 +583,8 @@ export default function FtoWorkOrderDetail() {
         estimate_total: updated.estimated_cost ?? updated.estimate_total ?? draftEstTotal,
         estimate_parts: updated.estimate_parts ?? draftEstParts,
         estimate_labor: updated.estimate_labor ?? draftEstLabor,
+        estimate_tax_rate: updated.estimate_tax_rate ?? draftEstTaxRate,
+        estimate_tax_amount: updated.estimate_tax_amount ?? draftEstTaxAmount,
       });
       setIsEditEstimateOpen(false);
     } catch (err) {
@@ -778,7 +790,7 @@ export default function FtoWorkOrderDetail() {
                       : "—"}
                   </span>
                 </div>
-                {(workOrder.estimate_parts != null || workOrder.estimate_labor != null) && (
+                {(workOrder.estimate_parts != null || workOrder.estimate_labor != null || workOrder.estimate_tax_rate != null || workOrder.estimate_tax_amount != null) && (
                   <div className="flex flex-col gap-1 pt-2 border-t border-gray-100 text-sm">
                     {workOrder.estimate_parts != null && (
                       <div className="flex justify-between">
@@ -790,6 +802,16 @@ export default function FtoWorkOrderDetail() {
                       <div className="flex justify-between">
                         <span className="text-gray-500">Labor</span>
                         <span className="text-gray-900">${workOrder.estimate_labor.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {(workOrder.estimate_tax_rate != null || workOrder.estimate_tax_amount != null) && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">
+                          Tax{workOrder.estimate_tax_rate != null ? ` (${workOrder.estimate_tax_rate}%)` : ""}
+                        </span>
+                        <span className="text-gray-900">
+                          ${(workOrder.estimate_tax_amount ?? 0).toFixed(2)}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -1002,9 +1024,12 @@ export default function FtoWorkOrderDetail() {
                 onChange={(v) => {
                   const n = Number(v) || 0;
                   setDraftEstParts(n);
+                  const labor = draftEstLabor ?? 0;
+                  const rate = draftEstTaxRate;
+                  const tax = rate != null ? Math.round((n + labor) * rate) / 100 : 0;
+                  setDraftEstTaxAmount(rate != null ? tax : null);
                   if (!estTotalManuallyEdited) {
-                    const labor = draftEstLabor ?? 0;
-                    setDraftEstTotal(n + labor);
+                    setDraftEstTotal(n + labor + tax);
                   }
                 }}
                 showCurrencySymbol
@@ -1020,9 +1045,12 @@ export default function FtoWorkOrderDetail() {
                 onChange={(v) => {
                   const n = Number(v) || 0;
                   setDraftEstLabor(n);
+                  const parts = draftEstParts ?? 0;
+                  const rate = draftEstTaxRate;
+                  const tax = rate != null ? Math.round((parts + n) * rate) / 100 : 0;
+                  setDraftEstTaxAmount(rate != null ? tax : null);
                   if (!estTotalManuallyEdited) {
-                    const parts = draftEstParts ?? 0;
-                    setDraftEstTotal(parts + n);
+                    setDraftEstTotal(parts + n + tax);
                   }
                 }}
                 showCurrencySymbol
@@ -1031,6 +1059,56 @@ export default function FtoWorkOrderDetail() {
                 placeholder="$0.00"
               />
             </ModalField>
+            {(() => {
+              const base = (draftEstParts ?? 0) + (draftEstLabor ?? 0);
+              const taxDisabled = base <= 0;
+              return (
+                <ModalField label="Tax rate (optional)">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      max={100}
+                      step={0.01}
+                      disabled={taxDisabled}
+                      value={draftEstTaxRate ?? ""}
+                      placeholder="0.00"
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === "") {
+                          setDraftEstTaxRate(null);
+                          setDraftEstTaxAmount(null);
+                          if (!estTotalManuallyEdited) {
+                            setDraftEstTotal(base);
+                          }
+                          return;
+                        }
+                        const rate = Number(raw);
+                        if (Number.isNaN(rate)) return;
+                        setDraftEstTaxRate(rate);
+                        const tax = Math.round(base * rate) / 100;
+                        setDraftEstTaxAmount(tax);
+                        if (!estTotalManuallyEdited) {
+                          setDraftEstTotal(base + tax);
+                        }
+                      }}
+                      className="flex-1 h-10 rounded-md border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
+                    />
+                    <span className="text-sm text-gray-500">%</span>
+                  </div>
+                  {taxDisabled ? (
+                    <div className="text-xs text-gray-500 mt-1">
+                      Add Parts or Labor to apply tax.
+                    </div>
+                  ) : draftEstTaxAmount != null ? (
+                    <div className="text-xs text-gray-500 mt-1">
+                      Tax: ${draftEstTaxAmount.toFixed(2)}
+                    </div>
+                  ) : null}
+                </ModalField>
+              );
+            })()}
             <ModalField label="Total">
               <CurrencyField
                 label=""
