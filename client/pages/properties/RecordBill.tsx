@@ -50,6 +50,7 @@ interface LineItem {
   unitName: string;      // display name for the unit
   description: string;
   glAccount: string;
+  upcharge: string;      // dollar amount as string, e.g. "$0.00"
   total: string;
   workOrder?: string;
 }
@@ -165,6 +166,7 @@ const placeholderBill = {
       unitName: "Unit 1",
       description: "Monthly electric service charge and consumption",
       glAccount: "Utilities",
+      upcharge: "",
       total: "$450.00",
     },
     {
@@ -174,6 +176,7 @@ const placeholderBill = {
       unitName: "Unit 2",
       description: "Water and sewer service",
       glAccount: "Utilities",
+      upcharge: "",
       total: "$125.50",
     },
     {
@@ -183,6 +186,7 @@ const placeholderBill = {
       unitName: "Unit 1",
       description: "Gas heating service",
       glAccount: "Utilities",
+      upcharge: "",
       total: "$275.00",
     },
   ],
@@ -210,6 +214,7 @@ const emptyLineItem = (id: number): LineItem => ({
   unitName: "",
   description: "",
   glAccount: "",
+  upcharge: "",
   total: "",
 });
 
@@ -293,6 +298,7 @@ const normalizeApprovedBill = (bill: any) => ({
     Description: li.description || "",
     GLAccountID: li.gl_account_id,
     GLAccountName: li.gl_account_name,
+    Upcharge: li.upcharge ?? "",
     AmountCents: li.amount_cents,
   })),
 });
@@ -516,6 +522,7 @@ export const RecordBill = () => {
             unitName: "",
             description: "",
             glAccount: "",
+            upcharge: "",
             total: "",
           },
         ]),
@@ -527,6 +534,7 @@ export const RecordBill = () => {
     unit: 130,
     description: 200,
     glAccount: 170,
+    upcharge: 110,
     total: 80,
     workOrder: 150,
   };
@@ -977,6 +985,10 @@ export const RecordBill = () => {
       glAccount: item.GLAccountID
         ? item.GLAccountID.toString()
         : "",
+      upcharge:
+        item.Upcharge !== undefined && item.Upcharge !== null
+          ? item.Upcharge.toString()
+          : "",
       total: item.AmountCents
         ? `$${(item.AmountCents / 100).toFixed(2)}`
         : "",
@@ -1585,6 +1597,7 @@ export const RecordBill = () => {
         workOrder: "",
         description: "",
         glAccount: "",
+        upcharge: "",
         total: "",
       },
     ]);
@@ -1875,6 +1888,7 @@ export const RecordBill = () => {
         gl_account_name: gl?.name || "",
 
         description: item.description || "",
+        upcharge: item.upcharge || "",
         amount_cents: toCents(item.total),
       };
     });
@@ -2519,6 +2533,14 @@ minHeight: 0,
                           </div>
                           <div
                             className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
+                            style={{ width: `${columnWidths.upcharge}px` }}
+                          >
+                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                              Upcharge
+                            </span>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 border-b border-r border-[#DADADA]/50 px-3 py-3 flex-shrink-0"
                             style={{ width: `${columnWidths.total}px` }}
                           >
                             <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
@@ -2794,6 +2816,37 @@ minHeight: 0,
                                   </div>
                                 </SelectContent>
                               </Select>
+                            </div>
+
+                            {/* Upcharge */}
+                            <div
+                              className="flex items-center border-b border-r border-[#DADADA]/50 px-3 min-h-14 py-2 flex-shrink-0"
+                              style={{ width: `${columnWidths.upcharge}px` }}
+                            >
+                              <input
+                                type="text"
+                                value={item.upcharge}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  if (
+                                    !isReadOnly &&
+                                    (value === "" ||
+                                      /^\$?[\d,]*\.?\d{0,2}$/.test(value))
+                                  ) {
+                                    const formatted = value.startsWith("$")
+                                      ? value
+                                      : "$" + value;
+                                    handleUpdateLineItem(
+                                      item.id,
+                                      "upcharge",
+                                      formatted,
+                                    );
+                                  }
+                                }}
+                                placeholder="$0.00"
+                                disabled={isReadOnly}
+                                className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
+                              />
                             </div>
 
 
