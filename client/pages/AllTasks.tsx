@@ -267,6 +267,7 @@ export default function AllTasks() {
   const [filterPriority, setFilterPriority] = usePageState<string[]>("allTasksFilterPriority", []);
   const [filterStatus, setFilterStatus] = usePageState<string[]>("allTasksFilterStatus", ["not_started", "in_progress"]);
   const [filterAssignee, setFilterAssignee] = usePageState<string[]>("allTasksFilterAssignee", []);
+  const [searchQuery, setSearchQuery] = usePageState("allTasksSearch", "");
 
   const uniqueProperties = useMemo(
     () => Array.from(new Set(tasksList.map((t) => t.property).filter(Boolean))).sort(),
@@ -281,6 +282,7 @@ export default function AllTasks() {
   );
 
   const filteredTasks = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     return tasksList.filter((task) => {
       if (filterProperty.length > 0 && !filterProperty.includes(task.property ?? "")) return false;
       if (filterPriority.length > 0 && !filterPriority.includes(task.priority)) return false;
@@ -294,6 +296,22 @@ export default function AllTasks() {
         if (filterDateFrom && dateStr < filterDateFrom) return false;
         if (filterDateTo && dateStr > filterDateTo) return false;
       }
+      if (q) {
+        const haystack = [
+          task.title,
+          task.property,
+          task.property_name,
+          task.property_address,
+          task.location_address,
+          task.unit,
+          ...task.assignees.map((a) => a.name),
+          ...(task.collaborators ?? []).map((c) => c.name),
+        ]
+          .filter((v): v is string => typeof v === "string" && v.length > 0)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       return true;
     });
   }, [
@@ -305,6 +323,7 @@ export default function AllTasks() {
     filterAssignee,
     filterDateFrom,
     filterDateTo,
+    searchQuery,
   ]);
 
   const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
@@ -394,6 +413,7 @@ export default function AllTasks() {
     filterPriority,
     filterStatus,
     filterAssignee,
+    searchQuery,
   ]);
 
   // Hide collaborators by default
@@ -742,6 +762,8 @@ export default function AllTasks() {
           columns={columns}
           data={getSortedData()}
           rowKey="id"
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
           onRowClick={(task) => {
             navigate(`/tasks/${task.id}/summary`, {
               state: { task, taskData: task, sequentialNumber: (task as any).sequentialNumber },
