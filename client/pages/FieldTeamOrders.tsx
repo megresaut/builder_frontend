@@ -552,6 +552,7 @@ function MultiSelectFilter({
   onChange: (values: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -560,6 +561,10 @@ function MultiSelectFilter({
     };
     if (open) document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) setQuery("");
   }, [open]);
 
   const toggle = (value: string) => {
@@ -572,6 +577,10 @@ function MultiSelectFilter({
       : selected.length === 1
       ? (options.find((o) => o.value === selected[0])?.label ?? selected[0])
       : `${selected.length} selected`;
+
+  const filteredOptions = query
+    ? options.filter((opt) => opt.label.toLowerCase().includes(query.toLowerCase()))
+    : options;
 
   return (
     <div className="flex items-center gap-2">
@@ -588,21 +597,40 @@ function MultiSelectFilter({
           </svg>
         </button>
         {open && (
-          <div className="absolute top-full mt-1 left-0 z-50 bg-white border border-[#DADADA] rounded-lg shadow-lg py-1 min-w-[200px] whitespace-nowrap">
-            {options.map((opt) => (
-              <label
-                key={opt.value}
-                className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#f5f5f5] cursor-pointer text-sm text-[#303030]"
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.includes(opt.value)}
-                  onChange={() => toggle(opt.value)}
-                  className="rounded"
-                />
-                {opt.label}
-              </label>
-            ))}
+          <div className="absolute top-full mt-1 left-0 z-50 bg-white border border-[#DADADA] rounded-lg shadow-lg min-w-[200px] whitespace-nowrap">
+            <div className="sticky top-0 bg-white border-b border-[#EEE] p-2">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                placeholder="Search…"
+                autoFocus
+                className="w-full h-8 px-2 rounded border border-[#DADADA] text-sm text-[#303030] focus:outline-none focus:border-[#999]"
+              />
+            </div>
+            <div className="max-h-[280px] overflow-y-auto py-1">
+              {filteredOptions.length === 0 ? (
+                <div className="px-3 py-1.5 text-sm text-[#999]">No matches</div>
+              ) : (
+                filteredOptions.map((opt) => (
+                  <label
+                    key={opt.value}
+                    className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#f5f5f5] cursor-pointer text-sm text-[#303030]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(opt.value)}
+                      onChange={() => toggle(opt.value)}
+                      className="rounded"
+                    />
+                    {opt.label}
+                  </label>
+                ))
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -682,7 +710,7 @@ export default function FieldTeamOrders() {
     setLoading(true);
     try {
       const raw = await fetchJSON(
-        `/maintenance/ftos?limit=100`
+        `/maintenance/ftos?limit=10000`
       );
       
       const rawData: APIFTOResponse[] = Array.isArray(raw)
@@ -773,9 +801,20 @@ export default function FieldTeamOrders() {
   ]);
 
   // Unique values for filter dropdowns (from current orders)
-  const uniqueProperties = Array.from(
-    new Set(orders.map((o) => o.property).filter(Boolean))
-  ).sort();
+  // Property options keyed on property_id so the filter is stable against
+  // property_name formatting drift; label uses the human-readable name.
+  const uniquePropertyOptions = Array.from(
+    orders
+      .reduce((acc, o) => {
+        if (o.property_id != null && !acc.has(o.property_id)) {
+          acc.set(o.property_id, o.property || "");
+        }
+        return acc;
+      }, new Map<number, string>())
+      .entries()
+  )
+    .map(([id, name]) => ({ value: String(id), label: name }))
+    .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: "base" }));
   const uniqueFieldTeamMembers = Array.from(
     new Set(orders.flatMap((o) => o.fieldTeam.map((m) => m.name)).filter(Boolean))
   ).sort();
@@ -806,7 +845,7 @@ export default function FieldTeamOrders() {
       if (filterDateFrom && orderDateStr < filterDateFrom) return false;
       if (filterDateTo && orderDateStr > filterDateTo) return false;
     }
-    if (filterProperty.length > 0 && !filterProperty.includes(order.property)) return false;
+    if (filterProperty.length > 0 && !filterProperty.includes(String(order.property_id))) return false;
     if (filterFieldTeamMember.length > 0 && !order.fieldTeam.some((m) => filterFieldTeamMember.includes(m.name))) return false;
     if (filterTimesheetStatus.length > 0 && !filterTimesheetStatus.includes(order.timesheetStatus)) return false;
     if (filterFtoStatus.length > 0 && !filterFtoStatus.includes(order.status)) return false;
@@ -1239,7 +1278,7 @@ export default function FieldTeamOrders() {
                 </div>
                 <MultiSelectFilter
                   label="Property"
-                  options={uniqueProperties.map((p) => ({ value: p, label: p }))}
+                  options={uniquePropertyOptions}
                   selected={filterProperty}
                   onChange={setFilterProperty}
                 />
