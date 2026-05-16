@@ -298,7 +298,11 @@ const normalizeApprovedBill = (bill: any) => ({
     Description: li.description || "",
     GLAccountID: li.gl_account_id,
     GLAccountName: li.gl_account_name,
-    Upcharge: li.upcharge ?? "",
+    // Approved bills come from bills.line_items JSONB (raw, lowercase keys).
+    // Drafts come from the Go BDV_LineItem struct (Pascal-case via default
+    // json serialization) — that path uses item.UpchargeCents directly, so
+    // normalize the approved shape to match.
+    UpchargeCents: typeof li.upcharge_cents === "number" ? li.upcharge_cents : 0,
     AmountCents: li.amount_cents,
   })),
 });
@@ -986,8 +990,8 @@ export const RecordBill = () => {
         ? item.GLAccountID.toString()
         : "",
       upcharge:
-        item.Upcharge !== undefined && item.Upcharge !== null
-          ? item.Upcharge.toString()
+        typeof item.UpchargeCents === "number" && item.UpchargeCents > 0
+          ? `$${(item.UpchargeCents / 100).toFixed(2)}`
           : "",
       total: item.AmountCents
         ? `$${(item.AmountCents / 100).toFixed(2)}`
@@ -1324,18 +1328,19 @@ export const RecordBill = () => {
           due_date: patchPayload.due_date,
           memo: patchPayload.memo,
           property_id: Number(firstPropertyId),
-  
+
           line_items: patchPayload.line_items.map((li) => ({
             line_id: li.line_id,
             property_id: Number(li.property_id),      // 🔒 never null
             unit: li.unit || "",
-          
+
             gl_account_id: li.gl_account_id,           // 🔒 already validated
             gl_account_name: li.gl_account_name,
-          
+
             description: li.description || "",
             amount_cents: Number(li.amount_cents),
-          })),          
+            upcharge_cents: Number(li.upcharge_cents ?? 0),
+          })),
         };
   
         const approveRes = await fetchJSON(
@@ -1888,8 +1893,11 @@ export const RecordBill = () => {
         gl_account_name: gl?.name || "",
 
         description: item.description || "",
-        upcharge: item.upcharge || "",
+        // Send upcharge alongside amount_cents (base). Backend stores both on
+        // bills.line_items JSONB; QBO/Buildium push reads amount_cents only;
+        // the owner invoice adds upcharge_cents on top of amount_cents.
         amount_cents: toCents(item.total),
+        upcharge_cents: toCents(item.upcharge),
       };
     });
   };
