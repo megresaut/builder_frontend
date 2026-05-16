@@ -180,6 +180,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     "description",
     "amount",
     "source",
+    "paymentStatus",
     "status",
   ]);
 
@@ -273,6 +274,37 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             strokeWidth="1.2"
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    paymentStatus: {
+      label: "Payment",
+      icon: (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            x="2"
+            y="4"
+            width="12"
+            height="8"
+            rx="1"
+            stroke="#525252"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          <line
+            x1="2"
+            y1="7"
+            x2="14"
+            y2="7"
+            stroke="#525252"
+            strokeWidth="1.2"
           />
         </svg>
       ),
@@ -410,6 +442,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     status: InvoiceItemStatus;
     statusColor: string;
     statusBg: string;
+    paymentStatus: string; // backend payment_status: paid | unpaid | billed_by_invoice | unknown
   }
 
 
@@ -469,6 +502,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       status: approved ? "Approved" : "Pending Approval",
       statusColor: approved ? "#059669" : "#D97706",
       statusBg: approved ? "#D1FAE5" : "#FEF3C7",
+      paymentStatus: li.payment_status || "unknown",
     };
   };
   
@@ -630,6 +664,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             li.status === "approved" ? "#059669" : "#D97706",
           statusBg:
             li.status === "approved" ? "#D1FAE5" : "#FEF3C7",
+          paymentStatus: li.payment_status || "unknown",
         };
       });
       
@@ -1377,6 +1412,18 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   );
                 case "status":
                   return <StatusBadge status={item.status} />;
+                case "paymentStatus": {
+                  const ps = item.paymentStatus;
+                  if (ps === "paid") return <StatusBadge status="Paid" />;
+                  if (ps === "unpaid") return <StatusBadge status="Pending" />;
+                  // billed_by_invoice (mgmt fee / labor) and unknown — payment
+                  // doesn't apply to these line types.
+                  return (
+                    <div className="text-[#A3A3A3] text-sm font-normal leading-[1.4] tracking-[-0.32px]">
+                      —
+                    </div>
+                  );
+                }
                 case "glAccount":
                 case "description":
                 case "amount":
