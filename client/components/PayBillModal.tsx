@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,11 @@ interface PayBillModalProps {
     paid_from_name?: string;
     paid_doc_number?: string;
     paid_memo?: string;
+    receipt_object_key?: string | null;
+    receipt_filename?: string | null;
+    receipt_mime?: string | null;
+    receipt_size_bytes?: number | null;
+    receipt_uploaded_at?: string | null;
   }) => void;
 }
 
@@ -73,6 +78,14 @@ export default function PayBillModal({
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptObjectKey, setReceiptObjectKey] = useState<string | null>(null);
+  const [receiptFilename, setReceiptFilename] = useState<string | null>(null);
+  const [receiptMime, setReceiptMime] = useState<string | null>(null);
+  const [receiptSizeBytes, setReceiptSizeBytes] = useState<number | null>(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [receiptError, setReceiptError] = useState<string | null>(null);
+
   const outstanding = bill.qboBalanceCents;
   const outstandingDollars = (outstanding / 100).toFixed(2);
 
@@ -86,6 +99,13 @@ export default function PayBillModal({
       setMemo("");
       setError(null);
       setErrorCode(null);
+      setReceiptFile(null);
+      setReceiptObjectKey(null);
+      setReceiptFilename(null);
+      setReceiptMime(null);
+      setReceiptSizeBytes(null);
+      setUploadingReceipt(false);
+      setReceiptError(null);
       return;
     }
     setAmount(outstandingDollars);
@@ -119,6 +139,58 @@ export default function PayBillModal({
   );
   const payTypeLabel = selectedAccount?.qbo_account_type === "Credit Card" ? "Credit Card" : "Check";
 
+  const clearReceiptState = () => {
+    setReceiptFile(null);
+    setReceiptObjectKey(null);
+    setReceiptFilename(null);
+    setReceiptMime(null);
+    setReceiptSizeBytes(null);
+  };
+
+  const handleReceiptChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    // Reset the input value so re-selecting the same file re-fires onChange.
+    e.target.value = "";
+    if (!file) return;
+
+    setReceiptFile(file);
+    setReceiptError(null);
+    setUploadingReceipt(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await authFetch("/vendors/bills/upload-receipt", {
+        method: "POST",
+        body: form,
+      });
+      if (!res.ok) {
+        let message = `Upload failed (status ${res.status}).`;
+        try {
+          const body = await res.json();
+          if (body?.error) message = String(body.error);
+        } catch {
+          const text = await res.text().catch(() => "");
+          if (text) message = text;
+        }
+        clearReceiptState();
+        setReceiptError(message);
+        return;
+      }
+      const data = await res.json();
+      setReceiptObjectKey(data?.object_key ?? null);
+      setReceiptFilename(data?.filename ?? null);
+      setReceiptMime(data?.mime ?? null);
+      setReceiptSizeBytes(
+        typeof data?.size_bytes === "number" ? data.size_bytes : null,
+      );
+    } catch (err: any) {
+      clearReceiptState();
+      setReceiptError(err?.message ?? String(err));
+    } finally {
+      setUploadingReceipt(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setError(null);
     setErrorCode(null);
@@ -151,6 +223,14 @@ export default function PayBillModal({
           txn_date: txnDate,
           doc_number: docNumber || undefined,
           memo: memo || undefined,
+          ...(receiptObjectKey
+            ? {
+                receipt_object_key: receiptObjectKey,
+                receipt_filename: receiptFilename,
+                receipt_mime: receiptMime,
+                receipt_size_bytes: receiptSizeBytes,
+              }
+            : {}),
         }),
       });
       if (!res.ok) {
@@ -184,6 +264,11 @@ export default function PayBillModal({
         paid_from_name: selectedAccount?.name,
         paid_doc_number: docNumber || undefined,
         paid_memo: memo || undefined,
+        receipt_object_key: data.receipt_object_key ?? null,
+        receipt_filename: data.receipt_filename ?? null,
+        receipt_mime: data.receipt_mime ?? null,
+        receipt_size_bytes: data.receipt_size_bytes ?? null,
+        receipt_uploaded_at: data.receipt_uploaded_at ?? null,
       });
       onOpenChange(false);
     } catch (err: any) {
@@ -228,6 +313,7 @@ export default function PayBillModal({
           cancelLabel="Cancel"
           confirmLabel={submitting ? "Paying…" : "Pay"}
           cancelDisabled={submitting}
+          confirmDisabled={submitting || uploadingReceipt}
         />
       }
     >
@@ -318,6 +404,41 @@ export default function PayBillModal({
             placeholder="e.g. Paid via online bill pay"
             autoGrow
           />
+        </FieldShell>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell label="Receipt (optional)" htmlFor="pay-receipt">
+          <input
+            type="file"
+            id="pay-receipt"
+            accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+            disabled={submitting || uploadingReceipt}
+            onChange={handleReceiptChange}
+            className="block w-full text-sm text-[#303030] file:mr-3 file:rounded-md file:border file:border-[#DADADA] file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#303030] hover:file:bg-gray-50 disabled:opacity-50"
+          />
+          {uploadingReceipt && (
+            <div className="text-xs text-[#717179] mt-1">Uploading…</div>
+          )}
+          {!uploadingReceipt && receiptFilename && (
+            <div className="text-xs text-[#717179] mt-1 flex items-center gap-2">
+              <span className="text-[#303030]">{receiptFilename}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  clearReceiptState();
+                  setReceiptError(null);
+                }}
+                disabled={submitting}
+                className="text-[#013764] hover:underline disabled:opacity-50"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+          {receiptError && (
+            <div className="text-xs text-red-600 mt-1">{receiptError}</div>
+          )}
         </FieldShell>
       </div>
 

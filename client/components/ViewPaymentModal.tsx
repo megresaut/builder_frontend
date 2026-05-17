@@ -27,6 +27,9 @@ interface ViewPaymentModalProps {
     paidFromName?: string;
     paidDocNumber?: string;
     paidMemo?: string;
+    receiptObjectKey?: string | null;
+    receiptFilename?: string | null;
+    receiptUploadedAt?: string | null;
   };
 }
 
@@ -41,6 +44,11 @@ interface PaymentEntry {
   buildium_bill_payment_id: string | null;
   qbo_bill_payment_id: string | null;
   created_at: string;
+  receipt_object_key: string | null;
+  receipt_filename: string | null;
+  receipt_mime: string | null;
+  receipt_size_bytes: number | null;
+  receipt_uploaded_at: string | null;
 }
 
 const fmtUSD = (cents?: number | null) =>
@@ -223,6 +231,19 @@ function PaymentEntryBlock({ payment }: { payment: PaymentEntry }) {
       {payment.paid_memo && (
         <Row label="Memo" value={payment.paid_memo} compact multiline />
       )}
+      {payment.receipt_object_key && (
+        <div className="mt-1 text-xs">
+          <a
+            href={`/files?key=${encodeURIComponent(payment.receipt_object_key)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#013764] hover:underline"
+          >
+            View receipt
+            {payment.receipt_filename ? ` (${payment.receipt_filename})` : ""}
+          </a>
+        </div>
+      )}
       <div className="mt-1 text-xs text-[#717179]">
         {payment.qbo_bill_payment_id && (
           <span>
@@ -265,6 +286,19 @@ function FallbackPaymentBlock({
         compact
       />
       <Row label="Memo" value={bill.paidMemo || "—"} compact multiline />
+      {bill.receiptObjectKey && (
+        <div className="mt-1 text-xs">
+          <a
+            href={`/files?key=${encodeURIComponent(bill.receiptObjectKey)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#013764] hover:underline"
+          >
+            View receipt
+            {bill.receiptFilename ? ` (${bill.receiptFilename})` : ""}
+          </a>
+        </div>
+      )}
       {bill.buildiumBillPaymentId && (
         <div className="mt-1 text-xs text-[#717179]">
           Buildium Payment:{" "}

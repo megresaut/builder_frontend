@@ -502,6 +502,11 @@ export const RecordBill = () => {
     paidFromName?: string;
     paidDocNumber?: string;
     paidMemo?: string;
+    receiptObjectKey?: string | null;
+    receiptFilename?: string | null;
+    receiptMime?: string | null;
+    receiptSizeBytes?: number | null;
+    receiptUploadedAt?: string | null;
   }>({
     qboPaidAt: stateBill?.qboPaidAt,
     qboBalanceCents: stateBill?.qboBalanceCents,
@@ -3128,7 +3133,10 @@ minHeight: 0,
           bill={{
             id: billId,
             vendorName: selectedVendor?.name ?? "",
-            propertyName: lineItems[0]?.property ?? "",
+            propertyName:
+              properties.find(
+                (p) => p.id === Number(lineItems[0]?.property),
+              )?.name ?? "",
             referenceNumber: referenceNumber || undefined,
             qboBalanceCents: qboPaymentState.qboBalanceCents ?? 0,
           }}
@@ -3144,6 +3152,11 @@ minHeight: 0,
               paidFromName: result.paid_from_name,
               paidDocNumber: result.paid_doc_number,
               paidMemo: result.paid_memo,
+              receiptObjectKey: result.receipt_object_key ?? null,
+              receiptFilename: result.receipt_filename ?? null,
+              receiptMime: result.receipt_mime ?? null,
+              receiptSizeBytes: result.receipt_size_bytes ?? null,
+              receiptUploadedAt: result.receipt_uploaded_at ?? null,
             }));
           }}
         />
@@ -3153,7 +3166,9 @@ minHeight: 0,
         onOpenChange={setShowViewPaymentModal}
         bill={{
           vendorName: selectedVendor?.name,
-          propertyName: lineItems[0]?.property,
+          propertyName: properties.find(
+            (p) => p.id === Number(lineItems[0]?.property),
+          )?.name,
           referenceNumber: referenceNumber || undefined,
           totalCents: qboPaymentState.qboTotalCents ?? toCents(calculateTotal()),
           qboBalanceCents: qboPaymentState.qboBalanceCents,
@@ -3166,6 +3181,9 @@ minHeight: 0,
           paidFromName: qboPaymentState.paidFromName,
           paidDocNumber: qboPaymentState.paidDocNumber,
           paidMemo: qboPaymentState.paidMemo,
+          receiptObjectKey: qboPaymentState.receiptObjectKey,
+          receiptFilename: qboPaymentState.receiptFilename,
+          receiptUploadedAt: qboPaymentState.receiptUploadedAt,
         }}
       />
     </div>
