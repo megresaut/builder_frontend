@@ -256,12 +256,37 @@ export default function PayBillModal({
           ? `Paid ${bill.vendorName} — $${(amountCents / 100).toFixed(2)}`
           : `Paid $${(amountCents / 100).toFixed(2)} of $${outstandingDollars} to ${bill.vendorName}`,
       );
-      // Surface non-fatal warnings (receipt attach failures, local persistence
-      // failures). Payment is already booked in both systems at this point —
-      // these are recoverable side issues the user should know about.
+      // Receipt attach status: only show a toast when the user actually
+      // attached a receipt. Collapse the raw warnings into a clean
+      // per-provider status so the user sees "attached to QBO, failed for
+      // Buildium" instead of a wall of HTTP error text. Payment itself is
+      // already booked at this point — these are supplementary side issues.
+      if (receiptObjectKey) {
+        const qboOk = !!data?.receipt_attached_qbo;
+        const buildiumOk = !!data?.receipt_attached_buildium;
+        if (qboOk && buildiumOk) {
+          toast.success("Receipt attached to QBO and Buildium.");
+        } else if (qboOk && !buildiumOk) {
+          toast.warning(
+            "Receipt attached to QBO. Buildium attach failed — payment is recorded, but the receipt is only in QBO and the platform.",
+          );
+        } else if (!qboOk && buildiumOk) {
+          toast.warning(
+            "Receipt attached to Buildium. QBO attach failed — payment is recorded, but the receipt is only in Buildium and the platform.",
+          );
+        } else {
+          toast.error(
+            "Receipt failed to attach to QBO and Buildium. Payment is recorded; the file is saved in the platform and can be re-attached.",
+          );
+        }
+      }
+      // Local persistence failure (bill_payments INSERT) is separate from
+      // the attach failures — surface it independently if present so the
+      // user knows their View Payment history will be missing this row.
       const warnings: string[] = Array.isArray(data?.warnings) ? data.warnings : [];
-      for (const w of warnings) {
-        toast.warning(w);
+      const persistFailure = warnings.find((w) => w.toLowerCase().includes("local payment history"));
+      if (persistFailure) {
+        toast.error(persistFailure);
       }
       onPaid?.({
         qbo_billpayment_id: data.qbo_billpayment_id,
