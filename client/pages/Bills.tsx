@@ -18,6 +18,7 @@ import {
 } from "@/components/BillsPageHeader";
 import { fetchJSON } from "@/api/fetchJSON";
 import { openAuthPdf } from "@/api/openAuthPdf";
+import { Badge } from "@/components/ui/badge";
 
 interface MatchCandidate {
   id: number;
@@ -34,6 +35,11 @@ interface Bill {
   statementDate: string;
   dueDate: string;
   due_date?: string; // raw ISO date for filtering
+
+  // Concierge-invoice label (e.g. "May 2026"). Populated by the backend only
+  // when the bill's property is property_type='C'. Rendered as a tag next to
+  // the Due Date cell.
+  invoiceMonth?: string;
 
   status: "pushed" | "push-failed";
   memo: string;
@@ -110,6 +116,7 @@ function mapUtilityRowToBill(row: any): Bill {
         })
       : "—",
     due_date: row.due_date ?? undefined,
+    invoiceMonth: row.invoice_month ?? undefined,
     status: row.push_status === "pushed" ? "pushed" : "push-failed",
     memo: row.memo || "",
     invoiceNumber: row.reference_number || "",
@@ -1289,9 +1296,20 @@ export default function Bills() {
               }
               if (columnKey === "dueDate") {
                 return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
-                    {bill.dueDate}
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-gray-900 font-normal text-sm truncate">
+                      {bill.dueDate}
+                    </span>
+                    {bill.invoiceMonth && (
+                      <Badge
+                        variant="secondary"
+                        className="shrink-0 border-transparent bg-indigo-50 text-indigo-700 hover:bg-indigo-50 font-medium"
+                        title={`Rolls up to the ${bill.invoiceMonth} concierge invoice`}
+                      >
+                        {bill.invoiceMonth}
+                      </Badge>
+                    )}
+                  </div>
                 );
               }
               if (columnKey === "property") {
