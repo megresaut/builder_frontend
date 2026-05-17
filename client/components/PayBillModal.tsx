@@ -256,6 +256,13 @@ export default function PayBillModal({
           ? `Paid ${bill.vendorName} — $${(amountCents / 100).toFixed(2)}`
           : `Paid $${(amountCents / 100).toFixed(2)} of $${outstandingDollars} to ${bill.vendorName}`,
       );
+      // Surface non-fatal warnings (receipt attach failures, local persistence
+      // failures). Payment is already booked in both systems at this point —
+      // these are recoverable side issues the user should know about.
+      const warnings: string[] = Array.isArray(data?.warnings) ? data.warnings : [];
+      for (const w of warnings) {
+        toast.warning(w);
+      }
       onPaid?.({
         qbo_billpayment_id: data.qbo_billpayment_id,
         qbo_balance_cents: data.qbo_balance_cents ?? null,

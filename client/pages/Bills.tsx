@@ -58,6 +58,13 @@ interface Bill {
   paidDocNumber?: string;
   paidMemo?: string;
 
+  // Latest-payment receipt (from bill_payments via lateral join in
+  // /utilities/bills/all). Used by ViewPaymentModal's FallbackPaymentBlock
+  // for legacy bills whose per-payment row is missing.
+  receiptObjectKey?: string;
+  receiptFilename?: string;
+  receiptUploadedAt?: string;
+
   // 🔁 rename semantic meaning: reference number
   invoiceNumber: string;
 
@@ -136,6 +143,10 @@ function mapUtilityRowToBill(row: any): Bill {
     paidFromName: row.paid_from_name ?? undefined,
     paidDocNumber: row.paid_doc_number ?? undefined,
     paidMemo: row.paid_memo ?? undefined,
+
+    receiptObjectKey: row.receipt_object_key ?? undefined,
+    receiptFilename: row.receipt_filename ?? undefined,
+    receiptUploadedAt: row.receipt_uploaded_at ?? undefined,
 
     // ⭐ this is the key
     isUtility: Boolean(row.provider_id),
@@ -1634,6 +1645,9 @@ export default function Bills() {
             paidFromName: viewPaymentTarget.paidFromName,
             paidDocNumber: viewPaymentTarget.paidDocNumber,
             paidMemo: viewPaymentTarget.paidMemo,
+            receiptObjectKey: viewPaymentTarget.receiptObjectKey,
+            receiptFilename: viewPaymentTarget.receiptFilename,
+            receiptUploadedAt: viewPaymentTarget.receiptUploadedAt,
           }}
         />
       )}
