@@ -181,7 +181,8 @@ interface ApiHourLine {
   hours_decimal: number;
 
   property_id: number | null;
-  unit: string | null;
+  unit: string | null;         // legacy: unit name
+  unit_id: number | null;      // unit this hour entry was logged against
   task_id: number | null;
 
   emergency: boolean;
@@ -195,7 +196,8 @@ interface ApiExpenseLine {
   date_of_work: string;
 
   property_id: number;
-  unit: string | null;
+  unit: string | null;         // legacy: unit name
+  unit_id: number | null;      // unit this expense was logged against
   task_id: number | null;
 
   amount_cents: number;
@@ -792,8 +794,13 @@ export default function FtoSubmissionForm() {
     // ----------------------------
     const hours: HourEntry[] = rawHours.map((h, idx) => {
       const entryPropertyId = h.property_id ? String(h.property_id) : (submissionPropertyId ? String(submissionPropertyId) : null);
-      // Use submission-level unit_id if this entry matches the submission property and doesn't have a unit
-      const entryUnitId = h.unit ?? (submissionUnitId && entryPropertyId === String(submissionPropertyId) ? String(submissionUnitId) : null);
+      // Prefer the unit saved on this entry. Fall back to the legacy unit-name
+      // field, then to the submission-level (FTO) unit for older rows that
+      // never persisted a per-entry unit.
+      const entryUnitId =
+        h.unit_id != null
+          ? String(h.unit_id)
+          : (h.unit ?? (submissionUnitId && entryPropertyId === String(submissionPropertyId) ? String(submissionUnitId) : null));
       // For viewing submissions, always use submission-level fto_id to ensure consistency
       // If hour has a task_id, prefer it, but fall back to submission fto_id
       const entryTaskId = h.task_id ? String(h.task_id) : (submissionFtoId ? String(submissionFtoId) : null);
@@ -826,8 +833,12 @@ export default function FtoSubmissionForm() {
         (a) => a.material_index === m.material_index
       );
       const entryPropertyId = m.property_id ? String(m.property_id) : (submissionPropertyId ? String(submissionPropertyId) : "");
-      // Use submission-level unit_id if this entry matches the submission property and doesn't have a unit
-      const entryUnitId = m.unit ?? (submissionUnitId && entryPropertyId === String(submissionPropertyId) ? String(submissionUnitId) : null);
+      // Prefer the unit saved on this expense. Fall back to the legacy
+      // unit-name field, then to the submission-level (FTO) unit.
+      const entryUnitId =
+        m.unit_id != null
+          ? String(m.unit_id)
+          : (m.unit ?? (submissionUnitId && entryPropertyId === String(submissionPropertyId) ? String(submissionUnitId) : null));
       // Use submission-level fto_id if material doesn't have a task_id, otherwise use material's task_id
       // For misc submissions (fto_id is null or 0), use "0" as the taskId
       const entryTaskId = m.task_id 
@@ -921,37 +932,37 @@ export default function FtoSubmissionForm() {
     
     // Update hour entries with unit IDs
     setHourEntries((prev) =>
-      prev.map((entry, idx) => {
-        // If this is the first entry and we have submission-level unit_id, use it
-        if (idx === 0 && submissionUnitId && entry.propertyId === String(submissionPropertyId)) {
-          return { ...entry, unitId: String(submissionUnitId) };
-        }
-        
-        // If unitId looks like a name (not a number), try to map it
+      prev.map((entry) => {
+        // If unitId is a legacy unit name (not numeric), map it to its ID.
         if (entry.unitId && entry.propertyId && isNaN(Number(entry.unitId))) {
           const mappedId = findUnitIdByName(entry.propertyId, entry.unitId);
           if (mappedId) {
             return { ...entry, unitId: mappedId };
           }
+        }
+        // Legacy rows with no per-entry unit: fall back to the submission-level
+        // (FTO) unit for any entry on the submission's property.
+        if (!entry.unitId && submissionUnitId && entry.propertyId === String(submissionPropertyId)) {
+          return { ...entry, unitId: String(submissionUnitId) };
         }
         return entry;
       })
     );
-    
+
     // Update expense entries with unit IDs
     setExpenseEntries((prev) =>
-      prev.map((entry, idx) => {
-        // If this is the first entry and we have submission-level unit_id, use it
-        if (idx === 0 && submissionUnitId && entry.propertyId === String(submissionPropertyId)) {
-          return { ...entry, unitId: String(submissionUnitId) };
-        }
-        
-        // If unitId looks like a name (not a number), try to map it
+      prev.map((entry) => {
+        // If unitId is a legacy unit name (not numeric), map it to its ID.
         if (entry.unitId && entry.propertyId && isNaN(Number(entry.unitId))) {
           const mappedId = findUnitIdByName(entry.propertyId, entry.unitId);
           if (mappedId) {
             return { ...entry, unitId: mappedId };
           }
+        }
+        // Legacy rows with no per-entry unit: fall back to the submission-level
+        // (FTO) unit for any entry on the submission's property.
+        if (!entry.unitId && submissionUnitId && entry.propertyId === String(submissionPropertyId)) {
+          return { ...entry, unitId: String(submissionUnitId) };
         }
         return entry;
       })
