@@ -221,7 +221,13 @@ export default function SummaryTab({
                 ? "Not Started"
                 : currentStatus === "in_progress"
                   ? "In Progress"
-                  : "Completed"
+                  : currentStatus === "deferred"
+                    ? "Deferred"
+                    : currentStatus === "closed"
+                      ? "Closed"
+                      : currentStatus === "cancelled"
+                        ? "Cancelled"
+                        : "Completed"
               : "Not Started"
           }
           priority={

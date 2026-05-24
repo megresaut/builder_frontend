@@ -1,7 +1,8 @@
 import React, { useState, useContext, useEffect, useCallback, useRef } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
-import { TabContext } from "@/hooks/useTabContext";
+import { TabContext, useTabNavigation } from "@/hooks/useTabContext";
+import { identifyRoute } from "@/lib/tabRoutes";
 import { useFavorites } from "@/hooks/FavoritesContext";
 import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 import { getDraftCount } from "@/api/aiDrafts";
@@ -58,143 +59,20 @@ export default function Header() {
     return () => clearInterval(interval);
   }, [loadPendingCount]);
 
+  // Identity for the URL is computed by the central tabRoutes module so Header,
+  // Sidebar, ShellLayout, and usePageState can't drift from each other.
   const getCurrentPageLabel = (): {
     label: string;
     path: string;
     id: string;
   } | null => {
-    const path = location.pathname;
-
-    // Handle task detail pages (/tasks/:taskId)
-    if (path.includes("/tasks/")) {
-      const match = path.match(/\/tasks\/(\d+)/);
-      if (match) {
-        const taskId = match[1];
-        const label = taskDisplayName ?? `Task ${taskId}`;
-        return {
-          label,
-          path,
-          id: `task-${taskId}`,
-        };
-      }
-    } else if (path.includes("/property/")) {
-      const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
-      if (match) {
-        const propertyId = match[1];
-        const tab = match[2];
-
-        const label = propertyDisplayName ?? `Property ${propertyId}`;
-
-        if (tab && tab !== "Overview") {
-          return {
-            label: `${label} - ${tab}`,
-            path,
-            id: `property-${propertyId}-${tab}`,
-          };
-        }
-        return { label, path, id: `property-${propertyId}` };
-      }
-    } else if (path === "/blank") {
-      return { label: "New Tab", path, id: "blank" };
-    } else if (path === "/dashboard") {
-      return { label: "Dashboard", path, id: "dashboard" };
-    } else if (path === "/inspection-dashboard") {
-      return { label: "Inspections", path, id: "inspection-dashboard" };
-    } else if (path === "/insurance") {
-      return { label: "Insurance", path, id: "insurance" };
-    } else if (path === "/") {
-      return { label: "Dashboard", path, id: "dashboard" };
-    } else if (path === "/all-tasks") {
-      return { label: "All Tasks", path, id: "all-tasks" };
-    } else if (path === "/utilities") {
-      return { label: "Utilities", path, id: "utilities" };
-    } else if (path === "/bills") {
-      return { label: "Bills", path, id: "bills" };
-    } else if (path === "/chart-of-accounts") {
-      return { label: "Chart of Accounts", path, id: "chart-of-accounts" };
-    } else if (path === "/accounting/general-ledger") {
-      return { label: "General Ledger", path, id: "general-ledger" };
-    } else if (path === "/accounting/transaction-list") {
-      return { label: "Transaction List", path, id: "transaction-list" };
-    } else if (path === "/accounting/invoices") {
-      return { label: "Invoices", path, id: "accounting-invoices" };
-    } else if (path === "/reconciliation") {
-      return { label: "Reconciliation", path, id: "reconciliation" };
-    } else if (path === "/reimbursements") {
-      return { label: "Reimbursements", path, id: "reimbursements" };
-    } else if (path === "/vendor-compliance") {
-      return { label: "Vendor Compliance", path, id: "vendor-compliance" };
-    } else if (path === "/all-properties") {
-      return { label: "All Properties", path, id: "all-properties" };
-    } else if (path === "/field-team-orders") {
-      return { label: "Field Team Orders", path, id: "field-team-orders" };
-    } else if (path === "/work-orders") {
-      return { label: "Work Orders", path, id: "work-orders" };
-    } else if (path === "/activity-feed") {
-      return { label: "Activity Feed", path, id: "activity-feed" };
-    } else if (path === "/recurring-tasks") {
-      return { label: "Recurring Tasks", path, id: "recurring-tasks" };
-    } else if (path === "/vendors") {
-      return { label: "Vendors", path, id: "vendors" };
-    } else if (path.match(/^\/vendors\/\d+/)) {
-      const match = path.match(/^\/vendors\/(\d+)/);
-      const vendorId = match?.[1] ?? "";
-      const label = vendorDisplayName ?? `Vendor ${vendorId}`;
-      return { label, path, id: `vendor-${vendorId}` };
-    } else if (path === "/ai-drafts") {
-      return { label: "Drafts", path, id: "ai-drafts" };
-    } else if (path === "/operations") {
-      const opsTab = new URLSearchParams(location.search).get("tab");
-      if (opsTab === "reminders") {
-        return { label: "Reminders", path: `${path}${location.search}`, id: "operations-reminders" };
-      }
-      return { label: "Calendar", path, id: "operations" };
-    } else if (path === "/utilities/view-bill") {
-      return { label: "View Bill", path, id: "utilities-view-bill" };
-    } else if (
-      path === "/record-bill" ||
-      path === "/bills/record" ||
-      path.includes("/bills/record")
-    ) {
-      // Handle /bills/record, /property/:id/bills/record, etc.
-      let pageId = "record-bill";
-
-      if (path.includes("/property/")) {
-        const match = path.match(/\/property\/(\d+)/);
-        if (match) {
-          pageId = `record-bill-property-${match[1]}`;
-        }
-      }
-      return { label: "Record Bill", path, id: pageId };
-    } else if (path.startsWith("/settings")) {
-      const sectionMap: Record<string, string> = {
-        bugs: "Bug Reports",
-        profile: "Profile",
-        notifications: "Notifications",
-        integrations: "Integrations",
-      };
-      const parts = path.split("/").filter(Boolean); // ["settings", "bugs", ":id"?]
-      const section = parts[1] || "bugs";
-      const sectionLabel = sectionMap[section] || "Settings";
-      if (section === "bugs" && parts[2]) {
-        return { label: `Settings - Bug Report`, path, id: `settings-bug-${parts[2]}` };
-      }
-      return { label: `Settings - ${sectionLabel}`, path, id: `settings-${section}` };
-    }
-
-    // Fallback: derive a sensible label from the path so any unmapped route
-    // still updates the tab label instead of leaving it stale.
-    const segments = path.split("/").filter(Boolean);
-    if (segments.length > 0) {
-      const last = segments[segments.length - 1];
-      const label = last
-        .split("-")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ");
-      return { label, path, id: segments.join("-") };
-    }
-
-    return null;
+    const id = identifyRoute(location.pathname, location.search, {
+      property: propertyDisplayName,
+      vendor: vendorDisplayName,
+      task: taskDisplayName,
+    });
+    if (!id) return null;
+    return { label: id.label, path: id.path, id: id.resourceId };
   };
 
   const currentPage = getCurrentPageLabel();
@@ -458,83 +336,9 @@ export default function Header() {
   const tabMetadataRef = useRef(tabMetadata);
   tabMetadataRef.current = tabMetadata;
 
-  // When the user navigates (sidebar, link, task click, etc.): update only the CURRENT tab's label and route.
-  // Do not add or switch tabs — new tabs only when user clicks "+" (addNewTab).
-  useEffect(() => {
-    const currentPageInfo = getCurrentPageLabel();
-    if (currentPageInfo && selectedTab) {
-      // /blank only belongs to a new-tab slot. If selectedTab and location update
-      // in different renders (the addNewTab race), skip the write so a real tab's
-      // stored route isn't clobbered with /blank before selectedTab catches up.
-      if (currentPageInfo.path === "/blank" && !selectedTab.startsWith("new-tab-")) {
-        return;
-      }
-      const metadata = tabMetadata[selectedTab];
-      const isTaskRoute = currentPageInfo.id.startsWith("task-");
-      const newSectionId = isTaskRoute ? "all-tasks" : currentPageInfo.id;
-      if (
-        metadata?.route !== currentPageInfo.path ||
-        metadata?.sectionId !== newSectionId ||
-        metadata?.label !== currentPageInfo.label
-      ) {
-        // eslint-disable-next-line no-console
-        console.log("[TAB-DEBUG] sync-metadata WRITE", { selectedTab, locationPath: location.pathname, currentPageInfo, prevMetadata: metadata });
-        setTabMetadata(selectedTab, {
-          ...metadata,
-          label: currentPageInfo.label,
-          route: currentPageInfo.path,
-          sectionId: newSectionId,
-        });
-      }
-    }
-  }, [location.pathname, location.search, selectedTab, vendorDisplayName, propertyDisplayName, taskDisplayName]);
-
-  // Maintain a per-tab history stack so the back/forward arrows are scoped to
-  // the active tab, not the shared browser-window history.
-  useEffect(() => {
-    if (!selectedTab) return;
-    const meta = tabMetadataRef.current[selectedTab] ?? { label: "" };
-    const history = meta.history ?? [];
-    const idx = meta.historyIndex ?? -1;
-    const path = location.pathname + location.search;
-
-    if (history[idx] === path) return; // already pointing at this path
-    if (history[idx + 1] === path) {
-      setTabMetadata(selectedTab, { ...meta, historyIndex: idx + 1 });
-      return;
-    }
-    if (idx > 0 && history[idx - 1] === path) {
-      setTabMetadata(selectedTab, { ...meta, historyIndex: idx - 1 });
-      return;
-    }
-    const next = [...history.slice(0, idx + 1), path];
-    setTabMetadata(selectedTab, {
-      ...meta,
-      history: next,
-      historyIndex: next.length - 1,
-    });
-  }, [selectedTab, location.pathname, location.search, setTabMetadata]);
-
-  const currentTabHistory = tabMetadata[selectedTab]?.history ?? [];
-  const currentTabHistoryIdx = tabMetadata[selectedTab]?.historyIndex ?? 0;
-  const canGoBack = currentTabHistoryIdx > 0;
-  const canGoForward = currentTabHistoryIdx < currentTabHistory.length - 1;
-
-  const goBack = useCallback(() => {
-    const meta = tabMetadataRef.current[selectedTab];
-    const history = meta?.history ?? [];
-    const idx = meta?.historyIndex ?? 0;
-    if (idx <= 0) return;
-    navigate(history[idx - 1], { replace: true });
-  }, [selectedTab, navigate]);
-
-  const goForward = useCallback(() => {
-    const meta = tabMetadataRef.current[selectedTab];
-    const history = meta?.history ?? [];
-    const idx = meta?.historyIndex ?? 0;
-    if (idx >= history.length - 1) return;
-    navigate(history[idx + 1], { replace: true });
-  }, [selectedTab, navigate]);
+  // Per-tab history + URL → metadata sync are now owned by <TabMetadataSync /> in App.tsx
+  // (single writer → no race). Back/forward delegate to the canonical hook.
+  const { goBack, goForward, canGoBack, canGoForward } = useTabNavigation();
 
   // Map section IDs to their parent category icons
   const getIconForSection = (
@@ -926,116 +730,105 @@ export default function Header() {
     return sectionIconMap[sectionId] || null;
   };
 
-  // Save scroll position before switching tabs
+  // Save scroll position before switching tabs — write to the same per-URL
+  // bucket ShellLayout reads from (`pageState[__scroll:URL]`) so the
+  // debounced scroll listener and the synchronous switch-time capture agree.
   const saveScrollPosition = () => {
     const mainContent = document.querySelector('[data-testid="main-content"]');
-    if (mainContent) {
-      const currentTab = selectedTab;
-      const scrollPos = mainContent.scrollTop || 0;
-      const currentMetadata = tabMetadata[currentTab];
-      if (currentMetadata) {
-        setTabMetadata(currentTab, {
-          ...currentMetadata,
-          scrollPosition: scrollPos,
-        });
-      }
-    }
+    if (!mainContent) return;
+    const scrollPos = (mainContent as HTMLElement).scrollTop || 0;
+    const key = `__scroll:${location.pathname}${location.search}`;
+    setTabMetadata(selectedTab, { pageState: { [key]: scrollPos } });
   };
 
-  // Navigate to a tab's stored route (uses ref to avoid stale closure)
-  const navigateToTabRoute = useCallback((tabId: string) => {
-    const metadata = tabMetadataRef.current[tabId];
-    // eslint-disable-next-line no-console
-    console.log("[TAB-DEBUG] navigateToTabRoute", { tabId, route: metadata?.route, label: metadata?.label, sectionId: metadata?.sectionId, currentLocation: location.pathname });
-    if (metadata?.route && metadata.route !== location.pathname) {
-      // Use replace so tab-switching doesn't pollute the browser history stack
-      // (otherwise a Cancel button using navigate(-1) lands on /blank or the
-      // previously-switched-from tab instead of the user's actual prior page).
-      navigate(metadata.route, { replace: true });
-    }
-  }, [location.pathname, navigate]);
+  // Navigate to a tab's stored route. `replace: true` keeps the browser history
+  // clean — but it also means navigate(-1) is unreliable across tabs, which is
+  // why `useTabNavigation` exists and pages should call its `goBack` instead.
+  const navigateToTabRoute = useCallback(
+    (tabId: string) => {
+      const metadata = tabMetadataRef.current[tabId];
+      if (metadata?.route && metadata.route !== location.pathname + location.search) {
+        navigate(metadata.route, { replace: true });
+      }
+    },
+    [location.pathname, location.search, navigate],
+  );
 
   const toggleTab = (tabId: string, isClosing: boolean = false) => {
-    const newTabs = new Set(openTabs);
-    if (newTabs.has(tabId)) {
-      // Prevent closing the last tab
-      if (newTabs.size > 1) {
-        // If closing the selected tab, select the next tab to the right
-        if (isClosing && selectedTab === tabId) {
-          saveScrollPosition();
-          // Stamp the current URL onto the closing tab. Harmless since the tab
-          // is going away, but mirrors the other switch paths and avoids
-          // accidentally leaving a stale route behind if the tab is reopened.
-          {
-            const leavingMeta = tabMetadataRef.current[selectedTab];
-            if (leavingMeta) {
-              setTabMetadata(selectedTab, {
-                ...leavingMeta,
-                route: location.pathname + location.search,
-              });
-            }
-          }
-          // Get the current order of open tabs
-          const openTabsArray = tabEntries.filter((tab) => openTabs.has(tab.id));
-          const closedTabIndex = openTabsArray.findIndex(
-            (tab) => tab.id === tabId,
-          );
+    if (isClosing && openTabs.has(tabId)) {
+      // Closing — must keep at least one tab open.
+      if (openTabs.size <= 1) return;
 
-          // Determine which tab to select next
-          let nextTabId: string;
-          if (closedTabIndex === openTabsArray.length - 1) {
-            // If closing the rightmost tab, select the one to its left
-            nextTabId = openTabsArray[closedTabIndex - 1].id;
-          } else {
-            // Otherwise, select the next tab to the right
-            nextTabId = openTabsArray[closedTabIndex + 1].id;
-          }
-          setSelectedTab(nextTabId);
-          navigateToTabRoute(nextTabId);
-        }
+      const openTabsArray = tabEntries.filter((tab) => openTabs.has(tab.id));
+      const closedTabIndex = openTabsArray.findIndex((tab) => tab.id === tabId);
+      const wasSelected = selectedTab === tabId;
 
-        newTabs.delete(tabId);
-      }
-    } else {
-      newTabs.add(tabId);
-      // Save scroll position before switching tabs
-      if (selectedTab !== tabId) {
+      // Pick the neighbor that will become active (only matters if we're
+      // closing the currently selected tab).
+      const nextTabId = wasSelected
+        ? closedTabIndex === openTabsArray.length - 1
+          ? openTabsArray[closedTabIndex - 1].id
+          : openTabsArray[closedTabIndex + 1].id
+        : selectedTab;
+
+      if (wasSelected) {
         saveScrollPosition();
       }
-      // Selecting a tab
+
+      // Commit state mutations atomically: drop from openTabs + tabs, and
+      // select the neighbor. flushSync ensures `selectedTab` and the updated
+      // `openTabs` are visible before we call navigate() below — so the
+      // TabMetadataSync effect can't fire with a stale (tab, location) pair.
+      // Orphan metadata entries (no longer in tabs[]) are pruned by
+      // tabPersistence on save, so closed tabs don't leak.
+      flushSync(() => {
+        setOpenTabs((prev) => {
+          const next = new Set(prev);
+          next.delete(tabId);
+          return next;
+        });
+        setTabs((prev) => prev.filter((t) => t.id !== tabId));
+        if (wasSelected) setSelectedTab(nextTabId);
+      });
+
+      if (wasSelected) {
+        navigateToTabRoute(nextTabId);
+      }
+      return;
+    }
+
+    // Opening / re-selecting (non-close path)
+    if (!openTabs.has(tabId)) {
+      // Bringing a tab back into view (e.g. from minimized default-tab state).
+      if (selectedTab !== tabId) saveScrollPosition();
+      flushSync(() => {
+        setOpenTabs((prev) => new Set([...prev, tabId]));
+        setSelectedTab(tabId);
+      });
+    } else {
+      // Already open — just select it.
       setSelectedTab(tabId);
     }
-    setOpenTabs(newTabs);
   };
 
   const addNewTab = () => {
     const newTabId = `new-tab-${nextNewTabId}`;
-    // Stamp the current URL onto the leaving tab so coming back lands on the
-    // exact sub-page (e.g. an FTO approve URL) rather than its canonical route.
-    if (selectedTab && !selectedTab.startsWith("new-tab-")) {
-      const leavingMeta = tabMetadataRef.current[selectedTab];
-      if (leavingMeta) {
-        setTabMetadata(selectedTab, {
-          ...leavingMeta,
-          route: location.pathname + location.search,
-        });
-      }
-    }
-    // Commit tab-state writes synchronously before navigating, so the metadata-sync
-    // useEffect can't observe a mismatched (selectedTab, location.pathname) pair and
-    // clobber the previously-selected tab's stored route with /blank.
+    saveScrollPosition();
+    // TabMetadataSync (App.tsx) has already stamped the current URL onto the
+    // leaving tab's metadata as the user navigated to it — no manual stamp needed.
+    // flushSync so React commits selectedTab/tabs/openTabs before navigate runs;
+    // otherwise TabMetadataSync could observe (newTab, oldLocation) and write
+    // the wrong URL onto the new tab.
     flushSync(() => {
-      // Only add if this tab id doesn't exist (prevents double-tab on double-click or strict mode)
       setTabs((prev) =>
-        prev.some((t) => t.id === newTabId) ? prev : [...prev, { id: newTabId, label: "New Tab" }]
+        prev.some((t) => t.id === newTabId) ? prev : [...prev, { id: newTabId, label: "New Tab" }],
       );
       setOpenTabs((prev) => new Set([...prev, newTabId]));
       setSelectedTab(newTabId);
       tabContext.setTabMetadata(newTabId, { label: "New Tab", route: "/blank" });
       setNextNewTabId((n) => n + 1);
     });
-    // Replace so opening a new tab doesn't push /blank onto the history stack —
-    // a Cancel/back from a later sub-page would otherwise land on /blank.
+    // Replace so opening a new tab doesn't push /blank onto the browser history.
     navigate("/blank", { replace: true });
   };
 
@@ -1118,21 +911,10 @@ export default function Header() {
                     onClick={() => {
                       if (tab.id !== selectedTab) {
                         saveScrollPosition();
-                        // Stamp the current URL onto the leaving tab so we
-                        // can return to the exact sub-page (e.g. an FTO
-                        // approve URL) instead of the tab's canonical route.
-                        if (selectedTab) {
-                          const leavingMeta = tabMetadataRef.current[selectedTab];
-                          if (leavingMeta) {
-                            setTabMetadata(selectedTab, {
-                              ...leavingMeta,
-                              route: location.pathname + location.search,
-                            });
-                          }
-                        }
-                        // Commit setSelectedTab synchronously so the metadata-sync
-                        // useEffect can't fire with (oldSelectedTab, newLocation)
-                        // and overwrite the previous tab's metadata.
+                        // TabMetadataSync has already stamped the current URL
+                        // onto the leaving tab's metadata. flushSync commits
+                        // selectedTab before navigate so TabMetadataSync can't
+                        // observe (newTab, oldLocation) and clobber.
                         flushSync(() => {
                           setSelectedTab(tab.id);
                         });
@@ -1235,7 +1017,7 @@ export default function Header() {
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Navigation Buttons */}
             <button
-              onClick={goBack}
+              onClick={() => goBack()}
               disabled={!canGoBack}
               className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-default"
               aria-label="Go back"

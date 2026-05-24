@@ -115,7 +115,7 @@ export default function CreateTaskModal({
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState<"normal" | "low" | "high" | "urgent">("normal");
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [status, setStatus] = useState<"not_started" | "in_progress" | "completed">("not_started");
+  const [status, setStatus] = useState<"not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled">("not_started");
   const [assigneeIds, setAssigneeIds] = useState<number[]>([]);
   const [collaboratorIds, setCollaboratorIds] = useState<number[]>([]);
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -137,7 +137,7 @@ export default function CreateTaskModal({
     category: string;
     priority: "normal" | "low" | "high" | "urgent";
     dueDate: Date | null;
-    status: "not_started" | "in_progress" | "completed";
+    status: "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled";
     assigneeIds: number[];
     collaboratorIds: number[];
     files: UploadedFile[];
@@ -146,7 +146,7 @@ export default function CreateTaskModal({
   const updateModeInitialStateRef = useRef<{
     priority: "normal" | "low" | "high" | "urgent";
     dueDate: Date | null;
-    status: "not_started" | "in_progress" | "completed";
+    status: "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled";
     assigneeIds: number[];
     collaboratorIds: number[];
     attachmentIds: number[];
@@ -266,12 +266,16 @@ export default function CreateTaskModal({
       const initialPriority = priorityMap[editData.priority] || "normal";
       setPriority(initialPriority);
 
-      const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+      const statusMap: Record<string, "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled"> = {
         open: "not_started",
         not_started: "not_started",
         in_progress: "in_progress",
+        pending_vendor: "in_progress",
+        scheduled: "in_progress",
         completed: "completed",
-        closed: "completed",
+        deferred: "deferred",
+        closed: "closed",
+        cancelled: "cancelled",
       };
       const initialStatus = statusMap[editData.status || "open"] || "not_started";
       setStatus(initialStatus);
@@ -317,12 +321,16 @@ export default function CreateTaskModal({
       };
       setPriority(priorityMap[editData.priority] || "normal");
 
-      const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+      const statusMap: Record<string, "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled"> = {
         open: "not_started",
         not_started: "not_started",
         in_progress: "in_progress",
+        pending_vendor: "in_progress",
+        scheduled: "in_progress",
         completed: "completed",
-        closed: "completed",
+        deferred: "deferred",
+        closed: "closed",
+        cancelled: "cancelled",
       };
       setStatus(statusMap[editData.status || "open"] || "not_started");
 
@@ -608,10 +616,16 @@ export default function CreateTaskModal({
       
       // Status diff
       if (initial.status !== status) {
-        const statusMap: Record<"not_started" | "in_progress" | "completed", "open" | "in_progress" | "completed"> = {
+        const statusMap: Record<
+          "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled",
+          "open" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled"
+        > = {
           not_started: "open",
           in_progress: "in_progress",
           completed: "completed",
+          deferred: "deferred",
+          closed: "closed",
+          cancelled: "cancelled",
         };
         payload.status = statusMap[status] || status;
       }
@@ -685,10 +699,16 @@ export default function CreateTaskModal({
         urgent: "urgent",
       };
 
-      const statusMap: Record<"not_started" | "in_progress" | "completed", "open" | "in_progress" | "completed"> = {
+      const statusMap: Record<
+        "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled",
+        "open" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled"
+      > = {
         not_started: "open",
         in_progress: "in_progress",
         completed: "completed",
+        deferred: "deferred",
+        closed: "closed",
+        cancelled: "cancelled",
       };
 
       payload = {

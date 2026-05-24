@@ -325,15 +325,16 @@ export default function TaskSummaryModals({
               // Trigger a refetch of linked tasks
               const refreshedLinkedTasks = await fetchJSON(`/maintenance/tasks/id/${taskId}/links`);
               const mappedLinkedTasks: any[] = refreshedLinkedTasks.map((task: any) => {
-                const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+                const statusMap: Record<string, "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled"> = {
                   open: "not_started",
                   not_started: "not_started",
                   in_progress: "in_progress",
                   pending_vendor: "in_progress",
                   scheduled: "in_progress",
                   completed: "completed",
-                  closed: "completed",
-                  cancelled: "completed",
+                  deferred: "deferred",
+                  closed: "closed",
+                  cancelled: "cancelled",
                 };
                 
                 const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
@@ -471,7 +472,9 @@ export default function TaskSummaryModals({
               open: "not_started",
               in_progress: "in_progress",
               completed: "completed",
-              closed: "completed",
+              deferred: "deferred",
+              closed: "closed",
+              cancelled: "cancelled",
             };
             const frontendStatus = statusMap[updatedTask.status] || updatedTask.status || "not_started";
             
@@ -559,6 +562,9 @@ export default function TaskSummaryModals({
               not_started: "Not Started",
               in_progress: "In Progress",
               completed: "Completed",
+              deferred: "Deferred",
+              closed: "Closed",
+              cancelled: "Cancelled",
             };
 
             const priorityLabel =
@@ -725,6 +731,9 @@ export default function TaskSummaryModals({
             not_started: "Not Started",
             in_progress: "In Progress",
             completed: "Completed",
+            deferred: "Deferred",
+            closed: "Closed",
+            cancelled: "Cancelled",
           };
 
           const changedFieldsInfo = (taskData as any).changedFields || [];

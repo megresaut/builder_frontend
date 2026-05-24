@@ -14,8 +14,8 @@ interface StatusSelectFieldProps {
   description?: string;
   error?: string;
   id?: string;
-  value: "not_started" | "in_progress" | "completed";
-  onChange?: (value: "not_started" | "in_progress" | "completed") => void;
+  value: "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled";
+  onChange?: (value: "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled") => void;
   disabled?: boolean;
 }
 
@@ -23,6 +23,9 @@ const statusOptions = [
   { value: "not_started", label: "Not Started" },
   { value: "in_progress", label: "In Progress" },
   { value: "completed", label: "Completed" },
+  { value: "deferred", label: "Deferred" },
+  { value: "closed", label: "Closed" },
+  { value: "cancelled", label: "Cancelled" },
 ];
 
 export const StatusSelectField: React.FC<StatusSelectFieldProps> = ({
@@ -42,7 +45,7 @@ export const StatusSelectField: React.FC<StatusSelectFieldProps> = ({
   const selectedOption = statusOptions.find((opt) => opt.value === value);
 
   const handleOptionSelect = (optionValue: string) => {
-    onChange?.(optionValue as "not_started" | "in_progress" | "completed");
+    onChange?.(optionValue as "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled");
     setOpen(false);
   };
 

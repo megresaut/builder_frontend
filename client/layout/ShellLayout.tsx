@@ -15,142 +15,93 @@ const getFullscreenMode = () => {
 };
 
 const isModalLikePage = (pathname: string): boolean => {
-  return (
-    pathname.includes("/bills/record") ||
-    pathname === "/utilities/view-bill"
-  );
+  return pathname.includes("/bills/record") || pathname === "/utilities/view-bill";
 };
 
 interface ShellLayoutProps {
   children?: React.ReactNode;
 }
 
+/**
+ * Scroll persistence:
+ *   - Keyed by (selectedTab, pathname+search).
+ *   - Stored in tabMetadata.pageState under the reserved key `__scroll`.
+ *   - Saved debounced (200ms) on scroll, and immediately on tab/route change.
+ *   - Restored on (tab change OR pathname change); default 0 if no value.
+ *
+ * The old implementation had TWO competing effects — one that reset scrollTop
+ * to 0 on every pathname change and one that restored saved scroll on tab
+ * change. They could both fire on the same render, with non-deterministic
+ * winner. Manifested as "sometimes remembers, sometimes doesn't."
+ */
+const SCROLL_KEY_PREFIX = "__scroll:";
+
 export default function ShellLayout({ children }: ShellLayoutProps) {
   const location = useLocation();
-  const { tabMetadata, setTabMetadata } = useTabContext();
+  const { selectedTab, tabMetadata, setTabMetadata } = useTabContext();
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
-  const lastTabIdRef = useRef<string>();
   const [isFullscreen, setIsFullscreen] = useState(getFullscreenMode());
-  const [forceCollapse, setForceCollapse] = useState(
-    isModalLikePage(location.pathname),
-  );
+  const [forceCollapse, setForceCollapse] = useState(isModalLikePage(location.pathname));
 
   // Listen for fullscreen mode changes
   useEffect(() => {
     const handleStorageChange = () => {
       setIsFullscreen(getFullscreenMode());
     };
-
     window.addEventListener("storage", handleStorageChange);
-    // Also check periodically in case storage was updated in the same tab
+    // Periodic check in case storage was updated in this tab (browser tab, not app tab)
     const interval = setInterval(() => {
       setIsFullscreen(getFullscreenMode());
     }, 100);
-
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       clearInterval(interval);
     };
   }, []);
 
-  // Detect modal-like pages and manage collapse state
+  // Detect modal-like pages and collapse the sidebar.
   useEffect(() => {
-    const isModal = isModalLikePage(location.pathname);
-    setForceCollapse(isModal);
+    setForceCollapse(isModalLikePage(location.pathname));
   }, [location.pathname]);
 
-  // Get the current tab ID based on the route
-  const getCurrentTabId = (): string => {
-    const path = location.pathname;
+  const scrollKey = `${SCROLL_KEY_PREFIX}${location.pathname}${location.search}`;
+  const savedScroll = (tabMetadata[selectedTab]?.pageState?.[scrollKey] as number | undefined) ?? 0;
 
-    if (path.includes("/tasks/")) {
-      const match = path.match(/\/tasks\/(\d+)/);
-      if (match) return `task-${match[1]}`;
-    }
+  // Refs to avoid effect re-runs on every metadata write.
+  const scrollKeyRef = useRef(scrollKey);
+  scrollKeyRef.current = scrollKey;
+  const selectedTabRef = useRef(selectedTab);
+  selectedTabRef.current = selectedTab;
 
-    if (path.includes("/property/")) {
-      const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
-      if (match) {
-        const propertyId = match[1];
-        const tab = match[2];
-        return tab ? `property-${propertyId}-${tab}` : `property-${propertyId}`;
-      }
-    }
-
-    return path;
-  };
-
-  const currentTabId = getCurrentTabId();
-  const currentMetadata = tabMetadata[currentTabId];
-
-  // Keep a ref to latest tabMetadata so save-scroll effect doesn't depend on it (avoids re-runs on every metadata update)
-  const tabMetadataRef = useRef(tabMetadata);
-  tabMetadataRef.current = tabMetadata;
-
-  // Save scroll position immediately when leaving a tab (only when tab id changes)
+  // Save scroll position on scroll (debounced 200ms).
   useEffect(() => {
-    const prevTabId = lastTabIdRef.current;
-    if (prevTabId && prevTabId !== currentTabId) {
-      const mainContent = mainContentRef.current;
-      if (mainContent) {
-        const prevMetadata = tabMetadataRef.current[prevTabId];
-        setTabMetadata(prevTabId, {
-          ...prevMetadata,
-          scrollPosition: mainContent.scrollTop,
-        });
-      }
-    }
-    lastTabIdRef.current = currentTabId;
-  }, [currentTabId, setTabMetadata]);
-
-  // Save scroll position when scrolling (debounced)
-  useEffect(() => {
-    const mainContent = mainContentRef.current;
-    if (!mainContent) return;
-
-    const handleScroll = () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-
+    const main = mainContentRef.current;
+    if (!main) return;
+    const handler = () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = setTimeout(() => {
-        const scrollPos = mainContent.scrollTop;
-        setTabMetadata(currentTabId, {
-          scrollPosition: scrollPos,
-        });
-      }, 200); // Debounce scroll updates
+        const top = main.scrollTop;
+        setTabMetadata(selectedTabRef.current, { pageState: { [scrollKeyRef.current]: top } });
+      }, 200);
     };
-
-    mainContent.addEventListener("scroll", handleScroll, { passive: true });
+    main.addEventListener("scroll", handler, { passive: true });
     return () => {
-      mainContent.removeEventListener("scroll", handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
+      main.removeEventListener("scroll", handler);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
-  }, [currentTabId, setTabMetadata]);
+  }, [setTabMetadata]);
 
-  // Restore scroll position when tab changes or metadata updates
+  // Restore scroll position when (tab OR URL) changes.
   useEffect(() => {
-    const mainContent = mainContentRef.current;
-    if (!mainContent) return;
-
-    const scrollPos = currentMetadata?.scrollPosition ?? 0;
-    // Use requestAnimationFrame to ensure DOM is ready
-    requestAnimationFrame(() => {
-      mainContent.scrollTop = scrollPos;
+    const main = mainContentRef.current;
+    if (!main) return;
+    // requestAnimationFrame so the layout has actually rendered before we jump.
+    const raf = requestAnimationFrame(() => {
+      main.scrollTop = savedScroll;
     });
-  }, [currentTabId]);
-
-  // Clear scroll position when location pathname changes significantly
-  useEffect(() => {
-    const mainContent = mainContentRef.current;
-    if (!mainContent) return;
-
-    // Reset scroll to top when pathname changes
-    mainContent.scrollTop = 0;
-  }, [location.pathname]);
+    return () => cancelAnimationFrame(raf);
+  }, [scrollKey, selectedTab, savedScroll]);
 
   return (
     <PropertyBreadcrumbProvider>
@@ -164,9 +115,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
             className="flex-1 overflow-auto bg-white flex flex-col"
             style={{ borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
           >
-            <div className="flex-1">
-              {children}
-            </div>
+            <div className="flex-1">{children}</div>
           </div>
         </main>
       </div>

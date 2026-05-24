@@ -801,10 +801,12 @@ export default function TaskSummary() {
     const s = String(status).toLowerCase();
     if (s === "in_progress") return "in_progress";
     if (s === "open") return "not_started";
-    if (s === "closed" || s === "completed") return "completed";
+    if (s === "completed") return "completed";
+    if (s === "deferred") return "deferred";
+    if (s === "closed") return "closed";
+    if (s === "cancelled") return "cancelled";
     // fallbacks for other backend statuses
     if (s === "scheduled" || s === "pending_vendor") return "in_progress";
-    if (s === "cancelled") return "completed";
     return "not_started";
   }, []);
 
@@ -1631,9 +1633,15 @@ export default function TaskSummary() {
       not_started: "Not Started",
       in_progress: "In Progress",
       completed: "Completed",
+      deferred: "Deferred",
+      closed: "Closed",
+      cancelled: "Cancelled",
       "Not Started": "Not Started",
       "In Progress": "In Progress",
       Completed: "Completed",
+      Deferred: "Deferred",
+      Closed: "Closed",
+      Cancelled: "Cancelled",
     };
     const priorityLabel = taskData?.priority
       ? typeof taskData.priority === "string"
@@ -1829,12 +1837,13 @@ export default function TaskSummary() {
     taskData?.category || "",
   );
   const [currentStatus, setCurrentStatus] = useState<string>(() => {
-    // UI expects: not_started | in_progress | completed
-    // Backend may send: open | in_progress | pending_vendor | scheduled | closed | cancelled
     const status = taskData?.status || "not_started";
     if (status === "Completed") return "completed";
     if (status === "In Progress") return "in_progress";
     if (status === "Not Started") return "not_started";
+    if (status === "Deferred") return "deferred";
+    if (status === "Closed") return "closed";
+    if (status === "Cancelled") return "cancelled";
     return normalizeStatusForBadge(
       typeof status === "string" ? status : undefined,
     );
@@ -2437,15 +2446,16 @@ export default function TaskSummary() {
         // Map API response to LinkedTaskData format
         const mappedLinkedTasks: LinkedTaskData[] = (linkedTasks ?? []).map((task: any) => {
           // Map backend status to frontend status
-          const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+          const statusMap: Record<string, "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled"> = {
             open: "not_started",
             not_started: "not_started",
             in_progress: "in_progress",
             pending_vendor: "in_progress",
             scheduled: "in_progress",
             completed: "completed",
-            closed: "completed",
-            cancelled: "completed",
+            deferred: "deferred",
+            closed: "closed",
+            cancelled: "cancelled",
           };
           
           const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
@@ -2507,15 +2517,16 @@ export default function TaskSummary() {
           .filter((task: any) => String(task.id) !== String(taskId))
           .map((task: any) => {
             // Map backend status to frontend status
-            const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+            const statusMap: Record<string, "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled"> = {
               open: "not_started",
               not_started: "not_started",
               in_progress: "in_progress",
               pending_vendor: "in_progress",
               scheduled: "in_progress",
               completed: "completed",
-              closed: "completed",
-              cancelled: "completed",
+              deferred: "deferred",
+              closed: "closed",
+              cancelled: "cancelled",
             };
             
             const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";
@@ -2752,9 +2763,11 @@ export default function TaskSummary() {
     const map: Record<string, string> = {
       not_started: "open",
       in_progress: "in_progress",
-      completed: "closed",
-      open: "open",
+      completed: "completed",
+      deferred: "deferred",
       closed: "closed",
+      cancelled: "cancelled",
+      open: "open",
     };
     return map[uiStatus] || "open";
   }, []);
@@ -3100,8 +3113,10 @@ export default function TaskSummary() {
       not_started: "open",
       in_progress: "in_progress",
       completed: "completed",
-      open: "open",
+      deferred: "deferred",
       closed: "closed",
+      cancelled: "cancelled",
+      open: "open",
     };
     const backendStatus = statusMap[currentStatus] || currentStatus || "open";
     
@@ -3586,15 +3601,16 @@ export default function TaskSummary() {
                   // Refresh linked tasks from API to ensure consistency
                   const refreshedLinkedTasks = await fetchJSON(`/maintenance/tasks/id/${taskId}/links`);
                   const mappedLinkedTasks: LinkedTaskData[] = refreshedLinkedTasks.map((task: any) => {
-                    const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+                    const statusMap: Record<string, "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled"> = {
                       open: "not_started",
                       not_started: "not_started",
                       in_progress: "in_progress",
                       pending_vendor: "in_progress",
                       scheduled: "in_progress",
                       completed: "completed",
-                      closed: "completed",
-                      cancelled: "completed",
+                      deferred: "deferred",
+                      closed: "closed",
+                      cancelled: "cancelled",
                     };
                     
                     const frontendStatus = statusMap[task.status?.toLowerCase()] || "not_started";

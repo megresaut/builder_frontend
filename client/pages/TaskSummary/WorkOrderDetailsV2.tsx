@@ -570,18 +570,20 @@ export default function WorkOrderDetailsV2({
   // Map backend status to frontend status
   const mapBackendStatusToFrontend = (
     backendStatus: string | null | undefined
-  ): "not_started" | "in_progress" | "completed" => {
+  ): "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled" => {
     if (!backendStatus) return "not_started";
-    
-    const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+
+    const statusMap: Record<string, "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled"> = {
       new: "not_started",
       sent: "not_started",
       scheduled: "in_progress",
       in_progress: "in_progress",
       completed: "completed",
-      cancelled: "not_started", // Cancelled maps to not_started since frontend doesn't have cancelled
+      deferred: "deferred",
+      closed: "closed",
+      cancelled: "cancelled",
     };
-    
+
     return statusMap[backendStatus.toLowerCase()] || "not_started";
   };
 
@@ -697,9 +699,9 @@ export default function WorkOrderDetailsV2({
 
   // Field state - use API data if available, otherwise fall back to prop
   // Cast to proper types for the select fields
-  const [status, setStatus] = useState<"completed" | "not_started" | "in_progress">(() => {
+  const [status, setStatus] = useState<"completed" | "not_started" | "in_progress" | "deferred" | "closed" | "cancelled">(() => {
     const s = apiWorkOrder?.status || workOrder?.status || "completed";
-    return s as "completed" | "not_started" | "in_progress";
+    return s as "completed" | "not_started" | "in_progress" | "deferred" | "closed" | "cancelled";
   });
   const [priority, setPriority] = useState<"normal" | "low" | "high" | "urgent">(
     () => {
@@ -758,9 +760,9 @@ export default function WorkOrderDetailsV2({
       }, 0);
     } else if (workOrder) {
       // Fallback to prop data - map if needed
-      const frontendStatuses: ("completed" | "not_started" | "in_progress")[] = ["completed", "not_started", "in_progress"];
+      const frontendStatuses: ("completed" | "not_started" | "in_progress" | "deferred" | "closed" | "cancelled")[] = ["completed", "not_started", "in_progress", "deferred", "closed", "cancelled"];
       if (workOrder.status && frontendStatuses.includes(workOrder.status as any)) {
-        setStatus(workOrder.status as "completed" | "not_started" | "in_progress");
+        setStatus(workOrder.status as "completed" | "not_started" | "in_progress" | "deferred" | "closed" | "cancelled");
       } else {
         setStatus(mapBackendStatusToFrontend(workOrder.status));
       }
@@ -1377,6 +1379,9 @@ export default function WorkOrderDetailsV2({
       not_started: "new",
       in_progress: "in_progress",
       completed: "completed",
+      deferred: "deferred",
+      closed: "closed",
+      cancelled: "cancelled",
       new: "new",
     };
     return map[uiStatus] || "new";
@@ -2130,7 +2135,7 @@ export default function WorkOrderDetailsV2({
           workOrderName: apiWorkOrder?.name || workOrder?.task || "",
           vendorId: apiWorkOrder?.vendor_id || undefined,
           vendor: apiWorkOrder?.vendor_name || workOrder?.vendorName || "",
-          status: apiWorkOrder ? mapBackendStatusToFrontend(apiWorkOrder.status) : (workOrder?.status as "not_started" | "in_progress" | "completed" || "not_started"),
+          status: apiWorkOrder ? mapBackendStatusToFrontend(apiWorkOrder.status) : (workOrder?.status as "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled" || "not_started"),
           priority: apiWorkOrder ? mapBackendPriorityToFrontend(apiWorkOrder.priority) : (workOrder?.priority as "low" | "normal" | "high" | "urgent" || "normal"),
           dueDate: (() => {
             if (apiWorkOrder?.due_date) {

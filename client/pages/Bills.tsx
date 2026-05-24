@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import AddVendorModal from "@/components/AddVendorModal";
 import PayBillModal from "@/components/PayBillModal";
-import ViewPaymentModal from "@/components/ViewPaymentModal";
+import ViewPaymentModal, { type EditablePayment } from "@/components/ViewPaymentModal";
+import EditPaymentModal from "@/components/EditPaymentModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
@@ -528,6 +529,10 @@ export default function Bills() {
   const [approvedTotal, setApprovedTotal] = useState(0);
   const [payBillTarget, setPayBillTarget] = useState<Bill | null>(null);
   const [viewPaymentTarget, setViewPaymentTarget] = useState<Bill | null>(null);
+  const [editPaymentTarget, setEditPaymentTarget] = useState<{
+    payment: EditablePayment;
+    bill: Bill;
+  } | null>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   // const [approvedTimestamp, setApprovedTimestamp] = useState(
   //   () => Date.now() - 3 * 60 * 1000,
@@ -1574,6 +1579,30 @@ export default function Bills() {
                       ),
                       onClick: (bill: Bill) => setViewPaymentTarget(bill),
                     },
+                    {
+                      label: "Edit Bill",
+                      // Only meaningful for bills that have been pushed (both
+                      // QBO and Buildium ids present) — that's a precondition
+                      // for the backend PATCH endpoint.
+                      hidden: (bill: Bill) =>
+                        !bill.qboBillId || !bill.buildiumBillId,
+                      icon: (
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252Z"
+                                stroke="var(--color-text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      ),
+                      // Open the RecordBill page in edit mode rather than a
+                      // modal — gives the user the full form (including line
+                      // items) with the same layout they use to record a new
+                      // bill. The page handles PATCH + dual re-export.
+                      onClick: (bill: Bill) => {
+                        navigate(
+                          `/bills/record?readOnly=true&edit=true&billId=${bill.id}`,
+                          { state: { bill: buildBillState(bill) } },
+                        );
+                      },
+                    },
                   ]
             }
             onRowClick={(bill) => {
@@ -1648,6 +1677,30 @@ export default function Bills() {
             receiptObjectKey: viewPaymentTarget.receiptObjectKey,
             receiptFilename: viewPaymentTarget.receiptFilename,
             receiptUploadedAt: viewPaymentTarget.receiptUploadedAt,
+          }}
+          onEditPayment={(p) => {
+            // Close the view modal and open the edit modal with the picked row.
+            const billCtx = viewPaymentTarget;
+            setViewPaymentTarget(null);
+            setEditPaymentTarget({ payment: p, bill: billCtx });
+          }}
+        />
+      )}
+
+      {/* Edit Payment Modal */}
+      {editPaymentTarget && (
+        <EditPaymentModal
+          open={!!editPaymentTarget}
+          onOpenChange={(open) => {
+            if (!open) setEditPaymentTarget(null);
+          }}
+          payment={editPaymentTarget.payment}
+          bill={{
+            vendorName: editPaymentTarget.bill.vendor,
+            referenceNumber: editPaymentTarget.bill.invoiceNumber,
+          }}
+          onSaved={() => {
+            loadApprovedBills();
           }}
         />
       )}

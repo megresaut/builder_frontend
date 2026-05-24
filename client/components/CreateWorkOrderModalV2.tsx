@@ -79,8 +79,16 @@ interface CreateWorkOrderModalV2Props {
 
 // Base options for dropdowns
 const BASE_TASKS = ["Task 1", "Task 2", "Task 3", "Task 4"];
-const STATUSES = ["not_started", "in_progress", "completed"];
+const STATUSES = ["not_started", "in_progress", "completed", "deferred", "closed", "cancelled"];
 const PRIORITIES = ["low", "normal", "high"];
+
+type WOStatus =
+  | "not_started"
+  | "in_progress"
+  | "completed"
+  | "deferred"
+  | "closed"
+  | "cancelled";
 
 // Vendor interface
 interface Vendor {
@@ -116,19 +124,16 @@ const buildVendorOptions = (vendors: Vendor[], initialVendorId?: number) => {
 const REQUIRED_FIELDS = new Set(["task", "workOrderName"]);
 
 // Convert frontend status value to backend status value
-const convertStatusToBackend = (
-  frontendStatus: "not_started" | "in_progress" | "completed"
-): string => {
+const convertStatusToBackend = (frontendStatus: WOStatus): string => {
   // Frontend: not_started -> Backend: new (for new work orders)
-  // Frontend: in_progress -> Backend: in_progress
-  // Frontend: completed -> Backend: completed
-  const statusMap: Record<
-    "not_started" | "in_progress" | "completed",
-    string
-  > = {
+  // deferred/closed/cancelled pass through unchanged
+  const statusMap: Record<WOStatus, string> = {
     not_started: "new",
     in_progress: "in_progress",
     completed: "completed",
+    deferred: "deferred",
+    closed: "closed",
+    cancelled: "cancelled",
   };
   return statusMap[frontendStatus] || "new";
 };
@@ -151,16 +156,16 @@ const convertPriorityToBackend = (
 };
 
 // Convert backend status value to frontend status value
-const convertStatusFromBackend = (
-  backendStatus: string
-): "not_started" | "in_progress" | "completed" => {
-  // Backend: new -> Frontend: not_started
-  // Backend: in_progress -> Frontend: in_progress
-  // Backend: completed -> Frontend: completed
-  const statusMap: Record<string, "not_started" | "in_progress" | "completed"> = {
+const convertStatusFromBackend = (backendStatus: string): WOStatus => {
+  const statusMap: Record<string, WOStatus> = {
     new: "not_started",
+    sent: "not_started",
+    scheduled: "not_started",
     in_progress: "in_progress",
     completed: "completed",
+    deferred: "deferred",
+    closed: "closed",
+    cancelled: "cancelled",
   };
   return statusMap[backendStatus] || "not_started";
 };
@@ -225,7 +230,7 @@ export default function CreateWorkOrderModalV2({
     task: string;
     workOrderName: string;
     vendorId: string; // Changed from vendor (string) to vendorId (string for SelectField)
-    status: "not_started" | "in_progress" | "completed";
+    status: WOStatus;
     priority: "low" | "normal" | "high" | "urgent";
     dueDate: Date | null;
     notes: string;
@@ -234,10 +239,7 @@ export default function CreateWorkOrderModalV2({
     task: initialData?.task ?? "",
     workOrderName: initialData?.workOrderName ?? "",
     vendorId: "", // Will be set from initialData if vendor ID is provided
-    status: (initialData?.status as
-      | "not_started"
-      | "in_progress"
-      | "completed") ?? "not_started",
+    status: (initialData?.status as WOStatus) ?? "not_started",
     priority: (initialData?.priority as
       | "low"
       | "normal"
@@ -387,10 +389,7 @@ export default function CreateWorkOrderModalV2({
           task: initialData.task ?? "",
           workOrderName: initialData.workOrderName ?? "",
           vendorId: vendorId,
-          status: (initialData.status as
-            | "not_started"
-            | "in_progress"
-            | "completed") ?? "not_started",
+          status: (initialData.status as WOStatus) ?? "not_started",
           priority: (initialData.priority as
             | "low"
             | "normal"
@@ -469,7 +468,7 @@ export default function CreateWorkOrderModalV2({
   const handleStatusChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
-      status: value as "not_started" | "in_progress" | "completed",
+      status: value as WOStatus,
     }));
   };
 
@@ -573,10 +572,7 @@ export default function CreateWorkOrderModalV2({
 
       try {
         // Convert frontend values to backend values
-        const frontendStatus = formData.status as
-          | "not_started"
-          | "in_progress"
-          | "completed";
+        const frontendStatus = formData.status as WOStatus;
         const frontendPriority = formData.priority as
           | "low"
           | "normal"
@@ -679,10 +675,7 @@ export default function CreateWorkOrderModalV2({
 
         // Convert frontend values to backend values
         // Type assertion is safe because formData.status/priority come from controlled inputs
-        const frontendStatus = formData.status as
-          | "not_started"
-          | "in_progress"
-          | "completed";
+        const frontendStatus = formData.status as WOStatus;
         const frontendPriority = formData.priority as
           | "low"
           | "normal"

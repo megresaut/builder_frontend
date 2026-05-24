@@ -29,6 +29,7 @@ import NotFound from "./pages/NotFound";
 import ShellLayout from "./layout/ShellLayout";
 import { TabContext, useTabContext } from "./hooks/useTabContext";
 import type { TabMetadata } from "./hooks/useTabContext";
+import { identifyRoute } from "./lib/tabRoutes";
 import { FavoritesProvider } from "./hooks/FavoritesContext";
 import {
   loadTabState,
@@ -161,6 +162,74 @@ function RestoreTabUrlSync({ didRestore }: { didRestore: boolean }) {
   return null;
 }
 
+/**
+ * Single owner for "write the active tab's metadata when the URL changes."
+ * Replaces the metadata-sync effect that used to live in Header — keeping
+ * this here means every URL change has exactly one writer, eliminating the
+ * race that flushSync patches in Header used to paper over.
+ *
+ * Also maintains the per-tab history stack used by `useTabNavigation`.
+ */
+function TabMetadataSync() {
+  const location = useLocation();
+  const { selectedTab, tabMetadata, setTabMetadata } = useTabContext();
+
+  // Read selectedTab + tabMetadata from refs so this effect runs only when the
+  // URL changes. If the dep array included selectedTab, switching tabs would
+  // momentarily fire with (new selectedTab, old location) and clobber the
+  // destination tab's stored route — the exact race flushSync used to patch.
+  const selectedTabRef = useRef(selectedTab);
+  selectedTabRef.current = selectedTab;
+  const metaRef = useRef(tabMetadata);
+  metaRef.current = tabMetadata;
+
+  useEffect(() => {
+    const tab = selectedTabRef.current;
+    if (!tab) return;
+    const identity = identifyRoute(location.pathname, location.search);
+    if (!identity) return;
+
+    // /blank only belongs in a `new-tab-*` slot. Skip if selectedTab and
+    // location updated in different renders — letting a real tab's stored
+    // route get clobbered with /blank breaks "return to where I was."
+    if (identity.path === "/blank" && !tab.startsWith("new-tab-")) return;
+
+    const prev = metaRef.current[tab] ?? { label: identity.label };
+    const fullPath = location.pathname + location.search;
+
+    // ---- Maintain per-tab history stack ----
+    const history = prev.history ?? [];
+    const idx = prev.historyIndex ?? -1;
+    let nextHistory = history;
+    let nextIdx = idx;
+
+    if (history[idx] === fullPath) {
+      // Already at this path — no history change.
+    } else if (history[idx + 1] === fullPath) {
+      nextIdx = idx + 1; // Stepped forward via goForward
+    } else if (idx > 0 && history[idx - 1] === fullPath) {
+      nextIdx = idx - 1; // Stepped back via goBack
+    } else {
+      nextHistory = [...history.slice(0, idx + 1), fullPath];
+      nextIdx = nextHistory.length - 1;
+    }
+
+    // ---- Build the metadata delta ----
+    const delta: Partial<TabMetadata> = {};
+    if (prev.label !== identity.label) delta.label = identity.label;
+    if (prev.route !== fullPath) delta.route = fullPath;
+    if (prev.sectionId !== identity.sectionId) delta.sectionId = identity.sectionId;
+    if (nextHistory !== history) delta.history = nextHistory;
+    if (nextIdx !== idx) delta.historyIndex = nextIdx;
+
+    if (Object.keys(delta).length > 0) {
+      setTabMetadata(tab, delta);
+    }
+  }, [location.pathname, location.search, setTabMetadata]);
+
+  return null;
+}
+
 export default function App() {
   const { state: initialState, didRestore } = useInitialTabState();
   const [selectedTab, setSelectedTab] = useState<string>(initialState.selectedTab);
@@ -169,32 +238,34 @@ export default function App() {
   const [openTabsSet, setOpenTabsSet] = useState<Set<string>>(() => new Set(initialState.openTabs));
   const [nextNewTabId, setNextNewTabIdState] = useState(initialState.nextNewTabId);
 
-  const setTabMetadata = useCallback((tabId: string, metadata: TabMetadata) => {
+  const setTabMetadata = useCallback((tabId: string, metadata: Partial<TabMetadata>) => {
     setTabMetadataState((prev) => {
-      const existing = prev[tabId] || {};
-      const merged = {
+      const existing = prev[tabId] || { label: metadata.label ?? "" };
+      // Strip undefined keys so callers can use { x: undefined } as a no-op
+      // (avoids overwriting `existing.x` with undefined via spread).
+      const incoming: Partial<TabMetadata> = {};
+      (Object.keys(metadata) as (keyof TabMetadata)[]).forEach((k) => {
+        const v = metadata[k];
+        if (v !== undefined) (incoming as Record<string, unknown>)[k] = v;
+      });
+      const merged: TabMetadata = {
         ...existing,
-        ...metadata,
+        ...incoming,
         pageState: {
           ...(existing.pageState || {}),
           ...(metadata.pageState || {}),
         },
       };
-      // Log every write so we can see who clobbers what.
-      const existingTyped = existing as TabMetadata;
-      const routeChanged = existingTyped.route !== merged.route;
-      const labelChanged = existingTyped.label !== merged.label;
-      if (routeChanged || labelChanged) {
-        // eslint-disable-next-line no-console
-        console.log(`[TAB-DEBUG] setTabMetadata ${tabId}`, {
-          beforeRoute: existingTyped.route,
-          afterRoute: merged.route,
-          beforeLabel: existingTyped.label,
-          afterLabel: merged.label,
-          incomingKeys: Object.keys(metadata),
-          stack: new Error().stack?.split("\n").slice(2, 9).join(" | "),
-        });
-      }
+      // No change → skip the state update so React Query / effects don't churn.
+      const sameShape =
+        existing.label === merged.label &&
+        existing.route === merged.route &&
+        existing.sectionId === merged.sectionId &&
+        existing.scrollPosition === merged.scrollPosition &&
+        existing.history === merged.history &&
+        existing.historyIndex === merged.historyIndex &&
+        existing.pageState === merged.pageState;
+      if (sameShape) return prev;
       return { ...prev, [tabId]: merged };
     });
   }, []);
@@ -245,6 +316,7 @@ export default function App() {
             <BrowserRouter>
               <SessionExpiryHandler />
               <RestoreTabUrlSync didRestore={didRestore} />
+              <TabMetadataSync />
               <Routes>
                 {/* ---------- PUBLIC ROUTES ---------- */}
                 <Route path="/login" element={<Login />} />

@@ -10,7 +10,7 @@ import { fetchJSON } from "@/api/fetchJSON";
 export interface LinkedTaskData {
   id: string | number;
   name: string;
-  status: "not_started" | "in_progress" | "completed";
+  status: "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled";
   updatedDate: string;
   updatedBy: string;
 }

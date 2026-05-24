@@ -1,18 +1,27 @@
 /**
  * Tab state persistence for browser-like behavior across refreshes.
  * Uses sessionStorage so tabs survive refresh but not browser close.
+ *
+ * Persisted fields are explicitly whitelisted: anything not listed here
+ * gets dropped on save. Per-tab history + pageState are now persisted
+ * (previously they were silently stripped, killing the ←/→ arrows and
+ * any usePageState value after a refresh).
  */
 
 const STORAGE_KEY = "avm-tab-state";
 const MAX_TABS = 50;
 const MAX_METADATA_KEYS = 100;
+const MAX_HISTORY_PER_TAB = 50;
+const MAX_PAGESTATE_BYTES_PER_TAB = 10 * 1024; // 10 KB
 
 export interface PersistedTabMetadata {
   label: string;
   sectionId?: string;
   route?: string;
   scrollPosition?: number;
-  [key: string]: unknown;
+  history?: string[];
+  historyIndex?: number;
+  pageState?: Record<string, unknown>;
 }
 
 export interface PersistedTabState {
@@ -54,23 +63,60 @@ export function getDefaultTabState(): PersistedTabState {
   };
 }
 
+/** Best-effort: keep only JSON-serializable, plain values. Cap total size. */
+function sanitizePageState(raw: unknown): Record<string, unknown> | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  try {
+    const json = JSON.stringify(raw);
+    if (typeof json !== "string") return undefined;
+    if (json.length > MAX_PAGESTATE_BYTES_PER_TAB) {
+      // Too big — drop it rather than truncate to a corrupt slice.
+      return undefined;
+    }
+    const parsed = JSON.parse(json);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function sanitizeHistory(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: string[] = [];
+  for (const v of raw) {
+    if (typeof v === "string" && v.length > 0 && v.length < 2048) {
+      out.push(v);
+    }
+    if (out.length >= MAX_HISTORY_PER_TAB) break;
+  }
+  return out.length > 0 ? out : undefined;
+}
+
 function sanitizeMetadata(
-  meta: Record<string, PersistedTabMetadata>
+  meta: Record<string, PersistedTabMetadata>,
 ): Record<string, PersistedTabMetadata> {
   const out: Record<string, PersistedTabMetadata> = {};
   const keys = Object.keys(meta).slice(0, MAX_METADATA_KEYS);
   for (const k of keys) {
     const m = meta[k];
-    if (m && typeof m === "object" && typeof m.label === "string") {
-      out[k] = {
-        label: m.label,
-        ...(typeof m.sectionId === "string" && { sectionId: m.sectionId }),
-        ...(typeof m.route === "string" && { route: m.route }),
-        ...(typeof m.scrollPosition === "number" && {
-          scrollPosition: m.scrollPosition,
-        }),
-      };
+    if (!m || typeof m !== "object" || typeof m.label !== "string") continue;
+    const cleaned: PersistedTabMetadata = { label: m.label };
+    if (typeof m.sectionId === "string") cleaned.sectionId = m.sectionId;
+    if (typeof m.route === "string") cleaned.route = m.route;
+    if (typeof m.scrollPosition === "number") cleaned.scrollPosition = m.scrollPosition;
+    const history = sanitizeHistory(m.history);
+    if (history) {
+      cleaned.history = history;
+      if (typeof m.historyIndex === "number") {
+        // Clamp to a valid index.
+        cleaned.historyIndex = Math.max(0, Math.min(m.historyIndex, history.length - 1));
+      }
     }
+    const pageState = sanitizePageState(m.pageState);
+    if (pageState) cleaned.pageState = pageState;
+    out[k] = cleaned;
   }
   return out;
 }
@@ -88,7 +134,7 @@ export function loadTabState(): PersistedTabState | null {
       .filter((t) => t && typeof t.id === "string" && typeof t.label === "string")
       .slice(0, MAX_TABS);
     const openTabs = [...new Set(parsed.openTabs as string[])].filter((id) =>
-      tabs.some((t) => t.id === id)
+      tabs.some((t) => t.id === id),
     );
     if (openTabs.length === 0) openTabs.push("properties");
     const selectedTab =
@@ -96,7 +142,7 @@ export function loadTabState(): PersistedTabState | null {
         ? parsed.selectedTab
         : openTabs[0];
     const tabMetadata = sanitizeMetadata(
-      (parsed.tabMetadata as Record<string, PersistedTabMetadata>) || {}
+      (parsed.tabMetadata as Record<string, PersistedTabMetadata>) || {},
     );
     const nextNewTabId =
       typeof parsed.nextNewTabId === "number" && parsed.nextNewTabId >= 1
@@ -106,6 +152,9 @@ export function loadTabState(): PersistedTabState | null {
       tabs,
       openTabs,
       selectedTab,
+      // Default metadata wins for fields that weren't in the persisted snapshot,
+      // but persisted entries override defaults (so a route/history a tab has
+      // been navigated to survives across refresh).
       tabMetadata: { ...defaultMetadata, ...tabMetadata },
       nextNewTabId,
     };
@@ -117,15 +166,22 @@ export function loadTabState(): PersistedTabState | null {
 export function saveTabState(state: PersistedTabState): void {
   if (typeof window === "undefined") return;
   try {
+    const tabs = state.tabs.slice(0, MAX_TABS);
+    const liveIds = new Set(tabs.map((t) => t.id));
+    // Prune orphan metadata so closed tabs don't accumulate in sessionStorage.
+    const liveMeta: Record<string, PersistedTabMetadata> = {};
+    for (const id of Object.keys(state.tabMetadata)) {
+      if (liveIds.has(id)) liveMeta[id] = state.tabMetadata[id];
+    }
     const toSave: PersistedTabState = {
-      tabs: state.tabs.slice(0, MAX_TABS),
-      openTabs: state.openTabs,
-      selectedTab: state.selectedTab,
-      tabMetadata: sanitizeMetadata(state.tabMetadata),
+      tabs,
+      openTabs: state.openTabs.filter((id) => liveIds.has(id)),
+      selectedTab: liveIds.has(state.selectedTab) ? state.selectedTab : (state.openTabs[0] || "properties"),
+      tabMetadata: sanitizeMetadata(liveMeta),
       nextNewTabId: state.nextNewTabId,
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   } catch {
-    // ignore
+    // ignore (quota exceeded, etc.)
   }
 }

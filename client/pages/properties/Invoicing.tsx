@@ -1041,6 +1041,60 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   };
   
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefreshInvoice = async () => {
+    if (!propertyId) return;
+
+    // Non-draft invoices (sent/paid) get reset back to draft when refreshed.
+    // Surface that destructiveness so a stray click doesn't silently undo
+    // approvals or a QBO push.
+    const needsConfirm =
+      currentInvoiceStatus === "sent" ||
+      currentInvoiceStatus === "paid" ||
+      currentInvoiceStatus === "void";
+    if (needsConfirm) {
+      const ok = window.confirm(
+        `This invoice is ${currentInvoiceStatus?.toUpperCase()}. Refreshing will reset it to DRAFT, clear approvals, and re-pull bills + FTO submissions for ${currentInvoiceMonth}. The QBO link is preserved for re-syncing later. Continue?`,
+      );
+      if (!ok) return;
+    }
+
+    const toastId = toast.loading("Refreshing invoice…", {
+      description: "Re-pulling bills and FTO submissions",
+    });
+    setRefreshing(true);
+    try {
+      const res = await authFetch(`/invoicing/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          property_id: Number(propertyId),
+          month: selectedInvoiceMonth.toISOString().slice(0, 10),
+        }),
+      });
+      if (!res.ok) {
+        const errBody = await res.text();
+        let parsedErr = errBody;
+        try {
+          parsedErr = JSON.parse(errBody)?.error ?? errBody;
+        } catch {}
+        throw new Error(parsedErr || "Refresh failed");
+      }
+      await loadInvoiceForProperty();
+      await loadInvoiceHistory();
+      toast.success("Invoice refreshed", { id: toastId });
+    } catch (err: any) {
+      console.error("Refresh failed:", err);
+      toast.error("Refresh failed", {
+        id: toastId,
+        description: err?.message ?? "Unexpected error",
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const handleOpenAddAdditionalBillsModal = () => {
     setSelectedAdditionalBillId("");
     setSelectedAdditionalFtoId("");
@@ -1483,6 +1537,31 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 </div>
               )}
               <div className="flex items-start gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleRefreshInvoice}
+                  disabled={refreshing || !currentInvoiceId}
+                  title="Re-pull bills + FTO submissions for this month. On sent/paid invoices this also resets status to draft."
+                  className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#DADADA] bg-white text-[#303030] font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={refreshing ? "animate-spin" : undefined}
+                  >
+                    <path
+                      d="M14 8a6 6 0 1 1-1.76-4.24M14 2v3.5h-3.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {refreshing ? "Refreshing…" : "Refresh"}
+                </button>
                 <button
                   type="button"
                   onClick={() =>

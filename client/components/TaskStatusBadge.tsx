@@ -4,9 +4,15 @@ type TaskStatus =
   | "Not Started"
   | "In Progress"
   | "Completed"
+  | "Deferred"
+  | "Closed"
+  | "Cancelled"
   | "not_started"
   | "in_progress"
-  | "completed";
+  | "completed"
+  | "deferred"
+  | "closed"
+  | "cancelled";
 
 interface TaskStatusBadgeProps {
   status: TaskStatus;
@@ -19,6 +25,12 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   in_progress: { label: "In Progress", color: "#2463eb" },
   Completed: { label: "Completed", color: "#059669" },
   completed: { label: "Completed", color: "#059669" },
+  Deferred: { label: "Deferred", color: "#b45309" },
+  deferred: { label: "Deferred", color: "#b45309" },
+  Closed: { label: "Closed", color: "#475569" },
+  closed: { label: "Closed", color: "#475569" },
+  Cancelled: { label: "Cancelled", color: "#e11d48" },
+  cancelled: { label: "Cancelled", color: "#e11d48" },
 };
 
 export const TaskStatusBadge: React.FC<TaskStatusBadgeProps> = ({ status }) => {

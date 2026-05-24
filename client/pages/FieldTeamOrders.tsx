@@ -6,7 +6,6 @@ import MergeFTOsModal from "@/components/MergeFTOsModal";
 import PageHeader from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePageState } from "@/hooks/usePageState";
-import { useTabContext } from "@/hooks/useTabContext";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
@@ -672,14 +671,13 @@ export default function FieldTeamOrders() {
   const [filterTimesheetStatus, setFilterTimesheetStatus] = usePageState<string[]>("filterTimesheetStatus", ["awaiting-submission", "submitted", "rejected"]);
   const [filterFtoStatus, setFilterFtoStatus] = usePageState<string[]>("filterFtoStatus", []);
   const [filterPriority, setFilterPriority] = usePageState<string[]>("filterPriority", []);
-  const { setTabMetadata } = useTabContext();
-
-  // Clear persisted modal state when leaving the page so it doesn't reopen when returning (e.g. from Approve FTO)
+  // Clear persisted modal state when leaving the page so it doesn't reopen when returning (e.g. from Approve FTO).
+  // usePageState now keys by selectedTab, so just writing through the existing setter cleans up the right bucket.
   useEffect(() => {
     return () => {
-      setTabMetadata("/field-team-orders", { pageState: { showFTOModal: false } });
+      setShowFTOModal(false);
     };
-  }, [setTabMetadata]);
+  }, [setShowFTOModal]);
 
   async function fetchUsersByIds(
     ids: number[]

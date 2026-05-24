@@ -1,66 +1,55 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTabContext } from "./useTabContext";
-import { useLocation } from "react-router-dom";
 
 /**
- * Custom hook for managing page state that persists across tab navigation.
- * Automatically syncs state changes to tab metadata and restores state when returning to a tab.
+ * Per-tab page state — survives tab switches and (after the persistence whitelist
+ * fix) survives refresh too.
  *
- * @param key - Unique key for this state value within the tab (e.g., "currentPage", "selectedTab")
- * @param initialValue - Initial value if not found in metadata
- * @returns [value, setValue] - Similar to useState
+ * Keyed by `(selectedTab, key)`. Two tabs viewing the same URL get isolated
+ * state; within the same tab, navigating away and back preserves the value.
+ *
+ * NOTE: prior to 2026-05-23 this hook keyed by URL path, which meant two tabs
+ * on the same page shared state — that contradicted the tab model. Existing
+ * pageState in sessionStorage from before this change will be ignored on next
+ * load (sessionStorage clears on browser close anyway).
  */
-export function usePageState<T>(
-  key: string,
-  initialValue: T,
-): [T, (value: T) => void] {
-  const location = useLocation();
-  const { tabMetadata, setTabMetadata } = useTabContext();
+export function usePageState<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  const { selectedTab, tabMetadata, setTabMetadata } = useTabContext();
 
-  // Generate a consistent tab ID based on the route
-  const getTabId = useCallback((): string => {
-    const path = location.pathname;
+  const stored = (tabMetadata[selectedTab]?.pageState?.[key] as T | undefined) ?? undefined;
+  const [value, setValueState] = useState<T>(stored !== undefined ? stored : initialValue);
 
-    // Match task detail pages
-    if (path.includes("/tasks/")) {
-      const match = path.match(/\/tasks\/(\d+)/);
-      if (match) return `task-${match[1]}`;
-    }
-
-    // Match property detail pages
-    if (path.includes("/property/")) {
-      const match = path.match(/\/property\/(\d+)(?:\/(\w+))?/);
-      if (match) {
-        const propertyId = match[1];
-        const tab = match[2];
-        return tab ? `property-${propertyId}-${tab}` : `property-${propertyId}`;
+  // Track the tab this state instance is bound to. If it changes (e.g. user
+  // switched tabs while the component was somehow kept mounted — rare but
+  // possible with KeepAlive), re-read from the new tab's bucket.
+  const lastTabRef = useRef(selectedTab);
+  useEffect(() => {
+    if (lastTabRef.current !== selectedTab) {
+      lastTabRef.current = selectedTab;
+      const next = tabMetadata[selectedTab]?.pageState?.[key] as T | undefined;
+      if (next !== undefined && next !== value) {
+        setValueState(next);
       }
     }
+  }, [selectedTab, tabMetadata, key, value]);
 
-    // Use pathname as fallback
-    return path;
-  }, [location.pathname]);
-
-  const currentTabId = getTabId();
-  const currentMetadata = tabMetadata[currentTabId] || {};
-
-  // Get initial value from metadata or use provided initialValue
-  const storedValue = currentMetadata.pageState?.[key] as T | undefined;
-  const [value, setValue] = useState<T>(
-    storedValue !== undefined ? storedValue : initialValue,
-  );
-
-  // Sync state changes to tab metadata (provider merges; no currentMetadata in deps to avoid re-run loop)
+  // When stored value changes externally (e.g. restore from persistence on
+  // mount after a refresh), pull it in.
   useEffect(() => {
-    setTabMetadata(currentTabId, { pageState: { [key]: value } });
-  }, [value, currentTabId, key, setTabMetadata]);
-
-  // Restore state from metadata when it changes
-  useEffect(() => {
-    if (storedValue !== undefined && storedValue !== value) {
-      setValue(storedValue);
+    if (stored !== undefined && stored !== value) {
+      setValueState(stored);
     }
-  }, [storedValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stored]);
+
+  const setValue = useCallback(
+    (next: T) => {
+      setValueState(next);
+      // Provider does a deep merge on pageState, so this only writes `key`.
+      setTabMetadata(selectedTab, { pageState: { [key]: next } });
+    },
+    [selectedTab, setTabMetadata, key, tabMetadata],
+  );
 
   return [value, setValue];
 }

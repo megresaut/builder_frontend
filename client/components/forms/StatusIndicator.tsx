@@ -19,7 +19,9 @@ const statusColors: Record<string, string> = {
   open: "#D97706",            // orange (alias)
   in_progress: "#2463EB",     // blue
   completed: "#059669",       // green
-  closed: "#059669",          // green (alias)
+  deferred: "#B45309",        // amber
+  closed: "#475569",          // slate (terminal — distinct from completed)
+  cancelled: "#E11D48",       // rose
 };
 
 export const StatusIndicator: React.FC<StatusIndicatorProps> = ({

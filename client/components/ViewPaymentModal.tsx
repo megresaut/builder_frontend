@@ -31,6 +31,21 @@ interface ViewPaymentModalProps {
     receiptFilename?: string | null;
     receiptUploadedAt?: string | null;
   };
+  // Optional — when provided, each payment row gets an "Edit" button that
+  // bubbles up the picked payment so the caller can open EditPaymentModal.
+  onEditPayment?: (payment: EditablePayment) => void;
+}
+
+// EditablePayment is the subset of a PaymentEntry that EditPaymentModal needs
+// to populate its form. Exposed so the parent page can wire the modal without
+// re-deriving these fields.
+export interface EditablePayment {
+  id: number;
+  amount_cents: number;
+  paid_on: string;
+  paid_from_coa_id: number | null;
+  paid_doc_number: string | null;
+  paid_memo: string | null;
 }
 
 interface PaymentEntry {
@@ -74,6 +89,7 @@ export default function ViewPaymentModal({
   open,
   onOpenChange,
   bill,
+  onEditPayment,
 }: ViewPaymentModalProps) {
   const total = bill.totalCents ?? 0;
   const balance = bill.qboBalanceCents ?? 0;
@@ -193,7 +209,23 @@ export default function ViewPaymentModal({
       {!loading && !error && payments && payments.length > 0 && (
         <div className="space-y-3">
           {payments.map((p) => (
-            <PaymentEntryBlock key={p.id} payment={p} />
+            <PaymentEntryBlock
+              key={p.id}
+              payment={p}
+              onEdit={
+                onEditPayment
+                  ? () =>
+                      onEditPayment({
+                        id: p.id,
+                        amount_cents: p.amount_cents,
+                        paid_on: p.paid_on,
+                        paid_from_coa_id: p.paid_from_coa_id,
+                        paid_doc_number: p.paid_doc_number,
+                        paid_memo: p.paid_memo,
+                      })
+                  : undefined
+              }
+            />
           ))}
         </div>
       )}
@@ -213,14 +245,31 @@ export default function ViewPaymentModal({
   );
 }
 
-function PaymentEntryBlock({ payment }: { payment: PaymentEntry }) {
+function PaymentEntryBlock({
+  payment,
+  onEdit,
+}: {
+  payment: PaymentEntry;
+  onEdit?: () => void;
+}) {
   return (
     <div className="rounded-md border border-gray-200 p-3 text-sm">
       <div className="flex items-baseline justify-between">
         <div className="text-[#303030] font-medium">
           {fmtUSD(payment.amount_cents)}
         </div>
-        <div className="text-xs text-[#717179]">{fmtDate(payment.paid_on)}</div>
+        <div className="flex items-center gap-3">
+          <div className="text-xs text-[#717179]">{fmtDate(payment.paid_on)}</div>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="text-xs text-[#013764] hover:underline"
+            >
+              Edit
+            </button>
+          )}
+        </div>
       </div>
       <Row label="Paid from" value={payment.paid_from_name || "—"} compact />
       <Row

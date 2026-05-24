@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useTabNavigation } from "@/hooks/useTabContext";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -21,7 +23,8 @@ import type { ParsedMsg } from "@/utils/parseMsgFile";
 
 import AddVendorModal from "@/components/AddVendorModal";
 import PayBillModal from "@/components/PayBillModal";
-import ViewPaymentModal from "@/components/ViewPaymentModal";
+import ViewPaymentModal, { type EditablePayment } from "@/components/ViewPaymentModal";
+import EditPaymentModal from "@/components/EditPaymentModal";
 import { SelectField } from "@/components/forms/SelectField";
 import { SelectFieldCell } from "@/components/forms/SelectFieldCell";
 import { TextField } from "@/components/forms/TextField";
@@ -294,6 +297,11 @@ const normalizeApprovedBill = (bill: any) => ({
     LineID: li.line_id ?? idx + 1,
     PropertyID: li.property_id,
     Unit: li.unit || "",
+    // unit_name is persisted alongside unit so the dropdown can render the
+    // saved selection even when /properties/{id}/units returns an empty
+    // list (concierge properties with no synced unit data) or before that
+    // async fetch lands.
+    UnitName: li.unit_name || "",
     WorkOrderRef: li.work_order_ref || "",
     Description: li.description || "",
     GLAccountID: li.gl_account_id,
@@ -388,8 +396,22 @@ export const RecordBill = () => {
   const [searchParams] = useSearchParams();
   // const billId = searchParams.get("billId");
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const { goBack } = useTabNavigation();
+  // Cancel/back uses the per-tab history stack rather than navigate(-1), which
+  // walks browser history (shared across all tabs and clobbered by tab switching).
+  const returnToReferrer = () => goBack({ fallback: "/bills" });
+  const location = useLocation();
   const isReadOnly = searchParams.get("readOnly") === "true";
+  // Edit-in-place toggle. When isReadOnly + editing is true, the form fields
+  // become editable and the footer swaps "Exported to Buildium" for
+  // "Save & Re-export". The URL-driven isReadOnly stays stable so the load
+  // effect doesn't re-run (which would clobber unsaved edits). Initial value
+  // honors ?edit=true so we can deep-link straight into edit mode.
+  const [editing, setEditing] = useState<boolean>(
+    searchParams.get("edit") === "true",
+  );
+  const formDisabled = isReadOnly && !editing;
+  const [savingEdit, setSavingEdit] = useState(false);
   // const billIdParam = searchParams.get("billId");
   // const billId = billIdParam ? Number(billIdParam) : Number.NaN;
   // const resolvedBillId = Number.isFinite(billId) ? billId : Date.now();
@@ -417,7 +439,7 @@ export const RecordBill = () => {
   const [draft, setDraft] = useState<any>(null);
 
   const editableBill =
-    !isReadOnly && stateBill ? buildEditableBillFromState(stateBill) : null;
+    !formDisabled && stateBill ? buildEditableBillFromState(stateBill) : null;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
@@ -486,6 +508,8 @@ export const RecordBill = () => {
   const [showAddVendorModal, setShowAddVendorModal] = useState(false);
   const [showPayBillModal, setShowPayBillModal] = useState(false);
   const [showViewPaymentModal, setShowViewPaymentModal] = useState(false);
+  const [editPaymentTarget, setEditPaymentTarget] =
+    useState<EditablePayment | null>(null);
   // Mirror of QBO + payment state coming from navigation (Bills.tsx → buildBillState).
   // Updated optimistically after a successful Pay Bill submission so the
   // footer button updates and the View Payment modal can render fresh data
@@ -988,6 +1012,9 @@ export const RecordBill = () => {
         ? item.PropertyID.toString()
         : "",
       unit: item.Unit || "",
+      // Prefer the persisted unit_name; fall back to the unit id string only
+      // if no name was saved. The id-fallback at least keeps the dropdown
+      // from going blank on legacy rows.
       unitName: item.UnitName || item.Unit || "",
       workOrder: item.WorkOrderRef || "",
       description: item.Description || "",
@@ -1059,7 +1086,7 @@ export const RecordBill = () => {
     if (returnTo) {
       navigate(returnTo);
     } else {
-      navigate(-1);
+      returnToReferrer();
     }
   };
 
@@ -1080,25 +1107,25 @@ export const RecordBill = () => {
       if (returnTo) {
         navigate(returnTo);
       } else {
-        navigate(-1);
+        returnToReferrer();
       }
       return;
     }
-  
+
     try {
       const payload = buildPatchPayload();
-  
+
       console.log("PATCH PAYLOAD:", payload);
-  
+
       await fetchJSON(`/vendors/bill-drafts/${billId}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
-  
+
       if (returnTo) {
         navigate(returnTo);
       } else {
-        navigate(-1);
+        returnToReferrer();
       }
     } catch (err) {
       console.error("Failed to update bill draft:", err);
@@ -1338,6 +1365,9 @@ export const RecordBill = () => {
             line_id: li.line_id,
             property_id: Number(li.property_id),      // 🔒 never null
             unit: li.unit || "",
+            // buildLineItemPayload already paired unit with unit_name; pass
+            // it through so the dropdown can re-render the saved selection.
+            unit_name: (li as any).unit_name || "",
 
             gl_account_id: li.gl_account_id,           // 🔒 already validated
             gl_account_name: li.gl_account_name,
@@ -1426,9 +1456,9 @@ export const RecordBill = () => {
       if (returnTo) {
         navigate(returnTo);
       } else {
-        navigate(-1);
+        returnToReferrer();
       }
-  
+
     } catch (err: any) {
       console.error("Failed to approve and export bill:", err);
       // Backend deletes the bill row on terminal push failure so the platform
@@ -1889,10 +1919,19 @@ export const RecordBill = () => {
         (g) => g.id.toString() === item.glAccount
       );
 
+      const sanitizedUnit =
+        item.unit === "__property__" || item.unit?.startsWith("internal-")
+          ? ""
+          : item.unit || "";
       return {
         line_id: item.id,
         property_id,
-        unit: (item.unit === "__property__" || item.unit?.startsWith("internal-")) ? "" : (item.unit || ""),
+        unit: sanitizedUnit,
+        // Persist the display name alongside the id so the dropdown can
+        // re-render the selection on reload even when /properties/{id}/units
+        // returns an empty list (some concierge properties have no synced
+        // unit data) or the async units fetch hasn't landed yet.
+        unit_name: sanitizedUnit ? item.unitName || "" : "",
 
         gl_account_id: gl?.id.toString() || "",
         gl_account_name: gl?.name || "",
@@ -1922,13 +1961,94 @@ export const RecordBill = () => {
       statement_date: invoiceDate ? invoiceDate.toISOString() : null,
       due_date: dueDate ? dueDate.toISOString() : null,
       memo: memo || null,
-  
+
       // The important part:
       line_items: buildLineItemPayload(),
     };
   };
-  
-  
+
+  // handleSaveAndReexport applies an edit to an already-pushed bill via
+  // PATCH /vendors/bills/{id}. The backend dual-pushes to QBO (sparse update)
+  // and Buildium (PUT). If Buildium rejects (e.g. for a paid bill with a
+  // vendor change), QBO is rolled back, local DB is reverted, and the user
+  // sees Buildium's UserMessage verbatim.
+  const handleSaveAndReexport = async () => {
+    if (!billId) {
+      toast.error("Cannot save: missing bill id");
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      const fullPayload = buildPatchPayload();
+
+      // The backend expects YYYY-MM-DD for statement_date / due_date.
+      // buildPatchPayload returns ISO with time; the Postgres ::date cast
+      // accepts both, but normalize anyway so the SparseUpdateBill payload
+      // sent to QBO uses TxnDate=YYYY-MM-DD (QBO format).
+      const ymd = (iso: string | null): string | null => {
+        if (!iso) return null;
+        const m = /^(\d{4}-\d{2}-\d{2})/.exec(iso);
+        return m ? m[1] : iso;
+      };
+
+      // Pass through the FULL line item shape — backend persists this verbatim
+      // to bills.line_items JSONB. Stripping fields here wipes them from the
+      // row on every edit and breaks downstream readers.
+      //
+      // IMPORTANT: use raw item.unit (not the stripped li.unit from
+      // buildLineItemPayload). The stripper drops "__property__" and
+      // "internal-XX" — those are valid form selections and need to round-
+      // trip so the dropdown shows the right value on next load. The
+      // Buildium publisher tolerates these sentinels and maps them to
+      // "no unit" at push time.
+      const patchBody = {
+        vendor_id: fullPayload.vendor_id,
+        property_id: fullPayload.property_id,
+        invoice_number: fullPayload.invoice_number,
+        statement_date: ymd(fullPayload.statement_date),
+        due_date: ymd(fullPayload.due_date),
+        memo: fullPayload.memo,
+        line_items: lineItems.map((item, idx) => {
+          const gl = glAccountOptions.find(
+            (g) => g.id.toString() === item.glAccount,
+          );
+          return {
+            line_id: item.id ?? idx + 1,
+            property_id: Number(item.property) || 0,
+            unit: item.unit || "",
+            unit_name: item.unitName || "",
+            work_order_ref: item.workOrder || "",
+            description: item.description || "",
+            gl_account_id: gl?.id.toString() || "",
+            gl_account_name: gl?.name || "",
+            amount_cents: toCents(item.total),
+            upcharge_cents: toCents(item.upcharge),
+          };
+        }),
+      };
+
+      const res = await fetchJSON(`/vendors/bills/${billId}`, {
+        method: "PATCH",
+        body: JSON.stringify(patchBody),
+      });
+
+      toast.success(
+        res?.no_op
+          ? "No changes to save"
+          : "Bill updated and re-exported to QuickBooks + Buildium",
+      );
+      setEditing(false);
+    } catch (err: any) {
+      // Backend surfaces Buildium error UserMessage verbatim (e.g.
+      // "Buildium rejected the edit: <message> — qbo + local reverted").
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(msg, { duration: 10000 });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+
   return (
     <div
       className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif] relative"
@@ -2098,7 +2218,7 @@ minHeight: 0,
                               >
                                 View
                               </button>
-                              {!isReadOnly && (
+                              {!formDisabled && (
                                 <button
                                   onClick={() => handleRemoveFile(index)}
                                   className="text-[#A1A1A9] hover:text-[#303030] transition-colors"
@@ -2123,7 +2243,7 @@ minHeight: 0,
                           </div>
                         ))}
                       </div>
-                      {!isReadOnly && (
+                      {!formDisabled && (
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           className="text-blue-600 hover:underline text-sm font-medium text-center flex-shrink-0"
@@ -2318,7 +2438,7 @@ minHeight: 0,
                         <Select
                           value={selectedVendor?.id.toString() || ""}
                           onValueChange={(vendorId) => {
-                            if (!isReadOnly) {
+                            if (!formDisabled) {
                               const vendor = vendors.find(v => v.id.toString() === vendorId);
                               setSelectedVendor(vendor || null);
                               setVendorSearch(""); // ✅ reset search on select
@@ -2333,7 +2453,7 @@ minHeight: 0,
                             setIsVendorDropdownOpen(open);
                             if (!open) setVendorSearch(""); // ✅ reset on close
                           }}
-                          disabled={isReadOnly}
+                          disabled={formDisabled}
                         >
                           <SelectTrigger
                             className={`mt-2 w-full rounded-lg border px-3 py-2 text-base ${
@@ -2404,7 +2524,7 @@ minHeight: 0,
                       </div>
 
                       {/* Add Vendor Button (right-aligned) */}
-                      {!isReadOnly && (
+                      {!formDisabled && (
                         <button
                           type="button"
                           onClick={() => setShowAddVendorModal(true)}
@@ -2423,10 +2543,10 @@ minHeight: 0,
                         label="Reference Number"
                         value={referenceNumber}
                         onChange={(e) =>
-                          !isReadOnly && setReferenceNumber(e.target.value)
+                          !formDisabled && setReferenceNumber(e.target.value)
                         }
                         placeholder="INV-2024-001"
-                        disabled={isReadOnly}
+                        disabled={formDisabled}
                       />
                     </div>
                   </div>
@@ -2438,7 +2558,7 @@ minHeight: 0,
                         required
                         value={invoiceDate}
                         onChange={handleInvoiceDateChange}
-                        disabled={isReadOnly}
+                        disabled={formDisabled}
                         error={
                           invoiceDateError ||
                           (formErrors.has("invoiceDate")
@@ -2454,7 +2574,7 @@ minHeight: 0,
                         required
                         value={dueDate}
                         onChange={handleDueDateChange}
-                        disabled={isReadOnly}
+                        disabled={formDisabled}
                         error={
                           dueDateError ||
                           (formErrors.has("dueDate")
@@ -2469,9 +2589,9 @@ minHeight: 0,
                   <TextAreaField
                     label="Memo/Notes"
                     value={memo}
-                    onChange={(e) => !isReadOnly && setMemo(e.target.value)}
+                    onChange={(e) => !formDisabled && setMemo(e.target.value)}
                     placeholder="Additional notes..."
-                    disabled={isReadOnly}
+                    disabled={formDisabled}
                     autoGrow
                   />
                 </div>
@@ -2585,7 +2705,7 @@ minHeight: 0,
                             >
                               <Select
                                 value={item.property}
-                                disabled={isReadOnly}
+                                disabled={formDisabled}
                                 onValueChange={(value) => {
                                   handleUpdateLineItem(item.id, "property", value);
                                   setPropertySearch(""); // reset on select
@@ -2647,7 +2767,7 @@ minHeight: 0,
                               <SelectFieldCell
                                 value={item.unit}
                                 onChange={(value) => {
-                                  if (!isReadOnly) {
+                                  if (!formDisabled) {
                                     if (value === "__property__") {
                                       handleUpdateLineItem(item.id, "unit", "__property__");
                                       setLineItems((prev) =>
@@ -2680,17 +2800,44 @@ minHeight: 0,
                                     ? "Select property first"
                                     : "Select a Unit"
                                 }
-                                options={[
-                                  { value: "__property__", label: "Property Level" },
-                                  ...(unitsByProperty[item.property] || [])
-                                    .slice()
-                                    .sort((a, b) => naturalSort(a.unit_name, b.unit_name))
-                                    .map((u) => ({
-                                      value: u.buildium_unit_id?.toString() ?? `internal-${u.id}`,
-                                      label: u.unit_name,
-                                    })),
-                                ]}
-                                disabled={isReadOnly || !item.property}
+                                options={(() => {
+                                  const propertyUnits =
+                                    unitsByProperty[item.property] || [];
+                                  const baseOptions = [
+                                    { value: "__property__", label: "Property Level" },
+                                    ...propertyUnits
+                                      .slice()
+                                      .sort((a, b) =>
+                                        naturalSort(a.unit_name, b.unit_name),
+                                      )
+                                      .map((u) => ({
+                                        value:
+                                          u.buildium_unit_id?.toString() ??
+                                          `internal-${u.id}`,
+                                        label: u.unit_name,
+                                      })),
+                                  ];
+                                  // Stored unit fallback: when the saved unit
+                                  // isn't in the current units list (concierge
+                                  // property with no synced units, or the
+                                  // async fetch hasn't landed yet), splice in
+                                  // a synthetic option so SelectFieldCell can
+                                  // render the saved selection instead of
+                                  // collapsing to the placeholder.
+                                  const stored = item.unit;
+                                  if (
+                                    stored &&
+                                    stored !== "__property__" &&
+                                    !baseOptions.some((o) => o.value === stored)
+                                  ) {
+                                    baseOptions.push({
+                                      value: stored,
+                                      label: item.unitName || stored,
+                                    });
+                                  }
+                                  return baseOptions;
+                                })()}
+                                disabled={formDisabled || !item.property}
                               />
                             </div>
 
@@ -2704,10 +2851,10 @@ minHeight: 0,
                               style={{ width: `${columnWidths.workOrder}px` }}
                               >
                               <Select
-                                disabled={!item.property || isReadOnly}
+                                disabled={!item.property || formDisabled}
                                 value={item.workOrder ?? ""}
                                 onValueChange={(value) => {
-                                  if (!isReadOnly) {
+                                  if (!formDisabled) {
                                     handleUpdateLineItem(item.id, "workOrder", value);
                                   }
                                 }}
@@ -2753,7 +2900,7 @@ minHeight: 0,
                                 type="text"
                                 value={item.description}
                                 onChange={(e) => {
-                                  if (!isReadOnly) {
+                                  if (!formDisabled) {
                                     handleUpdateLineItem(
                                       item.id,
                                       "description",
@@ -2763,7 +2910,7 @@ minHeight: 0,
                                 }}
                                 placeholder="Enter description"
                                 data-measure-width="description"
-                                disabled={isReadOnly}
+                                disabled={formDisabled}
                                 className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
                               />
                             </div>
@@ -2775,9 +2922,9 @@ minHeight: 0,
                             >
                               <Select
                                 value={item.glAccount}
-                                disabled={isReadOnly}
+                                disabled={formDisabled}
                                 onValueChange={(value) => {
-                                  if (!isReadOnly) {
+                                  if (!formDisabled) {
                                     handleUpdateLineItem(item.id, "glAccount", value);
                                     setGlSearch(""); // reset on select
                                   }
@@ -2842,7 +2989,7 @@ minHeight: 0,
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   if (
-                                    !isReadOnly &&
+                                    !formDisabled &&
                                     (value === "" ||
                                       /^\$?[\d,]*\.?\d{0,2}$/.test(value))
                                   ) {
@@ -2857,7 +3004,7 @@ minHeight: 0,
                                   }
                                 }}
                                 placeholder="$0.00"
-                                disabled={isReadOnly}
+                                disabled={formDisabled}
                                 className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
                               />
                             </div>
@@ -2878,7 +3025,7 @@ minHeight: 0,
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   if (
-                                    !isReadOnly &&
+                                    !formDisabled &&
                                     (value === "" ||
                                       /^\$?[\d,]*\.?\d{0,2}$/.test(value))
                                   ) {
@@ -2894,14 +3041,14 @@ minHeight: 0,
                                 }}
                                 placeholder="$0.00"
                                 data-measure-width="total"
-                                disabled={isReadOnly}
+                                disabled={formDisabled}
                                 className="w-full bg-transparent outline-none text-[13px] whitespace-nowrap placeholder-[#A1A1A9]"
                               />
                             </div>
 
                             {/* Delete Button */}
                             <div className="flex items-center justify-center border-b border-r border-[#DADADA]/50 min-h-14 py-2 w-[80px] flex-shrink-0">
-                              {!isReadOnly && (
+                              {!formDisabled && (
                                 <button
                                   onClick={() => handleDeleteLineItem(item.id)}
                                   className="text-[#525252] hover:text-[#303030] transition-colors text-lg leading-none"
@@ -2917,7 +3064,7 @@ minHeight: 0,
                       </div>
                     </div>
                   </div>
-                  {!isReadOnly && (
+                  {!formDisabled && (
                     <button
                       onClick={handleAddLineItem}
                       className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -2962,20 +3109,24 @@ minHeight: 0,
             </div>
           </div>
           <div className="flex items-center gap-2.5">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleCancel();
-              }}
-              className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
-            >
-              <span>Cancel</span>
-            </button>
+            {/* Top-level Cancel — hidden in edit mode (replaced by Cancel edit
+                + Save & Re-export below). */}
+            {!editing && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleCancel();
+                }}
+                className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-normal whitespace-nowrap tracking-[-0.32px] leading-[1.4] hover:bg-gray-100 transition-colors"
+              >
+                <span>Cancel</span>
+              </button>
+            )}
             {/* Pay Bill button — visible when the bill has been pushed to QBO
-                and still has an outstanding balance. Sits between Cancel and
-                the export status button per UX request. */}
-            {isReadOnly &&
+                and still has an outstanding balance. Hidden while editing —
+                you can't pay a bill mid-edit. */}
+            {formDisabled &&
               billId !== null &&
               !qboPaymentState.qboPaidAt &&
               qboPaymentState.qboBalanceCents != null &&
@@ -2995,20 +3146,55 @@ minHeight: 0,
                   <span className="text-sm">Pay Bill</span>
                 </button>
               )}
-            {isReadOnly && qboPaymentState.qboPaidAt && (
+            {/* View Payments — visible whenever ANY payment has been recorded
+                (balance < total). Label flips to "Paid · View Payment" when
+                the bill is paid in full. Lets the user open the payment
+                history (and Edit a specific row) even on a partial pay. */}
+            {formDisabled &&
+              qboPaymentState.qboTotalCents != null &&
+              qboPaymentState.qboBalanceCents != null &&
+              qboPaymentState.qboBalanceCents < qboPaymentState.qboTotalCents && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowViewPaymentModal(true);
+                  }}
+                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  <span>
+                    {qboPaymentState.qboBalanceCents === 0
+                      ? "Paid · View Payment"
+                      : "View Payments"}
+                  </span>
+                </button>
+              )}
+
+            {/* Edit button — visible in readOnly mode on a posted bill. Click
+                flips local `editing` so the form becomes interactive without
+                re-firing the load effect. */}
+            {formDisabled && billId !== null && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setShowViewPaymentModal(true);
+                  setEditing(true);
                 }}
-                className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700"
+                className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 font-medium transition-colors border border-[#013764] text-[#013764] hover:bg-[#013764] hover:text-white"
               >
-                <span>Paid · View Payment</span>
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15.75 15.7502H9.75002M1.875 16.1252L6.03695 14.5245C6.30316 14.4221 6.43626 14.3709 6.56079 14.3041C6.6714 14.2447 6.77685 14.1761 6.87603 14.0992C6.98769 14.0125 7.08853 13.9117 7.29021 13.71L15.75 5.25023C16.5784 4.4218 16.5784 3.07865 15.75 2.25023C14.9216 1.4218 13.5784 1.4218 12.75 2.25022L4.29021 10.71C4.08853 10.9117 3.98769 11.0125 3.90104 11.1242C3.82408 11.2234 3.75555 11.3288 3.69618 11.4394C3.62933 11.564 3.57814 11.6971 3.47575 11.9633L1.875 16.1252Z"
+                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-sm">Edit</span>
               </button>
             )}
-            {isReadOnly && !qboPaymentState.qboPaidAt && (
+
+            {/* Exported pill — only in pure readOnly (not editing). When
+                editing this is replaced by Save & Re-export below. */}
+            {formDisabled && !qboPaymentState.qboPaidAt && (
               <button
                 disabled
                 className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -3016,6 +3202,44 @@ minHeight: 0,
                 <span>Exported to Buildium</span>
               </button>
             )}
+
+            {/* Edit-mode footer: Cancel Edit + Save & Re-export. Save calls
+                PATCH /vendors/bills/{id} which dual-pushes to QBO + Buildium
+                with rollback on Buildium failure. */}
+            {isReadOnly && editing && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setEditing(false);
+                  }}
+                  disabled={savingEdit}
+                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 font-medium transition-colors border border-gray-300 text-[#303030] hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <span>Cancel edit</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (savingEdit) return;
+                    await handleSaveAndReexport();
+                  }}
+                  disabled={savingEdit}
+                  className={`rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-[#013764] text-white font-medium ${savingEdit ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0a2e4d]"}`}
+                >
+                  <span className="text-sm">
+                    {savingEdit ? "Re-exporting…" : "Save & Re-export"}
+                  </span>
+                </button>
+              </>
+            )}
+            {/* Draft-mode footer (Save + Approve & Export). Only for genuinely
+                new/draft bills — not for editing an already-exported one,
+                where the Save & Re-export button above is the single action. */}
             {!isReadOnly && (
               <>
                   <button
@@ -3165,6 +3389,7 @@ minHeight: 0,
         open={showViewPaymentModal}
         onOpenChange={setShowViewPaymentModal}
         bill={{
+          id: billId ?? undefined,
           vendorName: selectedVendor?.name,
           propertyName: properties.find(
             (p) => p.id === Number(lineItems[0]?.property),
@@ -3185,7 +3410,50 @@ minHeight: 0,
           receiptFilename: qboPaymentState.receiptFilename,
           receiptUploadedAt: qboPaymentState.receiptUploadedAt,
         }}
+        onEditPayment={(p) => {
+          // Close the view modal so its overlay doesn't stack on top of the
+          // edit one; reopen the view list when the edit modal closes so the
+          // user can pick another row if they want.
+          setShowViewPaymentModal(false);
+          setEditPaymentTarget(p);
+        }}
       />
+
+      {editPaymentTarget && (
+        <EditPaymentModal
+          open={!!editPaymentTarget}
+          onOpenChange={(open) => {
+            if (!open) setEditPaymentTarget(null);
+          }}
+          payment={editPaymentTarget}
+          bill={{
+            vendorName: selectedVendor?.name,
+            referenceNumber: referenceNumber || undefined,
+          }}
+          onSaved={async () => {
+            // Pull the freshly-refreshed bill row (the backend already called
+            // QBOSyncSvc.RefreshBill so qbo_balance_cents / qbo_paid_at are
+            // up to date) so this page's balance + paid pill reflect the
+            // edit without a full reload.
+            if (billId) {
+              try {
+                const bill: any = await fetchJSON(`/utilities/bills/${billId}`);
+                setQboPaymentState((prev) => ({
+                  ...prev,
+                  qboBalanceCents: bill?.qbo_balance_cents ?? prev.qboBalanceCents,
+                  qboTotalCents: bill?.qbo_total_cents ?? prev.qboTotalCents,
+                  qboPaidAt: bill?.qbo_paid_at ?? prev.qboPaidAt,
+                }));
+              } catch (err) {
+                console.error("Failed to refresh bill after payment edit:", err);
+              }
+            }
+            // Re-open the View Payments modal so the updated row is visible
+            // from the (re-fetched) /payments list.
+            setShowViewPaymentModal(true);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -43,7 +43,7 @@ interface WorkOrder {
   updatedDate: string;
   age: string;
   priority: "High" | "Low" | "Normal";
-  status: "In Progress" | "Completed";
+  status: "In Progress" | "Completed" | "Deferred" | "Closed" | "Cancelled";
   billStatus: "Paid" | "Unpaid" | "Awaiting Invoice";
   billTotal: string;
   vendorName?: string;
@@ -104,10 +104,15 @@ const normalizePriority = (priority: string): "High" | "Low" | "Normal" => {
   return "Normal";
 };
 
-// Helper function to normalize status (must match TaskStatusBadge keys: "In Progress", "Completed")
-const normalizeStatus = (status: string): "In Progress" | "Completed" => {
+// Helper function to normalize status (must match TaskStatusBadge keys)
+const normalizeStatus = (
+  status: string,
+): "In Progress" | "Completed" | "Deferred" | "Closed" | "Cancelled" => {
   const lower = status.toLowerCase();
-  if (lower === "completed" || lower === "closed") return "Completed";
+  if (lower === "completed") return "Completed";
+  if (lower === "deferred") return "Deferred";
+  if (lower === "closed") return "Closed";
+  if (lower === "cancelled") return "Cancelled";
   return "In Progress";
 };
 
@@ -674,7 +679,7 @@ export default function MaintenanceWorkOrders() {
     [workOrders],
   );
   const uniqueStatuses = useMemo(
-    () => ["In Progress", "Completed"] as const,
+    () => ["In Progress", "Completed", "Deferred", "Closed", "Cancelled"] as const,
     [],
   );
   const uniquePriorities = useMemo(
@@ -1320,30 +1325,40 @@ export default function MaintenanceWorkOrders() {
         initialData={editingWorkOrder && editingWorkOrderData ? {
           workOrderName: editingWorkOrderData.name || editingWorkOrder.task,
           vendorId: editingWorkOrderData.vendor_id,
-          status: (editingWorkOrderData.status === "in_progress" 
-            ? "in_progress" 
-            : editingWorkOrderData.status === "completed" 
-              ? "completed" 
-              : "not_started") as "not_started" | "in_progress" | "completed",
-          priority: (editingWorkOrderData.priority === "high" 
-            ? "high" 
-            : editingWorkOrderData.priority === "low" 
-              ? "low" 
+          status: ((): "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled" => {
+            switch (editingWorkOrderData.status) {
+              case "in_progress": return "in_progress";
+              case "completed": return "completed";
+              case "deferred": return "deferred";
+              case "closed": return "closed";
+              case "cancelled": return "cancelled";
+              default: return "not_started";
+            }
+          })(),
+          priority: (editingWorkOrderData.priority === "high"
+            ? "high"
+            : editingWorkOrderData.priority === "low"
+              ? "low"
               : "normal") as "low" | "normal" | "high" | "urgent",
           dueDate: editingWorkOrderData.due_date ? new Date(editingWorkOrderData.due_date) : null,
           notes: editingWorkOrderData.internal_notes || editingWorkOrderData.vendor_notes || "",
         } : editingWorkOrder ? {
           // Fallback if we don't have full API data
           workOrderName: editingWorkOrder.task,
-          status: (editingWorkOrder.status === "In Progress" 
-            ? "in_progress" 
-            : editingWorkOrder.status === "Completed" 
-              ? "completed" 
-              : "not_started") as "not_started" | "in_progress" | "completed",
-          priority: (editingWorkOrder.priority === "High" 
-            ? "high" 
-            : editingWorkOrder.priority === "Low" 
-              ? "low" 
+          status: ((): "not_started" | "in_progress" | "completed" | "deferred" | "closed" | "cancelled" => {
+            switch (editingWorkOrder.status) {
+              case "In Progress": return "in_progress";
+              case "Completed": return "completed";
+              case "Deferred": return "deferred";
+              case "Closed": return "closed";
+              case "Cancelled": return "cancelled";
+              default: return "not_started";
+            }
+          })(),
+          priority: (editingWorkOrder.priority === "High"
+            ? "high"
+            : editingWorkOrder.priority === "Low"
+              ? "low"
               : "normal") as "low" | "normal" | "high" | "urgent",
           dueDate: editingWorkOrder.dueDate && editingWorkOrder.dueDate !== "No due date"
             ? (() => {

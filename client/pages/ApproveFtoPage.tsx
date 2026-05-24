@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTabNavigation } from "@/hooks/useTabContext";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
@@ -601,6 +602,11 @@ const updateFtoAmountCents = async (ftoId: number, amountCents: number) => {
 
 export default function ApproveFTOPage() {
   const navigate = useNavigate();
+  const { goBack } = useTabNavigation();
+  // Cancel/Reject/Approve return to the previous URL *within this tab* — using
+  // navigate(-1) would walk the browser history, which gets clobbered by tab
+  // switches in another tab and would land on the wrong page.
+  const returnToList = () => goBack({ fallback: "/field-team-orders" });
   const location = useLocation();
   // const { id } = useParams<{ id?: string }>();
   const state = (location.state || {}) as ApproveFTOPageProps;
@@ -1664,12 +1670,12 @@ export default function ApproveFTOPage() {
 
         if (buildiumErrors.length > 0) {
           alert("Expenses approved, but some Buildium exports failed:\n\n" + buildiumErrors.join("\n"));
-          navigate(-1);
+          returnToList();
           return;
         }
       }
 
-      navigate(-1);
+      returnToList();
     } catch (err) {
       console.error("Approve failed:", err);
       alert(
@@ -1697,8 +1703,8 @@ export default function ApproveFTOPage() {
       }
   
       // All submissions rejected
-  
-      navigate(-1);
+
+      returnToList();
     } catch (err) {
       console.error("Reject failed:", err);
       alert(
@@ -2908,7 +2914,7 @@ export default function ApproveFTOPage() {
           </div>
           <div className="flex items-center gap-2.5">
             <button
-              onClick={() => navigate(-1)}
+              onClick={returnToList}
               className="rounded-lg flex min-h-9 px-3 py-1.5 items-center gap-2 text-[#303030] font-medium tracking-[-0.32px] leading-[1.4] transition-colors bg-white border border-[#DADADA] hover:bg-gray-50"
             >
               <span>Cancel</span>

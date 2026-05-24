@@ -118,8 +118,9 @@ function transformApiTaskToUiTask(apiTask: ApiTask, sequentialNumber?: number): 
       pending_vendor: "in_progress",
       scheduled: "in_progress",
       completed: "completed",
-      closed: "completed",
-      cancelled: "completed",
+      deferred: "deferred",
+      closed: "closed",
+      cancelled: "cancelled",
     };
     return statusMap[backendStatus.toLowerCase()] || "not_started";
   };
@@ -371,8 +372,8 @@ export default function AllTasks() {
         return bDate - aDate;
       });
       setApiTasks(sortedTasks);
-      // Assign sequential numbers only to active (non-completed) tasks
-      const completedStatuses = ["completed", "closed", "cancelled"];
+      // Assign sequential numbers only to active (non-terminal) tasks
+      const completedStatuses = ["completed", "closed", "cancelled", "deferred"];
       let activeCounter = 0;
       const transformedTasks = sortedTasks.map((task) => {
         const isCompleted = completedStatuses.includes(task.status?.toLowerCase() ?? "");
@@ -729,6 +730,9 @@ export default function AllTasks() {
                   { value: "not_started", label: "Not started" },
                   { value: "in_progress", label: "In progress" },
                   { value: "completed", label: "Completed" },
+                  { value: "deferred", label: "Deferred" },
+                  { value: "closed", label: "Closed" },
+                  { value: "cancelled", label: "Cancelled" },
                 ]}
                 selected={filterStatus}
                 onChange={setFilterStatus}
