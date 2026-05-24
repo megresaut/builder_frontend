@@ -12,6 +12,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useParams } from "react-router-dom";
 import EditUtilityAccountModal from "@/components/EditUtilityAccountModal";
+import ManualBillUploadModal from "@/components/ManualBillUploadModal";
 import { toast } from "sonner";
 import { openAuthPdf } from "@/api/openAuthPdf";
 
@@ -48,6 +49,7 @@ type MappedAccount = {
   lastImport: string;
   icon?: React.ReactNode;
   type: string | null | undefined;
+  nextScheduledScrapeAt?: string | null;
 };
 
 type MappedBill = {
@@ -748,6 +750,10 @@ const mappedAccounts = safeAccounts.map((ua: any) => ({
   icon: getCategoryIcon(ua.provider_category),
   type: ua.provider_category,
   username: ua.username ?? "",
+  // next_scheduled_scrape_at lets the per-row Import button grey itself out
+  // when this cycle's bill is already in. A future value = bill present,
+  // cron will fetch the next one on its own.
+  nextScheduledScrapeAt: ua.next_scheduled_scrape_at ?? null,
 }));
 
 const activeMappedAccounts = mappedAccounts.filter(
@@ -1149,6 +1155,14 @@ const [editingUtilityAccount, setEditingUtilityAccount] =
   useState<UtilityAccount | null>(null);
 const [utilityModalMode, setUtilityModalMode] =
   useState<"add" | "edit">("edit");
+
+// Manual-bill upload modal (per-row "Upload manually" action).
+// Tracks which account the modal is open for; null = closed.
+const [manualBillAccount, setManualBillAccount] = useState<{
+  id: number;
+  provider: string;
+  account: string;
+} | null>(null);
 
 // Account-level import UI (optional, not tied to backend)
 const [accountImportStatus, setAccountImportStatus] = useState<
@@ -1651,20 +1665,9 @@ useEffect(() => {
               </svg>
               Add Account
             </button>
-            <button
-              onClick={handleBatchImport}
-              disabled={batchImporting}
-              className={cn(
-                "flex h-9 items-center gap-2 px-3 rounded-lg border border-white shadow-[0_0_10px_rgba(0,0,0,0.2),0_0_0_1px_rgb(0,45,90)] transition-colors disabled:opacity-70",
-                batchImporting
-                ? "bg-[#013564] opacity-70 cursor-not-allowed"
-                : "bg-[#013564] hover:bg-[#012a4d]",
-              )}
-            >
-              <span className="text-white font-medium text-base leading-[140%] tracking-[-0.32px]">
-                {batchImporting ? "Importing…" : "Import"}
-              </span>
-            </button>
+            {/* Top-level Import button removed: per-account scheduling now runs
+                the scrape automatically the day after each expected
+                period_end. Per-row Import remains as an ops override. */}
           </div>
         </div>
 
@@ -1958,6 +1961,19 @@ useEffect(() => {
                     }}
 
                     onImport={() => handleImportAccount(account.id)}
+                    importDisabled={
+                      !!account.nextScheduledScrapeAt &&
+                      new Date(account.nextScheduledScrapeAt) > new Date()
+                    }
+                    importDisabledReason="Bill already imported for this account"
+
+                    onUploadManual={() =>
+                      setManualBillAccount({
+                        id: account.id,
+                        provider: account.provider,
+                        account: account.account,
+                      })
+                    }
 
                     onDelete={async () => {
                       await fetchJSON(`/utilities/accounts/${account.id}`, {
@@ -2501,6 +2517,29 @@ useEffect(() => {
           </div>,
           document.body
         )}
+
+      {/* Manual Bill Upload Modal — opened by per-row "Upload manually" */}
+      <ManualBillUploadModal
+        open={manualBillAccount !== null}
+        onOpenChange={(open) => {
+          if (!open) setManualBillAccount(null);
+        }}
+        account={manualBillAccount}
+        onSuccess={(result) => {
+          const nextLabel = result.next_scheduled_scrape_at
+            ? new Date(result.next_scheduled_scrape_at).toLocaleDateString()
+            : "—";
+          toast.success(
+            `Bill booked (${result.push_status}). Next scrape: ${nextLabel}`
+          );
+          queryClient.invalidateQueries({
+            queryKey: ["utility-accounts", propertyId],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["utility-bills", propertyId],
+          });
+        }}
+      />
 
       {/* Edit Utility Account Modal */}
       <EditUtilityAccountModal
