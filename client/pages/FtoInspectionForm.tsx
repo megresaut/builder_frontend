@@ -494,11 +494,19 @@ export default function FtoInspectionForm() {
     };
     
     loadProperties();
-    
+
     return () => {
       isMounted = false;
     };
   }, [inspectionId]);
+
+  useEffect(() => {
+    if (!propertyId) return;
+    const selected = properties.find((p) => String(p.id) === propertyId);
+    if (selected?.property_type === "C") {
+      setUnitId(String(PROPERTY_LEVEL_UNIT_ID));
+    }
+  }, [propertyId, properties]);
 
   // Load units for a property
   const loadUnitsForProperty = async (propertyId: string) => {

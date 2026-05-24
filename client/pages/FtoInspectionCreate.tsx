@@ -93,6 +93,14 @@ export default function FtoInspectionCreate() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!propertyId) return;
+    const selected = properties.find((p) => String(p.id) === propertyId);
+    if (selected?.property_type === "C") {
+      setUnitId(String(PROPERTY_LEVEL_UNIT_ID));
+    }
+  }, [propertyId, properties]);
+
   const loadUnitsForProperty = async (propId: string) => {
     if (unitsByProperty[propId]) return;
     try {

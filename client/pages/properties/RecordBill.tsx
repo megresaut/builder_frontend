@@ -573,7 +573,7 @@ export const RecordBill = () => {
   };
   // Real vendors + properties
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [properties, setProperties] = useState<{ id: number; name: string }[]>([]);
+  const [properties, setProperties] = useState<{ id: number; name: string; property_type?: string | null }[]>([]);
   const [propertyMap, setPropertyMap] = useState<Record<string, number>>({});
   const [columnWidths, setColumnWidths] = useState(defaultColumnWidths);
   const [glAccountOptions, setGLAccountOptions] = useState<
@@ -758,6 +758,7 @@ export const RecordBill = () => {
         const formatted = propList.map((p: any) => ({
           id: p.id,
           name: p.name || p.address_line1 || `Property ${p.id}`,
+          property_type: p.property_type ?? null,
         }));
   
         // 🔥 Print formatted mapping so you can confirm it's correct
@@ -1588,10 +1589,18 @@ export const RecordBill = () => {
 
         const updated = { ...item, [field]: value };
 
-        // When property changes → clear unit + load units for new property
+        // When property changes → clear unit + load units for new property.
+        // Concierge properties (property_type === 'C') only ever record at the
+        // property level, so default the unit to the "__property__" marker.
         if (field === "property") {
-          updated.unit = "";
-          updated.unitName = "";
+          const selectedProp = properties.find((p) => String(p.id) === value);
+          if (selectedProp?.property_type === "C") {
+            updated.unit = "__property__";
+            updated.unitName = "Property Level";
+          } else {
+            updated.unit = "";
+            updated.unitName = "";
+          }
           loadUnitsForProperty(value);
         }
 

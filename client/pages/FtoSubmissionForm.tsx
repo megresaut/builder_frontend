@@ -1932,7 +1932,14 @@ export default function FtoSubmissionForm() {
                                         if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                         updateHourEntry(entry.id, "propertyId", propertyId ? String(propertyId) : null);
                                         updateHourEntry(entry.id, "locationId", locationId ? String(locationId) : null);
-                                        updateHourEntry(entry.id, "unitId", null);
+                                        const selectedProp = propertyId
+                                          ? properties.find((p) => p.id === propertyId)
+                                          : null;
+                                        const defaultUnitId =
+                                          selectedProp?.property_type === "C"
+                                            ? String(PROPERTY_LEVEL_UNIT_ID)
+                                            : null;
+                                        updateHourEntry(entry.id, "unitId", defaultUnitId);
                                         updateHourEntry(entry.id, "taskId", null);
                                         updateHourEntry(entry.id, "customTaskName", "");
                                         if (propertyId) {
@@ -2345,7 +2352,14 @@ export default function FtoSubmissionForm() {
                                     if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                                     updateExpenseEntry(entry.id, "propertyId", propertyId ? String(propertyId) : null);
                                     updateExpenseEntry(entry.id, "locationId", locationId ? String(locationId) : null);
-                                    updateExpenseEntry(entry.id, "unitId", null);
+                                    const selectedProp = propertyId
+                                      ? properties.find((p) => p.id === propertyId)
+                                      : null;
+                                    const defaultUnitId =
+                                      selectedProp?.property_type === "C"
+                                        ? String(PROPERTY_LEVEL_UNIT_ID)
+                                        : null;
+                                    updateExpenseEntry(entry.id, "unitId", defaultUnitId);
                                     updateExpenseEntry(entry.id, "taskId", null);
                                     if (propertyId) {
                                       loadFtosForProperty(String(propertyId));

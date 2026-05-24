@@ -14,6 +14,11 @@ import {
 } from "@/components/forms";
 import { fetchJSON } from "@/api/fetchJSON";
 import { useAuth } from "@/auth/useAuth";
+import {
+  PROPERTY_LEVEL_LABEL,
+  PROPERTY_LEVEL_SHORT_LABEL,
+  PROPERTY_LEVEL_UNIT_ID,
+} from "@/utils/unitLabel";
 
 interface CreateRecurringTaskModalProps {
   open: boolean;
@@ -33,6 +38,7 @@ interface SimpleProperty {
   city?: string | null;
   state?: string | null;
   locations_count?: number;
+  property_type?: string | null;
 }
 
 interface SimpleUnit {
@@ -254,6 +260,14 @@ export default function CreateRecurringTaskModal({
       cancelled = true;
     };
   }, [open, property]);
+
+  useEffect(() => {
+    if (!property) return;
+    const selected = properties.find((p) => p.id === Number(property));
+    if (selected?.property_type === "C") {
+      setUnit(String(PROPERTY_LEVEL_UNIT_ID));
+    }
+  }, [property, properties]);
 
   useEffect(() => {
     if (editData && availableAssignees.length > 0) {
@@ -609,10 +623,17 @@ export default function CreateRecurringTaskModal({
               onChange={(value) => setUnit(Array.isArray(value) ? value[0] : value)}
               placeholder={unitsLoading ? "Loading..." : "Select Unit"}
               disabled={!property || unitsLoading}
-              options={units.map((u) => ({
-                value: String(u.id),
-                label: u.unit_name,
-              }))}
+              options={[
+                {
+                  value: String(PROPERTY_LEVEL_UNIT_ID),
+                  label: PROPERTY_LEVEL_LABEL,
+                  displayLabel: PROPERTY_LEVEL_SHORT_LABEL,
+                },
+                ...units.map((u) => ({
+                  value: String(u.id),
+                  label: u.unit_name,
+                })),
+              ]}
             />
           </div>
 
