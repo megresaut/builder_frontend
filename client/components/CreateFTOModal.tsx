@@ -45,6 +45,7 @@ interface SimpleProperty {
   city: string;
   state: string;
   locations_count?: number;
+  property_type?: string | null;
 }
 
 interface SimpleTask {
@@ -508,6 +509,14 @@ export default function CreateFTOModal({
       cancelled = true;
     };
   }, [open, selectedPropertyId, isEditing]);
+
+  useEffect(() => {
+    if (selectedPropertyId == null) return;
+    const selected = properties.find((p) => p.id === selectedPropertyId);
+    if (selected?.property_type === "C") {
+      setSelectedUnitId(PROPERTY_LEVEL_UNIT_ID);
+    }
+  }, [selectedPropertyId, properties]);
 
   // Load tasks when property is selected (or when editing with a property)
   useEffect(() => {

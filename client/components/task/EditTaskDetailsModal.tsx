@@ -20,6 +20,7 @@ interface SimpleProperty {
   address_line1?: string | null;
   city?: string | null;
   state?: string | null;
+  property_type?: string | null;
 }
 
 interface SimpleUnit {
@@ -119,6 +120,14 @@ export default function EditTaskDetailsModal({
       cancelled = true;
     };
   }, [open, selectedPropertyId]);
+
+  useEffect(() => {
+    if (selectedPropertyId == null) return;
+    const selected = properties.find((p) => p.id === selectedPropertyId);
+    if (selected?.property_type === "C") {
+      setSelectedUnitId(PROPERTY_LEVEL_UNIT_ID);
+    }
+  }, [selectedPropertyId, properties]);
 
   // Initialize form data when modal opens (only when transitioning from closed to open)
   useEffect(() => {

@@ -48,7 +48,13 @@ export function usePageState<T>(key: string, initialValue: T): [T, (value: T) =>
       // Provider does a deep merge on pageState, so this only writes `key`.
       setTabMetadata(selectedTab, { pageState: { [key]: next } });
     },
-    [selectedTab, setTabMetadata, key, tabMetadata],
+    // `tabMetadata` is intentionally excluded — the body never reads it, and
+    // including it makes `setValue`'s identity churn on every page-state write.
+    // That breaks any caller that uses the setter in a useEffect dep array
+    // (e.g. on-unmount cleanups that reset modal state) by triggering their
+    // cleanup the moment the modal opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedTab, setTabMetadata, key],
   );
 
   return [value, setValue];

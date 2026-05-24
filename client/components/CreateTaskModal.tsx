@@ -38,6 +38,7 @@ interface SimpleProperty {
   city?: string | null;
   state?: string | null;
   locations_count?: number;
+  property_type?: string | null;
 }
 
 interface SimpleUnit {
@@ -238,6 +239,14 @@ export default function CreateTaskModal({
       cancelled = true;
     };
   }, [open, selectedPropertyId]);
+
+  useEffect(() => {
+    if (selectedPropertyId == null) return;
+    const selected = properties.find((p) => p.id === selectedPropertyId);
+    if (selected?.property_type === "C") {
+      setSelectedUnitId(PROPERTY_LEVEL_UNIT_ID);
+    }
+  }, [selectedPropertyId, properties]);
 
   useEffect(() => {
     if (!open || !editData) {
