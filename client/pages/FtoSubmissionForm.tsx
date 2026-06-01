@@ -2067,6 +2067,7 @@ export default function FtoSubmissionForm() {
                             onChange={(e) => {
                               if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
                               updateHourEntry(entry.id, "customTaskName", e.target.value);
+                              updateHourEntry(entry.id, "note", e.target.value);
                             }}
                             placeholder="Type a custom task name"
                             disabled={isApproved || (isViewingExistingSubmission && !isApproved)}

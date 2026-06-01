@@ -55,6 +55,7 @@ interface APITask {
   id: number;
   name: string;
   property_id: number;
+  description?: string;
 }
 
 interface APIWorkOrder {
@@ -629,7 +630,7 @@ export default function MaintenanceWorkOrders() {
   const [editingWorkOrderData, setEditingWorkOrderData] = useState<APIWorkOrder | null>(
     null,
   );
-  const [taskOptions, setTaskOptions] = useState<{ id: number; label: string; propertyId: number }[]>([]);
+  const [taskOptions, setTaskOptions] = useState<{ id: number; label: string; propertyId: number; name: string; description: string }[]>([]);
   const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] =
     usePageState("isCreateWorkOrderModalOpen", false);
 
@@ -997,7 +998,7 @@ export default function MaintenanceWorkOrders() {
         const apiData: APITask[] = Array.isArray(raw)
           ? raw
           : raw?.data ?? raw?.items ?? raw?.results ?? [];
-        setTaskOptions(apiData.map((t) => ({ id: t.id, label: t.name, propertyId: t.property_id })));
+        setTaskOptions(apiData.map((t) => ({ id: t.id, label: t.name, propertyId: t.property_id, name: t.name, description: t.description ?? "" })));
       } catch (error) {
         console.error("Error fetching tasks:", error);
         setTaskOptions([]);

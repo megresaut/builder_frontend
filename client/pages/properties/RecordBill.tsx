@@ -1657,6 +1657,9 @@ export const RecordBill = () => {
     sha256_pdf: string;
   } | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
+  // True while POST /vendors/bills/parse-pdf is in flight. Drives the
+  // small "Parsing bill…" indicator next to the file row.
+  const [parsingBill, setParsingBill] = useState(false);
 
   const ACCEPTED_FILE_TYPES = [".pdf", ".jpg", ".jpeg", ".png", ".msg", ".eml"];
   const isAcceptedFile = (file: File) => {
@@ -1674,6 +1677,82 @@ export const RecordBill = () => {
   const isMessageFile = (file: File) => {
     const name = file.name.toLowerCase();
     return name.endsWith(".msg") || name.endsWith(".eml");
+  };
+
+  // applyParsedBill takes the JSON shape returned by /vendors/bills/parse-pdf
+  // and overwrites the matching form fields. Per the "always overwrite" rule,
+  // every field that the parser returns replaces whatever the user had typed.
+  // Fields the parser couldn't determine (empty strings / null) are left
+  // alone so we don't blank out user input.
+  const applyParsedBill = (parsed: {
+    vendor_name?: string;
+    vendor_id?: number | null;
+    reference_number?: string;
+    invoice_date?: string;
+    due_date?: string;
+    line_items?: Array<{
+      description?: string;
+      amount_cents?: number;
+      property_id?: number | null;
+      gl_account_id?: number | null;
+    }>;
+    parse_confidence?: number;
+  }) => {
+    if (!parsed) return;
+
+    if (parsed.reference_number) {
+      setReferenceNumber(parsed.reference_number);
+    }
+    if (parsed.invoice_date) {
+      const d = new Date(parsed.invoice_date);
+      if (!isNaN(d.getTime())) {
+        setInvoiceDate(d);
+        setInvoiceDateInput(format(d, "MM/dd/yyyy"));
+        setInvoiceDateError("");
+      }
+    }
+    if (parsed.due_date) {
+      const d = new Date(parsed.due_date);
+      if (!isNaN(d.getTime())) {
+        setDueDate(d);
+        setDueDateInput(format(d, "MM/dd/yyyy"));
+        setDueDateError("");
+      }
+    }
+    if (parsed.vendor_id != null) {
+      const matched = vendors.find((v) => v.id === parsed.vendor_id);
+      if (matched) {
+        setSelectedVendor(matched);
+      }
+    }
+
+    if (Array.isArray(parsed.line_items) && parsed.line_items.length > 0) {
+      const formatTotal = (cents: number | undefined): string => {
+        if (!cents || cents <= 0) return "";
+        return `$${(cents / 100).toFixed(2)}`;
+      };
+      const newLines: LineItem[] = parsed.line_items.map((li, idx) => ({
+        id: Date.now() + idx,
+        property: li.property_id != null ? String(li.property_id) : "",
+        unit: "",
+        unitName: "",
+        description: li.description ?? "",
+        glAccount:
+          li.gl_account_id != null ? String(li.gl_account_id) : "",
+        upcharge: "",
+        total: formatTotal(li.amount_cents),
+      }));
+      setLineItems(newLines);
+    }
+
+    if (
+      typeof parsed.parse_confidence === "number" &&
+      parsed.parse_confidence < 50
+    ) {
+      toast.warning(
+        `Low-confidence parse (${parsed.parse_confidence}%) — please double-check the auto-filled fields.`,
+      );
+    }
   };
 
   const processFiles = async (files: FileList | null) => {
@@ -1725,6 +1804,35 @@ export const RecordBill = () => {
           pdf_object_key: data.pdf_object_key,
           sha256_pdf: data.sha256_pdf,
         });
+
+        // Auto-parse PDFs and images. .msg/.eml never reach this branch
+        // because they were converted to PDFs above only if they were
+        // images; .msg/.eml uploads skip the parser entirely.
+        const lowerName = rawFile.name.toLowerCase();
+        const isParseable =
+          lowerName.endsWith(".pdf") ||
+          lowerName.endsWith(".jpg") ||
+          lowerName.endsWith(".jpeg") ||
+          lowerName.endsWith(".png");
+        if (isParseable) {
+          setParsingBill(true);
+          try {
+            const parsed = await fetchJSON("/vendors/bills/parse-pdf", {
+              method: "POST",
+              body: JSON.stringify({ pdf_object_key: data.pdf_object_key }),
+            });
+            applyParsedBill(parsed);
+          } catch (parseErr) {
+            console.error("Bill parse failed:", parseErr);
+            toast.error(
+              parseErr instanceof Error
+                ? `Bill parse failed: ${parseErr.message}`
+                : "Bill parse failed",
+            );
+          } finally {
+            setParsingBill(false);
+          }
+        }
       } catch (err) {
         console.error("Upload failed:", err);
         alert(err instanceof Error ? err.message : "Upload failed");
@@ -1773,7 +1881,13 @@ export const RecordBill = () => {
       if (preview) {
         URL.revokeObjectURL(preview);
       }
-      return prev.filter((_, i) => i !== index);
+      const next = prev.filter((_, i) => i !== index);
+      // When the last file is gone, clear the matching server-side
+      // upload meta so a fresh upload doesn't re-use the stale object_key.
+      if (next.length === 0) {
+        setUploadedPdfMeta(null);
+      }
+      return next;
     });
   };
   
@@ -2220,6 +2334,30 @@ minHeight: 0,
                               </div>
                             </div>
                             <div className="flex items-center gap-2 ml-4">
+                              {parsingBill && (
+                                <span className="text-xs text-[#013764] flex items-center gap-1">
+                                  <svg
+                                    className="w-3 h-3 animate-spin"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <circle
+                                      className="opacity-25"
+                                      cx="12"
+                                      cy="12"
+                                      r="10"
+                                      stroke="currentColor"
+                                      strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                      className="opacity-75"
+                                      fill="currentColor"
+                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                  </svg>
+                                  Parsing bill…
+                                </span>
+                              )}
                               <button
                                 onClick={() => handleViewFile(file.file)}
                                 className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
@@ -2278,9 +2416,9 @@ minHeight: 0,
                 style={{ display: "flex", flexDirection: "column" }}
               >
                 <button
-                  onClick={closeViewer}
+                  onClick={handleDeleteFile}
                   className="absolute top-2 right-2 z-10 rounded-md p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200/80 transition-colors"
-                  title="Close"
+                  title="Delete file"
                 >
                   <svg
                     className="w-5 h-5"

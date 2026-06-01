@@ -35,6 +35,10 @@ export interface TaskOption {
   label: string;
   /** Property the task belongs to. When provided, the modal uses this instead of the top-level propertyId prop. */
   propertyId?: number;
+  /** Task name — used to autofill Work Order Name on selection. Falls back to `label` if not provided. */
+  name?: string;
+  /** Task description — used to autofill notes on selection when non-empty. */
+  description?: string;
 }
 
 interface CreateWorkOrderModalV2Props {
@@ -446,7 +450,22 @@ export default function CreateWorkOrderModalV2({
   }, [vendors, open, mode, initialData?.vendor]);
 
   const handleTaskChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, task: value }));
+    // Find matching option to autofill workOrderName + notes
+    const selected = taskOptions?.find((opt) => opt.id.toString() === value);
+    setFormData((prev) => {
+      if (!value) {
+        // Clearing task — don't clobber name/notes
+        return { ...prev, task: value };
+      }
+      const autoName = selected?.name ?? selected?.label;
+      const autoDesc = selected?.description?.trim();
+      return {
+        ...prev,
+        task: value,
+        workOrderName: autoName ?? prev.workOrderName,
+        notes: autoDesc ? autoDesc : prev.notes,
+      };
+    });
     if (errors.task) {
       setErrors((prev) => ({ ...prev, task: "" }));
     }

@@ -29,6 +29,7 @@ interface Task {
   updated: string;
   priority: string;
   assignees: Assignee[];
+  description?: string;
 }
 
 interface RecurringTask {
@@ -888,6 +889,7 @@ interface ApiTask {
   due_date: string | null;
   last_updated: string;
   assignees: Array<{ id: number; name: string; email?: string }>;
+  description?: string;
 }
 
 interface ApiRecurringItem {
@@ -980,6 +982,7 @@ function mapApiTaskToTask(a: ApiTask): Task {
         .toUpperCase()
         .slice(0, 3),
     })),
+    description: a.description ?? "",
   };
 }
 
@@ -2627,7 +2630,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         onOpenChange={setShowCreateWorkOrderModal}
         mode="create"
         propertyId={propertyId || undefined}
-        taskOptions={tasksList.map((t) => ({ id: t.id, label: t.title }))}
+        taskOptions={tasksList.map((t) => ({ id: t.id, label: t.title, name: t.title, description: t.description ?? "" }))}
       />
 
       {/* Create FTO Modal */}
