@@ -112,8 +112,8 @@ export default function FtoInspectionRunner() {
   const [expandedDropdownSections, setExpandedDropdownSections] = useState<Set<string>>(new Set());
 
   // New photo state (for the "add photo" form)
-  const [newPhotoFile, setNewPhotoFile] = useState<File | null>(null);
-  const [newPhotoPreview, setNewPhotoPreview] = useState<string | null>(null);
+  const [newPhotoFiles, setNewPhotoFiles] = useState<File[]>([]);
+  const [newPhotoPreviews, setNewPhotoPreviews] = useState<string[]>([]);
   const [newPhotoCondition, setNewPhotoCondition] = useState<string>("");
   const [newPhotoComment, setNewPhotoComment] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
@@ -256,24 +256,33 @@ export default function FtoInspectionRunner() {
   // --- Handlers ---
 
   const clearNewPhotoForm = () => {
-    if (newPhotoPreview) URL.revokeObjectURL(newPhotoPreview);
-    setNewPhotoFile(null);
-    setNewPhotoPreview(null);
+    newPhotoPreviews.forEach((url) => URL.revokeObjectURL(url));
+    setNewPhotoFiles([]);
+    setNewPhotoPreviews([]);
     setNewPhotoCondition("");
     setNewPhotoComment("");
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    clearNewPhotoForm();
-    setNewPhotoFile(file);
-    setNewPhotoPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    newPhotoPreviews.forEach((url) => URL.revokeObjectURL(url));
+    setNewPhotoFiles(files);
+    setNewPhotoPreviews(files.map((f) => URL.createObjectURL(f)));
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const handleRemovePendingPhoto = (index: number) => {
+    setNewPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewPhotoPreviews((prev) => {
+      const url = prev[index];
+      if (url) URL.revokeObjectURL(url);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
   const handleUploadPhoto = async () => {
-    if (!newPhotoFile || !activeNode || !inspectionId) return;
+    if (newPhotoFiles.length === 0 || !activeNode || !inspectionId) return;
 
     const cond =
       newPhotoCondition && ["good", "fair", "poor"].includes(newPhotoCondition)
@@ -286,7 +295,7 @@ export default function FtoInspectionRunner() {
         Number(inspectionId),
         activeNode.id,
         newPhotoComment || "",
-        [newPhotoFile],
+        newPhotoFiles,
         cond
       );
       // Refresh photos
@@ -634,7 +643,7 @@ export default function FtoInspectionRunner() {
                 <p className="text-sm font-medium text-gray-700">
                   Photos ({currentItemPhotos.length})
                 </p>
-                {!isReadOnly && !newPhotoFile && (
+                {!isReadOnly && newPhotoFiles.length === 0 && (
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -760,8 +769,8 @@ export default function FtoInspectionRunner() {
           {/* New photo upload area */}
           {!isReadOnly && (
             <div className="flex flex-col gap-4">
-              {/* Upload zone - show when no existing photos and no new photo selected, OR when there ARE existing photos but the + card won't be visible because newPhotoFile is set */}
-              {!newPhotoFile && currentItemPhotos.length === 0 && (
+              {/* Upload zone - show when no existing photos and no pending batch */}
+              {newPhotoFiles.length === 0 && currentItemPhotos.length === 0 && (
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors"
@@ -777,21 +786,39 @@ export default function FtoInspectionRunner() {
               )}
 
               {/* New photo preview + form */}
-              {newPhotoFile && newPhotoPreview && (
+              {newPhotoFiles.length > 0 && (
                 <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-                  {/* Preview */}
-                  <div className="relative aspect-video bg-gray-100">
-                    <img
-                      src={newPhotoPreview}
-                      alt="Preview"
-                      className="w-full h-full object-contain"
-                    />
-                    <button
-                      onClick={clearNewPhotoForm}
-                      className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm"
-                    >
-                      <X className="w-4 h-4 text-gray-600" />
-                    </button>
+                  {/* Preview grid */}
+                  <div className="p-3 bg-gray-50 border-b border-gray-200">
+                    <div className="grid grid-cols-3 gap-2">
+                      {newPhotoPreviews.map((url, idx) => (
+                        <div
+                          key={url}
+                          className="relative aspect-square bg-gray-100 rounded overflow-hidden"
+                        >
+                          <img
+                            src={url}
+                            alt={`Preview ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => handleRemovePendingPhoto(idx)}
+                            className="absolute top-1 right-1 p-1 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm"
+                            aria-label={`Remove photo ${idx + 1}`}
+                          >
+                            <X className="w-3 h-3 text-gray-600" />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="aspect-square border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-gray-400 hover:bg-gray-100 transition-colors"
+                        aria-label="Add more photos"
+                      >
+                        <Plus className="w-5 h-5" />
+                        <span className="text-[10px] font-medium">Add more</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Form */}
@@ -840,10 +867,14 @@ export default function FtoInspectionRunner() {
                     {/* Upload button */}
                     <button
                       onClick={handleUploadPhoto}
-                      disabled={isUploading}
+                      disabled={isUploading || newPhotoFiles.length === 0}
                       className="w-full px-4 py-2.5 bg-[#013764] text-white rounded-lg text-sm font-medium hover:bg-[#012a4e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {isUploading ? "Uploading..." : "Upload Photo"}
+                      {isUploading
+                        ? "Uploading..."
+                        : newPhotoFiles.length > 1
+                          ? `Upload ${newPhotoFiles.length} Photos`
+                          : "Upload Photo"}
                     </button>
                   </div>
                 </div>
@@ -853,6 +884,7 @@ export default function FtoInspectionRunner() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
                 onChange={handleFileSelect}
               />
