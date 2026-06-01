@@ -325,6 +325,7 @@ export const ActionButton = ({
 
   onEdit,
   onImport,
+  onUploadManual,
   onDelete,
   importing = false,
   onView,
@@ -338,6 +339,7 @@ export const ActionButton = ({
   onDelete?: () => void;
   // unified import signature to support both versions
   onImport?: (accountId?: number) => void | Promise<void>;
+  onUploadManual?: () => void;
   importing?: boolean;
 }) => {
   const showMenu = openMenuId === propertyId;
@@ -354,7 +356,7 @@ export const ActionButton = ({
 
         setMenuPos({
           top: rect.bottom + 8,
-          left: rect.right - 145,
+          left: rect.right - 175,
         });
       }
 
@@ -417,7 +419,7 @@ export const ActionButton = ({
             ref={menuRef}
             className="bg-white flex flex-col justify-center items-start gap-4 p-4"
             style={{
-              width: "145px",
+              width: "175px",
               border: "0.5px solid #DADADA",
               borderRadius: "8px",
               boxShadow:
@@ -491,6 +493,41 @@ export const ActionButton = ({
                 >
                   <path
                     d="M9 1.5V11.25M9 1.5L5.25 5.25M9 1.5L12.75 5.25M2.25 8.25V14.25C2.25 14.8023 2.48705 15.3 2.9051 15.6239C3.32315 15.9477 3.88437 16.125 4.5 16.125H13.5C14.1156 16.125 14.6768 15.9477 15.0949 15.6239C15.513 15.3 15.75 14.8023 15.75 14.25V8.25"
+                    stroke="#525252"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
+
+            {onUploadManual && (
+              <button
+                onClick={() => {
+                  onUploadManual();
+                  setOpenMenuId(null);
+                }}
+                className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
+              >
+                <span
+                  className="text-[#303030] font-normal text-base leading-[140%] tracking-[-0.32px] whitespace-nowrap"
+                  style={{
+                    fontFamily:
+                      "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                  }}
+                >
+                  Upload manually
+                </span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15.0875 8.06246L8.43748 14.7125C7.42498 15.725 5.78748 15.725 4.77498 14.7125C3.76248 13.7 3.76248 12.0625 4.77498 11.05L10.3625 5.46246C11.0375 4.78746 12.1313 4.78746 12.8063 5.46246C13.4813 6.13746 13.4813 7.23121 12.8063 7.90621L7.66248 13.05"
                     stroke="#525252"
                     strokeWidth="1.5"
                     strokeLinecap="round"
