@@ -13,6 +13,7 @@ import FieldTeamOrders from "./pages/FieldTeamOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
 import Bills from "./pages/Bills";
 import ChartOfAccounts from "./pages/ChartOfAccounts";
+import PrintChecks from "./pages/PrintChecks";
 import Reimbursements from "./pages/Reimbursements";
 import Reconciliation from "./pages/Reconciliation";
 import CreditCardReconciliationWorkspace from "./pages/CreditCardReconciliationWorkspace";
@@ -487,6 +488,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <Invoices />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/print-checks"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <PrintChecks />
                       </ShellLayout>
                     </RequireAuth>
                   }

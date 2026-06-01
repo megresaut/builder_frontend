@@ -66,6 +66,12 @@ interface Bill {
   receiptFilename?: string;
   receiptUploadedAt?: string;
 
+  // Check-printing state — populated by /utilities/bills/all from the
+  // latest bill_payments row when it's a check ('queued' or 'printed').
+  // NULL on regular electronic payments.
+  checkPrintStatus?: string;
+  checkNumber?: string;
+
   // 🔁 rename semantic meaning: reference number
   invoiceNumber: string;
 
@@ -148,6 +154,9 @@ function mapUtilityRowToBill(row: any): Bill {
     receiptObjectKey: row.receipt_object_key ?? undefined,
     receiptFilename: row.receipt_filename ?? undefined,
     receiptUploadedAt: row.receipt_uploaded_at ?? undefined,
+
+    checkPrintStatus: row.check_print_status ?? undefined,
+    checkNumber: row.check_number ?? undefined,
 
     // ⭐ this is the key
     isUtility: Boolean(row.provider_id),
@@ -1340,12 +1349,24 @@ export default function Bills() {
               if (columnKey === "exportedAt") {
                 const ts = bill.exportedAt ?? bill.importedAt;
                 const isPaid = !!bill.qboPaidAt;
+                const checkQueued = bill.checkPrintStatus === "queued";
+                const checkPrinted = bill.checkPrintStatus === "printed";
                 return (
                   <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full", isPaid ? "bg-green-500" : "bg-amber-500")} />
+                    <div className={cn("w-2 h-2 rounded-full", isPaid ? "bg-green-500" : checkQueued ? "bg-blue-500" : "bg-amber-500")} />
                     <span className="text-gray-900 font-normal text-sm">
                       {isPaid ? "Paid" : formatRelativeTime(ts)}
                     </span>
+                    {checkQueued && (
+                      <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-xs font-medium">
+                        Check queued
+                      </span>
+                    )}
+                    {checkPrinted && bill.checkNumber && (
+                      <span className="inline-flex items-center rounded-full bg-gray-50 text-gray-700 border border-gray-200 px-2 py-0.5 text-xs font-medium">
+                        Check #{bill.checkNumber}
+                      </span>
+                    )}
                   </div>
                 );
               }
