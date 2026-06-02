@@ -45,6 +45,9 @@ interface PayBillModalProps {
     qbo_billpayment_id: string;
     qbo_balance_cents: number | null;
     qbo_paid_at: string | null;
+    // 'queued' when the payment is a check awaiting printing (bill is NOT
+    // paid yet); undefined for an electronic transfer (paid immediately).
+    print_status?: string;
     // Echoed back so the caller can render the "Paid" panel without a refetch.
     paid_on?: string;
     paid_from_name?: string;
@@ -348,6 +351,7 @@ export default function PayBillModal({
         qbo_billpayment_id: data.qbo_billpayment_id ?? "",
         qbo_balance_cents: data.qbo_balance_cents ?? null,
         qbo_paid_at: data.qbo_paid_at ?? null,
+        print_status: usingCheck ? (data.print_status ?? "queued") : undefined,
         paid_on: txnDate || undefined,
         paid_from_name: selectedAccountName,
         paid_doc_number: docNumber || undefined,

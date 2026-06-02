@@ -87,51 +87,6 @@ export interface MatchPair {
   confidence: "exact" | "fuzzy_date";
 }
 
-export interface StatementMatchResponse {
-  account: CreditCardAccount;
-  start_date: string;
-  end_date: string;
-  statement_total_cents: number;
-  qbo_total_cents: number;
-  matched: MatchPair[];
-  unmatched_statement: StatementRow[];
-  unmatched_qbo: CreditCardActivityRow[];
-  warnings?: string[];
-}
-
-export async function uploadStatementForMatch(
-  coaID: number,
-  startDate: string,
-  endDate: string,
-  file: File,
-): Promise<StatementMatchResponse> {
-  const form = new FormData();
-  form.append("file", file);
-  form.append("start_date", startDate);
-  form.append("end_date", endDate);
-  const res = await authFetch(
-    `/reconciliation/credit-cards/${coaID}/statement-match`,
-    {
-      method: "POST",
-      body: form,
-    },
-  );
-  if (!res.ok) {
-    const text = await res.text();
-    let message = text;
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed && typeof parsed === "object") {
-        message = parsed.error || parsed.message || text;
-      }
-    } catch {
-      // raw text fallback
-    }
-    throw new Error(message || `Upload failed (${res.status})`);
-  }
-  return (await res.json()) as StatementMatchResponse;
-}
-
 // qboReconcileURL is the deep-link to QBO's reconcile screen for a given
 // account. QBO routes to the banking center if the URL fails to match its
 // internal pattern; either landing is one click from the reconcile flow.

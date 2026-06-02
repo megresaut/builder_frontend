@@ -388,6 +388,11 @@ const buildBillState = (bill: Bill) => ({
   qboBillId: bill.qboBillId,
   buildiumBillId: bill.buildiumBillId,
 
+  // Check-printing state — a queued (not-yet-printed) check means the bill
+  // has a payment in-flight. Passed through so RecordBill can suppress the
+  // "Pay Bill" button and avoid a double payment.
+  checkPrintStatus: bill.checkPrintStatus,
+
   // Payment metadata for the View Payment modal
   buildiumBillPaymentId: bill.buildiumBillPaymentId,
   paidOn: bill.paidOn,

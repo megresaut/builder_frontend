@@ -82,6 +82,8 @@ interface ViewBillState {
   paidFromName?: string;
   paidDocNumber?: string;
   paidMemo?: string;
+  // 'queued' = a check is awaiting printing; 'printed' = printed/paid.
+  checkPrintStatus?: string;
 }
 
 interface BillAttachment {
@@ -536,6 +538,7 @@ export const RecordBill = () => {
     paidFromName?: string;
     paidDocNumber?: string;
     paidMemo?: string;
+    checkPrintStatus?: string;
     receiptObjectKey?: string | null;
     receiptFilename?: string | null;
     receiptMime?: string | null;
@@ -553,6 +556,7 @@ export const RecordBill = () => {
     paidFromName: stateBill?.paidFromName,
     paidDocNumber: stateBill?.paidDocNumber,
     paidMemo: stateBill?.paidMemo,
+    checkPrintStatus: stateBill?.checkPrintStatus,
   });
   const [lineItems, setLineItems] = useState<LineItem[]>(
     isReadOnly
@@ -3312,25 +3316,42 @@ minHeight: 0,
                 !!qboPaymentState.buildiumBillId;
               const buildiumHasPayment = !!qboPaymentState.buildiumBillPaymentId;
 
+              // A check has been queued for printing but not yet printed. The
+              // QBO BillPayment exists (PrintStatus=NeedToPrint) so the money
+              // is effectively committed — paying again here would double-pay.
+              const checkQueued =
+                qboPaymentState.checkPrintStatus === "queued";
+              // A printed check is a completed payment — the bill is paid even
+              // if the local qbo_balance_cents mirror hasn't caught up (the QBO
+              // webhook may not be wired). Treat it as paid so we never re-show
+              // Pay Bill on an already-paid-by-check bill.
+              const checkPrinted =
+                qboPaymentState.checkPrintStatus === "printed";
+
               // Outstanding = QBO balance > 0 OR (Buildium-only bill with no
               // payment yet). The Buildium-only partial-payment case isn't
-              // tracked here yet; once paid we hide the Pay button.
+              // tracked here yet; once paid we hide the Pay button. A queued or
+              // printed check also blocks payment.
               const canPay =
                 !qboPaymentState.qboPaidAt &&
+                !checkQueued &&
+                !checkPrinted &&
                 (qboHasOutstanding || (buildiumOnly && !buildiumHasPayment));
 
               // Any payment recorded → show View Payments. Either a QBO
-              // payment partial-paid the bill, or there's a Buildium payment
-              // on file.
+              // payment partial-paid the bill, there's a Buildium payment on
+              // file, or a check was printed.
               const hasAnyPayment =
                 (qboPaymentState.qboTotalCents != null &&
                   qboPaymentState.qboBalanceCents != null &&
                   qboPaymentState.qboBalanceCents <
                     qboPaymentState.qboTotalCents) ||
-                buildiumHasPayment;
+                buildiumHasPayment ||
+                checkPrinted;
 
               const fullyPaid =
                 qboPaymentState.qboBalanceCents === 0 ||
+                checkPrinted ||
                 (buildiumOnly && buildiumHasPayment);
 
               return (
@@ -3349,6 +3370,24 @@ minHeight: 0,
                               stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                       <span className="text-sm">Pay Bill</span>
+                    </button>
+                  )}
+                  {formDisabled && checkQueued && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate("/accounting/print-checks");
+                      }}
+                      title="A check is queued for this bill. Print it from Accounting → Print Checks."
+                      className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-blue-50 text-blue-700 border border-blue-300 font-medium hover:bg-blue-100"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4.5 6.75V2.25h9v4.5M4.5 13.5H3a1.5 1.5 0 0 1-1.5-1.5V8.25A1.5 1.5 0 0 1 3 6.75h12a1.5 1.5 0 0 1 1.5 1.5V12a1.5 1.5 0 0 1-1.5 1.5h-1.5M4.5 11.25h9v4.5h-9v-4.5Z"
+                              stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="text-sm">Check queued · Print Checks</span>
                     </button>
                   )}
                   {formDisabled && hasAnyPayment && (
@@ -3391,14 +3430,16 @@ minHeight: 0,
 
             {/* Exported pill — only in pure readOnly (not editing). When
                 editing this is replaced by Save & Re-export below. */}
-            {formDisabled && !qboPaymentState.qboPaidAt && (
-              <button
-                disabled
-                className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-gray-300 text-gray-500 cursor-not-allowed"
-              >
-                <span>Exported to Buildium</span>
-              </button>
-            )}
+            {formDisabled &&
+              !qboPaymentState.qboPaidAt &&
+              qboPaymentState.checkPrintStatus !== "printed" && (
+                <button
+                  disabled
+                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-gray-300 text-gray-500 cursor-not-allowed"
+                >
+                  <span>Exported to Buildium</span>
+                </button>
+              )}
 
             {/* Edit-mode footer: Cancel Edit + Save & Re-export. Save calls
                 PATCH /vendors/bills/{id} which dual-pushes to QBO + Buildium
@@ -3572,8 +3613,19 @@ minHeight: 0,
             propertyType: billProperty?.property_type ?? null,
           }}
           onPaid={(result) => {
-            // Optimistically populate the payment state so the View Payment
-            // modal renders fresh data without a refetch.
+            // A queued check is NOT a completed payment — the bill stays
+            // unpaid until the check is printed. Flip the footer to the
+            // "Check queued" state instead of marking it paid, so we don't
+            // expose the Pay Bill button again (double-payment risk).
+            if (result.print_status === "queued") {
+              setQboPaymentState((prev) => ({
+                ...prev,
+                checkPrintStatus: "queued",
+              }));
+              return;
+            }
+            // Electronic transfer: optimistically populate the payment state
+            // so the View Payment modal renders fresh data without a refetch.
             setQboPaymentState((prev) => ({
               ...prev,
               qboPaidAt: result.qbo_paid_at ?? new Date().toISOString(),
