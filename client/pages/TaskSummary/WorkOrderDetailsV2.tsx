@@ -159,6 +159,8 @@ interface ApiWorkOrder {
   estimate_labor?: number;
   estimate_tax_rate?: number;
   estimate_tax_amount?: number;
+  estimate_tax_exempt_parts?: boolean;
+  estimate_tax_exempt_labor?: boolean;
   actual_cost?: number;
   dispatched_at?: string;
   completed_at?: string;
@@ -744,6 +746,8 @@ export default function WorkOrderDetailsV2({
       setEstimateLabor(apiWorkOrder.estimate_labor ?? null);
       setEstimateTaxRate(apiWorkOrder.estimate_tax_rate ?? null);
       setEstimateTaxAmount(apiWorkOrder.estimate_tax_amount ?? null);
+      setEstimateTaxExemptParts(apiWorkOrder.estimate_tax_exempt_parts ?? false);
+      setEstimateTaxExemptLabor(apiWorkOrder.estimate_tax_exempt_labor ?? false);
       // Map attachments to files
       if (apiWorkOrder.attachments && apiWorkOrder.attachments.length > 0) {
         const mappedFiles: File[] =
@@ -906,6 +910,10 @@ export default function WorkOrderDetailsV2({
   const [estimateLabor, setEstimateLabor] = useState<number | null>(null);
   const [estimateTaxRate, setEstimateTaxRate] = useState<number | null>(null);
   const [estimateTaxAmount, setEstimateTaxAmount] = useState<number | null>(null);
+  // When true, that component is excluded from the tax base (some vendors'
+  // labor or parts are tax-exempt). Persisted as NOT NULL booleans server-side.
+  const [estimateTaxExemptParts, setEstimateTaxExemptParts] = useState(false);
+  const [estimateTaxExemptLabor, setEstimateTaxExemptLabor] = useState(false);
   const [draftEstimateTotal, setDraftEstimateTotal] = useState<number>(0);
   // Parts/labor/tax are optional breakdowns. null in draft state = field blank.
   const [draftEstimateParts, setDraftEstimateParts] = useState<number | null>(null);
@@ -914,6 +922,8 @@ export default function WorkOrderDetailsV2({
   // computed dollars snapshotted at save time.
   const [draftEstimateTaxRate, setDraftEstimateTaxRate] = useState<number | null>(null);
   const [draftEstimateTaxAmount, setDraftEstimateTaxAmount] = useState<number | null>(null);
+  const [draftEstimateTaxExemptParts, setDraftEstimateTaxExemptParts] = useState(false);
+  const [draftEstimateTaxExemptLabor, setDraftEstimateTaxExemptLabor] = useState(false);
   // Track whether the user manually edited the total so we can stop auto-syncing
   // total = parts + labor + tax after an explicit override.
   const [totalManuallyEdited, setTotalManuallyEdited] = useState(false);
@@ -928,8 +938,36 @@ export default function WorkOrderDetailsV2({
     setDraftEstimateLabor(estimateLabor);
     setDraftEstimateTaxRate(estimateTaxRate);
     setDraftEstimateTaxAmount(estimateTaxAmount);
+    setDraftEstimateTaxExemptParts(estimateTaxExemptParts);
+    setDraftEstimateTaxExemptLabor(estimateTaxExemptLabor);
     setTotalManuallyEdited(false);
     setIsEstimateTotalModalOpen(true);
+  };
+
+  // Tax applies only to the non-exempt components. Total always reflects the
+  // full Parts + Labor (exempt components still cost money) plus the tax.
+  const taxableBase = (
+    parts: number,
+    labor: number,
+    exemptParts: boolean,
+    exemptLabor: boolean,
+  ) => (exemptParts ? 0 : parts) + (exemptLabor ? 0 : labor);
+
+  const recomputeTaxAndTotal = (
+    parts: number,
+    labor: number,
+    rate: number | null,
+    exemptParts: boolean,
+    exemptLabor: boolean,
+  ) => {
+    const tax =
+      rate != null
+        ? Math.round(taxableBase(parts, labor, exemptParts, exemptLabor) * rate) / 100
+        : 0;
+    setDraftEstimateTaxAmount(rate != null ? tax : null);
+    if (!totalManuallyEdited) {
+      setDraftEstimateTotal(parts + labor + tax);
+    }
   };
 
   const handleSaveEstimateTotal = async () => {
@@ -956,6 +994,9 @@ export default function WorkOrderDetailsV2({
       if (draftEstimateLabor !== null) payload.estimate_labor = draftEstimateLabor;
       if (draftEstimateTaxRate !== null) payload.estimate_tax_rate = draftEstimateTaxRate;
       if (draftEstimateTaxAmount !== null) payload.estimate_tax_amount = draftEstimateTaxAmount;
+      // Booleans are always sent — false is a meaningful value (tax applies).
+      payload.estimate_tax_exempt_parts = draftEstimateTaxExemptParts;
+      payload.estimate_tax_exempt_labor = draftEstimateTaxExemptLabor;
 
       await fetchJSON(`/maintenance/work-orders/${workOrderId}`, {
         method: "PATCH",
@@ -969,7 +1010,9 @@ export default function WorkOrderDetailsV2({
       setEstimateLabor(draftEstimateLabor);
       setEstimateTaxRate(draftEstimateTaxRate);
       setEstimateTaxAmount(draftEstimateTaxAmount);
-      
+      setEstimateTaxExemptParts(draftEstimateTaxExemptParts);
+      setEstimateTaxExemptLabor(draftEstimateTaxExemptLabor);
+
       // Refresh work order data to get updated timestamp
       try {
         const refreshedData = await fetchJSON(`/maintenance/work-orders/${workOrderId}`);
@@ -985,6 +1028,8 @@ export default function WorkOrderDetailsV2({
         setEstimateLabor(refreshedData.estimate_labor ?? null);
         setEstimateTaxRate(refreshedData.estimate_tax_rate ?? null);
         setEstimateTaxAmount(refreshedData.estimate_tax_amount ?? null);
+        setEstimateTaxExemptParts(refreshedData.estimate_tax_exempt_parts ?? false);
+        setEstimateTaxExemptLabor(refreshedData.estimate_tax_exempt_labor ?? false);
       } catch (err) {
         console.error("Failed to refresh work order after update:", err);
       }
@@ -1718,7 +1763,9 @@ export default function WorkOrderDetailsV2({
                     <div className="mt-2 flex flex-col gap-1 w-full max-w-[220px] text-xs">
                       {estimateParts !== null && (
                         <div className="flex justify-between">
-                          <span className="text-[#717179]">Parts</span>
+                          <span className="text-[#717179]">
+                            Parts{estimateTaxExemptParts ? " (tax-exempt)" : ""}
+                          </span>
                           <span className="text-[#303030] font-medium">
                             {formatUSD(estimateParts)}
                           </span>
@@ -1726,7 +1773,9 @@ export default function WorkOrderDetailsV2({
                       )}
                       {estimateLabor !== null && (
                         <div className="flex justify-between">
-                          <span className="text-[#717179]">Labor</span>
+                          <span className="text-[#717179]">
+                            Labor{estimateTaxExemptLabor ? " (tax-exempt)" : ""}
+                          </span>
                           <span className="text-[#303030] font-medium">
                             {formatUSD(estimateLabor)}
                           </span>
@@ -2221,20 +2270,39 @@ export default function WorkOrderDetailsV2({
                 setDraftEstimateParts(n);
                 // Auto-sync total = parts + labor + tax unless the user has
                 // manually edited total since opening the modal. Tax recomputes
-                // off the new base so the displayed amount stays in sync.
-                const labor = draftEstimateLabor ?? 0;
-                const rate = draftEstimateTaxRate;
-                const tax = rate != null ? Math.round((n + labor) * rate) / 100 : 0;
-                setDraftEstimateTaxAmount(rate != null ? tax : null);
-                if (!totalManuallyEdited) {
-                  setDraftEstimateTotal(n + labor + tax);
-                }
+                // off the non-exempt base so the displayed amount stays in sync.
+                recomputeTaxAndTotal(
+                  n,
+                  draftEstimateLabor ?? 0,
+                  draftEstimateTaxRate,
+                  draftEstimateTaxExemptParts,
+                  draftEstimateTaxExemptLabor,
+                );
               }}
               showCurrencySymbol={true}
               currencySymbol="$"
               decimalPlaces={2}
               placeholder="$0.00"
             />
+            <label className="flex items-center gap-2 mt-2 text-xs text-[#525252] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={draftEstimateTaxExemptParts}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setDraftEstimateTaxExemptParts(checked);
+                  recomputeTaxAndTotal(
+                    draftEstimateParts ?? 0,
+                    draftEstimateLabor ?? 0,
+                    draftEstimateTaxRate,
+                    checked,
+                    draftEstimateTaxExemptLabor,
+                  );
+                }}
+                className="h-4 w-4 rounded border-[#e5e5e5] text-[#2463eb] focus:ring-[#2463eb]"
+              />
+              Parts are tax-exempt
+            </label>
           </ModalField>
           <ModalField label="Labor (optional)">
             <CurrencyField
@@ -2243,23 +2311,51 @@ export default function WorkOrderDetailsV2({
               onChange={(value) => {
                 const n = Number(value) || 0;
                 setDraftEstimateLabor(n);
-                const parts = draftEstimateParts ?? 0;
-                const rate = draftEstimateTaxRate;
-                const tax = rate != null ? Math.round((parts + n) * rate) / 100 : 0;
-                setDraftEstimateTaxAmount(rate != null ? tax : null);
-                if (!totalManuallyEdited) {
-                  setDraftEstimateTotal(parts + n + tax);
-                }
+                recomputeTaxAndTotal(
+                  draftEstimateParts ?? 0,
+                  n,
+                  draftEstimateTaxRate,
+                  draftEstimateTaxExemptParts,
+                  draftEstimateTaxExemptLabor,
+                );
               }}
               showCurrencySymbol={true}
               currencySymbol="$"
               decimalPlaces={2}
               placeholder="$0.00"
             />
+            <label className="flex items-center gap-2 mt-2 text-xs text-[#525252] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={draftEstimateTaxExemptLabor}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setDraftEstimateTaxExemptLabor(checked);
+                  recomputeTaxAndTotal(
+                    draftEstimateParts ?? 0,
+                    draftEstimateLabor ?? 0,
+                    draftEstimateTaxRate,
+                    draftEstimateTaxExemptParts,
+                    checked,
+                  );
+                }}
+                className="h-4 w-4 rounded border-[#e5e5e5] text-[#2463eb] focus:ring-[#2463eb]"
+              />
+              Labor is tax-exempt
+            </label>
           </ModalField>
           {(() => {
-            const base = (draftEstimateParts ?? 0) + (draftEstimateLabor ?? 0);
-            const taxDisabled = base <= 0;
+            const parts = draftEstimateParts ?? 0;
+            const labor = draftEstimateLabor ?? 0;
+            const fullBase = parts + labor;
+            const taxBase = taxableBase(
+              parts,
+              labor,
+              draftEstimateTaxExemptParts,
+              draftEstimateTaxExemptLabor,
+            );
+            // Tax needs a non-exempt base to apply to.
+            const taxDisabled = taxBase <= 0;
             return (
               <ModalField label="Tax rate (optional)">
                 <div className="flex items-center gap-2">
@@ -2278,17 +2374,17 @@ export default function WorkOrderDetailsV2({
                         setDraftEstimateTaxRate(null);
                         setDraftEstimateTaxAmount(null);
                         if (!totalManuallyEdited) {
-                          setDraftEstimateTotal(base);
+                          setDraftEstimateTotal(fullBase);
                         }
                         return;
                       }
                       const rate = Number(raw);
                       if (Number.isNaN(rate)) return;
                       setDraftEstimateTaxRate(rate);
-                      const tax = Math.round(base * rate) / 100;
+                      const tax = Math.round(taxBase * rate) / 100;
                       setDraftEstimateTaxAmount(tax);
                       if (!totalManuallyEdited) {
-                        setDraftEstimateTotal(base + tax);
+                        setDraftEstimateTotal(fullBase + tax);
                       }
                     }}
                     className="flex-1 h-10 rounded-md border border-[#e5e5e5] px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2463eb] disabled:bg-[#f5f5f5] disabled:text-[#a1a1a1]"
@@ -2297,11 +2393,17 @@ export default function WorkOrderDetailsV2({
                 </div>
                 {taxDisabled ? (
                   <div className="text-xs text-[#717179] mt-1">
-                    Add Parts or Labor to apply tax.
+                    {fullBase > 0
+                      ? "Parts and Labor are both tax-exempt — no taxable amount."
+                      : "Add Parts or Labor to apply tax."}
                   </div>
                 ) : draftEstimateTaxAmount != null ? (
                   <div className="text-xs text-[#717179] mt-1">
                     Tax: {formatUSD(draftEstimateTaxAmount)}
+                    {(draftEstimateTaxExemptParts || draftEstimateTaxExemptLabor) &&
+                      ` (on ${
+                        draftEstimateTaxExemptLabor ? "Parts" : "Labor"
+                      } only)`}
                   </div>
                 ) : null}
               </ModalField>
