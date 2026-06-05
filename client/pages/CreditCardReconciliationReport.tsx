@@ -270,6 +270,7 @@ export default function CreditCardReconciliationReport() {
               <thead className="bg-[#FAFAFA] text-xs text-[#717179] uppercase tracking-wide">
                 <tr>
                   <th className="px-4 py-2 text-left font-medium">Date</th>
+                  <th className="px-4 py-2 text-left font-medium">Source</th>
                   <th className="px-4 py-2 text-left font-medium">Type</th>
                   <th className="px-4 py-2 text-left font-medium">Doc #</th>
                   <th className="px-4 py-2 text-left font-medium">Vendor</th>
@@ -285,6 +286,9 @@ export default function CreditCardReconciliationReport() {
                     <tr key={line.id} className="hover:bg-[#F8F8F8]">
                       <td className="px-4 py-2 text-[#303030] whitespace-nowrap">
                         {line.txn_date}
+                      </td>
+                      <td className="px-4 py-2 text-[#303030] uppercase text-xs">
+                        {line.source_system === "buildium" ? "Buildium" : "QBO"}
                       </td>
                       <td className="px-4 py-2 text-[#303030]">
                         {line.qbo_txn_type}

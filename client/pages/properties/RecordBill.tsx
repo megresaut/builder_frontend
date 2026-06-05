@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTabNavigation } from "@/hooks/useTabContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -406,6 +406,9 @@ const middleTruncate = (
 
 export const RecordBill = () => {
   const [searchParams] = useSearchParams();
+  // When opened from a property's Bills tab (/property/:propertyId/bills/record),
+  // prefill the first line item's property with that property.
+  const { propertyId: routePropertyId } = useParams<{ propertyId: string }>();
   // const billId = searchParams.get("billId");
   const navigate = useNavigate();
   const { goBack } = useTabNavigation();
@@ -444,6 +447,14 @@ export const RecordBill = () => {
   const isEditingDraft = billId !== null;
 
   const stateBill = location.state?.bill;
+
+  // Reconciliation return context: when this page was opened from the CC
+  // reconciliation workspace to book a bill for an unmatched statement row, we
+  // carry the statement row through so that on successful create we hand the new
+  // bill id back to the workspace, which auto-pays it from the card + pairs it.
+  const reconcileContext = location.state?.reconcile as
+    | { statementRow: unknown }
+    | undefined;
 
   const readOnlyBill = isReadOnly
     ? buildReadOnlyBillFromState(stateBill)
@@ -564,7 +575,8 @@ export const RecordBill = () => {
       : (editableBill?.lineItems ?? [
           {
             id: 1,
-            property: "",
+            // Prefill from the property whose Bills tab launched Record Bill.
+            property: routePropertyId ?? "",
             unit: "",
             unitName: "",
             description: "",
@@ -1490,9 +1502,22 @@ export const RecordBill = () => {
         })
       );
   
-      // Close page
+      // Close page. When we came from the reconciliation workspace, return the
+      // new bill id + statement row so it can auto-pay from the card + pair.
       if (returnTo) {
-        navigate(returnTo);
+        navigate(
+          returnTo,
+          reconcileContext
+            ? {
+                state: {
+                  reconcilePay: {
+                    billId: approvedBillId,
+                    statementRow: reconcileContext.statementRow,
+                  },
+                },
+              }
+            : undefined,
+        );
       } else {
         returnToReferrer();
       }
@@ -1942,6 +1967,14 @@ export const RecordBill = () => {
     },
     [unitsByProperty]
   );
+
+  // Preload units for the property prefilled from the route, so the Unit
+  // dropdown is ready immediately when launched from a property's Bills tab.
+  useEffect(() => {
+    if (routePropertyId && !isReadOnly && !isEditingDraft) {
+      loadUnitsForProperty(routePropertyId);
+    }
+  }, [routePropertyId, isReadOnly, isEditingDraft, loadUnitsForProperty]);
 
   const loadWorkOrdersForProperty = useCallback(
     async (propertyIdStr: string) => {

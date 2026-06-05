@@ -51,6 +51,18 @@ interface InvoicePreviewModalProps {
   qboPushStatus?: string | null;
   qboLastError?: string | null;
   onRetryQBOSync?: () => void;
+  // Line-void (migration 090). When the invoice is sent/paid and onVoidLine is
+  // provided, the per-line remove control bubbles the backend
+  // invoice_line_items.id up to the parent, which runs the void-confirm dialog
+  // (base+markup preview, new total, close-out flag) instead of the draft-only
+  // client-side remove.
+  invoiceStatus?: InvoiceLifecycleStatus;
+  onVoidLine?: (lineId: number) => void;
+  // Auto re-export (after a void): when true, the modal renders the updated
+  // invoice, generates a fresh PDF, and hands the blob to onReExport — the
+  // parent uploads + re-attaches it to the QBO invoice, then closes the modal.
+  autoReExport?: boolean;
+  onReExport?: (pdfBlob: Blob) => void | Promise<void>;
 }
 
 export default function InvoicePreviewModal({
@@ -71,6 +83,10 @@ export default function InvoicePreviewModal({
   qboPushStatus,
   qboLastError,
   onRetryQBOSync,
+  invoiceStatus,
+  onVoidLine,
+  autoReExport,
+  onReExport,
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] =
@@ -148,6 +164,24 @@ export default function InvoicePreviewModal({
 
   const handleRemoveLineItem = (id: number) => {
     setLineItems(lineItems.filter((item) => item.id !== id));
+  };
+
+  // On an issued (sent/paid) invoice the per-line control voids server-side
+  // rather than just dropping the row from the local PDF. The void recomputes
+  // the total and re-syncs the reduced invoice to QBO; the parent reloads.
+  const isIssuedInvoice =
+    invoiceStatus === "sent" || invoiceStatus === "paid";
+  const canVoidLines = isIssuedInvoice && typeof onVoidLine === "function";
+
+  const handleLineRemoveOrVoid = (id: number) => {
+    if (canVoidLines) {
+      // Issued invoice: hand the backend line id to the parent, which opens the
+      // void-confirm dialog (shows base+markup, new total, close-out) and calls
+      // the void endpoint. Draft invoices fall through to the local remove.
+      onVoidLine!(id);
+      return;
+    }
+    handleRemoveLineItem(id);
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -714,7 +748,29 @@ export default function InvoicePreviewModal({
       .from(container)
       .outputPdf("blob");
   };
-  
+
+  // Auto re-export after a void: once the modal is open with the updated lines
+  // rendered, generate a fresh PDF and hand it to the parent (which re-attaches
+  // it to QBO). The delay lets the invoice DOM settle with the new line set.
+  useEffect(() => {
+    if (!open || !autoReExport || typeof onReExport !== "function") return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const blob = await generatePdfBlob();
+        if (!cancelled) await onReExport(blob);
+      } catch (err) {
+        console.error("[invoice] auto re-export failed", err);
+      }
+    }, 700);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // generatePdfBlob/onReExport are stable enough for this one-shot effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, autoReExport]);
+
 
   const handleCommit = async () => {
     if (pendingUnapprovedCount > 0) {
@@ -1240,7 +1296,7 @@ export default function InvoicePreviewModal({
                           {formatAmountWithCommas(item.amount)}
                         </span>
                         <button
-                          onClick={() => handleRemoveLineItem(item.id)}
+                          onClick={() => handleLineRemoveOrVoid(item.id)}
                           className="no-print"
                           style={{
                             position: "absolute",
@@ -1257,7 +1313,7 @@ export default function InvoicePreviewModal({
                             padding: "0 4px",
                             lineHeight: "1",
                           }}
-                          title="Remove line item"
+                          title={canVoidLines ? "Void line item" : "Remove line item"}
                         >
                           ×
                         </button>

@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTabNavigation } from "@/hooks/useTabContext";
+import { ConciergeGLPicker } from "@/components/ConciergeGLPicker";
+import { BuildiumGLPicker } from "@/components/BuildiumGLPicker";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
@@ -72,7 +74,14 @@ interface ExpenseRow {
   materialIndex: number;
   attachmentIds: number[];
   submissionHasAttachments: boolean;
+  /** GL ref — exactly one is populated, chosen by the property's type (mirrors
+   *  Record Bill): glAccountId (canonical COA / fallback), qboItemId (concierge
+   *  passthrough Item), or buildiumAccountId (non-concierge direct Buildium GL). */
   glAccountId: string;
+  qboItemId: string;
+  qboItemName: string;
+  buildiumAccountId: string;
+  buildiumAccountName: string;
   /** Set when expense was exported to Buildium (AVMRE only); used to disable re-approve */
   exportedToBuildium?: boolean;
   /** ID of the bills row created from this expense (idempotency on re-approve) */
@@ -104,8 +113,12 @@ interface ExpenseLine {
   amount_cents: number;
   upcharge_cents?: number;
   expense_type?: "personal-expense" | "avm-expense" | "client-expense";
-  /** Optional: only present when booking to AVMRE */
+  /** GL ref persisted in materials_json — exactly one is set (see ExpenseRow). */
   gl_account_id?: string;
+  qbo_item_id?: string;
+  qbo_item_name?: string;
+  buildium_account_id?: string;
+  buildium_account_name?: string;
   exported_to_buildium?: boolean;
   /** ID of bills row created from this material; set on successful dual-push */
   bill_id?: number;
@@ -332,7 +345,16 @@ const buildMaterialsJSON = (
     };
     if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
     if (includeAvmreFields) {
+      // Persist whichever GL ref the property-type-aware picker populated.
       if (row.glAccountId) out.gl_account_id = row.glAccountId;
+      if (row.qboItemId) {
+        out.qbo_item_id = row.qboItemId;
+        if (row.qboItemName) out.qbo_item_name = row.qboItemName;
+      }
+      if (row.buildiumAccountId) {
+        out.buildium_account_id = row.buildiumAccountId;
+        if (row.buildiumAccountName) out.buildium_account_name = row.buildiumAccountName;
+      }
       out.exported_to_buildium = row.exportedToBuildium ?? false;
       if (row.billId) out.bill_id = row.billId;
     }
@@ -855,6 +877,20 @@ export default function ApproveFTOPage() {
     [glAccountOptions, glSearch],
   );
 
+  // GL picker variant + per-row validation key off the FTO property's type,
+  // mirroring Record Bill: concierge (C) → QBO passthrough Items, non-concierge
+  // (R/OR/HOA/COMM) → Buildium CSV accounts, unknown/not-yet-loaded → canonical
+  // chart_of_accounts fallback.
+  const propertyType = propertyBuildiumDetails?.property_type ?? "";
+  const isConciergeProperty = propertyType === "C";
+  const hasNonConciergeProperty = propertyType !== "" && propertyType !== "C";
+  const expenseGLMissing = (row: ExpenseRow) =>
+    isConciergeProperty
+      ? !row.qboItemId
+      : hasNonConciergeProperty
+        ? !row.buildiumAccountId
+        : !row.glAccountId;
+
   // Live vendors for expense section (paginated, same pattern as work order menu)
   const [isExpenseVendorDropdownOpen, setIsExpenseVendorDropdownOpen] = useState(false);
   const vendorPageSize = 50;
@@ -1222,6 +1258,10 @@ export default function ApproveFTOPage() {
                     assignee: assigneeById[submission.FieldTeamMemberID] || "",
                     assigneeId: submission.FieldTeamMemberID,
                     glAccountId: expense.gl_account_id ?? "",
+                    qboItemId: expense.qbo_item_id ?? "",
+                    qboItemName: expense.qbo_item_name ?? "",
+                    buildiumAccountId: expense.buildium_account_id ?? "",
+                    buildiumAccountName: expense.buildium_account_name ?? "",
                     exportedToBuildium: expense.exported_to_buildium ?? false,
                     billId: expense.bill_id,
                     paymentMethod:
@@ -1384,6 +1424,10 @@ export default function ApproveFTOPage() {
         attachmentIds: [],
         submissionHasAttachments: false,
         glAccountId: "",
+        qboItemId: "",
+        qboItemName: "",
+        buildiumAccountId: "",
+        buildiumAccountName: "",
         paymentMethod: "company_card",
       },
     ]);
@@ -1425,7 +1469,10 @@ export default function ApproveFTOPage() {
       // before the approve action actually fires.
       let vendorCache: Record<string, { id: number; buildiumVendorId: string | null; qboVendorId: string | null }> | null = null;
       if (expenseRows.length > 0 && canExportToBuildium) {
-        const missingGL = expenseRows.some((r) => !r.glAccountId);
+        // Only rows that will actually be exported need a GL ref. Already-booked
+        // rows (billId set) are skipped on export and may carry a legacy
+        // gl_account_id from before the property-aware picker, so don't block on them.
+        const missingGL = expenseRows.some((r) => !r.billId && expenseGLMissing(r));
         if (missingGL) {
           throw new Error("Select a GL Account for each expense row before exporting.");
         }
@@ -1590,19 +1637,27 @@ export default function ApproveFTOPage() {
 
             const receiptAttachmentId = row.attachmentIds?.[0] ?? null;
 
+            // GL ref: send exactly the one the property-type-aware picker
+            // populated (mirrors Record Bill). Backend enforces XOR.
+            const lineItem: Record<string, unknown> = {
+              line_id: 1,
+              description: receiptNote,
+              amount_cents: amountCentsVal,
+            };
+            if (isConciergeProperty) {
+              lineItem.qbo_item_id = row.qboItemId;
+            } else if (hasNonConciergeProperty) {
+              lineItem.buildium_account_id = row.buildiumAccountId;
+            } else {
+              lineItem.gl_account_id = String(row.glAccountId);
+            }
+
             const exportPayload: Record<string, unknown> = {
               vendor_id: vendorInfo.id,
               statement_date: dateStr + "T00:00:00Z",
               due_date: dueDateStr + "T00:00:00Z",
               memo: receiptNote,
-              line_items: [
-                {
-                  line_id: 1,
-                  gl_account_id: String(row.glAccountId),
-                  description: receiptNote,
-                  amount_cents: amountCentsVal,
-                },
-              ],
+              line_items: [lineItem],
             };
             if (receiptAttachmentId != null) {
               exportPayload.attachment_id = receiptAttachmentId;
@@ -1734,8 +1789,9 @@ export default function ApproveFTOPage() {
   };
 
   const isExpensesCellInvalid = (row: ExpenseRow, field: keyof ExpenseRow) => {
+    // The GL cell is validated separately via expenseGLMissing (which GL field
+    // is required depends on the property type), so it's not listed here.
     const requiredFields = ['date', 'vendor', 'assignee', 'amount'];
-    if (canExportToBuildium) requiredFields.push('glAccountId');
     if (!requiredFields.includes(field)) return false;
 
     // Special case: 'assignee' field should check assigneeId (the numeric value)
@@ -2715,7 +2771,11 @@ export default function ApproveFTOPage() {
                             </select>
                           </div>
 
-                          {/* GL Account Cell */}
+                          {/* GL Account Cell — picker variant depends on the FTO
+                              property's type (mirrors Record Bill):
+                                C (Concierge)        → QBO passthrough Items
+                                R / OR / HOA / COMM  → Buildium GL accounts (CSV)
+                                unknown/not-loaded   → canonical chart_of_accounts */}
                           {canExportToBuildium && (
                             <div
                               className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
@@ -2723,45 +2783,69 @@ export default function ApproveFTOPage() {
                                 width: "200px",
                                 borderBottom: "1px solid #DADADA",
                                 borderRight: "1px solid #DADADA",
-                                boxShadow: attemptedSubmit && canExportToBuildium && !row.glAccountId ? "inset 0 0 0 2px #dc2626" : "none",
+                                boxShadow: attemptedSubmit && canExportToBuildium && !row.billId && expenseGLMissing(row) ? "inset 0 0 0 2px #dc2626" : "none",
                               }}
                             >
-                              <Select
-                                value={row.glAccountId}
-                                onValueChange={(value) => {
-                                  updateExpenseRow(row.id, "glAccountId", value);
-                                  setGlSearch("");
-                                }}
-                                onOpenChange={(open) => {
-                                  if (!open) setGlSearch("");
-                                }}
-                              >
-                                <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
-                                  <SelectValue placeholder="Select GL Account" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white border border-[#E5E7EB] shadow-md p-0">
-                                  <div className="p-2 border-b border-[#E5E7EB]">
-                                    <input
-                                      autoFocus
-                                      placeholder="Type to search…"
-                                      value={glSearch}
-                                      onChange={(e) => setGlSearch(e.target.value)}
-                                      onKeyDown={(e) => e.stopPropagation()}
-                                      className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
-                                    />
-                                  </div>
-                                  <div className="max-h-[240px] overflow-y-auto">
-                                    {filteredGLAccounts.length === 0 && (
-                                      <div className="px-3 py-2 text-sm text-gray-400">No accounts found</div>
-                                    )}
-                                    {filteredGLAccounts.map((gl) => (
-                                      <SelectItem key={gl.id} value={gl.id}>
-                                        {gl.name}
-                                      </SelectItem>
-                                    ))}
-                                  </div>
-                                </SelectContent>
-                              </Select>
+                              {isConciergeProperty ? (
+                                <ConciergeGLPicker
+                                  value={row.qboItemId}
+                                  onChange={(qboItemId, displayName) => {
+                                    updateExpenseRow(row.id, "qboItemId", qboItemId);
+                                    updateExpenseRow(row.id, "qboItemName", displayName);
+                                    updateExpenseRow(row.id, "glAccountId", "");
+                                    updateExpenseRow(row.id, "buildiumAccountId", "");
+                                    updateExpenseRow(row.id, "buildiumAccountName", "");
+                                  }}
+                                />
+                              ) : hasNonConciergeProperty ? (
+                                <BuildiumGLPicker
+                                  value={row.buildiumAccountId}
+                                  onChange={(buildiumAccountId, displayName) => {
+                                    updateExpenseRow(row.id, "buildiumAccountId", buildiumAccountId);
+                                    updateExpenseRow(row.id, "buildiumAccountName", displayName);
+                                    updateExpenseRow(row.id, "glAccountId", "");
+                                    updateExpenseRow(row.id, "qboItemId", "");
+                                    updateExpenseRow(row.id, "qboItemName", "");
+                                  }}
+                                />
+                              ) : (
+                                <Select
+                                  value={row.glAccountId}
+                                  onValueChange={(value) => {
+                                    updateExpenseRow(row.id, "glAccountId", value);
+                                    setGlSearch("");
+                                  }}
+                                  onOpenChange={(open) => {
+                                    if (!open) setGlSearch("");
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
+                                    <SelectValue placeholder="Select GL Account" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white border border-[#E5E7EB] shadow-md p-0">
+                                    <div className="p-2 border-b border-[#E5E7EB]">
+                                      <input
+                                        autoFocus
+                                        placeholder="Type to search…"
+                                        value={glSearch}
+                                        onChange={(e) => setGlSearch(e.target.value)}
+                                        onKeyDown={(e) => e.stopPropagation()}
+                                        className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+                                      />
+                                    </div>
+                                    <div className="max-h-[240px] overflow-y-auto">
+                                      {filteredGLAccounts.length === 0 && (
+                                        <div className="px-3 py-2 text-sm text-gray-400">No accounts found</div>
+                                      )}
+                                      {filteredGLAccounts.map((gl) => (
+                                        <SelectItem key={gl.id} value={gl.id}>
+                                          {gl.name}
+                                        </SelectItem>
+                                      ))}
+                                    </div>
+                                  </SelectContent>
+                                </Select>
+                              )}
                             </div>
                           )}
 

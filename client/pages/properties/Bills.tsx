@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "../Utilities_wrong";
-import AddVendorModal from "@/components/AddVendorModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
@@ -11,7 +10,6 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import GlobalTable from "@/components/GlobalTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
 import { fetchJSON } from "@/api/fetchJSON";
-import { openAuthPdf } from "@/api/openAuthPdf";
 
 interface BillsProps {
   propertyAddress: string;
@@ -240,10 +238,7 @@ const ActionButton = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   setOpenMenuId(null);
-                  const path = propertyId
-                    ? `/property/${propertyId}/bills/record?readOnly=true`
-                    : "/bills/record?readOnly=true";
-                  navigate(`${path}?billId=${bill.id}`);
+                  navigate(`/bills/view?billId=${bill.id}`);
                 }}
                 className="flex justify-between items-center w-full hover:opacity-70 transition-opacity"
               >
@@ -431,9 +426,9 @@ export const Bills: React.FC<BillsProps> = ({
 }) => {
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
-  const [selectedTab, setSelectedTab] = usePageState<"approved" | "drafts">(
+  const [selectedTab, setSelectedTab] = usePageState<"all" | "paid" | "unpaid">(
     "selectedTab",
-    "approved",
+    "all",
   );
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
@@ -441,16 +436,9 @@ export const Bills: React.FC<BillsProps> = ({
     "showPageSizeDropdown",
     false,
   );
-  const [isAddVendorModalOpen, setIsAddVendorModalOpen] = usePageState(
-    "isAddVendorModalOpen",
-    false,
-  );
   const [openMenuId, setOpenMenuId] = usePageState<number | null>(
     "openMenuId",
     null,
-  );
-  const [syncState, setSyncState] = useState<"idle" | "syncing" | "synced">(
-    "idle",
   );
   const [billsList, setBillsList] = useState<Bill[]>([]);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
@@ -484,99 +472,49 @@ export const Bills: React.FC<BillsProps> = ({
 
 
   const [approvedBillsList, setApprovedBillsList] = useState<Bill[]>([]);
-  const [draftBillsList, setDraftBillsList] = useState<Bill[]>([]);
 
+  // Load this property's bills, filtered by the active tab (all/paid/unpaid).
+  // Mirrors the All Bills page: server filters by ?tab= via bills.qbo_paid_at.
   useEffect(() => {
     if (!propertyId) return;
-  
-    fetchJSON(`/utilities/bills?property_id=${propertyId}`)
-      .then((data) => {
-        const safeData = Array.isArray(data) ? data : [];
+
+    const params = new URLSearchParams();
+    params.set("property_id", propertyId);
+    params.set("tab", selectedTab);
+    params.set("limit", "500");
+
+    fetchJSON(`/utilities/bills/all?${params.toString()}`)
+      .then((res) => {
+        const safeData = Array.isArray(res?.data) ? res.data : [];
         const mapped = safeData.map((b: any) => ({
           id: b.id,
-        
+
           vendor: b.vendor_name || b.provider_name || b.source_name || "Unknown",
           vendorColor: pickColor(
             b.vendor_name || b.provider_name || b.source_name || "Unknown"
           ),
-        
+
           property: b.property_name ?? "",
-        
+
           statementDate: formatDate(b.statement_date),
           dueDate: formatDate(b.due_date),
-        
+
           pushStatus: b.push_status,
           createdAt: parseValidTimestamp(b.created_at),
-        
+
           memo: b.memo ?? "",
           invoiceNumber: b.reference_number || b.invoice_number || "",
           amount: (b.amount_cents ?? 0) / 100,
           glAccount: "",
-        
-          // ⭐ ADD THIS
+
           isUtility: !!b.provider_id,
         }));
-        
-        
-  
-        setApprovedBillsList(mapped as Bill[]);     // ⭐ ONLY approved bills here
-        setDraftBillsList([]);    // ⭐ EMPTY drafts for now
+
+        setApprovedBillsList(mapped as Bill[]);
       })
       .catch((err) => console.error("Failed to load bills:", err));
-  }, [propertyId]);
-  
-  
-  // ⭐ NEW: Load draft bills for this property
-  useEffect(() => {
-    if (!propertyId) return;
-  
-    fetchJSON(`/vendors/bill-drafts?property_id=${propertyId}`)
-      .then((data) => {
-        const safeDrafts = Array.isArray(data) ? data : [];
-  
-        const mappedDrafts = safeDrafts.map((d: any) => ({
-          id: d.id,
-  
-          // Vendor
-          vendor: d.vendor_name ?? "—",
-          vendorColor: pickColor(d.vendor_name ?? "—"),
-  
-          // Property (from backend)
-          property: d.property_address ?? "",
-  
-          // Dates
-          statementDate: formatDate(d.statement_date),
-          dueDate: formatDate(d.due_date),
-  
-          // Memo (avoid "inactive", fallback to description)
-          memo:
-            d.memo && d.memo.toLowerCase() !== "inactive"
-              ? d.memo
-              : d.description || "",
-  
-          // Reference #
-          invoiceNumber: d.reference || d.invoice_number || "",
-  
-          // Amount (convert cents → dollars)
-          amount:
-            typeof d.amount === "number"
-              ? d.amount
-              : typeof d.amount_cents === "number"
-              ? d.amount_cents / 100
-              : 0,
-  
-          glAccount: "",
-  
-          // 🟢 No status — drafts should not show any “active/inactive”
-          // Only import timestamp is used for UI
-          importedAt: d.created_at ? new Date(d.created_at).getTime() : Date.now(),
-        }));
-  
-        setDraftBillsList(mappedDrafts);
-      })
-      .catch((err) => console.error("Failed to load draft bills:", err));
-  }, [propertyId]);
-  
+  }, [propertyId, selectedTab]);
+
 
 
 
@@ -664,7 +602,7 @@ export const Bills: React.FC<BillsProps> = ({
 
       markBillAsNew(resolvedBillId);
 
-      setSelectedTab("approved");
+      setSelectedTab("all");
     };
 
     window.addEventListener("billApproved", handleBillApproved);
@@ -863,93 +801,7 @@ export const Bills: React.FC<BillsProps> = ({
     return `${diffDays}d ago`;
   };
 
-  const handleSync = async () => {
-    if (!propertyId) return;
-  
-    try {
-      setSyncState("syncing");
-  
-      // 1) Run backend sync (Outlook → bill-drafts)
-      await fetchJSON("/vendors/outlook/sync", {
-        method: "POST",
-      });
-  
-      // 2) Re-fetch APPROVED bills
-      const approved = await fetchJSON(
-        `/utilities/bills?property_id=${propertyId}`
-      );
-      const safeApproved = Array.isArray(approved) ? approved : [];
-  
-      const mappedApproved = safeApproved.map((b: any) => ({
-        id: b.id,
-        vendor: b.vendor_name || b.provider_name || b.source_name || "Unknown",
-        vendorColor: pickColor(
-          b.vendor_name || b.provider_name || b.source_name || "Unknown"
-        ),
-        property: b.property_name ?? "",
-        statementDate: b.statement_date ?? "",
-        dueDate: b.due_date ?? "",
-        status: (b.push_status || "pushed") as "pushed" | "push-failed",
-        memo: b.memo ?? "",
-        invoiceNumber: b.reference_number || b.invoice_number || "",
-        amount: (b.amount_cents ?? 0) / 100,
-        glAccount: "",
-        importedAt: b.created_at
-          ? new Date(b.created_at).getTime()
-          : Date.now(),
-      }));
-  
-      setApprovedBillsList(mappedApproved);
-      setApprovedTimestamp(Date.now());
-  
-      // 3) Re-fetch DRAFT bills
-      const drafts = await fetchJSON(
-        `/vendors/bill-drafts?property_id=${propertyId}`
-      );
-      const safeDrafts = Array.isArray(drafts) ? drafts : [];
-  
-      const mappedDrafts = safeDrafts.map((d: any) => ({
-        id: d.id,
-        vendor: d.vendor_name ?? "—",
-        vendorColor: pickColor(d.vendor_name ?? "—"),
-        property: d.property_name ?? "",
-        statementDate: formatDate(d.statement_date),
-        dueDate: formatDate(d.due_date),
-        memo:
-          d.memo && d.memo.toLowerCase() !== "inactive"
-            ? d.memo
-            : d.description || "",
-        invoiceNumber: d.reference || d.invoice_number || "",
-        amount:
-          typeof d.amount === "number"
-            ? d.amount
-            : typeof d.amount_cents === "number"
-            ? d.amount_cents / 100
-            : 0,
-        glAccount: "",
-        status: d.status ?? "draft",
-        importedAt: d.created_at
-          ? new Date(d.created_at).getTime()
-          : Date.now(),
-      }));
-  
-      setDraftBillsList(mappedDrafts);
-      setDraftsTimestamp(Date.now());
-  
-      // 4) Success UI state
-      setSyncState("synced");
-      setTimeout(() => setSyncState("idle"), 2000);
-    } catch (err) {
-      console.error(err);
-      setSyncState("idle");
-      alert("Sync failed.");
-    }
-  };
-  
-  
-
-  const approvedBills = approvedBillsList.filter((_, idx) => idx % 2 === 0);
-  const displayedBills = selectedTab === "approved" ? approvedBillsList : draftBillsList;
+  const displayedBills = approvedBillsList;
   const totalBills = displayedBills.length;
   const totalPages = Math.ceil(totalBills / itemsPerPage);
 
@@ -1004,113 +856,42 @@ export const Bills: React.FC<BillsProps> = ({
     <div className="max-w-full flex flex-col gap-6">
       {/* Header Section */}
       <div className="flex flex-col gap-6">
-        {/* Title and Description */}
-        <div className="flex flex-col gap-1">
-          <h1 className="text-[#303030] font-semibold text-2xl leading-[30px]">
-            Property Bills
-          </h1>
-          <p
-            className="text-[#717179] font-medium text-base leading-4"
-            style={{ marginTop: "-3px" }}
-          >
-            All bills associated to this property, in one place
-          </p>
-        </div>
-
-        {/* Segmented Tabs and Action Buttons */}
+        {/* Tabs and Action Buttons */}
         <div className="flex items-center justify-between w-full bg-white gap-6">
-          <div className="flex bg-gray-50 rounded-lg shadow-[0_0_0_0.5px_#D2D1CF] p-0.5">
-            <button
-              onClick={() => {
-                setSelectedTab("approved");
-                setCurrentPage(1);
-              }}
-              className={cn(
-                "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all",
-                selectedTab === "approved"
-                  ? "bg-white shadow-[0_1px_3px_0_rgba(11,19,36,0.1),0_1px_1px_0_rgba(11,19,36,0.1)]"
-                  : "bg-gray-50 hover:bg-gray-100",
-              )}
-            >
-              <span className="text-[#282828] text-center font-normal text-sm leading-5">
-                Approved
-              </span>
-            </button>
-
-            <button
-              onClick={() => {
-                setSelectedTab("drafts");
-                setCurrentPage(1);
-              }}
-              className={cn(
-                "flex justify-center items-center gap-2 rounded-md py-1.5 px-4 transition-all",
-                selectedTab === "drafts"
-                  ? "bg-white shadow-[0_1px_3px_0_rgba(11,19,36,0.1),0_1px_1px_0_rgba(11,19,36,0.1)]"
-                  : "bg-gray-50 hover:bg-gray-100",
-              )}
-            >
-              <span className="text-[#282828] text-center font-medium text-sm leading-5">
-                Drafts
-              </span>
-            </button>
+          {/* Tab Bar — All / Paid / Unpaid driven by bills.qbo_paid_at via the
+              ?tab= query param on /utilities/bills/all */}
+          <div className="flex gap-1 border-b border-[#E5E5E5]">
+            {(["all", "paid", "unpaid"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => {
+                  setSelectedTab(tab);
+                  setCurrentPage(1);
+                }}
+                className={cn(
+                  "px-4 py-2.5 text-sm font-medium transition-colors relative capitalize",
+                  selectedTab === tab
+                    ? "text-[#013764]"
+                    : "text-[#717179] hover:text-[#303030]",
+                )}
+              >
+                {tab}
+                {selectedTab === tab && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#013764]" />
+                )}
+              </button>
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-3 items-center">
             <button
-              onClick={() => setIsAddVendorModalOpen(true)}
-              className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ marginTop: "-2px" }}
-              >
-                <path d="M5 12h14M12 5v14" />
-              </svg>
-              <span className="text-[#303030] font-normal text-sm leading-[22.4px]" style={{ marginTop: "-1px" }}>
-                Add Vendor
-              </span>
-            </button>
-
-            <button
-              onClick={handleSync}
-              disabled={syncState !== "idle"}
-              className="flex items-center gap-2 h-10 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] disabled:opacity-50"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ marginTop: "-1px" }}
-              >
-                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                <path d="M21 3v5h-5" />
-                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                <path d="M8 16H3v5" />
-              </svg>
-              <span className="text-[#303030] font-normal text-sm leading-[22.4px]" style={{ marginTop: "-1px" }}>
-                {syncState === "idle" && "Sync"}
-                {syncState === "syncing" && "Syncing..."}
-                {syncState === "synced" && "Synced"}
-              </span>
-            </button>
-
-            <button
               onClick={() => {
-                navigate("/bills/record");
+                navigate(
+                  propertyId
+                    ? `/property/${propertyId}/bills/record`
+                    : "/bills/record",
+                );
               }}
               className="flex items-center gap-2 h-10 px-4 border border-white rounded-lg bg-[#013764] hover:bg-[#0a2e4d] transition-colors shadow-[0_0_0_1px_rgb(0,45,90),0_0_10px_-5px_rgba(0,0,0,0.2)]"
             >
@@ -1137,7 +918,7 @@ export const Bills: React.FC<BillsProps> = ({
         </div>
 
         {/* Bills Table Container */}
-        {selectedTab === "approved" && approvedBillsList.length !== 0 && (
+        {approvedBillsList.length !== 0 && (
           <GlobalTable
             columns={billsColumnManagement.columnOrder
               .filter((key) => key !== "status")
@@ -1148,8 +929,7 @@ export const Bills: React.FC<BillsProps> = ({
               }))}
             data={displayedBills}
             rowKey="id"
-            title="Approved & Exported Bills"
-            subtitle={`Last exported ${relativeTimeDisplay.approved}`}
+            title="Property Bills"
             actions={[
               {
                 label: "View Bill",
@@ -1162,19 +942,8 @@ export const Bills: React.FC<BillsProps> = ({
                     />
                   </svg>
                 ),
-                onClick: async (bill: Bill) => {
-                  // 🧾 Utility bill → open PDF
-                  if (bill.isUtility) {
-                    await openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
-                    return;
-                  }
-                
-                  // 🧾 Vendor/manual bill → existing record view
-                  const basePath = propertyId
-                    ? `/property/${propertyId}/bills/record?readOnly=true`
-                    : "/bills/record?readOnly=true";
-                
-                  navigate(`${basePath}&billId=${bill.id}`, {
+                onClick: (bill: Bill) => {
+                  navigate(`/bills/view?billId=${bill.id}`, {
                     state: { bill: buildBillState(bill) },
                   });
                 },
@@ -1257,10 +1026,14 @@ export const Bills: React.FC<BillsProps> = ({
           />
         )}
 
-        {selectedTab === "approved" && approvedBillsList.length === 0 && (
+        {approvedBillsList.length === 0 && (
           <div className="w-full flex flex-col justify-center items-center py-24 gap-4 text-center">
             <div className="text-lg font-medium text-[#303030]">
-              No bills for this property yet
+              {selectedTab === "paid"
+                ? "No paid bills for this property"
+                : selectedTab === "unpaid"
+                ? "No unpaid bills for this property"
+                : "No bills for this property yet"}
             </div>
 
             <p className="text-sm text-gray-500 max-w-md">
@@ -1275,23 +1048,6 @@ export const Bills: React.FC<BillsProps> = ({
             </button>
           </div>
         )}
-
-
-        {/* Draft Bills Empty Message */}
-        {selectedTab === "drafts" && draftBillsList.length === 0 && (
-          <div className="w-full flex justify-center items-center py-24">
-            <p className="text-sm text-gray-500">
-              No draft bills associated with this property
-            </p>
-          </div>
-        )}
-
-
-
-        <AddVendorModal
-          open={isAddVendorModalOpen}
-          onOpenChange={setIsAddVendorModalOpen}
-        />
       </div>
     </div>
   );

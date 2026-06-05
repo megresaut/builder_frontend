@@ -945,6 +945,15 @@ export default function FtoSubmissionForm() {
         if (!entry.unitId && submissionUnitId && entry.propertyId === String(submissionPropertyId)) {
           return { ...entry, unitId: String(submissionUnitId) };
         }
+        // Concierge properties book at "Property Level" (unit 0). Older
+        // submissions dropped that 0 on save, leaving the unit blank. Restore
+        // it so the Unit field shows a value and passes validation.
+        if (!entry.unitId && entry.propertyId) {
+          const prop = properties.find((p) => String(p.id) === entry.propertyId);
+          if (prop?.property_type === "C") {
+            return { ...entry, unitId: String(PROPERTY_LEVEL_UNIT_ID) };
+          }
+        }
         return entry;
       })
     );
@@ -964,10 +973,19 @@ export default function FtoSubmissionForm() {
         if (!entry.unitId && submissionUnitId && entry.propertyId === String(submissionPropertyId)) {
           return { ...entry, unitId: String(submissionUnitId) };
         }
+        // Concierge properties book at "Property Level" (unit 0). Older
+        // submissions dropped that 0 on save, leaving the unit blank. Restore
+        // it so the Unit field shows a value and passes validation.
+        if (!entry.unitId && entry.propertyId) {
+          const prop = properties.find((p) => String(p.id) === entry.propertyId);
+          if (prop?.property_type === "C") {
+            return { ...entry, unitId: String(PROPERTY_LEVEL_UNIT_ID) };
+          }
+        }
         return entry;
       })
     );
-  }, [apiSubmission, unitsByProperty]);
+  }, [apiSubmission, unitsByProperty, properties]);
   
 
   useEffect(() => {
@@ -1691,11 +1709,35 @@ export default function FtoSubmissionForm() {
         unit_id: getUnitIdAsNumber(e.unitId),
       }));
 
+      // Derive submission-level property / unit / FTO from the first entry so
+      // the backend can keep the linked FTO (field_team_orders) in sync with
+      // edits made here. Per-line values still live inside hours_json /
+      // materials_json; these top-level fields drive the FTO write-back.
+      const primary = hourEntries_[0] ?? expenseEntries_[0];
+      const primaryPropertyId = primary?.propertyId
+        ? Number(primary.propertyId)
+        : undefined;
+      const primaryUnitId =
+        primary?.unitId != null &&
+        primary.unitId !== "" &&
+        !Number.isNaN(Number(primary.unitId))
+          ? Number(primary.unitId)
+          : undefined;
+      const primaryFtoId =
+        primary?.taskId &&
+        !Number.isNaN(Number(primary.taskId)) &&
+        Number(primary.taskId) > 0
+          ? Number(primary.taskId)
+          : undefined;
+
       await fetchJSON(`/maintenance/submissions/${submissionIdNum}`, {
         method: "PATCH",
         body: JSON.stringify({
           hours_json,
           materials_json,
+          property_id: primaryPropertyId,
+          unit_id: primaryUnitId,
+          fto_id: primaryFtoId,
         }),
       });
       return;
@@ -1929,7 +1971,7 @@ export default function FtoSubmissionForm() {
                                     propertyId={entry.propertyId ? Number(entry.propertyId) : null}
                                     locationId={entry.locationId ? Number(entry.locationId) : null}
                                     onChange={({ propertyId, locationId }) => {
-                                        if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                                        if (isApproved) return;
                                         updateHourEntry(entry.id, "propertyId", propertyId ? String(propertyId) : null);
                                         updateHourEntry(entry.id, "locationId", locationId ? String(locationId) : null);
                                         const selectedProp = propertyId
@@ -1950,7 +1992,7 @@ export default function FtoSubmissionForm() {
                                     placeholder={
                                         propertiesLoading ? "Loading properties..." : "Select Property"
                                     }
-                                    disabled={propertiesLoading || isApproved || (isViewingExistingSubmission && !isApproved)}
+                                    disabled={propertiesLoading || isApproved}
                                 />
                           </div>
                           <div className="flex-1">
@@ -1961,7 +2003,7 @@ export default function FtoSubmissionForm() {
                               options={getUnitOptions(entry.propertyId)}
                               value={entry.unitId || ""}
                               onChange={(value) => {
-                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                                if (isApproved) return;
                                 setHourErrors((prev) => {
                                   const newErrors = { ...prev };
                                   if (newErrors[entry.id]) {
@@ -1978,7 +2020,7 @@ export default function FtoSubmissionForm() {
                                   ? "Loading units…"
                                   : "Select Unit"
                               }
-                              disabled={!entry.propertyId || unitsLoading[entry.propertyId ?? ""] || isApproved || (isViewingExistingSubmission && !isApproved)}
+                              disabled={!entry.propertyId || unitsLoading[entry.propertyId ?? ""] || isApproved}
                             />
                           </div>
                         </div>
@@ -2036,7 +2078,7 @@ export default function FtoSubmissionForm() {
                             })()}
                             
                             onChange={(value) => {
-                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                                if (isApproved) return;
                                 updateHourEntry(entry.id, "taskId", value);
                                 if (value === CUSTOM_FTO_TASK_VALUE) {
                                   // Enter custom mode
@@ -2056,7 +2098,7 @@ export default function FtoSubmissionForm() {
                                     ? "Select Property First"
                                     : "Select Task"
                             }
-                            disabled={!entry.propertyId || ftosLoading || isApproved || (isViewingExistingSubmission && !isApproved)}
+                            disabled={!entry.propertyId || ftosLoading || isApproved}
                         />
 
                         {entry.taskId === CUSTOM_FTO_TASK_VALUE && (
@@ -2065,11 +2107,11 @@ export default function FtoSubmissionForm() {
                             required
                             value={entry.customTaskName}
                             onChange={(e) => {
-                              if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                              if (isApproved) return;
                               updateHourEntry(entry.id, "customTaskName", e.target.value);
                             }}
                             placeholder="Type a custom task name"
-                            disabled={isApproved || (isViewingExistingSubmission && !isApproved)}
+                            disabled={isApproved}
                           />
                         )}
 
@@ -2100,7 +2142,7 @@ export default function FtoSubmissionForm() {
                               required
                               value={selectedCollaborators}
                               onChange={(selected) => {
-                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                                if (isApproved) return;
                                 const ids = selected
                                   .filter((s) => s.id !== "na")
                                   .map((s) => Number(s.id));
@@ -2116,7 +2158,7 @@ export default function FtoSubmissionForm() {
                               }}
                               placeholder="Select collaborators or N/A"
                               options={collaboratorOptions}
-                              disabled={isApproved || (isViewingExistingSubmission && !isApproved)}
+                              disabled={isApproved}
                               autoCloseOn={(sel) => sel.some((s) => s.id === "na")}
                             />
                           );
@@ -2349,7 +2391,7 @@ export default function FtoSubmissionForm() {
                                 propertyId={entry.propertyId ? Number(entry.propertyId) : null}
                                 locationId={entry.locationId ? Number(entry.locationId) : null}
                                 onChange={({ propertyId, locationId }) => {
-                                    if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                                    if (isApproved) return;
                                     updateExpenseEntry(entry.id, "propertyId", propertyId ? String(propertyId) : null);
                                     updateExpenseEntry(entry.id, "locationId", locationId ? String(locationId) : null);
                                     const selectedProp = propertyId
@@ -2369,7 +2411,7 @@ export default function FtoSubmissionForm() {
                                 placeholder={
                                     propertiesLoading ? "Loading properties..." : "Select Property"
                                 }
-                                disabled={propertiesLoading || isApproved || (isViewingExistingSubmission && !isApproved)}
+                                disabled={propertiesLoading || isApproved}
                             />
                           </div>
                           <div className="flex-1">
@@ -2380,7 +2422,7 @@ export default function FtoSubmissionForm() {
                               options={getUnitOptions(entry.propertyId)}
                               value={entry.unitId || ""}
                               onChange={(value) => {
-                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                                if (isApproved) return;
                                 setExpenseErrors((prev) => {
                                   const newErrors = { ...prev };
                                   if (newErrors[entry.id]) {
@@ -2397,7 +2439,7 @@ export default function FtoSubmissionForm() {
                                   ? "Loading units…"
                                   : "Select Unit"
                               }
-                              disabled={!entry.propertyId || unitsLoading[entry.propertyId ?? ""] || isApproved || (isViewingExistingSubmission && !isApproved)}
+                              disabled={!entry.propertyId || unitsLoading[entry.propertyId ?? ""] || isApproved}
                             />
                           </div>
                         </div>
@@ -2478,7 +2520,7 @@ export default function FtoSubmissionForm() {
                               return ftoExists ? String(taskIdToCheck) : "";
                             })()}
                             onChange={(value) => {
-                                if (isApproved || (isViewingExistingSubmission && !isApproved)) return;
+                                if (isApproved) return;
                                 updateExpenseEntry(entry.id, "taskId", value);
                                 if (value === MISC_EXPENSE_TASK_VALUE) {
                                   updateExpenseEntry(entry.id, "chargeType", "avm-expense");
@@ -2491,7 +2533,7 @@ export default function FtoSubmissionForm() {
                                     ? "Select Property First"
                                     : "Select Task"
                             }
-                            disabled={!entry.propertyId || ftosLoading || isApproved || (isViewingExistingSubmission && !isApproved)}
+                            disabled={!entry.propertyId || ftosLoading || isApproved}
                         />
 
                         <CurrencyField

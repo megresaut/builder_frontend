@@ -42,6 +42,7 @@ import Utilities from "./pages/Utilities_wrong";
 import PropertyLayout, { PropertyTabContent } from "./pages/PropertyDetail";
 import BlankPage from "./pages/BlankPage";
 import { RecordBill } from "./pages/properties/RecordBill";
+import { ViewBillV2 } from "./pages/properties/ViewBillV2";
 import { Auth } from "./pages/Auth";
 import { Login } from "./pages/Login";
 import { Welcome } from "./pages/Welcome";
@@ -554,6 +555,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <RecordBill />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/bills/view"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <ViewBillV2 />
                       </ShellLayout>
                     </RequireAuth>
                   }

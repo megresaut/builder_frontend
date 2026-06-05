@@ -6,7 +6,6 @@ import PayBillModal from "@/components/PayBillModal";
 import ViewPaymentModal, { type EditablePayment } from "@/components/ViewPaymentModal";
 import EditPaymentModal from "@/components/EditPaymentModal";
 import { usePageState } from "@/hooks/usePageState";
-import { useSortingTable } from "@/hooks/useSortingTable";
 import { formatRelativeTime } from "@/lib/timeUtils";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
@@ -18,8 +17,126 @@ import {
   type PageHeaderAction,
 } from "@/components/BillsPageHeader";
 import { fetchJSON } from "@/api/fetchJSON";
-import { openAuthPdf } from "@/api/openAuthPdf";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { toast } from "sonner";
+// Searchable multi-select for the Bills filter bar. Options are the full set of
+// vendors / properties (not just those that appear on existing bills), so a user
+// can filter by any of them; selecting some with no matching bills then renders
+// the table's "No bills found" state. Empty selection = no filter ("All").
+function MultiSelectFilter({
+  values,
+  onChange,
+  options,
+  placeholder,
+}: {
+  values: string[];
+  onChange: (v: string[]) => void;
+  options: string[];
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setSearch("");
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  const filtered = options.filter((o) =>
+    o.toLowerCase().includes(search.toLowerCase()),
+  );
+  const shown = filtered.slice(0, 100);
+
+  const toggle = (o: string) =>
+    onChange(values.includes(o) ? values.filter((v) => v !== o) : [...values, o]);
+
+  const label =
+    values.length === 0
+      ? placeholder
+      : values.length === 1
+        ? values[0]
+        : `${values.length} selected`;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px] max-w-[220px] flex items-center justify-between gap-2"
+      >
+        <span className={cn("truncate", values.length === 0 && "text-gray-400")}>
+          {label}
+        </span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="shrink-0"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-64 bg-white border border-[#E5E7EB] rounded-lg shadow-md">
+          <div className="p-2 border-b border-[#E5E7EB] flex items-center gap-2">
+            <input
+              autoFocus
+              placeholder="Type to search…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+            />
+            {values.length > 0 && (
+              <button
+                type="button"
+                onClick={() => onChange([])}
+                className="text-xs text-[#013764] shrink-0 hover:underline"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="max-h-[240px] overflow-y-auto py-1">
+            {shown.length === 0 && (
+              <div className="px-3 py-2 text-sm text-gray-400">No matches</div>
+            )}
+            {shown.map((o) => (
+              <label
+                key={o}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-gray-50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={values.includes(o)}
+                  onChange={() => toggle(o)}
+                  className="w-4 h-4 rounded border-gray-300 text-[#013764] focus:ring-[#013764]"
+                />
+                <span className="truncate">{o}</span>
+              </label>
+            ))}
+            {filtered.length > shown.length && (
+              <div className="px-3 py-2 text-xs text-gray-400">
+                Showing first {shown.length} — keep typing to narrow…
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface MatchCandidate {
   id: number;
@@ -513,6 +630,7 @@ export default function Bills() {
   const [selectedTab, setSelectedTab] = usePageState<"all" | "paid" | "unpaid">(
     "selectedTab",
     "all",
+    { allowed: ["all", "paid", "unpaid"] },
   );
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
@@ -542,6 +660,8 @@ export default function Bills() {
   const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(new Set());
   const [approvedTotal, setApprovedTotal] = useState(0);
   const [payBillTarget, setPayBillTarget] = useState<Bill | null>(null);
+  const [deleteBillTarget, setDeleteBillTarget] = useState<Bill | null>(null);
+  const [deletingBill, setDeletingBill] = useState(false);
   const [viewPaymentTarget, setViewPaymentTarget] = useState<Bill | null>(null);
   const [editPaymentTarget, setEditPaymentTarget] = useState<{
     payment: EditablePayment;
@@ -563,10 +683,64 @@ export default function Bills() {
   );
   const [searchValue, setSearchValue] = useState("");
   const [showFilterBar, setShowFilterBar] = usePageState("billsShowFilterBar", false);
-  const [filterVendor, setFilterVendor] = usePageState("billsFilterVendor", "");
-  const [filterProperty, setFilterProperty] = usePageState("billsFilterProperty", "");
+  const [filterVendors, setFilterVendors] = usePageState<string[]>(
+    "billsFilterVendors",
+    [],
+  );
+  const [filterProperties, setFilterProperties] = usePageState<string[]>(
+    "billsFilterProperties",
+    [],
+  );
   const [filterDateFrom, setFilterDateFrom] = usePageState("billsFilterDateFrom", "");
   const [filterDateTo, setFilterDateTo] = usePageState("billsFilterDateTo", "");
+
+  // Sort is applied server-side so a column-header click orders the ENTIRE
+  // result set across all pages, not just the rows on the current page.
+  // sortBy holds the GlobalTable column key (e.g. "dueDate"); "" = default order.
+  const [sortBy, setSortBy] = usePageState<string>("billsSortBy", "");
+  const [sortOrder, setSortOrder] = usePageState<"asc" | "desc">(
+    "billsSortOrder",
+    "desc",
+  );
+
+  // Full lists for the filter dropdowns (independent of which bills exist).
+  const [allVendorNames, setAllVendorNames] = useState<string[]>([]);
+  const [allPropertyNames, setAllPropertyNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Vendor filter = vendors + utility providers (both surface in the Vendor
+    // column and the server matches either via COALESCE(provider, vendor)).
+    Promise.all([
+      fetchJSON(`/vendors?limit=5000`).catch(() => []),
+      fetchJSON(`/providers`).catch(() => []),
+    ])
+      .then(([vendorList, providerList]) => {
+        const names = new Set<string>();
+        (Array.isArray(vendorList) ? vendorList : []).forEach((v: any) => {
+          if (v?.name) names.add(v.name);
+        });
+        (Array.isArray(providerList) ? providerList : []).forEach((p: any) => {
+          if (p?.display_name) names.add(p.display_name);
+        });
+        setAllVendorNames(Array.from(names).sort());
+      })
+      .catch((err) =>
+        console.error("Failed to load vendors/providers for filter:", err),
+      );
+
+    fetchJSON(`/properties`)
+      .then((list) => {
+        const names = new Set<string>();
+        (Array.isArray(list) ? list : []).forEach((p: any) => {
+          const n = p?.name || p?.display_name;
+          if (n) names.add(n);
+        });
+        setAllPropertyNames(Array.from(names).sort());
+      })
+      .catch((err) =>
+        console.error("Failed to load properties for filter:", err),
+      );
+  }, []);
 
   const markBillAsNew = (billId: number) => {
     setNewlyAddedBillIds((prev) => new Set(prev).add(billId));
@@ -585,19 +759,42 @@ export default function Bills() {
   // event handlers below; not used for tab partitioning anymore.)
   const tabBills = billsList;
 
-  const uniqueVendors = Array.from(
-    new Set(tabBills.map((b) => b.vendor).filter((v) => v && v !== "—"))
-  ).sort();
-  const uniqueProperties = Array.from(
-    new Set(tabBills.map((b) => b.property).filter((p) => p && p !== "—"))
-  ).sort();
+  // Filter dropdowns are populated from ALL vendors/providers/properties on
+  // file (not just those that appear on existing bills), so a user can filter
+  // by any of them. Selecting one with no matching bills shows the table's
+  // "No bills found" empty state.
+  const uniqueVendors = allVendorNames;
+  const uniqueProperties = allPropertyNames;
 
   // All tabs are server-filtered (search/vendor/property/date all forwarded
   // to /utilities/bills/all alongside ?tab=).
-  const filteredTabBills = tabBills;
+  //
+  // The "Last Exported" cell shows `exportedAt ?? importedAt`, but the sort
+  // only reads `exportedAt`. Bills that were never exported (drafts /
+  // not-yet-pushed) have `exportedAt === undefined`, so they'd sort as an
+  // empty string while still displaying an import-time relative value —
+  // scrambling the order. Fill the fallback here so the sortable field
+  // matches the displayed value.
+  const filteredTabBills = tabBills.map((b) =>
+    b.exportedAt == null ? { ...b, exportedAt: b.importedAt } : b,
+  );
 
-  const { handleSortClick, getSortIndicator, getSortedData } =
-    useSortingTable(filteredTabBills);
+  // Sorting is server-side (see loadApprovedBills): a header click updates the
+  // server sort state and refetches, so the order spans every page. The hook
+  // shape mirrors useSortingTable so GlobalTable can stay unchanged, but
+  // getSortedData returns the already-sorted server page as-is.
+  const handleSortClick = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+    setCurrentPage(1);
+  };
+  const getSortIndicator = (column: string) =>
+    sortBy === column ? (sortOrder === "asc" ? "↑" : "↓") : null;
+  const getSortedData = () => filteredTabBills;
   const {
     columnOrder,
     visibleColumns,
@@ -637,10 +834,13 @@ export default function Bills() {
     return () => clearTimeout(searchTimerRef.current);
   }, [searchValue]);
 
-  // Reset to page 1 when filters change
+  // Reset to page 1 when filters change. Use joined strings (not the array
+  // refs) so the effect keys on actual content.
+  const filterVendorsKey = filterVendors.join("");
+  const filterPropertiesKey = filterProperties.join("");
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterVendor, filterProperty, filterDateFrom, filterDateTo]);
+  }, [filterVendorsKey, filterPropertiesKey, filterDateFrom, filterDateTo]);
 
   // Load bills for the active tab (server-paginated; server applies the tab filter).
   const loadApprovedBills = useCallback(async () => {
@@ -650,10 +850,16 @@ export default function Bills() {
       params.set("offset", String((currentPage - 1) * itemsPerPage));
       params.set("tab", selectedTab);
       if (debouncedSearch) params.set("search", debouncedSearch);
-      if (filterVendor) params.set("vendor", filterVendor);
-      if (filterProperty) params.set("property", filterProperty);
+      // Multi-select: send each value as a repeated param (?vendor=A&vendor=B).
+      // Repeated params (not comma-joined) are safe for names containing commas.
+      filterVendors.forEach((v) => params.append("vendor", v));
+      filterProperties.forEach((p) => params.append("property", p));
       if (filterDateFrom) params.set("date_from", filterDateFrom);
       if (filterDateTo) params.set("date_to", filterDateTo);
+      if (sortBy) {
+        params.set("sort", sortBy.toLowerCase());
+        params.set("direction", sortOrder);
+      }
 
       const res = await fetchJSON(`/utilities/bills/all?${params.toString()}`);
       const rows = Array.isArray(res.data) ? res.data : [];
@@ -665,7 +871,7 @@ export default function Bills() {
     } catch (err) {
       console.error("Error loading bills:", err);
     }
-  }, [currentPage, itemsPerPage, selectedTab, debouncedSearch, filterVendor, filterProperty, filterDateFrom, filterDateTo]);
+  }, [currentPage, itemsPerPage, selectedTab, debouncedSearch, filterVendorsKey, filterPropertiesKey, filterDateFrom, filterDateTo, sortBy, sortOrder]);
 
   // Drafts are no longer surfaced in this view — the All / Paid / Unpaid tabs
   // are sourced solely from the bills table. Draft bills live in bill_drafts
@@ -1119,28 +1325,38 @@ export default function Bills() {
     }
   }, []);
 
+  // Delete an approved bill from QBO (where the API allows) + the platform.
+  // Buildium has no bill-delete API, so the backend returns warnings naming the
+  // Buildium bill/payment for manual cleanup — surface those to the user.
+  const confirmDeleteBill = useCallback(async () => {
+    const bill = deleteBillTarget;
+    if (!bill) return;
+    setDeletingBill(true);
+    try {
+      const res = await fetchJSON(`/vendors/bills/${bill.id}`, {
+        method: "DELETE",
+      });
+      setBillsList((prev) => prev.filter((b) => b.id !== bill.id));
+      setDeleteBillTarget(null);
+      toast.success(res?.message ?? "Bill deleted.");
+      if (Array.isArray(res?.warnings)) {
+        for (const warning of res.warnings as string[]) {
+          toast.warning(warning, { duration: 8000 });
+        }
+      }
+    } catch (err) {
+      // The backend aborts before touching the platform if a QBO delete fails,
+      // so the bill is still intact — keep the dialog open and show why.
+      console.error("Failed to delete bill:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete bill.",
+      );
+    } finally {
+      setDeletingBill(false);
+    }
+  }, [deleteBillTarget]);
+
   const headerActions: PageHeaderAction[] = [
-    {
-      id: "add-vendor",
-      label: "Add Vendor",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ marginTop: "-2px" }}
-        >
-          <path d="M5 12h14M12 5v14" style={{ marginTop: "-2px" }} />
-        </svg>
-      ),
-      onClick: () => setIsAddVendorModalOpen(true),
-    },
     {
       id: "record-bill",
       label: "Record Bill",
@@ -1234,35 +1450,23 @@ export default function Bills() {
                   <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
                     Vendor
                   </label>
-                  <select
-                    value={filterVendor}
-                    onChange={(e) => setFilterVendor(e.target.value)}
-                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
-                  >
-                    <option value="">All</option>
-                    {uniqueVendors.map((v) => (
-                      <option key={v} value={v}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
+                  <MultiSelectFilter
+                    values={filterVendors}
+                    onChange={setFilterVendors}
+                    options={uniqueVendors}
+                    placeholder="All"
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
                     Property
                   </label>
-                  <select
-                    value={filterProperty}
-                    onChange={(e) => setFilterProperty(e.target.value)}
-                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[140px]"
-                  >
-                    <option value="">All</option>
-                    {uniqueProperties.map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
+                  <MultiSelectFilter
+                    values={filterProperties}
+                    onChange={setFilterProperties}
+                    options={uniqueProperties}
+                    placeholder="All"
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
@@ -1290,8 +1494,8 @@ export default function Bills() {
               <button
                 type="button"
                 onClick={() => {
-                  setFilterVendor("");
-                  setFilterProperty("");
+                  setFilterVendors([]);
+                  setFilterProperties([]);
                   setFilterDateFrom("");
                   setFilterDateTo("");
                   setCurrentPage(1);
@@ -1433,6 +1637,7 @@ export default function Bills() {
               setCurrentPage(1);
             }}
             serverTotal={approvedTotal}
+            emptyMessage="No bills found"
             showPageSizeDropdown={showPageSizeDropdown}
             onShowPageSizeDropdownChange={setShowPageSizeDropdown}
             openMenuId={openMenuId}
@@ -1447,7 +1652,9 @@ export default function Bills() {
             onFilterClick={() => {
               setShowPageSizeDropdown(false);
               setOpenMenuId(null);
-              setShowFilterBar((prev) => !prev);
+              // usePageState's setter doesn't support functional updaters
+              // (it would store the raw function), so toggle with a plain value.
+              setShowFilterBar(!showFilterBar);
             }}
             headerActions={
               <button
@@ -1563,17 +1770,10 @@ export default function Bills() {
                           />
                         </svg>
                       ),
-                      onClick: async (bill: Bill) => {
-                        if (bill.isUtility) {
-                          await openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
-                          return;
-                        }
-                        navigate(
-                          `/bills/record?readOnly=true&billId=${bill.id}`,
-                          {
-                            state: { bill: buildBillState(bill) },
-                          },
-                        );
+                      onClick: (bill: Bill) => {
+                        navigate(`/bills/view?billId=${bill.id}`, {
+                          state: { bill: buildBillState(bill) },
+                        });
                       },
                     },
                     {
@@ -1629,18 +1829,34 @@ export default function Bills() {
                         );
                       },
                     },
+                    {
+                      label: "Delete Bill",
+                      icon: (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 18 18"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5M7.5 7.875V11.625M10.5 7.875V11.625"
+                            stroke="var(--color-status-error)"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ),
+                      onClick: (bill: Bill) => setDeleteBillTarget(bill),
+                    },
                   ]
             }
             onRowClick={(bill) => {
               // Bills are read-only here — drafts live in the Record Bill workflow.
-              if (bill.isUtility) {
-                openAuthPdf(`/utilities/pdf/bills/${bill.id}`).catch(() => {});
-                return;
-              }
-              navigate(
-                `/bills/record?readOnly=true&billId=${bill.id}`,
-                { state: { bill: buildBillState(bill) } }
-              );
+              navigate(`/bills/view?billId=${bill.id}`, {
+                state: { bill: buildBillState(bill) },
+              });
             }}
             
             showColumnModal={showColumnModal}
@@ -1763,6 +1979,42 @@ export default function Bills() {
             // Re-fetch the current tab to drop the row if it moved out of Unpaid.
             loadApprovedBills();
           }}
+        />
+      )}
+
+      {/* Delete Bill confirmation */}
+      {deleteBillTarget && (
+        <ConfirmDialog
+          open={!!deleteBillTarget}
+          onOpenChange={(open) => {
+            if (!open && !deletingBill) setDeleteBillTarget(null);
+          }}
+          title="Delete bill?"
+          isDangerous
+          isLoading={deletingBill}
+          confirmLabel="Delete Bill"
+          message={(() => {
+            const parts = [
+              `Delete the ${deleteBillTarget.vendor} bill for ${deleteBillTarget.property}? This can't be undone.`,
+            ];
+            if (deleteBillTarget.qboBillId) {
+              parts.push(
+                "It will be removed from QuickBooks and the platform.",
+              );
+            }
+            if (deleteBillTarget.buildiumBillId) {
+              parts.push(
+                `Buildium has no delete API, so Buildium bill #${deleteBillTarget.buildiumBillId} must be deleted manually.`,
+              );
+            }
+            if (deleteBillTarget.qboPaidAt || deleteBillTarget.buildiumBillPaymentId) {
+              parts.push(
+                "This bill is paid — its recorded payment will be removed too (manually in Buildium where applicable).",
+              );
+            }
+            return parts.join(" ");
+          })()}
+          onConfirm={confirmDeleteBill}
         />
       )}
     </PageTemplate>

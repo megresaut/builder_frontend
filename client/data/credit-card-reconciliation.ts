@@ -5,9 +5,14 @@ export interface CreditCardAccount {
   qbo_id: string;
   qbo_name: string;
   qbo_account_type: string;
+  buildium_id?: number;
 }
 
 export type CCActivityStatus = "Reconciled" | "Cleared" | "Uncleared";
+
+// Which book a row/line belongs to after the merge+dedupe pass. "both" = a
+// single physical charge linked across QBO + Buildium (counted once).
+export type ActivitySource = "qbo" | "buildium" | "both";
 
 export interface CreditCardActivityRow {
   txn_date: string;
@@ -17,7 +22,11 @@ export interface CreditCardActivityRow {
   vendor?: string;
   memo?: string;
   amount_cents: number;
-  status: CCActivityStatus;
+  // "" for Buildium-sourced rows (QBO cleared-status doesn't apply).
+  status: CCActivityStatus | "";
+  // Merge/dedupe metadata.
+  source?: ActivitySource;
+  buildium_txn_id?: string;
 }
 
 export interface CreditCardActivityResponse {
@@ -125,6 +134,8 @@ export interface Reconciliation {
 export interface ReconciliationLine {
   id: number;
   reconciliation_id: number;
+  // "qbo" or "buildium" — which book qbo_txn_id refers to.
+  source_system?: ActivitySource;
   qbo_txn_type: string;
   qbo_txn_id: string;
   txn_date: string;
@@ -194,6 +205,7 @@ export interface StartReconciliationRequest {
 }
 
 export interface MatchLineRequest {
+  source_system?: ActivitySource;
   qbo_txn_type: string;
   qbo_txn_id: string;
   txn_date: string;
@@ -263,6 +275,7 @@ export async function matchReconciliationLine(
 }
 
 export interface ForceClearRequest {
+  source_system?: ActivitySource;
   qbo_txn_type: string;
   qbo_txn_id: string;
   txn_date: string;
@@ -301,28 +314,34 @@ export async function unmatchReconciliationLine(
   }
 }
 
+// CreateChargeFromRowRequest books a brand-new bill for a statement charge,
+// pushes it concierge-gated (C → QBO+Buildium, else Buildium-only), pays it from
+// the card, and pairs the payment to the statement row. The per-row unit of the
+// bulk Quick-bill flow. PDF is optional (omitted by the batch).
 export interface CreateChargeFromRowRequest {
   statement_row: StatementRow;
   vendor_id: number;
-  coa_id: number;
-  property_id?: number;
+  // GL ref — exactly one (mirrors Record Bill concierge gating):
+  // qbo_item_id for concierge properties, buildium_account_id for non-concierge,
+  // coa_id legacy fallback.
+  coa_id?: number;
+  qbo_item_id?: string;
+  buildium_account_id?: string;
+  property_id: number;
+  unit_id?: number;
   invoice_number?: string;
   description?: string;
-  pdf_object_key?: string;
-  sha256_pdf?: string;
+  memo?: string;
 }
 
 export async function createChargeFromStatementRow(
   recID: number,
   req: CreateChargeFromRowRequest,
 ): Promise<ReconciliationLine> {
-  return (await fetchJSON(
-    `/reconciliations/${recID}/create-charge-from-row`,
-    {
-      method: "POST",
-      body: JSON.stringify(req),
-    },
-  )) as ReconciliationLine;
+  return (await fetchJSON(`/reconciliations/${recID}/create-charge-from-row`, {
+    method: "POST",
+    body: JSON.stringify(req),
+  })) as ReconciliationLine;
 }
 
 export interface UnpaidBillCandidate {

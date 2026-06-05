@@ -20,6 +20,17 @@ import InvoicePreviewModal, {
   type InvoiceLineItem,
   type InvoiceLifecycleStatus,
 } from "@/components/InvoicePreviewModal";
+import { voidInvoiceLine } from "@/data/invoices";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import RecordPaymentDialog from "@/components/RecordPaymentDialog";
 import RecordBillModal, {
   type RecordBillModalData,
@@ -439,6 +450,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     amount: string;
     source: string;
     sourceId?: number; // submission ID for FTO items
+    sourceType?: string; // raw backend source_type — drives void base/markup pairing
     status: InvoiceItemStatus;
     statusColor: string;
     statusBg: string;
@@ -520,8 +532,24 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     useState<InvoiceLifecycleStatus>(undefined);
   const [unpaidPassthroughCount, setUnpaidPassthroughCount] = useState(0);
   const [currentInvoiceTotalCents, setCurrentInvoiceTotalCents] = useState(0);
+  const [currentInvoicePaymentCents, setCurrentInvoicePaymentCents] = useState(0);
+  // Void-confirm dialog: the InvoiceItem the user is voiding (null = closed).
+  const [voidTargetLine, setVoidTargetLine] = useState<InvoiceItem | null>(null);
+  const [voidReason, setVoidReason] = useState("");
+  const [voiding, setVoiding] = useState(false);
+  // After voiding on an issued invoice, the preview modal opens in this mode to
+  // regenerate + re-attach the corrected PDF to QBO, then closes itself.
+  const [reExportMode, setReExportMode] = useState(false);
+  // Send-to-client dialog: collects the client email, then emails the QBO
+  // invoice via POST /invoicing/send.
+  const [sendToOpen, setSendToOpen] = useState(false);
+  const [sendToEmail, setSendToEmail] = useState("");
+  const [sendingInvoice, setSendingInvoice] = useState(false);
   const [currentQBOPushStatus, setCurrentQBOPushStatus] = useState<string | null>(null);
   const [currentQBOLastError, setCurrentQBOLastError] = useState<string | null>(null);
+  // When the invoice was last emailed to the client (null = never). Distinct
+  // from the QBO 'sent' status.
+  const [currentClientEmailedAt, setCurrentClientEmailedAt] = useState<string | null>(null);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [recordPaymentInvoiceId, setRecordPaymentInvoiceId] = useState<number | null>(null);
   const [recordPaymentDefaultCents, setRecordPaymentDefaultCents] = useState(0);
@@ -580,8 +608,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         setCurrentInvoiceTotalCents(
           Math.round((invoiceData.invoice.total_amount || 0) * 100),
         );
+        setCurrentInvoicePaymentCents(
+          invoiceData.invoice.payment_amount_cents ?? 0,
+        );
         setCurrentQBOPushStatus(invoiceData.invoice.qbo_push_status ?? null);
         setCurrentQBOLastError(invoiceData.invoice.qbo_last_error ?? null);
+        setCurrentClientEmailedAt(invoiceData.invoice.client_emailed_at ?? null);
       }
 
   
@@ -659,6 +691,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           amount: `$${li.amount.toFixed(2)}`,
           source: normalizedSource,
           sourceId: li.source_id, // Store source_id (submission ID for FTO items)
+          sourceType: li.source_type, // raw type for void base/markup pairing
           status: li.status === "approved" ? "Approved" : "Pending Approval",
           statusColor:
             li.status === "approved" ? "#059669" : "#D97706",
@@ -950,6 +983,52 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   };
 
 
+  // Re-export path: upload the freshly-rendered PDF and replace the QBO
+  // invoice's attachment. Invoked by the preview modal (autoReExport) after a
+  // void re-renders the document.
+  const handleReExportPdf = async (pdfBlob: Blob) => {
+    if (!currentInvoiceId) {
+      setReExportMode(false);
+      setShowInvoicePreview(false);
+      return;
+    }
+    const toastId = toast.loading("Re-exporting PDF to QuickBooks…");
+    try {
+      const fd = new FormData();
+      fd.append("file", pdfBlob, "invoice.pdf");
+      const up = await authFetch(`/vendors/bills/upload-pdf`, {
+        method: "POST",
+        body: fd,
+      });
+      const upJson = JSON.parse(await up.text());
+      const { pdf_object_key, sha256_pdf } = upJson;
+      if (!pdf_object_key) throw new Error("PDF upload did not return a key");
+      const res = await authFetch(
+        `/invoicing/reattach-pdf?id=${currentInvoiceId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pdf_object_key, sha256_pdf }),
+        },
+      );
+      if (!res.ok) {
+        const t = await res.text();
+        let msg = t;
+        try { msg = JSON.parse(t)?.error ?? t; } catch {}
+        throw new Error(msg || "Re-attach failed");
+      }
+      toast.success("Updated PDF attached in QuickBooks", { id: toastId });
+    } catch (e: any) {
+      toast.error("PDF re-export failed", {
+        id: toastId,
+        description: e?.message ?? "Re-open the invoice and export again.",
+      });
+    } finally {
+      setReExportMode(false);
+      setShowInvoicePreview(false);
+    }
+  };
+
   const handleCommitInvoice = async (pdfBlob: Blob) => {
     if (!currentInvoiceId) return;
 
@@ -1041,6 +1120,49 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   };
   
 
+  // Email the QBO invoice to the client. QBO sends its hosted email with the
+  // online "View invoice" / "Review and pay" link; the customer doesn't need a
+  // separate attachment from us.
+  const handleSendToClient = async () => {
+    if (!currentInvoiceId) return;
+    const email = sendToEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
+    setSendingInvoice(true);
+    const toastId = toast.loading("Sending invoice to client…");
+    try {
+      const res = await authFetch(`/invoicing/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoice_id: currentInvoiceId, send_to: email }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        let msg = body;
+        try { msg = JSON.parse(body)?.error ?? body; } catch {}
+        throw new Error(msg || "Send failed");
+      }
+      const data = await res.json().catch(() => ({}));
+      toast.success(`Invoice emailed to ${data?.delivered_to || email}`, {
+        id: toastId,
+        description: "QuickBooks sent the client a link to view and pay the invoice.",
+      });
+      // Reflect "emailed to client" immediately (badge updates without reload).
+      setCurrentClientEmailedAt(new Date().toISOString());
+      setSendToOpen(false);
+      setSendToEmail("");
+    } catch (err: any) {
+      toast.error("Couldn't send the invoice", {
+        id: toastId,
+        description: err?.message ?? "Unexpected error",
+      });
+    } finally {
+      setSendingInvoice(false);
+    }
+  };
+
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefreshInvoice = async () => {
@@ -1103,12 +1225,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const openInvoicePDF = async (pdfObjectKey?: string) => {
     if (!pdfObjectKey) {
-      console.warn("No PDF object key available");
+      toast.error("No invoice PDF available for download.");
       return;
     }
 
     // Static file served by backend
-    await openAuthPdf(`/files/${pdfObjectKey}`).catch(() => {});
+    await openAuthPdf(`/files/${pdfObjectKey}`).catch(() => {
+      toast.error("Failed to open invoice PDF. Please try again.");
+    });
   };
   
   
@@ -1333,10 +1457,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         ? `${unpaidPassthroughCount} passthrough line item${
                             unpaidPassthroughCount === 1 ? "" : "s"
                           } not yet paid`
+                        : currentInvoiceStatus === "sent"
+                        ? "Exported to QuickBooks — this does not mean it was emailed to the client"
                         : undefined
                     }
                   >
-                    {currentInvoiceStatus.toUpperCase()}
+                    {currentInvoiceStatus === "sent"
+                      ? "IN QUICKBOOKS"
+                      : currentInvoiceStatus.toUpperCase()}
                     {currentInvoiceStatus === "draft" && unpaidPassthroughCount > 0 && (
                       <span className="ml-1 opacity-75">
                         · {unpaidPassthroughCount} unpaid
@@ -1344,6 +1472,32 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     )}
                   </span>
                 )}
+
+                {/* Client-email state — distinct from the QBO 'sent'/in-QuickBooks
+                    status above. Shown once the invoice is in QBO. */}
+                {(currentInvoiceStatus === "sent" ||
+                  currentInvoiceStatus === "paid") &&
+                  (currentClientEmailedAt ? (
+                    <span
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-emerald-50 text-emerald-800 border-emerald-200"
+                      title={`Emailed to the client on ${new Date(
+                        currentClientEmailedAt,
+                      ).toLocaleString()}`}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                        <path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Emailed to client
+                    </span>
+                  ) : (
+                    <span
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-amber-50 text-amber-800 border-amber-200"
+                      title="This invoice is in QuickBooks but hasn't been emailed to the client yet. Use Send to client."
+                    >
+                      Not emailed to client
+                    </span>
+                  ))}
               </div>
             }
             headerActions={
@@ -1412,13 +1566,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     return;
                   }
 
-                  // For vendor bills, navigate to the same route as "View Bill" in all bills
+                  // For vendor bills, open the redesigned view-bill page.
                   const isVendorBill = item?.source === "Vendor-Import" || item?.source === "Vendor Bill";
                   if (isVendorBill && item.sourceId) {
-                    const basePath = propertyId
-                      ? `/property/${propertyId}/bills/record`
-                      : "/bills/record";
-                    navigate(`${basePath}?readOnly=true&billId=${item.sourceId}`);
+                    navigate(`/bills/view?billId=${item.sourceId}`);
                     return;
                   }
 
@@ -1438,8 +1589,37 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 // Hide action for Management Fee items
                 hidden: (item: any) => item?.source === "Management Fee",
               },
+              {
+                label: () => "Void line item",
+                icon: (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6"
+                      stroke="#DC2626"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (item: any) => {
+                  setVoidReason("");
+                  setVoidTargetLine(item);
+                },
+                // Only meaningful while there's a current invoice that isn't
+                // already void. The confirm dialog enforces the unpaid-balance
+                // rule (and blocks already-paid lines).
+                hidden: () =>
+                  !currentInvoiceId || currentInvoiceStatus === "void",
+              },
             ]}
-            
+
             renderCell={(item: any, columnKey: string) => {
               switch (columnKey) {
                 case "vendor":
@@ -1527,7 +1707,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
                     return sum + amount;
                   }, 0)
-                  .toFixed(0)}
+                  .toFixed(2)}
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
@@ -1621,6 +1801,84 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       className="h-10 inline-flex items-center px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none text-white font-medium"
                     >
                       Send to QBO
+                    </button>
+                  )}
+
+                {/* Email the QBO invoice to the client — available once it's
+                    been exported to QBO (sent or paid). */}
+                {(currentInvoiceStatus === "sent" ||
+                  currentInvoiceStatus === "paid") &&
+                  currentInvoiceId &&
+                  currentQBOPushStatus !== "failed" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSendToEmail("");
+                        setSendToOpen(true);
+                      }}
+                      title="Email this invoice to the client via QuickBooks (includes a view/pay link)"
+                      className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                        <path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Send to client
+                    </button>
+                  )}
+
+                {/* Re-push the current (platform) line set to the existing QBO
+                    invoice — use when the QBO copy has drifted (e.g. lines were
+                    voided/merged after the original send). Also re-runs the
+                    markup-income JE. */}
+                {(currentInvoiceStatus === "sent" ||
+                  currentInvoiceStatus === "paid") &&
+                  currentInvoiceId &&
+                  currentQBOPushStatus !== "failed" && (
+                    <button
+                      type="button"
+                      title="Re-push this invoice's current lines to its QuickBooks invoice (corrects a drifted QBO copy)."
+                      onClick={async () => {
+                        const toastId = toast.loading(
+                          "Re-syncing to QuickBooks…",
+                        );
+                        try {
+                          const res = await authFetch(
+                            `/invoicing/qbo-retry-update?id=${currentInvoiceId}`,
+                            { method: "POST" },
+                          );
+                          if (!res.ok) {
+                            const t = await res.text();
+                            let msg = t;
+                            try { msg = JSON.parse(t)?.error ?? t; } catch {}
+                            throw new Error(msg || "Re-sync failed");
+                          }
+                          await loadInvoiceForProperty();
+                          // Also regenerate + re-attach the PDF so the QBO copy
+                          // and the emailed attachment match the updated lines.
+                          // Clear any stale preview lines so the modal renders
+                          // the current (merged / post-void) set.
+                          setInvoicePreviewLineItems([]);
+                          setReExportMode(true);
+                          setShowInvoicePreview(true);
+                          toast.success("Re-synced to QuickBooks", {
+                            id: toastId,
+                            description:
+                              "Lines updated; refreshing the attached PDF. Use Send to client to re-email.",
+                          });
+                        } catch (e: any) {
+                          toast.error("Re-sync failed", {
+                            id: toastId,
+                            description: e?.message ?? "Unexpected error",
+                          });
+                        }
+                      }}
+                      className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 12a8 8 0 0 1 13.66-5.66L20 8M20 4v4h-4M20 12a8 8 0 0 1-13.66 5.66L4 16M4 20v-4h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Re-sync to QBO
                     </button>
                   )}
 
@@ -1822,8 +2080,21 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         }
         showCommitButton={invoicePreviewShowCommitButton}
         onCommit={handleCommitInvoice}
+        autoReExport={reExportMode}
+        onReExport={handleReExportPdf}
         pendingUnapprovedCount={pendingApprovalBills.length}
         derivedStatus={currentInvoiceStatus}
+        invoiceStatus={currentInvoiceStatus}
+        onVoidLine={
+          (currentInvoiceStatus === "sent" || currentInvoiceStatus === "paid") &&
+          currentInvoiceId
+            ? (lineId) => {
+                const line = invoiceItems.find((it) => it.id === lineId) ?? null;
+                setVoidReason("");
+                setVoidTargetLine(line);
+              }
+            : undefined
+        }
         unpaidPassthroughCount={unpaidPassthroughCount}
         qboPushStatus={currentQBOPushStatus}
         qboLastError={currentQBOLastError}
@@ -1878,6 +2149,224 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             : undefined
         }
       />
+
+      {/* Void line-item confirmation (sent / paid invoices) */}
+      {voidTargetLine &&
+        (() => {
+          const parseCents = (s: string) =>
+            Math.round(parseFloat((s || "").replace(/[^0-9.]/g, "")) * 100) || 0;
+          const t = voidTargetLine;
+          const markupType =
+            t.sourceType === "vendor" || t.sourceType === "utility"
+              ? "vendor_credit"
+              : t.sourceType === "fto_expense"
+                ? "materials_markup"
+                : "";
+          const pairedMarkups = markupType
+            ? invoiceItems.filter(
+                (i) => i.sourceType === markupType && i.sourceId === t.sourceId,
+              )
+            : [];
+          const removedLines = [t, ...pairedMarkups];
+          const removedCents = removedLines.reduce(
+            (sum, l) => sum + parseCents(l.amount),
+            0,
+          );
+          const currentCents = currentInvoiceTotalCents;
+          const newCents = currentCents - removedCents;
+          const paymentCents = currentInvoicePaymentCents;
+          const unpaidCents = currentCents - paymentCents;
+          const ruleOk = removedCents <= unpaidCents;
+          const closesOut = paymentCents > 0 && newCents === paymentCents;
+          const issued =
+            currentInvoiceStatus === "sent" || currentInvoiceStatus === "paid";
+          const fmt = (c: number) => `$${(c / 100).toFixed(2)}`;
+
+          return (
+            <AlertDialog
+              open={!!voidTargetLine}
+              onOpenChange={(open) => {
+                if (!open) setVoidTargetLine(null);
+              }}
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Void line item</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {!ruleOk
+                      ? "This line is already paid — it would need a credit memo, which isn't supported yet."
+                      : issued
+                        ? "This removes the line and re-syncs the reduced invoice to QuickBooks, which reverses its posting."
+                        : "This removes the line from this draft invoice."}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <div className="space-y-3 text-sm">
+                  <div className="rounded-md border border-gray-200 divide-y">
+                    {removedLines.map((l) => (
+                      <div
+                        key={l.id}
+                        className="flex justify-between gap-4 px-3 py-2"
+                      >
+                        <span className="text-gray-700">
+                          {l.description || l.source}
+                          {l.id !== t.id && (
+                            <span className="ml-1 text-xs text-amber-600">
+                              (markup)
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-medium text-gray-900">
+                          {l.amount}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {pairedMarkups.length > 0 && (
+                    <p className="text-xs text-amber-700">
+                      Its markup line is removed too — you can't bill markup on a
+                      reimbursement you've voided.
+                    </p>
+                  )}
+
+                  <div className="flex justify-between border-t pt-2 font-medium">
+                    <span>New invoice total</span>
+                    <span>{fmt(Math.max(newCents, 0))}</span>
+                  </div>
+
+                  {closesOut && (
+                    <p className="rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                      This brings the balance to $0 — the invoice will close out
+                      as paid in full.
+                    </p>
+                  )}
+
+                  {!issued && ruleOk && (
+                    <p className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-500">
+                      This is a draft — clicking Refresh later re-pulls bills and
+                      will restore this line.
+                    </p>
+                  )}
+
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      Reason (optional)
+                    </label>
+                    <textarea
+                      value={voidReason}
+                      onChange={(e) => setVoidReason(e.target.value)}
+                      rows={2}
+                      className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+                      placeholder="e.g. duplicate charge, billed in error"
+                    />
+                  </div>
+                </div>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={voiding}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={!ruleOk || voiding}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      if (!currentInvoiceId) return;
+                      setVoiding(true);
+                      const toastId = toast.loading("Voiding line item…");
+                      const wasIssued =
+                        currentInvoiceStatus === "sent" ||
+                        currentInvoiceStatus === "paid";
+                      try {
+                        await voidInvoiceLine(
+                          currentInvoiceId,
+                          t.id,
+                          voidReason,
+                        );
+                        setVoidTargetLine(null);
+                        await loadInvoiceForProperty();
+                        if (wasIssued) {
+                          // Re-open the preview so it regenerates the corrected
+                          // PDF and re-attaches it to the QBO invoice. Clear any
+                          // stale preview lines so it renders the current set.
+                          setInvoicePreviewLineItems([]);
+                          setReExportMode(true);
+                          setShowInvoicePreview(true);
+                          toast.success("Line item voided", {
+                            id: toastId,
+                            description:
+                              "Invoice updated in QuickBooks; refreshing the attached PDF…",
+                          });
+                        } else {
+                          setShowInvoicePreview(false);
+                          toast.success("Line item voided", {
+                            id: toastId,
+                            description: "Invoice total recomputed.",
+                          });
+                        }
+                      } catch (err: any) {
+                        toast.error("Void failed", {
+                          id: toastId,
+                          description: err?.message ?? "Unexpected error",
+                        });
+                      } finally {
+                        setVoiding(false);
+                      }
+                    }}
+                  >
+                    {voiding ? "Voiding…" : "Void line"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          );
+        })()}
+
+      {/* Send-to-client: capture the email, then email the QBO invoice. */}
+      <AlertDialog open={sendToOpen} onOpenChange={(o) => { if (!o) setSendToOpen(false); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send invoice to client</AlertDialogTitle>
+            <AlertDialogDescription>
+              QuickBooks emails the client this invoice with a link to view and
+              (if QuickBooks Payments is enabled) pay it online.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-2 text-sm">
+            <label className="block text-xs font-medium text-gray-600">
+              Client email
+            </label>
+            <input
+              type="email"
+              autoFocus
+              value={sendToEmail}
+              onChange={(e) => setSendToEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !sendingInvoice) {
+                  e.preventDefault();
+                  handleSendToClient();
+                }
+              }}
+              placeholder="client@example.com"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764]"
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={sendingInvoice}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={sendingInvoice}
+              onClick={(e) => {
+                e.preventDefault();
+                handleSendToClient();
+              }}
+            >
+              {sendingInvoice ? "Sending…" : "Send invoice"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {recordPaymentInvoiceId && (
         <RecordPaymentDialog
