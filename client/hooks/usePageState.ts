@@ -13,10 +13,37 @@ import { useTabContext } from "./useTabContext";
  * pageState in sessionStorage from before this change will be ignored on next
  * load (sessionStorage clears on browser close anyway).
  */
-export function usePageState<T>(key: string, initialValue: T): [T, (value: T) => void] {
+export interface UsePageStateOptions<T> {
+  /**
+   * Whitelist of acceptable values. A persisted value outside this set is
+   * treated as "not set" and `initialValue` is used instead. Pass this for
+   * enum-like state (e.g. the active tab) so a stale/garbage value in
+   * sessionStorage can't render a dead state — the page falls back to its
+   * default tab rather than showing nothing until the user clicks a tab.
+   *
+   * Without this, only `undefined` is treated as unset, so a defined-but-
+   * invalid value (e.g. an empty string) would be honored verbatim.
+   */
+  allowed?: readonly T[];
+}
+
+export function usePageState<T>(
+  key: string,
+  initialValue: T,
+  options?: UsePageStateOptions<T>,
+): [T, (value: T) => void] {
   const { selectedTab, tabMetadata, setTabMetadata } = useTabContext();
 
-  const stored = (tabMetadata[selectedTab]?.pageState?.[key] as T | undefined) ?? undefined;
+  // A stored value is only usable if it's actually set AND (when an `allowed`
+  // whitelist is provided) it's a recognized value. Anything else falls back
+  // to `initialValue`. Read `allowed` off `options` each call so an inline
+  // array literal doesn't need to be memoized by the caller.
+  const allowed = options?.allowed;
+  const isUsable = (v: T | undefined): v is T =>
+    v !== undefined && (!allowed || allowed.includes(v));
+
+  const raw = (tabMetadata[selectedTab]?.pageState?.[key] as T | undefined) ?? undefined;
+  const stored = isUsable(raw) ? raw : undefined;
   const [value, setValueState] = useState<T>(stored !== undefined ? stored : initialValue);
 
   // Track the tab this state instance is bound to. If it changes (e.g. user
@@ -27,10 +54,11 @@ export function usePageState<T>(key: string, initialValue: T): [T, (value: T) =>
     if (lastTabRef.current !== selectedTab) {
       lastTabRef.current = selectedTab;
       const next = tabMetadata[selectedTab]?.pageState?.[key] as T | undefined;
-      if (next !== undefined && next !== value) {
+      if (isUsable(next) && next !== value) {
         setValueState(next);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTab, tabMetadata, key, value]);
 
   // When stored value changes externally (e.g. restore from persistence on

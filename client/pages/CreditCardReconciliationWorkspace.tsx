@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import CreateChargeFromStatementRowModal from "@/components/CreateChargeFromStatementRowModal";
 import PayExistingBillModal from "@/components/PayExistingBillModal";
+import QuickBillBatchModal from "@/components/QuickBillBatchModal";
 import EditReconciliationModal from "@/components/EditReconciliationModal";
 import FinalizeReconciliationModal from "@/components/FinalizeReconciliationModal";
 import ForceClearReasonModal from "@/components/ForceClearReasonModal";
@@ -10,17 +10,74 @@ import {
   forceClear,
   getReconciliationWorkspace,
   matchReconciliationLine,
+  payExistingBill,
   removeStatement,
   reopen,
   setStatementAction,
   unmatchReconciliationLine,
   uploadStatement,
+  type ActivitySource,
   type CreditCardActivityRow,
   type MatchPair,
   type ReconciliationLine,
   type StatementRow,
   type Workspace,
 } from "@/data/credit-card-reconciliation";
+
+// rowMatchKey extracts the (source_system, txn_id) a reconciliation line is
+// keyed on for an activity row: qbo/both rows use the QBO id, buildium-only rows
+// use the Buildium id. Returns null when the row has no programmatic id.
+function rowMatchKey(
+  r: CreditCardActivityRow,
+): { source_system: ActivitySource; txn_id: string } | null {
+  if (r.source === "buildium") {
+    return r.buildium_txn_id
+      ? { source_system: "buildium", txn_id: r.buildium_txn_id }
+      : null;
+  }
+  return r.qbo_txn_id
+    ? { source_system: r.source ?? "qbo", txn_id: r.qbo_txn_id }
+    : null;
+}
+
+// rowUid is a stable per-row identity used for pending-state tracking and
+// dedupe sets, unique across sources.
+function rowUid(r: CreditCardActivityRow): string {
+  const k = rowMatchKey(r);
+  return k ? `${k.source_system}:${k.txn_id}` : "";
+}
+
+// CONF_LABEL maps a match-confidence tier to a short human label.
+const CONF_LABEL: Record<string, string> = {
+  exact: "exact",
+  fuzzy_date: "±3 days",
+  strong: "name + amount",
+  possible: "possible",
+};
+
+// SOURCE_BADGE renders which book(s) an activity row / line came from.
+const SOURCE_BADGE: Record<string, { label: string; cls: string }> = {
+  qbo: { label: "QBO", cls: "bg-sky-50 text-sky-700 border-sky-200" },
+  buildium: {
+    label: "Buildium",
+    cls: "bg-violet-50 text-violet-700 border-violet-200",
+  },
+  both: { label: "Both", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+};
+
+function SourceBadge({ source }: { source?: string }) {
+  const meta = SOURCE_BADGE[source ?? "qbo"] ?? SOURCE_BADGE.qbo;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-medium",
+        meta.cls,
+      )}
+    >
+      {meta.label}
+    </span>
+  );
+}
 
 const formatCents = (cents: number): string =>
   (cents / 100).toLocaleString("en-US", {
@@ -43,6 +100,7 @@ const STATUS_LABEL: Record<string, string> = {
 export default function CreditCardReconciliationWorkspace() {
   const { recId } = useParams<{ recId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const id = recId ? Number(recId) : NaN;
 
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -66,10 +124,15 @@ export default function CreditCardReconciliationWorkspace() {
   const [selectedStmt, setSelectedStmt] = useState<StatementRow | null>(null);
   const [selectedQbo, setSelectedQbo] = useState<CreditCardActivityRow | null>(null);
 
-  // "Create charge from this row" modal state.
-  const [createForRow, setCreateForRow] = useState<StatementRow | null>(null);
   // "Pay existing bill" modal state.
   const [payForRow, setPayForRow] = useState<StatementRow | null>(null);
+
+  // Quick-bill batch: source_rows the user has checked to book in bulk.
+  const [selectedForBill, setSelectedForBill] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const [quickBillOpen, setQuickBillOpen] = useState(false);
+  const [bulkActioning, setBulkActioning] = useState(false);
 
   // "Edit period / balances" modal state. Open via the inline affordance in
   // the workspace header. Save → PATCH → reload workspace so dates + matches
@@ -119,6 +182,64 @@ export default function CreditCardReconciliationWorkspace() {
     void load();
   }, [load]);
 
+  // Auto-chain: when we return from the RecordBill page after booking a bill for
+  // an unmatched statement row, immediately pay it from the card and pair it to
+  // the row (the booking routed concierge→QBO+Buildium / non-concierge→Buildium,
+  // and PayExistingBillFromStatementRow follows the same gating).
+  const [autoPaying, setAutoPaying] = useState(false);
+  useEffect(() => {
+    const pay = (location.state as { reconcilePay?: { billId: number; statementRow: StatementRow } } | null)
+      ?.reconcilePay;
+    if (!pay || !Number.isFinite(id) || id <= 0) return;
+    // Clear nav state first so a refresh/re-render can't double-pay.
+    navigate(location.pathname, { replace: true, state: null });
+    (async () => {
+      setAutoPaying(true);
+      setError(null);
+      try {
+        await payExistingBill(id, {
+          bill_id: pay.billId,
+          statement_row: pay.statementRow,
+        });
+        await load();
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? `Bill recorded but auto-pay failed — pay it from the row manually: ${err.message}`
+            : "Bill recorded but auto-pay failed",
+        );
+      } finally {
+        setAutoPaying(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
+
+  // Record a bill for an unmatched statement charge: navigate to the standard
+  // RecordBill flow pre-filled with the row's date/amount/description, with a
+  // return context so we auto-chain pay+pair on success.
+  const handleRecordBill = (row: StatementRow) => {
+    const prefillBill = {
+      invoiceDate: row.date,
+      lineItems: [
+        {
+          id: 1,
+          property: "",
+          unit: "",
+          unitName: "",
+          description: row.description || "Statement charge",
+          glAccount: "",
+          upcharge: "$0.00",
+          total: formatCents(row.amount_cents),
+          workOrder: "",
+        },
+      ],
+    };
+    navigate(`/bills/record?returnTo=${encodeURIComponent(location.pathname)}`, {
+      state: { bill: prefillBill, reconcile: { statementRow: row } },
+    });
+  };
+
   // Filter suggestions: drop pairs whose QBO id is missing (can't match
   // programmatically). The server already excludes accepted matches by
   // recomputing suggestions on each GET against current matched_lines, but we
@@ -127,9 +248,7 @@ export default function CreditCardReconciliationWorkspace() {
   // clean (no conditional useMemo after early returns).
   const pendingSuggestions = useMemo<MatchPair[]>(() => {
     if (!workspace) return [];
-    return (workspace.suggestions ?? []).filter(
-      (p) => p.qbo.qbo_txn_id != null && p.qbo.qbo_txn_id !== "",
-    );
+    return (workspace.suggestions ?? []).filter((p) => rowMatchKey(p.qbo) != null);
   }, [workspace]);
 
   // For the side-by-side, hide statement rows + QBO rows that are already part
@@ -149,23 +268,97 @@ export default function CreditCardReconciliationWorkspace() {
   const pairableQboRows = useMemo(() => {
     if (!workspace) return [];
     const suggestedIDs = new Set(
-      pendingSuggestions
-        .map((p) => p.qbo.qbo_txn_id)
-        .filter((id): id is string => id != null),
+      pendingSuggestions.map((p) => rowUid(p.qbo)).filter((id) => id !== ""),
     );
     return (workspace.unmatched_qbo ?? []).filter(
-      (r) => r.qbo_txn_id == null || !suggestedIDs.has(r.qbo_txn_id),
+      (r) => rowUid(r) === "" || !suggestedIDs.has(rowUid(r)),
     );
   }, [workspace, pendingSuggestions]);
 
+  // Auto-acceptable (exact / fuzzy_date / strong) vs review-only ("possible").
+  const autoSuggestions = useMemo(
+    () => pendingSuggestions.filter((p) => p.confidence !== "possible"),
+    [pendingSuggestions],
+  );
+  const reviewSuggestions = useMemo(
+    () => pendingSuggestions.filter((p) => p.confidence === "possible"),
+    [pendingSuggestions],
+  );
+
+  // One suggestion row, reused by the auto panel and the review panel.
+  const renderSuggestionRow = (pair: MatchPair, i: number) => {
+    const txnID = rowUid(pair.qbo) || `${i}`;
+    const delta = pair.statement.amount_cents - pair.qbo.amount_cents;
+    return (
+      <li
+        key={txnID}
+        className="px-4 py-3 grid grid-cols-[1fr_auto_1fr_auto] gap-3 items-center"
+      >
+        <div className="min-w-0">
+          <div className="text-xs text-[#A1A1A1] uppercase tracking-wide">
+            Statement
+          </div>
+          <div className="text-sm text-[#303030] truncate">
+            {pair.statement.description || "—"}
+          </div>
+          <div className="text-xs text-[#717179]">
+            {pair.statement.date} · row {pair.statement.source_row}
+          </div>
+          <div className="text-sm font-medium text-[#303030] tabular-nums mt-0.5">
+            {formatCents(pair.statement.amount_cents)}
+          </div>
+        </div>
+        <div className="text-[#A1A1A1] text-xs">↔</div>
+        <div className="min-w-0">
+          <div className="text-xs text-[#A1A1A1] uppercase tracking-wide flex items-center gap-1.5">
+            <SourceBadge source={pair.qbo.source} />
+            <span>({CONF_LABEL[pair.confidence] ?? pair.confidence})</span>
+          </div>
+          <div className="text-sm text-[#303030] truncate">
+            {pair.qbo.txn_type}
+            {pair.qbo.vendor && (
+              <span className="text-[#717179]"> · {pair.qbo.vendor}</span>
+            )}
+          </div>
+          <div className="text-xs text-[#717179]">{pair.qbo.txn_date}</div>
+          <div className="text-sm font-medium text-[#303030] tabular-nums mt-0.5">
+            {formatCents(pair.qbo.amount_cents)}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {delta !== 0 && (
+            <div
+              className="text-xs font-medium text-rose-600 tabular-nums"
+              title="Statement and Buildium amounts differ"
+            >
+              Δ {formatCents(delta)}
+            </div>
+          )}
+          {isInProgress && (
+            <button
+              type="button"
+              onClick={() => acceptSuggestion(pair)}
+              disabled={acceptingAll || loading || pendingTxnID !== null}
+              className="text-xs text-[#013764] hover:underline disabled:opacity-40 disabled:no-underline"
+            >
+              {pendingTxnID === rowUid(pair.qbo) ? "Accepting…" : "Accept"}
+            </button>
+          )}
+        </div>
+      </li>
+    );
+  };
+
   const handleMatch = async (row: CreditCardActivityRow) => {
-    if (!workspace || !row.qbo_txn_id) return;
-    setPendingTxnID(row.qbo_txn_id);
+    const k = rowMatchKey(row);
+    if (!workspace || !k) return;
+    setPendingTxnID(rowUid(row));
     setError(null);
     try {
       await matchReconciliationLine(workspace.reconciliation.id, {
+        source_system: k.source_system,
         qbo_txn_type: row.txn_type,
-        qbo_txn_id: row.qbo_txn_id,
+        qbo_txn_id: k.txn_id,
         txn_date: row.txn_date,
         amount_cents: row.amount_cents,
         match_confidence: "manual",
@@ -218,13 +411,15 @@ export default function CreditCardReconciliationWorkspace() {
   };
 
   const acceptSuggestion = async (pair: MatchPair) => {
-    if (!workspace || !pair.qbo.qbo_txn_id) return;
-    setPendingTxnID(pair.qbo.qbo_txn_id);
+    const k = rowMatchKey(pair.qbo);
+    if (!workspace || !k) return;
+    setPendingTxnID(rowUid(pair.qbo));
     setUploadError(null);
     try {
       await matchReconciliationLine(workspace.reconciliation.id, {
+        source_system: k.source_system,
         qbo_txn_type: pair.qbo.txn_type,
-        qbo_txn_id: pair.qbo.qbo_txn_id,
+        qbo_txn_id: k.txn_id,
         txn_date: pair.qbo.txn_date,
         amount_cents: pair.qbo.amount_cents,
         statement_row: pair.statement,
@@ -241,19 +436,22 @@ export default function CreditCardReconciliationWorkspace() {
   };
 
   const acceptAllSuggestions = async () => {
-    if (!workspace || pendingSuggestions.length === 0) return;
+    if (!workspace || autoSuggestions.length === 0) return;
     setAcceptingAll(true);
     setUploadError(null);
     let firstErr: string | null = null;
     // Sequential rather than parallel — a future batch endpoint can replace
     // this. Each call is small; the bottleneck is API round-trip count, not
-    // server work. Stop on first error so the user sees what failed.
-    for (const pair of pendingSuggestions) {
-      if (!pair.qbo.qbo_txn_id) continue;
+    // server work. Stop on first error so the user sees what failed. Only the
+    // auto-acceptable tiers (exact/strong) — "possible" stays for manual review.
+    for (const pair of autoSuggestions) {
+      const k = rowMatchKey(pair.qbo);
+      if (!k) continue;
       try {
         await matchReconciliationLine(workspace.reconciliation.id, {
+          source_system: k.source_system,
           qbo_txn_type: pair.qbo.txn_type,
-          qbo_txn_id: pair.qbo.qbo_txn_id,
+          qbo_txn_id: k.txn_id,
           txn_date: pair.qbo.txn_date,
           amount_cents: pair.qbo.amount_cents,
           statement_row: pair.statement,
@@ -272,13 +470,15 @@ export default function CreditCardReconciliationWorkspace() {
   };
 
   const handlePair = async () => {
-    if (!workspace || !selectedStmt || !selectedQbo || !selectedQbo.qbo_txn_id) return;
-    setPendingTxnID(selectedQbo.qbo_txn_id);
+    const k = selectedQbo ? rowMatchKey(selectedQbo) : null;
+    if (!workspace || !selectedStmt || !selectedQbo || !k) return;
+    setPendingTxnID(rowUid(selectedQbo));
     setError(null);
     try {
       await matchReconciliationLine(workspace.reconciliation.id, {
+        source_system: k.source_system,
         qbo_txn_type: selectedQbo.txn_type,
-        qbo_txn_id: selectedQbo.qbo_txn_id,
+        qbo_txn_id: k.txn_id,
         txn_date: selectedQbo.txn_date,
         amount_cents: selectedQbo.amount_cents,
         statement_row: selectedStmt,
@@ -296,19 +496,21 @@ export default function CreditCardReconciliationWorkspace() {
   };
 
   const handleClearWithoutStatement = () => {
-    if (!workspace || !selectedQbo || !selectedQbo.qbo_txn_id) return;
+    if (!workspace || !selectedQbo || !rowMatchKey(selectedQbo)) return;
     setForceClearError(null);
     setForceClearRow(selectedQbo);
   };
 
   const handleForceClearConfirm = async (reason: string) => {
-    if (!workspace || !forceClearRow || !forceClearRow.qbo_txn_id) return;
+    const k = forceClearRow ? rowMatchKey(forceClearRow) : null;
+    if (!workspace || !forceClearRow || !k) return;
     setForceClearSubmitting(true);
     setForceClearError(null);
     try {
       await forceClear(workspace.reconciliation.id, {
+        source_system: k.source_system,
         qbo_txn_type: forceClearRow.txn_type,
-        qbo_txn_id: forceClearRow.qbo_txn_id,
+        qbo_txn_id: k.txn_id,
         txn_date: forceClearRow.txn_date,
         amount_cents: forceClearRow.amount_cents,
         reason,
@@ -323,6 +525,43 @@ export default function CreditCardReconciliationWorkspace() {
     } finally {
       setForceClearSubmitting(false);
     }
+  };
+
+  // Bulk defer / dispute the checkbox-selected statement rows. Dispute prompts
+  // once for a shared reason. Sequential; collects the first error, then reloads.
+  const bulkAction = async (action: "defer" | "dispute") => {
+    if (!workspace || selectedForBill.size === 0) return;
+    let note: string | undefined;
+    if (action === "dispute") {
+      const r = window.prompt("Reason for dispute (applied to all selected):");
+      if (r == null) return; // cancelled
+      if (r.trim() === "") {
+        setError("Dispute reason is required.");
+        return;
+      }
+      note = r.trim();
+    }
+    setBulkActioning(true);
+    setError(null);
+    const rows = pairableStatementRows.filter((r) =>
+      selectedForBill.has(r.source_row),
+    );
+    let firstErr: string | null = null;
+    for (const r of rows) {
+      try {
+        await setStatementAction(workspace.reconciliation.id, {
+          source_row: r.source_row,
+          action,
+          note,
+        });
+      } catch (e) {
+        if (!firstErr) firstErr = e instanceof Error ? e.message : "action failed";
+      }
+    }
+    setBulkActioning(false);
+    setSelectedForBill(new Set());
+    if (firstErr) setError(firstErr);
+    await load();
   };
 
   const handleDeferRow = async (row: StatementRow) => {
@@ -646,6 +885,34 @@ export default function CreditCardReconciliationWorkspace() {
         </div>
       )}
 
+      {autoPaying && (
+        <div className="border border-sky-200 bg-sky-50 text-sky-900 rounded-md px-4 py-3 text-sm">
+          Paying the recorded bill from the card and pairing it to the statement
+          row…
+        </div>
+      )}
+
+      {uploadLoading && (
+        <div className="border border-sky-200 bg-sky-50 text-sky-900 rounded-md px-4 py-3 text-sm flex items-center gap-2">
+          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-sky-300 border-t-sky-700" />
+          Parsing the statement and matching it against QBO + Buildium — this can
+          take a few seconds.
+        </div>
+      )}
+
+      {!uploadLoading &&
+        !autoPaying &&
+        (loading ||
+          acceptingAll ||
+          bulkActioning ||
+          pendingTxnID !== null ||
+          pendingLineID !== null) && (
+          <div className="border border-sky-200 bg-sky-50 text-sky-900 rounded-md px-4 py-3 text-sm flex items-center gap-2">
+            <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-sky-300 border-t-sky-700" />
+            Applying changes…
+          </div>
+        )}
+
       {uploadError && (
         <div className="border border-rose-200 bg-rose-50 text-rose-900 rounded-md px-4 py-3 text-sm">
           {uploadError}
@@ -663,23 +930,22 @@ export default function CreditCardReconciliationWorkspace() {
         </div>
       )}
 
-      {pendingSuggestions.length > 0 && (
+      {autoSuggestions.length > 0 && (
         <section className="border border-sky-200 rounded-md bg-white">
           <div className="px-4 py-3 border-b border-sky-100 bg-sky-50/50 flex items-center justify-between flex-wrap gap-3">
             <div>
               <div className="text-sm font-semibold text-[#303030]">
-                Suggested matches ({pendingSuggestions.length})
+                Suggested matches ({autoSuggestions.length})
               </div>
               <div className="text-xs text-[#717179] mt-0.5">
-                From the uploaded statement. Each pair has the same amount and a
-                date within ±3 days.
+                Same amount, plus a near date or a strong vendor-name match.
               </div>
             </div>
             {isInProgress && (
               <button
                 type="button"
                 onClick={acceptAllSuggestions}
-                disabled={acceptingAll || pendingSuggestions.length === 0}
+                disabled={acceptingAll || loading || autoSuggestions.length === 0}
                 className={cn(
                   "px-3 py-1.5 text-sm font-medium rounded-md border",
                   acceptingAll
@@ -689,67 +955,29 @@ export default function CreditCardReconciliationWorkspace() {
               >
                 {acceptingAll
                   ? "Accepting…"
-                  : `Accept all (${pendingSuggestions.length})`}
+                  : `Accept all (${autoSuggestions.length})`}
               </button>
             )}
           </div>
           <ul className="divide-y divide-[#F0F0F0]">
-            {pendingSuggestions.map((pair, i) => {
-              const txnID = pair.qbo.qbo_txn_id ?? `${i}`;
-              return (
-                <li
-                  key={txnID}
-                  className="px-4 py-3 grid grid-cols-[1fr_auto_1fr_auto] gap-3 items-center"
-                >
-                  <div className="min-w-0">
-                    <div className="text-xs text-[#A1A1A1] uppercase tracking-wide">
-                      Statement
-                    </div>
-                    <div className="text-sm text-[#303030] truncate">
-                      {pair.statement.description || "—"}
-                    </div>
-                    <div className="text-xs text-[#717179]">
-                      {pair.statement.date} · row {pair.statement.source_row}
-                    </div>
-                  </div>
-                  <div className="text-[#A1A1A1] text-xs">↔</div>
-                  <div className="min-w-0">
-                    <div className="text-xs text-[#A1A1A1] uppercase tracking-wide">
-                      QBO ({pair.confidence === "exact" ? "exact" : "±3 days"})
-                    </div>
-                    <div className="text-sm text-[#303030] truncate">
-                      {pair.qbo.txn_type}
-                      {pair.qbo.vendor && (
-                        <span className="text-[#717179]"> · {pair.qbo.vendor}</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-[#717179]">
-                      {pair.qbo.txn_date}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <div className="text-sm font-medium text-[#303030] tabular-nums">
-                      {formatCents(pair.statement.amount_cents)}
-                    </div>
-                    {isInProgress && (
-                      <button
-                        type="button"
-                        onClick={() => acceptSuggestion(pair)}
-                        disabled={
-                          acceptingAll ||
-                          pendingTxnID === pair.qbo.qbo_txn_id
-                        }
-                        className="text-xs text-[#013764] hover:underline disabled:opacity-40 disabled:no-underline"
-                      >
-                        {pendingTxnID === pair.qbo.qbo_txn_id
-                          ? "…"
-                          : "Accept"}
-                      </button>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
+            {autoSuggestions.map((pair, i) => renderSuggestionRow(pair, i))}
+          </ul>
+        </section>
+      )}
+
+      {reviewSuggestions.length > 0 && (
+        <section className="border border-amber-200 rounded-md bg-white">
+          <div className="px-4 py-3 border-b border-amber-100 bg-amber-50/50">
+            <div className="text-sm font-semibold text-[#303030]">
+              Review suggestions ({reviewSuggestions.length})
+            </div>
+            <div className="text-xs text-[#717179] mt-0.5">
+              Lower-confidence — same amount but only a partial name or a wider
+              date gap. Confirm each individually; these aren't in "Accept all".
+            </div>
+          </div>
+          <ul className="divide-y divide-[#F0F0F0]">
+            {reviewSuggestions.map((pair, i) => renderSuggestionRow(pair, i))}
           </ul>
         </section>
       )}
@@ -786,8 +1014,8 @@ export default function CreditCardReconciliationWorkspace() {
                 disabled={
                   !selectedQbo ||
                   selectedStmt != null ||
-                  !selectedQbo.qbo_txn_id ||
-                  pendingTxnID === selectedQbo?.qbo_txn_id
+                  !rowMatchKey(selectedQbo) ||
+                  pendingTxnID === rowUid(selectedQbo)
                 }
                 className={cn(
                   "px-3 py-1.5 text-sm font-medium rounded-md border bg-white",
@@ -805,8 +1033,8 @@ export default function CreditCardReconciliationWorkspace() {
                 disabled={
                   !selectedStmt ||
                   !selectedQbo ||
-                  !selectedQbo.qbo_txn_id ||
-                  pendingTxnID === selectedQbo?.qbo_txn_id
+                  !rowMatchKey(selectedQbo) ||
+                  pendingTxnID === rowUid(selectedQbo)
                 }
                 className={cn(
                   "px-3 py-1.5 text-sm font-medium rounded-md border",
@@ -815,7 +1043,7 @@ export default function CreditCardReconciliationWorkspace() {
                     : "border-[#E5E5E5] bg-white text-[#717179]",
                 )}
               >
-                {pendingTxnID && selectedQbo?.qbo_txn_id === pendingTxnID
+                {pendingTxnID && selectedQbo && rowUid(selectedQbo) === pendingTxnID
                   ? "Pairing…"
                   : "Pair selected"}
               </button>
@@ -825,12 +1053,62 @@ export default function CreditCardReconciliationWorkspace() {
         <div className="grid grid-cols-2 divide-x divide-[#F0F0F0]">
           {/* Statement column */}
           <div>
-            <div className="px-4 py-2 border-b border-[#F0F0F0] bg-[#FAFAFA] text-xs font-medium text-[#717179] flex items-center justify-between">
-              <span>Statement ({pairableStatementRows.length})</span>
-              {selectedStmt && (
-                <span className="text-[#013764] tabular-nums">
-                  selected: {formatCents(selectedStmt.amount_cents)}
-                </span>
+            <div className="px-4 py-2 border-b border-[#F0F0F0] bg-[#FAFAFA] text-xs font-medium text-[#717179] flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                {isInProgress && pairableStatementRows.length > 0 && (
+                  <input
+                    type="checkbox"
+                    aria-label="Select all for quick-bill"
+                    checked={
+                      selectedForBill.size === pairableStatementRows.length &&
+                      pairableStatementRows.length > 0
+                    }
+                    onChange={(e) => {
+                      setSelectedForBill(
+                        e.target.checked
+                          ? new Set(
+                              pairableStatementRows.map((r) => r.source_row),
+                            )
+                          : new Set(),
+                      );
+                    }}
+                  />
+                )}
+                <span>Statement ({pairableStatementRows.length})</span>
+              </div>
+              {isInProgress && selectedForBill.size > 0 ? (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setQuickBillOpen(true)}
+                    disabled={bulkActioning}
+                    className="px-2 py-0.5 rounded border border-[#013764] text-[#013764] hover:bg-[#F4F7FA] normal-case disabled:opacity-40"
+                  >
+                    Quick-bill {selectedForBill.size}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void bulkAction("defer")}
+                    disabled={bulkActioning}
+                    className="px-2 py-0.5 rounded border border-[#DDD] text-[#717179] hover:bg-[#F8F8F8] normal-case disabled:opacity-40"
+                  >
+                    Defer {selectedForBill.size}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void bulkAction("dispute")}
+                    disabled={bulkActioning}
+                    className="px-2 py-0.5 rounded border border-rose-200 text-rose-700 hover:bg-rose-50 normal-case disabled:opacity-40"
+                  >
+                    Dispute {selectedForBill.size}
+                  </button>
+                </div>
+              ) : (
+                selectedStmt && (
+                  <span className="text-[#013764] tabular-nums">
+                    selected: {formatCents(selectedStmt.amount_cents)}
+                  </span>
+                )
               )}
             </div>
             {pairableStatementRows.length === 0 ? (
@@ -860,6 +1138,24 @@ export default function CreditCardReconciliationWorkspace() {
                           : "hover:bg-[#F8F8F8] border-l-4 border-l-transparent pl-3",
                       )}
                     >
+                      {isInProgress && (
+                        <input
+                          type="checkbox"
+                          aria-label="Select for quick-bill"
+                          className="shrink-0"
+                          checked={selectedForBill.has(r.source_row)}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            setSelectedForBill((prev) => {
+                              const next = new Set(prev);
+                              if (e.target.checked) next.add(r.source_row);
+                              else next.delete(r.source_row);
+                              return next;
+                            });
+                          }}
+                        />
+                      )}
                       <div className="min-w-0">
                         <div className="text-sm text-[#303030] truncate">
                           {r.description || "—"}
@@ -889,12 +1185,12 @@ export default function CreditCardReconciliationWorkspace() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setCreateForRow(r);
+                                handleRecordBill(r);
                               }}
                               className="text-xs text-[#013764] hover:underline"
-                              title="Create a bill + payment in QBO + platform from this statement row"
+                              title="Record a bill for this charge, then pay it from the card and pair it to this row"
                             >
-                              Create charge
+                              Record bill
                             </button>
                             <button
                               type="button"
@@ -946,15 +1242,17 @@ export default function CreditCardReconciliationWorkspace() {
             ) : (
               <ul className="max-h-[600px] overflow-y-auto divide-y divide-[#F0F0F0]">
                 {pairableQboRows.map((row, i) => {
-                  const matchable = !!row.qbo_txn_id;
+                  const matchable = !!rowMatchKey(row);
                   const isSelected =
-                    matchable && selectedQbo?.qbo_txn_id === row.qbo_txn_id;
+                    matchable &&
+                    selectedQbo != null &&
+                    rowUid(selectedQbo) === rowUid(row);
                   const sameAmount =
                     selectedStmt != null &&
                     !isSelected &&
                     selectedStmt.amount_cents === row.amount_cents;
                   const key =
-                    row.qbo_txn_id ??
+                    rowUid(row) ||
                     `${row.txn_type}-${row.txn_date}-${row.amount_cents}-${i}`;
                   return (
                     <li
@@ -982,14 +1280,18 @@ export default function CreditCardReconciliationWorkspace() {
                       )}
                     >
                       <div className="min-w-0">
-                        <div className="text-sm text-[#303030] truncate">
-                          {row.txn_type}
-                          {row.vendor && (
-                            <span className="text-[#717179]"> · {row.vendor}</span>
-                          )}
+                        <div className="text-sm text-[#303030] truncate flex items-center gap-1.5">
+                          <SourceBadge source={row.source} />
+                          <span className="truncate">
+                            {row.txn_type}
+                            {row.vendor && (
+                              <span className="text-[#717179]"> · {row.vendor}</span>
+                            )}
+                          </span>
                         </div>
                         <div className="text-xs text-[#A1A1A1]">
-                          {row.txn_date} · {row.status}
+                          {row.txn_date}
+                          {row.status && <span> · {row.status}</span>}
                           {row.memo && <span> · {row.memo}</span>}
                         </div>
                       </div>
@@ -1031,22 +1333,6 @@ export default function CreditCardReconciliationWorkspace() {
         }}
       />
 
-      <CreateChargeFromStatementRowModal
-        open={createForRow != null}
-        onOpenChange={(o) => {
-          if (!o) setCreateForRow(null);
-        }}
-        reconciliationID={rec.id}
-        statementRow={createForRow}
-        onCreated={() => {
-          // load() pulls the fresh persisted view — the new line lands in
-          // matched_lines and its statement_row snapshot drops the originating
-          // row out of unmatched_statement automatically.
-          setCreateForRow(null);
-          void load();
-        }}
-      />
-
       <PayExistingBillModal
         open={payForRow != null}
         onOpenChange={(o) => {
@@ -1057,6 +1343,21 @@ export default function CreditCardReconciliationWorkspace() {
         onPaid={() => {
           // Same as onCreated above — server-side state is the source of truth.
           setPayForRow(null);
+          void load();
+        }}
+      />
+
+      <QuickBillBatchModal
+        open={quickBillOpen}
+        onOpenChange={setQuickBillOpen}
+        reconciliationID={rec.id}
+        rows={pairableStatementRows.filter((r) =>
+          selectedForBill.has(r.source_row),
+        )}
+        onDone={() => {
+          // Booked rows become matched lines and drop out of unmatched. Clear
+          // the selection and reload the canonical state.
+          setSelectedForBill(new Set());
           void load();
         }}
       />
@@ -1104,7 +1405,9 @@ export default function CreditCardReconciliationWorkspace() {
               if (line.qbo_vendor) subtitleParts.push(line.qbo_vendor);
               subtitleParts.push(line.qbo_txn_type);
               if (line.qbo_memo) subtitleParts.push(`"${line.qbo_memo}"`);
-              subtitleParts.push(`QBO #${line.qbo_txn_id}`);
+              const idLabel =
+                line.source_system === "buildium" ? "Buildium" : "QBO";
+              subtitleParts.push(`${idLabel} #${line.qbo_txn_id}`);
               const subtitle = isForced
                 ? `Reason: ${line.force_clear_reason ?? "(no reason recorded)"}`
                 : `Matched to: ${subtitleParts.join(" · ")}`;
@@ -1115,6 +1418,7 @@ export default function CreditCardReconciliationWorkspace() {
                 >
                   <div className="min-w-0">
                     <div className="text-sm text-[#303030] truncate flex items-center gap-2">
+                      <SourceBadge source={line.source_system} />
                       <span className="truncate">{primary}</span>
                       {isForced && (
                         <span

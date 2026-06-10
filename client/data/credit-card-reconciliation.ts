@@ -5,9 +5,14 @@ export interface CreditCardAccount {
   qbo_id: string;
   qbo_name: string;
   qbo_account_type: string;
+  buildium_id?: number;
 }
 
 export type CCActivityStatus = "Reconciled" | "Cleared" | "Uncleared";
+
+// Which book a row/line belongs to after the merge+dedupe pass. "both" = a
+// single physical charge linked across QBO + Buildium (counted once).
+export type ActivitySource = "qbo" | "buildium" | "both";
 
 export interface CreditCardActivityRow {
   txn_date: string;
@@ -17,7 +22,11 @@ export interface CreditCardActivityRow {
   vendor?: string;
   memo?: string;
   amount_cents: number;
-  status: CCActivityStatus;
+  // "" for Buildium-sourced rows (QBO cleared-status doesn't apply).
+  status: CCActivityStatus | "";
+  // Merge/dedupe metadata.
+  source?: ActivitySource;
+  buildium_txn_id?: string;
 }
 
 export interface CreditCardActivityResponse {
@@ -81,55 +90,12 @@ export interface StatementRow {
   action_at?: string;
 }
 
+export type MatchConfidence = "exact" | "fuzzy_date" | "strong" | "possible";
+
 export interface MatchPair {
   statement: StatementRow;
   qbo: CreditCardActivityRow;
-  confidence: "exact" | "fuzzy_date";
-}
-
-export interface StatementMatchResponse {
-  account: CreditCardAccount;
-  start_date: string;
-  end_date: string;
-  statement_total_cents: number;
-  qbo_total_cents: number;
-  matched: MatchPair[];
-  unmatched_statement: StatementRow[];
-  unmatched_qbo: CreditCardActivityRow[];
-  warnings?: string[];
-}
-
-export async function uploadStatementForMatch(
-  coaID: number,
-  startDate: string,
-  endDate: string,
-  file: File,
-): Promise<StatementMatchResponse> {
-  const form = new FormData();
-  form.append("file", file);
-  form.append("start_date", startDate);
-  form.append("end_date", endDate);
-  const res = await authFetch(
-    `/reconciliation/credit-cards/${coaID}/statement-match`,
-    {
-      method: "POST",
-      body: form,
-    },
-  );
-  if (!res.ok) {
-    const text = await res.text();
-    let message = text;
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed && typeof parsed === "object") {
-        message = parsed.error || parsed.message || text;
-      }
-    } catch {
-      // raw text fallback
-    }
-    throw new Error(message || `Upload failed (${res.status})`);
-  }
-  return (await res.json()) as StatementMatchResponse;
+  confidence: MatchConfidence;
 }
 
 // qboReconcileURL is the deep-link to QBO's reconcile screen for a given
@@ -170,12 +136,14 @@ export interface Reconciliation {
 export interface ReconciliationLine {
   id: number;
   reconciliation_id: number;
+  // "qbo" or "buildium" — which book qbo_txn_id refers to.
+  source_system?: ActivitySource;
   qbo_txn_type: string;
   qbo_txn_id: string;
   txn_date: string;
   amount_cents: number;
   statement_row?: StatementRow;
-  match_confidence: "exact" | "fuzzy_date" | "manual" | "forced";
+  match_confidence: MatchConfidence | "manual" | "forced";
   // Operator's audit reason for force-clear (match_confidence === "forced").
   // Always populated when forced; NULL otherwise.
   force_clear_reason?: string;
@@ -239,12 +207,13 @@ export interface StartReconciliationRequest {
 }
 
 export interface MatchLineRequest {
+  source_system?: ActivitySource;
   qbo_txn_type: string;
   qbo_txn_id: string;
   txn_date: string;
   amount_cents: number;
   statement_row?: StatementRow;
-  match_confidence: "exact" | "fuzzy_date" | "manual" | "forced";
+  match_confidence: MatchConfidence | "manual" | "forced";
 }
 
 export async function listReconciliations(
@@ -308,6 +277,7 @@ export async function matchReconciliationLine(
 }
 
 export interface ForceClearRequest {
+  source_system?: ActivitySource;
   qbo_txn_type: string;
   qbo_txn_id: string;
   txn_date: string;
@@ -346,28 +316,34 @@ export async function unmatchReconciliationLine(
   }
 }
 
+// CreateChargeFromRowRequest books a brand-new bill for a statement charge,
+// pushes it concierge-gated (C → QBO+Buildium, else Buildium-only), pays it from
+// the card, and pairs the payment to the statement row. The per-row unit of the
+// bulk Quick-bill flow. PDF is optional (omitted by the batch).
 export interface CreateChargeFromRowRequest {
   statement_row: StatementRow;
   vendor_id: number;
-  coa_id: number;
-  property_id?: number;
+  // GL ref — exactly one (mirrors Record Bill concierge gating):
+  // qbo_item_id for concierge properties, buildium_account_id for non-concierge,
+  // coa_id legacy fallback.
+  coa_id?: number;
+  qbo_item_id?: string;
+  buildium_account_id?: string;
+  property_id: number;
+  unit_id?: number;
   invoice_number?: string;
   description?: string;
-  pdf_object_key?: string;
-  sha256_pdf?: string;
+  memo?: string;
 }
 
 export async function createChargeFromStatementRow(
   recID: number,
   req: CreateChargeFromRowRequest,
 ): Promise<ReconciliationLine> {
-  return (await fetchJSON(
-    `/reconciliations/${recID}/create-charge-from-row`,
-    {
-      method: "POST",
-      body: JSON.stringify(req),
-    },
-  )) as ReconciliationLine;
+  return (await fetchJSON(`/reconciliations/${recID}/create-charge-from-row`, {
+    method: "POST",
+    body: JSON.stringify(req),
+  })) as ReconciliationLine;
 }
 
 export interface UnpaidBillCandidate {

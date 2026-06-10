@@ -49,3 +49,25 @@ export async function fetchPortfolioInvoices(
 export async function voidInvoice(invoiceID: number): Promise<void> {
   await fetchJSON(`/invoicing/void?id=${invoiceID}`, { method: "POST" });
 }
+
+// voidInvoiceLine voids a single line on a sent / partially-paid invoice. The
+// backend soft-deletes the line, recomputes the total, and re-pushes the
+// reduced invoice to QBO (which reverses the line's Due From Owners posting and
+// reopens the underlying cost as unbilled). Returns the refreshed invoice +
+// remaining active line items. Rejected on draft invoices (edit those directly)
+// and when the new total would fall below an amount already paid.
+export async function voidInvoiceLine(
+  invoiceID: number,
+  lineID: number,
+  reason?: string,
+): Promise<unknown> {
+  return fetchJSON(`/invoicing/void-line`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      invoice_id: invoiceID,
+      line_id: lineID,
+      reason: reason ?? "",
+    }),
+  });
+}

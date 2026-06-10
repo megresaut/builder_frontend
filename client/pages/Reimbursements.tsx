@@ -554,7 +554,7 @@ function ReimburseModal({ summary, bills, onClose, onSuccess }: ReimburseModalPr
   const [paymentDate, setPaymentDate] = useState(todayYMD());
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [accountsLoading, setAccountsLoading] = useState(true);
-  const [accountID, setAccountID] = useState<number | null>(null);
+  const [accountID, setAccountID] = useState<string | null>(null);
   const [memo, setMemo] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState<string | null>(null);
@@ -572,7 +572,7 @@ function ReimburseModal({ summary, bills, onClose, onSuccess }: ReimburseModalPr
         );
         const firstBank = rows.find((r) => r.qbo_account_type === "Bank");
         const pick = mgmt || firstBank || rows[0];
-        if (pick) setAccountID(pick.coa_id);
+        if (pick) setAccountID(pick.qbo_account_id);
       })
       .catch((err) =>
         setSubmitErr(err?.message || "Failed to load payment accounts"),
@@ -612,7 +612,7 @@ function ReimburseModal({ summary, bills, onClose, onSuccess }: ReimburseModalPr
         reimbursee_user_id: summary.user_id,
         bill_ids: Array.from(selected),
         payment_date: paymentDate,
-        source_account_id: accountID,
+        source_qbo_account_id: accountID,
         memo: memo.trim() || undefined,
       });
       onSuccess(result);
@@ -700,7 +700,7 @@ function ReimburseModal({ summary, bills, onClose, onSuccess }: ReimburseModalPr
               </span>
               <select
                 value={accountID ?? ""}
-                onChange={(e) => setAccountID(Number(e.target.value))}
+                onChange={(e) => setAccountID(e.target.value || null)}
                 disabled={accountsLoading}
                 className="border border-[#E5E5E5] rounded-md px-2 py-1.5 text-sm bg-white"
               >
@@ -709,7 +709,7 @@ function ReimburseModal({ summary, bills, onClose, onSuccess }: ReimburseModalPr
                   <option>No payment accounts found</option>
                 )}
                 {accounts.map((a) => (
-                  <option key={a.coa_id} value={a.coa_id}>
+                  <option key={a.qbo_account_id} value={a.qbo_account_id}>
                     {a.name} ({a.qbo_account_type})
                   </option>
                 ))}

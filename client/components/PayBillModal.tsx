@@ -7,14 +7,19 @@ import { fetchJSON } from "@/api/fetchJSON";
 import { authFetch } from "@/api/fetchJSON";
 import { toast } from "sonner";
 
-// Returned by GET /payment-accounts (DB-backed: chart_of_accounts rows
-// where both qbo_id and buildium_id are populated). The frontend only needs
-// the canonical coa_id + name + type for the dropdown — the backend resolves
-// QBO and Buildium ids on its side using coa_id.
+// Returned by GET /payment-accounts (live from concierge_buildium_mapping).
 interface PaymentAccount {
-  coa_id: number;
+  qbo_account_id: string;
   name: string;
   qbo_account_type: string; // "Bank" or "Credit Card"
+}
+
+// Returned by GET /buildium/payment-accounts (CSV-backed). Used for the Pay
+// From dropdown on non-Concierge bills.
+interface BuildiumPaymentAccount {
+  buildium_account_id: number;
+  name: string;
+  type: string; // always "Current Asset (cash)" from the filter
 }
 
 interface PayBillModalProps {
@@ -25,12 +30,21 @@ interface PayBillModalProps {
     vendorName: string;
     propertyName: string;
     referenceNumber?: string;
-    qboBalanceCents: number; // outstanding (defaults the amount field)
+    // Concierge bills carry qboBalanceCents from QBO state. Non-Concierge bills
+    // pass the bill's total amount instead (treated as outstanding until the
+    // backend computes partial-payment state from local bill_payments).
+    qboBalanceCents: number;
+    // Property type drives picker variant. 'C' → COA-backed /payment-accounts.
+    // Anything else → CSV-backed /buildium/payment-accounts (Buildium-only).
+    propertyType?: string | null;
   };
   onPaid?: (result: {
     qbo_billpayment_id: string;
     qbo_balance_cents: number | null;
     qbo_paid_at: string | null;
+    // 'queued' when the payment is a check awaiting printing (bill is NOT
+    // paid yet); undefined for an electronic transfer (paid immediately).
+    print_status?: string;
     // Echoed back so the caller can render the "Paid" panel without a refetch.
     paid_on?: string;
     paid_from_name?: string;
@@ -66,9 +80,15 @@ export default function PayBillModal({
   bill,
   onPaid,
 }: PayBillModalProps) {
+  const isConcierge = bill.propertyType === "C";
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
+  const [buildiumAccounts, setBuildiumAccounts] = useState<BuildiumPaymentAccount[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
-  const [accountCOAID, setAccountCOAID] = useState<number | null>(null);
+  const [accountQBOID, setAccountQBOID] = useState<string | null>(null);
+  const [buildiumAccountID, setBuildiumAccountID] = useState<number | null>(null);
+  // Concierge-only: paper check vs. electronic transfer. Defaults to transfer
+  // to preserve the existing flow; backend gates 'check' on property_type='C'.
+  const [paymentMethod, setPaymentMethod] = useState<"transfer" | "check">("transfer");
   const [amount, setAmount] = useState<string>("");
   const [txnDate, setTxnDate] = useState<string>("");
   const [docNumber, setDocNumber] = useState<string>("");
@@ -89,10 +109,13 @@ export default function PayBillModal({
   const outstanding = bill.qboBalanceCents;
   const outstandingDollars = (outstanding / 100).toFixed(2);
 
-  // Reset state on open. Load payment accounts.
+  // Reset state on open. Load the appropriate payment-accounts endpoint
+  // based on property type (Concierge → COA, others → CSV).
   useEffect(() => {
     if (!open) {
-      setAccountCOAID(null);
+      setAccountQBOID(null);
+      setBuildiumAccountID(null);
+      setPaymentMethod("transfer");
       setAmount("");
       setTxnDate("");
       setDocNumber("");
@@ -113,12 +136,20 @@ export default function PayBillModal({
 
     let cancelled = false;
     setLoadingAccounts(true);
-    fetchJSON("/payment-accounts")
+    const endpoint = isConcierge ? "/payment-accounts" : "/buildium/payment-accounts";
+    fetchJSON(endpoint)
       .then((res) => {
         if (cancelled) return;
-        const list: PaymentAccount[] = Array.isArray(res?.accounts) ? res.accounts : [];
-        setAccounts(list);
-        if (list.length === 1) setAccountCOAID(list[0].coa_id);
+        const raw = Array.isArray(res?.accounts) ? res.accounts : [];
+        if (isConcierge) {
+          const list = raw as PaymentAccount[];
+          setAccounts(list);
+          if (list.length === 1) setAccountQBOID(list[0].qbo_account_id);
+        } else {
+          const list = raw as BuildiumPaymentAccount[];
+          setBuildiumAccounts(list);
+          if (list.length === 1) setBuildiumAccountID(list[0].buildium_account_id);
+        }
       })
       .catch((err) => {
         if (cancelled) return;
@@ -131,12 +162,19 @@ export default function PayBillModal({
     return () => {
       cancelled = true;
     };
-  }, [open, outstandingDollars]);
+  }, [open, outstandingDollars, isConcierge]);
 
   const selectedAccount = useMemo(
-    () => accounts.find((a) => a.coa_id === accountCOAID),
-    [accounts, accountCOAID],
+    () => accounts.find((a) => a.qbo_account_id === accountQBOID),
+    [accounts, accountQBOID],
   );
+  const selectedBuildiumAccount = useMemo(
+    () => buildiumAccounts.find((a) => a.buildium_account_id === buildiumAccountID),
+    [buildiumAccounts, buildiumAccountID],
+  );
+  const selectedAccountName = isConcierge
+    ? selectedAccount?.name
+    : selectedBuildiumAccount?.name;
   const payTypeLabel = selectedAccount?.qbo_account_type === "Credit Card" ? "Credit Card" : "Check";
 
   const clearReceiptState = () => {
@@ -194,7 +232,11 @@ export default function PayBillModal({
   const handleSubmit = async () => {
     setError(null);
     setErrorCode(null);
-    if (!accountCOAID || !selectedAccount) {
+    if (isConcierge && (!accountQBOID || !selectedAccount)) {
+      setError("Please choose a Pay From account.");
+      return;
+    }
+    if (!isConcierge && (!buildiumAccountID || !selectedBuildiumAccount)) {
       setError("Please choose a Pay From account.");
       return;
     }
@@ -212,17 +254,25 @@ export default function PayBillModal({
       return;
     }
 
+    const usingCheck = isConcierge && paymentMethod === "check";
+
     setSubmitting(true);
     try {
       const res = await authFetch(`/vendors/bills/${bill.id}/pay`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          payment_account_coa_id: accountCOAID,
+          // Backend enforces XOR: Concierge bills carry qbo_account_id, others
+          // carry the direct Buildium id sourced from the CSV-backed picker.
+          ...(isConcierge
+            ? { payment_account_qbo_id: accountQBOID }
+            : { buildium_account_id: buildiumAccountID }),
           amount_cents: amountCents,
           txn_date: txnDate,
-          doc_number: docNumber || undefined,
+          // Check # is assigned at print time — only send doc_number for transfers.
+          ...(usingCheck ? {} : { doc_number: docNumber || undefined }),
           memo: memo || undefined,
+          payment_method: usingCheck ? "check" : "transfer",
           ...(receiptObjectKey
             ? {
                 receipt_object_key: receiptObjectKey,
@@ -251,11 +301,17 @@ export default function PayBillModal({
         return;
       }
       const data = await res.json();
-      toast.success(
-        amountCents === outstanding
-          ? `Paid ${bill.vendorName} — $${(amountCents / 100).toFixed(2)}`
-          : `Paid $${(amountCents / 100).toFixed(2)} of $${outstandingDollars} to ${bill.vendorName}`,
-      );
+      if (usingCheck) {
+        toast.success(
+          `Check queued for ${bill.vendorName} — $${(amountCents / 100).toFixed(2)}. Print from Accounting → Print Checks.`,
+        );
+      } else {
+        toast.success(
+          amountCents === outstanding
+            ? `Paid ${bill.vendorName} — $${(amountCents / 100).toFixed(2)}`
+            : `Paid $${(amountCents / 100).toFixed(2)} of $${outstandingDollars} to ${bill.vendorName}`,
+        );
+      }
       // Receipt attach status: only show a toast when the user actually
       // attached a receipt. Collapse the raw warnings into a clean
       // per-provider status so the user sees "attached to QBO, failed for
@@ -289,11 +345,12 @@ export default function PayBillModal({
         toast.error(persistFailure);
       }
       onPaid?.({
-        qbo_billpayment_id: data.qbo_billpayment_id,
+        qbo_billpayment_id: data.qbo_billpayment_id ?? "",
         qbo_balance_cents: data.qbo_balance_cents ?? null,
         qbo_paid_at: data.qbo_paid_at ?? null,
+        print_status: usingCheck ? (data.print_status ?? "queued") : undefined,
         paid_on: txnDate || undefined,
-        paid_from_name: selectedAccount?.name,
+        paid_from_name: selectedAccountName,
         paid_doc_number: docNumber || undefined,
         paid_memo: memo || undefined,
         receipt_object_key: data.receipt_object_key ?? null,
@@ -361,25 +418,84 @@ export default function PayBillModal({
         </div>
       </div>
 
+      {isConcierge && (
+        <div style={{ marginBottom: 12 }}>
+          <FieldShell label="Payment Method" htmlFor="pay-method">
+            <div id="pay-method" className="flex items-center gap-4 text-sm">
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pay-method"
+                  value="transfer"
+                  checked={paymentMethod === "transfer"}
+                  onChange={() => setPaymentMethod("transfer")}
+                  disabled={submitting}
+                />
+                <span>Bank transfer / Card</span>
+              </label>
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pay-method"
+                  value="check"
+                  checked={paymentMethod === "check"}
+                  onChange={() => setPaymentMethod("check")}
+                  disabled={submitting}
+                />
+                <span>Check (print later)</span>
+              </label>
+            </div>
+            {paymentMethod === "check" && (
+              <div className="text-xs text-[#717179] mt-1">
+                Will be queued for printing. Bill will show as paid once the
+                check is printed.
+              </div>
+            )}
+          </FieldShell>
+        </div>
+      )}
+
       <div style={{ marginBottom: 12 }}>
         <FieldShell label="Pay From" htmlFor="pay-account">
-          <select
-            id="pay-account"
-            value={accountCOAID == null ? "" : String(accountCOAID)}
-            onChange={(e) => setAccountCOAID(e.target.value ? Number(e.target.value) : null)}
-            disabled={loadingAccounts || submitting}
-            className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764]"
-          >
-            <option value="">{loadingAccounts ? "Loading…" : "Select an account"}</option>
-            {accounts.map((a) => (
-              <option key={a.coa_id} value={a.coa_id}>
-                {a.name} ({a.qbo_account_type})
-              </option>
-            ))}
-          </select>
-          {selectedAccount && (
+          {isConcierge ? (
+            <select
+              id="pay-account"
+              value={accountQBOID ?? ""}
+              onChange={(e) => setAccountQBOID(e.target.value || null)}
+              disabled={loadingAccounts || submitting}
+              className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764]"
+            >
+              <option value="">{loadingAccounts ? "Loading…" : "Select an account"}</option>
+              {accounts.map((a) => (
+                <option key={a.qbo_account_id} value={a.qbo_account_id}>
+                  {a.name} ({a.qbo_account_type})
+                </option>
+              ))}
+            </select>
+          ) : (
+            <select
+              id="pay-account"
+              value={buildiumAccountID == null ? "" : String(buildiumAccountID)}
+              onChange={(e) => setBuildiumAccountID(e.target.value ? Number(e.target.value) : null)}
+              disabled={loadingAccounts || submitting}
+              className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764]"
+            >
+              <option value="">{loadingAccounts ? "Loading…" : "Select an account"}</option>
+              {buildiumAccounts.map((a) => (
+                <option key={a.buildium_account_id} value={a.buildium_account_id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          )}
+          {isConcierge && selectedAccount && (
             <div className="text-xs text-[#717179] mt-1">
               Will post to QBO + Buildium · PayType: {payTypeLabel}
+            </div>
+          )}
+          {!isConcierge && selectedBuildiumAccount && (
+            <div className="text-xs text-[#717179] mt-1">
+              Will post to Buildium only
             </div>
           )}
         </FieldShell>
@@ -411,21 +527,23 @@ export default function PayBillModal({
         </FieldShell>
       </div>
 
-      <div style={{ marginBottom: 12 }}>
-        <FieldShell
-          label={payTypeLabel === "Check" ? "Check # (optional)" : "Reference (optional)"}
-          htmlFor="pay-doc"
-        >
-          <Input
-            id="pay-doc"
-            type="text"
-            value={docNumber}
-            onChange={(e) => setDocNumber(e.target.value)}
-            placeholder={payTypeLabel === "Check" ? "1234" : ""}
-            disabled={submitting}
-          />
-        </FieldShell>
-      </div>
+      {!(isConcierge && paymentMethod === "check") && (
+        <div style={{ marginBottom: 12 }}>
+          <FieldShell
+            label={payTypeLabel === "Check" ? "Check # (optional)" : "Reference (optional)"}
+            htmlFor="pay-doc"
+          >
+            <Input
+              id="pay-doc"
+              type="text"
+              value={docNumber}
+              onChange={(e) => setDocNumber(e.target.value)}
+              placeholder={payTypeLabel === "Check" ? "1234" : ""}
+              disabled={submitting}
+            />
+          </FieldShell>
+        </div>
+      )}
 
       <div style={{ marginBottom: 12 }}>
         <FieldShell label="Memo (optional)" htmlFor="pay-memo">

@@ -137,6 +137,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     if (path === "/chart-of-accounts") return "accounting";
     if (path === "/reimbursements") return "accounting";
     if (path === "/reconciliation") return "accounting";
+    if (path === "/accounting/print-checks") return "accounting";
     if (path.startsWith("/accounting/")) return "accounting";
     if (
       path.includes("/all-tasks") ||
@@ -627,6 +628,11 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         sectionId: "invoices",
       },
       {
+        label: "Print Checks",
+        path: "/accounting/print-checks",
+        sectionId: "print-checks",
+      },
+      {
         label: "Reimbursements",
         path: "/reimbursements",
         sectionId: "reimbursements",
@@ -640,11 +646,6 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         label: "General Ledger",
         path: "/accounting/general-ledger",
         sectionId: "general-ledger",
-      },
-      {
-        label: "Transaction List",
-        path: "/accounting/transaction-list",
-        sectionId: "transaction-list",
       },
       {
         label: "Chart of Accounts",

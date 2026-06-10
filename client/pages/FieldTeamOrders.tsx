@@ -643,7 +643,9 @@ export default function FieldTeamOrders() {
   const [miscSubmissions, setMiscSubmissions] = useState<MiscSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [miscLoading, setMiscLoading] = useState(false);
-  const [selectedTab, setSelectedTab] = usePageState<"ftos" | "misc">("selectedTab", "ftos");
+  const [selectedTab, setSelectedTab] = usePageState<"ftos" | "misc">("selectedTab", "ftos", {
+    allowed: ["ftos", "misc"],
+  });
   const [currentPage, setCurrentPage] = usePageState("currentPage", 1);
   const [itemsPerPage, setItemsPerPage] = usePageState("itemsPerPage", 50);
   const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
@@ -668,7 +670,11 @@ export default function FieldTeamOrders() {
   const [filterDateTo, setFilterDateTo] = usePageState("filterDateTo", "");
   const [filterProperty, setFilterProperty] = usePageState<string[]>("filterProperty", []);
   const [filterFieldTeamMember, setFilterFieldTeamMember] = usePageState<string[]>("filterFieldTeamMember", []);
-  const [filterTimesheetStatus, setFilterTimesheetStatus] = usePageState<string[]>("filterTimesheetStatus", ["awaiting-submission", "submitted", "rejected"]);
+  // Default to ALL timesheet statuses (including "approved") so completed +
+  // approved FTOs aren't silently hidden on first load. Previously this omitted
+  // "approved", which filtered out every approved/complete FTO and made the
+  // page look empty even though the API returned data.
+  const [filterTimesheetStatus, setFilterTimesheetStatus] = usePageState<string[]>("filterTimesheetStatus", ["awaiting-submission", "submitted", "rejected", "approved"]);
   const [filterFtoStatus, setFilterFtoStatus] = usePageState<string[]>("filterFtoStatus", []);
   const [filterPriority, setFilterPriority] = usePageState<string[]>("filterPriority", []);
   // Clear persisted modal state when leaving the page so it doesn't reopen when returning (e.g. from Approve FTO).

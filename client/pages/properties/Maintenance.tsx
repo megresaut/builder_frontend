@@ -1036,7 +1036,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
 
   const [activeTab, setActiveTab] = usePageState<
     "tasks" | "recurring" | "workorders" | "fieldteam" | "vendors"
-  >("activeTab", "tasks");
+  >("activeTab", "tasks", {
+    allowed: ["tasks", "recurring", "workorders", "fieldteam", "vendors"],
+  });
   const [openMenuId, setOpenMenuId] = usePageState<number | null>(
     "openMenuId",
     null,
@@ -1051,7 +1053,9 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
   const [workOrdersLoading, setWorkOrdersLoading] = useState(false);
   const [fieldTeamOrdersList, setFieldTeamOrdersList] = useState<FieldTeamOrder[]>([]);
   const [fieldTeamLoading, setFieldTeamLoading] = useState(false);
-  const [ftoSubTab, setFtoSubTab] = usePageState<"ftos" | "misc">("ftoSubTab", "ftos");
+  const [ftoSubTab, setFtoSubTab] = usePageState<"ftos" | "misc">("ftoSubTab", "ftos", {
+    allowed: ["ftos", "misc"],
+  });
   const [miscSubmissions, setMiscSubmissions] = useState<MiscSubmission[]>([]);
   const [miscLoading, setMiscLoading] = useState(false);
   const [miscSearchValue, setMiscSearchValue] = usePageState("miscSearchValue", "");

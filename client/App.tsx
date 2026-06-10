@@ -13,13 +13,13 @@ import FieldTeamOrders from "./pages/FieldTeamOrders";
 import MaintenanceWorkOrders from "./pages/MaintenanceWorkOrders";
 import Bills from "./pages/Bills";
 import ChartOfAccounts from "./pages/ChartOfAccounts";
+import PrintChecks from "./pages/PrintChecks";
 import Reimbursements from "./pages/Reimbursements";
 import Reconciliation from "./pages/Reconciliation";
 import CreditCardReconciliationWorkspace from "./pages/CreditCardReconciliationWorkspace";
 import CreditCardReconciliationReport from "./pages/CreditCardReconciliationReport";
 import Invoices from "./pages/Invoices";
 import GeneralLedger from "./pages/GeneralLedger";
-import TransactionList from "./pages/TransactionList";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
 import RecurringTasks from "./pages/RecurringTasks";
@@ -41,6 +41,7 @@ import Utilities from "./pages/Utilities_wrong";
 import PropertyLayout, { PropertyTabContent } from "./pages/PropertyDetail";
 import BlankPage from "./pages/BlankPage";
 import { RecordBill } from "./pages/properties/RecordBill";
+import { ViewBillV2 } from "./pages/properties/ViewBillV2";
 import { Auth } from "./pages/Auth";
 import { Login } from "./pages/Login";
 import { Welcome } from "./pages/Welcome";
@@ -493,6 +494,17 @@ export default function App() {
                 />
 
                 <Route
+                  path="/accounting/print-checks"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <PrintChecks />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
                   path="/accounting/general-ledger"
                   element={
                     <RequireAuth>
@@ -503,16 +515,6 @@ export default function App() {
                   }
                 />
 
-                <Route
-                  path="/accounting/transaction-list"
-                  element={
-                    <RequireAuth>
-                      <ShellLayout>
-                        <TransactionList />
-                      </ShellLayout>
-                    </RequireAuth>
-                  }
-                />
 
                 <Route
                   path="/insurance"
@@ -542,6 +544,17 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <RecordBill />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/bills/view"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <ViewBillV2 />
                       </ShellLayout>
                     </RequireAuth>
                   }

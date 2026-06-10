@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTabNavigation } from "@/hooks/useTabContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -27,6 +27,8 @@ import ViewPaymentModal, { type EditablePayment } from "@/components/ViewPayment
 import EditPaymentModal from "@/components/EditPaymentModal";
 import { SelectField } from "@/components/forms/SelectField";
 import { SelectFieldCell } from "@/components/forms/SelectFieldCell";
+import { ConciergeGLPicker } from "@/components/ConciergeGLPicker";
+import { BuildiumGLPicker } from "@/components/BuildiumGLPicker";
 import { TextField } from "@/components/forms/TextField";
 import { DateField } from "@/components/forms/DateField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
@@ -49,11 +51,15 @@ interface PropertyUnit {
 interface LineItem {
   id: number;
   property: string;
-  unit: string;          // buildium_unit_id as string, or "" for no unit
-  unitName: string;      // display name for the unit
+  unit: string;                  // buildium_unit_id as string, or "" for no unit
+  unitName: string;              // display name for the unit
   description: string;
-  glAccount: string;
-  upcharge: string;      // dollar amount as string, e.g. "$0.00"
+  glAccount: string;             // chart_of_accounts.id (canonical) — legacy / AVMRE overhead
+  qboItemId?: string;            // QBO Item id — Concierge (type='C') lines, drives QBO+Buildium dual-push
+  qboItemName?: string;
+  buildiumAccountId?: string;    // Direct Buildium id from BUILDUM_CHART_CSV — non-Concierge lines (Buildium-only)
+  buildiumAccountName?: string;
+  upcharge: string;              // dollar amount as string, e.g. "$0.00"
   total: string;
   workOrder?: string;
 }
@@ -76,6 +82,8 @@ interface ViewBillState {
   paidFromName?: string;
   paidDocNumber?: string;
   paidMemo?: string;
+  // 'queued' = a check is awaiting printing; 'printed' = printed/paid.
+  checkPrintStatus?: string;
 }
 
 interface BillAttachment {
@@ -306,6 +314,10 @@ const normalizeApprovedBill = (bill: any) => ({
     Description: li.description || "",
     GLAccountID: li.gl_account_id,
     GLAccountName: li.gl_account_name,
+    QBOItemID: li.qbo_item_id,
+    QBOItemName: li.qbo_item_name,
+    BuildiumAccountID: li.buildium_account_id,
+    BuildiumAccountName: li.buildium_account_name,
     // Approved bills come from bills.line_items JSONB (raw, lowercase keys).
     // Drafts come from the Go BDV_LineItem struct (Pascal-case via default
     // json serialization) — that path uses item.UpchargeCents directly, so
@@ -394,6 +406,9 @@ const middleTruncate = (
 
 export const RecordBill = () => {
   const [searchParams] = useSearchParams();
+  // When opened from a property's Bills tab (/property/:propertyId/bills/record),
+  // prefill the first line item's property with that property.
+  const { propertyId: routePropertyId } = useParams<{ propertyId: string }>();
   // const billId = searchParams.get("billId");
   const navigate = useNavigate();
   const { goBack } = useTabNavigation();
@@ -432,6 +447,14 @@ export const RecordBill = () => {
   const isEditingDraft = billId !== null;
 
   const stateBill = location.state?.bill;
+
+  // Reconciliation return context: when this page was opened from the CC
+  // reconciliation workspace to book a bill for an unmatched statement row, we
+  // carry the statement row through so that on successful create we hand the new
+  // bill id back to the workspace, which auto-pays it from the card + pairs it.
+  const reconcileContext = location.state?.reconcile as
+    | { statementRow: unknown }
+    | undefined;
 
   const readOnlyBill = isReadOnly
     ? buildReadOnlyBillFromState(stateBill)
@@ -526,6 +549,7 @@ export const RecordBill = () => {
     paidFromName?: string;
     paidDocNumber?: string;
     paidMemo?: string;
+    checkPrintStatus?: string;
     receiptObjectKey?: string | null;
     receiptFilename?: string | null;
     receiptMime?: string | null;
@@ -543,6 +567,7 @@ export const RecordBill = () => {
     paidFromName: stateBill?.paidFromName,
     paidDocNumber: stateBill?.paidDocNumber,
     paidMemo: stateBill?.paidMemo,
+    checkPrintStatus: stateBill?.checkPrintStatus,
   });
   const [lineItems, setLineItems] = useState<LineItem[]>(
     isReadOnly
@@ -550,7 +575,8 @@ export const RecordBill = () => {
       : (editableBill?.lineItems ?? [
           {
             id: 1,
-            property: "",
+            // Prefill from the property whose Bills tab launched Record Bill.
+            property: routePropertyId ?? "",
             unit: "",
             unitName: "",
             description: "",
@@ -596,9 +622,18 @@ export const RecordBill = () => {
   const [propertySearch, setPropertySearch] = useState("");
   const [glSearch, setGlSearch] = useState("");
   const [unitsByProperty, setUnitsByProperty] = useState<Record<string, PropertyUnit[]>>({});
-  const filteredProperties = properties.filter((p) =>
-    p.name.toLowerCase().includes(propertySearch.toLowerCase())
-  );
+  // Sort alphabetically so the dropdown isn't dominated by one type. The
+  // backend returns properties ordered by id; with the first ~60 active ids
+  // being Concierge, the unsorted dropdown visually looks like a Concierge-
+  // only list until you scroll. localeCompare with sensitivity:"base" keeps
+  // "(C) ..." and "(c) ..." together.
+  const filteredProperties = properties
+    .filter((p) =>
+      p.name.toLowerCase().includes(propertySearch.toLowerCase()),
+    )
+    .sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
   
   const filteredGLAccounts = glAccountOptions.filter((gl) =>
     gl.name.toLowerCase().includes(glSearch.toLowerCase())
@@ -1022,6 +1057,14 @@ export const RecordBill = () => {
       glAccount: item.GLAccountID
         ? item.GLAccountID.toString()
         : "",
+      qboItemId: (item as any).QBOItemID
+        ? (item as any).QBOItemID.toString()
+        : "",
+      qboItemName: (item as any).QBOItemName || "",
+      buildiumAccountId: (item as any).BuildiumAccountID
+        ? (item as any).BuildiumAccountID.toString()
+        : "",
+      buildiumAccountName: (item as any).BuildiumAccountName || "",
       upcharge:
         typeof item.UpchargeCents === "number" && item.UpchargeCents > 0
           ? `$${(item.UpchargeCents / 100).toFixed(2)}`
@@ -1289,7 +1332,13 @@ export const RecordBill = () => {
       const li = patchPayload.line_items[i];
       const errs = new Set<string>();
       if (!li.property_id) errs.add("property");
-      if (!li.gl_account_id) errs.add("glAccount");
+      // GL ref is satisfied by any of the three variants:
+      //   gl_account_id (legacy/AVMRE), qbo_item_id (Concierge),
+      //   buildium_account_id (non-Concierge CSV-direct).
+      // Backend enforces XOR.
+      if (!li.gl_account_id && !li.qbo_item_id && !li.buildium_account_id) {
+        errs.add("glAccount");
+      }
       if (errs.size > 0) liErrors[i] = errs;
     }
     if (Object.keys(liErrors).length > 0) {
@@ -1453,9 +1502,22 @@ export const RecordBill = () => {
         })
       );
   
-      // Close page
+      // Close page. When we came from the reconciliation workspace, return the
+      // new bill id + statement row so it can auto-pay from the card + pair.
       if (returnTo) {
-        navigate(returnTo);
+        navigate(
+          returnTo,
+          reconcileContext
+            ? {
+                state: {
+                  reconcilePay: {
+                    billId: approvedBillId,
+                    statementRow: reconcileContext.statementRow,
+                  },
+                },
+              }
+            : undefined,
+        );
       } else {
         returnToReferrer();
       }
@@ -1592,14 +1654,23 @@ export const RecordBill = () => {
         // When property changes → clear unit + load units for new property.
         // Concierge properties (property_type === 'C') only ever record at the
         // property level, so default the unit to the "__property__" marker.
+        // Also clear the GL refs that the *new* picker won't be writing to —
+        // Concierge uses qbo_item_id, non-Concierge uses buildium_account_id,
+        // and gl_account_id is the legacy/AVMRE path neither variant feeds.
         if (field === "property") {
           const selectedProp = properties.find((p) => String(p.id) === value);
           if (selectedProp?.property_type === "C") {
             updated.unit = "__property__";
             updated.unitName = "Property Level";
+            updated.glAccount = "";
+            updated.buildiumAccountId = "";
+            updated.buildiumAccountName = "";
           } else {
             updated.unit = "";
             updated.unitName = "";
+            updated.glAccount = "";
+            updated.qboItemId = "";
+            updated.qboItemName = "";
           }
           loadUnitsForProperty(value);
         }
@@ -2011,6 +2082,14 @@ export const RecordBill = () => {
     [unitsByProperty]
   );
 
+  // Preload units for the property prefilled from the route, so the Unit
+  // dropdown is ready immediately when launched from a property's Bills tab.
+  useEffect(() => {
+    if (routePropertyId && !isReadOnly && !isEditingDraft) {
+      loadUnitsForProperty(routePropertyId);
+    }
+  }, [routePropertyId, isReadOnly, isEditingDraft, loadUnitsForProperty]);
+
   const loadWorkOrdersForProperty = useCallback(
     async (propertyIdStr: string) => {
       const propertyId = Number(propertyIdStr);
@@ -2046,6 +2125,14 @@ export const RecordBill = () => {
         item.unit === "__property__" || item.unit?.startsWith("internal-")
           ? ""
           : item.unit || "";
+
+      // Three GL-ref variants, exactly one populated per line:
+      //   qbo_item_id          — Concierge (QBO + Buildium dual-push)
+      //   buildium_account_id  — non-Concierge (Buildium-only, CSV-sourced)
+      //   gl_account_id        — legacy / AVMRE overhead (canonical COA)
+      // Backend enforces XOR.
+      const usesQboItem = Boolean(item.qboItemId);
+      const usesBuildiumDirect = !usesQboItem && Boolean(item.buildiumAccountId);
       return {
         line_id: item.id,
         property_id,
@@ -2056,8 +2143,14 @@ export const RecordBill = () => {
         // unit data) or the async units fetch hasn't landed yet.
         unit_name: sanitizedUnit ? item.unitName || "" : "",
 
-        gl_account_id: gl?.id.toString() || "",
-        gl_account_name: gl?.name || "",
+        gl_account_id:
+          usesQboItem || usesBuildiumDirect ? "" : gl?.id.toString() || "",
+        gl_account_name:
+          usesQboItem || usesBuildiumDirect ? "" : gl?.name || "",
+        qbo_item_id: usesQboItem ? item.qboItemId! : "",
+        qbo_item_name: usesQboItem ? item.qboItemName || "" : "",
+        buildium_account_id: usesBuildiumDirect ? item.buildiumAccountId! : "",
+        buildium_account_name: usesBuildiumDirect ? item.buildiumAccountName || "" : "",
 
         description: item.description || "",
         // Send upcharge alongside amount_cents (base). Backend stores both on
@@ -2135,6 +2228,9 @@ export const RecordBill = () => {
           const gl = glAccountOptions.find(
             (g) => g.id.toString() === item.glAccount,
           );
+          const usesQboItem = Boolean(item.qboItemId);
+          const usesBuildiumDirect =
+            !usesQboItem && Boolean(item.buildiumAccountId);
           return {
             line_id: item.id ?? idx + 1,
             property_id: Number(item.property) || 0,
@@ -2142,8 +2238,16 @@ export const RecordBill = () => {
             unit_name: item.unitName || "",
             work_order_ref: item.workOrder || "",
             description: item.description || "",
-            gl_account_id: gl?.id.toString() || "",
-            gl_account_name: gl?.name || "",
+            gl_account_id:
+              usesQboItem || usesBuildiumDirect ? "" : gl?.id.toString() || "",
+            gl_account_name:
+              usesQboItem || usesBuildiumDirect ? "" : gl?.name || "",
+            qbo_item_id: usesQboItem ? item.qboItemId! : "",
+            qbo_item_name: usesQboItem ? item.qboItemName || "" : "",
+            buildium_account_id: usesBuildiumDirect ? item.buildiumAccountId! : "",
+            buildium_account_name: usesBuildiumDirect
+              ? item.buildiumAccountName || ""
+              : "",
             amount_cents: toCents(item.total),
             upcharge_cents: toCents(item.upcharge),
           };
@@ -3062,67 +3166,168 @@ minHeight: 0,
                               />
                             </div>
 
-                            {/* GL Account */}
+                            {/* GL Account — picker variant depends on the line's
+                                property type:
+                                  C (Concierge)        → QBO passthrough Items
+                                  R / OR / HOA / COMM  → Buildium GL accounts from CSV
+                                  no property yet      → legacy chart_of_accounts (fallback) */}
                             <div
                               className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.glAccount}px` }}
                             >
-                              <Select
-                                value={item.glAccount}
-                                disabled={formDisabled}
-                                onValueChange={(value) => {
-                                  if (!formDisabled) {
-                                    handleUpdateLineItem(item.id, "glAccount", value);
-                                    setGlSearch(""); // reset on select
-                                  }
-                                }}
-                                onOpenChange={(open) => {
-                                  if (!open) setGlSearch(""); // reset on close
-                                }}
-                              >
-                                <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent"
-                                >
-                                  <SelectValue placeholder="Select an Account" />
-                                </SelectTrigger>
+                              {(() => {
+                                const selectedProp = properties.find(
+                                  (p) => String(p.id) === item.property,
+                                );
+                                const isConcierge = selectedProp?.property_type === "C";
+                                const hasNonConciergeProp =
+                                  !!selectedProp && selectedProp.property_type !== "C";
 
-                                <SelectContent
-                                  className="bg-white border border-[#E5E7EB] shadow-md p-0"
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Escape") e.stopPropagation();
-                                    const t = e.target as HTMLElement;
-                                    if (t.tagName === "INPUT") e.stopPropagation();
-                                  }}
-                                >
-                                  {/* Search */}
-                                  <div className="p-2 border-b border-[#E5E7EB]">
-                                    <input
-                                      autoFocus
-                                      placeholder="Type to search…"
-                                      value={glSearch}
-                                      onChange={(e) => setGlSearch(e.target.value)}
-                                      onKeyDown={(e) => e.stopPropagation()}
-                                      onFocus={(e) => e.stopPropagation()}
-                                      className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+                                // Read-only render: show whichever of the 3 stored
+                                // names is populated. Avoids the dropdown's
+                                // "Select an Item" fallback when options haven't
+                                // loaded (and works for bills saved before the
+                                // qbo_item_id / buildium_account_id changes shipped).
+                                if (formDisabled) {
+                                  const glLegacyName =
+                                    glAccountOptions.find(
+                                      (g) => g.id.toString() === item.glAccount,
+                                    )?.name || "";
+                                  const display =
+                                    item.qboItemName ||
+                                    item.buildiumAccountName ||
+                                    glLegacyName ||
+                                    "—";
+                                  return (
+                                    <span className="text-[13px] text-[#525252] truncate">
+                                      {display}
+                                    </span>
+                                  );
+                                }
+
+                                if (isConcierge) {
+                                  return (
+                                    <ConciergeGLPicker
+                                      value={item.qboItemId || ""}
+                                      disabled={formDisabled}
+                                      onChange={(qboItemId, displayName) => {
+                                        if (formDisabled) return;
+                                        setLineItems((prev) =>
+                                          prev.map((li) =>
+                                            li.id === item.id
+                                              ? {
+                                                  ...li,
+                                                  qboItemId,
+                                                  qboItemName: displayName,
+                                                  glAccount: "",
+                                                  buildiumAccountId: "",
+                                                  buildiumAccountName: "",
+                                                }
+                                              : li,
+                                          ),
+                                        );
+                                        setLineItemErrors((prev) => {
+                                          const itemErrors = new Set(prev[item.id]);
+                                          itemErrors.delete("qboItemId");
+                                          itemErrors.delete("glAccount");
+                                          return { ...prev, [item.id]: itemErrors };
+                                        });
+                                      }}
                                     />
-                                  </div>
+                                  );
+                                }
 
-                                  {/* Scrollable list */}
-                                  <div className="max-h-[240px] overflow-y-auto">
-                                    {filteredGLAccounts.length === 0 && (
-                                      <div className="px-3 py-2 text-sm text-gray-400">
-                                        No accounts found
+                                if (hasNonConciergeProp) {
+                                  return (
+                                    <BuildiumGLPicker
+                                      value={item.buildiumAccountId || ""}
+                                      disabled={formDisabled}
+                                      onChange={(buildiumAccountId, displayName) => {
+                                        if (formDisabled) return;
+                                        setLineItems((prev) =>
+                                          prev.map((li) =>
+                                            li.id === item.id
+                                              ? {
+                                                  ...li,
+                                                  buildiumAccountId,
+                                                  buildiumAccountName: displayName,
+                                                  glAccount: "",
+                                                  qboItemId: "",
+                                                  qboItemName: "",
+                                                }
+                                              : li,
+                                          ),
+                                        );
+                                        setLineItemErrors((prev) => {
+                                          const itemErrors = new Set(prev[item.id]);
+                                          itemErrors.delete("buildiumAccountId");
+                                          itemErrors.delete("glAccount");
+                                          return { ...prev, [item.id]: itemErrors };
+                                        });
+                                      }}
+                                    />
+                                  );
+                                }
+
+                                return (
+                                  <Select
+                                    value={item.glAccount}
+                                    disabled={formDisabled}
+                                    onValueChange={(value) => {
+                                      if (!formDisabled) {
+                                        handleUpdateLineItem(item.id, "glAccount", value);
+                                        setGlSearch(""); // reset on select
+                                      }
+                                    }}
+                                    onOpenChange={(open) => {
+                                      if (!open) setGlSearch(""); // reset on close
+                                    }}
+                                  >
+                                    <SelectTrigger
+                                      className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent"
+                                    >
+                                      <SelectValue placeholder="Select an Account" />
+                                    </SelectTrigger>
+
+                                    <SelectContent
+                                      className="bg-white border border-[#E5E7EB] shadow-md p-0"
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Escape") e.stopPropagation();
+                                        const t = e.target as HTMLElement;
+                                        if (t.tagName === "INPUT") e.stopPropagation();
+                                      }}
+                                    >
+                                      {/* Search */}
+                                      <div className="p-2 border-b border-[#E5E7EB]">
+                                        <input
+                                          autoFocus
+                                          placeholder="Type to search…"
+                                          value={glSearch}
+                                          onChange={(e) => setGlSearch(e.target.value)}
+                                          onKeyDown={(e) => e.stopPropagation()}
+                                          onFocus={(e) => e.stopPropagation()}
+                                          className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+                                        />
                                       </div>
-                                    )}
 
-                                    {filteredGLAccounts.map((gl) => (
-                                      <SelectItem key={gl.id} value={gl.id.toString()}>
-                                        {gl.name}
-                                      </SelectItem>
-                                    ))}
-                                  </div>
-                                </SelectContent>
-                              </Select>
+                                      {/* Scrollable list */}
+                                      <div className="max-h-[240px] overflow-y-auto">
+                                        {filteredGLAccounts.length === 0 && (
+                                          <div className="px-3 py-2 text-sm text-gray-400">
+                                            No accounts found
+                                          </div>
+                                        )}
+
+                                        {filteredGLAccounts.map((gl) => (
+                                          <SelectItem key={gl.id} value={gl.id.toString()}>
+                                            {gl.name}
+                                          </SelectItem>
+                                        ))}
+                                      </div>
+                                    </SelectContent>
+                                  </Select>
+                                );
+                              })()}
                             </div>
 
                             {/* Upcharge */}
@@ -3270,53 +3475,108 @@ minHeight: 0,
                 <span>Cancel</span>
               </button>
             )}
-            {/* Pay Bill button — visible when the bill has been pushed to QBO
-                and still has an outstanding balance. Hidden while editing —
-                you can't pay a bill mid-edit. */}
-            {formDisabled &&
-              billId !== null &&
-              !qboPaymentState.qboPaidAt &&
-              qboPaymentState.qboBalanceCents != null &&
-              qboPaymentState.qboBalanceCents > 0 && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowPayBillModal(true);
-                  }}
-                  className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-emerald-600 text-white font-medium hover:bg-emerald-700"
-                >
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2.25 6.75H15.75M2.25 9H15.75M3 4.5H15C15.8284 4.5 16.5 5.17157 16.5 6V13.5C16.5 14.3284 15.8284 15 15 15H3C2.17157 15 1.5 14.3284 1.5 13.5V6C1.5 5.17157 2.17157 4.5 3 4.5Z"
-                          stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="text-sm">Pay Bill</span>
-                </button>
-              )}
-            {/* View Payments — visible whenever ANY payment has been recorded
-                (balance < total). Label flips to "Paid · View Payment" when
-                the bill is paid in full. Lets the user open the payment
-                history (and Edit a specific row) even on a partial pay. */}
-            {formDisabled &&
-              qboPaymentState.qboTotalCents != null &&
-              qboPaymentState.qboBalanceCents != null &&
-              qboPaymentState.qboBalanceCents < qboPaymentState.qboTotalCents && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowViewPaymentModal(true);
-                  }}
-                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700"
-                >
-                  <span>
-                    {qboPaymentState.qboBalanceCents === 0
-                      ? "Paid · View Payment"
-                      : "View Payments"}
-                  </span>
-                </button>
-              )}
+            {/* Pay Bill / View Payments visibility — recognizes both QBO state
+                (Concierge bills) and Buildium-only state (non-Concierge bills,
+                where qbo_* fields are all NULL). */}
+            {(() => {
+              const qboHasOutstanding =
+                qboPaymentState.qboBalanceCents != null &&
+                qboPaymentState.qboBalanceCents > 0;
+              const buildiumOnly =
+                qboPaymentState.qboBalanceCents == null &&
+                !!qboPaymentState.buildiumBillId;
+              const buildiumHasPayment = !!qboPaymentState.buildiumBillPaymentId;
+
+              // A check has been queued for printing but not yet printed. The
+              // QBO BillPayment exists (PrintStatus=NeedToPrint) so the money
+              // is effectively committed — paying again here would double-pay.
+              const checkQueued =
+                qboPaymentState.checkPrintStatus === "queued";
+              // A printed check is a completed payment — the bill is paid even
+              // if the local qbo_balance_cents mirror hasn't caught up (the QBO
+              // webhook may not be wired). Treat it as paid so we never re-show
+              // Pay Bill on an already-paid-by-check bill.
+              const checkPrinted =
+                qboPaymentState.checkPrintStatus === "printed";
+
+              // Outstanding = QBO balance > 0 OR (Buildium-only bill with no
+              // payment yet). The Buildium-only partial-payment case isn't
+              // tracked here yet; once paid we hide the Pay button. A queued or
+              // printed check also blocks payment.
+              const canPay =
+                !qboPaymentState.qboPaidAt &&
+                !checkQueued &&
+                !checkPrinted &&
+                (qboHasOutstanding || (buildiumOnly && !buildiumHasPayment));
+
+              // Any payment recorded → show View Payments. Either a QBO
+              // payment partial-paid the bill, there's a Buildium payment on
+              // file, or a check was printed.
+              const hasAnyPayment =
+                (qboPaymentState.qboTotalCents != null &&
+                  qboPaymentState.qboBalanceCents != null &&
+                  qboPaymentState.qboBalanceCents <
+                    qboPaymentState.qboTotalCents) ||
+                buildiumHasPayment ||
+                checkPrinted;
+
+              const fullyPaid =
+                qboPaymentState.qboBalanceCents === 0 ||
+                checkPrinted ||
+                (buildiumOnly && buildiumHasPayment);
+
+              return (
+                <>
+                  {formDisabled && billId !== null && canPay && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowPayBillModal(true);
+                      }}
+                      className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-emerald-600 text-white font-medium hover:bg-emerald-700"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.25 6.75H15.75M2.25 9H15.75M3 4.5H15C15.8284 4.5 16.5 5.17157 16.5 6V13.5C16.5 14.3284 15.8284 15 15 15H3C2.17157 15 1.5 14.3284 1.5 13.5V6C1.5 5.17157 2.17157 4.5 3 4.5Z"
+                              stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="text-sm">Pay Bill</span>
+                    </button>
+                  )}
+                  {formDisabled && checkQueued && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate("/accounting/print-checks");
+                      }}
+                      title="A check is queued for this bill. Print it from Accounting → Print Checks."
+                      className="rounded-lg flex h-10 px-4 items-center gap-2 transition-colors bg-blue-50 text-blue-700 border border-blue-300 font-medium hover:bg-blue-100"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4.5 6.75V2.25h9v4.5M4.5 13.5H3a1.5 1.5 0 0 1-1.5-1.5V8.25A1.5 1.5 0 0 1 3 6.75h12a1.5 1.5 0 0 1 1.5 1.5V12a1.5 1.5 0 0 1-1.5 1.5h-1.5M4.5 11.25h9v4.5h-9v-4.5Z"
+                              stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="text-sm">Check queued · Print Checks</span>
+                    </button>
+                  )}
+                  {formDisabled && hasAnyPayment && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowViewPaymentModal(true);
+                      }}
+                      className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
+                      <span>{fullyPaid ? "Paid · View Payment" : "View Payments"}</span>
+                    </button>
+                  )}
+                </>
+              );
+            })()}
 
             {/* Edit button — visible in readOnly mode on a posted bill. Click
                 flips local `editing` so the form becomes interactive without
@@ -3341,14 +3601,16 @@ minHeight: 0,
 
             {/* Exported pill — only in pure readOnly (not editing). When
                 editing this is replaced by Save & Re-export below. */}
-            {formDisabled && !qboPaymentState.qboPaidAt && (
-              <button
-                disabled
-                className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-gray-300 text-gray-500 cursor-not-allowed"
-              >
-                <span>Exported to Buildium</span>
-              </button>
-            )}
+            {formDisabled &&
+              !qboPaymentState.qboPaidAt &&
+              qboPaymentState.checkPrintStatus !== "printed" && (
+                <button
+                  disabled
+                  className="rounded-lg flex min-h-9 px-3 py-2 items-center gap-2 overflow-hidden font-medium transition-colors bg-gray-300 text-gray-500 cursor-not-allowed"
+                >
+                  <span>Exported to Buildium</span>
+                </button>
+              )}
 
             {/* Edit-mode footer: Cancel Edit + Save & Re-export. Save calls
                 PATCH /vendors/bills/{id} which dual-pushes to QBO + Buildium
@@ -3497,23 +3759,44 @@ minHeight: 0,
         loading={msgViewer.loading}
         error={msgViewer.error}
       />
-      {showPayBillModal && billId !== null && (
+      {showPayBillModal && billId !== null && (() => {
+        const billProperty = properties.find(
+          (p) => p.id === Number(lineItems[0]?.property),
+        );
+        // Non-Concierge bills don't have qboBalanceCents — fall back to the
+        // bill total so the amount field has a sensible default. Partial-pay
+        // state isn't tracked on the Buildium-only side yet, so this is the
+        // bill amount minus nothing.
+        const outstandingCents =
+          billProperty?.property_type === "C"
+            ? qboPaymentState.qboBalanceCents ?? 0
+            : toCents(calculateTotal());
+        return (
         <PayBillModal
           open={showPayBillModal}
           onOpenChange={setShowPayBillModal}
           bill={{
             id: billId,
             vendorName: selectedVendor?.name ?? "",
-            propertyName:
-              properties.find(
-                (p) => p.id === Number(lineItems[0]?.property),
-              )?.name ?? "",
+            propertyName: billProperty?.name ?? "",
             referenceNumber: referenceNumber || undefined,
-            qboBalanceCents: qboPaymentState.qboBalanceCents ?? 0,
+            qboBalanceCents: outstandingCents,
+            propertyType: billProperty?.property_type ?? null,
           }}
           onPaid={(result) => {
-            // Optimistically populate the payment state so the View Payment
-            // modal renders fresh data without a refetch.
+            // A queued check is NOT a completed payment — the bill stays
+            // unpaid until the check is printed. Flip the footer to the
+            // "Check queued" state instead of marking it paid, so we don't
+            // expose the Pay Bill button again (double-payment risk).
+            if (result.print_status === "queued") {
+              setQboPaymentState((prev) => ({
+                ...prev,
+                checkPrintStatus: "queued",
+              }));
+              return;
+            }
+            // Electronic transfer: optimistically populate the payment state
+            // so the View Payment modal renders fresh data without a refetch.
             setQboPaymentState((prev) => ({
               ...prev,
               qboPaidAt: result.qbo_paid_at ?? new Date().toISOString(),
@@ -3531,7 +3814,8 @@ minHeight: 0,
             }));
           }}
         />
-      )}
+        );
+      })()}
       <ViewPaymentModal
         open={showViewPaymentModal}
         onOpenChange={setShowViewPaymentModal}

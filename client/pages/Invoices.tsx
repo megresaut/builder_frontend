@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import { PageHeader } from "@/components/BillsPageHeader";
+import GlobalTable from "@/components/GlobalTable";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import { useSortingTable } from "@/hooks/useSortingTable";
+import { usePageState } from "@/hooks/usePageState";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -20,6 +26,14 @@ const TABS: { id: TabKey; label: string }[] = [
   { id: "draft", label: "Drafts" },
   { id: "void", label: "Void" },
 ];
+
+const TAB_TITLE: Record<TabKey, string> = {
+  all: "All Invoices",
+  outstanding: "Outstanding Invoices",
+  paid: "Paid Invoices",
+  draft: "Draft Invoices",
+  void: "Void Invoices",
+};
 
 const STATUS_BADGE: Record<InvoiceStatus, string> = {
   draft: "bg-slate-50 text-slate-700 border-slate-200",
@@ -87,16 +101,109 @@ const monthKey = (iso: string): string => iso.slice(0, 7);
 // per-property history page instead. Update both in sync if the cutoff moves.
 const PORTFOLIO_CUTOFF_LABEL = "May 2026";
 
+// Column icons mirror the Bills table styling (16px stroked lucide-style SVGs).
+const IconHash = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <line x1="4" x2="20" y1="9" y2="9" />
+    <line x1="4" x2="20" y1="15" y2="15" />
+    <line x1="10" x2="8" y1="3" y2="21" />
+    <line x1="16" x2="14" y1="3" y2="21" />
+  </svg>
+);
+
+const IconHome = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+
+const IconCalendar = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M8 2v4" />
+    <path d="M16 2v4" />
+    <rect width="18" height="18" x="3" y="4" rx="2" />
+    <path d="M3 10h18" />
+  </svg>
+);
+
+const IconCircleCheck = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+);
+
+const IconSync = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.4 2.7L21 8" />
+    <path d="M21 3v5h-5" />
+    <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.4-2.7L3 16" />
+    <path d="M3 21v-5h5" />
+  </svg>
+);
+
+const IconDollar = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <line x1="12" x2="12" y1="2" y2="22" />
+    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+  </svg>
+);
+
+const COLUMNS = [
+  { key: "invoice", label: "Invoice", icon: IconHash },
+  { key: "property", label: "Property", icon: IconHome },
+  { key: "month", label: "Month", icon: IconCalendar },
+  { key: "status", label: "Status", icon: IconCircleCheck },
+  { key: "qboSync", label: "QBO Sync", icon: IconSync },
+  { key: "total", label: "Total", icon: IconDollar },
+  { key: "paid", label: "Paid", icon: IconDollar },
+  { key: "paymentDate", label: "Payment Date", icon: IconCalendar },
+  { key: "reference", label: "Reference", icon: IconHash },
+];
+
+const COLUMN_KEYS = COLUMNS.map((c) => c.key);
+
+// Augmented row: the GlobalTable sorting hook reads `row[columnKey]`, so we
+// expose a sortable alias for each column key alongside the original invoice
+// fields (which renderCell reads from).
+type InvoiceTableRow = PortfolioInvoiceRow & {
+  invoice: number;
+  property: string;
+  month: string;
+  qboSync: QBOPushStatus;
+  total: number;
+  paid: number;
+  paymentDate: string;
+  reference: string;
+};
+
 export default function Invoices() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<TabKey>("all");
   const [search, setSearch] = useState("");
   const [monthFilter, setMonthFilter] = useState<string>("all");
+  const [showFilterBar, setShowFilterBar] = usePageState(
+    "invoicesShowFilterBar",
+    false,
+  );
+
+  const [currentPage, setCurrentPage] = usePageState("invoicesCurrentPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("invoicesItemsPerPage", 50);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState(
+    "invoicesShowPageSizeDropdown",
+    false,
+  );
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>(
+    "invoicesOpenMenuId",
+    null,
+  );
 
   const [rows, setRows] = useState<PortfolioInvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Bumped to force a refetch after mutations (e.g. voiding an invoice).
   const [refreshTick, setRefreshTick] = useState(0);
-  const [voidingId, setVoidingId] = useState<number | null>(null);
 
   // Refetch whenever the month filter changes — pushed to the server so the
   // SQL is filtered at the DB level. Tab + search stay client-side because
@@ -132,25 +239,42 @@ export default function Invoices() {
     setMonthOptions(Array.from(set).sort((a, b) => b.localeCompare(a)));
   }, [rows, monthFilter]);
 
-  const filtered = useMemo(() => {
-    return rows.filter((inv) => {
-      if (tab === "outstanding" && inv.status !== "sent") return false;
-      if (tab === "paid" && inv.status !== "paid") return false;
-      if (tab === "draft" && inv.status !== "draft" && inv.status !== "ready")
-        return false;
-      if (tab === "void" && inv.status !== "void") return false;
+  // Reset to page 1 whenever the tab / search / month changes.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [tab, search, monthFilter]);
 
-      if (search.trim()) {
-        const q = search.trim().toLowerCase();
-        const hit =
-          inv.property_address.toLowerCase().includes(q) ||
-          String(inv.id).includes(q) ||
-          (inv.qbo_invoice_id ?? "").toLowerCase().includes(q) ||
-          (inv.payment_reference ?? "").toLowerCase().includes(q);
-        if (!hit) return false;
-      }
-      return true;
-    });
+  const filtered = useMemo<InvoiceTableRow[]>(() => {
+    return rows
+      .filter((inv) => {
+        if (tab === "outstanding" && inv.status !== "sent") return false;
+        if (tab === "paid" && inv.status !== "paid") return false;
+        if (tab === "draft" && inv.status !== "draft" && inv.status !== "ready")
+          return false;
+        if (tab === "void" && inv.status !== "void") return false;
+
+        if (search.trim()) {
+          const q = search.trim().toLowerCase();
+          const hit =
+            inv.property_address.toLowerCase().includes(q) ||
+            String(inv.id).includes(q) ||
+            (inv.qbo_invoice_id ?? "").toLowerCase().includes(q) ||
+            (inv.payment_reference ?? "").toLowerCase().includes(q);
+          if (!hit) return false;
+        }
+        return true;
+      })
+      .map((inv) => ({
+        ...inv,
+        invoice: inv.id,
+        property: inv.property_address,
+        month: inv.invoice_month,
+        qboSync: inv.qbo_push_status,
+        total: inv.total_amount_cents,
+        paid: inv.payment_amount_cents ?? -1,
+        paymentDate: inv.payment_recorded_at ?? "",
+        reference: inv.payment_reference ?? "",
+      }));
   }, [rows, tab, search]);
 
   const summary = useMemo(() => {
@@ -176,7 +300,18 @@ export default function Invoices() {
     };
   }, [filtered]);
 
-  const handleVoid = async (inv: PortfolioInvoiceRow) => {
+  const sortingHook = useSortingTable(filtered, "portfolioInvoices");
+  const columnManagementHook = useColumnManagement(COLUMN_KEYS);
+  const {
+    visibleColumns,
+    showColumnModal,
+    setShowColumnModal,
+    columnMenuPos,
+    columnButtonRef,
+    toggleColumnVisibility,
+  } = columnManagementHook;
+
+  const handleVoid = async (inv: InvoiceTableRow) => {
     if (inv.status === "paid") {
       toast.error("Paid invoices cannot be voided.");
       return;
@@ -188,7 +323,6 @@ export default function Invoices() {
     ) {
       return;
     }
-    setVoidingId(inv.id);
     try {
       await voidInvoice(inv.id);
       toast.success(`Invoice #${inv.id} voided.`);
@@ -197,8 +331,77 @@ export default function Invoices() {
       toast.error(
         err instanceof Error ? err.message : `Failed to void invoice #${inv.id}`,
       );
-    } finally {
-      setVoidingId(null);
+    }
+  };
+
+  const renderCell = (inv: InvoiceTableRow, columnKey: string) => {
+    switch (columnKey) {
+      case "invoice":
+        return (
+          <div className="whitespace-nowrap">
+            <div className="text-gray-900 font-medium text-sm">#{inv.id}</div>
+            {inv.qbo_invoice_id && (
+              <div className="text-[11px] text-gray-500">QBO {inv.qbo_invoice_id}</div>
+            )}
+          </div>
+        );
+      case "property":
+        return (
+          <span
+            className="text-gray-900 font-normal text-sm block truncate max-w-[260px]"
+            title={inv.property_address}
+          >
+            {inv.property_address}
+          </span>
+        );
+      case "month":
+        return (
+          <span className="text-gray-900 font-normal text-sm whitespace-nowrap">
+            {formatMonth(inv.invoice_month)}
+          </span>
+        );
+      case "status":
+        return <StatusBadge status={inv.status} />;
+      case "qboSync":
+        return <QBOStatusCell row={inv} />;
+      case "total":
+        return (
+          <span className="text-gray-900 font-medium text-sm tabular-nums">
+            {formatCents(inv.total_amount_cents)}
+          </span>
+        );
+      case "paid":
+        return inv.payment_amount_cents != null ? (
+          <span
+            className={cn(
+              "text-sm tabular-nums",
+              inv.payment_amount_cents < inv.total_amount_cents
+                ? "text-amber-700"
+                : "text-gray-900",
+            )}
+          >
+            {formatCents(inv.payment_amount_cents)}
+          </span>
+        ) : (
+          <span className="text-gray-400 text-sm">—</span>
+        );
+      case "paymentDate":
+        return (
+          <span className="text-gray-900 font-normal text-sm whitespace-nowrap">
+            {formatDate(inv.payment_recorded_at)}
+          </span>
+        );
+      case "reference":
+        return (
+          <span
+            className="text-gray-900 font-normal text-sm block truncate max-w-[180px]"
+            title={inv.payment_reference ?? undefined}
+          >
+            {inv.payment_reference ?? "—"}
+          </span>
+        );
+      default:
+        return null;
     }
   };
 
@@ -232,54 +435,7 @@ export default function Invoices() {
           ))}
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 items-end">
-          <label className="flex flex-col gap-1 grow max-w-md">
-            <span className="text-xs font-medium text-[#525252]">Search</span>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Property, invoice #, QBO id, or payment ref…"
-              className="border border-[#E5E5E5] rounded-md px-3 py-1.5 text-sm"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-[#525252]">Month</span>
-            <select
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-              className="border border-[#E5E5E5] rounded-md px-2 py-1.5 text-sm bg-white"
-            >
-              <option value="all">All ({PORTFOLIO_CUTOFF_LABEL}+)</option>
-              {monthOptions.map((m) => (
-                <option key={m} value={m}>
-                  {formatMonthShort(`${m}-01`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            onClick={() => setRefreshTick((t) => t + 1)}
-            disabled={loading}
-            className={cn(
-              "px-3 py-1.5 text-sm font-medium rounded-md border border-[#E5E5E5] bg-white",
-              loading
-                ? "text-[#717179] cursor-not-allowed"
-                : "text-[#303030] hover:bg-[#F8F8F8]",
-            )}
-          >
-            ↻ Refresh
-          </button>
-          {loading && (
-            <div className="text-sm text-[#717179] pb-1.5">Loading…</div>
-          )}
-        </div>
-
-        {error && <div className="text-sm text-rose-600">{error}</div>}
-
-        {/* Summary tiles */}
+        {/* Summary tiles (KPIs) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <SummaryTile
             label="Invoices"
@@ -309,19 +465,142 @@ export default function Invoices() {
           />
         </div>
 
-        {/* Table */}
-        {!loading && !error && filtered.length === 0 ? (
-          <div className="text-sm text-[#717179] py-12 text-center border border-dashed border-[#E5E5E5] rounded-md">
-            No invoices match the current filters.
+        {error && <div className="text-sm text-rose-600">{error}</div>}
+
+        {/* Filter bar — toggled by the Filter button in the table header */}
+        {showFilterBar && (
+          <div
+            className="flex flex-wrap items-center gap-4 px-6 py-4 border border-[#E5E5E5] rounded-lg bg-gray-50/80"
+            style={{ borderColor: "var(--color-border-light)" }}
+          >
+            <span className="text-sm font-medium text-[#303030] shrink-0">
+              Filter by
+            </span>
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                Month
+              </label>
+              <select
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+                className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[150px]"
+              >
+                <option value="all">All ({PORTFOLIO_CUTOFF_LABEL}+)</option>
+                {monthOptions.map((m) => (
+                  <option key={m} value={m}>
+                    {formatMonthShort(`${m}-01`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {monthFilter !== "all" && (
+              <button
+                type="button"
+                onClick={() => setMonthFilter("all")}
+                className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"
+              >
+                Clear filters
+              </button>
+            )}
           </div>
-        ) : (
-          <InvoicesTable
-            rows={filtered}
-            onVoid={handleVoid}
-            voidingId={voidingId}
-          />
         )}
+
+        {/* Table */}
+        <GlobalTable
+          columns={COLUMNS}
+          data={filtered}
+          rowKey="id"
+          renderCell={renderCell}
+          onRowClick={(inv: InvoiceTableRow) =>
+            navigate(`/property/${inv.property_id}/Invoicing`)
+          }
+          sortingHook={sortingHook}
+          columnManagementHook={columnManagementHook}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={(size) => {
+            setItemsPerPage(size);
+            setCurrentPage(1);
+          }}
+          showPageSizeDropdown={showPageSizeDropdown}
+          onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+          openMenuId={openMenuId}
+          onOpenMenuIdChange={setOpenMenuId}
+          title={TAB_TITLE[tab]}
+          emptyMessage={
+            loading
+              ? "Loading invoices…"
+              : "No invoices match the current filters."
+          }
+          showSearchBar
+          searchValue={search}
+          onSearchChange={(value) => {
+            setSearch(value);
+            setCurrentPage(1);
+          }}
+          onFilterClick={() => {
+            setShowPageSizeDropdown(false);
+            setOpenMenuId(null);
+            setShowFilterBar(!showFilterBar);
+          }}
+          headerActions={
+            <>
+              <button
+                ref={columnButtonRef}
+                onClick={() => {
+                  setShowPageSizeDropdown(false);
+                  setOpenMenuId(null);
+                  setShowColumnModal((prev) => !prev);
+                }}
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+              >
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="3" r="1.5" fill="var(--color-text-primary)" />
+                  <circle cx="8" cy="8" r="1.5" fill="var(--color-text-primary)" />
+                  <circle cx="8" cy="13" r="1.5" fill="var(--color-text-primary)" />
+                </svg>
+              </button>
+            </>
+          }
+          actions={[
+            {
+              label: "Void",
+              hidden: (inv: InvoiceTableRow) =>
+                inv.status === "paid" || inv.status === "void",
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M6.75 2.25H11.25M2.25 4.5H15.75M14.25 4.5L13.724 12.3895C13.6451 13.5732 13.6057 14.165 13.35 14.6138C13.1249 15.0088 12.7854 15.3265 12.3762 15.5248C11.9115 15.75 11.3183 15.75 10.132 15.75H7.86799C6.68168 15.75 6.08852 15.75 5.62375 15.5248C5.21457 15.3265 4.87507 15.0088 4.64999 14.6138C4.39433 14.165 4.35488 13.5732 4.27596 12.3895L3.75 4.5"
+                    stroke="var(--color-status-error)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ),
+              onClick: (inv: InvoiceTableRow) => handleVoid(inv),
+            },
+          ]}
+          showColumnModal={showColumnModal}
+          onShowColumnModalChange={setShowColumnModal}
+        />
       </div>
+
+      {/* Column Filter Modal */}
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={COLUMNS.map((col) => ({
+          key: col.key,
+          label: col.label,
+          icon: col.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+        buttonRef={columnButtonRef}
+      />
     </PageTemplate>
   );
 }
@@ -352,124 +631,6 @@ function SummaryTile({
         {value}
       </span>
       {hint && <span className="text-xs text-[#717179]">{hint}</span>}
-    </div>
-  );
-}
-
-function InvoicesTable({
-  rows,
-  onVoid,
-  voidingId,
-}: {
-  rows: PortfolioInvoiceRow[];
-  onVoid: (inv: PortfolioInvoiceRow) => void;
-  voidingId: number | null;
-}) {
-  return (
-    <div className="border border-[#E5E5E5] rounded-md overflow-x-auto">
-      <table className="min-w-full text-sm">
-        <thead className="bg-[#F8F8F8] text-[#717179] text-xs uppercase tracking-wide">
-          <tr>
-            <th className="text-left px-4 py-3 font-medium">Invoice</th>
-            <th className="text-left px-4 py-3 font-medium">Property</th>
-            <th className="text-left px-4 py-3 font-medium">Month</th>
-            <th className="text-left px-4 py-3 font-medium">Status</th>
-            <th className="text-left px-4 py-3 font-medium">QBO Sync</th>
-            <th className="text-right px-4 py-3 font-medium">Total</th>
-            <th className="text-right px-4 py-3 font-medium">Paid</th>
-            <th className="text-left px-4 py-3 font-medium">Payment Date</th>
-            <th className="text-left px-4 py-3 font-medium">Reference</th>
-            <th className="text-right px-4 py-3 font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((inv) => {
-            const canVoid =
-              inv.status !== "paid" && inv.status !== "void";
-            const isVoiding = voidingId === inv.id;
-            return (
-              <tr
-                key={inv.id}
-                className="border-t border-[#E5E5E5] align-top hover:bg-[#FAFAFA]"
-              >
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="text-[#303030] font-medium">#{inv.id}</div>
-                  {inv.qbo_invoice_id && (
-                    <div className="text-[11px] text-[#717179]">
-                      QBO {inv.qbo_invoice_id}
-                    </div>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-[#303030] max-w-[260px]">
-                  <div className="truncate" title={inv.property_address}>
-                    {inv.property_address}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-[#717179] whitespace-nowrap">
-                  {formatMonth(inv.invoice_month)}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <StatusBadge status={inv.status} />
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <QBOStatusCell row={inv} />
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums font-medium text-[#303030]">
-                  {formatCents(inv.total_amount_cents)}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums">
-                  {inv.payment_amount_cents != null ? (
-                    <span
-                      className={cn(
-                        inv.payment_amount_cents < inv.total_amount_cents
-                          ? "text-amber-700"
-                          : "text-[#303030]",
-                      )}
-                    >
-                      {formatCents(inv.payment_amount_cents)}
-                    </span>
-                  ) : (
-                    <span className="text-[#A0A0A0]">—</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-[#717179] whitespace-nowrap">
-                  {formatDate(inv.payment_recorded_at)}
-                </td>
-                <td className="px-4 py-3 text-[#525252] max-w-[180px]">
-                  <div
-                    className="truncate"
-                    title={inv.payment_reference ?? undefined}
-                  >
-                    {inv.payment_reference ?? "—"}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <button
-                    type="button"
-                    onClick={() => onVoid(inv)}
-                    disabled={!canVoid || isVoiding}
-                    className={cn(
-                      "px-2.5 py-1 text-xs font-medium rounded-md border",
-                      canVoid && !isVoiding
-                        ? "border-rose-200 text-rose-700 bg-white hover:bg-rose-50"
-                        : "border-[#E5E5E5] text-[#A0A0A0] cursor-not-allowed",
-                    )}
-                    title={
-                      !canVoid
-                        ? inv.status === "paid"
-                          ? "Paid invoices cannot be voided"
-                          : "Already void"
-                        : "Void invoice"
-                    }
-                  >
-                    {isVoiding ? "Voiding…" : "Void"}
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
     </div>
   );
 }

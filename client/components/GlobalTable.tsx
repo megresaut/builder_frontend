@@ -57,6 +57,8 @@ interface GlobalTableProps {
   onSelectionChange?: (selectedIds: Set<string | number>) => void;
   /** When set, use this as total row count instead of data.length (for server-side pagination) */
   serverTotal?: number;
+  /** Message shown in the table body when there are no rows to display */
+  emptyMessage?: string;
 }
 
 export default function GlobalTable({
@@ -94,6 +96,7 @@ export default function GlobalTable({
   selectedIds,
   onSelectionChange,
   serverTotal,
+  emptyMessage = "No results found",
 }: GlobalTableProps) {
   const { handleSortClick, getSortIndicator, getSortedData } = sortingHook;
   const {
@@ -168,8 +171,20 @@ export default function GlobalTable({
     const updateDropdownPos = () => {
       if (showPageSizeDropdown && dropdownButtonRef.current) {
         const rect = dropdownButtonRef.current.getBoundingClientRect();
+        // Measure the menu if it's already rendered, otherwise estimate
+        // (3 options at ~48px each).
+        const menuHeight =
+          dropdownMenuRef.current?.offsetHeight || 150;
+        const gap = 8;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        // Flip the menu above the button when it would overflow the
+        // bottom of the viewport but there's room above.
+        const openUpward =
+          spaceBelow < menuHeight + gap && rect.top > menuHeight + gap;
         setDropdownPos({
-          top: rect.bottom + 8,
+          top: openUpward
+            ? rect.top - gap - menuHeight
+            : rect.bottom + gap,
           left: rect.left,
         });
       }
@@ -510,6 +525,20 @@ export default function GlobalTable({
                 </tr>
               );
             })}
+            {getDisplayedRowsForPage().length === 0 && (
+              <tr>
+                <td
+                  colSpan={
+                    displayedColumnKeys.length +
+                    (selectable ? 1 : 0) +
+                    (actions.length > 0 ? 1 : 0)
+                  }
+                  className="px-3 py-12 text-center text-sm text-gray-500"
+                >
+                  {emptyMessage}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
