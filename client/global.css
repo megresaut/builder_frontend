@@ -351,3 +351,70 @@
  *
  * These variables are available in light and dark modes via CSS custom properties.
  */
+
+/* ─── Print styles (General Ledger + Reconciliation report) ───────────────── */
+@media print {
+  /* Release ShellLayout's h-screen / overflow-hidden constraints so content
+     flows across pages instead of being clipped to viewport height. */
+  html, body {
+    background: #ffffff !important;
+    color: #1a1a1a !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .h-screen { height: auto !important; overflow: visible !important; }
+  main { display: block !important; height: auto !important; overflow: visible !important; }
+  [data-testid="main-content"] {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-left: none !important;
+  }
+
+  /* Hide shell chrome */
+  aside, header, nav { display: none !important; }
+
+  /* Show GL print root (overrides its inline display:none).
+     The outer page wrapper carries print:hidden so only this renders. */
+  #gl-print-root { display: block !important; }
+
+  /* Release the overflow-hidden wrapper and the max-h/overflow-y-auto
+     scrollable container inside QBOReportView so all rows flow onto pages
+     instead of being clipped to the first viewport height. */
+  #gl-print-root div {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  #gl-print-root {
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 11px;
+    color: #1a1a1a;
+    padding: 24px 32px;
+  }
+
+  /* Print header */
+  .gl-print-header {
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid #303030;
+  }
+  .gl-print-header h1 { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+  .gl-print-header p { font-size: 10px; color: #555; margin: 0; }
+
+  /* Strip interactive chrome from QBOReportView */
+  button, [role="button"] { display: none !important; }
+  a { color: inherit; text-decoration: none; }
+
+  /* Table layout */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 3px 6px; }
+  tr { page-break-inside: avoid; }
+  .qbo-section-header { font-weight: 600; background: #f5f5f5; }
+  .qbo-section-summary { font-weight: 600; background: #fafafa; }
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+  .text-right { text-align: right; }
+
+  @page { margin: 16mm 12mm; size: A4 landscape; }
+}

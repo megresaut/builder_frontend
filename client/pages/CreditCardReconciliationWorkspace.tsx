@@ -47,6 +47,14 @@ function rowUid(r: CreditCardActivityRow): string {
   return k ? `${k.source_system}:${k.txn_id}` : "";
 }
 
+// CONF_LABEL maps a match-confidence tier to a short human label.
+const CONF_LABEL: Record<string, string> = {
+  exact: "exact",
+  fuzzy_date: "±3 days",
+  strong: "name + amount",
+  possible: "possible",
+};
+
 // SOURCE_BADGE renders which book(s) an activity row / line came from.
 const SOURCE_BADGE: Record<string, { label: string; cls: string }> = {
   qbo: { label: "QBO", cls: "bg-sky-50 text-sky-700 border-sky-200" },
@@ -124,6 +132,7 @@ export default function CreditCardReconciliationWorkspace() {
     () => new Set(),
   );
   const [quickBillOpen, setQuickBillOpen] = useState(false);
+  const [bulkActioning, setBulkActioning] = useState(false);
 
   // "Edit period / balances" modal state. Open via the inline affordance in
   // the workspace header. Save → PATCH → reload workspace so dates + matches
@@ -266,6 +275,80 @@ export default function CreditCardReconciliationWorkspace() {
     );
   }, [workspace, pendingSuggestions]);
 
+  // Auto-acceptable (exact / fuzzy_date / strong) vs review-only ("possible").
+  const autoSuggestions = useMemo(
+    () => pendingSuggestions.filter((p) => p.confidence !== "possible"),
+    [pendingSuggestions],
+  );
+  const reviewSuggestions = useMemo(
+    () => pendingSuggestions.filter((p) => p.confidence === "possible"),
+    [pendingSuggestions],
+  );
+
+  // One suggestion row, reused by the auto panel and the review panel.
+  const renderSuggestionRow = (pair: MatchPair, i: number) => {
+    const txnID = rowUid(pair.qbo) || `${i}`;
+    const delta = pair.statement.amount_cents - pair.qbo.amount_cents;
+    return (
+      <li
+        key={txnID}
+        className="px-4 py-3 grid grid-cols-[1fr_auto_1fr_auto] gap-3 items-center"
+      >
+        <div className="min-w-0">
+          <div className="text-xs text-[#A1A1A1] uppercase tracking-wide">
+            Statement
+          </div>
+          <div className="text-sm text-[#303030] truncate">
+            {pair.statement.description || "—"}
+          </div>
+          <div className="text-xs text-[#717179]">
+            {pair.statement.date} · row {pair.statement.source_row}
+          </div>
+          <div className="text-sm font-medium text-[#303030] tabular-nums mt-0.5">
+            {formatCents(pair.statement.amount_cents)}
+          </div>
+        </div>
+        <div className="text-[#A1A1A1] text-xs">↔</div>
+        <div className="min-w-0">
+          <div className="text-xs text-[#A1A1A1] uppercase tracking-wide flex items-center gap-1.5">
+            <SourceBadge source={pair.qbo.source} />
+            <span>({CONF_LABEL[pair.confidence] ?? pair.confidence})</span>
+          </div>
+          <div className="text-sm text-[#303030] truncate">
+            {pair.qbo.txn_type}
+            {pair.qbo.vendor && (
+              <span className="text-[#717179]"> · {pair.qbo.vendor}</span>
+            )}
+          </div>
+          <div className="text-xs text-[#717179]">{pair.qbo.txn_date}</div>
+          <div className="text-sm font-medium text-[#303030] tabular-nums mt-0.5">
+            {formatCents(pair.qbo.amount_cents)}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {delta !== 0 && (
+            <div
+              className="text-xs font-medium text-rose-600 tabular-nums"
+              title="Statement and Buildium amounts differ"
+            >
+              Δ {formatCents(delta)}
+            </div>
+          )}
+          {isInProgress && (
+            <button
+              type="button"
+              onClick={() => acceptSuggestion(pair)}
+              disabled={acceptingAll || loading || pendingTxnID !== null}
+              className="text-xs text-[#013764] hover:underline disabled:opacity-40 disabled:no-underline"
+            >
+              {pendingTxnID === rowUid(pair.qbo) ? "Accepting…" : "Accept"}
+            </button>
+          )}
+        </div>
+      </li>
+    );
+  };
+
   const handleMatch = async (row: CreditCardActivityRow) => {
     const k = rowMatchKey(row);
     if (!workspace || !k) return;
@@ -353,14 +436,15 @@ export default function CreditCardReconciliationWorkspace() {
   };
 
   const acceptAllSuggestions = async () => {
-    if (!workspace || pendingSuggestions.length === 0) return;
+    if (!workspace || autoSuggestions.length === 0) return;
     setAcceptingAll(true);
     setUploadError(null);
     let firstErr: string | null = null;
     // Sequential rather than parallel — a future batch endpoint can replace
     // this. Each call is small; the bottleneck is API round-trip count, not
-    // server work. Stop on first error so the user sees what failed.
-    for (const pair of pendingSuggestions) {
+    // server work. Stop on first error so the user sees what failed. Only the
+    // auto-acceptable tiers (exact/strong) — "possible" stays for manual review.
+    for (const pair of autoSuggestions) {
       const k = rowMatchKey(pair.qbo);
       if (!k) continue;
       try {
@@ -441,6 +525,43 @@ export default function CreditCardReconciliationWorkspace() {
     } finally {
       setForceClearSubmitting(false);
     }
+  };
+
+  // Bulk defer / dispute the checkbox-selected statement rows. Dispute prompts
+  // once for a shared reason. Sequential; collects the first error, then reloads.
+  const bulkAction = async (action: "defer" | "dispute") => {
+    if (!workspace || selectedForBill.size === 0) return;
+    let note: string | undefined;
+    if (action === "dispute") {
+      const r = window.prompt("Reason for dispute (applied to all selected):");
+      if (r == null) return; // cancelled
+      if (r.trim() === "") {
+        setError("Dispute reason is required.");
+        return;
+      }
+      note = r.trim();
+    }
+    setBulkActioning(true);
+    setError(null);
+    const rows = pairableStatementRows.filter((r) =>
+      selectedForBill.has(r.source_row),
+    );
+    let firstErr: string | null = null;
+    for (const r of rows) {
+      try {
+        await setStatementAction(workspace.reconciliation.id, {
+          source_row: r.source_row,
+          action,
+          note,
+        });
+      } catch (e) {
+        if (!firstErr) firstErr = e instanceof Error ? e.message : "action failed";
+      }
+    }
+    setBulkActioning(false);
+    setSelectedForBill(new Set());
+    if (firstErr) setError(firstErr);
+    await load();
   };
 
   const handleDeferRow = async (row: StatementRow) => {
@@ -771,6 +892,27 @@ export default function CreditCardReconciliationWorkspace() {
         </div>
       )}
 
+      {uploadLoading && (
+        <div className="border border-sky-200 bg-sky-50 text-sky-900 rounded-md px-4 py-3 text-sm flex items-center gap-2">
+          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-sky-300 border-t-sky-700" />
+          Parsing the statement and matching it against QBO + Buildium — this can
+          take a few seconds.
+        </div>
+      )}
+
+      {!uploadLoading &&
+        !autoPaying &&
+        (loading ||
+          acceptingAll ||
+          bulkActioning ||
+          pendingTxnID !== null ||
+          pendingLineID !== null) && (
+          <div className="border border-sky-200 bg-sky-50 text-sky-900 rounded-md px-4 py-3 text-sm flex items-center gap-2">
+            <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-sky-300 border-t-sky-700" />
+            Applying changes…
+          </div>
+        )}
+
       {uploadError && (
         <div className="border border-rose-200 bg-rose-50 text-rose-900 rounded-md px-4 py-3 text-sm">
           {uploadError}
@@ -788,23 +930,22 @@ export default function CreditCardReconciliationWorkspace() {
         </div>
       )}
 
-      {pendingSuggestions.length > 0 && (
+      {autoSuggestions.length > 0 && (
         <section className="border border-sky-200 rounded-md bg-white">
           <div className="px-4 py-3 border-b border-sky-100 bg-sky-50/50 flex items-center justify-between flex-wrap gap-3">
             <div>
               <div className="text-sm font-semibold text-[#303030]">
-                Suggested matches ({pendingSuggestions.length})
+                Suggested matches ({autoSuggestions.length})
               </div>
               <div className="text-xs text-[#717179] mt-0.5">
-                From the uploaded statement. Each pair has the same amount and a
-                date within ±3 days.
+                Same amount, plus a near date or a strong vendor-name match.
               </div>
             </div>
             {isInProgress && (
               <button
                 type="button"
                 onClick={acceptAllSuggestions}
-                disabled={acceptingAll || pendingSuggestions.length === 0}
+                disabled={acceptingAll || loading || autoSuggestions.length === 0}
                 className={cn(
                   "px-3 py-1.5 text-sm font-medium rounded-md border",
                   acceptingAll
@@ -814,78 +955,29 @@ export default function CreditCardReconciliationWorkspace() {
               >
                 {acceptingAll
                   ? "Accepting…"
-                  : `Accept all (${pendingSuggestions.length})`}
+                  : `Accept all (${autoSuggestions.length})`}
               </button>
             )}
           </div>
           <ul className="divide-y divide-[#F0F0F0]">
-            {pendingSuggestions.map((pair, i) => {
-              const txnID = rowUid(pair.qbo) || `${i}`;
-              const delta =
-                pair.statement.amount_cents - pair.qbo.amount_cents;
-              return (
-                <li
-                  key={txnID}
-                  className="px-4 py-3 grid grid-cols-[1fr_auto_1fr_auto] gap-3 items-center"
-                >
-                  <div className="min-w-0">
-                    <div className="text-xs text-[#A1A1A1] uppercase tracking-wide">
-                      Statement
-                    </div>
-                    <div className="text-sm text-[#303030] truncate">
-                      {pair.statement.description || "—"}
-                    </div>
-                    <div className="text-xs text-[#717179]">
-                      {pair.statement.date} · row {pair.statement.source_row}
-                    </div>
-                    <div className="text-sm font-medium text-[#303030] tabular-nums mt-0.5">
-                      {formatCents(pair.statement.amount_cents)}
-                    </div>
-                  </div>
-                  <div className="text-[#A1A1A1] text-xs">↔</div>
-                  <div className="min-w-0">
-                    <div className="text-xs text-[#A1A1A1] uppercase tracking-wide flex items-center gap-1.5">
-                      <SourceBadge source={pair.qbo.source} />
-                      <span>
-                        ({pair.confidence === "exact" ? "exact" : "±3 days"})
-                      </span>
-                    </div>
-                    <div className="text-sm text-[#303030] truncate">
-                      {pair.qbo.txn_type}
-                      {pair.qbo.vendor && (
-                        <span className="text-[#717179]"> · {pair.qbo.vendor}</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-[#717179]">
-                      {pair.qbo.txn_date}
-                    </div>
-                    <div className="text-sm font-medium text-[#303030] tabular-nums mt-0.5">
-                      {formatCents(pair.qbo.amount_cents)}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    {delta !== 0 && (
-                      <div
-                        className="text-xs font-medium text-rose-600 tabular-nums"
-                        title="Statement and Buildium amounts differ"
-                      >
-                        Δ {formatCents(delta)}
-                      </div>
-                    )}
-                    {isInProgress && (
-                      <button
-                        type="button"
-                        onClick={() => acceptSuggestion(pair)}
-                        disabled={acceptingAll || pendingTxnID === rowUid(pair.qbo)}
-                        className="text-xs text-[#013764] hover:underline disabled:opacity-40 disabled:no-underline"
-                      >
-                        {pendingTxnID === rowUid(pair.qbo) ? "…" : "Accept"}
-                      </button>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
+            {autoSuggestions.map((pair, i) => renderSuggestionRow(pair, i))}
+          </ul>
+        </section>
+      )}
+
+      {reviewSuggestions.length > 0 && (
+        <section className="border border-amber-200 rounded-md bg-white">
+          <div className="px-4 py-3 border-b border-amber-100 bg-amber-50/50">
+            <div className="text-sm font-semibold text-[#303030]">
+              Review suggestions ({reviewSuggestions.length})
+            </div>
+            <div className="text-xs text-[#717179] mt-0.5">
+              Lower-confidence — same amount but only a partial name or a wider
+              date gap. Confirm each individually; these aren't in "Accept all".
+            </div>
+          </div>
+          <ul className="divide-y divide-[#F0F0F0]">
+            {reviewSuggestions.map((pair, i) => renderSuggestionRow(pair, i))}
           </ul>
         </section>
       )}
@@ -985,13 +1077,32 @@ export default function CreditCardReconciliationWorkspace() {
                 <span>Statement ({pairableStatementRows.length})</span>
               </div>
               {isInProgress && selectedForBill.size > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setQuickBillOpen(true)}
-                  className="px-2 py-0.5 rounded border border-[#013764] text-[#013764] hover:bg-[#F4F7FA] normal-case"
-                >
-                  Quick-bill {selectedForBill.size}
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setQuickBillOpen(true)}
+                    disabled={bulkActioning}
+                    className="px-2 py-0.5 rounded border border-[#013764] text-[#013764] hover:bg-[#F4F7FA] normal-case disabled:opacity-40"
+                  >
+                    Quick-bill {selectedForBill.size}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void bulkAction("defer")}
+                    disabled={bulkActioning}
+                    className="px-2 py-0.5 rounded border border-[#DDD] text-[#717179] hover:bg-[#F8F8F8] normal-case disabled:opacity-40"
+                  >
+                    Defer {selectedForBill.size}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void bulkAction("dispute")}
+                    disabled={bulkActioning}
+                    className="px-2 py-0.5 rounded border border-rose-200 text-rose-700 hover:bg-rose-50 normal-case disabled:opacity-40"
+                  >
+                    Dispute {selectedForBill.size}
+                  </button>
+                </div>
               ) : (
                 selectedStmt && (
                   <span className="text-[#013764] tabular-nums">

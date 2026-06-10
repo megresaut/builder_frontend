@@ -109,6 +109,9 @@ export default function CreditCardReconciliationReport() {
           /* Hide the ShellLayout chrome (sidebar + header) without touching
              those components directly. They render as <aside> and <header>. */
           aside, header, nav { display: none !important; }
+          /* ShellLayout outer div carries h-screen which caps content at
+             viewport height in print — release it. */
+          .h-screen { height: auto !important; }
           /* Strip flex/overflow constraints from the layout wrappers so the
              report content can flow naturally onto paper. */
           body *, body *::before, body *::after {

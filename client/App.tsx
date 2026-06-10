@@ -20,7 +20,6 @@ import CreditCardReconciliationWorkspace from "./pages/CreditCardReconciliationW
 import CreditCardReconciliationReport from "./pages/CreditCardReconciliationReport";
 import Invoices from "./pages/Invoices";
 import GeneralLedger from "./pages/GeneralLedger";
-import TransactionList from "./pages/TransactionList";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
 import RecurringTasks from "./pages/RecurringTasks";
@@ -516,16 +515,6 @@ export default function App() {
                   }
                 />
 
-                <Route
-                  path="/accounting/transaction-list"
-                  element={
-                    <RequireAuth>
-                      <ShellLayout>
-                        <TransactionList />
-                      </ShellLayout>
-                    </RequireAuth>
-                  }
-                />
 
                 <Route
                   path="/insurance"

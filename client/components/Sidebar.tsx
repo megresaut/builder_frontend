@@ -648,11 +648,6 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         sectionId: "general-ledger",
       },
       {
-        label: "Transaction List",
-        path: "/accounting/transaction-list",
-        sectionId: "transaction-list",
-      },
-      {
         label: "Chart of Accounts",
         path: "/chart-of-accounts",
         sectionId: "chart-of-accounts",

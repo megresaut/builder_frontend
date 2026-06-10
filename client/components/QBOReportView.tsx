@@ -7,6 +7,13 @@ import type {
   QBOReportRow,
 } from "@/data/qboReports";
 
+export interface QBORowClickPayload {
+  txnId: string;
+  txnType: string;
+  row: QBOReportRow;
+  columns: QBOReportColumn[];
+}
+
 interface QBOReportViewProps {
   report: QBOReport;
   // Empty-state message when the report has no rows.
@@ -15,6 +22,8 @@ interface QBOReportViewProps {
   // The flat Transaction List has only a single wrapper section, so it can
   // pass `collapsible={false}` to keep things flat.
   collapsible?: boolean;
+  // Called when a data row is clicked and has a resolvable QBO transaction ID.
+  onRowClick?: (payload: QBORowClickPayload) => void;
 }
 
 // QBOReportView renders QBO's native Report structure (Header + Columns + Rows).
@@ -34,6 +43,7 @@ export function QBOReportView({
   report,
   emptyMessage,
   collapsible = true,
+  onRowClick,
 }: QBOReportViewProps) {
   const columns: QBOReportColumn[] = report.Columns?.Column ?? [];
   const rows: QBOReportRow[] = report.Rows?.Row ?? [];
@@ -56,15 +66,15 @@ export function QBOReportView({
 
   return (
     <div className="border border-[#E5E5E5] rounded-lg overflow-hidden bg-white shadow-sm">
-      <div className="overflow-x-auto max-h-[calc(100vh-280px)] overflow-y-auto">
-        <table className="min-w-full text-sm">
+      <div className="overflow-x-auto max-h-[calc(100vh-200px)] overflow-y-auto">
+        <table className="min-w-full text-xs">
           <thead className="bg-[#F8F9FB] sticky top-0 z-10 shadow-[0_1px_0_0_#E5E5E5]">
             <tr>
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   className={cn(
-                    "px-3 py-2.5 text-left font-semibold text-[#525252] text-xs uppercase tracking-wide whitespace-nowrap",
+                    "px-3 py-2 text-left font-semibold text-[#525252] text-xs uppercase tracking-wide whitespace-nowrap",
                     isNumericColType(col.ColType) && "text-right",
                   )}
                 >
@@ -81,6 +91,7 @@ export function QBOReportView({
                 columns={columns}
                 depth={0}
                 collapsible={collapsible}
+                onRowClick={onRowClick}
               />
             ))}
           </tbody>
@@ -95,9 +106,10 @@ interface ReportRowProps {
   columns: QBOReportColumn[];
   depth: number;
   collapsible: boolean;
+  onRowClick?: (payload: QBORowClickPayload) => void;
 }
 
-function ReportRow({ row, columns, depth, collapsible }: ReportRowProps) {
+function ReportRow({ row, columns, depth, collapsible, onRowClick }: ReportRowProps) {
   if (row.type === "Section") {
     return (
       <SectionRow
@@ -105,13 +117,14 @@ function ReportRow({ row, columns, depth, collapsible }: ReportRowProps) {
         columns={columns}
         depth={depth}
         collapsible={collapsible}
+        onRowClick={onRowClick}
       />
     );
   }
-  return <DataRow row={row} columns={columns} depth={depth} />;
+  return <DataRow row={row} columns={columns} depth={depth} onRowClick={onRowClick} />;
 }
 
-function SectionRow({ row, columns, depth, collapsible }: ReportRowProps) {
+function SectionRow({ row, columns, depth, collapsible, onRowClick }: ReportRowProps) {
   const headerCells = row.Header?.ColData ?? [];
   const summaryCells = row.Summary?.ColData ?? [];
   const childRows = row.Rows?.Row ?? [];
@@ -157,7 +170,7 @@ function SectionRow({ row, columns, depth, collapsible }: ReportRowProps) {
               <td
                 key={idx}
                 className={cn(
-                  "px-3 py-2 font-semibold whitespace-nowrap",
+                  "px-3 py-1.5 font-semibold whitespace-nowrap",
                   isTopLevel ? "text-[#013764]" : "text-[#303030]",
                   isFirst && isTopLevel && "border-l-[3px] border-l-[#013764]",
                   isNumericColType(col.ColType) && "text-right tabular-nums",
@@ -192,6 +205,7 @@ function SectionRow({ row, columns, depth, collapsible }: ReportRowProps) {
             columns={columns}
             depth={depth + 1}
             collapsible={collapsible}
+            onRowClick={onRowClick}
           />
         ))}
 
@@ -209,7 +223,7 @@ function SectionRow({ row, columns, depth, collapsible }: ReportRowProps) {
               <td
                 key={idx}
                 className={cn(
-                  "px-3 py-2 font-semibold text-[#303030] whitespace-nowrap",
+                  "px-3 py-1.5 font-semibold text-[#303030] whitespace-nowrap",
                   isFirst && isTopLevel && "border-l-[3px] border-l-[#013764]",
                   isNumericColType(col.ColType) && "text-right tabular-nums",
                   amountClass(col.ColType, cell?.value),
@@ -230,14 +244,36 @@ function SectionRow({ row, columns, depth, collapsible }: ReportRowProps) {
   );
 }
 
+// extractRowClickPayload pulls the QBO transaction ID and type from a data row.
+// QBO GL rows have an `id` field on one or more ColData cells (the transaction
+// entity ID). The column whose ColTitle contains "transaction type" holds the
+// type string ("Bill Payment (Check)", "Invoice", etc.).
+function extractRowClickPayload(
+  row: QBOReportRow,
+  columns: QBOReportColumn[],
+): { txnId: string; txnType: string } | null {
+  const data = row.ColData ?? [];
+  const txnId = data.find((c) => c?.id && c.id.trim() !== "")?.id?.trim() ?? "";
+  if (!txnId) return null;
+
+  const txnTypeIdx = columns.findIndex((c) => {
+    const t = (c.ColTitle ?? "").toLowerCase();
+    return t.includes("transaction type") || t === "txn type" || t === "type";
+  });
+  const txnType = txnTypeIdx >= 0 ? (data[txnTypeIdx]?.value ?? "").trim() : "";
+  return { txnId, txnType };
+}
+
 function DataRow({
   row,
   columns,
   depth,
+  onRowClick,
 }: {
   row: QBOReportRow;
   columns: QBOReportColumn[];
   depth: number;
+  onRowClick?: (payload: QBORowClickPayload) => void;
 }) {
   const data = row.ColData ?? [];
   if (data.length === 0) return null;
@@ -245,13 +281,27 @@ function DataRow({
   const firstCellValue = data[0]?.value ?? "";
   const isMarkerRow = isBeginningOrTotalMarker(firstCellValue);
 
+  const clickPayload = !isMarkerRow && onRowClick
+    ? extractRowClickPayload(row, columns)
+    : null;
+  const isClickable = !!clickPayload;
+
+  const handleClick = () => {
+    if (clickPayload && onRowClick) {
+      onRowClick({ ...clickPayload, row, columns });
+    }
+  };
+
   return (
     <tr
+      onClick={isClickable ? handleClick : undefined}
       className={cn(
         "border-t border-[#F1F1F1] transition-colors",
         isMarkerRow
           ? "bg-[#FBFBFC] italic text-[#717179]"
-          : "hover:bg-[#F8FAFC] even:bg-[#FCFCFD]",
+          : isClickable
+            ? "hover:bg-[#EEF3F9] even:bg-[#FCFCFD] cursor-pointer"
+            : "hover:bg-[#F8FAFC] even:bg-[#FCFCFD]",
       )}
     >
       {columns.map((col, idx) => {
@@ -261,7 +311,7 @@ function DataRow({
           <td
             key={idx}
             className={cn(
-              "px-3 py-1.5 text-[#303030] whitespace-nowrap",
+              "px-3 py-1 text-[#303030] whitespace-nowrap",
               isNumericColType(col.ColType) && "text-right tabular-nums",
               amountClass(col.ColType, cell?.value),
             )}

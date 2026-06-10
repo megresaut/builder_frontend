@@ -15,7 +15,7 @@ interface QueuedCheck {
   vendor_name: string;
   property_name: string;
   bank_account: string;
-  bank_coa_id: number;
+  bank_qbo_acct_id: string;
   amount_cents: number;
   memo: string | null;
   queued_at: string;

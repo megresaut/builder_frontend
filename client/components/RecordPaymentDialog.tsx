@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchJSON } from "@/api/fetchJSON";
 
-// Same shape PayBillModal consumes — DB-backed via /payment-accounts.
+// Same shape PayBillModal consumes — live from concierge_buildium_mapping.
 interface PaymentAccount {
-  coa_id: number;
+  qbo_account_id: string;
   name: string;
   qbo_account_type: string; // "Bank" or "Credit Card"
 }
@@ -23,7 +23,7 @@ interface RecordPaymentDialogProps {
   onSubmit: (input: {
     amountCents: number;
     dateISO: string;
-    depositAccountCoaId: number | null;
+    depositAccountQBOID: string | null;
     paymentMethod: PaymentMethod | "";
     reference: string;
     memo: string;
@@ -54,7 +54,7 @@ export default function RecordPaymentDialog({
 }: RecordPaymentDialogProps) {
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
-  const [accountCOAID, setAccountCOAID] = useState<number | null>(null);
+  const [accountQBOID, setAccountQBOID] = useState<string | null>(null);
   const [amount, setAmount] = useState<string>("");
   const [date, setDate] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
@@ -68,7 +68,7 @@ export default function RecordPaymentDialog({
   // Reset state on open. Load payment accounts.
   useEffect(() => {
     if (!open) {
-      setAccountCOAID(null);
+      setAccountQBOID(null);
       setAmount("");
       setDate("");
       setPaymentMethod("");
@@ -89,7 +89,7 @@ export default function RecordPaymentDialog({
         // Receiving payment — limit to Bank accounts (no CC deposits).
         const banks = list.filter((a) => a.qbo_account_type === "Bank");
         setAccounts(banks);
-        if (banks.length === 1) setAccountCOAID(banks[0].coa_id);
+        if (banks.length === 1) setAccountQBOID(banks[0].qbo_account_id);
       })
       .catch((err) => {
         if (cancelled) return;
@@ -105,8 +105,8 @@ export default function RecordPaymentDialog({
   }, [open, defaultDollars]);
 
   const selectedAccount = useMemo(
-    () => accounts.find((a) => a.coa_id === accountCOAID),
-    [accounts, accountCOAID],
+    () => accounts.find((a) => a.qbo_account_id === accountQBOID),
+    [accounts, accountQBOID],
   );
 
   const referenceLabel = useMemo(() => {
@@ -125,7 +125,7 @@ export default function RecordPaymentDialog({
 
   const handleSubmit = async () => {
     setError(null);
-    if (!accountCOAID) {
+    if (!accountQBOID) {
       setError("Please choose the bank account that received the payment.");
       return;
     }
@@ -143,7 +143,7 @@ export default function RecordPaymentDialog({
       await onSubmit({
         amountCents,
         dateISO: date,
-        depositAccountCoaId: accountCOAID,
+        depositAccountQBOID: accountQBOID,
         paymentMethod,
         reference,
         memo,
@@ -181,14 +181,14 @@ export default function RecordPaymentDialog({
         <FieldShell label="Deposit to" htmlFor="rec-deposit">
           <select
             id="rec-deposit"
-            value={accountCOAID == null ? "" : String(accountCOAID)}
-            onChange={(e) => setAccountCOAID(e.target.value ? Number(e.target.value) : null)}
+            value={accountQBOID ?? ""}
+            onChange={(e) => setAccountQBOID(e.target.value || null)}
             disabled={loadingAccounts || submitting}
             className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764]"
           >
             <option value="">{loadingAccounts ? "Loading…" : "Select a bank account"}</option>
             {accounts.map((a) => (
-              <option key={a.coa_id} value={a.coa_id}>
+              <option key={a.qbo_account_id} value={a.qbo_account_id}>
                 {a.name}
               </option>
             ))}

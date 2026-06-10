@@ -18,7 +18,7 @@ import { fetchJSON } from "@/api/fetchJSON";
  */
 
 interface PaymentAccount {
-  coa_id: number;
+  qbo_account_id: string;
   name: string;
   qbo_account_type: string;
 }
@@ -30,7 +30,7 @@ interface EditPaymentModalProps {
     id: number;
     amount_cents: number;
     paid_on: string; // YYYY-MM-DD
-    paid_from_coa_id: number | null;
+    paid_from_qbo_account_id: string | null;
     paid_doc_number: string | null;
     paid_memo: string | null;
   };
@@ -64,7 +64,7 @@ export default function EditPaymentModal({
   onSaved,
 }: EditPaymentModalProps) {
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
-  const [accountCOAID, setAccountCOAID] = useState<number | null>(null);
+  const [accountQBOID, setAccountQBOID] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [paidOn, setPaidOn] = useState("");
   const [docNumber, setDocNumber] = useState("");
@@ -75,7 +75,7 @@ export default function EditPaymentModal({
     if (!open) return;
     setAmount(dollarsFromCents(payment.amount_cents));
     setPaidOn(payment.paid_on);
-    setAccountCOAID(payment.paid_from_coa_id);
+    setAccountQBOID(payment.paid_from_qbo_account_id);
     setDocNumber(payment.paid_doc_number ?? "");
     setMemo(payment.paid_memo ?? "");
 
@@ -106,7 +106,7 @@ export default function EditPaymentModal({
     if (paidOn && paidOn !== payment.paid_on) {
       out.push(FIELD_LABELS["payment date"]);
     }
-    if (accountCOAID != null && accountCOAID !== payment.paid_from_coa_id) {
+    if (accountQBOID != null && accountQBOID !== payment.paid_from_qbo_account_id) {
       out.push(FIELD_LABELS["payment account"]);
     }
     if ((payment.paid_doc_number ?? "") !== docNumber) {
@@ -116,7 +116,7 @@ export default function EditPaymentModal({
       out.push(FIELD_LABELS.memo);
     }
     return out;
-  }, [amount, paidOn, accountCOAID, docNumber, memo, payment]);
+  }, [amount, paidOn, accountQBOID, docNumber, memo, payment]);
 
   const buildPatch = () => {
     const patch: Record<string, unknown> = {};
@@ -127,8 +127,8 @@ export default function EditPaymentModal({
     if (paidOn && paidOn !== payment.paid_on) {
       patch.paid_on = paidOn;
     }
-    if (accountCOAID != null && accountCOAID !== payment.paid_from_coa_id) {
-      patch.payment_account_coa_id = accountCOAID;
+    if (accountQBOID != null && accountQBOID !== payment.paid_from_qbo_account_id) {
+      patch.payment_account_qbo_id = accountQBOID;
     }
     if ((payment.paid_doc_number ?? "") !== docNumber) {
       patch.paid_doc_number = docNumber;
@@ -214,14 +214,14 @@ export default function EditPaymentModal({
         </Field>
         <Field label="Paid from account">
           <select
-            value={accountCOAID ?? ""}
-            onChange={(e) => setAccountCOAID(e.target.value ? Number(e.target.value) : null)}
+            value={accountQBOID ?? ""}
+            onChange={(e) => setAccountQBOID(e.target.value || null)}
             disabled={saving}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
           >
             <option value="">— Select —</option>
             {accounts.map((a) => (
-              <option key={a.coa_id} value={a.coa_id}>
+              <option key={a.qbo_account_id} value={a.qbo_account_id}>
                 {a.name} ({a.qbo_account_type})
               </option>
             ))}

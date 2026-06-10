@@ -43,7 +43,7 @@ export interface EditablePayment {
   id: number;
   amount_cents: number;
   paid_on: string;
-  paid_from_coa_id: number | null;
+  paid_from_qbo_account_id: string | null;
   paid_doc_number: string | null;
   paid_memo: string | null;
 }
@@ -52,7 +52,7 @@ interface PaymentEntry {
   id: number;
   amount_cents: number;
   paid_on: string;
-  paid_from_coa_id: number | null;
+  paid_from_qbo_account_id: string | null;
   paid_from_name: string | null;
   paid_doc_number: string | null;
   paid_memo: string | null;
@@ -219,7 +219,7 @@ export default function ViewPaymentModal({
                         id: p.id,
                         amount_cents: p.amount_cents,
                         paid_on: p.paid_on,
-                        paid_from_coa_id: p.paid_from_coa_id,
+                        paid_from_qbo_account_id: p.paid_from_qbo_account_id,
                         paid_doc_number: p.paid_doc_number,
                         paid_memo: p.paid_memo,
                       })

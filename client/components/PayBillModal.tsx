@@ -7,12 +7,9 @@ import { fetchJSON } from "@/api/fetchJSON";
 import { authFetch } from "@/api/fetchJSON";
 import { toast } from "sonner";
 
-// Returned by GET /payment-accounts (DB-backed: chart_of_accounts rows
-// where both qbo_id and buildium_id are populated). The frontend only needs
-// the canonical coa_id + name + type for the dropdown — the backend resolves
-// QBO and Buildium ids on its side using coa_id.
+// Returned by GET /payment-accounts (live from concierge_buildium_mapping).
 interface PaymentAccount {
-  coa_id: number;
+  qbo_account_id: string;
   name: string;
   qbo_account_type: string; // "Bank" or "Credit Card"
 }
@@ -87,7 +84,7 @@ export default function PayBillModal({
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [buildiumAccounts, setBuildiumAccounts] = useState<BuildiumPaymentAccount[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
-  const [accountCOAID, setAccountCOAID] = useState<number | null>(null);
+  const [accountQBOID, setAccountQBOID] = useState<string | null>(null);
   const [buildiumAccountID, setBuildiumAccountID] = useState<number | null>(null);
   // Concierge-only: paper check vs. electronic transfer. Defaults to transfer
   // to preserve the existing flow; backend gates 'check' on property_type='C'.
@@ -116,7 +113,7 @@ export default function PayBillModal({
   // based on property type (Concierge → COA, others → CSV).
   useEffect(() => {
     if (!open) {
-      setAccountCOAID(null);
+      setAccountQBOID(null);
       setBuildiumAccountID(null);
       setPaymentMethod("transfer");
       setAmount("");
@@ -147,7 +144,7 @@ export default function PayBillModal({
         if (isConcierge) {
           const list = raw as PaymentAccount[];
           setAccounts(list);
-          if (list.length === 1) setAccountCOAID(list[0].coa_id);
+          if (list.length === 1) setAccountQBOID(list[0].qbo_account_id);
         } else {
           const list = raw as BuildiumPaymentAccount[];
           setBuildiumAccounts(list);
@@ -168,8 +165,8 @@ export default function PayBillModal({
   }, [open, outstandingDollars, isConcierge]);
 
   const selectedAccount = useMemo(
-    () => accounts.find((a) => a.coa_id === accountCOAID),
-    [accounts, accountCOAID],
+    () => accounts.find((a) => a.qbo_account_id === accountQBOID),
+    [accounts, accountQBOID],
   );
   const selectedBuildiumAccount = useMemo(
     () => buildiumAccounts.find((a) => a.buildium_account_id === buildiumAccountID),
@@ -235,7 +232,7 @@ export default function PayBillModal({
   const handleSubmit = async () => {
     setError(null);
     setErrorCode(null);
-    if (isConcierge && (!accountCOAID || !selectedAccount)) {
+    if (isConcierge && (!accountQBOID || !selectedAccount)) {
       setError("Please choose a Pay From account.");
       return;
     }
@@ -265,10 +262,10 @@ export default function PayBillModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // Backend enforces XOR: Concierge bills carry coa_id, others carry
-          // the direct Buildium id sourced from the CSV-backed picker.
+          // Backend enforces XOR: Concierge bills carry qbo_account_id, others
+          // carry the direct Buildium id sourced from the CSV-backed picker.
           ...(isConcierge
-            ? { payment_account_coa_id: accountCOAID }
+            ? { payment_account_qbo_id: accountQBOID }
             : { buildium_account_id: buildiumAccountID }),
           amount_cents: amountCents,
           txn_date: txnDate,
@@ -463,14 +460,14 @@ export default function PayBillModal({
           {isConcierge ? (
             <select
               id="pay-account"
-              value={accountCOAID == null ? "" : String(accountCOAID)}
-              onChange={(e) => setAccountCOAID(e.target.value ? Number(e.target.value) : null)}
+              value={accountQBOID ?? ""}
+              onChange={(e) => setAccountQBOID(e.target.value || null)}
               disabled={loadingAccounts || submitting}
               className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764]"
             >
               <option value="">{loadingAccounts ? "Loading…" : "Select an account"}</option>
               {accounts.map((a) => (
-                <option key={a.coa_id} value={a.coa_id}>
+                <option key={a.qbo_account_id} value={a.qbo_account_id}>
                   {a.name} ({a.qbo_account_type})
                 </option>
               ))}

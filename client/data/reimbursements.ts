@@ -38,7 +38,7 @@ export interface ReimbursementPayment {
   employee_email: string;
   payment_date: string;
   total_amount_cents: number;
-  source_account_id: number;
+  source_qbo_account_id: string;
   source_account_name: string | null;
   memo: string | null;
   status: "pending" | "completed" | "failed" | "failed_partial";
@@ -90,9 +90,8 @@ export async function fetchReimbursementHistory(): Promise<PaymentHistoryRow[]> 
 }
 
 export interface PaymentAccount {
-  coa_id: number;
-  name: string;
   qbo_account_id: string;
+  name: string;
   qbo_account_type: "Bank" | "Credit Card";
   buildium_account_id: number;
 }
@@ -106,7 +105,7 @@ export interface PayReimbursementInput {
   reimbursee_user_id: number;
   bill_ids: number[];
   payment_date: string; // YYYY-MM-DD
-  source_account_id: number;
+  source_qbo_account_id: string;
   memo?: string;
 }
 

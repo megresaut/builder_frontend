@@ -6,6 +6,7 @@ import { ConciergeGLPicker } from "@/components/ConciergeGLPicker";
 import { BuildiumGLPicker } from "@/components/BuildiumGLPicker";
 import {
   createChargeFromStatementRow,
+  setStatementAction,
   type StatementRow,
 } from "@/data/credit-card-reconciliation";
 
@@ -169,8 +170,18 @@ export default function QuickBillBatchModal({
 
   const advance = () => setIdx((i) => i + 1);
 
-  const skip = () => {
+  // Skip = defer: mark the row decided (so it doesn't keep resurfacing as
+  // unmatched and Finalize can proceed) and move on. Defer failure is non-fatal.
+  const skip = async () => {
     if (!current) return;
+    try {
+      await setStatementAction(reconciliationID, {
+        source_row: current.source_row,
+        action: "defer",
+      });
+    } catch {
+      // best-effort — still advance
+    }
     setOutcomes((o) => ({ ...o, [current.source_row]: "skipped" }));
     advance();
   };
@@ -211,7 +222,8 @@ export default function QuickBillBatchModal({
   };
 
   const close = () => {
-    if (counts.ok > 0) onDone();
+    // Reload the workspace if we booked or deferred anything (both change state).
+    if (counts.ok > 0 || counts.skipped > 0) onDone();
     onOpenChange(false);
   };
 
@@ -421,11 +433,12 @@ export default function QuickBillBatchModal({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={skip}
+                onClick={() => void skip()}
                 disabled={submitting}
+                title="Defer this charge (mark it decided) and move to the next"
                 className="px-3 py-1.5 text-sm rounded-md border border-[#DDD] text-[#717179] hover:bg-[#F8F8F8] disabled:opacity-40"
               >
-                Skip
+                Skip (defer)
               </button>
               <button
                 type="button"

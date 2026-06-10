@@ -2377,7 +2377,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           onSubmit={async ({
             amountCents,
             dateISO,
-            depositAccountCoaId,
+            depositAccountQBOID,
             paymentMethod,
             reference,
             memo,
@@ -2392,7 +2392,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   body: JSON.stringify({
                     amount_cents: amountCents,
                     date: dateISO,
-                    deposit_account_coa_id: depositAccountCoaId,
+                    deposit_account_qbo_id: depositAccountQBOID,
                     payment_method: paymentMethod || undefined,
                     reference,
                     memo,

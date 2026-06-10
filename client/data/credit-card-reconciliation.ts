@@ -90,10 +90,12 @@ export interface StatementRow {
   action_at?: string;
 }
 
+export type MatchConfidence = "exact" | "fuzzy_date" | "strong" | "possible";
+
 export interface MatchPair {
   statement: StatementRow;
   qbo: CreditCardActivityRow;
-  confidence: "exact" | "fuzzy_date";
+  confidence: MatchConfidence;
 }
 
 // qboReconcileURL is the deep-link to QBO's reconcile screen for a given
@@ -141,7 +143,7 @@ export interface ReconciliationLine {
   txn_date: string;
   amount_cents: number;
   statement_row?: StatementRow;
-  match_confidence: "exact" | "fuzzy_date" | "manual" | "forced";
+  match_confidence: MatchConfidence | "manual" | "forced";
   // Operator's audit reason for force-clear (match_confidence === "forced").
   // Always populated when forced; NULL otherwise.
   force_clear_reason?: string;
@@ -211,7 +213,7 @@ export interface MatchLineRequest {
   txn_date: string;
   amount_cents: number;
   statement_row?: StatementRow;
-  match_confidence: "exact" | "fuzzy_date" | "manual" | "forced";
+  match_confidence: MatchConfidence | "manual" | "forced";
 }
 
 export async function listReconciliations(
