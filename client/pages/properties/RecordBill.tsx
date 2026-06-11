@@ -615,6 +615,7 @@ export const RecordBill = () => {
   const [vendorHasMore, setVendorHasMore] = useState(true);
   const [vendorLoading, setVendorLoading] = useState(false);
   const [isVendorDropdownOpen, setIsVendorDropdownOpen] = useState(false);
+  const vendorSearchInputRef = useRef<HTMLInputElement>(null);
   const [complianceWarnings, setComplianceWarnings] = useState<string[]>([]);
   const filteredVendors = vendors;
 
@@ -864,6 +865,16 @@ export const RecordBill = () => {
 
     return () => window.clearTimeout(timeoutId);
   }, [vendorSearch, isVendorDropdownOpen, fetchVendorsPage]);
+
+  useEffect(() => {
+    if (!isVendorDropdownOpen) return;
+    // Radix focuses the first SelectItem after mount — reclaim focus for the
+    // search input with a short delay so typing works immediately.
+    const id = window.setTimeout(() => {
+      vendorSearchInputRef.current?.focus();
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [isVendorDropdownOpen]);
 
   useEffect(() => {
     if (!selectedVendor || vendorSearch.trim()) return;
@@ -1802,17 +1813,22 @@ export const RecordBill = () => {
         if (!cents || cents <= 0) return "";
         return `$${(cents / 100).toFixed(2)}`;
       };
-      const newLines: LineItem[] = parsed.line_items.map((li, idx) => ({
-        id: Date.now() + idx,
-        property: li.property_id != null ? String(li.property_id) : "",
-        unit: "",
-        unitName: "",
-        description: li.description ?? "",
-        glAccount:
-          li.gl_account_id != null ? String(li.gl_account_id) : "",
-        upcharge: "",
-        total: formatTotal(li.amount_cents),
-      }));
+      const newLines: LineItem[] = parsed.line_items.map((li, idx) => {
+        const propIdStr = li.property_id != null ? String(li.property_id) : "";
+        const isConcierge = propIdStr
+          ? properties.find((p) => String(p.id) === propIdStr)?.property_type === "C"
+          : false;
+        return {
+          id: Date.now() + idx,
+          property: propIdStr,
+          unit: isConcierge ? "__property__" : "",
+          unitName: isConcierge ? "Property Level" : "",
+          description: li.description ?? "",
+          glAccount: li.gl_account_id != null ? String(li.gl_account_id) : "",
+          upcharge: "",
+          total: formatTotal(li.amount_cents),
+        };
+      });
       setLineItems(newLines);
     }
 
@@ -2707,7 +2723,7 @@ minHeight: 0,
                           disabled={formDisabled}
                         >
                           <SelectTrigger
-                            className={`mt-2 w-full rounded-lg border px-3 py-2 text-base ${
+                            className={`mt-2 w-full rounded-lg border px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-[#013764] focus-visible:border-[#013764] ${
                               formErrors.has("vendor")
                                 ? "border-red-500 border-2"
                                 : "border-[#E5E5E5]"
@@ -2719,17 +2735,23 @@ minHeight: 0,
                               className="bg-white border border-[#E5E7EB] shadow-md p-0"
                               onKeyDown={(e) => {
                                 const t = e.target as HTMLElement;
-                                if (t.tagName === "INPUT") e.stopPropagation();
+                                if (t.tagName === "INPUT" && !["ArrowUp", "ArrowDown", "Enter", "Escape"].includes(e.key)) {
+                                  e.stopPropagation();
+                                }
                               }}
                           >
                             {/* Search input */}
                             <div className="p-2 border-b border-[#E5E7EB]">
                               <input
-                                autoFocus
+                                ref={vendorSearchInputRef}
                                 placeholder="Type to search…"
                                 value={vendorSearch}
                                 onChange={(e) => setVendorSearch(e.target.value)}
-                                onKeyDown={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => {
+                                  if (!["ArrowUp", "ArrowDown", "Enter", "Escape"].includes(e.key)) {
+                                    e.stopPropagation();
+                                  }
+                                }}
                                 onFocus={(e) => e.stopPropagation()}
                                 className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
                               />

@@ -144,6 +144,7 @@ export const DatePicker = ({
           placeholder={placeholder}
           value={inputValue}
           onChange={(e: any) => handleInputChange(e.target.value)}
+          onKeyDown={(e: any) => { if (e.key === "Tab") setShowCalendar(false); }}
           disabled={disabled}
           className={`${styles.input} ${error ? styles.inputError : ""} ${showCalendar ? "border-black" : ""} ${className}`}
           style={showCalendar ? { borderColor: "#000000" } : undefined}
