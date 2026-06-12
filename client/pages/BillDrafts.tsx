@@ -430,7 +430,7 @@ export default function BillDrafts() {
   const loadDrafts = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchJSON("/vendors/bill-drafts?status=draft,parsed,needs_review&limit=300");
+      const data = await fetchJSON("/vendors/bill-drafts?status=pending,draft,parsed,needs_review&limit=300");
       setDrafts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to load bill drafts:", err);
@@ -493,7 +493,7 @@ export default function BillDrafts() {
   };
 
   const pendingDrafts = drafts.filter(
-    (d) => d.status === "draft" || d.status === "parsed" || d.status === "needs_review"
+    (d) => d.status === "pending" || d.status === "draft" || d.status === "parsed" || d.status === "needs_review"
   );
   const visibleDrafts = statusFilter === "pending" ? pendingDrafts : drafts;
 

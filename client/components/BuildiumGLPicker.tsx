@@ -27,23 +27,6 @@ interface ListResponse {
   accounts: BuildiumAccount[];
 }
 
-let cached: BuildiumAccount[] | null = null;
-let inflight: Promise<BuildiumAccount[]> | null = null;
-
-async function loadAccounts(): Promise<BuildiumAccount[]> {
-  if (cached) return cached;
-  if (inflight) return inflight;
-  inflight = fetchJSON("/buildium/chart-of-accounts")
-    .then((resp: ListResponse) => {
-      cached = resp.accounts || [];
-      return cached;
-    })
-    .finally(() => {
-      inflight = null;
-    });
-  return inflight;
-}
-
 interface Props {
   value: string; // selected buildium_account_id as string
   disabled?: boolean;
@@ -51,21 +34,18 @@ interface Props {
 }
 
 export function BuildiumGLPicker({ value, disabled, onChange }: Props) {
-  const [accounts, setAccounts] = useState<BuildiumAccount[]>(cached ?? []);
-  const [loading, setLoading] = useState<boolean>(!cached);
+  const [accounts, setAccounts] = useState<BuildiumAccount[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    if (cached) {
-      setLoading(false);
-      return;
-    }
-    loadAccounts()
-      .then((a) => {
+    setLoading(true);
+    fetchJSON("/buildium/chart-of-accounts")
+      .then((resp: ListResponse) => {
         if (!cancelled) {
-          setAccounts(a);
+          setAccounts(resp.accounts || []);
           setLoading(false);
         }
       })
