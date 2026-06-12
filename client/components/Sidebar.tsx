@@ -137,6 +137,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     if (path === "/chart-of-accounts") return "accounting";
     if (path === "/reimbursements") return "accounting";
     if (path === "/reconciliation") return "accounting";
+    if (path === "/accounting/bill-drafts") return "accounting";
     if (path === "/accounting/print-checks") return "accounting";
     if (path.startsWith("/accounting/")) return "accounting";
     if (
@@ -622,6 +623,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     leases: [],
     accounting: [
       { label: "Bills", path: "/bills", sectionId: "bills" },
+      // { label: "Bill Drafts", path: "/accounting/bill-drafts", sectionId: "bill-drafts" },
       {
         label: "Invoices",
         path: "/accounting/invoices",
