@@ -7,6 +7,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchJSON } from "@/api/fetchJSON";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /**
  * EditPaymentModal — PATCH a posted bill payment via /vendors/bill-payments/{id}.
@@ -39,6 +49,7 @@ interface EditPaymentModalProps {
     referenceNumber?: string;
   };
   onSaved?: () => void;
+  onVoided?: () => void;
 }
 
 const FIELD_LABELS: Record<string, string> = {
@@ -62,6 +73,7 @@ export default function EditPaymentModal({
   payment,
   bill,
   onSaved,
+  onVoided,
 }: EditPaymentModalProps) {
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [accountQBOID, setAccountQBOID] = useState<string | null>(null);
@@ -70,6 +82,8 @@ export default function EditPaymentModal({
   const [docNumber, setDocNumber] = useState("");
   const [memo, setMemo] = useState("");
   const [saving, setSaving] = useState(false);
+  const [voidConfirmOpen, setVoidConfirmOpen] = useState(false);
+  const [voiding, setVoiding] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -139,6 +153,33 @@ export default function EditPaymentModal({
     return patch;
   };
 
+  const handleVoid = async () => {
+    setVoiding(true);
+    try {
+      const res = await fetchJSON(`/vendors/bill-payments/${payment.id}`, {
+        method: "DELETE",
+      });
+      const manual: string[] = Array.isArray(res?.requires_manual_buildium_update)
+        ? res.requires_manual_buildium_update
+        : [];
+      if (manual.length > 0) {
+        toast(`Payment voided. Please ${manual.join(", ")} in Buildium manually.`, {
+          duration: 10000,
+        });
+      } else {
+        toast.success("Payment voided.");
+      }
+      onVoided?.();
+      onOpenChange(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(msg, { duration: 8000 });
+    } finally {
+      setVoiding(false);
+      setVoidConfirmOpen(false);
+    }
+  };
+
   const handleSave = async () => {
     const patch = buildPatch();
     if (Object.keys(patch).length === 0) {
@@ -173,19 +214,54 @@ export default function EditPaymentModal({
   };
 
   return (
+    <>
+    <AlertDialog open={voidConfirmOpen} onOpenChange={setVoidConfirmOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Void this payment?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently delete the payment record
+            {bill.vendorName ? ` for ${bill.vendorName}` : ""}. The action
+            cannot be undone. If this bill was paid in Buildium, you will need
+            to void it there manually.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={voiding}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleVoid}
+            disabled={voiding}
+            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+          >
+            {voiding ? "Voiding…" : "Void payment"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <ModalTemplate
       open={open}
       onOpenChange={onOpenChange}
       title="Edit Payment"
       size="sm"
       footer={
-        <ModalButtons
-          onCancel={() => onOpenChange(false)}
-          onConfirm={handleSave}
-          cancelLabel="Cancel"
-          confirmLabel={saving ? "Saving…" : "Save changes"}
-          confirmDisabled={saving}
-        />
+        <div className="flex items-center justify-between w-full">
+          <button
+            type="button"
+            onClick={() => setVoidConfirmOpen(true)}
+            disabled={saving || voiding}
+            className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
+          >
+            Void payment
+          </button>
+          <ModalButtons
+            onCancel={() => onOpenChange(false)}
+            onConfirm={handleSave}
+            cancelLabel="Cancel"
+            confirmLabel={saving ? "Saving…" : "Save changes"}
+            confirmDisabled={saving || voiding}
+          />
+        </div>
       }
     >
       <div className="text-sm text-[#717179] mb-4">
@@ -254,6 +330,7 @@ export default function EditPaymentModal({
         </div>
       )}
     </ModalTemplate>
+    </>
   );
 }
 

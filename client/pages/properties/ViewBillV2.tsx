@@ -22,6 +22,7 @@ import { TextField } from "@/components/forms/TextField";
 import { DateField } from "@/components/forms/DateField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
 import PayBillModal from "@/components/PayBillModal";
+import EditPaymentModal from "@/components/EditPaymentModal";
 
 /**
  * ViewBillV2 — a redesigned "view bill" page modeled on the Buildium bill
@@ -88,6 +89,7 @@ interface ApiPayment {
   amount_cents: number;
   paid_on: string;
   paid_from_name?: string | null;
+  paid_from_qbo_account_id?: string | null;
   paid_doc_number?: string | null;
   paid_memo?: string | null;
   created_at?: string;
@@ -280,6 +282,10 @@ export function ViewBillV2() {
 
   // Pay flow
   const [showPayBillModal, setShowPayBillModal] = useState(false);
+
+  // Edit payment flow
+  const [editPaymentOpen, setEditPaymentOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<ApiPayment | null>(null);
 
   // Edit-in-place flow
   const [editing, setEditing] = useState(false);
@@ -1687,11 +1693,15 @@ export function ViewBillV2() {
                           {payments.map((p) => (
                             <tr
                               key={p.id}
-                              className="border-b border-[#F0F0F0]"
+                              className="border-b border-[#F0F0F0] hover:bg-[#F8F8F8] cursor-pointer"
                               style={{ color: TEXT_DARK }}
+                              onClick={() => {
+                                setEditingPayment(p);
+                                setEditPaymentOpen(true);
+                              }}
                             >
                               <td className="py-3 pr-4">
-                                <span style={{ color: NAVY }}>
+                                <span style={{ color: NAVY }} className="hover:underline">
                                   {p.paid_from_name || "--"}
                                 </span>
                               </td>
@@ -1825,6 +1835,30 @@ export function ViewBillV2() {
             // summary and Payment history table reflect the new payment.
             loadBill().catch(() => {});
           }}
+        />
+      )}
+
+      {editingPayment && (
+        <EditPaymentModal
+          open={editPaymentOpen}
+          onOpenChange={(o) => {
+            setEditPaymentOpen(o);
+            if (!o) setEditingPayment(null);
+          }}
+          payment={{
+            id: editingPayment.id,
+            amount_cents: editingPayment.amount_cents,
+            paid_on: editingPayment.paid_on,
+            paid_from_qbo_account_id: editingPayment.paid_from_qbo_account_id ?? null,
+            paid_doc_number: editingPayment.paid_doc_number ?? null,
+            paid_memo: editingPayment.paid_memo ?? null,
+          }}
+          bill={{
+            vendorName: vendorName,
+            referenceNumber: bill.invoice_number || undefined,
+          }}
+          onSaved={() => loadBill().catch(() => {})}
+          onVoided={() => loadBill().catch(() => {})}
         />
       )}
     </div>
