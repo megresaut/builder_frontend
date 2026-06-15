@@ -30,6 +30,9 @@ interface Task {
   priority: string;
   assignees: Assignee[];
   description?: string;
+  rawStatus?: string;
+  rawPriority?: string;
+  rawDueDate?: string | null;
 }
 
 interface RecurringTask {
@@ -983,6 +986,9 @@ function mapApiTaskToTask(a: ApiTask): Task {
         .slice(0, 3),
     })),
     description: a.description ?? "",
+    rawStatus: a.status,
+    rawPriority: a.priority,
+    rawDueDate: a.due_date,
   };
 }
 
@@ -2634,7 +2640,7 @@ export const Maintenance: React.FC<MaintenanceProps> = ({
         onOpenChange={setShowCreateWorkOrderModal}
         mode="create"
         propertyId={propertyId || undefined}
-        taskOptions={tasksList.map((t) => ({ id: t.id, label: t.title, name: t.title, description: t.description ?? "" }))}
+        taskOptions={tasksList.map((t) => ({ id: t.id, label: t.title, name: t.title, description: t.description ?? "", priority: t.rawPriority, status: t.rawStatus, dueDate: t.rawDueDate }))}
       />
 
       {/* Create FTO Modal */}

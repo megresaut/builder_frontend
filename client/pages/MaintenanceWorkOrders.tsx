@@ -56,6 +56,9 @@ interface APITask {
   name: string;
   property_id: number;
   description?: string;
+  priority?: string;
+  status?: string;
+  due_date?: string | null;
 }
 
 interface APIWorkOrder {
@@ -998,7 +1001,7 @@ export default function MaintenanceWorkOrders() {
         const apiData: APITask[] = Array.isArray(raw)
           ? raw
           : raw?.data ?? raw?.items ?? raw?.results ?? [];
-        setTaskOptions(apiData.map((t) => ({ id: t.id, label: t.name, propertyId: t.property_id, name: t.name, description: t.description ?? "" })));
+        setTaskOptions(apiData.map((t) => ({ id: t.id, label: t.name, propertyId: t.property_id, name: t.name, description: t.description ?? "", priority: t.priority, status: t.status, dueDate: t.due_date })));
       } catch (error) {
         console.error("Error fetching tasks:", error);
         setTaskOptions([]);

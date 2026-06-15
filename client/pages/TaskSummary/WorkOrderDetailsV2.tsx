@@ -2006,6 +2006,7 @@ export default function WorkOrderDetailsV2({
                 onBillAdded(bill);
               }
             }}
+            onBillRemoved={() => setBills([])}
             onWorkOrderRefresh={fetchWorkOrder}
             returnToUrl={taskId && workOrderId ? `/tasks/${taskId}/workorders/${workOrderId}` : undefined}
           />

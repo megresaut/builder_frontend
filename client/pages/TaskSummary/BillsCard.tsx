@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SectionCard from "@/components/SectionCard";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, X } from "lucide-react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { SelectField } from "@/components/forms/SelectField";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
@@ -28,6 +28,7 @@ interface BillsCardProps {
   workOrderId?: number;
   vendorId?: number;
   onBillSelected?: (bill: BillItem) => void;
+  onBillRemoved?: () => void;
   onWorkOrderRefresh?: (silent?: boolean) => void;
   /** When set, "Add Bill" is shown in Select Bill modal and Record Bill will return here after submit */
   returnToUrl?: string;
@@ -39,7 +40,7 @@ const formatCurrency = (amountCents: number) =>
     currency: "USD",
   }).format(amountCents / 100);
 
-export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendorId, onBillSelected, onWorkOrderRefresh, returnToUrl }) => {
+export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendorId, onBillSelected, onBillRemoved, onWorkOrderRefresh, returnToUrl }) => {
   const navigate = useNavigate();
   const [isSelectBillModalOpen, setIsSelectBillModalOpen] = useState(false);
   const [selectedBillId, setSelectedBillId] = useState<string>("");
@@ -106,6 +107,20 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendor
     navigate(qs ? `/bills/record?${qs}` : "/bills/record");
   };
 
+  const handleRemoveBill = async (billId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!workOrderId) return;
+    if (!window.confirm("Remove this bill from the work order?")) return;
+    try {
+      await fetchJSON(`/maintenance/work-orders/id/${workOrderId}/bill`, { method: "DELETE" });
+      if (onBillRemoved) onBillRemoved();
+      if (onWorkOrderRefresh) onWorkOrderRefresh(true);
+    } catch (err) {
+      console.error("Failed to remove bill from work order:", err);
+      alert("Failed to remove bill. Please try again.");
+    }
+  };
+
   const handleConfirmBill = async () => {
     if (selectedBillId) {
       const selectedBill = availableBills.find(
@@ -168,32 +183,42 @@ export const BillsCard: React.FC<BillsCardProps> = ({ bills, workOrderId, vendor
             </div>
           ) : bills.map((bill) => {
             return (
-              <button
-                key={bill.id}
-                onClick={() => navigate(`/bills/record?readOnly=true&billId=${bill.id}`)}
-                className="flex flex-col gap-0 rounded-lg bg-[#f9f9f9] border border-[#dadada] p-4 hover:bg-[#f0f0f0] transition-colors text-left"
-              >
-                <div className="flex items-start gap-6 text-sm text-[#71717A] font-normal tracking-[-0.28px] leading-[1.14]">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{bill.date}</span>
+              <div key={bill.id} className="relative group">
+                <button
+                  onClick={() => navigate(`/bills/record?readOnly=true&billId=${bill.id}`)}
+                  className="w-full flex flex-col gap-0 rounded-lg bg-[#f9f9f9] border border-[#dadada] p-4 hover:bg-[#f0f0f0] transition-colors text-left"
+                >
+                  <div className="flex items-start gap-6 text-sm text-[#71717A] font-normal tracking-[-0.28px] leading-[1.14]">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>{bill.date}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>{bill.time}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{bill.time}</span>
-                  </div>
-                </div>
 
-                <div className="text-[#303030] text-base font-medium leading-[1.25] tracking-[-0.32px] mt-3">
-                  {bill.invoiceNumber} - {bill.vendorName}
-                </div>
-
-                <div className="flex items-start justify-between gap-4 mt-6">
-                  <div className="text-[#2463eb] text-2xl font-medium leading-[1.08]">
-                    {bill.amount}
+                  <div className="text-[#303030] text-base font-medium leading-[1.25] tracking-[-0.32px] mt-3">
+                    {bill.invoiceNumber} - {bill.vendorName}
                   </div>
-                </div>
-              </button>
+
+                  <div className="flex items-start justify-between gap-4 mt-6">
+                    <div className="text-[#2463eb] text-2xl font-medium leading-[1.08]">
+                      {bill.amount}
+                    </div>
+                  </div>
+                </button>
+                {workOrderId && (
+                  <button
+                    onClick={(e) => handleRemoveBill(bill.id, e)}
+                    className="absolute top-2 right-2 p-1 rounded-full text-[#71717A] hover:text-[#dc2626] hover:bg-[#fee2e2] transition-colors opacity-0 group-hover:opacity-100"
+                    title="Remove bill from work order"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             );
           })}
         </div>

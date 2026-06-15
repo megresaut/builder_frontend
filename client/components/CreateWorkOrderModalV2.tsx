@@ -39,6 +39,12 @@ export interface TaskOption {
   name?: string;
   /** Task description — used to autofill notes on selection when non-empty. */
   description?: string;
+  /** Raw backend priority string (e.g. "medium", "high") — autofills Priority on selection. */
+  priority?: string;
+  /** Raw backend status string (e.g. "in_progress", "new") — autofills Status on selection. */
+  status?: string;
+  /** ISO date string for due date — autofills Due Date on selection. */
+  dueDate?: string | null;
 }
 
 interface CreateWorkOrderModalV2Props {
@@ -450,7 +456,7 @@ export default function CreateWorkOrderModalV2({
   }, [vendors, open, mode, initialData?.vendor]);
 
   const handleTaskChange = (value: string) => {
-    // Find matching option to autofill workOrderName + notes
+    // Find matching option to autofill workOrderName + notes + status/priority/dueDate
     const selected = taskOptions?.find((opt) => opt.id.toString() === value);
     setFormData((prev) => {
       if (!value) {
@@ -459,11 +465,17 @@ export default function CreateWorkOrderModalV2({
       }
       const autoName = selected?.name ?? selected?.label;
       const autoDesc = selected?.description?.trim();
+      const autoPriority = selected?.priority ? convertPriorityFromBackend(selected.priority) : prev.priority;
+      const autoStatus = selected?.status ? convertStatusFromBackend(selected.status) : prev.status;
+      const autoDueDate = selected?.dueDate ? new Date(selected.dueDate) : prev.dueDate;
       return {
         ...prev,
         task: value,
         workOrderName: autoName ?? prev.workOrderName,
         notes: autoDesc ? autoDesc : prev.notes,
+        priority: autoPriority,
+        status: autoStatus,
+        dueDate: autoDueDate,
       };
     });
     if (errors.task) {

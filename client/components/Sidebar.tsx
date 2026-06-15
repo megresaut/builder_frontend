@@ -623,7 +623,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
     leases: [],
     accounting: [
       { label: "Bills", path: "/bills", sectionId: "bills" },
-      // { label: "Bill Drafts", path: "/accounting/bill-drafts", sectionId: "bill-drafts" },
+      { label: "Bill Drafts", path: "/accounting/bill-drafts", sectionId: "bill-drafts" },
       {
         label: "Invoices",
         path: "/accounting/invoices",

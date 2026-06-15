@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import PageTemplate from "@/layout/PageTemplate";
 import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import { toast } from "sonner";
+import { ConciergeGLPicker } from "@/components/ConciergeGLPicker";
+import { BuildiumGLPicker } from "@/components/BuildiumGLPicker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -50,6 +53,7 @@ interface VendorOption {
 interface PropertyOption {
   id: number;
   name: string;
+  property_type?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -190,9 +194,34 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
   const [statementDate, setStatementDate] = useState<string>(toDateInput(draft.statement_date));
   const [dueDate, setDueDate] = useState<string>(toDateInput(draft.due_date));
   const [memo, setMemo] = useState<string>(draft.memo ?? "");
+  const [description, setDescription] = useState<string>("");
+  const [upcharge, setUpcharge] = useState<string>("");
+  // GL account — three mutually exclusive variants matching RecordBill
+  const [qboItemId, setQboItemId] = useState<string>("");
+  const [qboItemName, setQboItemName] = useState<string>("");
+  const [buildiumAccountId, setBuildiumAccountId] = useState<string>("");
+  const [buildiumAccountName, setBuildiumAccountName] = useState<string>("");
+  const [vendorSearch, setVendorSearch] = useState("");
+  const [propertySearch, setPropertySearch] = useState("");
   const [approving, setApproving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [alreadyBooked, setAlreadyBooked] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const selectedProp = properties.find((p) => p.id.toString() === propertyId);
+  const filteredVendors = vendors.filter((v) => v.name.toLowerCase().includes(vendorSearch.toLowerCase()));
+  const filteredProperties = properties.filter((p) => p.name.toLowerCase().includes(propertySearch.toLowerCase()));
+  const isConcierge = selectedProp?.property_type === "C";
+  const hasNonConciergeProp = !!selectedProp && selectedProp.property_type !== "C";
+
+  // Clear GL selection when property changes (type may switch concierge ↔ non-concierge)
+  const handlePropertyChange = (newPropId: string) => {
+    setPropertyId(newPropId);
+    setQboItemId("");
+    setQboItemName("");
+    setBuildiumAccountId("");
+    setBuildiumAccountName("");
+  };
 
   const token = localStorage.getItem("avm_token") ?? "";
   const attachmentUrl = `${API_BASE}/vendors/bill-drafts/${draft.id}/attachment?token=${encodeURIComponent(token)}`;
@@ -202,12 +231,16 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
     if (!amountCents) { toast.error("Enter a valid amount before approving."); return; }
     if (!vendorId) { toast.error("Select a vendor before approving."); return; }
     if (!propertyId) { toast.error("Select a property before approving."); return; }
+    if (isConcierge && !qboItemId) { toast.error("Select a GL account before approving."); return; }
+    if (hasNonConciergeProp && !buildiumAccountId) { toast.error("Select a GL account before approving."); return; }
+
+    const upchargeCents = Math.round(parseFloat(upcharge || "0") * 100);
 
     setApproving(true);
     try {
       const propIdNum = parseInt(propertyId, 10);
       const venIdNum = parseInt(vendorId, 10);
-      await fetchJSON(`/vendors/bill-drafts/${draft.id}/approve`, {
+      const result = await fetchJSON(`/vendors/bill-drafts/${draft.id}/approve`, {
         method: "POST",
         body: JSON.stringify({
           vendor_id: venIdNum,
@@ -219,17 +252,32 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
           line_items: [{
             line_id: 0,
             property_id: propIdNum,
-            unit: "",
-            description: invoiceNumber ? `Invoice ${invoiceNumber}` : "Invoice",
-            gl_account_id: "",
+            unit: isConcierge ? "__property__" : "",
+            description: description || (invoiceNumber ? `Invoice ${invoiceNumber}` : "Invoice"),
+            gl_account_id: isConcierge || buildiumAccountId ? "" : "",
+            gl_account_name: "",
+            qbo_item_id: isConcierge ? qboItemId : "",
+            qbo_item_name: isConcierge ? qboItemName : "",
+            buildium_account_id: hasNonConciergeProp ? buildiumAccountId : "",
+            buildium_account_name: hasNonConciergeProp ? buildiumAccountName : "",
             amount_cents: amountCents,
+            upcharge_cents: upchargeCents,
           }],
         }),
       });
-      toast.success("Bill approved and created.");
-      onApproved(draft.id);
+      if (result?.push_warning) {
+        toast.error(`Push failed: ${result.push_warning}`);
+      } else {
+        toast.success("Bill approved and created.");
+        onApproved(draft.id);
+      }
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to approve bill draft.");
+      const msg: string = err?.message ?? "";
+      if (msg.includes("already been booked")) {
+        setAlreadyBooked(true);
+      } else {
+        toast.error(msg || "Failed to approve bill draft.");
+      }
     } finally {
       setApproving(false);
     }
@@ -267,14 +315,24 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
 
           <div>
             <label className="block text-xs font-medium text-[#717179] mb-1">Vendor</label>
-            <select
+            <Select
               value={vendorId}
-              onChange={(e) => setVendorId(e.target.value)}
-              className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
+              onValueChange={(v) => { setVendorId(v); setVendorSearch(""); }}
+              onOpenChange={(open) => { if (!open) setVendorSearch(""); }}
             >
-              <option value="">— Select vendor —</option>
-              {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-            </select>
+              <SelectTrigger className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030]">
+                <SelectValue placeholder="— Select vendor —" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-[#e5e7eb] shadow-md p-0" onKeyDown={(e) => { const t = e.target as HTMLElement; if (t.tagName === "INPUT") e.stopPropagation(); }}>
+                <div className="p-2 border-b border-[#e5e7eb]">
+                  <input autoFocus placeholder="Search vendors…" value={vendorSearch} onChange={(e) => setVendorSearch(e.target.value)} onKeyDown={(e) => e.stopPropagation()} className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]" />
+                </div>
+                <div className="max-h-[240px] overflow-y-auto">
+                  {filteredVendors.length === 0 && <div className="px-3 py-2 text-sm text-[#aaa]">No vendors found</div>}
+                  {filteredVendors.map((v) => <SelectItem key={v.id} value={v.id.toString()}>{v.name}</SelectItem>)}
+                </div>
+              </SelectContent>
+            </Select>
             {draft.vendor_match_status && (
               <div className="mt-1 flex items-center gap-1.5">
                 <MatchBadge status={draft.vendor_match_status} score={draft.vendor_match_score} />
@@ -287,14 +345,24 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
 
           <div>
             <label className="block text-xs font-medium text-[#717179] mb-1">Property</label>
-            <select
+            <Select
               value={propertyId}
-              onChange={(e) => setPropertyId(e.target.value)}
-              className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
+              onValueChange={(v) => { handlePropertyChange(v); setPropertySearch(""); }}
+              onOpenChange={(open) => { if (!open) setPropertySearch(""); }}
             >
-              <option value="">— Select property —</option>
-              {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
+              <SelectTrigger className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030]">
+                <SelectValue placeholder="— Select property —" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-[#e5e7eb] shadow-md p-0" onKeyDown={(e) => { const t = e.target as HTMLElement; if (t.tagName === "INPUT") e.stopPropagation(); }}>
+                <div className="p-2 border-b border-[#e5e7eb]">
+                  <input autoFocus placeholder="Search properties…" value={propertySearch} onChange={(e) => setPropertySearch(e.target.value)} onKeyDown={(e) => e.stopPropagation()} className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]" />
+                </div>
+                <div className="max-h-[240px] overflow-y-auto">
+                  {filteredProperties.length === 0 && <div className="px-3 py-2 text-sm text-[#aaa]">No properties found</div>}
+                  {filteredProperties.map((p) => <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>)}
+                </div>
+              </SelectContent>
+            </Select>
             {draft.property_match_status && (
               <div className="mt-1">
                 <MatchBadge status={draft.property_match_status} score={draft.property_match_score} />
@@ -316,6 +384,18 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
               />
             </div>
             <div>
+              <label className="block text-xs font-medium text-[#717179] mb-1">Upcharge ($)</label>
+              <input
+                type="number" step="0.01" value={upcharge}
+                onChange={(e) => setUpcharge(e.target.value)}
+                className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <label className="block text-xs font-medium text-[#717179] mb-1">Invoice #</label>
               <input
                 type="text" value={invoiceNumber}
@@ -323,6 +403,36 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
                 className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
                 placeholder="Optional"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[#717179] mb-1">Description</label>
+              <input
+                type="text" value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
+                placeholder="Optional"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-[#717179] mb-1">
+              GL Account{(isConcierge || hasNonConciergeProp) && <span className="text-red-400 ml-0.5">*</span>}
+            </label>
+            <div className="w-full min-h-[32px] rounded-lg border border-[#e5e5e5] bg-white px-2.5 flex items-center">
+              {isConcierge ? (
+                <ConciergeGLPicker
+                  value={qboItemId}
+                  onChange={(id, name) => { setQboItemId(id); setQboItemName(name); }}
+                />
+              ) : hasNonConciergeProp ? (
+                <BuildiumGLPicker
+                  value={buildiumAccountId}
+                  onChange={(id, name) => { setBuildiumAccountId(id); setBuildiumAccountName(name); }}
+                />
+              ) : (
+                <span className="text-xs text-[#aaa]">Select a property first</span>
+              )}
             </div>
           </div>
 
@@ -358,6 +468,15 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
           {draft.parse_error && draft.parse_error !== "none" && (
             <div className="px-3 py-2 rounded-lg bg-red-50 border border-red-100 text-xs text-red-600">
               <span className="font-semibold">Parse error:</span> {draft.parse_error}
+            </div>
+          )}
+
+          {alreadyBooked && (
+            <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
+              <svg className="mt-0.5 shrink-0 w-4 h-4 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              </svg>
+              <span>This bill has already been booked — feel free to delete this draft.</span>
             </div>
           )}
 
@@ -447,7 +566,7 @@ export default function BillDrafts() {
       fetchJSON("/properties").catch(() => []),
     ]).then(([vens, props]) => {
       setVendors((Array.isArray(vens) ? vens : []).map((v: any) => ({ id: v.id, name: v.name })));
-      setProperties((Array.isArray(props) ? props : []).map((p: any) => ({ id: p.id, name: p.name })));
+      setProperties((Array.isArray(props) ? props : []).map((p: any) => ({ id: p.id, name: p.name, property_type: p.property_type ?? null })));
     });
   }, [loadDrafts]);
 
