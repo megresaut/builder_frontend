@@ -228,11 +228,13 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
 
   const handleApprove = async () => {
     const amountCents = Math.round(parseFloat(amount || "0") * 100);
-    if (!amountCents) { toast.error("Enter a valid amount before approving."); return; }
-    if (!vendorId) { toast.error("Select a vendor before approving."); return; }
-    if (!propertyId) { toast.error("Select a property before approving."); return; }
-    if (isConcierge && !qboItemId) { toast.error("Select a GL account before approving."); return; }
-    if (hasNonConciergeProp && !buildiumAccountId) { toast.error("Select a GL account before approving."); return; }
+    if (!vendorId) { toast.error("Vendor is required."); return; }
+    if (!propertyId) { toast.error("Property is required."); return; }
+    if (!amountCents) { toast.error("Amount is required."); return; }
+    if (isConcierge && !qboItemId) { toast.error("GL Account is required."); return; }
+    if (hasNonConciergeProp && !buildiumAccountId) { toast.error("GL Account is required."); return; }
+    if (!statementDate) { toast.error("Statement Date is required."); return; }
+    if (!dueDate) { toast.error("Due Date is required."); return; }
 
     const upchargeCents = Math.round(parseFloat(upcharge || "0") * 100);
 
@@ -314,7 +316,7 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
           )}
 
           <div>
-            <label className="block text-xs font-medium text-[#717179] mb-1">Vendor</label>
+            <label className="block text-xs font-medium text-[#717179] mb-1">Vendor<span className="text-red-400 ml-0.5">*</span></label>
             <Select
               value={vendorId}
               onValueChange={(v) => { setVendorId(v); setVendorSearch(""); }}
@@ -344,7 +346,7 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#717179] mb-1">Property</label>
+            <label className="block text-xs font-medium text-[#717179] mb-1">Property<span className="text-red-400 ml-0.5">*</span></label>
             <Select
               value={propertyId}
               onValueChange={(v) => { handlePropertyChange(v); setPropertySearch(""); }}
@@ -375,7 +377,7 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#717179] mb-1">Amount ($)</label>
+              <label className="block text-xs font-medium text-[#717179] mb-1">Amount ($)<span className="text-red-400 ml-0.5">*</span></label>
               <input
                 type="number" step="0.01" value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -438,7 +440,7 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#717179] mb-1">Statement Date</label>
+              <label className="block text-xs font-medium text-[#717179] mb-1">Statement Date<span className="text-red-400 ml-0.5">*</span></label>
               <input
                 type="date" value={statementDate}
                 onChange={(e) => setStatementDate(e.target.value)}
@@ -446,7 +448,7 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#717179] mb-1">Due Date</label>
+              <label className="block text-xs font-medium text-[#717179] mb-1">Due Date<span className="text-red-400 ml-0.5">*</span></label>
               <input
                 type="date" value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
