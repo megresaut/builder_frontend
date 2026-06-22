@@ -22,9 +22,10 @@ interface Bill {
   vendor: string;
   vendorColor: string;
   property: string;
+  location?: string;
   statementDate: string;
   dueDate: string;
-  status?: "pushed" | "push-failed"; 
+  status?: "pushed" | "push-failed";
   memo: string;
   invoiceNumber: string;
   amount: number;
@@ -304,7 +305,7 @@ const billsColumnConfig: Record<string, { label: string; icon: React.ReactNode }
     ),
   },
   property: {
-    label: "Property",
+    label: "Location",
     icon: (
       <svg
         width="16"
@@ -495,6 +496,13 @@ export const Bills: React.FC<BillsProps> = ({
           ),
 
           property: b.property_name ?? "",
+          location: (() => {
+            if (b.memo) {
+              const idx = b.memo.indexOf(" - Billed");
+              if (idx > 0) return b.memo.slice(0, idx).trim();
+            }
+            return b.property_name ?? "";
+          })(),
 
           statementDate: formatDate(b.statement_date),
           dueDate: formatDate(b.due_date),
@@ -970,7 +978,7 @@ export const Bills: React.FC<BillsProps> = ({
                 case "property":
                   return (
                     <span className="text-gray-900 font-normal text-sm truncate">
-                      {bill.property}
+                      {bill.location || bill.property}
                     </span>
                   );
                 case "exportedAt": {

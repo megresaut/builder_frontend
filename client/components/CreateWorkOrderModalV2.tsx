@@ -446,7 +446,7 @@ export default function CreateWorkOrderModalV2({
   useEffect(() => {
     if (!open || mode !== "edit" || !initialData?.vendor || vendors.length === 0) return;
     if (initialData.vendorId !== undefined && initialData.vendorId !== null) return; // Already has vendorId
-    
+
     // Try to find matching vendor by name
     const matchingVendor = vendors.find((v) => v.name === initialData.vendor);
     if (matchingVendor && formData.vendorId !== matchingVendor.id.toString()) {
@@ -454,6 +454,28 @@ export default function CreateWorkOrderModalV2({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vendors, open, mode, initialData?.vendor]);
+
+  // When the modal opens in create mode with a pre-selected task (e.g. from a task detail page)
+  // and taskOptions has loaded, autofill workOrderName/notes/priority/status/dueDate.
+  useEffect(() => {
+    if (!open || mode !== "create" || !taskOptions || taskOptions.length === 0) return;
+    const preselectedTask = initialData?.task;
+    if (!preselectedTask) return;
+    const match = taskOptions.find((opt) => opt.id.toString() === preselectedTask);
+    if (!match) return;
+    const autoName = match.name ?? match.label;
+    const autoDesc = match.description?.trim();
+    setFormData((prev) => ({
+      ...prev,
+      task: preselectedTask,
+      workOrderName: autoName ?? prev.workOrderName,
+      notes: autoDesc ? autoDesc : prev.notes,
+      priority: match.priority ? convertPriorityFromBackend(match.priority) : prev.priority,
+      status: match.status ? convertStatusFromBackend(match.status) : prev.status,
+      dueDate: match.dueDate ? new Date(match.dueDate) : prev.dueDate,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, taskOptions]);
 
   const handleTaskChange = (value: string) => {
     // Find matching option to autofill workOrderName + notes + status/priority/dueDate
