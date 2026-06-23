@@ -40,9 +40,6 @@ import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
 import { toast } from "sonner";
 import { openAuthPdf } from "@/api/openAuthPdf";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
-import { createRoot } from "react-dom/client";
-import { InvoicePreviewPDF } from "@/components/invoicing/InvoicePreviewPDF";
-import { generatePDFBlobFromElement } from "@/components/invoicing/exportInvoicePDF";
 
 import glAccounts from "@/data/gl_accounts.json";  
 
@@ -568,7 +565,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [propertyOwnerName, setPropertyOwnerName] = useState<string>("");
   const [fetchedPropertyLocation, setFetchedPropertyLocation] = useState<string>("");
   const [locationGroups, setLocationGroups] = useState<LocationGroupsResponse | null>(null);
-  const [splitByLocation, setSplitByLocation] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
   
   // Initialize to previous month
   const getDefaultInvoiceMonth = () => {
@@ -585,7 +582,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     try {
       setLoadingInvoice(true);
       setLocationGroups(null);
-      setSplitByLocation(false);
+      setSelectedLocation("");
   
       // 1️⃣ Generate (or regenerate) invoice
       const generateRes = await authFetch(
@@ -855,7 +852,16 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     [invoiceItems]
   );
 
-  const { handleSortClick: handleInvoiceSortClick, getSortIndicator: getInvoiceSortIndicator, getSortedData: getSortedInvoiceItems } = useSortingTable(invoiceItemsWithManagementFeeFirst, "invoiceItems");
+  // Filtered view — when a location is selected, show only that group's items.
+  const filteredInvoiceItems = useMemo(() => {
+    if (!selectedLocation || !locationGroups) return invoiceItemsWithManagementFeeFirst;
+    const group = locationGroups.groups.find((g) => g.location_name === selectedLocation);
+    if (!group) return invoiceItemsWithManagementFeeFirst;
+    const idSet = new Set(group.line_item_ids);
+    return invoiceItemsWithManagementFeeFirst.filter((item) => idSet.has(item.id));
+  }, [invoiceItemsWithManagementFeeFirst, selectedLocation, locationGroups]);
+
+  const { handleSortClick: handleInvoiceSortClick, getSortIndicator: getInvoiceSortIndicator, getSortedData: getSortedInvoiceItems } = useSortingTable(filteredInvoiceItems, "invoiceItems");
   const { handleSortClick: handleHistorySortClick, getSortIndicator: getHistorySortIndicator, getSortedData: getSortedHistoryItems } = useSortingTable(invoiceHistory, "invoiceHistory");
 
   const toIsoDateTime = (date: Date) => date.toISOString();
@@ -1132,96 +1138,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         });
       }
 
-      // 3️⃣ Attach sub-location PDFs when split mode is on and QBO push succeeded
-      if (
-        splitByLocation &&
-        locationGroups?.has_locations &&
-        finalizedInvoice?.qbo_invoice_id &&
-        currentInvoiceId
-      ) {
-        const nonEmpty = locationGroups.groups.filter((g) => g.location_name !== "");
-        for (const group of nonEmpty) {
-          try {
-            const container = document.createElement("div");
-            container.style.cssText =
-              "width:816px;position:fixed;left:-9999px;top:0;background:white;";
-            document.body.appendChild(container);
-
-            const groupItems = group.items.map((li: any, idx: number) => ({
-              id: li.id ?? idx,
-              vendor: li.vendor_name || "—",
-              description: li.description || "",
-              amount: `$${Number(li.amount || 0).toFixed(2)}`,
-            }));
-
-            await new Promise<void>((resolve) => {
-              const root = createRoot(container);
-              root.render(
-                <InvoicePreviewPDF
-                  invoice={{
-                    clientName: propertyOwnerName || "Client",
-                    propertyName: `${propertyAddress} — ${group.location_name}`,
-                    propertyAddress: fetchedPropertyLocation || propertyLocation || "",
-                    invoiceDate: currentInvoiceMonth,
-                  }}
-                  items={groupItems}
-                  onChange={() => {}}
-                  onAddItem={() => {}}
-                  onDeleteItem={() => {}}
-                />,
-              );
-              setTimeout(resolve, 400);
-            });
-
-            // Strip interactive elements before PDF capture
-            container.querySelectorAll("button").forEach((btn) => btn.remove());
-            container.querySelectorAll<HTMLInputElement>("input").forEach((inp) => {
-              const span = document.createElement("span");
-              span.textContent = inp.defaultValue || inp.value;
-              inp.replaceWith(span);
-            });
-
-            const subBlob = await generatePDFBlobFromElement(container);
-            document.body.removeChild(container);
-
-            const safeName = group.location_name
-              .replace(/[^a-zA-Z0-9 _-]/g, "")
-              .trim()
-              .replace(/\s+/g, "-");
-            const displayName = `invoice-${currentInvoiceId}-${safeName}.pdf`;
-
-            const fd = new FormData();
-            fd.append("file", subBlob, displayName);
-            const upRes = await authFetch(`/vendors/bills/upload-pdf`, {
-              method: "POST",
-              body: fd,
-            });
-            const upJson = JSON.parse(await upRes.text());
-
-            if (upJson.pdf_object_key) {
-              await authFetch(`/invoicing/attach-extra-pdf?id=${currentInvoiceId}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  pdf_object_key: upJson.pdf_object_key,
-                  display_name: displayName,
-                }),
-              });
-            }
-          } catch (subErr) {
-            console.error(
-              `[invoice] sub-PDF for "${group.location_name}" failed:`,
-              subErr,
-            );
-            toast.warning(`Sub-invoice for ${group.location_name} could not be attached`, {
-              description:
-                "The main QBO invoice was created successfully. Retry by re-sending.",
-            });
-          }
-        }
-      }
-
-      // 4️⃣ Refresh UI
+      // 3️⃣ Refresh UI
       await loadInvoiceForProperty();
       await loadInvoiceHistory();
     } catch (err: any) {
@@ -1531,7 +1448,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           <GlobalTable
             className="border-0 rounded-none"
             columns={invoiceTableColumns}
-            data={invoiceItemsWithManagementFeeFirst}
+            data={filteredInvoiceItems}
             rowKey="id"
             title={
               <div className="flex items-center gap-3">
@@ -1616,6 +1533,24 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             }
             headerActions={
               <>
+                {locationGroups?.has_locations && (
+                  <Select
+                    value={selectedLocation || "__all__"}
+                    onValueChange={(v) => setSelectedLocation(v === "__all__" ? "" : v)}
+                  >
+                    <SelectTrigger className="h-9 w-48 text-sm border-[#DADADA]">
+                      <SelectValue placeholder="All locations" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-[#E5E5E5] rounded-xl shadow-lg z-50 min-w-[200px]">
+                      <SelectItem value="__all__">All locations</SelectItem>
+                      {locationGroups.groups.map((g) => (
+                        <SelectItem key={g.location_name} value={g.location_name}>
+                          {g.location_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <button
                   ref={invoiceColumnsManagement.columnButtonRef}
                   onClick={() =>
@@ -1793,7 +1728,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             columnManagementHook={invoiceColumnsManagement}
             currentPage={1}
             onPageChange={noopPageChange}
-            itemsPerPage={invoiceItemsWithManagementFeeFirst.length || 10}
+            itemsPerPage={filteredInvoiceItems.length || 10}
             onItemsPerPageChange={noopItemsPerPageChange}
             showPageSizeDropdown={false}
             openMenuId={invoiceOpenMenuId}
@@ -1815,7 +1750,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             <div className="flex items-center gap-4">
               <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
                 Subtotal: $
-                {invoiceItems
+                {filteredInvoiceItems
                   .reduce((sum, item) => {
                     const amount =
                       parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
@@ -1857,26 +1792,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   {refreshing ? "Refreshing…" : "Refresh"}
                 </button>
 
-                {locationGroups?.has_locations && (
-                  <label
-                    title="Generate one sub-invoice PDF per location and attach all to the QBO invoice"
-                    className="h-10 inline-flex items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white text-[#303030] text-sm font-medium hover:bg-gray-50 cursor-pointer select-none"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={splitByLocation}
-                      onChange={(e) => setSplitByLocation(e.target.checked)}
-                      className="w-4 h-4 accent-[#013764]"
-                    />
-                    Split by location
-                  </label>
-                )}
-
                 <button
                   type="button"
                   onClick={() =>
                     openInvoicePreview({
-                      lineItems: invoiceItemsWithManagementFeeFirst.map((item) => ({
+                      lineItems: filteredInvoiceItems.map((item) => ({
                         id: item.id,
                         vendor: item.vendor,
                         description: item.description,
@@ -1913,7 +1833,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                           // the modal in commit mode — keeps PDF rendering in
                           // one place. The modal will auto-close after commit.
                           openInvoicePreview({
-                            lineItems: invoiceItemsWithManagementFeeFirst.map(
+                            lineItems: filteredInvoiceItems.map(
                               (item) => ({
                                 id: item.id,
                                 vendor: item.vendor,
@@ -2201,7 +2121,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         lineItems={
           invoicePreviewLineItems.length > 0
             ? invoicePreviewLineItems
-            : invoiceItemsWithManagementFeeFirst.map((item) => ({
+            : filteredInvoiceItems.map((item) => ({
                 id: item.id,
                 vendor: item.vendor,
                 description: item.description,
