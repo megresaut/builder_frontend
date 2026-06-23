@@ -18,6 +18,8 @@ export interface InvoiceLineItem {
   vendor: string;
   description: string;
   amount: string;
+  billDate?: string;
+  billInvoiceNumber?: string;
 }
 
 // LifecycleStatus drives the lifecycle banner + Commit gating in the preview
@@ -1185,6 +1187,17 @@ export default function InvoicePreviewModal({
                             padding: 0,
                           }}
                         />
+                        {(() => {
+                          const dateStr = item.billDate
+                            ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
+                            : null;
+                          const meta = [dateStr, item.billInvoiceNumber ? `#${item.billInvoiceNumber}` : null].filter(Boolean).join(" · ");
+                          return meta ? (
+                            <div className="no-print" style={{ color: "#8C8C8C", font: "400 8px Arial, sans-serif", marginTop: "1px" }}>
+                              {meta}
+                            </div>
+                          ) : null;
+                        })()}
                         <span
                           className="print-only"
                           style={{
@@ -1197,6 +1210,17 @@ export default function InvoicePreviewModal({
                           }}
                         >
                           {item.description}
+                          {(() => {
+                            const dateStr = item.billDate
+                              ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
+                              : null;
+                            const meta = [dateStr, item.billInvoiceNumber ? `#${item.billInvoiceNumber}` : null].filter(Boolean).join(" · ");
+                            return meta ? (
+                              <span style={{ display: "block", color: "#8C8C8C", font: "400 7.5px/14px Arial, sans-serif" }}>
+                                {meta}
+                              </span>
+                            ) : null;
+                          })()}
                         </span>
                       </td>
                       <td

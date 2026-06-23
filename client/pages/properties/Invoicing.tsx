@@ -463,6 +463,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     statusColor: string;
     statusBg: string;
     paymentStatus: string; // backend payment_status: paid | unpaid | billed_by_invoice | unknown
+    billDate?: string | null;
+    billInvoiceNumber?: string | null;
   }
 
 
@@ -704,6 +706,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           source: normalizedSource,
           sourceId: li.source_id, // Store source_id (submission ID for FTO items)
           sourceType: li.source_type, // raw type for void base/markup pairing
+          billDate: li.bill_date ?? null,
+          billInvoiceNumber: li.bill_invoice_number ?? null,
           status: li.status === "approved" ? "Approved" : "Pending Approval",
           statusColor:
             li.status === "approved" ? "#059669" : "#D97706",
@@ -1708,7 +1712,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   );
                 }
                 case "glAccount":
-                case "description":
                 case "amount":
                 case "source":
                   return (
@@ -1716,6 +1719,25 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       {item[columnKey]}
                     </div>
                   );
+                case "description": {
+                  const billDateStr = item.billDate
+                    ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
+                    : null;
+                  const meta = [billDateStr, item.billInvoiceNumber ? `#${item.billInvoiceNumber}` : null]
+                    .filter(Boolean).join(" · ");
+                  return (
+                    <div className="flex flex-col justify-center min-w-0">
+                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] truncate">
+                        {item.description}
+                      </div>
+                      {meta && (
+                        <div className="text-[#A3A3A3] text-xs leading-[1.4] tracking-[-0.24px] truncate">
+                          {meta}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
                 default:
                   return null;
               }
@@ -1801,6 +1823,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         vendor: item.vendor,
                         description: item.description,
                         amount: item.amount,
+                        billDate: item.billDate ?? undefined,
+                        billInvoiceNumber: item.billInvoiceNumber ?? undefined,
                       })),
                       invoiceDate: currentInvoiceMonth,
                       showCommitButton: false,
@@ -1839,6 +1863,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                                 vendor: item.vendor,
                                 description: item.description,
                                 amount: item.amount,
+                                billDate: item.billDate ?? undefined,
+                                billInvoiceNumber: item.billInvoiceNumber ?? undefined,
                               }),
                             ),
                             invoiceDate: currentInvoiceMonth,
