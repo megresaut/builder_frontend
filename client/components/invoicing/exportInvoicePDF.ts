@@ -27,3 +27,17 @@ export const exportInvoicePDF = (element: HTMLElement | null) => {
     .set(opt)
     .save();
 };
+
+// Generates a PDF blob from a pre-styled container element.
+// The caller is responsible for styling the container (width, background, etc.)
+// and stripping any interactive elements before calling this.
+export async function generatePDFBlobFromElement(container: HTMLElement): Promise<Blob> {
+  return html2pdf()
+    .set({
+      margin: 0,
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "px", format: [816, 1056] },
+    })
+    .from(container)
+    .outputPdf("blob");
+}

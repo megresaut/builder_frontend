@@ -483,6 +483,24 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
         if (backendInspection.checklist_id) {
           setChecklistId(backendInspection.checklist_id);
         }
+
+        // Store property address and completion time for export
+        if (backendInspection.property_address_line1) {
+          const parts = [
+            backendInspection.property_address_line1,
+            backendInspection.property_address_line2,
+            backendInspection.property_city && backendInspection.property_state
+              ? `${backendInspection.property_city}, ${backendInspection.property_state} ${backendInspection.property_postal_code || ""}`.trim()
+              : null,
+          ].filter(Boolean);
+          setInspectionPropertyName(parts.join(", "));
+        } else if (backendInspection.property_name) {
+          setInspectionPropertyName(backendInspection.property_name);
+        }
+        const completedStatuses = ["submitted", "reviewed"];
+        if (completedStatuses.includes(backendInspection.status) && backendInspection.updated_at) {
+          setInspectionCompletedAt(new Date(backendInspection.updated_at).toLocaleString());
+        }
       } catch (error) {
         console.error("Failed to fetch inspection:", error);
       }
@@ -491,11 +509,8 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     fetchInspectionData();
   }, [inspectionId]);
 
-  // Metadata State
-  const [uploadedBy] = useState<string>("John Doe");
-  const [uploadedAt] = useState<string>(new Date().toLocaleString());
-  const [lastUpdated] = useState<string>(new Date().toLocaleString());
-  const [lastUpdatedBy] = useState<string>("Jerry Sanchez");
+  const [inspectionPropertyName, setInspectionPropertyName] = useState<string | null>(inspection?.property_name || null);
+  const [inspectionCompletedAt, setInspectionCompletedAt] = useState<string | null>(null);
 
   // --- Fetch photos from backend ---
   useEffect(() => {
@@ -1198,12 +1213,10 @@ export default function InspectionDetail(props: InspectionDetailProps = {}) {
     let htmlContent = `
       <h1 style="color: #303030; margin: 0 0 12px 0; font-size: 24px; line-height: 1.2;">Inspection Report</h1>
       <div style="background-color: #f5f5f5; padding: 10px 12px; margin-bottom: 16px; border-radius: 4px;">
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Property:</span> 22 Indian Chase Dr</div>
+        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Property:</span> ${inspectionPropertyName || "Unknown"}</div>
         <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Inspection Due Date:</span> ${dueDate}</div>
         <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Field Manager:</span> ${inspection?.inspector?.name || "Unassigned"}</div>
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Uploaded By:</span> ${uploadedBy}</div>
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Uploaded At:</span> ${uploadedAt}</div>
-        <div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Last Updated:</span> ${lastUpdated} by ${lastUpdatedBy}</div>
+        ${inspectionCompletedAt ? `<div style="margin: 4px 0; font-size: 11px; line-height: 1.4;"><span style="font-weight: bold;">Completed At:</span> ${inspectionCompletedAt}</div>` : ""}
       </div>
     `;
 

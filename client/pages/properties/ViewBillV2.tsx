@@ -82,6 +82,7 @@ interface ApiBill {
   qbo_balance_cents?: number | null;
   qbo_paid_at?: string | null;
   created_at?: string;
+  provider_gl_account_name?: string | null;
 }
 
 interface ApiPayment {
@@ -887,7 +888,7 @@ export function ViewBillV2() {
       : [
           {
             description: bill.memo || bill.invoice_number || "Utility charge",
-            gl_account_name: "—",
+            gl_account_name: bill.provider_gl_account_name || undefined,
             amount_cents: bill.amount_cents,
           },
         ];
@@ -1618,6 +1619,9 @@ export function ViewBillV2() {
                           <th className="py-2 pr-4 font-semibold">Account</th>
                           <th className="py-2 pr-4 font-semibold">Description</th>
                           <th className="py-2 pr-4 font-semibold text-right">
+                            Upcharge
+                          </th>
+                          <th className="py-2 pr-4 font-semibold text-right">
                             Initial amount
                           </th>
                           <th className="py-2 font-semibold text-right">
@@ -1642,6 +1646,11 @@ export function ViewBillV2() {
                             <td className="py-3 pr-4 align-top">
                               {li.description || "--"}
                             </td>
+                            <td className="py-3 pr-4 align-top text-right" style={{ color: TEXT_MUTED }}>
+                              {li.upcharge_cents && li.upcharge_cents > 0
+                                ? money(li.upcharge_cents)
+                                : "--"}
+                            </td>
                             <td className="py-3 pr-4 align-top text-right">
                               {money(li.amount_cents)}
                             </td>
@@ -1650,16 +1659,27 @@ export function ViewBillV2() {
                             </td>
                           </tr>
                         ))}
-                        <tr className="font-semibold" style={{ color: TEXT_DARK }}>
-                          <td className="py-3 pr-4">Total</td>
-                          <td className="py-3 pr-4" />
-                          <td className="py-3 pr-4" />
-                          <td className="py-3 pr-4" />
-                          <td className="py-3 pr-4 text-right">
-                            {money(initialCents)}
-                          </td>
-                          <td className="py-3 text-right">{money(remainingCents)}</td>
-                        </tr>
+                        {(() => {
+                          const totalUpchargeCents = lineItems.reduce(
+                            (s, li) => s + (li.upcharge_cents || 0),
+                            0,
+                          );
+                          return (
+                            <tr className="font-semibold" style={{ color: TEXT_DARK }}>
+                              <td className="py-3 pr-4">Total</td>
+                              <td className="py-3 pr-4" />
+                              <td className="py-3 pr-4" />
+                              <td className="py-3 pr-4" />
+                              <td className="py-3 pr-4 text-right" style={{ color: TEXT_MUTED }}>
+                                {totalUpchargeCents > 0 ? money(totalUpchargeCents) : "--"}
+                              </td>
+                              <td className="py-3 pr-4 text-right">
+                                {money(initialCents)}
+                              </td>
+                              <td className="py-3 text-right">{money(remainingCents)}</td>
+                            </tr>
+                          );
+                        })()}
                       </tbody>
                     </table>
                   </div>
@@ -1687,21 +1707,18 @@ export function ViewBillV2() {
                             <th className="py-2 font-semibold text-right">
                               Amount paid
                             </th>
+                            <th className="py-2 pl-4" />
                           </tr>
                         </thead>
                         <tbody>
                           {payments.map((p) => (
                             <tr
                               key={p.id}
-                              className="border-b border-[#F0F0F0] hover:bg-[#F8F8F8] cursor-pointer"
+                              className="border-b border-[#F0F0F0] hover:bg-[#F8F8F8]"
                               style={{ color: TEXT_DARK }}
-                              onClick={() => {
-                                setEditingPayment(p);
-                                setEditPaymentOpen(true);
-                              }}
                             >
                               <td className="py-3 pr-4">
-                                <span style={{ color: NAVY }} className="hover:underline">
+                                <span style={{ color: NAVY }}>
                                   {p.paid_from_name || "--"}
                                 </span>
                               </td>
@@ -1711,6 +1728,18 @@ export function ViewBillV2() {
                               </td>
                               <td className="py-3 text-right">
                                 {money(p.amount_cents)}
+                              </td>
+                              <td className="py-3 pl-4 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingPayment(p);
+                                    setEditPaymentOpen(true);
+                                  }}
+                                  className="text-xs font-medium px-2 py-1 rounded border border-[#E5E5E5] text-[#525252] hover:border-[#013764] hover:text-[#013764] transition-colors"
+                                >
+                                  Edit
+                                </button>
                               </td>
                             </tr>
                           ))}
@@ -1798,9 +1827,42 @@ export function ViewBillV2() {
             </Panel>
 
             <Panel title="Markup">
-              <div className="text-center text-sm py-2" style={{ color: TEXT_MUTED }}>
-                This bill has no markup.
-              </div>
+              {(() => {
+                const totalUpchargeCents = lineItems.reduce(
+                  (s, li) => s + (li.upcharge_cents || 0),
+                  0,
+                );
+                if (totalUpchargeCents === 0) {
+                  return (
+                    <div className="text-center text-sm py-2" style={{ color: TEXT_MUTED }}>
+                      This bill has no markup.
+                    </div>
+                  );
+                }
+                return (
+                  <div className="space-y-2">
+                    {lineItems
+                      .filter((li) => li.upcharge_cents && li.upcharge_cents > 0)
+                      .map((li, idx) => (
+                        <div key={idx} className="flex justify-between text-sm">
+                          <span style={{ color: TEXT_MUTED }} className="truncate pr-2">
+                            {li.description || "Line item"}
+                          </span>
+                          <span style={{ color: TEXT_DARK }} className="font-medium shrink-0">
+                            {money(li.upcharge_cents!)}
+                          </span>
+                        </div>
+                      ))}
+                    <div
+                      className="flex justify-between text-sm font-semibold border-t border-[#E5E5E5] pt-2"
+                      style={{ color: TEXT_DARK }}
+                    >
+                      <span>Total markup</span>
+                      <span>{money(totalUpchargeCents)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </Panel>
 
             <Panel title="Available credits">

@@ -249,7 +249,15 @@ function mapUtilityRowToBill(row: any): Bill {
     due_date: row.due_date ?? undefined,
     invoiceMonth: row.invoice_month ?? undefined,
     status: row.push_status === "pushed" ? "pushed" : "push-failed",
-    memo: row.memo || "",
+    memo: (() => {
+      try {
+        const items = Array.isArray(row.line_items) ? row.line_items : JSON.parse(row.line_items || "[]");
+        const first = items[0]?.description?.trim();
+        return first || row.memo || "";
+      } catch {
+        return row.memo || "";
+      }
+    })(),
     invoiceNumber: row.reference_number || "",
     amount: (row.amount_cents ?? 0) / 100,
     glAccount: "",

@@ -6,6 +6,11 @@ export interface BackendInspection {
   id: number;
   property_id: number;
   property_name?: string | null;
+  property_address_line1?: string | null;
+  property_address_line2?: string | null;
+  property_city?: string | null;
+  property_state?: string | null;
+  property_postal_code?: string | null;
   unit_id?: number | null;
   checklist_id: number | null;
   assigned_field_team_member_id?: number | null;
