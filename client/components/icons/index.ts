@@ -39,5 +39,6 @@ export { HashtagIcon } from "./HashtagIcon";
 export { PaperclipIcon } from "./PaperclipIcon";
 export { HamburgerIcon } from "./HamburgerIcon";
 export { WarningIcon } from "./WarningIcon";
+export { DownloadIcon } from "./DownloadIcon";
 
 export type {} from "./EditIcon";
