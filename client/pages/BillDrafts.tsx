@@ -335,18 +335,8 @@ function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailPr
   const [deleting, setDeleting] = useState(false);
   const [alreadyBooked, setAlreadyBooked] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [attachmentMime, setAttachmentMime] = useState<string | null>(null);
-
   const token = localStorage.getItem("avm_token") ?? "";
   const attachmentUrl = `${API_BASE}/vendors/bill-drafts/${draft.id}/attachment?token=${encodeURIComponent(token)}`;
-
-  useEffect(() => {
-    fetch(attachmentUrl, { method: "HEAD" })
-      .then((r) => setAttachmentMime(r.headers.get("Content-Type") ?? ""))
-      .catch(() => setAttachmentMime(""));
-  }, [attachmentUrl]);
-
-  const isPreviewable = attachmentMime === null || attachmentMime.startsWith("application/pdf") || attachmentMime.startsWith("image/");
 
   // Load units for any pre-populated properties on mount
   useEffect(() => {
@@ -781,31 +771,12 @@ function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailPr
 
         {/* Right: attachment preview */}
         <div className="relative min-h-[400px] lg:min-h-0">
-          {isPreviewable ? (
-            <iframe
-              ref={iframeRef}
-              src={attachmentUrl}
-              className="absolute inset-0 w-full h-full border-0 rounded-br-xl"
-              title={`Draft ${draft.id} attachment`}
-            />
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#F8F8F8] rounded-br-xl">
-              <div className="text-4xl">📄</div>
-              <p className="text-sm font-medium text-[#303030]">
-                {draft.vendor_hint_subject?.split("/").pop() ?? "Attachment"}
-              </p>
-              <p className="text-xs text-[#6B7280]">
-                This file type cannot be previewed in the browser.
-              </p>
-              <a
-                href={attachmentUrl + "&download=1"}
-                download
-                className="mt-1 rounded-md border border-[#DADADA] bg-white px-4 py-2 text-sm font-medium text-[#303030] hover:bg-gray-50"
-              >
-                Download file
-              </a>
-            </div>
-          )}
+          <iframe
+            ref={iframeRef}
+            src={attachmentUrl}
+            className="absolute inset-0 w-full h-full border-0 rounded-br-xl"
+            title={`Draft ${draft.id} attachment`}
+          />
         </div>
       </div>
     </div>
