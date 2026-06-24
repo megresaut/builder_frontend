@@ -1418,8 +1418,8 @@ export const RecordBill = () => {
         }
         // 2️⃣ Approve the draft
         const approvePayload = {
-          pdf_object_key: uploadedPdfMeta?.pdf_object_key ?? null,
-          sha256_pdf: uploadedPdfMeta?.sha256_pdf ?? null,
+          pdf_object_key: uploadedPdfMeta?.pdf_object_key ?? "",
+          sha256_pdf: uploadedPdfMeta?.sha256_pdf ?? "",
           vendor_id: patchPayload.vendor_id,
           invoice_number: patchPayload.invoice_number,
           statement_date: patchPayload.statement_date,
@@ -1466,8 +1466,8 @@ export const RecordBill = () => {
           method: "POST",
           body: JSON.stringify({
             ...patchPayload,
-            pdf_object_key: uploadedPdfMeta?.pdf_object_key ?? null,
-            sha256_pdf: uploadedPdfMeta?.sha256_pdf ?? null,
+            pdf_object_key: uploadedPdfMeta?.pdf_object_key ?? "",
+            sha256_pdf: uploadedPdfMeta?.sha256_pdf ?? "",
           }),
         });
 
