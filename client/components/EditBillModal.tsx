@@ -172,8 +172,11 @@ function toIsoDate(s?: string): string {
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return "";
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
+  // Use UTC methods — the API returns dates as UTC midnight timestamps
+  // (e.g. "2026-06-26T00:00:00Z"). Local methods would shift the date back
+  // one day for any timezone behind UTC.
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
