@@ -6,6 +6,7 @@
 // Selecting an option writes the QBO Item id; the backend resolves the
 // matching Buildium GL via concierge_buildium_mapping at dual-push time.
 import { useEffect, useState } from "react";
+import { Search, X } from "lucide-react";
 
 import {
   Select,
@@ -129,6 +130,7 @@ export function ConciergeGLPicker({ value, disabled, onChange }: Props) {
       </SelectTrigger>
       <SelectContent
         className="bg-white border border-[#E5E7EB] shadow-md p-0"
+        style={{ minWidth: "380px" }}
         onKeyDown={(e) => {
           if (e.key === "Escape") e.stopPropagation();
           const t = e.target as HTMLElement;
@@ -136,18 +138,36 @@ export function ConciergeGLPicker({ value, disabled, onChange }: Props) {
         }}
       >
         <div className="p-2 border-b border-[#E5E7EB]">
-          <input
-            autoFocus
-            placeholder="Type to search…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.stopPropagation()}
-            onFocus={(e) => e.stopPropagation()}
-            className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
-          />
+          <div className="relative flex items-center">
+            <Search className="absolute left-2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+            <input
+              autoFocus
+              placeholder="Search items…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              onFocus={(e) => e.stopPropagation()}
+              className="w-full rounded-md border pl-7 pr-7 py-1.5 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+            />
+            {search && (
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); setSearch(""); }}
+                className="absolute right-2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          {term && (
+            <p className="mt-1 px-1 text-[11px] text-gray-400">
+              {filtered.reduce((n, g) => n + g.items.length, 0)} result
+              {filtered.reduce((n, g) => n + g.items.length, 0) !== 1 ? "s" : ""}
+            </p>
+          )}
         </div>
 
-        <div className="max-h-[280px] overflow-y-auto">
+        <div className="max-h-[320px] overflow-y-auto">
           {loadError && (
             <div className="px-3 py-2 text-sm text-red-500">
               Failed to load items: {loadError}
@@ -166,11 +186,11 @@ export function ConciergeGLPicker({ value, disabled, onChange }: Props) {
 
           {filtered.map((g) => (
             <SelectGroup key={g.parent_name}>
-              <SelectLabel className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-500">
+              <SelectLabel className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400 font-semibold">
                 {g.parent_name}
               </SelectLabel>
               {g.items.map((it) => (
-                <SelectItem key={it.qbo_item_id} value={it.qbo_item_id}>
+                <SelectItem key={it.qbo_item_id} value={it.qbo_item_id} className="text-[13px]">
                   {it.display_name}
                 </SelectItem>
               ))}

@@ -778,40 +778,36 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     loadInvoiceHistory();
   }, [propertyId, selectedInvoiceMonth]);
 
-  // Fetch property owner name and location (city, state, zip)
+  // Fetch property location (city, state, zip) and owner name from the owners table
   useEffect(() => {
     const fetchPropertyDetails = async () => {
       if (!propertyId) return;
-      
+
       try {
-        const property = await fetchJSON(`/properties/${propertyId}`);
-        
-        // Extract owner name
-        if (property.owners) {
-          try {
-            const owners = JSON.parse(property.owners);
-            if (Array.isArray(owners) && owners.length > 0 && owners[0].name) {
-              setPropertyOwnerName(owners[0].name);
-            }
-          } catch (e) {
-            // If owners is already parsed or invalid JSON, try direct access
-            if (typeof property.owners === 'object' && property.owners.length > 0 && property.owners[0].name) {
-              setPropertyOwnerName(property.owners[0].name);
-            }
-          }
+        const [property, owners] = await Promise.all([
+          fetchJSON(`/properties/${propertyId}`),
+          fetchJSON(`/owners?property_id=${propertyId}`).catch(() => []),
+        ]);
+
+        // Use the first active owner from the owners table.
+        // Prefer entity_name for non-individual owners, otherwise first + last.
+        const ownerList: any[] = Array.isArray(owners) ? owners : [];
+        const firstOwner = ownerList.find((o: any) => o.status === "active") ?? ownerList[0];
+        if (firstOwner) {
+          const name =
+            firstOwner.entity_name?.trim() ||
+            [firstOwner.first_name, firstOwner.last_name].filter(Boolean).join(" ");
+          if (name) setPropertyOwnerName(name);
         }
-        
+
         // Extract city, state, zip for property location
-        // Check various possible field names for zip code
-        const zip = property.zip || property.zipcode || property.zip_code || 
+        const zip = property.zip || property.zipcode || property.zip_code ||
                     property.postal_code || property.postalCode || property.Zip ||
                     property.ZipCode || property.postal || "";
-        
         const city = property.city || property.City || "";
         const state = property.state || property.State || "";
-        
+
         if (city || state || zip) {
-          // Format as "City, State Zip" or just what's available
           if (city && state) {
             setFetchedPropertyLocation(`${city}, ${state}${zip ? " " + zip : ""}`);
           } else if (city && zip) {
@@ -826,7 +822,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         console.error("Failed to fetch property details:", err);
       }
     };
-    
+
     fetchPropertyDetails();
   }, [propertyId]);
 
@@ -1720,21 +1716,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     </div>
                   );
                 case "description": {
-                  const billDateStr = item.billDate
-                    ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
-                    : null;
-                  const meta = [billDateStr, item.billInvoiceNumber ? `#${item.billInvoiceNumber}` : null]
-                    .filter(Boolean).join(" · ");
+                  const datePrefix = item.billDate
+                    ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }) + " "
+                    : "";
+                  const invSuffix = item.billInvoiceNumber ? ` · #${item.billInvoiceNumber}` : "";
+                  const displayDescription = `${datePrefix}${item.description}${invSuffix}`;
                   return (
-                    <div className="flex flex-col justify-center min-w-0">
-                      <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] truncate">
-                        {item.description}
-                      </div>
-                      {meta && (
-                        <div className="text-[#A3A3A3] text-xs leading-[1.4] tracking-[-0.24px] truncate">
-                          {meta}
-                        </div>
-                      )}
+                    <div className="text-[#303030] text-sm font-normal leading-[1.4] tracking-[-0.32px] whitespace-nowrap truncate">
+                      {displayDescription}
                     </div>
                   );
                 }
@@ -2141,8 +2130,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         onOpenChange={setShowInvoicePreview}
         propertyAddress={propertyAddress}
         propertyLocation={fetchedPropertyLocation || propertyLocation || ""}
-        billTo="Jason Pascal"
-        rentalOwner={propertyOwnerName || "Eunice Bae"}
+        billTo={propertyOwnerName}
+        rentalOwner={propertyOwnerName}
         invoiceDate={invoicePreviewInvoiceDate || currentInvoiceMonth}
         lineItems={
           invoicePreviewLineItems.length > 0

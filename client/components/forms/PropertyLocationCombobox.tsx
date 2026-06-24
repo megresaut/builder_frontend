@@ -26,7 +26,7 @@ interface PropertyItem {
 }
 
 interface PropertyLocationComboboxProps {
-  label: string;
+  label?: string;
   required?: boolean;
   error?: string;
   disabled?: boolean;
@@ -35,7 +35,9 @@ interface PropertyLocationComboboxProps {
   properties: PropertyItem[];
   propertyId: number | null;
   locationId: number | null;
-  onChange: (selection: { propertyId: number | null; locationId: number | null }) => void;
+  onChange: (selection: { propertyId: number | null; locationId: number | null; locationName: string | null }) => void;
+  /** "form" (default) wraps in FieldShell with a label. "cell" renders a bare trigger for use inside table cells. */
+  variant?: "form" | "cell";
 }
 
 const renderPropertyLabel = (p: PropertyItem) =>
@@ -50,7 +52,7 @@ const renderLocationLabel = (loc: LocationItem) =>
 type View = "properties" | "locations";
 
 export const PropertyLocationCombobox: React.FC<PropertyLocationComboboxProps> = ({
-  label,
+  label = "",
   required = false,
   error,
   disabled = false,
@@ -60,6 +62,7 @@ export const PropertyLocationCombobox: React.FC<PropertyLocationComboboxProps> =
   propertyId,
   locationId,
   onChange,
+  variant = "form",
 }) => {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>("properties");
@@ -146,7 +149,7 @@ export const PropertyLocationCombobox: React.FC<PropertyLocationComboboxProps> =
     const hasLocations = (prop.locations_count ?? 0) > 0;
     if (!hasLocations) {
       // No locations — select property directly
-      onChange({ propertyId: prop.id, locationId: null });
+      onChange({ propertyId: prop.id, locationId: null, locationName: null });
       setOpen(false);
     } else {
       // Drill into locations
@@ -169,9 +172,9 @@ export const PropertyLocationCombobox: React.FC<PropertyLocationComboboxProps> =
     if (!drillPropertyId) return;
     if (loc === null) {
       // "Property Level" selection
-      onChange({ propertyId: drillPropertyId, locationId: null });
+      onChange({ propertyId: drillPropertyId, locationId: null, locationName: null });
     } else {
-      onChange({ propertyId: drillPropertyId, locationId: loc.id });
+      onChange({ propertyId: drillPropertyId, locationId: loc.id, locationName: renderLocationLabel(loc) || null });
       setSelectedLocationLabel(renderLocationLabel(loc));
     }
     setOpen(false);
@@ -251,16 +254,25 @@ export const PropertyLocationCombobox: React.FC<PropertyLocationComboboxProps> =
   const isPropertyLevelSelected =
     propertyId === drillPropertyId && locationId === null;
 
-  return (
-    <FieldShell
-      label={label}
-      required={required}
-      error={error}
-      disabled={disabled}
-      htmlFor={fieldId}
-    >
-      <Popover open={open} onOpenChange={setOpen} modal={false}>
-        <PopoverTrigger asChild>
+  const popover = (
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
+      <PopoverTrigger asChild>
+        {variant === "cell" ? (
+          <button
+            type="button"
+            disabled={disabled}
+            className="w-full h-auto px-0 py-0 text-[13px] bg-transparent border-0 flex items-center justify-between text-left"
+            style={{ cursor: disabled ? "not-allowed" : "pointer" }}
+          >
+            <span
+              className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
+              style={{ color: selectedProperty ? "inherit" : "#9ca3af" }}
+            >
+              {triggerLabel}
+            </span>
+            <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 text-gray-400" />
+          </button>
+        ) : (
           <button
             id={fieldId}
             disabled={disabled}
@@ -296,7 +308,8 @@ export const PropertyLocationCombobox: React.FC<PropertyLocationComboboxProps> =
               style={{ color: "#303030" }}
             />
           </button>
-        </PopoverTrigger>
+        )}
+      </PopoverTrigger>
 
         <PopoverContent
           align="start"
@@ -584,6 +597,19 @@ export const PropertyLocationCombobox: React.FC<PropertyLocationComboboxProps> =
           </div>
         </PopoverContent>
       </Popover>
+  );
+
+  if (variant === "cell") return popover;
+
+  return (
+    <FieldShell
+      label={label}
+      required={required}
+      error={error}
+      disabled={disabled}
+      htmlFor={fieldId}
+    >
+      {popover}
     </FieldShell>
   );
 };

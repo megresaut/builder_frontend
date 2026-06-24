@@ -1628,6 +1628,42 @@ export default function TaskSummary() {
     [uiDispatch]
   );
 
+  const handleDownloadAttachment = useCallback(
+    async (file: { id: string | number; name?: string; url?: string; storage_path?: string }) => {
+      const fileName = file.name ?? (file as any).file_name ?? "file";
+      const attachmentId =
+        typeof file.id === "number" ? file.id : parseInt(String(file.id), 10);
+
+      let fetchPath: string;
+      if (!isNaN(attachmentId)) {
+        fetchPath = `/maintenance/attachments/${attachmentId}`;
+      } else if (file.storage_path) {
+        fetchPath = `/files?key=${encodeURIComponent(file.storage_path)}`;
+      } else if (file.url) {
+        fetchPath = file.url.replace(/^\/api/, "");
+      } else {
+        return;
+      }
+
+      try {
+        const res = await authFetch(fetchPath);
+        if (!res.ok) throw new Error("Failed to fetch file");
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      } catch (err) {
+        console.error("Download failed:", err);
+      }
+    },
+    []
+  );
+
   const getInitialUpdate = () => {
     const statusMap: { [key: string]: string } = {
       not_started: "Not Started",
@@ -3574,6 +3610,14 @@ export default function TaskSummary() {
                   return;
                 }
                 handleViewAttachment({
+                  id: file.id,
+                  name: file.name,
+                  url: (file as any).url,
+                  storage_path: (file as any).storage_path,
+                });
+              }}
+              onDownloadFile={(file) => {
+                handleDownloadAttachment({
                   id: file.id,
                   name: file.name,
                   url: (file as any).url,

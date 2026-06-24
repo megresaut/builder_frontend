@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ConciergeGLPicker } from "@/components/ConciergeGLPicker";
 import { BuildiumGLPicker } from "@/components/BuildiumGLPicker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PropertyLocationCombobox } from "@/components/forms/PropertyLocationCombobox";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -54,6 +55,7 @@ interface PropertyOption {
   id: number;
   name: string;
   property_type?: string | null;
+  locations_count?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -178,93 +180,274 @@ function ConfidenceRing({ value }: { value: number | null }) {
 // Expanded row detail
 // ---------------------------------------------------------------------------
 
+const VENDOR_PAGE_SIZE = 50;
+
+interface PropertyUnit {
+  id: number;
+  property_id: number;
+  buildium_unit_id: number | null;
+  unit_name: string;
+}
+
 interface DraftDetailProps {
   draft: BillDraft;
-  vendors: VendorOption[];
   properties: PropertyOption[];
   onApproved: (id: number) => void;
   onDeleted: (id: number) => void;
 }
 
-function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: DraftDetailProps) {
+interface LineItemState {
+  propertyId: string;
+  locationId: number | null;
+  locationName: string | null;
+  unit: string;
+  unitName: string;
+  amount: string;
+  upcharge: string;
+  description: string;
+  qboItemId: string;
+  qboItemName: string;
+  buildiumAccountId: string;
+  buildiumAccountName: string;
+}
+
+const emptyLineItem = (): LineItemState => ({
+  propertyId: "",
+  locationId: null,
+  locationName: null,
+  unit: "",
+  unitName: "",
+  amount: "",
+  upcharge: "",
+  description: "",
+  qboItemId: "",
+  qboItemName: "",
+  buildiumAccountId: "",
+  buildiumAccountName: "",
+});
+
+function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailProps) {
   const [vendorId, setVendorId] = useState<string>(draft.vendor_id?.toString() ?? "");
-  const [propertyId, setPropertyId] = useState<string>(draft.property_id?.toString() ?? "");
-  const [amount, setAmount] = useState<string>(draftAmount(draft) > 0 ? draftAmount(draft).toFixed(2) : "");
   const [invoiceNumber, setInvoiceNumber] = useState<string>(draft.invoice_number ?? "");
   const [statementDate, setStatementDate] = useState<string>(toDateInput(draft.statement_date));
   const [dueDate, setDueDate] = useState<string>(toDateInput(draft.due_date));
   const [memo, setMemo] = useState<string>(draft.memo ?? "");
-  const [description, setDescription] = useState<string>("");
-  const [upcharge, setUpcharge] = useState<string>("");
-  // GL account — three mutually exclusive variants matching RecordBill
-  const [qboItemId, setQboItemId] = useState<string>("");
-  const [qboItemName, setQboItemName] = useState<string>("");
-  const [buildiumAccountId, setBuildiumAccountId] = useState<string>("");
-  const [buildiumAccountName, setBuildiumAccountName] = useState<string>("");
+
+  const [lineItems, setLineItems] = useState<LineItemState[]>([{
+    propertyId: draft.property_id?.toString() ?? "",
+    locationId: null,
+    locationName: null,
+    unit: "",
+    unitName: "",
+    amount: draftAmount(draft) > 0 ? draftAmount(draft).toFixed(2) : "",
+    upcharge: "",
+    description: "",
+    qboItemId: "",
+    qboItemName: "",
+    buildiumAccountId: "",
+    buildiumAccountName: "",
+  }]);
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  const updateActiveItem = (patch: Partial<LineItemState>) => {
+    setLineItems(prev => prev.map((li, i) => i === activeIdx ? { ...li, ...patch } : li));
+  };
+
+  const [unitsByProperty, setUnitsByProperty] = useState<Record<string, PropertyUnit[]>>({});
+
+  const loadUnitsForProperty = useCallback(async (propertyIdStr: string) => {
+    const propertyId = Number(propertyIdStr);
+    if (!propertyId) return;
+    if (unitsByProperty[propertyIdStr]) return;
+    try {
+      const list = await fetchJSON(`/properties/${propertyId}/units`);
+      const units: PropertyUnit[] = (list || []).map((u: any) => ({
+        id: u.id,
+        property_id: u.property_id,
+        buildium_unit_id: u.buildium_unit_id ?? null,
+        unit_name: u.unit_name,
+      }));
+      setUnitsByProperty(prev => ({ ...prev, [propertyIdStr]: units }));
+    } catch {
+      setUnitsByProperty(prev => ({ ...prev, [propertyIdStr]: [] }));
+    }
+  }, [unitsByProperty]);
+
+  // Paginated vendor state — same pattern as CreateWorkOrderModalV2
+  const [vendors, setVendors] = useState<VendorOption[]>([]);
   const [vendorSearch, setVendorSearch] = useState("");
-  const [propertySearch, setPropertySearch] = useState("");
+  const [vendorOffset, setVendorOffset] = useState(0);
+  const [vendorHasMore, setVendorHasMore] = useState(true);
+  const [vendorLoading, setVendorLoading] = useState(false);
+  const [isVendorDropdownOpen, setIsVendorDropdownOpen] = useState(false);
+  const vendorRequestIdRef = useRef(0);
+
+  const fetchVendorsPage = useCallback(async (search: string, offset: number, append: boolean) => {
+    const requestId = ++vendorRequestIdRef.current;
+    setVendorLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: VENDOR_PAGE_SIZE.toString() });
+      if (offset > 0) params.set("offset", offset.toString());
+      if (search.trim()) params.set("search", search.trim());
+      const list: VendorOption[] = await fetchJSON(`/vendors?${params.toString()}`);
+      if (requestId !== vendorRequestIdRef.current) return;
+      setVendors((prev) => (append ? [...prev, ...list] : list));
+      setVendorHasMore(list.length === VENDOR_PAGE_SIZE);
+      setVendorOffset(offset + list.length);
+    } catch {
+      if (requestId !== vendorRequestIdRef.current) return;
+      if (!append) setVendors([]);
+      setVendorHasMore(false);
+    } finally {
+      if (requestId === vendorRequestIdRef.current) setVendorLoading(false);
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => { fetchVendorsPage("", 0, false); }, [fetchVendorsPage]);
+
+  // Search debounce
+  useEffect(() => {
+    if (!isVendorDropdownOpen) return;
+    const id = window.setTimeout(() => fetchVendorsPage(vendorSearch, 0, false), 250);
+    return () => window.clearTimeout(id);
+  }, [vendorSearch, isVendorDropdownOpen, fetchVendorsPage]);
+
+  // If draft has a pre-matched vendor_id that isn't in the loaded page, fetch it individually
+  useEffect(() => {
+    if (!draft.vendor_id || vendorSearch.trim()) return;
+    if (vendors.some((v) => v.id === draft.vendor_id)) return;
+    fetchJSON(`/vendors/${draft.vendor_id}`).then((v: any) => {
+      if (v?.id) setVendors((prev) => prev.some((x) => x.id === v.id) ? prev : [{ id: v.id, name: v.name }, ...prev]);
+    }).catch(() => {});
+  }, [draft.vendor_id, vendors, vendorSearch]);
+
+  const handleVendorScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (!vendorHasMore || vendorLoading) return;
+    const t = e.currentTarget;
+    if (t.scrollTop + t.clientHeight >= t.scrollHeight - 24) {
+      fetchVendorsPage(vendorSearch, vendorOffset, true);
+    }
+  }, [vendorHasMore, vendorLoading, vendorSearch, vendorOffset, fetchVendorsPage]);
+
+
   const [approving, setApproving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [alreadyBooked, setAlreadyBooked] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  const selectedProp = properties.find((p) => p.id.toString() === propertyId);
-  const filteredVendors = vendors.filter((v) => v.name.toLowerCase().includes(vendorSearch.toLowerCase()));
-  const filteredProperties = properties.filter((p) => p.name.toLowerCase().includes(propertySearch.toLowerCase()));
-  const isConcierge = selectedProp?.property_type === "C";
-  const hasNonConciergeProp = !!selectedProp && selectedProp.property_type !== "C";
-
-  // Clear GL selection when property changes (type may switch concierge ↔ non-concierge)
-  const handlePropertyChange = (newPropId: string) => {
-    setPropertyId(newPropId);
-    setQboItemId("");
-    setQboItemName("");
-    setBuildiumAccountId("");
-    setBuildiumAccountName("");
-  };
+  const [attachmentMime, setAttachmentMime] = useState<string | null>(null);
 
   const token = localStorage.getItem("avm_token") ?? "";
   const attachmentUrl = `${API_BASE}/vendors/bill-drafts/${draft.id}/attachment?token=${encodeURIComponent(token)}`;
 
+  useEffect(() => {
+    fetch(attachmentUrl, { method: "HEAD" })
+      .then((r) => setAttachmentMime(r.headers.get("Content-Type") ?? ""))
+      .catch(() => setAttachmentMime(""));
+  }, [attachmentUrl]);
+
+  const isPreviewable = attachmentMime === null || attachmentMime.startsWith("application/pdf") || attachmentMime.startsWith("image/");
+
+  // Load units for any pre-populated properties on mount
+  useEffect(() => {
+    lineItems.forEach(li => { if (li.propertyId) loadUnitsForProperty(li.propertyId); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-set unit to Property Level for concierge items once properties are known
+  useEffect(() => {
+    if (!properties.length) return;
+    setLineItems(prev => prev.map(li => {
+      if (li.unit) return li;
+      const prop = properties.find(p => p.id.toString() === li.propertyId);
+      if (prop?.property_type === "C") return { ...li, unit: "__property__", unitName: "Property Level" };
+      return li;
+    }));
+  }, [properties]);
+
+  const activeItem = lineItems[activeIdx];
+  const selectedProp = properties.find((p) => p.id.toString() === activeItem.propertyId);
+  const isConcierge = selectedProp?.property_type === "C";
+  const hasNonConciergeProp = !!selectedProp && selectedProp.property_type !== "C";
+
+  const handlePropertyChange = (newPropId: string, newLocationId: number | null = null, newLocationName: string | null = null) => {
+    const newProp = properties.find(p => p.id.toString() === newPropId);
+    const isNewConcierge = newProp?.property_type === "C";
+    updateActiveItem({
+      propertyId: newPropId,
+      locationId: newLocationId,
+      locationName: newLocationName,
+      unit: isNewConcierge ? "__property__" : "",
+      unitName: isNewConcierge ? "Property Level" : "",
+      qboItemId: "",
+      qboItemName: "",
+      buildiumAccountId: "",
+      buildiumAccountName: "",
+    });
+    if (newPropId) loadUnitsForProperty(newPropId);
+  };
+
+  const handleAddLineItem = () => {
+    setLineItems(prev => [...prev, emptyLineItem()]);
+    setActiveIdx(lineItems.length);
+  };
+
   const handleApprove = async () => {
-    const amountCents = Math.round(parseFloat(amount || "0") * 100);
     if (!vendorId) { toast.error("Vendor is required."); return; }
-    if (!propertyId) { toast.error("Property is required."); return; }
-    if (!amountCents) { toast.error("Amount is required."); return; }
-    if (isConcierge && !qboItemId) { toast.error("GL Account is required."); return; }
-    if (hasNonConciergeProp && !buildiumAccountId) { toast.error("GL Account is required."); return; }
     if (!statementDate) { toast.error("Statement Date is required."); return; }
     if (!dueDate) { toast.error("Due Date is required."); return; }
 
-    const upchargeCents = Math.round(parseFloat(upcharge || "0") * 100);
+    for (let i = 0; i < lineItems.length; i++) {
+      const li = lineItems[i];
+      const tag = lineItems.length > 1 ? ` (line item ${i + 1})` : "";
+      const ac = Math.round(parseFloat(li.amount || "0") * 100);
+      const liProp = properties.find(p => p.id.toString() === li.propertyId);
+      const liIsConcierge = liProp?.property_type === "C";
+      const liHasNonConcierge = !!liProp && liProp.property_type !== "C";
+      if (!li.propertyId) { toast.error(`Property is required${tag}.`); return; }
+      if (!ac) { toast.error(`Amount is required${tag}.`); return; }
+      if (liIsConcierge && !li.qboItemId) { toast.error(`GL Account is required${tag}.`); return; }
+      if (liHasNonConcierge && !li.buildiumAccountId) { toast.error(`GL Account is required${tag}.`); return; }
+    }
+
+    const builtLineItems = lineItems.map((li, i) => {
+      const ac = Math.round(parseFloat(li.amount || "0") * 100);
+      const uc = Math.round(parseFloat(li.upcharge || "0") * 100);
+      const liProp = properties.find(p => p.id.toString() === li.propertyId);
+      const liIsConcierge = liProp?.property_type === "C";
+      const liHasNonConcierge = !!liProp && liProp.property_type !== "C";
+      return {
+        line_id: i,
+        property_id: parseInt(li.propertyId, 10),
+        location_id: li.locationId ?? null,
+        location_name: li.locationName ?? null,
+        unit: li.unit || (liIsConcierge ? "__property__" : ""),
+        unit_name: li.unitName || (liIsConcierge ? "Property Level" : ""),
+        description: li.description || (invoiceNumber ? `Invoice ${invoiceNumber}` : "Invoice"),
+        gl_account_id: "",
+        gl_account_name: "",
+        qbo_item_id: liIsConcierge ? li.qboItemId : "",
+        qbo_item_name: liIsConcierge ? li.qboItemName : "",
+        buildium_account_id: liHasNonConcierge ? li.buildiumAccountId : "",
+        buildium_account_name: liHasNonConcierge ? li.buildiumAccountName : "",
+        amount_cents: ac,
+        upcharge_cents: uc,
+      };
+    });
 
     setApproving(true);
     try {
-      const propIdNum = parseInt(propertyId, 10);
       const venIdNum = parseInt(vendorId, 10);
       const result = await fetchJSON(`/vendors/bill-drafts/${draft.id}/approve`, {
         method: "POST",
         body: JSON.stringify({
           vendor_id: venIdNum,
-          property_id: propIdNum,
+          property_id: parseInt(lineItems[0].propertyId, 10),
           invoice_number: invoiceNumber || null,
           statement_date: statementDate ? new Date(statementDate).toISOString() : null,
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           memo: memo || null,
-          line_items: [{
-            line_id: 0,
-            property_id: propIdNum,
-            unit: isConcierge ? "__property__" : "",
-            description: description || (invoiceNumber ? `Invoice ${invoiceNumber}` : "Invoice"),
-            gl_account_id: isConcierge || buildiumAccountId ? "" : "",
-            gl_account_name: "",
-            qbo_item_id: isConcierge ? qboItemId : "",
-            qbo_item_name: isConcierge ? qboItemName : "",
-            buildium_account_id: hasNonConciergeProp ? buildiumAccountId : "",
-            buildium_account_name: hasNonConciergeProp ? buildiumAccountName : "",
-            amount_cents: amountCents,
-            upcharge_cents: upchargeCents,
-          }],
+          line_items: builtLineItems,
         }),
       });
       if (result?.push_warning) {
@@ -320,7 +503,7 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
             <Select
               value={vendorId}
               onValueChange={(v) => { setVendorId(v); setVendorSearch(""); }}
-              onOpenChange={(open) => { if (!open) setVendorSearch(""); }}
+              onOpenChange={(open) => { setIsVendorDropdownOpen(open); if (!open) setVendorSearch(""); }}
             >
               <SelectTrigger className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030]">
                 <SelectValue placeholder="— Select vendor —" />
@@ -329,9 +512,12 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
                 <div className="p-2 border-b border-[#e5e7eb]">
                   <input autoFocus placeholder="Search vendors…" value={vendorSearch} onChange={(e) => setVendorSearch(e.target.value)} onKeyDown={(e) => e.stopPropagation()} className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]" />
                 </div>
-                <div className="max-h-[240px] overflow-y-auto">
-                  {filteredVendors.length === 0 && <div className="px-3 py-2 text-sm text-[#aaa]">No vendors found</div>}
-                  {filteredVendors.map((v) => <SelectItem key={v.id} value={v.id.toString()}>{v.name}</SelectItem>)}
+                <div className="max-h-[240px] overflow-y-auto" onScroll={handleVendorScroll}>
+                  {vendorLoading && vendors.length === 0 && <div className="px-3 py-2 text-sm text-[#aaa]">Loading…</div>}
+                  {!vendorLoading && vendors.length === 0 && <div className="px-3 py-2 text-sm text-[#aaa]">No vendors found</div>}
+                  {vendors.map((v) => <SelectItem key={v.id} value={v.id.toString()}>{v.name}</SelectItem>)}
+                  {vendorLoading && vendors.length > 0 && <div className="px-3 py-2 text-xs text-[#aaa]">Loading more…</div>}
+                  {!vendorLoading && vendorHasMore && vendors.length > 0 && <div className="px-3 py-2 text-xs text-[#aaa]">Scroll for more</div>}
                 </div>
               </SelectContent>
             </Select>
@@ -345,97 +531,15 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
             )}
           </div>
 
+          {/* Bill-level fields */}
           <div>
-            <label className="block text-xs font-medium text-[#717179] mb-1">Property<span className="text-red-400 ml-0.5">*</span></label>
-            <Select
-              value={propertyId}
-              onValueChange={(v) => { handlePropertyChange(v); setPropertySearch(""); }}
-              onOpenChange={(open) => { if (!open) setPropertySearch(""); }}
-            >
-              <SelectTrigger className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030]">
-                <SelectValue placeholder="— Select property —" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-[#e5e7eb] shadow-md p-0" onKeyDown={(e) => { const t = e.target as HTMLElement; if (t.tagName === "INPUT") e.stopPropagation(); }}>
-                <div className="p-2 border-b border-[#e5e7eb]">
-                  <input autoFocus placeholder="Search properties…" value={propertySearch} onChange={(e) => setPropertySearch(e.target.value)} onKeyDown={(e) => e.stopPropagation()} className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]" />
-                </div>
-                <div className="max-h-[240px] overflow-y-auto">
-                  {filteredProperties.length === 0 && <div className="px-3 py-2 text-sm text-[#aaa]">No properties found</div>}
-                  {filteredProperties.map((p) => <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>)}
-                </div>
-              </SelectContent>
-            </Select>
-            {draft.property_match_status && (
-              <div className="mt-1">
-                <MatchBadge status={draft.property_match_status} score={draft.property_match_score} />
-              </div>
-            )}
-            {draft.service_address && (
-              <p className="mt-0.5 text-[10px] text-[#999]">Address on invoice: {draft.service_address}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-[#717179] mb-1">Amount ($)<span className="text-red-400 ml-0.5">*</span></label>
-              <input
-                type="number" step="0.01" value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#717179] mb-1">Upcharge ($)</label>
-              <input
-                type="number" step="0.01" value={upcharge}
-                onChange={(e) => setUpcharge(e.target.value)}
-                className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-[#717179] mb-1">Invoice #</label>
-              <input
-                type="text" value={invoiceNumber}
-                onChange={(e) => setInvoiceNumber(e.target.value)}
-                className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
-                placeholder="Optional"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#717179] mb-1">Description</label>
-              <input
-                type="text" value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
-                placeholder="Optional"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-[#717179] mb-1">
-              GL Account{(isConcierge || hasNonConciergeProp) && <span className="text-red-400 ml-0.5">*</span>}
-            </label>
-            <div className="w-full min-h-[32px] rounded-lg border border-[#e5e5e5] bg-white px-2.5 flex items-center">
-              {isConcierge ? (
-                <ConciergeGLPicker
-                  value={qboItemId}
-                  onChange={(id, name) => { setQboItemId(id); setQboItemName(name); }}
-                />
-              ) : hasNonConciergeProp ? (
-                <BuildiumGLPicker
-                  value={buildiumAccountId}
-                  onChange={(id, name) => { setBuildiumAccountId(id); setBuildiumAccountName(name); }}
-                />
-              ) : (
-                <span className="text-xs text-[#aaa]">Select a property first</span>
-              )}
-            </div>
+            <label className="block text-xs font-medium text-[#717179] mb-1">Invoice #</label>
+            <input
+              type="text" value={invoiceNumber}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
+              className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
+              placeholder="Optional"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -467,6 +571,139 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
             />
           </div>
 
+          {/* Line Items section */}
+          <div className="pt-2 border-t border-[#ebebeb]">
+            {/* Nav row */}
+            <div className="flex items-center justify-between mb-3">
+              <button
+                type="button"
+                onClick={() => setActiveIdx(i => Math.max(0, i - 1))}
+                disabled={activeIdx === 0}
+                className="flex items-center justify-center w-6 h-6 rounded border border-[#e5e5e5] bg-white text-[#717179] hover:bg-[#f5f5f5] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6.5 1.5L3 5l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <span className="text-xs text-[#717179]">Line item {activeIdx + 1} of {lineItems.length}</span>
+              <button
+                type="button"
+                onClick={() => setActiveIdx(i => Math.min(lineItems.length - 1, i + 1))}
+                disabled={activeIdx === lineItems.length - 1}
+                className="flex items-center justify-center w-6 h-6 rounded border border-[#e5e5e5] bg-white text-[#717179] hover:bg-[#f5f5f5] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3.5 1.5L7 5l-3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <PropertyLocationCombobox
+                    label="Property"
+                    required
+                    placeholder="— Select property —"
+                    properties={properties}
+                    propertyId={activeItem.propertyId ? Number(activeItem.propertyId) : null}
+                    locationId={activeItem.locationId}
+                    onChange={({ propertyId: pid, locationId: lid, locationName: lname }) => {
+                      handlePropertyChange(pid != null ? String(pid) : "", lid, lname);
+                    }}
+                  />
+                  {activeIdx === 0 && draft.property_match_status && (
+                    <div className="mt-1">
+                      <MatchBadge status={draft.property_match_status} score={draft.property_match_score} />
+                    </div>
+                  )}
+                  {activeIdx === 0 && draft.service_address && (
+                    <p className="mt-0.5 text-[10px] text-[#999]">Address on invoice: {draft.service_address}</p>
+                  )}
+                </div>
+                <div>
+                  <label style={{ display: "block", fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif", fontSize: "14px", fontWeight: 500, color: "var(--color-text-primary)", lineHeight: 1.43, marginBottom: "8px", userSelect: "none" }}>Unit</label>
+                  <Select
+                    value={activeItem.unit || ""}
+                    disabled={!activeItem.propertyId}
+                    onValueChange={(val) => {
+                      if (val === "__property__") {
+                        updateActiveItem({ unit: "__property__", unitName: "Property Level" });
+                      } else {
+                        const units = unitsByProperty[activeItem.propertyId] || [];
+                        const selected = units.find(u => (u.buildium_unit_id?.toString() ?? `internal-${u.id}`) === val);
+                        updateActiveItem({ unit: val, unitName: selected?.unit_name ?? val });
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full h-11 px-3 rounded-lg border border-[var(--color-border-light)] bg-white text-sm text-[#303030] font-normal disabled:opacity-50">
+                      <SelectValue placeholder={activeItem.propertyId ? "Select unit" : "Select property first"} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-[#e5e7eb] shadow-md p-0">
+                      <SelectItem value="__property__">Property Level</SelectItem>
+                      {(unitsByProperty[activeItem.propertyId] || [])
+                        .slice()
+                        .sort((a, b) => a.unit_name.localeCompare(b.unit_name))
+                        .map(u => (
+                          <SelectItem key={u.id} value={u.buildium_unit_id?.toString() ?? `internal-${u.id}`}>
+                            {u.unit_name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-[#717179] mb-1">Amount ($)<span className="text-red-400 ml-0.5">*</span></label>
+                  <input
+                    type="number" step="0.01" value={activeItem.amount}
+                    onChange={(e) => updateActiveItem({ amount: e.target.value })}
+                    className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[#717179] mb-1">Upcharge ($)</label>
+                  <input
+                    type="number" step="0.01" value={activeItem.upcharge}
+                    onChange={(e) => updateActiveItem({ upcharge: e.target.value })}
+                    className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#717179] mb-1">Description</label>
+                <input
+                  type="text" value={activeItem.description}
+                  onChange={(e) => updateActiveItem({ description: e.target.value })}
+                  className="w-full h-8 px-2.5 rounded-lg border border-[#e5e5e5] bg-white text-sm text-[#303030] focus:outline-none focus:border-[#c0c0c0]"
+                  placeholder="Optional"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#717179] mb-1">
+                  GL Account{(isConcierge || hasNonConciergeProp) && <span className="text-red-400 ml-0.5">*</span>}
+                </label>
+                <div className="w-full min-h-[32px] rounded-lg border border-[#e5e5e5] bg-white px-2.5 flex items-center">
+                  {isConcierge ? (
+                    <ConciergeGLPicker
+                      value={activeItem.qboItemId}
+                      onChange={(id, name) => updateActiveItem({ qboItemId: id, qboItemName: name })}
+                    />
+                  ) : hasNonConciergeProp ? (
+                    <BuildiumGLPicker
+                      value={activeItem.buildiumAccountId}
+                      onChange={(id, name) => updateActiveItem({ buildiumAccountId: id, buildiumAccountName: name })}
+                    />
+                  ) : (
+                    <span className="text-xs text-[#aaa]">Select a property first</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {draft.parse_error && draft.parse_error !== "none" && (
             <div className="px-3 py-2 rounded-lg bg-red-50 border border-red-100 text-xs text-red-600">
               <span className="font-semibold">Parse error:</span> {draft.parse_error}
@@ -482,48 +719,93 @@ function DraftDetail({ draft, vendors, properties, onApproved, onDeleted }: Draf
             </div>
           )}
 
-          <div className="flex items-center gap-2 pt-2">
+          {(() => {
+            const subtotal = lineItems.reduce((sum, li) => sum + Math.round(parseFloat(li.amount || "0") * 100), 0);
+            const upchargeTotal = lineItems.reduce((sum, li) => sum + Math.round(parseFloat(li.upcharge || "0") * 100), 0);
+            const grandTotal = subtotal + upchargeTotal;
+            const fmt = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+            return (
+              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#f5f5f5] border border-[#ebebeb] text-sm">
+                <div className="flex items-center gap-4 text-[#717179]">
+                  <span>Subtotal <span className="text-[#303030] font-medium">{fmt(subtotal)}</span></span>
+                  {upchargeTotal > 0 && <span>Upcharge <span className="text-[#303030] font-medium">{fmt(upchargeTotal)}</span></span>}
+                </div>
+                <span className="font-semibold text-[#303030]">Total {fmt(grandTotal)}</span>
+              </div>
+            );
+          })()}
+
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleApprove}
+                disabled={approving || deleting}
+                className="flex items-center gap-1.5 h-8 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {approving ? (
+                  <>
+                    <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 16 16" fill="none">
+                      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" className="opacity-25" />
+                      <path d="M2 8a6 6 0 0 1 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-75" />
+                    </svg>
+                    Approving…
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                    Approve
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={approving || deleting}
+                className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#e5e5e5] bg-white text-sm text-red-500 hover:bg-red-50 hover:border-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleting ? "Dismissing…" : "Dismiss"}
+              </button>
+            </div>
             <button
-              onClick={handleApprove}
-              disabled={approving || deleting}
-              className="flex items-center gap-1.5 h-8 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={handleAddLineItem}
+              className="flex items-center gap-1 text-xs text-[#013764] hover:text-[#012a50] font-medium transition-colors"
             >
-              {approving ? (
-                <>
-                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 16 16" fill="none">
-                    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" className="opacity-25" />
-                    <path d="M2 8a6 6 0 0 1 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-75" />
-                  </svg>
-                  Approving…
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
-                  Approve
-                </>
-              )}
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={approving || deleting}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#e5e5e5] bg-white text-sm text-red-500 hover:bg-red-50 hover:border-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {deleting ? "Dismissing…" : "Dismiss"}
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              Add Line Item
             </button>
           </div>
         </div>
 
-        {/* Right: PDF preview */}
+        {/* Right: attachment preview */}
         <div className="relative min-h-[400px] lg:min-h-0">
-          <iframe
-            ref={iframeRef}
-            src={attachmentUrl}
-            className="absolute inset-0 w-full h-full border-0 rounded-br-xl"
-            title={`Draft ${draft.id} attachment`}
-          />
+          {isPreviewable ? (
+            <iframe
+              ref={iframeRef}
+              src={attachmentUrl}
+              className="absolute inset-0 w-full h-full border-0 rounded-br-xl"
+              title={`Draft ${draft.id} attachment`}
+            />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#F8F8F8] rounded-br-xl">
+              <div className="text-4xl">📄</div>
+              <p className="text-sm font-medium text-[#303030]">
+                {draft.vendor_hint_subject?.split("/").pop() ?? "Attachment"}
+              </p>
+              <p className="text-xs text-[#6B7280]">
+                This file type cannot be previewed in the browser.
+              </p>
+              <a
+                href={attachmentUrl + "&download=1"}
+                download
+                className="mt-1 rounded-md border border-[#DADADA] bg-white px-4 py-2 text-sm font-medium text-[#303030] hover:bg-gray-50"
+              >
+                Download file
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -539,7 +821,6 @@ const GRID = "28px 1fr 150px 85px 90px 80px 90px 90px 64px";
 
 export default function BillDrafts() {
   const [drafts, setDrafts] = useState<BillDraft[]>([]);
-  const [vendors, setVendors] = useState<VendorOption[]>([]);
   const [properties, setProperties] = useState<PropertyOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -563,12 +844,8 @@ export default function BillDrafts() {
 
   useEffect(() => {
     loadDrafts();
-    Promise.all([
-      fetchJSON("/vendors?limit=1000&offset=0").catch(() => []),
-      fetchJSON("/properties").catch(() => []),
-    ]).then(([vens, props]) => {
-      setVendors((Array.isArray(vens) ? vens : []).map((v: any) => ({ id: v.id, name: v.name })));
-      setProperties((Array.isArray(props) ? props : []).map((p: any) => ({ id: p.id, name: p.name, property_type: p.property_type ?? null })));
+    fetchJSON("/properties").catch(() => []).then((props: any) => {
+      setProperties((Array.isArray(props) ? props : []).map((p: any) => ({ id: p.id, name: p.name, property_type: p.property_type ?? null, locations_count: p.locations_count ?? 0 })));
     });
   }, [loadDrafts]);
 
@@ -904,7 +1181,6 @@ export default function BillDrafts() {
                 {isExpanded && (
                   <DraftDetail
                     draft={draft}
-                    vendors={vendors}
                     properties={properties}
                     onApproved={handleApproved}
                     onDeleted={handleDeleted}

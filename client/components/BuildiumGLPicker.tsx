@@ -4,6 +4,7 @@
 // pushed straight to Buildium at bill-save time — no chart_of_accounts
 // indirection — and QBO push is skipped for non-Concierge bills entirely.
 import { useEffect, useState } from "react";
+import { Search, X } from "lucide-react";
 
 import {
   Select,
@@ -99,6 +100,7 @@ export function BuildiumGLPicker({ value, disabled, onChange }: Props) {
       </SelectTrigger>
       <SelectContent
         className="bg-white border border-[#E5E7EB] shadow-md p-0"
+        style={{ minWidth: "380px" }}
         onKeyDown={(e) => {
           if (e.key === "Escape") e.stopPropagation();
           const t = e.target as HTMLElement;
@@ -106,18 +108,35 @@ export function BuildiumGLPicker({ value, disabled, onChange }: Props) {
         }}
       >
         <div className="p-2 border-b border-[#E5E7EB]">
-          <input
-            autoFocus
-            placeholder="Type to search…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.stopPropagation()}
-            onFocus={(e) => e.stopPropagation()}
-            className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
-          />
+          <div className="relative flex items-center">
+            <Search className="absolute left-2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+            <input
+              autoFocus
+              placeholder="Search accounts…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              onFocus={(e) => e.stopPropagation()}
+              className="w-full rounded-md border pl-7 pr-7 py-1.5 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+            />
+            {search && (
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); setSearch(""); }}
+                className="absolute right-2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          {term && (
+            <p className="mt-1 px-1 text-[11px] text-gray-400">
+              {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+            </p>
+          )}
         </div>
 
-        <div className="max-h-[280px] overflow-y-auto">
+        <div className="max-h-[320px] overflow-y-auto">
           {loadError && (
             <div className="px-3 py-2 text-sm text-red-500">
               Failed to load accounts: {loadError}
@@ -136,15 +155,21 @@ export function BuildiumGLPicker({ value, disabled, onChange }: Props) {
 
           {groups.map((g) => (
             <SelectGroup key={g.type}>
-              <SelectLabel className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-500">
+              <SelectLabel className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400 font-semibold">
                 {g.type}
               </SelectLabel>
               {g.items.map((a) => (
                 <SelectItem
                   key={a.buildium_account_id}
                   value={a.buildium_account_id.toString()}
+                  className="text-[13px]"
                 >
-                  {a.name}
+                  {a.number ? (
+                    <span className="flex items-center gap-2">
+                      <span className="text-[11px] text-gray-400 font-mono tabular-nums w-10 shrink-0">{a.number}</span>
+                      {a.name}
+                    </span>
+                  ) : a.name}
                 </SelectItem>
               ))}
             </SelectGroup>

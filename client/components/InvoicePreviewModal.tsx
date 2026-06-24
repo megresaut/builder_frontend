@@ -1017,6 +1017,9 @@ export default function InvoicePreviewModal({
                         paddingBottom: "8px",
                         borderBottom: "1px solid #BF8F00",
                         font: "700 9px/16.5px Arial, sans-serif",
+                        width: "175px",
+                        minWidth: "175px",
+                        maxWidth: "175px",
                       }}
                     >
                       Vendors
@@ -1067,6 +1070,10 @@ export default function InvoicePreviewModal({
                           borderBottom: "1px solid #BF8F00",
                           verticalAlign: "middle",
                           position: "relative",
+                          width: "175px",
+                          minWidth: "175px",
+                          maxWidth: "175px",
+                          overflow: "hidden",
                         }}
                       >
                         <div
@@ -1134,21 +1141,23 @@ export default function InvoicePreviewModal({
                             outline: "none",
                             background: "transparent",
                             color: "#002060",
-                            overflowWrap: "anywhere",
-                            wordWrap: "anywhere",
                             font: "400 9px Arial, sans-serif",
                             padding: 0,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
                           }}
                         />
                         <span
                           className="print-only"
                           style={{
-                            display: "inline-block",
+                            display: "block",
                             width: "100%",
                             color: "#002060",
-                            overflowWrap: "anywhere",
-                            wordWrap: "anywhere",
                             font: "400 9px/16.5px Arial, sans-serif",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {item.vendor}
@@ -1165,7 +1174,13 @@ export default function InvoicePreviewModal({
                       >
                         <input
                           type="text"
-                          value={item.description}
+                          value={(() => {
+                            const datePrefix = item.billDate
+                              ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }) + " "
+                              : "";
+                            const invSuffix = item.billInvoiceNumber ? ` · #${item.billInvoiceNumber}` : "";
+                            return `${datePrefix}${item.description}${invSuffix}`;
+                          })()}
                           data-field="description"
                           onChange={(e) =>
                             handleUpdateLineItem(
@@ -1187,17 +1202,6 @@ export default function InvoicePreviewModal({
                             padding: 0,
                           }}
                         />
-                        {(() => {
-                          const dateStr = item.billDate
-                            ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
-                            : null;
-                          const meta = [dateStr, item.billInvoiceNumber ? `#${item.billInvoiceNumber}` : null].filter(Boolean).join(" · ");
-                          return meta ? (
-                            <div className="no-print" style={{ color: "#8C8C8C", font: "400 8px Arial, sans-serif", marginTop: "1px" }}>
-                              {meta}
-                            </div>
-                          ) : null;
-                        })()}
                         <span
                           className="print-only"
                           style={{
@@ -1209,17 +1213,12 @@ export default function InvoicePreviewModal({
                             font: "400 9px/16.5px Arial, sans-serif",
                           }}
                         >
-                          {item.description}
                           {(() => {
-                            const dateStr = item.billDate
-                              ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
-                              : null;
-                            const meta = [dateStr, item.billInvoiceNumber ? `#${item.billInvoiceNumber}` : null].filter(Boolean).join(" · ");
-                            return meta ? (
-                              <span style={{ display: "block", color: "#8C8C8C", font: "400 7.5px/14px Arial, sans-serif" }}>
-                                {meta}
-                              </span>
-                            ) : null;
+                            const datePrefix = item.billDate
+                              ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }) + " "
+                              : "";
+                            const invSuffix = item.billInvoiceNumber ? ` · #${item.billInvoiceNumber}` : "";
+                            return `${datePrefix}${item.description}${invSuffix}`;
                           })()}
                         </span>
                       </td>

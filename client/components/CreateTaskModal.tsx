@@ -82,7 +82,7 @@ interface CreateTaskModalProps {
   /** When opening for create (no editData), preselect this property (e.g. from property page). */
   defaultPropertyId?: number;
   /** Draft review mode — shows Approve/Reject instead of Update/Cancel */
-  onApprove?: () => void;
+  onApprove?: (overrides: Record<string, any>) => Promise<void>;
   onReject?: () => void;
 }
 
@@ -597,6 +597,29 @@ export default function CreateTaskModal({
     window.dispatchEvent(new CustomEvent("refreshAllTasks", { detail }));
   };
 
+  const handleApproveClick = async () => {
+    if (!validateForm() || !onApprove) return;
+    const priorityMap: Record<"normal" | "low" | "high" | "urgent", string> = {
+      low: "low", normal: "medium", high: "high", urgent: "urgent",
+    };
+    const statusMap: Record<string, string> = {
+      not_started: "open", in_progress: "in_progress", completed: "completed",
+      deferred: "deferred", closed: "closed", cancelled: "cancelled",
+    };
+    const overrides: Record<string, any> = {
+      property_id: selectedPropertyId,
+      name: title.trim(),
+      priority: priorityMap[priority] ?? priority,
+      status: statusMap[status] ?? status,
+    };
+    if (selectedLocationId !== null) overrides.location_id = selectedLocationId;
+    if (selectedUnitId !== null) overrides.unit_id = selectedUnitId;
+    if (description.trim()) overrides.description = description.trim();
+    if (dueDate) overrides.due_date = dueDate.toISOString();
+    if (assigneeIds.length > 0) overrides.assignees = assigneeIds;
+    await onApprove(overrides);
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
@@ -948,7 +971,7 @@ export default function CreateTaskModal({
               </button>
               <button
                 type="button"
-                onClick={onApprove}
+                onClick={handleApproveClick}
                 className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
               >
                 Approve

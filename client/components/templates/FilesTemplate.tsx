@@ -1,5 +1,5 @@
 import React from "react";
-import { EditIcon, DeleteIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, DownloadIcon } from "@/components/icons";
 import PopoverActionsDropdown from "@/components/PopoverActionsDropdown";
 import {
   SectionRowTemplate,
@@ -25,6 +25,7 @@ interface FilesTemplateProps {
   onEdit: (file: File) => void;
   onDelete: (fileId: number) => void;
   onView: (file: File) => void;
+  onDownload?: (file: File) => void;
   isLast?: boolean;
   emptyMessage?: string;
 }
@@ -41,6 +42,7 @@ export const FilesTemplate: React.FC<FilesTemplateProps> = ({
   onEdit,
   onDelete,
   onView,
+  onDownload,
   isLast = true,
   emptyMessage = "You don't have any files right now.",
 }) => {
@@ -111,6 +113,17 @@ export const FilesTemplate: React.FC<FilesTemplateProps> = ({
                       row={file}
                       rowKey="id"
                       actions={[
+                        ...(onDownload ? [{
+                          label: "Download",
+                          icon: (
+                            <DownloadIcon
+                              width={18}
+                              height={18}
+                              color="#303030"
+                            />
+                          ),
+                          onClick: () => onDownload(file),
+                        }] : []),
                         {
                           label: "Edit",
                           icon: (

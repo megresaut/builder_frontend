@@ -84,6 +84,7 @@ interface SummaryTabProps {
   onEditFile: (file: File) => void;
   onDeleteFile: (fileId: number) => void;
   onViewFile: (file: File) => void;
+  onDownloadFile?: (file: File) => void;
   onLinkTasks: () => void;
   onUnlinkTask: (taskId: number) => void;
   onTaskClick: (taskId: number) => void;
@@ -144,6 +145,7 @@ export default function SummaryTab({
   onEditFile,
   onDeleteFile,
   onViewFile,
+  onDownloadFile,
   onLinkTasks,
   onUnlinkTask,
   onTaskClick,
@@ -286,6 +288,7 @@ export default function SummaryTab({
             onEdit={onEditFile}
             onDelete={onDeleteFile}
             onView={onViewFile}
+            onDownload={onDownloadFile}
           />
         </SectionCard>
 

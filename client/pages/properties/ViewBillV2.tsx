@@ -50,6 +50,8 @@ const TEXT_MUTED = "#717179";
 interface ApiLineItem {
   line_id?: number;
   property_id?: number;
+  location_id?: number | null;
+  location_name?: string | null;
   unit?: string;
   unit_name?: string;
   work_order_ref?: string;
@@ -1637,10 +1639,17 @@ export function ViewBillV2() {
                             style={{ color: TEXT_DARK }}
                           >
                             <td className="py-3 pr-4 align-top">
-                              {bill.property_address || "--"}
+                              <div>{bill.property_address || "--"}</div>
+                              {li.location_name && (
+                                <div className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>
+                                  {li.location_name}
+                                </div>
+                              )}
                             </td>
                             <td className="py-3 pr-4 align-top">
-                              {li.unit_name || li.unit || "--"}
+                              {li.unit === "__property__"
+                                ? "Property Level"
+                                : li.unit_name || li.unit || "--"}
                             </td>
                             <td className="py-3 pr-4 align-top">{accountName(li)}</td>
                             <td className="py-3 pr-4 align-top">

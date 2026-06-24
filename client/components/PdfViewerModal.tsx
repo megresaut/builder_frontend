@@ -11,6 +11,20 @@ type PdfViewerModalProps = {
   extraFooter?: React.ReactNode;
 };
 
+const BROWSER_PREVIEWABLE = new Set([
+  "pdf",
+  "jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico",
+  "txt", "csv", "html", "htm",
+]);
+
+function getFileExtension(title: string, url?: string): string {
+  // Prefer the display name (title) since it carries the real extension
+  const fromTitle = (title ?? "").split(".").pop()?.toLowerCase() ?? "";
+  if (fromTitle) return fromTitle;
+  const clean = (url ?? "").split("?")[0].split("#")[0];
+  return clean.split(".").pop()?.toLowerCase() ?? "";
+}
+
 const isProbablyPdf = (url: string) => {
   const clean = url.split("#")[0].split("?")[0];
   return clean.toLowerCase().endsWith(".pdf") || url.startsWith("blob:");
@@ -24,6 +38,8 @@ export default function PdfViewerModal({
   extraFooter,
 }: PdfViewerModalProps) {
   const { blobUrl, loading, error } = useAuthBlobUrl(open ? url : undefined);
+  const ext = getFileExtension(title, url);
+  const canPreview = BROWSER_PREVIEWABLE.has(ext);
 
   return (
     <ModalTemplate
@@ -97,7 +113,7 @@ export default function PdfViewerModal({
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary-hover)")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-button-primary)")}
             >
-              Open in new tab
+              Download
             </a>
           ) : null}
         </div>
@@ -130,7 +146,7 @@ export default function PdfViewerModal({
         }}>
           {error}
         </div>
-      ) : blobUrl ? (
+      ) : blobUrl && canPreview ? (
         <div style={{
           width: "100%",
           height: "70vh",
@@ -144,6 +160,19 @@ export default function PdfViewerModal({
             src={isProbablyPdf(url || "") ? `${blobUrl}#view=FitH&toolbar=1&navpanes=0` : blobUrl}
             style={{ width: "100%", height: "100%", border: "none" }}
           />
+        </div>
+      ) : blobUrl ? (
+        <div style={{
+          width: "100%",
+          borderRadius: "8px",
+          border: "1px solid #E5E5E5",
+          backgroundColor: "#F7F7F7",
+          padding: "32px 16px",
+          fontSize: "14px",
+          color: "#71717A",
+          textAlign: "center",
+        }}>
+          This file type ({ext || "unknown"}) cannot be previewed in the browser. Use the <strong>Download</strong> button to save it.
         </div>
       ) : (
         <div style={{

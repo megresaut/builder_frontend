@@ -497,6 +497,7 @@ export const Bills: React.FC<BillsProps> = ({
 
           property: b.property_name ?? "",
           location: (() => {
+            if (b.location_name) return b.location_name;
             if (b.memo) {
               const idx = b.memo.indexOf(" - Billed");
               if (idx > 0) return b.memo.slice(0, idx).trim();

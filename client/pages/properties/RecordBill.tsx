@@ -29,6 +29,7 @@ import { SelectField } from "@/components/forms/SelectField";
 import { SelectFieldCell } from "@/components/forms/SelectFieldCell";
 import { ConciergeGLPicker } from "@/components/ConciergeGLPicker";
 import { BuildiumGLPicker } from "@/components/BuildiumGLPicker";
+import { PropertyLocationCombobox } from "@/components/forms/PropertyLocationCombobox";
 import { TextField } from "@/components/forms/TextField";
 import { DateField } from "@/components/forms/DateField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
@@ -51,6 +52,8 @@ interface PropertyUnit {
 interface LineItem {
   id: number;
   property: string;
+  locationId?: number;           // locations.id — sublocation within a multi-location property
+  locationName?: string;         // locations.address_line1 for display
   unit: string;                  // buildium_unit_id as string, or "" for no unit
   unitName: string;              // display name for the unit
   description: string;
@@ -304,6 +307,7 @@ const normalizeApprovedBill = (bill: any) => ({
   LineItems: (bill.line_items || []).map((li: any, idx: number) => ({
     LineID: li.line_id ?? idx + 1,
     PropertyID: li.property_id,
+    LocationID: li.location_id ?? null,
     Unit: li.unit || "",
     // unit_name is persisted alongside unit so the dropdown can render the
     // saved selection even when /properties/{id}/units returns an empty
@@ -599,7 +603,7 @@ export const RecordBill = () => {
   };
   // Real vendors + properties
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [properties, setProperties] = useState<{ id: number; name: string; property_type?: string | null }[]>([]);
+  const [properties, setProperties] = useState<{ id: number; name: string; property_type?: string | null; locations_count?: number }[]>([]);
   const [propertyMap, setPropertyMap] = useState<Record<string, number>>({});
   const [columnWidths, setColumnWidths] = useState(defaultColumnWidths);
   const [glAccountOptions, setGLAccountOptions] = useState<
@@ -795,6 +799,7 @@ export const RecordBill = () => {
           id: p.id,
           name: p.name || p.address_line1 || `Property ${p.id}`,
           property_type: p.property_type ?? null,
+          locations_count: p.locations_count ?? 0,
         }));
   
         // 🔥 Print formatted mapping so you can confirm it's correct
@@ -1454,11 +1459,6 @@ export const RecordBill = () => {
       // 🆕 FLOW 2: BRAND-NEW MANUAL BILL
       // =====================================================
       else {
-        if (!uploadedPdfMeta) {
-          alert("Please upload a PDF before approving.");
-          return;
-        }
-  
         // =====================================================
         // 🆕 FLOW: CREATE MANUAL BILL FIRST
         // =====================================================
@@ -1466,8 +1466,8 @@ export const RecordBill = () => {
           method: "POST",
           body: JSON.stringify({
             ...patchPayload,
-            pdf_object_key: uploadedPdfMeta.pdf_object_key,
-            sha256_pdf: uploadedPdfMeta.sha256_pdf,
+            pdf_object_key: uploadedPdfMeta?.pdf_object_key ?? null,
+            sha256_pdf: uploadedPdfMeta?.sha256_pdf ?? null,
           }),
         });
 
@@ -1670,6 +1670,8 @@ export const RecordBill = () => {
         // and gl_account_id is the legacy/AVMRE path neither variant feeds.
         if (field === "property") {
           const selectedProp = properties.find((p) => String(p.id) === value);
+          updated.locationId = undefined;
+          updated.locationName = undefined;
           if (selectedProp?.property_type === "C") {
             updated.unit = "__property__";
             updated.unitName = "Property Level";
@@ -1777,6 +1779,7 @@ export const RecordBill = () => {
       amount_cents?: number;
       property_id?: number | null;
       gl_account_id?: number | null;
+      location_id?: number | null;
     }>;
     parse_confidence?: number;
   }) => {
@@ -1821,6 +1824,7 @@ export const RecordBill = () => {
         return {
           id: Date.now() + idx,
           property: propIdStr,
+          locationId: li.location_id ?? undefined,
           unit: isConcierge ? "__property__" : "",
           unitName: isConcierge ? "Property Level" : "",
           description: li.description ?? "",
@@ -2152,6 +2156,8 @@ export const RecordBill = () => {
       return {
         line_id: item.id,
         property_id,
+        location_id: item.locationId ?? null,
+        location_name: item.locationName ?? null,
         unit: sanitizedUnit,
         // Persist the display name alongside the id so the dropdown can
         // re-render the selection on reload even when /properties/{id}/units
@@ -2971,65 +2977,51 @@ minHeight: 0,
                         {/* Table Rows */}
                         {lineItems.map((item) => (
                           <div key={item.id} className="flex items-center">
-                            {/* Property */}
+                            {/* Property + sublocation (two-level drill-down) */}
                             <div
                               className="flex items-center border-b border-r px-3 min-h-14 py-2 flex-shrink-0"
                               style={{ width: `${columnWidths.property}px` }}
                             >
-                              <Select
-                                value={item.property}
+                              <PropertyLocationCombobox
+                                variant="cell"
+                                placeholder="Select a Property"
+                                properties={properties}
+                                propertyId={item.property ? Number(item.property) : null}
+                                locationId={item.locationId ?? null}
                                 disabled={formDisabled}
-                                onValueChange={(value) => {
-                                  handleUpdateLineItem(item.id, "property", value);
-                                  setPropertySearch(""); // reset on select
+                                onChange={({ propertyId: pid, locationId: lid, locationName: lname }) => {
+                                  const pidStr = pid != null ? String(pid) : "";
+                                  // Mirror the unit/GL clearing logic from handleUpdateLineItem
+                                  const selectedProp = properties.find((p) => p.id === pid);
+                                  setLineItems((prev) =>
+                                    prev.map((li) => {
+                                      if (li.id !== item.id) return li;
+                                      const updated: LineItem = {
+                                        ...li,
+                                        property: pidStr,
+                                        locationId: lid ?? undefined,
+                                        locationName: lname ?? undefined,
+                                      };
+                                      if (selectedProp?.property_type === "C") {
+                                        updated.unit = "__property__";
+                                        updated.unitName = "Property Level";
+                                        updated.glAccount = "";
+                                        updated.buildiumAccountId = "";
+                                        updated.buildiumAccountName = "";
+                                      } else {
+                                        updated.unit = "";
+                                        updated.unitName = "";
+                                        updated.glAccount = "";
+                                        updated.qboItemId = "";
+                                        updated.qboItemName = "";
+                                      }
+                                      return updated;
+                                    })
+                                  );
+                                  if (pidStr) loadUnitsForProperty(pidStr);
+                                  setPropertySearch("");
                                 }}
-                                onOpenChange={(open) => {
-                                  if (!open) setPropertySearch("");
-                                }}
-                              >
-                                <SelectTrigger
-                                  className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent"
-                                >
-                                  <SelectValue placeholder="Select a Property" />
-                                </SelectTrigger>
-
-                                <SelectContent
-                                  className="bg-white border border-[#E5E7EB] shadow-md p-0"
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Escape") e.stopPropagation();
-                                    const t = e.target as HTMLElement;
-                                    if (t.tagName === "INPUT") e.stopPropagation();
-                                  }}
-                                >
-                                  {/* Search */}
-                                  <div className="p-2 border-b border-[#E5E7EB]">
-                                    <input
-                                      autoFocus
-                                      placeholder="Type to search…"
-                                      value={propertySearch}
-                                      onChange={(e) => setPropertySearch(e.target.value)}
-                                      onKeyDown={(e) => e.stopPropagation()}
-                                      onFocus={(e) => e.stopPropagation()}
-                                      className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
-                                    />
-                                  </div>
-
-                                  {/* List */}
-                                  <div className="max-h-[240px] overflow-y-auto">
-                                    {filteredProperties.length === 0 && (
-                                      <div className="px-3 py-2 text-sm text-gray-400">
-                                        No properties found
-                                      </div>
-                                    )}
-
-                                    {filteredProperties.map((prop) => (
-                                      <SelectItem key={prop.id} value={prop.id.toString()}>
-                                        {prop.name}
-                                      </SelectItem>
-                                    ))}
-                                  </div>
-                                </SelectContent>
-                              </Select>
+                              />
                             </div>
 
                             {/* Unit */}

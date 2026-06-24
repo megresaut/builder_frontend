@@ -1977,6 +1977,36 @@ export default function WorkOrderDetailsV2({
                 setViewingFileName(file.name);
               }
               }}
+              onDownload={async (file) => {
+                const fileName = file.name ?? "file";
+                const attachmentId =
+                  typeof file.id === "number" ? file.id : parseInt(String(file.id), 10);
+                let fetchPath: string;
+                if (!isNaN(attachmentId)) {
+                  fetchPath = `/maintenance/attachments/${attachmentId}`;
+                } else if ((file as any).storage_path) {
+                  fetchPath = `/files?key=${encodeURIComponent((file as any).storage_path)}`;
+                } else if (file.url) {
+                  fetchPath = file.url.replace(/^\/api/, "");
+                } else {
+                  return;
+                }
+                try {
+                  const res = await authFetch(fetchPath);
+                  if (!res.ok) throw new Error("Failed to fetch file");
+                  const blob = await res.blob();
+                  const blobUrl = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = blobUrl;
+                  a.download = fileName;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+                } catch (err) {
+                  console.error("Download failed:", err);
+                }
+              }}
             />
           </SectionCard>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import {
@@ -508,6 +509,7 @@ export default function AIDrafts() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showWOModal, setShowWOModal] = useState(false);
   const [cascadeConfirm, setCascadeConfirm] = useState<AIDraft | null>(null);
+  const [cascadeOverrides, setCascadeOverrides] = useState<Record<string, any> | undefined>(undefined);
   const [duplicateWarning, setDuplicateWarning] = useState<{
     draft: AIDraft;
     matches: DuplicateMatch[];
@@ -716,6 +718,7 @@ export default function AIDrafts() {
       try {
         setActionInFlight(draft.id);
         setCascadeConfirm(null);
+        setCascadeOverrides(undefined);
         setDuplicateWarning(null);
         setApproveAllResult(null);
 
@@ -790,6 +793,7 @@ export default function AIDrafts() {
         const pendingChildren = getPendingChildren(draft.id);
         if (pendingChildren.length > 0 && !cascadeConfirm) {
           setCascadeConfirm(draft);
+          setCascadeOverrides(fieldOverrides);
           return false;
         }
       }
@@ -1272,8 +1276,8 @@ export default function AIDrafts() {
         )}
 
         {/* Cascade approval confirmation */}
-        {cascadeConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        {cascadeConfirm && createPortal(
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40">
             <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
               <div className="px-6 pt-5 pb-4">
                 <div className="flex items-start gap-3">
@@ -1311,13 +1315,13 @@ export default function AIDrafts() {
               </div>
               <div className="px-6 py-3 bg-[#fafafa] border-t border-[#f0f0f0] flex justify-end gap-2">
                 <button
-                  onClick={() => setCascadeConfirm(null)}
+                  onClick={() => { setCascadeConfirm(null); setCascadeOverrides(undefined); }}
                   className="px-4 py-2 text-sm font-medium text-[#717179] bg-white border border-[#e5e5e5] rounded-lg hover:bg-[#f5f5f5] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleApprove(cascadeConfirm)}
+                  onClick={() => handleApprove(cascadeConfirm, false, cascadeOverrides)}
                   className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
                 >
                   Approve All
@@ -1325,7 +1329,7 @@ export default function AIDrafts() {
               </div>
             </div>
           </div>
-        )}
+        , document.body)}
 
         {/* Duplicate warning dialog */}
         {duplicateWarning && (
@@ -1571,7 +1575,11 @@ export default function AIDrafts() {
         <CreateTaskModal
           open={showTaskModal}
           onOpenChange={(open) => { if (!open) closeModal(); }}
-          onApprove={async () => { const ok = await handleApprove(editingDraft); if (ok) closeModal(); }}
+          onApprove={async (overrides) => {
+            const hasPendingChildren = getPendingChildren(editingDraft.id).length > 0;
+            const ok = await handleApprove(editingDraft, false, overrides);
+            if (ok || hasPendingChildren) closeModal();
+          }}
           onReject={async () => { await handleReject(editingDraft); closeModal(); }}
           editData={{
             id: 0,
@@ -1582,6 +1590,7 @@ export default function AIDrafts() {
             category: editingDraft.extracted_data?.category || "",
             property_id: editingDraft.extracted_data?.property_id,
             unit_id: editingDraft.extracted_data?.unit_id || null,
+            location_id: editingDraft.extracted_data?.location_id || null,
             due_date: editingDraft.extracted_data?.due_date || null,
             assignees: [],
             collaborators: [],
