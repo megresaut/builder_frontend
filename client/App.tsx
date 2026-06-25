@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useNavigate, useLocation, useNavigationType } from "react-router-dom";
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useAuth } from "./auth/useAuth";
 import { isMobileDevice } from "./lib/detectMobile";
@@ -174,6 +174,8 @@ function RestoreTabUrlSync({ didRestore }: { didRestore: boolean }) {
  */
 function TabMetadataSync() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const navigationType = useNavigationType();
   const { selectedTab, tabMetadata, setTabMetadata } = useTabContext();
 
   // Read selectedTab + tabMetadata from refs so this effect runs only when the
@@ -184,6 +186,9 @@ function TabMetadataSync() {
   selectedTabRef.current = selectedTab;
   const metaRef = useRef(tabMetadata);
   metaRef.current = tabMetadata;
+  // Skip the POP guard on the very first run so deep links and initial page
+  // loads aren't misidentified as cross-tab browser-back events.
+  const guardReadyRef = useRef(false);
 
   useEffect(() => {
     const tab = selectedTabRef.current;
@@ -198,6 +203,22 @@ function TabMetadataSync() {
 
     const prev = metaRef.current[tab] ?? { label: identity.label };
     const fullPath = location.pathname + location.search;
+
+    // ---- Browser back/forward guard ----
+    // A POP means the browser's back/forward button fired. Tab switches use
+    // replace:true, so the browser's history stack can jump clean past a tab
+    // you just switched to. If the destination isn't in THIS tab's per-tab
+    // history, undo the POP and keep the user on their current tab — matching
+    // how real browser tabs isolate each tab's back/forward stack.
+    if (navigationType === "POP" && guardReadyRef.current) {
+      const tabHistory = prev.history ?? [];
+      const currentRoute = prev.route;
+      if (currentRoute && !tabHistory.includes(fullPath)) {
+        navigate(currentRoute, { replace: true });
+        return;
+      }
+    }
+    guardReadyRef.current = true;
 
     // ---- Maintain per-tab history stack ----
     const history = prev.history ?? [];
@@ -227,7 +248,7 @@ function TabMetadataSync() {
     if (Object.keys(delta).length > 0) {
       setTabMetadata(tab, delta);
     }
-  }, [location.pathname, location.search, setTabMetadata]);
+  }, [location.pathname, location.search, navigationType, navigate, setTabMetadata]);
 
   return null;
 }

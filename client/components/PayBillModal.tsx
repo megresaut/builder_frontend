@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { Input } from "@/components/ui/input";
@@ -97,6 +97,10 @@ export default function PayBillModal({
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [acctSearch, setAcctSearch] = useState("");
+  const [acctDropOpen, setAcctDropOpen] = useState(false);
+  const acctSearchRef = useRef<HTMLInputElement>(null);
+  const acctDropRef = useRef<HTMLDivElement>(null);
 
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptObjectKey, setReceiptObjectKey] = useState<string | null>(null);
@@ -163,6 +167,18 @@ export default function PayBillModal({
       cancelled = true;
     };
   }, [open, outstandingDollars, isConcierge]);
+
+  useEffect(() => {
+    if (!acctDropOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (acctDropRef.current && !acctDropRef.current.contains(e.target as Node)) {
+        setAcctDropOpen(false);
+        setAcctSearch("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [acctDropOpen]);
 
   const selectedAccount = useMemo(
     () => accounts.find((a) => a.qbo_account_id === accountQBOID),
@@ -473,20 +489,66 @@ export default function PayBillModal({
               ))}
             </select>
           ) : (
-            <select
-              id="pay-account"
-              value={buildiumAccountID == null ? "" : String(buildiumAccountID)}
-              onChange={(e) => setBuildiumAccountID(e.target.value ? Number(e.target.value) : null)}
-              disabled={loadingAccounts || submitting}
-              className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764]"
-            >
-              <option value="">{loadingAccounts ? "Loading…" : "Select an account"}</option>
-              {buildiumAccounts.map((a) => (
-                <option key={a.buildium_account_id} value={a.buildium_account_id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={acctDropRef}>
+              <button
+                type="button"
+                id="pay-account"
+                disabled={loadingAccounts || submitting}
+                onClick={() => {
+                  setAcctDropOpen((v) => !v);
+                  setTimeout(() => acctSearchRef.current?.focus(), 50);
+                }}
+                className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm text-left outline-none focus:border-[#013764] disabled:opacity-50 flex justify-between items-center"
+              >
+                <span className={buildiumAccountID == null ? "text-[#717179]" : ""}>
+                  {loadingAccounts
+                    ? "Loading…"
+                    : (selectedBuildiumAccount?.name ?? "Select an account")}
+                </span>
+                <span className="text-[#717179] ml-2">▾</span>
+              </button>
+              {acctDropOpen && (
+                <div className="absolute z-50 mt-1 w-full rounded-md border border-[#DADADA] bg-white shadow-lg">
+                  <div className="p-2 border-b border-[#DADADA]">
+                    <input
+                      ref={acctSearchRef}
+                      type="text"
+                      value={acctSearch}
+                      onChange={(e) => setAcctSearch(e.target.value)}
+                      placeholder="Search accounts…"
+                      className="w-full rounded border border-[#DADADA] px-2 py-1 text-sm outline-none focus:border-[#013764]"
+                    />
+                  </div>
+                  <ul className="max-h-52 overflow-y-auto py-1">
+                    {buildiumAccounts
+                      .filter((a) =>
+                        acctSearch === "" ||
+                        a.name.toLowerCase().includes(acctSearch.toLowerCase())
+                      )
+                      .map((a) => (
+                        <li
+                          key={a.buildium_account_id}
+                          onClick={() => {
+                            setBuildiumAccountID(a.buildium_account_id);
+                            setAcctDropOpen(false);
+                            setAcctSearch("");
+                          }}
+                          className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-[#f5f5f5] ${
+                            buildiumAccountID === a.buildium_account_id ? "font-medium text-[#013764]" : ""
+                          }`}
+                        >
+                          {a.name}
+                        </li>
+                      ))}
+                    {buildiumAccounts.filter((a) =>
+                      acctSearch === "" || a.name.toLowerCase().includes(acctSearch.toLowerCase())
+                    ).length === 0 && (
+                      <li className="px-3 py-2 text-sm text-[#717179]">No accounts found</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
           )}
           {isConcierge && selectedAccount && (
             <div className="text-xs text-[#717179] mt-1">
