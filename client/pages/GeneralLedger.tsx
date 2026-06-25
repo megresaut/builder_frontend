@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PageTemplate from "@/layout/PageTemplate";
 import { PageHeader } from "@/components/BillsPageHeader";
 import { QBOReportView, type QBORowClickPayload } from "@/components/QBOReportView";
@@ -16,10 +16,53 @@ import {
   type LiveAccount,
   type LiveCustomer,
   type QBOItem,
+  type QBOReport,
+  type QBOReportRow,
   type QBOReportEnvelope,
   type QBOTransactionDetail,
   type GLFilters,
 } from "@/data/qboReports";
+
+// ── client-side search filter ────────────────────────────────────────────────
+
+function filterRowsByTerms(rows: QBOReportRow[], terms: string[]): QBOReportRow[] {
+  return rows.flatMap((row) => {
+    if (row.type === "Section") {
+      const headerText = (row.Header?.ColData ?? [])
+        .map((c) => (c?.value ?? "").toLowerCase())
+        .join(" ");
+      // If account name matches, show all children unfiltered
+      if (terms.every((t) => headerText.includes(t))) return [row];
+      const filteredChildren = filterRowsByTerms(row.Rows?.Row ?? [], terms);
+      if (filteredChildren.length === 0) return [];
+      return [{ ...row, Rows: { Row: filteredChildren } }];
+    }
+    // Data row — match any cell value
+    const allText = (row.ColData ?? [])
+      .map((c) => (c?.value ?? "").toLowerCase())
+      .join(" ");
+    return terms.every((t) => allText.includes(t)) ? [row] : [];
+  });
+}
+
+function applySearch(report: QBOReport, query: string): QBOReport {
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return report;
+  const filteredRows = filterRowsByTerms(report.Rows?.Row ?? [], terms);
+  return { ...report, Rows: { Row: filteredRows } };
+}
+
+function countDataRows(rows: QBOReportRow[]): number {
+  let n = 0;
+  for (const row of rows) {
+    if (row.type === "Section") {
+      n += countDataRows(row.Rows?.Row ?? []);
+    } else if ((row.ColData ?? []).length > 0) {
+      n += 1;
+    }
+  }
+  return n;
+}
 
 // ── date helpers ────────────────────────────────────────────────────────────
 
@@ -187,6 +230,7 @@ export default function GeneralLedger() {
     setError(null);
     setOauthExpired(false);
     setSearched(true);
+    setSearchQuery("");
     try {
       const filters: GLFilters = {
         startDate,
@@ -205,6 +249,13 @@ export default function GeneralLedger() {
       setLoading(false);
     }
   }, [startDate, endDate, selectedCustomer, selectedAccount, selectedItems, accountingMethod]);
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredReport = useMemo(() => {
+    if (!data?.report) return null;
+    return applySearch(data.report, searchQuery);
+  }, [data, searchQuery]);
 
   const [jeModalOpen, setJeModalOpen] = useState(false);
 
@@ -292,6 +343,7 @@ export default function GeneralLedger() {
                 allLabel="All accounts"
                 disabled={loadingFilters}
                 className="min-w-[150px]"
+                popoverWidth={360}
               />
             </div>
 
@@ -306,6 +358,7 @@ export default function GeneralLedger() {
                 allLabel="All items"
                 disabled={loadingFilters}
                 className="min-w-[150px]"
+                popoverWidth={360}
               />
             </div>
 
@@ -393,6 +446,50 @@ export default function GeneralLedger() {
           </div>
         </div>
 
+        {/* ── Entry search bar ─────────────────────────────────────────── */}
+        {searched && !loading && data && (
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 max-w-sm">
+              <svg
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#717179] pointer-events-none"
+                width="13"
+                height="13"
+                viewBox="0 0 13 13"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search entries — name, date, memo, amount…"
+                className="w-full border border-[#E5E5E5] rounded-md pl-8 pr-7 py-1.5 text-xs bg-white text-[#303030] placeholder:text-[#AAAAAA] focus:outline-none focus:ring-2 focus:ring-[#013764]/20 focus:border-[#013764]"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#AAAAAA] hover:text-[#525252] transition-colors"
+                  aria-label="Clear search"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {searchQuery && filteredReport && (
+              <span className="text-xs text-[#717179] shrink-0">
+                {countDataRows(filteredReport.Rows?.Row ?? [])} result
+                {countDataRows(filteredReport.Rows?.Row ?? []) !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* ── Error / OAuth states ──────────────────────────────────────── */}
         {error && !oauthExpired && (
           <div className="border border-rose-200 bg-rose-50 text-rose-700 rounded-md px-4 py-3 text-sm flex items-center justify-between gap-4">
@@ -420,9 +517,9 @@ export default function GeneralLedger() {
           </div>
         )}
 
-        {!loading && searched && !error && data && (
+        {!loading && searched && !error && filteredReport && (
           <QBOReportView
-            report={data.report}
+            report={filteredReport}
             onRowClick={(payload) => void handleRowClick(payload)}
           />
         )}
@@ -444,7 +541,7 @@ export default function GeneralLedger() {
       </div>
 
       {/* Print-only root — outside print:hidden wrapper so it renders during window.print() */}
-      {!loading && searched && !error && data && (
+      {!loading && searched && !error && filteredReport && data && (
         <div id="gl-print-root" style={{ display: "none" }}>
           <div className="gl-print-header">
             <h1>General Ledger</h1>
@@ -461,7 +558,7 @@ export default function GeneralLedger() {
             </p>
           </div>
           <QBOReportView
-            report={data.report}
+            report={filteredReport}
             onRowClick={() => {}}
           />
         </div>

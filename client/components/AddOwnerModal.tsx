@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Dialog, DialogTitle } from "@/components/ui/dialog";
+import { Modal } from "@/components/ui/Modal";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { FileUploadField } from "@/components/forms/FileUploadField";
 import type { UploadedFile } from "@/components/ui/attachment-uploader";
@@ -61,6 +62,25 @@ export default function AddOwnerModal({
   const [entityName, setEntityName] = useState("");
   const [taxId, setTaxId] = useState("");
   const [saving, setSaving] = useState(false);
+  const [activeSection, setActiveSection] = useState("owner-info");
+
+  // Section refs for scroll-to nav
+  const sectionRefs = {
+    "owner-info": useRef<HTMLDivElement>(null),
+    "ownership": useRef<HTMLDivElement>(null),
+    "entity": useRef<HTMLDivElement>(null),
+    "address": useRef<HTMLDivElement>(null),
+    "documents": useRef<HTMLDivElement>(null),
+    "insurance": useRef<HTMLDivElement>(null),
+  };
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSection = (id: string) => {
+    const el = sectionRefs[id as keyof typeof sectionRefs]?.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveSection(id);
+  };
 
   // Existing owner picker
   const [existingOwners, setExistingOwners] = useState<Owner[]>([]);
@@ -304,22 +324,58 @@ export default function AddOwnerModal({
     "w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-[#303030] placeholder:text-[#A0A0A0] focus:outline-none focus:ring-2 focus:ring-[#1357D5]/20 focus:border-[#1357D5]";
   const labelClass = "block text-xs font-medium text-[#71717A] mb-1";
 
+  const NAV_SECTIONS = [
+    { id: "owner-info", label: "Owner Info" },
+    { id: "ownership", label: "Ownership" },
+    { id: "entity", label: "Entity" },
+    { id: "address", label: "Address" },
+    { id: "documents", label: "Documents" },
+    { id: "insurance", label: "Insurance" },
+  ];
+
   return (
-    <ModalTemplate
-      open={open}
-      onOpenChange={onOpenChange}
-      title={isEdit ? "Edit Owner" : "Add Owner"}
-      size="md"
-      footer={
-        <ModalButtons
-          onCancel={() => onOpenChange(false)}
-          onConfirm={handleSubmit}
-          cancelLabel="Cancel"
-          confirmLabel={saving ? "Saving..." : isEdit ? "Update" : "Add Owner"}
-          confirmDisabled={saving}
-        />
-      }
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <Modal size="md" hideCloseButton style={{ padding: 0 }}>
+        <DialogTitle className="sr-only">{isEdit ? "Edit Owner" : "Add Owner"}</DialogTitle>
+
+        {/* Sticky header: title + close + underline tabs */}
+        <div className="sticky top-0 z-10 bg-white px-8 pt-8 pb-0">
+          {/* Title row */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-2xl font-semibold text-[#303030]" style={{ lineHeight: 1.08 }}>
+              {isEdit ? "Edit Owner" : "Add Owner"}
+            </span>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+          {/* Underline tab nav */}
+          <div className="flex items-center gap-5 border-b border-[#e5e5e5]">
+            {NAV_SECTIONS.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => scrollToSection(s.id)}
+                className={`shrink-0 pb-2 text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeSection === s.id
+                    ? "border-b-2 border-[#09090b] text-[#09090b] -mb-px"
+                    : "text-[#717179] hover:text-[#09090b]"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="px-8 py-5">
       <FormLayout>
         {!isEdit && (
           <div className="mb-2" ref={ownerSearchRef}>
@@ -378,6 +434,7 @@ export default function AddOwnerModal({
           </div>
         )}
 
+        <div ref={sectionRefs["owner-info"]} className="scroll-mt-24">
         <FormSection title="Owner Information" showDivider>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -420,7 +477,9 @@ export default function AddOwnerModal({
             </div>
           </div>
         </FormSection>
+        </div>
 
+        <div ref={sectionRefs["ownership"]} className="scroll-mt-24">
         <FormSection title="Ownership Details" showDivider>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -472,7 +531,9 @@ export default function AddOwnerModal({
             </div>
           </div>
         </FormSection>
+        </div>
 
+        <div ref={sectionRefs["entity"]} className="scroll-mt-24">
         <FormSection title="Entity Information" showDivider>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -514,7 +575,9 @@ export default function AddOwnerModal({
             </div>
           </div>
         </FormSection>
+        </div>
 
+        <div ref={sectionRefs["address"]} className="scroll-mt-24">
         <FormSection title="Mailing Address" showDivider>
           <div>
             <label className={labelClass}>Address</label>
@@ -527,7 +590,9 @@ export default function AddOwnerModal({
             />
           </div>
         </FormSection>
+        </div>
 
+        <div ref={sectionRefs["documents"]} className="scroll-mt-24">
         <FormSection title="Ownership Agreement" description="Upload the ownership/deed agreement" showDivider>
           <FileUploadField
             label="Ownership Document"
@@ -539,7 +604,9 @@ export default function AddOwnerModal({
             placeholder="Drop ownership agreement here, or click to browse"
           />
         </FormSection>
+        </div>
 
+        <div ref={sectionRefs["insurance"]} className="scroll-mt-24">
         <FormSection title="Insurance Policy" description="This will also appear in the Insurance tab" showDivider={false}>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -591,7 +658,29 @@ export default function AddOwnerModal({
             placeholder="Drop insurance policy or COI here, or click to browse"
           />
         </FormSection>
+        </div>
       </FormLayout>
-    </ModalTemplate>
+        </div>
+
+        {/* Sticky footer */}
+        <div className="sticky bottom-0 z-10 bg-white border-t border-[#e5e5e5] px-8 py-5 flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="px-4 py-2 rounded-lg border border-[#DADADA] text-sm font-medium text-[#303030] hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={saving}
+            className="px-4 py-2 rounded-lg bg-[#013764] text-white text-sm font-medium hover:bg-[#003a73] transition-colors disabled:opacity-50 shadow-[0_0_0_1px_#002D5A]"
+          >
+            {saving ? "Saving..." : isEdit ? "Update" : "Add Owner"}
+          </button>
+        </div>
+      </Modal>
+    </Dialog>
   );
 }

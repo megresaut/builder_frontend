@@ -1,4 +1,9 @@
 import { useState, useEffect } from "react";
+
+interface BuildiumVendorCategory {
+  Id: number;
+  Name: string;
+}
 import {
   ModalTemplate,
   ModalButtons,
@@ -83,7 +88,10 @@ export default function AddVendorModal({
   const [servicesProvided, setServicesProvided] = useState<string[]>([]);
   const [serviceAreaTags, setServiceAreaTags] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
-  const [errors, setErrors] = useState<{ vendorName?: string }>({});
+  const [buildiumCategoryID, setBuildiumCategoryID] = useState<number | null>(null);
+  const [categories, setCategories] = useState<BuildiumVendorCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [errors, setErrors] = useState<{ vendorName?: string; buildiumCategoryID?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -144,17 +152,39 @@ export default function AddVendorModal({
       setServicesProvided([]);
       setServiceAreaTags([]);
       setNotes("");
+      setBuildiumCategoryID(null);
     }
 
     setErrors({});
     setSubmitError(null);
   }, [open, edit, initialVendor]);
 
+  // Fetch Buildium categories when modal opens in create mode.
+  useEffect(() => {
+    if (!open || edit || categories.length > 0) return;
+    let cancelled = false;
+    setLoadingCategories(true);
+    fetchJSON("/vendors/buildium-categories")
+      .then((res) => {
+        if (cancelled) return;
+        const list: BuildiumVendorCategory[] = Array.isArray(res?.categories) ? res.categories : [];
+        list.sort((a, b) => (a.Name || "").localeCompare(b.Name || ""));
+        setCategories(list);
+        if (list.length === 1) setBuildiumCategoryID(list[0].Id);
+      })
+      .catch(() => {/* non-fatal — backend has env fallback */})
+      .finally(() => { if (!cancelled) setLoadingCategories(false); });
+    return () => { cancelled = true; };
+  }, [open, edit]);
+
 
   const validateForm = (): boolean => {
-    const newErrors: { vendorName?: string } = {};
+    const newErrors: { vendorName?: string; buildiumCategoryID?: string } = {};
     if (!vendorName.trim()) {
       newErrors.vendorName = "Vendor Name is required";
+    }
+    if (!edit && !buildiumCategoryID) {
+      newErrors.buildiumCategoryID = "Buildium category is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -226,11 +256,14 @@ export default function AddVendorModal({
           alt_email: altEmail || "",
           phone: phone || "",
           alt_phone: altPhone || "",
+          website: website || "",
+          address: address || "",
           notes: notes || "",
           category,
           service_area_tags: serviceAreaTags,
           requires_1099: true,
           has_insurance: true,
+          buildium_category_id: buildiumCategoryID,
         }),
       });
 
@@ -406,6 +439,35 @@ export default function AddVendorModal({
           multiple
         />
       </ModalField>
+
+      {!edit && (
+        <ModalField spacing="tight">
+          <FieldShell
+            label="Buildium Category"
+            htmlFor="buildium-category"
+            required
+            error={errors.buildiumCategoryID}
+          >
+            <select
+              id="buildium-category"
+              value={buildiumCategoryID == null ? "" : String(buildiumCategoryID)}
+              onChange={(e) => {
+                setBuildiumCategoryID(e.target.value ? Number(e.target.value) : null);
+                if (errors.buildiumCategoryID && e.target.value) {
+                  setErrors((prev) => { const n = { ...prev }; delete n.buildiumCategoryID; return n; });
+                }
+              }}
+              disabled={loadingCategories || submitting}
+              className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764]"
+            >
+              <option value="">{loadingCategories ? "Loading…" : "Select a category"}</option>
+              {categories.map((c) => (
+                <option key={c.Id} value={c.Id}>{c.Name}</option>
+              ))}
+            </select>
+          </FieldShell>
+        </ModalField>
+      )}
 
       <ModalField spacing="tight">
         <MultiInputField

@@ -85,6 +85,7 @@ const PropertyPageHeader = memo(function PropertyPageHeader({
   const navigate = useNavigate();
   const tabs = [
     "Overview",
+    "Owners",
     ...(isConcierge ? [] : ["Units"]),
     ...(propertyLocationsCount > 0 ? ["Locations"] : []),
     "Inspections",
