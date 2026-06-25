@@ -14,6 +14,7 @@ import {
   removeStatement,
   reopen,
   setStatementAction,
+  statementFileURL,
   unmatchReconciliationLine,
   uploadStatement,
   type ActivitySource,
@@ -119,6 +120,10 @@ export default function CreditCardReconciliationWorkspace() {
   const [removingStatement, setRemovingStatement] = useState(false);
   const [acceptingAll, setAcceptingAll] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+
+  // Search: single input filters both the statement column and the QBO column.
+  const [search, setSearch] = useState("");
 
   // Side-by-side manual pairing selection.
   const [selectedStmt, setSelectedStmt] = useState<StatementRow | null>(null);
@@ -251,6 +256,9 @@ export default function CreditCardReconciliationWorkspace() {
     return (workspace.suggestions ?? []).filter((p) => rowMatchKey(p.qbo) != null);
   }, [workspace]);
 
+  // Normalised search term for client-side filtering of both columns.
+  const searchTerm = search.trim().toLowerCase();
+
   // For the side-by-side, hide statement rows + QBO rows that are already part
   // of a pending suggestion (those live in the Suggestions panel above).
   const pairableStatementRows = useMemo<StatementRow[]>(() => {
@@ -260,20 +268,37 @@ export default function CreditCardReconciliationWorkspace() {
         (p) => `${p.statement.source_row}:${p.statement.amount_cents}`,
       ),
     );
-    return (workspace.unmatched_statement ?? []).filter(
+    const base = (workspace.unmatched_statement ?? []).filter(
       (r) => !suggestedKey.has(`${r.source_row}:${r.amount_cents}`),
     );
-  }, [workspace, pendingSuggestions]);
+    if (!searchTerm) return base;
+    const q = searchTerm;
+    return base.filter(
+      (r) =>
+        r.description?.toLowerCase().includes(q) ||
+        r.date.includes(q) ||
+        String(Math.abs(r.amount_cents) / 100).includes(q),
+    );
+  }, [workspace, pendingSuggestions, searchTerm]);
 
   const pairableQboRows = useMemo(() => {
     if (!workspace) return [];
     const suggestedIDs = new Set(
       pendingSuggestions.map((p) => rowUid(p.qbo)).filter((id) => id !== ""),
     );
-    return (workspace.unmatched_qbo ?? []).filter(
+    const base = (workspace.unmatched_qbo ?? []).filter(
       (r) => rowUid(r) === "" || !suggestedIDs.has(rowUid(r)),
     );
-  }, [workspace, pendingSuggestions]);
+    if (!searchTerm) return base;
+    const q = searchTerm;
+    return base.filter(
+      (r) =>
+        r.vendor?.toLowerCase().includes(q) ||
+        r.memo?.toLowerCase().includes(q) ||
+        r.txn_date.includes(q) ||
+        String(Math.abs(r.amount_cents) / 100).includes(q),
+    );
+  }, [workspace, pendingSuggestions, searchTerm]);
 
   // Auto-acceptable (exact / fuzzy_date / strong) vs review-only ("possible").
   const autoSuggestions = useMemo(
@@ -377,20 +402,45 @@ export default function CreditCardReconciliationWorkspace() {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow re-selecting the same file
     if (!file || !workspace) return;
+    await doUpload(file);
+  };
+
+  const doUpload = async (file: File) => {
+    if (!workspace) return;
     setUploadLoading(true);
     setUploadError(null);
     setUploadWarnings([]);
     try {
       const res = await uploadStatement(workspace.reconciliation.id, file);
       setUploadWarnings(res.warnings ?? []);
-      // Reload — suggestions + unmatched_statement come back hydrated from the
-      // persisted upload, so we don't keep a local copy.
       await load();
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploadLoading(false);
     }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (!workspace || !isInProgress) return;
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    await doUpload(file);
   };
 
   const handleRemoveStatement = async () => {
@@ -714,52 +764,76 @@ export default function CreditCardReconciliationWorkspace() {
         <div className="flex items-center gap-2">
           {isInProgress && (
             <>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadLoading || removingStatement}
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
                 className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md border bg-white",
-                  uploadLoading || removingStatement
-                    ? "border-[#E5E5E5] text-[#717179]"
-                    : "border-[#013764] text-[#013764] hover:bg-[#F4F7FA]",
+                  "rounded-md transition-shadow",
+                  dragActive && "ring-2 ring-sky-400 ring-offset-1",
                 )}
-                title={
-                  workspace.reconciliation.statement_object_key
-                    ? "Upload a new statement (replaces the current one)"
-                    : "Upload a CSV or XLSX statement to auto-match against QBO activity"
-                }
               >
-                {uploadLoading
-                  ? "Uploading…"
-                  : workspace.reconciliation.statement_object_key
-                    ? "Replace statement"
-                    : "Upload statement"}
-              </button>
-              {workspace.reconciliation.statement_object_key && (
                 <button
                   type="button"
-                  onClick={handleRemoveStatement}
-                  disabled={removingStatement || uploadLoading}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadLoading || removingStatement}
                   className={cn(
-                    "text-xs text-[#717179] hover:text-rose-700 underline disabled:opacity-50",
+                    "px-3 py-1.5 text-sm font-medium rounded-md border bg-white",
+                    uploadLoading || removingStatement
+                      ? "border-[#E5E5E5] text-[#717179]"
+                      : "border-[#013764] text-[#013764] hover:bg-[#F4F7FA]",
+                    dragActive && "border-sky-400 text-sky-700 bg-sky-50",
                   )}
                   title={
-                    workspace.reconciliation.statement_filename
-                      ? `Remove uploaded statement (${workspace.reconciliation.statement_filename})`
-                      : "Remove uploaded statement"
+                    dragActive
+                      ? "Drop to upload"
+                      : workspace.reconciliation.statement_object_key
+                        ? "Upload a new statement (replaces the current one)"
+                        : "Upload a CSV or XLSX statement (or drag and drop)"
                   }
                 >
-                  {removingStatement ? "Removing…" : "Remove uploaded statement"}
+                  {dragActive
+                    ? "Drop to upload"
+                    : uploadLoading
+                      ? "Uploading…"
+                      : workspace.reconciliation.statement_object_key
+                        ? "Replace statement"
+                        : "Upload statement"}
                 </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  onChange={handleStatementUpload}
+                  className="hidden"
+                />
+              </div>
+              {workspace.reconciliation.statement_object_key && (
+                <>
+                  <a
+                    href={statementFileURL(rec.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-[#013764] underline"
+                    title="View the uploaded statement file"
+                  >
+                    View statement
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleRemoveStatement}
+                    disabled={removingStatement || uploadLoading}
+                    className="text-xs text-[#717179] hover:text-rose-700 underline disabled:opacity-50"
+                    title={
+                      workspace.reconciliation.statement_filename
+                        ? `Remove uploaded statement (${workspace.reconciliation.statement_filename})`
+                        : "Remove uploaded statement"
+                    }
+                  >
+                    {removingStatement ? "Removing…" : "Remove"}
+                  </button>
+                </>
               )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                onChange={handleStatementUpload}
-                className="hidden"
-              />
             </>
           )}
           {isInProgress && (
@@ -994,6 +1068,13 @@ export default function CreditCardReconciliationWorkspace() {
               rows are tinted green when a statement row is selected.
             </div>
           </div>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Filter rows…"
+            className="border border-[#E5E5E5] rounded-md px-2.5 py-1 text-xs text-[#303030] placeholder:text-[#A1A1A1] focus:outline-none focus:ring-1 focus:ring-[#013764] w-44"
+          />
           {isInProgress && (
             <div className="flex items-center gap-2">
               {(selectedStmt || selectedQbo) && (
@@ -1157,8 +1238,13 @@ export default function CreditCardReconciliationWorkspace() {
                         />
                       )}
                       <div className="min-w-0">
-                        <div className="text-sm text-[#303030] truncate">
-                          {r.description || "—"}
+                        <div className="text-sm text-[#303030] truncate flex items-center gap-1.5">
+                          {r.is_credit && (
+                            <span className="inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-medium bg-emerald-50 text-emerald-700 border-emerald-200 shrink-0">
+                              CREDIT
+                            </span>
+                          )}
+                          <span className="truncate">{r.description || "—"}</span>
                         </div>
                         <div className="text-xs text-[#A1A1A1]">
                           {r.date} · row {r.source_row}

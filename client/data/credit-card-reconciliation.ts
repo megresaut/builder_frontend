@@ -79,6 +79,10 @@ export interface StatementRow {
   date: string;
   description: string;
   amount_cents: number;
+  // is_credit is true when this row represents money returned to the card
+  // (a refund, vendor credit, or any negative-amount line). Drives the CREDIT
+  // badge in the workspace and enables abs-value matching against QBO rows.
+  is_credit?: boolean;
   source_row: number;
   // Optional explicit resolution set by the operator for a row that won't be
   // matched against a QBO transaction in this rec. Decided rows are excluded
@@ -127,6 +131,8 @@ export interface Reconciliation {
   statement_uploaded_at?: string;
   notes?: string;
   created_by_user_id?: number;
+  // card_user_id is the user whose physical card this statement belongs to.
+  card_user_id?: number;
   finalized_at?: string;
   finalized_by_user_id?: number;
   created_at: string;
@@ -204,6 +210,7 @@ export interface StartReconciliationRequest {
   beginning_balance_cents: number;
   ending_balance_cents: number;
   notes?: string;
+  card_user_id?: number;
 }
 
 export interface MatchLineRequest {
@@ -544,4 +551,13 @@ export interface Report {
 
 export async function getReport(recID: number): Promise<Report> {
   return (await fetchJSON(`/reconciliations/${recID}/report`)) as Report;
+}
+
+// statementFileURL returns the URL to stream the uploaded statement document
+// for a reconciliation. Opens inline in a new tab (browser PDF viewer / download).
+// Only meaningful when reconciliation.statement_object_key is set.
+export function statementFileURL(recID: number): string {
+  const base =
+    import.meta.env.DEV ? "http://localhost:8080/api" : "/api";
+  return `${base}/reconciliations/${recID}/statement-file`;
 }

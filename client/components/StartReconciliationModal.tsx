@@ -2,11 +2,18 @@ import { useEffect, useState } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { Input } from "@/components/ui/input";
+import { fetchJSON } from "@/api/fetchJSON";
 import {
   startReconciliation,
   type CreditCardAccount,
   type Reconciliation,
 } from "@/data/credit-card-reconciliation";
+
+interface SimpleUser {
+  id: number;
+  name: string;
+  email: string;
+}
 
 interface Props {
   open: boolean;
@@ -80,8 +87,25 @@ export default function StartReconciliationModal({
     centsToDollars(defaultBeginningBalanceCents),
   );
   const [ending, setEnding] = useState("");
+  const [cardUserID, setCardUserID] = useState<number | "">("");
+  const [users, setUsers] = useState<SimpleUser[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load users once on mount for the card holder picker.
+  useEffect(() => {
+    fetchJSON("/users/all")
+      .then((data: any[]) =>
+        setUsers(
+          (data ?? []).map((u) => ({
+            id: Number(u.id),
+            name: u.name || u.email,
+            email: u.email,
+          })),
+        ),
+      )
+      .catch(() => {});
+  }, []);
 
   // Reset form when reopened — pick up whatever the main page is currently
   // showing as the date range, plus any previous-rec balance default.
@@ -92,6 +116,7 @@ export default function StartReconciliationModal({
       setStatementDate(defaultPeriodEnd || todayYMD());
       setBeginning(centsToDollars(defaultBeginningBalanceCents));
       setEnding("");
+      setCardUserID("");
       setError(null);
     }
   }, [open, defaultBeginningBalanceCents, defaultPeriodStart, defaultPeriodEnd]);
@@ -121,6 +146,7 @@ export default function StartReconciliationModal({
         statement_date: statementDate || undefined,
         beginning_balance_cents: beginningCents,
         ending_balance_cents: endingCents,
+        card_user_id: cardUserID !== "" ? cardUserID : undefined,
       });
       onCreated(rec);
       onOpenChange(false);
@@ -219,6 +245,30 @@ export default function StartReconciliationModal({
           />
           <div className="text-xs text-[#717179] mt-1">
             The "New balance" / total at the end of the statement period.
+          </div>
+        </FieldShell>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell label="Card holder (optional)" htmlFor="rec-card-user">
+          <select
+            id="rec-card-user"
+            value={cardUserID}
+            onChange={(e) =>
+              setCardUserID(e.target.value === "" ? "" : Number(e.target.value))
+            }
+            disabled={submitting}
+            className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="">— not specified —</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+          <div className="text-xs text-[#717179] mt-1">
+            The team member whose card this statement belongs to.
           </div>
         </FieldShell>
       </div>
