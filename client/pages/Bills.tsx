@@ -237,6 +237,7 @@ function mapUtilityRowToBill(row: any): Bill {
           month: "short",
           day: "numeric",
           year: "numeric",
+          timeZone: "UTC",
         })
       : "—",
     dueDate: row.due_date
@@ -244,6 +245,7 @@ function mapUtilityRowToBill(row: any): Bill {
           month: "short",
           day: "numeric",
           year: "numeric",
+          timeZone: "UTC",
         })
       : "—",
     due_date: row.due_date ?? undefined,
@@ -309,6 +311,7 @@ function mapDraftRowToBill(row: any): Bill {
           month: "short",
           day: "numeric",
           year: "numeric",
+          timeZone: "UTC",
         })
       : "—",
 
@@ -317,6 +320,7 @@ function mapDraftRowToBill(row: any): Bill {
           month: "short",
           day: "numeric",
           year: "numeric",
+          timeZone: "UTC",
         })
       : "—",
     due_date: row.due_date ?? undefined,

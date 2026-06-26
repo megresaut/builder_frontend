@@ -206,17 +206,28 @@ const placeholderBill = {
   ],
 };
 
+// Parse a YYYY-MM-DD string as local midnight so date-fns format() and
+// toLocaleDateString() render the calendar date the user intended, not a
+// UTC-shifted one (new Date("YYYY-MM-DD") is UTC midnight and shifts back
+// a day in timezones behind UTC).
+const parseYMD = (str: string): Date | null => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(str);
+  if (!m) return null;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+};
+
 const parseDateWithFallback = (value: string | undefined, fallback: Date) => {
   if (!value) return fallback;
-  const parsed = new Date(value);
-  if (!Number.isNaN(parsed.getTime())) {
-    return parsed;
-  }
-  return fallback;
+  const local = parseYMD(value);
+  if (local) return local;
+  const parsed = new Date(value); // fallback for ISO datetimes
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed;
 };
 
 const parseDateNullable = (value: string | undefined): Date | null => {
   if (!value) return null;
+  const local = parseYMD(value);
+  if (local) return local;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
@@ -1030,18 +1041,18 @@ export const RecordBill = () => {
     // ---------------------------
     //
     if (d.StatementDate) {
-      const date = new Date(d.StatementDate);
+      const date = parseYMD(d.StatementDate) ?? new Date(d.StatementDate);
       setInvoiceDate(date);
       setInvoiceDateInput(format(date, "MM/dd/yyyy"));
     }
-  
+
     //
     // ---------------------------
     // Due Date
     // ---------------------------
     //
     if (d.DueDate) {
-      const date = new Date(d.DueDate);
+      const date = parseYMD(d.DueDate) ?? new Date(d.DueDate);
       setDueDate(date);
       setDueDateInput(format(date, "MM/dd/yyyy"));
     }
@@ -1789,7 +1800,7 @@ export const RecordBill = () => {
       setReferenceNumber(parsed.reference_number);
     }
     if (parsed.invoice_date) {
-      const d = new Date(parsed.invoice_date);
+      const d = parseYMD(parsed.invoice_date) ?? new Date(parsed.invoice_date);
       if (!isNaN(d.getTime())) {
         setInvoiceDate(d);
         setInvoiceDateInput(format(d, "MM/dd/yyyy"));
@@ -1797,7 +1808,7 @@ export const RecordBill = () => {
       }
     }
     if (parsed.due_date) {
-      const d = new Date(parsed.due_date);
+      const d = parseYMD(parsed.due_date) ?? new Date(parsed.due_date);
       if (!isNaN(d.getTime())) {
         setDueDate(d);
         setDueDateInput(format(d, "MM/dd/yyyy"));
