@@ -2,6 +2,13 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useNavigate, useParams } from "react-router-dom";
 import { X, ChevronLeft, ChevronRight, Camera, Plus, Trash2, Edit2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { stampPhoto, buildAddressLines } from "@/lib/stampPhoto";
+import {
+  enqueuePhoto,
+  getQueuedPhotos,
+  removeQueuedPhoto,
+  type QueuedPhoto,
+} from "@/lib/photoUploadQueue";
 import { API_BASE, fetchJSON } from "@/api/fetchJSON";
 import {
   ChecklistNode,
@@ -117,6 +124,8 @@ export default function FtoInspectionRunner() {
   const [newPhotoCondition, setNewPhotoCondition] = useState<string>("");
   const [newPhotoComment, setNewPhotoComment] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isDraining, setIsDraining] = useState(false);
+  const [queuedCount, setQueuedCount] = useState(0);
 
   // Edit photo state
   const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
@@ -253,6 +262,67 @@ export default function FtoInspectionRunner() {
     load();
   }, [inspectionId]);
 
+  // --- Offline queue drain ---
+
+  const drainQueue = useCallback(async () => {
+    if (!inspectionId || !navigator.onLine || isDraining) return;
+    const pending = await getQueuedPhotos(Number(inspectionId));
+    if (pending.length === 0) return;
+
+    setIsDraining(true);
+    let uploaded = 0;
+
+    for (const item of pending) {
+      try {
+        const file = new File([item.blob], item.fileName, { type: item.mimeType });
+        await addInspectionPhotos(
+          item.inspectionId,
+          item.sectionNodeId,
+          item.comment,
+          [file],
+          item.condition
+        );
+        await removeQueuedPhoto(item.id!);
+        uploaded++;
+      } catch {
+        // Still offline or server error — leave the rest queued and stop
+        break;
+      }
+    }
+
+    if (uploaded > 0) {
+      const refreshed = await listInspectionPhotos(Number(inspectionId));
+      setPhotos(mapBackendPhotosToUI(refreshed));
+    }
+
+    const remaining = await getQueuedPhotos(Number(inspectionId));
+    setQueuedCount(remaining.length);
+    setIsDraining(false);
+  }, [inspectionId, isDraining]);
+
+  // Load initial queued count and drain on mount if online
+  useEffect(() => {
+    if (!inspectionId) return;
+    getQueuedPhotos(Number(inspectionId)).then((q) => {
+      setQueuedCount(q.length);
+      if (q.length > 0 && navigator.onLine) drainQueue();
+    });
+  }, [inspectionId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Drain when connectivity returns or app comes back to foreground
+  useEffect(() => {
+    const onOnline = () => drainQueue();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") drainQueue();
+    };
+    window.addEventListener("online", onOnline);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [drainQueue]);
+
   // --- Handlers ---
 
   const clearNewPhotoForm = () => {
@@ -263,13 +333,22 @@ export default function FtoInspectionRunner() {
     setNewPhotoComment("");
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
     newPhotoPreviews.forEach((url) => URL.revokeObjectURL(url));
-    setNewPhotoFiles(files);
-    setNewPhotoPreviews(files.map((f) => URL.createObjectURL(f)));
     if (fileInputRef.current) fileInputRef.current.value = "";
+
+    // Capture timestamp at the moment the photo is selected (not at upload time)
+    // and burn it + the property address into the image pixels before upload.
+    const capturedAt = new Date();
+    const addressLines = buildAddressLines(inspectionData?.inspection ?? null);
+    const stampedFiles = await Promise.all(
+      files.map((f) => stampPhoto(f, capturedAt, addressLines))
+    );
+
+    setNewPhotoFiles(stampedFiles);
+    setNewPhotoPreviews(stampedFiles.map((f) => URL.createObjectURL(f)));
   };
 
   const handleRemovePendingPhoto = (index: number) => {
@@ -289,6 +368,25 @@ export default function FtoInspectionRunner() {
         ? (newPhotoCondition as "good" | "fair" | "poor")
         : undefined;
 
+    // If offline, queue immediately without attempting the network call
+    if (!navigator.onLine) {
+      for (const file of newPhotoFiles) {
+        await enqueuePhoto({
+          inspectionId: Number(inspectionId),
+          sectionNodeId: activeNode.id,
+          comment: newPhotoComment || "",
+          condition: cond,
+          blob: file,
+          fileName: file.name,
+          mimeType: file.type || "image/jpeg",
+          queuedAt: new Date().toISOString(),
+        });
+      }
+      setQueuedCount((c) => c + newPhotoFiles.length);
+      clearNewPhotoForm();
+      return;
+    }
+
     setIsUploading(true);
     try {
       await addInspectionPhotos(
@@ -298,13 +396,30 @@ export default function FtoInspectionRunner() {
         newPhotoFiles,
         cond
       );
-      // Refresh photos
       const refreshed = await listInspectionPhotos(Number(inspectionId));
       setPhotos(mapBackendPhotosToUI(refreshed));
       clearNewPhotoForm();
     } catch (err) {
-      console.error("Failed to upload photo:", err);
-      alert("Failed to upload photo. Please try again.");
+      // Network dropped mid-upload — queue so photos aren't lost
+      if (!navigator.onLine) {
+        for (const file of newPhotoFiles) {
+          await enqueuePhoto({
+            inspectionId: Number(inspectionId),
+            sectionNodeId: activeNode.id,
+            comment: newPhotoComment || "",
+            condition: cond,
+            blob: file,
+            fileName: file.name,
+            mimeType: file.type || "image/jpeg",
+            queuedAt: new Date().toISOString(),
+          });
+        }
+        setQueuedCount((c) => c + newPhotoFiles.length);
+        clearNewPhotoForm();
+      } else {
+        console.error("Failed to upload photo:", err);
+        alert("Failed to upload photo. Please try again.");
+      }
     } finally {
       setIsUploading(false);
     }
@@ -456,6 +571,20 @@ export default function FtoInspectionRunner() {
 
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
+      {/* ===== OFFLINE BANNER ===== */}
+      {(queuedCount > 0 || isDraining) && (
+        <div className={cn(
+          "flex-shrink-0 px-4 py-2 text-center text-xs font-medium",
+          isDraining
+            ? "bg-blue-50 text-blue-700"
+            : "bg-amber-50 text-amber-800"
+        )}>
+          {isDraining
+            ? `Uploading ${queuedCount} saved photo${queuedCount !== 1 ? "s" : ""}…`
+            : `${queuedCount} photo${queuedCount !== 1 ? "s" : ""} saved locally — will upload when signal returns`}
+        </div>
+      )}
+
       {/* ===== TOP BAR ===== */}
       <div className="flex-shrink-0 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-3 px-4 py-3">
@@ -872,9 +1001,11 @@ export default function FtoInspectionRunner() {
                     >
                       {isUploading
                         ? "Uploading..."
-                        : newPhotoFiles.length > 1
-                          ? `Upload ${newPhotoFiles.length} Photos`
-                          : "Upload Photo"}
+                        : !navigator.onLine
+                          ? `Save ${newPhotoFiles.length > 1 ? `${newPhotoFiles.length} Photos` : "Photo"} Offline`
+                          : newPhotoFiles.length > 1
+                            ? `Upload ${newPhotoFiles.length} Photos`
+                            : "Upload Photo"}
                     </button>
                   </div>
                 </div>

@@ -92,6 +92,11 @@ export interface StatementRow {
   action_note?: string;
   action_by_user_id?: number;
   action_at?: string;
+  // card_member is the physical cardholder name from the statement export
+  // (e.g. "CARTER  HUGHES"). Present when the issuer includes a cardholder
+  // column (Amex does). Propagates to every matched / actioned line so
+  // reviewers can see whose card a charge belongs to.
+  card_member?: string;
 }
 
 export type MatchConfidence = "exact" | "fuzzy_date" | "strong" | "possible";
@@ -341,6 +346,8 @@ export interface CreateChargeFromRowRequest {
   invoice_number?: string;
   description?: string;
   memo?: string;
+  pdf_object_key?: string;
+  sha256_pdf?: string;
 }
 
 export async function createChargeFromStatementRow(
@@ -433,6 +440,131 @@ export async function uploadStatement(
   return (await res.json()) as UploadStatementResult;
 }
 
+// AISuggestion is a match candidate produced by GET /reconciliations/:id/ai-suggest.
+// Pairs a statement row with an unpaid bill from QBO or Buildium. Accepting one
+// calls accept-ai-bill which pays the bill directly in QBO/Buildium and creates
+// a reconciliation line.
+export interface AISuggestion {
+  statement_row: StatementRow;
+  // Source system the bill lives in — "qbo" or "buildium".
+  bill_source: "qbo" | "buildium";
+  // Source-system bill ID: QBO Bill.Id string or Buildium bill id as string.
+  bill_external_id: string;
+  // Platform bills.id (0 or absent = no platform row for this bill).
+  bill_id?: number;
+  // QBO vendor ID — needed for direct QBO payment when bill_id is absent.
+  qbo_vendor_id?: string;
+  // Slim display fields stored in the cache for at-a-glance rendering.
+  bill_vendor: string;
+  bill_date: string;
+  bill_amount_cents: number;
+  confidence: "high" | "medium" | "low";
+  reasoning: string;
+}
+
+// AcceptAIBillRequest is the POST body for /reconciliations/{id}/accept-ai-bill.
+export interface AcceptAIBillRequest {
+  statement_row: StatementRow;
+  bill_source: "qbo" | "buildium";
+  bill_external_id: string;
+  bill_id?: number;
+  qbo_vendor_id?: string;
+  bill_amount_cents: number;
+}
+
+// acceptAIBill pays a bill surfaced by the AI suggest flow and creates a
+// reconciliation line. Routing depends on bill_source + whether bill_id is set.
+export async function acceptAIBill(
+  recID: number,
+  req: AcceptAIBillRequest,
+): Promise<ReconciliationLine> {
+  return (await fetchJSON(`/reconciliations/${recID}/accept-ai-bill`, {
+    method: "POST",
+    body: JSON.stringify(req),
+  })) as ReconciliationLine;
+}
+
+export async function skipSuggestion(
+  recID: number,
+  statementSourceRow: number,
+  qboTxnID: string,
+): Promise<void> {
+  await fetchJSON(`/reconciliations/${recID}/skip-suggestion`, {
+    method: "POST",
+    body: JSON.stringify({ statement_source_row: statementSourceRow, qbo_txn_id: qboTxnID }),
+  });
+}
+
+// fetchAISuggestions returns cached suggestions instantly if they exist in the
+// DB, or runs the full LLM pipeline (30-60s) on first call. Pass force=true
+// to discard the cache and re-run. Pass excludeSourceRows to tell the backend
+// which statement rows are already covered by the confident/needs-review
+// auto-matcher — those are skipped so the AI only works on truly unmatched rows.
+export async function fetchAISuggestions(
+  recID: number,
+  window = 30,
+  force = false,
+  excludeSourceRows: number[] = [],
+): Promise<{ suggestions: AISuggestion[]; cached: boolean }> {
+  const params = new URLSearchParams({ window: String(window) });
+  if (force) params.set("force", "true");
+  if (excludeSourceRows.length > 0) params.set("exclude", excludeSourceRows.join(","));
+  const res = (await fetchJSON(
+    `/reconciliations/${recID}/ai-suggest?${params}`,
+  )) as { suggestions?: AISuggestion[]; cached?: boolean };
+  return { suggestions: res.suggestions ?? [], cached: res.cached ?? false };
+}
+
+export interface BillLineItem {
+  description: string;
+  amount_cents: number;
+  amount: number;
+}
+
+export interface BillDetail {
+  id: number;
+  amount_cents: number;
+  statement_date: string;
+  due_date?: string;
+  period_start?: string;
+  period_end?: string;
+  source: string;
+  source_type?: string;
+  memo?: string;
+  invoice_number?: string;
+  qbo_bill_id?: string;
+  buildium_bill_id?: string;
+  qbo_push_status?: string;
+  push_status?: string;
+  qbo_paid_at?: string;
+  paid_on?: string;
+  buildium_paid_at?: string;
+  paid_by_account?: string;
+  paid_doc_number?: string;
+  paid_memo?: string;
+  created_at: string;
+  work_order_refs?: string;
+  // vendor
+  vendor_id?: number;
+  vendor_name?: string;
+  vendor_email?: string;
+  vendor_phone?: string;
+  vendor_address?: string;
+  vendor_notes?: string;
+  // property
+  property_id?: number;
+  property_name?: string;
+  property_address?: string;
+  property_city?: string;
+  property_state?: string;
+  line_items: BillLineItem[];
+  status: "paid" | "unpaid";
+}
+
+export async function fetchBillDetail(billID: number): Promise<BillDetail> {
+  return (await fetchJSON(`/vendors/bills/${billID}`)) as BillDetail;
+}
+
 // SetStatementActionRequest is the body for POST /reconciliations/{id}/statement-action.
 // action="clear" rolls a previously-set action back to undecided. "dispute"
 // requires a non-empty note (the server rejects with 400 otherwise).
@@ -466,6 +598,32 @@ export async function setStatementAction(
       // raw text fallback
     }
     throw new Error(message || `Statement action failed (${res.status})`);
+  }
+}
+
+// batchStatementActions applies multiple statement row actions atomically in
+// one request, avoiding the JSONB clobber race that occurs with concurrent
+// individual setStatementAction calls.
+export async function batchStatementActions(
+  recID: number,
+  items: SetStatementActionRequest[],
+): Promise<void> {
+  if (items.length === 0) return;
+  const res = await authFetch(
+    `/reconciliations/${recID}/statement-actions/batch`,
+    {
+      method: "POST",
+      body: JSON.stringify(items),
+    },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    let message = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed?.error) message = parsed.error;
+    } catch { /* raw text */ }
+    throw new Error(message || `Batch statement action failed (${res.status})`);
   }
 }
 

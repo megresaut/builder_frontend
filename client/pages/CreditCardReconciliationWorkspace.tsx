@@ -328,6 +328,11 @@ export default function CreditCardReconciliationWorkspace() {
           </div>
           <div className="text-xs text-[#717179]">
             {pair.statement.date} · row {pair.statement.source_row}
+            {pair.statement.card_member && (
+              <span className="ml-1.5 inline-flex items-center rounded border px-1.5 py-0 text-[10px] font-medium bg-sky-50 text-sky-700 border-sky-200">
+                {pair.statement.card_member}
+              </span>
+            )}
           </div>
           <div className="text-sm font-medium text-[#303030] tabular-nums mt-0.5">
             {formatCents(pair.statement.amount_cents)}
@@ -1248,6 +1253,11 @@ export default function CreditCardReconciliationWorkspace() {
                         </div>
                         <div className="text-xs text-[#A1A1A1]">
                           {r.date} · row {r.source_row}
+                          {r.card_member && (
+                            <span className="ml-1.5 inline-flex items-center rounded border px-1.5 py-0 text-[10px] font-medium bg-sky-50 text-sky-700 border-sky-200">
+                              {r.card_member}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
@@ -1520,6 +1530,11 @@ export default function CreditCardReconciliationWorkspace() {
                     </div>
                     <div className="text-xs text-[#A1A1A1]">
                       {line.txn_date} · {line.match_confidence}
+                      {line.statement_row?.card_member && (
+                        <span className="ml-1.5 inline-flex items-center rounded border px-1.5 py-0 text-[10px] font-medium bg-sky-50 text-sky-700 border-sky-200">
+                          {line.statement_row.card_member}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
@@ -1592,6 +1607,11 @@ export default function CreditCardReconciliationWorkspace() {
                       )}
                       <div className="text-xs text-[#A1A1A1]">
                         {r.date} · row {r.source_row}
+                        {r.card_member && (
+                          <span className="ml-1.5 inline-flex items-center rounded border px-1.5 py-0 text-[10px] font-medium bg-sky-50 text-sky-700 border-sky-200">
+                            {r.card_member}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">

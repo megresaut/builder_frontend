@@ -149,6 +149,7 @@ export function identifyRoute(
     "/accounting/general-ledger": { label: "General Ledger", sectionId: "general-ledger" },
     "/accounting/transaction-list": { label: "Transaction List", sectionId: "transaction-list" },
     "/accounting/invoices": { label: "Invoices", sectionId: "accounting-invoices" },
+    "/accounting/vendor-credits": { label: "Vendor Credits", sectionId: "vendor-credits" },
     "/reconciliation": { label: "Reconciliation", sectionId: "reconciliation" },
     "/reimbursements": { label: "Reimbursements", sectionId: "reimbursements" },
     "/vendor-compliance": { label: "Vendor Compliance", sectionId: "vendor-compliance" },

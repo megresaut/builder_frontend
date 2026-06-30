@@ -95,7 +95,7 @@ export function BuildiumGLPicker({ value, disabled, onChange }: Props) {
         if (!open) setSearch("");
       }}
     >
-      <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
+      <SelectTrigger className="w-full h-8 px-2.5 text-[13px] border border-[#e5e5e5] bg-white rounded-lg focus:ring-1 focus:ring-[#c0c0c0]">
         <SelectValue placeholder="Select an Account" />
       </SelectTrigger>
       <SelectContent
