@@ -18,7 +18,9 @@ import Reimbursements from "./pages/Reimbursements";
 import Reconciliation from "./pages/Reconciliation";
 import CreditCardReconciliationWorkspace from "./pages/CreditCardReconciliationWorkspace";
 import CreditCardReconciliationReport from "./pages/CreditCardReconciliationReport";
+import ReconRedesign from "./pages/ReconRedesign";
 import Invoices from "./pages/Invoices";
+import VendorCredits from "./pages/VendorCredits";
 import BillDrafts from "./pages/BillDrafts";
 import GeneralLedger from "./pages/GeneralLedger";
 import AllProperties from "./pages/AllProperties";
@@ -486,9 +488,7 @@ export default function App() {
                   path="/reconciliations/:recId"
                   element={
                     <RequireAuth>
-                      <ShellLayout>
-                        <CreditCardReconciliationWorkspace />
-                      </ShellLayout>
+                      <ReconRedesign />
                     </RequireAuth>
                   }
                 />
@@ -504,12 +504,25 @@ export default function App() {
                   }
                 />
 
+                <Route path="/recon-redesign" element={<ReconRedesign />} />
+
                 <Route
                   path="/accounting/invoices"
                   element={
                     <RequireAuth>
                       <ShellLayout>
                         <Invoices />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/accounting/vendor-credits"
+                  element={
+                    <RequireAuth>
+                      <ShellLayout>
+                        <VendorCredits />
                       </ShellLayout>
                     </RequireAuth>
                   }

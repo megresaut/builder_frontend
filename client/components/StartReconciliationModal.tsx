@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { Input } from "@/components/ui/input";
 import {
   startReconciliation,
+  uploadStatement,
   type CreditCardAccount,
   type Reconciliation,
 } from "@/data/credit-card-reconciliation";
@@ -13,8 +14,6 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   account: CreditCardAccount | null;
   defaultBeginningBalanceCents: number;
-  // Defaults pulled in from the main page's date pickers so the user doesn't
-  // have to re-enter the same range. Both still editable in the modal.
   defaultPeriodStart?: string;
   defaultPeriodEnd?: string;
   onCreated: (rec: Reconciliation) => void;
@@ -32,8 +31,6 @@ function firstOfMonth(): string {
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
 }
 
-// Parses "$1,234.56" / "1234.56" / "-50.00" / "(50.00)" to integer cents.
-// Returns NaN on unparseable input — caller surfaces an error.
 function dollarsToCents(input: string): number {
   const s = input.trim();
   if (s === "") return NaN;
@@ -80,11 +77,13 @@ export default function StartReconciliationModal({
     centsToDollars(defaultBeginningBalanceCents),
   );
   const [ending, setEnding] = useState("");
+  const [statementFile, setStatementFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingStatement, setUploadingStatement] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset form when reopened — pick up whatever the main page is currently
-  // showing as the date range, plus any previous-rec balance default.
   useEffect(() => {
     if (open) {
       setPeriodStart(defaultPeriodStart || firstOfMonth());
@@ -92,9 +91,38 @@ export default function StartReconciliationModal({
       setStatementDate(defaultPeriodEnd || todayYMD());
       setBeginning(centsToDollars(defaultBeginningBalanceCents));
       setEnding("");
+      setStatementFile(null);
+      setDragOver(false);
       setError(null);
     }
   }, [open, defaultBeginningBalanceCents, defaultPeriodStart, defaultPeriodEnd]);
+
+  const acceptFile = useCallback((file: File) => {
+    const name = file.name.toLowerCase();
+    if (!name.endsWith(".csv") && !name.endsWith(".xlsx") && !name.endsWith(".xls")) {
+      setError("Statement must be a .csv or .xlsx file");
+      return;
+    }
+    setStatementFile(file);
+    setError(null);
+  }, []);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+  const handleDragLeave = () => setDragOver(false);
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) acceptFile(file);
+  };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) acceptFile(file);
+    e.target.value = "";
+  };
 
   const handleSubmit = async () => {
     if (!account) return;
@@ -122,14 +150,34 @@ export default function StartReconciliationModal({
         beginning_balance_cents: beginningCents,
         ending_balance_cents: endingCents,
       });
+
+      // If a statement was attached, upload it before handing off to the
+      // workspace so suggestions are already populated on first load.
+      if (statementFile) {
+        setUploadingStatement(true);
+        try {
+          await uploadStatement(rec.id, statementFile);
+        } catch {
+          // Non-fatal — user can re-upload on the workspace page.
+        }
+        setUploadingStatement(false);
+      }
+
       onCreated(rec);
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start reconciliation");
     } finally {
       setSubmitting(false);
+      setUploadingStatement(false);
     }
   };
+
+  const submitLabel = uploadingStatement
+    ? "Uploading statement…"
+    : submitting
+      ? "Starting…"
+      : "Start";
 
   return (
     <ModalTemplate
@@ -142,8 +190,8 @@ export default function StartReconciliationModal({
           onCancel={() => onOpenChange(false)}
           onConfirm={handleSubmit}
           cancelLabel="Cancel"
-          confirmLabel={submitting ? "Starting…" : "Start"}
-          cancelDisabled={submitting}
+          confirmLabel={submitLabel}
+          cancelDisabled={submitting || uploadingStatement}
         />
       }
     >
@@ -200,8 +248,7 @@ export default function StartReconciliationModal({
             disabled={submitting}
           />
           <div className="text-xs text-[#717179] mt-1">
-            The "Previous balance" printed on the statement. Leave 0 if you're
-            testing — Finalize isn't enforcing the math yet.
+            The "Previous balance" printed on the statement.
           </div>
         </FieldShell>
       </div>
@@ -218,7 +265,65 @@ export default function StartReconciliationModal({
             disabled={submitting}
           />
           <div className="text-xs text-[#717179] mt-1">
-            The "New balance" / total at the end of the statement period.
+            The "New balance" at the end of the statement period.
+          </div>
+        </FieldShell>
+      </div>
+
+      {/* Statement upload — drag-and-drop or click */}
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell label="Statement (optional)" htmlFor="rec-statement-file">
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => !submitting && fileInputRef.current?.click()}
+            className={[
+              "relative flex flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed px-4 py-5 text-center cursor-pointer transition-colors",
+              dragOver
+                ? "border-sky-400 bg-sky-50"
+                : statementFile
+                  ? "border-emerald-300 bg-emerald-50"
+                  : "border-[#D5D5D5] bg-[#FAFAFA] hover:bg-[#F5F5F5]",
+              submitting ? "pointer-events-none opacity-60" : "",
+            ].join(" ")}
+          >
+            <input
+              ref={fileInputRef}
+              id="rec-statement-file"
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              className="sr-only"
+              onChange={handleFileChange}
+              disabled={submitting}
+            />
+            {statementFile ? (
+              <>
+                <div className="text-sm font-medium text-emerald-700">
+                  {statementFile.name}
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStatementFile(null);
+                  }}
+                  className="text-xs text-[#717179] hover:text-rose-600"
+                >
+                  Remove
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="text-sm text-[#717179]">
+                  {dragOver ? "Drop to attach" : "Drop statement here or click to browse"}
+                </div>
+                <div className="text-xs text-[#A1A1A1]">CSV or XLSX</div>
+              </>
+            )}
+          </div>
+          <div className="text-xs text-[#717179] mt-1">
+            Uploaded now so suggestions are ready when the workspace opens.
           </div>
         </FieldShell>
       </div>

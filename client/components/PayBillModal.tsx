@@ -22,6 +22,16 @@ interface BuildiumPaymentAccount {
   type: string; // always "Current Asset (cash)" from the filter
 }
 
+interface OpenCredit {
+  id: number;
+  vendor_id: number;
+  amount_cents: number;
+  date: string;
+  memo: string;
+  coa_name: string;
+  qbo_vendor_credit_id: string | null;
+}
+
 interface PayBillModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,6 +47,8 @@ interface PayBillModalProps {
     // Property type drives picker variant. 'C' → COA-backed /payment-accounts.
     // Anything else → CSV-backed /buildium/payment-accounts (Buildium-only).
     propertyType?: string | null;
+    // Vendor id — used to load open credits for concierge bills.
+    vendorId?: number;
   };
   onPaid?: (result: {
     qbo_billpayment_id: string;
@@ -110,6 +122,10 @@ export default function PayBillModal({
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [receiptError, setReceiptError] = useState<string | null>(null);
 
+  // Vendor credits (concierge-only)
+  const [openCredits, setOpenCredits] = useState<OpenCredit[]>([]);
+  const [selectedCreditIds, setSelectedCreditIds] = useState<Set<number>>(new Set());
+
   const outstanding = bill.qboBalanceCents;
   const outstandingDollars = (outstanding / 100).toFixed(2);
 
@@ -133,6 +149,8 @@ export default function PayBillModal({
       setReceiptSizeBytes(null);
       setUploadingReceipt(false);
       setReceiptError(null);
+      setOpenCredits([]);
+      setSelectedCreditIds(new Set());
       return;
     }
     setAmount(outstandingDollars);
@@ -163,10 +181,37 @@ export default function PayBillModal({
         if (cancelled) return;
         setLoadingAccounts(false);
       });
+    // Load open vendor credits for concierge bills with a known vendor.
+    if (isConcierge && bill.vendorId) {
+      fetchJSON(`/vendor-credits?vendor_id=${bill.vendorId}&status=open`)
+        .then((res) => {
+          if (cancelled) return;
+          setOpenCredits(res?.credits ?? []);
+        })
+        .catch(() => {});
+    }
+
     return () => {
       cancelled = true;
     };
-  }, [open, outstandingDollars, isConcierge]);
+  }, [open, outstandingDollars, isConcierge, bill.vendorId]);
+
+  const totalSelectedCreditsCents = useMemo(() => {
+    let sum = 0;
+    for (const c of openCredits) {
+      if (selectedCreditIds.has(c.id)) sum += c.amount_cents;
+    }
+    return sum;
+  }, [openCredits, selectedCreditIds]);
+
+  // Suggested net cash amount = outstanding minus credits
+  const suggestedNetCents = Math.max(0, outstanding - totalSelectedCreditsCents);
+
+  // When credits change, update the amount field to reflect the net cash needed.
+  useEffect(() => {
+    if (!open) return;
+    setAmount((suggestedNetCents / 100).toFixed(2));
+  }, [suggestedNetCents, open]);
 
   useEffect(() => {
     if (!acctDropOpen) return;
@@ -257,12 +302,17 @@ export default function PayBillModal({
       return;
     }
     const amountCents = cents(amount);
-    if (!Number.isFinite(amountCents) || amountCents <= 0) {
-      setError("Amount must be greater than $0.");
+    if (!Number.isFinite(amountCents) || amountCents < 0) {
+      setError("Amount must be $0 or greater.");
       return;
     }
-    if (amountCents > outstanding) {
-      setError(`Amount cannot exceed the outstanding balance of $${outstandingDollars}.`);
+    const netWithCredits = amountCents + totalSelectedCreditsCents;
+    if (netWithCredits <= 0) {
+      setError("Total payment (cash + credits) must be greater than $0.");
+      return;
+    }
+    if (netWithCredits > outstanding) {
+      setError(`Total (cash + credits) cannot exceed outstanding balance of $${outstandingDollars}.`);
       return;
     }
     if (!txnDate) {
@@ -295,6 +345,16 @@ export default function PayBillModal({
                 receipt_filename: receiptFilename,
                 receipt_mime: receiptMime,
                 receipt_size_bytes: receiptSizeBytes,
+              }
+            : {}),
+          ...(selectedCreditIds.size > 0
+            ? {
+                applied_credits: openCredits
+                  .filter((c) => selectedCreditIds.has(c.id))
+                  .map((c) => ({
+                    vendor_credit_id: c.id,
+                    amount_cents: c.amount_cents,
+                  })),
               }
             : {}),
         }),
@@ -563,8 +623,55 @@ export default function PayBillModal({
         </FieldShell>
       </div>
 
+      {/* Vendor credits (concierge-only, shown when credits exist) */}
+      {isConcierge && openCredits.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <FieldShell label="Apply Vendor Credits" htmlFor="pay-credits">
+            <div className="rounded-md border border-[#DADADA] divide-y divide-[#DADADA]">
+              {openCredits.map((c) => (
+                <label
+                  key={c.id}
+                  className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCreditIds.has(c.id)}
+                    onChange={(e) => {
+                      setSelectedCreditIds((prev) => {
+                        const next = new Set(prev);
+                        if (e.target.checked) {
+                          next.add(c.id);
+                        } else {
+                          next.delete(c.id);
+                        }
+                        return next;
+                      });
+                    }}
+                    disabled={submitting}
+                    className="rounded"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-[#303030]">
+                      ${(c.amount_cents / 100).toFixed(2)}
+                    </div>
+                    <div className="text-xs text-[#717179] truncate">
+                      {c.date}{c.memo ? ` · ${c.memo}` : ""}
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {totalSelectedCreditsCents > 0 && (
+              <div className="text-xs text-[#717179] mt-1">
+                Credits: ${(totalSelectedCreditsCents / 100).toFixed(2)} · Net cash: ${(Math.max(0, outstanding - totalSelectedCreditsCents) / 100).toFixed(2)}
+              </div>
+            )}
+          </FieldShell>
+        </div>
+      )}
+
       <div style={{ marginBottom: 12 }}>
-        <FieldShell label="Amount" htmlFor="pay-amount">
+        <FieldShell label={totalSelectedCreditsCents > 0 ? "Net Cash Amount" : "Amount"} htmlFor="pay-amount">
           <Input
             id="pay-amount"
             type="text"

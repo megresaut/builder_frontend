@@ -630,6 +630,11 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         sectionId: "invoices",
       },
       {
+        label: "Vendor Credits",
+        path: "/accounting/vendor-credits",
+        sectionId: "vendor-credits",
+      },
+      {
         label: "Print Checks",
         path: "/accounting/print-checks",
         sectionId: "print-checks",

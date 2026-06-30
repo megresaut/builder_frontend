@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ChevronLeft, ChevronRight, Menu, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -97,6 +97,20 @@ interface ApiPayment {
   paid_doc_number?: string | null;
   paid_memo?: string | null;
   created_at?: string;
+}
+
+interface VendorCredit {
+  id: number;
+  vendor_id: number;
+  vendor_name: string;
+  qbo_vendor_credit_id: string | null;
+  amount_cents: number;
+  date: string;
+  memo: string;
+  coa_id: number;
+  coa_name: string;
+  status: string;
+  applied_to_bill_id: number | null;
 }
 
 // One file on a bill, from GET /vendors/bills/{id}/attachments. id is "primary"
@@ -276,6 +290,7 @@ function HeaderButton({
 export function ViewBillV2() {
   const [params] = useSearchParams();
   const billId = params.get("billId");
+  const navigate = useNavigate();
 
   const [bill, setBill] = useState<ApiBill | null>(null);
   const [payments, setPayments] = useState<ApiPayment[]>([]);
@@ -290,6 +305,12 @@ export function ViewBillV2() {
   // Edit payment flow
   const [editPaymentOpen, setEditPaymentOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState<ApiPayment | null>(null);
+
+  // Vendor credits (loaded after bill loads)
+  const [vendorCredits, setVendorCredits] = useState<VendorCredit[]>([]);
+  const [appliedCredits, setAppliedCredits] = useState<VendorCredit[]>([]);
+  const [loadingCredits, setLoadingCredits] = useState(false);
+  const [showCreateCreditModal, setShowCreateCreditModal] = useState(false);
 
   // Edit-in-place flow
   const [editing, setEditing] = useState(false);
@@ -387,6 +408,33 @@ export function ViewBillV2() {
       cancelled = true;
     };
   }, [billId]);
+
+  const loadVendorCredits = useCallback(async (vendorId: number, billId: string) => {
+    setLoadingCredits(true);
+    try {
+      const [openRes, appliedRes] = await Promise.all([
+        fetchJSON(`/vendor-credits?vendor_id=${vendorId}&status=open`),
+        fetchJSON(`/vendor-credits?vendor_id=${vendorId}&status=applied`),
+      ]);
+      setVendorCredits(openRes?.credits ?? []);
+      const applied: VendorCredit[] = appliedRes?.credits ?? [];
+      setAppliedCredits(applied.filter((c) => String(c.applied_to_bill_id) === billId));
+    } catch {
+      setVendorCredits([]);
+      setAppliedCredits([]);
+    } finally {
+      setLoadingCredits(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (bill?.vendor_id && billId) {
+      loadVendorCredits(bill.vendor_id, billId);
+    } else {
+      setVendorCredits([]);
+      setAppliedCredits([]);
+    }
+  }, [bill?.vendor_id, billId, loadVendorCredits]);
 
   const paidCents = useMemo(
     () => payments.reduce((sum, p) => sum + (p.amount_cents || 0), 0),
@@ -1628,7 +1676,7 @@ export function ViewBillV2() {
                             Initial amount
                           </th>
                           <th className="py-2 font-semibold text-right">
-                            Remaining amount
+                            Total
                           </th>
                         </tr>
                       </thead>
@@ -1665,7 +1713,7 @@ export function ViewBillV2() {
                               {money(li.amount_cents)}
                             </td>
                             <td className="py-3 align-top text-right">
-                              {money(li.amount_cents)}
+                              {money(li.amount_cents + (li.upcharge_cents || 0))}
                             </td>
                           </tr>
                         ))}
@@ -1686,7 +1734,7 @@ export function ViewBillV2() {
                               <td className="py-3 pr-4 text-right">
                                 {money(initialCents)}
                               </td>
-                              <td className="py-3 text-right">{money(remainingCents)}</td>
+                              <td className="py-3 text-right">{money(initialCents + totalUpchargeCents)}</td>
                             </tr>
                           );
                         })()}
@@ -1696,7 +1744,7 @@ export function ViewBillV2() {
                 </Panel>
 
                 <Panel title="Payment history">
-                  {payments.length === 0 ? (
+                  {payments.length === 0 && appliedCredits.length === 0 ? (
                     <div
                       className="text-center text-sm py-4"
                       style={{ color: TEXT_MUTED }}
@@ -1711,11 +1759,11 @@ export function ViewBillV2() {
                             className="text-left text-[11px] font-semibold uppercase tracking-wide border-b border-[#E5E5E5]"
                             style={{ color: TEXT_MUTED }}
                           >
-                            <th className="py-2 pr-4 font-semibold">Bank account</th>
+                            <th className="py-2 pr-4 font-semibold">Source</th>
                             <th className="py-2 pr-4 font-semibold">Date</th>
                             <th className="py-2 pr-4 font-semibold">Method</th>
                             <th className="py-2 font-semibold text-right">
-                              Amount paid
+                              Amount
                             </th>
                             <th className="py-2 pl-4" />
                           </tr>
@@ -1751,6 +1799,27 @@ export function ViewBillV2() {
                                   Edit
                                 </button>
                               </td>
+                            </tr>
+                          ))}
+                          {appliedCredits.map((vc) => (
+                            <tr
+                              key={`vc-${vc.id}`}
+                              className="border-b border-[#F0F0F0] hover:bg-[#F8F8F8]"
+                              style={{ color: TEXT_DARK }}
+                            >
+                              <td className="py-3 pr-4">
+                                <a
+                                  href="/accounting/vendor-credits"
+                                  style={{ color: NAVY }}
+                                  className="hover:underline"
+                                >
+                                  Vendor Credit
+                                </a>
+                              </td>
+                              <td className="py-3 pr-4">{fmtDate(vc.date)}</td>
+                              <td className="py-3 pr-4 text-[#525252]">Credit applied</td>
+                              <td className="py-3 text-right">{money(vc.amount_cents)}</td>
+                              <td className="py-3 pl-4" />
                             </tr>
                           ))}
                         </tbody>
@@ -1876,14 +1945,54 @@ export function ViewBillV2() {
             </Panel>
 
             <Panel title="Available credits">
-              <div className="flex flex-col items-center justify-center py-4 gap-3">
-                <div className="text-sm" style={{ color: TEXT_MUTED }}>
-                  No vendor credits
+              {loadingCredits ? (
+                <div className="py-4 text-center text-sm" style={{ color: TEXT_MUTED }}>
+                  Loading…
                 </div>
-                <button className="h-9 px-4 rounded-md text-sm font-medium border border-[#DADADA] bg-white hover:bg-gray-50">
-                  Add a credit
-                </button>
-              </div>
+              ) : vendorCredits.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-4 gap-3">
+                  <div className="text-sm" style={{ color: TEXT_MUTED }}>
+                    No open vendor credits
+                  </div>
+                  {bill?.vendor_id && (
+                    <button
+                      onClick={() => navigate("/accounting/vendor-credits")}
+                      className="h-9 px-4 rounded-md text-sm font-medium border border-[#DADADA] bg-white hover:bg-gray-50"
+                      style={{ color: TEXT_DARK }}
+                    >
+                      Add a credit
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {vendorCredits.map((vc) => (
+                    <div key={vc.id} className="flex justify-between items-start text-sm">
+                      <div className="flex flex-col gap-0.5">
+                        <span style={{ color: TEXT_DARK }} className="font-medium">
+                          {money(vc.amount_cents)}
+                        </span>
+                        <span style={{ color: TEXT_MUTED }} className="text-xs">
+                          {vc.date}
+                          {vc.memo ? ` · ${vc.memo}` : ""}
+                        </span>
+                      </div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        open
+                      </span>
+                    </div>
+                  ))}
+                  <div className="pt-1 border-t border-[#E5E5E5]">
+                    <button
+                      onClick={() => navigate("/accounting/vendor-credits")}
+                      className="text-xs hover:underline"
+                      style={{ color: TEXT_MUTED }}
+                    >
+                      + Add a credit
+                    </button>
+                  </div>
+                </div>
+              )}
             </Panel>
           </div>
         </div>
@@ -1901,6 +2010,7 @@ export function ViewBillV2() {
             referenceNumber: bill.invoice_number || undefined,
             qboBalanceCents: payOutstandingCents,
             propertyType: bill.property_type ?? null,
+            vendorId: bill.vendor_id ?? undefined,
           }}
           onPaid={() => {
             // Re-pull the bill + payment history so the right-column money
