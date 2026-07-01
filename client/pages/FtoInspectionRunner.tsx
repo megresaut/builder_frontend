@@ -368,8 +368,7 @@ export default function FtoInspectionRunner() {
         ? (newPhotoCondition as "good" | "fair" | "poor")
         : undefined;
 
-    // If offline, queue immediately without attempting the network call
-    if (!navigator.onLine) {
+    const queueAll = async () => {
       for (const file of newPhotoFiles) {
         await enqueuePhoto({
           inspectionId: Number(inspectionId),
@@ -384,6 +383,11 @@ export default function FtoInspectionRunner() {
       }
       setQueuedCount((c) => c + newPhotoFiles.length);
       clearNewPhotoForm();
+    };
+
+    // If offline, queue immediately without attempting the network call
+    if (!navigator.onLine) {
+      await queueAll();
       return;
     }
 
@@ -402,20 +406,7 @@ export default function FtoInspectionRunner() {
     } catch (err) {
       // Network dropped mid-upload — queue so photos aren't lost
       if (!navigator.onLine) {
-        for (const file of newPhotoFiles) {
-          await enqueuePhoto({
-            inspectionId: Number(inspectionId),
-            sectionNodeId: activeNode.id,
-            comment: newPhotoComment || "",
-            condition: cond,
-            blob: file,
-            fileName: file.name,
-            mimeType: file.type || "image/jpeg",
-            queuedAt: new Date().toISOString(),
-          });
-        }
-        setQueuedCount((c) => c + newPhotoFiles.length);
-        clearNewPhotoForm();
+        await queueAll();
       } else {
         console.error("Failed to upload photo:", err);
         alert("Failed to upload photo. Please try again.");
@@ -1001,11 +992,9 @@ export default function FtoInspectionRunner() {
                     >
                       {isUploading
                         ? "Uploading..."
-                        : !navigator.onLine
-                          ? `Save ${newPhotoFiles.length > 1 ? `${newPhotoFiles.length} Photos` : "Photo"} Offline`
-                          : newPhotoFiles.length > 1
-                            ? `Upload ${newPhotoFiles.length} Photos`
-                            : "Upload Photo"}
+                        : newPhotoFiles.length > 1
+                          ? `Upload ${newPhotoFiles.length} Photos`
+                          : "Upload Photo"}
                     </button>
                   </div>
                 </div>

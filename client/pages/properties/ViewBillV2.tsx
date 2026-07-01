@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ConciergeGLPicker } from "@/components/ConciergeGLPicker";
 import { BuildiumGLPicker } from "@/components/BuildiumGLPicker";
 import { SelectFieldCell } from "@/components/forms/SelectFieldCell";
@@ -169,9 +170,20 @@ const money = (cents: number | null | undefined) =>
     maximumFractionDigits: 2,
   })}`;
 
+// Bill/payment dates are stored as SQL `date` (no time component), but the
+// API doesn't always serialize them the same way (plain "2026-04-15" vs
+// "2026-04-15T00:00:00Z"). Parsing either with `new Date()` and then reading
+// it back with local getters (as `format`/`ymd` do) shifts the calendar day
+// by one in timezones behind UTC. Reading just the YYYY-MM-DD prefix and
+// building a local-time Date sidesteps that entirely.
+const parseDateOnly = (iso: string): Date => {
+  const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
+  return new Date(y, m - 1, d);
+};
+
 const fmtDate = (iso: string | null | undefined) => {
   if (!iso) return "--";
-  const d = new Date(iso);
+  const d = parseDateOnly(iso);
   if (Number.isNaN(d.getTime())) return "--";
   return format(d, "M/d/yyyy");
 };
@@ -263,11 +275,13 @@ function HeaderButton({
   children,
   onClick,
   primary,
+  danger,
   disabled,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   primary?: boolean;
+  danger?: boolean;
   disabled?: boolean;
 }) {
   return (
@@ -279,7 +293,13 @@ function HeaderButton({
           ? "h-9 px-4 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           : "h-9 px-4 rounded-md text-sm font-medium border border-[#DADADA] bg-white transition-colors hover:bg-gray-50 disabled:opacity-50"
       }
-      style={primary ? { backgroundColor: NAVY } : { color: TEXT_DARK }}
+      style={
+        primary
+          ? { backgroundColor: NAVY }
+          : danger
+            ? { color: "var(--color-status-error)" }
+            : { color: TEXT_DARK }
+      }
     >
       {children}
     </button>
@@ -301,6 +321,10 @@ export function ViewBillV2() {
 
   // Pay flow
   const [showPayBillModal, setShowPayBillModal] = useState(false);
+
+  // Delete flow
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingBill, setDeletingBill] = useState(false);
 
   // Edit payment flow
   const [editPaymentOpen, setEditPaymentOpen] = useState(false);
@@ -589,8 +613,10 @@ export function ViewBillV2() {
         : null,
     );
     setReferenceNumber(bill.invoice_number || "");
-    setInvoiceDate(bill.statement_date ? new Date(bill.statement_date) : null);
-    setDueDate(bill.due_date ? new Date(bill.due_date) : null);
+    setInvoiceDate(
+      bill.statement_date ? parseDateOnly(bill.statement_date) : null,
+    );
+    setDueDate(bill.due_date ? parseDateOnly(bill.due_date) : null);
     setMemo(bill.memo || "");
 
     // Convert the bill's line items into the editable shape. Scraped utility
@@ -645,6 +671,35 @@ export function ViewBillV2() {
     setNewPdfs([]);
     setPdfError(null);
     setEditing(false);
+  };
+
+  // Delete an approved bill from QBO (where the API allows) + the platform.
+  // Buildium has no bill-delete API, so the backend returns warnings naming
+  // the Buildium bill/payment for manual cleanup — surface those to the user.
+  const confirmDeleteBill = async () => {
+    if (!bill) return;
+    setDeletingBill(true);
+    try {
+      const res = await fetchJSON(`/vendors/bills/${bill.id}`, {
+        method: "DELETE",
+      });
+      toast.success(res?.message ?? "Bill deleted.");
+      if (Array.isArray(res?.warnings)) {
+        for (const warning of res.warnings as string[]) {
+          toast.warning(warning, { duration: 8000 });
+        }
+      }
+      navigate("/bills");
+    } catch (err) {
+      // The backend aborts before touching the platform if a QBO delete fails,
+      // so the bill is still intact — keep the dialog open and show why.
+      console.error("Failed to delete bill:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete bill.",
+      );
+    } finally {
+      setDeletingBill(false);
+    }
   };
 
   // ── line item editing helpers ──────────────────────────────────────────────
@@ -1006,6 +1061,9 @@ export function ViewBillV2() {
                 <HeaderButton>Enter charges</HeaderButton>
                 <HeaderButton>Request owner contribution</HeaderButton>
                 <HeaderButton>Duplicate bill</HeaderButton>
+                <HeaderButton danger onClick={() => setShowDeleteConfirm(true)}>
+                  Delete bill
+                </HeaderButton>
                 <HeaderButton onClick={() => window.print()}>Print</HeaderButton>
                 <div className="flex items-center rounded-md border border-[#DADADA] bg-white">
                   <button className="h-9 px-2 text-[#9A9A9A] hover:bg-gray-50">
@@ -2041,6 +2099,22 @@ export function ViewBillV2() {
           }}
           onSaved={() => loadBill().catch(() => {})}
           onVoided={() => loadBill().catch(() => {})}
+        />
+      )}
+
+      {/* ── Delete Bill confirmation ── */}
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          open={showDeleteConfirm}
+          onOpenChange={(open) => {
+            if (!open && !deletingBill) setShowDeleteConfirm(false);
+          }}
+          title="Delete bill?"
+          isDangerous
+          isLoading={deletingBill}
+          confirmLabel="Delete Bill"
+          message={`Delete the ${vendorName} bill for ${bill.property_address ?? "this property"}? This can't be undone.`}
+          onConfirm={confirmDeleteBill}
         />
       )}
     </div>

@@ -397,7 +397,6 @@ export default function AddPropertyModal({
             />
             <TextField
               label="Unit"
-              required
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
               placeholder="Unit"

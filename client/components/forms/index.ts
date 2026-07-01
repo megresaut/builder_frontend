@@ -30,6 +30,7 @@ export { TimeField } from "./TimeField";
 export { DateTimeField } from "./DateTimeField";
 export { PercentField } from "./PercentField";
 export { SelectField } from "./SelectField";
+export { CategorySelectField } from "./CategorySelectField";
 export { ComboboxField } from "./ComboboxField";
 export { ComboboxFieldWithCustomInput } from "./ComboboxFieldWithCustomInput";
 export { MultiSelectField, type MultiSelectOption } from "./MultiSelectField";

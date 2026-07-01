@@ -51,6 +51,7 @@ interface HourRow {
   note: string;
   noFee: boolean;
   emergency: boolean;
+  dumpRun: boolean;
   amount: string;
   upcharge: string;
   assignee: string;
@@ -297,6 +298,8 @@ const fetchAttachmentsBySubmission = async (submissionId: number): Promise<Attac
 };
 
 
+const DUMP_RUN_UPCHARGE_CENTS = 5000;
+
 const parseMoneyToCents = (value: string): number => {
   const num = parseFloat(value.replace(/[^0-9.-]+/g, ""));
   return isNaN(num) ? 0 : Math.round(num * 100);
@@ -311,6 +314,7 @@ const buildHoursJSON = (hourRows: HourRow[]) => {
       note: row.note || "",
       no_charge: row.noFee,
       emergency: row.emergency,
+      is_dump_run: row.dumpRun,
       hour_index: row.hourIndex ?? index,
     };
     if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
@@ -1198,6 +1202,9 @@ export default function ApproveFTOPage() {
               hoursData.forEach((hourLine: any, index: number) => {
                 const upchargeCents = hourLine.upcharge_cents ?? 0;
                 const hourIndex = hourLine.hour_index ?? index;
+                const dumpRun = hourLine.is_dump_run || false;
+                const effectiveUpchargeCents =
+                  upchargeCents !== 0 ? upchargeCents : dumpRun ? DUMP_RUN_UPCHARGE_CENTS : 0;
                 allHourLines.push({
                   id: `hour-${submission.ID}-${index}`,
                   date: formatDate(new Date(hourLine.date_of_work)),
@@ -1205,8 +1212,9 @@ export default function ApproveFTOPage() {
                   note: hourLine.note || "",
                   noFee: hourLine.no_charge || false,
                   emergency: hourLine.emergency || false,
+                  dumpRun,
                   amount: `$${((hourLine.amount_cents ?? 0) / 100).toFixed(2)}`,
-                  upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
+                  upcharge: `$${(effectiveUpchargeCents / 100).toFixed(2)}`,
                   assignee: assigneeById[submission.FieldTeamMemberID] || "",
                   assigneeId: submission.FieldTeamMemberID,
                   submissionId: submission.ID,
@@ -1380,6 +1388,7 @@ export default function ApproveFTOPage() {
         note: "",
         noFee: false,
         emergency: false,
+        dumpRun: false,
         amount: "$0",
         upcharge: "$0",
         assignee: "",
@@ -1831,6 +1840,8 @@ export default function ApproveFTOPage() {
     (r) => r.submissionHasAttachments && (!r.attachmentIds || r.attachmentIds.length === 0),
   );
 
+  const hasDumpRun = hourRows.some((r) => r.dumpRun);
+
   return (
     <div
       className="bg-white flex flex-col font-[Geist,-apple-system,Roboto,Helvetica,sans-serif]"
@@ -1894,6 +1905,15 @@ export default function ApproveFTOPage() {
               <AlertBanner
                 title="Missing receipts"
                 message="One or more expenses indicate a receipt was attached but none was found. Use the paperclip icon on the expense row to add the missing receipt."
+              />
+            </div>
+          )}
+
+          {hasDumpRun && (
+            <div className="mb-6">
+              <AlertBanner
+                title="This FTO contains a dump run"
+                message="$50 has been automatically applied to the upcharge for the hours submission."
               />
             </div>
           )}
@@ -2153,6 +2173,14 @@ export default function ApproveFTOPage() {
                         </div>
                         <div
                           className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{ width: "100px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                        >
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            Dump Run
+                          </span>
+                        </div>
+                        <div
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
                           style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
                         >
                           <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
@@ -2315,6 +2343,31 @@ export default function ApproveFTOPage() {
                               onCheckedChange={(checked) =>
                                 updateHourRow(row.id, "emergency", checked)
                               }
+                              className="w-[14px] h-[14px]"
+                            />
+                          </div>
+
+                          {/* Dump Run Cell - Checkbox */}
+                          <div
+                            className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                            style={{ width: "100px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
+                          >
+                            <Checkbox
+                              checked={row.dumpRun}
+                              onCheckedChange={(checked) => {
+                                const isChecked = checked === true;
+                                updateHourRow(row.id, "dumpRun", isChecked);
+                                const currentUpchargeCents = parseMoneyToCents(row.upcharge);
+                                if (isChecked && currentUpchargeCents === 0) {
+                                  updateHourRow(
+                                    row.id,
+                                    "upcharge",
+                                    `$${(DUMP_RUN_UPCHARGE_CENTS / 100).toFixed(2)}`,
+                                  );
+                                } else if (!isChecked && currentUpchargeCents === DUMP_RUN_UPCHARGE_CENTS) {
+                                  updateHourRow(row.id, "upcharge", "$0.00");
+                                }
+                              }}
                               className="w-[14px] h-[14px]"
                             />
                           </div>

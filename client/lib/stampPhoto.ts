@@ -97,17 +97,20 @@ export async function stampPhoto(
           ctx.fillText(line, x, y);
         });
 
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              resolve(file);
-              return;
-            }
-            resolve(new File([blob], file.name, { type: "image/jpeg" }));
-          },
-          "image/jpeg",
-          0.92
-        );
+        // toDataURL is synchronous and has broader WKWebView support than
+        // the async toBlob callback (which silently returns null on some iOS versions).
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+        const base64 = dataUrl.split(",")[1];
+        if (!base64) {
+          resolve(file);
+          return;
+        }
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        resolve(new File([bytes.buffer], file.name, { type: "image/jpeg" }));
       } catch {
         resolve(file);
       }

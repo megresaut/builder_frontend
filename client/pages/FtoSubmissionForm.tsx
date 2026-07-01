@@ -4,6 +4,7 @@ import PageTemplate from "@/layout/PageTemplate";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import MsgViewerModal from "@/components/MsgViewerModal";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ClockIcon,
   DollarIcon,
@@ -80,6 +81,7 @@ interface HourEntry {
   emergencyRate: string | null;
   billing: string | null; // "billable" or "non-billable" - maps to backend no_charge field
   note: string;
+  dumpRun: boolean;
 }
 
 interface ExpenseEntry {
@@ -187,6 +189,7 @@ interface ApiHourLine {
 
   emergency: boolean;
   no_charge: boolean;
+  is_dump_run: boolean;
 
   note: string;
   hour_index: number;
@@ -389,6 +392,7 @@ export default function FtoSubmissionForm() {
       emergencyRate: "no",
       billing: "billable",
       note: "",
+      dumpRun: false,
     },
   ]);
 
@@ -822,6 +826,7 @@ export default function FtoSubmissionForm() {
         billing: noChargeToBilling(h.no_charge),
 
         note: h.note ?? "",
+        dumpRun: h.is_dump_run ?? false,
       };
     });
   
@@ -1259,6 +1264,7 @@ export default function FtoSubmissionForm() {
         emergencyRate: "no",
         billing: "billable",
         note: "",
+        dumpRun: false,
       },
     ]);
   };
@@ -1694,6 +1700,7 @@ export default function FtoSubmissionForm() {
         note: h.note ?? "",
         no_charge: billingToNoCharge(h.billing),
         emergency: h.emergencyRate === "yes",
+        is_dump_run: h.dumpRun,
         hour_index: idx,
         unit_id: getUnitIdAsNumber(h.unitId),
       }));
@@ -1761,6 +1768,7 @@ export default function FtoSubmissionForm() {
 
       emergency: h.emergencyRate === "yes",
       no_charge: billingToNoCharge(h.billing),
+      is_dump_run: h.dumpRun,
 
       note: h.note ?? "",
     }));
@@ -2246,6 +2254,23 @@ export default function FtoSubmissionForm() {
                           }}
                           autoGrow
                         />
+
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={entry.dumpRun}
+                            onCheckedChange={(checked) =>
+                              updateHourEntry(entry.id, "dumpRun", checked === true)
+                            }
+                            disabled={isApproved}
+                            id={`dump-run-${entry.id}`}
+                          />
+                          <label
+                            htmlFor={`dump-run-${entry.id}`}
+                            className="text-sm text-[#303030]"
+                          >
+                            Dump Run
+                          </label>
+                        </div>
 
                       </div>
                     )}

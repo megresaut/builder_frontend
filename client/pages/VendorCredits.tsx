@@ -60,106 +60,6 @@ const REAL_TABS: { id: TabKey; label: string }[] = [
   { id: "voided", label: "Voided" },
 ];
 
-// ── mock data ──────────────────────────────────────────────────────────────
-const MOCK_CREDITS: Record<TabKey, VendorCredit[]> = {
-  open: [
-    {
-      id: 1,
-      vendor_id: 101,
-      vendor_name: "Home Depot Pro",
-      qbo_vendor_credit_id: "VC-8842",
-      amount_cents: 34500,
-      date: "2026-06-15",
-      memo: "Returned damaged drywall panels",
-      coa_id: 12,
-      coa_name: "Vendor Credit Income",
-      qbo_class_name: "",
-      status: "open",
-      applied_to_bill_id: null,
-      created_at: "2026-06-15T10:22:00Z",
-    },
-    {
-      id: 2,
-      vendor_id: 204,
-      vendor_name: "Ferguson Plumbing Supply",
-      qbo_vendor_credit_id: "VC-8853",
-      amount_cents: 12800,
-      date: "2026-06-18",
-      memo: "Price adjustment — unit overage",
-      coa_id: 12,
-      coa_name: "Vendor Credit Income",
-      qbo_class_name: "",
-      status: "open",
-      applied_to_bill_id: null,
-      created_at: "2026-06-18T14:05:00Z",
-    },
-    {
-      id: 3,
-      vendor_id: 317,
-      vendor_name: "Lowes Business",
-      qbo_vendor_credit_id: "VC-8861",
-      amount_cents: 7250,
-      date: "2026-06-22",
-      memo: "Duplicate charge refund",
-      coa_id: 19,
-      coa_name: "Vendor Credit Income",
-      qbo_class_name: "",
-      status: "open",
-      applied_to_bill_id: null,
-      created_at: "2026-06-22T09:11:00Z",
-    },
-  ],
-  applied: [
-    {
-      id: 4,
-      vendor_id: 101,
-      vendor_name: "Home Depot Pro",
-      qbo_vendor_credit_id: "VC-8801",
-      amount_cents: 18000,
-      date: "2026-05-30",
-      memo: "Returned excess lumber",
-      coa_id: 12,
-      coa_name: "Vendor Credit Income",
-      qbo_class_name: "",
-      status: "applied",
-      applied_to_bill_id: 2281,
-      created_at: "2026-05-30T11:00:00Z",
-    },
-    {
-      id: 5,
-      vendor_id: 204,
-      vendor_name: "Ferguson Plumbing Supply",
-      qbo_vendor_credit_id: "VC-8812",
-      amount_cents: 9300,
-      date: "2026-06-02",
-      memo: "Wrong part returned",
-      coa_id: 19,
-      coa_name: "Vendor Credit Income",
-      qbo_class_name: "",
-      status: "applied",
-      applied_to_bill_id: 2295,
-      created_at: "2026-06-02T16:30:00Z",
-    },
-  ],
-  voided: [
-    {
-      id: 6,
-      vendor_id: 317,
-      vendor_name: "Lowes Business",
-      qbo_vendor_credit_id: "VC-8790",
-      amount_cents: 4500,
-      date: "2026-05-14",
-      memo: "Created in error",
-      coa_id: 12,
-      coa_name: "Vendor Credit Income",
-      qbo_class_name: "",
-      status: "voided",
-      applied_to_bill_id: null,
-      created_at: "2026-05-14T08:45:00Z",
-    },
-  ],
-};
-
 // ── helpers ────────────────────────────────────────────────────────────────
 const money = (cents: number) =>
   (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -820,17 +720,14 @@ export default function VendorCredits() {
     }
   };
 
-  const isMock = !loading && credits.length === 0;
-  const source = isMock ? MOCK_CREDITS[tab] : credits;
-
   const displayed = search.trim()
-    ? source.filter(
+    ? credits.filter(
         (c) =>
           c.vendor_name.toLowerCase().includes(search.toLowerCase()) ||
           c.memo.toLowerCase().includes(search.toLowerCase()) ||
           (c.qbo_vendor_credit_id ?? "").toLowerCase().includes(search.toLowerCase()),
       )
-    : source;
+    : credits;
 
   const headerActions: PageHeaderAction[] = [
     {
@@ -899,11 +796,6 @@ export default function VendorCredits() {
                 className="w-full pl-8 pr-3 h-9 rounded-lg border border-[#DADADA] text-sm outline-none focus:border-[#013764] focus:ring-1 focus:ring-[#013764]/20"
               />
             </div>
-            {isMock && (
-              <span className="text-xs rounded px-2 py-1 bg-amber-50 border border-amber-200 text-amber-700">
-                Sample data
-              </span>
-            )}
           </div>
 
           {/* Table */}

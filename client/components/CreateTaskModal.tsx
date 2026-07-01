@@ -8,6 +8,7 @@ import {
 import {
   TextField,
   SelectField,
+  CategorySelectField,
   TextAreaField,
   DateField,
   MultiSelectField,
@@ -1127,16 +1128,11 @@ export default function CreateTaskModal({
                   </FieldRowItem>
                 </FieldRow>
 
-                <SelectField
+                <CategorySelectField
                   label="Category"
                   value={category}
-                  onChange={(value) => setCategory(typeof value === "string" ? value : value[0] || "")}
+                  onChange={setCategory}
                   placeholder="Select Category"
-                  options={[
-                    { value: "Maintenance", label: "Maintenance" },
-                    { value: "Repair", label: "Repair" },
-                    { value: "Other", label: "Other" },
-                  ]}
                 />
 
                 <FieldRow columns={3}>
