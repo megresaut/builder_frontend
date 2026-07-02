@@ -766,7 +766,8 @@ export default function PayBillModal({
           <div>{error}</div>
           {(errorCode === "bill_already_paid_in_buildium" ||
             errorCode === "bill_already_paid" ||
-            errorCode === "bill_overpay") && (
+            errorCode === "bill_overpay" ||
+            errorCode === "qbo_balance_unknown") && (
             <button
               type="button"
               onClick={handleRefreshFromBuildium}

@@ -19,40 +19,11 @@ export async function parseEmlFile(input: File | Blob | ArrayBuffer): Promise<Pa
   const dateStr = getHeader(headers, "date");
   const date = formatDate(dateStr ?? "");
 
-  const contentType = (getHeader(headers, "content-type") ?? "").toLowerCase();
-  const contentTransferEncoding = (getHeader(headers, "content-transfer-encoding") ?? "").toLowerCase();
-
-  let bodyHtml = "";
-  let bodyPlain = "";
-
-  if (contentType.includes("multipart/")) {
-    const boundaryMatch = contentType.match(/boundary\s*=\s*["']?([^"'\s;]+)["']?/i);
-    const boundary = boundaryMatch ? boundaryMatch[1].trim() : null;
-    if (boundary) {
-      const parts = splitMultipart(rawBody, boundary);
-      for (const part of parts) {
-        const { headers: partHeaders, body: partBody } = splitHeadersAndBody(part);
-        const partType = (getHeader(partHeaders, "content-type") ?? "").toLowerCase();
-        const partEncoding = (getHeader(partHeaders, "content-transfer-encoding") ?? "").toLowerCase();
-        const decoded = decodeBody(partBody, partEncoding);
-        if (partType.includes("text/html")) {
-          bodyHtml = decoded;
-        } else if (partType.includes("text/plain") && !bodyPlain) {
-          bodyPlain = decoded;
-        }
-      }
-    }
-    if (!bodyHtml && bodyPlain) bodyHtml = escapeHtml(bodyPlain);
-  } else {
-    const decoded = decodeBody(rawBody, contentTransferEncoding);
-    if (contentType.includes("text/html")) {
-      bodyHtml = decoded;
-      bodyPlain = stripHtml(decoded);
-    } else {
-      bodyPlain = decoded;
-      bodyHtml = escapeHtml(decoded);
-    }
-  }
+  const { html: extractedHtml, plain: extractedPlain } = extractBodyParts(headers, rawBody);
+  let bodyHtml = extractedHtml;
+  let bodyPlain = extractedPlain;
+  if (!bodyHtml && bodyPlain) bodyHtml = escapeHtml(bodyPlain);
+  if (!bodyPlain && bodyHtml) bodyPlain = stripHtml(bodyHtml);
 
   return {
     subject: decodeMimeWords(subject),
@@ -62,6 +33,51 @@ export async function parseEmlFile(input: File | Blob | ArrayBuffer): Promise<Pa
     bodyHtml: bodyHtml || bodyPlain || "",
     bodyPlain: bodyPlain || undefined,
   };
+}
+
+// Recursively walks MIME parts to find the text/html and text/plain bodies.
+// Needed because many transactional/billing senders wrap the actual
+// alternative parts a level deeper than the top level, e.g.
+// multipart/mixed (or multipart/related) > multipart/alternative >
+// text/html + text/plain. A single non-recursive pass over the outer
+// boundary only sees a "multipart/alternative" part and never opens it,
+// leaving both bodies empty even though the mail has content.
+function extractBodyParts(headers: string, rawBody: string, depth = 0): { html: string; plain: string } {
+  if (depth > 5) return { html: "", plain: "" };
+
+  const contentTypeRaw = getHeader(headers, "content-type") ?? "";
+  const contentType = contentTypeRaw.toLowerCase();
+  const contentTransferEncoding = (getHeader(headers, "content-transfer-encoding") ?? "").toLowerCase();
+
+  if (contentType.includes("multipart/")) {
+    // Match against the original-case header, not the lowercased `contentType`
+    // above — real boundary tokens (e.g. Outlook's "..._CH3PR13MB6410...")
+    // are mixed-case, and delimiters in the body are case-sensitive, so a
+    // lowercased boundary silently fails to match any "--boundary" line.
+    const boundaryMatch = contentTypeRaw.match(/boundary\s*=\s*["']?([^"'\s;]+)["']?/i);
+    const boundary = boundaryMatch ? boundaryMatch[1].trim() : null;
+    let html = "";
+    let plain = "";
+    if (boundary) {
+      const parts = splitMultipart(rawBody, boundary);
+      for (const part of parts) {
+        const { headers: partHeaders, body: partBody } = splitHeadersAndBody(part);
+        const nested = extractBodyParts(partHeaders, partBody, depth + 1);
+        if (nested.html && !html) html = nested.html;
+        if (nested.plain && !plain) plain = nested.plain;
+      }
+    }
+    return { html, plain };
+  }
+
+  if (contentType.includes("text/html")) {
+    return { html: decodeBody(rawBody, contentTransferEncoding), plain: "" };
+  }
+  if (contentType.includes("text/") || !contentType) {
+    return { html: "", plain: decodeBody(rawBody, contentTransferEncoding) };
+  }
+  // Non-text leaf part (attachment, image, etc.) — not a body candidate.
+  return { html: "", plain: "" };
 }
 
 function splitHeadersAndBody(raw: string): { headers: string; body: string } {
@@ -167,8 +183,13 @@ function decodeQuotedPrintable(str: string): string {
 
 function splitMultipart(body: string, boundary: string): string[] {
   const b = boundary.replace(/^["']|["']$/g, "").trim();
+  // Truncate at the closing "--boundary--" delimiter first, otherwise it
+  // doesn't match the opening-delimiter regex below and ends up appended to
+  // the last part's content instead of being dropped.
+  const closeMatch = body.match(new RegExp(`--${escapeRe(b)}--`));
+  const trimmedBody = closeMatch ? body.slice(0, closeMatch.index) : body;
   const regex = new RegExp(`--${escapeRe(b)}\\r?\\n`, "g");
-  const parts = body.split(regex).map((p) => p.replace(/\r?\n$/, "").trim());
+  const parts = trimmedBody.split(regex).map((p) => p.replace(/\r?\n$/, "").trim());
   return parts.filter((p) => p.length > 0 && !p.startsWith("--"));
 }
 
