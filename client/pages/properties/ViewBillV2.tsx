@@ -24,6 +24,10 @@ import { DateField } from "@/components/forms/DateField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
 import PayBillModal from "@/components/PayBillModal";
 import EditPaymentModal from "@/components/EditPaymentModal";
+import MsgViewerModal from "@/components/MsgViewerModal";
+import { parseMsgFile } from "@/utils/parseMsgFile";
+import { parseEmlFile } from "@/utils/parseEmlFile";
+import type { ParsedMsg } from "@/utils/parseMsgFile";
 
 /**
  * ViewBillV2 — a redesigned "view bill" page modeled on the Buildium bill
@@ -319,6 +323,16 @@ export function ViewBillV2() {
   const [error, setError] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
 
+  // .msg/.eml viewer: parsed and shown in a modal instead of opened as a raw
+  // blob, since the OLE/Compound-Binary .msg format has no browser renderer.
+  const [msgViewer, setMsgViewer] = useState<{
+    isOpen: boolean;
+    title: string;
+    data: ParsedMsg | null;
+    loading: boolean;
+    error: string | null;
+  }>({ isOpen: false, title: "", data: null, loading: false, error: null });
+
   // Pay flow
   const [showPayBillModal, setShowPayBillModal] = useState(false);
 
@@ -470,7 +484,39 @@ export function ViewBillV2() {
     bill?.qbo_balance_cents ?? Math.max(initialCents - paidCents, 0);
 
   const openPdf = async (att: AttachmentItem) => {
+    const name = att.filename.toLowerCase();
+    const isMsg = name.endsWith(".msg") || att.mime === "application/vnd.ms-outlook";
+    const isEml = name.endsWith(".eml") || att.mime === "message/rfc822";
+
     setOpeningId(att.id);
+
+    if (isMsg || isEml) {
+      setMsgViewer({
+        isOpen: true,
+        title: att.filename || "Message",
+        data: null,
+        loading: true,
+        error: null,
+      });
+      try {
+        const res = await authFetch(att.download_url);
+        if (!res.ok) throw new Error(`(${res.status})`);
+        const blob = await res.blob();
+        const data = await (isEml ? parseEmlFile : parseMsgFile)(blob);
+        setMsgViewer((prev) => ({ ...prev, loading: false, data, error: null }));
+      } catch (err) {
+        console.error("Failed to parse message attachment", err);
+        setMsgViewer((prev) => ({
+          ...prev,
+          loading: false,
+          error: err instanceof Error ? err.message : "Failed to load message",
+        }));
+      } finally {
+        setOpeningId(null);
+      }
+      return;
+    }
+
     try {
       const res = await authFetch(att.download_url);
       if (!res.ok) throw new Error(`(${res.status})`);
@@ -2101,6 +2147,17 @@ export function ViewBillV2() {
           onVoided={() => loadBill().catch(() => {})}
         />
       )}
+
+      <MsgViewerModal
+        open={msgViewer.isOpen}
+        onOpenChange={(open) =>
+          setMsgViewer((prev) => ({ ...prev, isOpen: open }))
+        }
+        title={msgViewer.title}
+        data={msgViewer.data}
+        loading={msgViewer.loading}
+        error={msgViewer.error}
+      />
 
       {/* ── Delete Bill confirmation ── */}
       {showDeleteConfirm && (

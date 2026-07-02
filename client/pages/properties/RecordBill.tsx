@@ -543,6 +543,9 @@ export const RecordBill = () => {
     Array<{ name: string; size: number; file: File }>
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Tracks which File object the auto-open effect has already handled, so
+  // closing the preview doesn't immediately reopen it on the next render.
+  const autoOpenedFileRef = useRef<File | null>(null);
   const [showAddVendorModal, setShowAddVendorModal] = useState(false);
   const [showPayBillModal, setShowPayBillModal] = useState(false);
   const [showViewPaymentModal, setShowViewPaymentModal] = useState(false);
@@ -1632,18 +1635,53 @@ export const RecordBill = () => {
     return () => clearTimeout(timer);
   }, [lineItems, measureAndUpdateColumnWidths]);
 
-  // Auto-open PDF if there's a pre-loaded attachment (read-only or draft)
+  // Auto-open the attachment preview if there's a pre-loaded attachment
+  // (read-only or draft). .msg/.eml files must be routed through the parsed
+  // MsgViewerModal (same as handleViewFile) rather than dumped into the raw
+  // <iframe src={blobUrl}> below — that iframe has no renderer for the
+  // OLE/Compound-Binary .msg format and shows garbled bytes instead.
   useEffect(() => {
-    if (uploadedFiles.length === 1 && !viewingFileUrl) {
+    if (uploadedFiles.length === 1 && !viewingFileUrl && !msgViewer.isOpen) {
       const file = uploadedFiles[0].file;
+      if (autoOpenedFileRef.current === file) return;
+
+      const fileName = file.name || "";
+      const isMsg = fileName.toLowerCase().endsWith(".msg");
+      const isEml = fileName.toLowerCase().endsWith(".eml");
+
+      if (isMsg || isEml) {
+        autoOpenedFileRef.current = file;
+        const parseMessage = isEml ? parseEmlFile : parseMsgFile;
+        setMsgViewer({
+          isOpen: true,
+          title: fileName || "Message",
+          data: null,
+          loading: true,
+          error: null,
+        });
+        parseMessage(file)
+          .then((data) =>
+            setMsgViewer((prev) => ({ ...prev, loading: false, data, error: null }))
+          )
+          .catch((err) =>
+            setMsgViewer((prev) => ({
+              ...prev,
+              loading: false,
+              error: err instanceof Error ? err.message : "Failed to load message",
+            }))
+          );
+        return;
+      }
+
       const preview = (file as any).preview;
       if (preview) {
+        autoOpenedFileRef.current = file;
         setViewingFileUrl(preview);
         setViewingFileIndex(0);
       }
     }
-  }, [uploadedFiles, viewingFileUrl]);
-  
+  }, [uploadedFiles, viewingFileUrl, msgViewer.isOpen]);
+
 
   // const handleUpdateLineItem = (id: number, field: string, value: string) => {
   //   setLineItems((prev) =>

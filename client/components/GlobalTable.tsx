@@ -55,6 +55,8 @@ interface GlobalTableProps {
   selectedIds?: Set<string | number>;
   /** Called when selection changes */
   onSelectionChange?: (selectedIds: Set<string | number>) => void;
+  /** When set, rows for which this returns true get a disabled, greyed-out checkbox and are excluded from "select all" */
+  isRowDisabled?: (row: any) => boolean;
   /** When set, use this as total row count instead of data.length (for server-side pagination) */
   serverTotal?: number;
   /** Message shown in the table body when there are no rows to display */
@@ -95,6 +97,7 @@ export default function GlobalTable({
   selectable = false,
   selectedIds,
   onSelectionChange,
+  isRowDisabled,
   serverTotal,
   emptyMessage = "No results found",
 }: GlobalTableProps) {
@@ -342,15 +345,19 @@ export default function GlobalTable({
                   <input
                     type="checkbox"
                     className="w-4 h-4 rounded border-gray-300 text-[#013764] focus:ring-[#013764] cursor-pointer"
-                    checked={
-                      sorted.length > 0 &&
-                      selectedIds != null &&
-                      sorted.every((row) => selectedIds.has(row[rowKey]))
-                    }
+                    checked={(() => {
+                      const selectableRows = sorted.filter((row) => !isRowDisabled?.(row));
+                      return (
+                        selectableRows.length > 0 &&
+                        selectedIds != null &&
+                        selectableRows.every((row) => selectedIds.has(row[rowKey]))
+                      );
+                    })()}
                     onChange={(e) => {
                       if (!onSelectionChange) return;
+                      const selectableRows = sorted.filter((row) => !isRowDisabled?.(row));
                       if (e.target.checked) {
-                        const all = new Set<string | number>(sorted.map((row) => row[rowKey]));
+                        const all = new Set<string | number>(selectableRows.map((row) => row[rowKey]));
                         onSelectionChange(all);
                       } else {
                         onSelectionChange(new Set());
@@ -460,7 +467,8 @@ export default function GlobalTable({
                     >
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-gray-300 text-[#013764] focus:ring-[#013764] cursor-pointer"
+                        className="w-4 h-4 rounded border-gray-400 text-[#013764] focus:ring-[#013764] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isRowDisabled?.(row) ?? false}
                         checked={selectedIds?.has(row[rowKey]) ?? false}
                         onChange={(e) => {
                           if (!onSelectionChange || !selectedIds) return;

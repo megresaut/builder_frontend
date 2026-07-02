@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import AddVendorModal from "@/components/AddVendorModal";
 import PayBillModal from "@/components/PayBillModal";
+import BatchPayBillModal from "@/components/BatchPayBillModal";
 import ViewPaymentModal, { type EditablePayment } from "@/components/ViewPaymentModal";
 import EditPaymentModal from "@/components/EditPaymentModal";
 import { usePageState } from "@/hooks/usePageState";
@@ -168,6 +169,18 @@ interface Bill {
   qboTotalCents?: number;
   qboBillId?: string;
   buildiumBillId?: string;
+  vendorId?: number;
+
+  // properties.property_type ("C" = concierge, dual-pushes QBO+Buildium;
+  // anything else = Buildium-only). Drives which payment-account picker a
+  // pay flow uses and whether concierge/non-concierge bills can be batched
+  // together (they can't).
+  propertyType?: string;
+  // True outstanding balance regardless of system: qbo_balance_cents for
+  // concierge bills, amount_cents minus recorded bill_payments otherwise
+  // (non-concierge bills never get a qbo_balance_cents). <= 0 means paid.
+  // Undefined only for legacy/mock rows that never went through the real fetch.
+  amountDueCents?: number;
 
   // Payment metadata (set after a successful Pay Bill)
   buildiumBillPaymentId?: string;
@@ -271,6 +284,9 @@ function mapUtilityRowToBill(row: any): Bill {
     qboTotalCents: row.qbo_total_cents ?? undefined,
     qboBillId: row.qbo_bill_id ?? undefined,
     buildiumBillId: row.buildium_bill_id ?? undefined,
+    vendorId: row.vendor_id ?? undefined,
+    propertyType: row.property_type ?? undefined,
+    amountDueCents: row.amount_due_cents ?? 0,
 
     buildiumBillPaymentId: row.buildium_bill_payment_id ?? undefined,
     paidOn: row.paid_on ?? undefined,
@@ -338,6 +354,8 @@ function mapDraftRowToBill(row: any): Bill {
         : (row.amount_cents ?? 0) / 100,
 
     glAccount: "",
+
+    amountDueCents: 0,
 
     importedAt: createdAtMs,
     exportedAt: undefined,
@@ -672,6 +690,15 @@ export default function Bills() {
   const [approvedBillIds, setApprovedBillIds] = useState<Set<number>>(new Set());
   const [approvedTotal, setApprovedTotal] = useState(0);
   const [payBillTarget, setPayBillTarget] = useState<Bill | null>(null);
+  // Batch pay: toggled on from the header action, lets the user check off
+  // multiple unpaid bills and pay them together. Concierge and non-concierge
+  // bills can never be selected together (different payment accounts/APIs),
+  // so once one bill is checked the opposite group's rows grey out.
+  const [batchMode, setBatchMode] = usePageState("billsBatchMode", false);
+  const [selectedBillIds, setSelectedBillIds] = useState<Set<string | number>>(
+    new Set(),
+  );
+  const [batchPayOpen, setBatchPayOpen] = useState(false);
   const [deleteBillTarget, setDeleteBillTarget] = useState<Bill | null>(null);
   const [deletingBill, setDeletingBill] = useState(false);
   const [viewPaymentTarget, setViewPaymentTarget] = useState<Bill | null>(null);
@@ -807,6 +834,30 @@ export default function Bills() {
   const getSortIndicator = (column: string) =>
     sortBy === column ? (sortOrder === "asc" ? "↑" : "↓") : null;
   const getSortedData = () => filteredTabBills;
+
+  // Batch pay: bills currently checked (only ones on the loaded page can be
+  // selected, since selection is keyed off the same rows GlobalTable renders).
+  const selectedBills = billsList.filter((b) => selectedBillIds.has(b.id));
+  // Once at least one bill is selected, lock further selection to its group —
+  // concierge bills dual-push to QBO+Buildium, everything else is
+  // Buildium-only, and the two can't be paid together from one account.
+  const batchLockedGroup: "concierge" | "other" | null =
+    selectedBills.length > 0
+      ? selectedBills[0].propertyType === "C"
+        ? "concierge"
+        : "other"
+      : null;
+  const isBillUnpaid = (b: Bill) => (b.amountDueCents ?? 0) > 0;
+  const isRowDisabledForBatch = (b: Bill) => {
+    if (!isBillUnpaid(b)) return true;
+    if (batchLockedGroup == null) return false;
+    const group = b.propertyType === "C" ? "concierge" : "other";
+    return group !== batchLockedGroup;
+  };
+  const selectedBillsTotalCents = selectedBills.reduce(
+    (sum, b) => sum + (b.amountDueCents ?? 0),
+    0,
+  );
   const {
     columnOrder,
     visibleColumns,
@@ -1391,6 +1442,32 @@ export default function Bills() {
       onClick: () => navigate("/bills/record"),
       variant: "primary",
     },
+    {
+      id: "batch-pay",
+      label: batchMode ? "Exit Batch Pay" : "Batch Pay",
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 18 18"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6.75 9L8.25 10.5L11.25 7.125M2.25 6.75H15.75M3 4.5H15C15.8284 4.5 16.5 5.17157 16.5 6V13.5C16.5 14.3284 15.8284 15 15 15H3C2.17157 15 1.5 14.3284 1.5 13.5V6C1.5 5.17157 2.17157 4.5 3 4.5Z"
+            stroke="var(--color-text-secondary)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      onClick: () => {
+        setBatchMode(!batchMode);
+        setSelectedBillIds(new Set());
+      },
+      variant: "secondary",
+    },
   ];
 
 
@@ -1447,6 +1524,55 @@ export default function Bills() {
               </button>
             ))}
           </div>
+
+          {/* Batch pay selection toolbar */}
+          {batchMode && (
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-lg border border-[#DADADA] bg-gray-50">
+              <div className="text-sm text-[#303030]">
+                {selectedBills.length === 0 ? (
+                  <span className="text-[#717179]">
+                    Select unpaid bills to pay together. Concierge and
+                    non-concierge bills can't be batched together.
+                  </span>
+                ) : (
+                  <span>
+                    <span className="font-medium">{selectedBills.length}</span>{" "}
+                    selected
+                    {batchLockedGroup && (
+                      <span className="text-[#717179]">
+                        {" "}
+                        ({batchLockedGroup === "concierge" ? "Concierge" : "Non-concierge"})
+                      </span>
+                    )}
+                    {" · "}
+                    <span className="font-medium">
+                      ${(selectedBillsTotalCents / 100).toFixed(2)}
+                    </span>{" "}
+                    due
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBillIds(new Set())}
+                  disabled={selectedBills.length === 0}
+                  className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 disabled:opacity-50"
+                >
+                  Clear selection
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBatchPayOpen(true)}
+                  disabled={selectedBills.length === 0}
+                  className="h-9 px-4 rounded-lg text-sm font-medium text-white disabled:opacity-50"
+                  style={{ backgroundColor: "var(--color-button-primary)" }}
+                >
+                  Pay Selected
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Filter bar - toggled by Filter button */}
           {showFilterBar && (
@@ -1529,6 +1655,10 @@ export default function Bills() {
             })}
             data={getSortedData()}
             rowKey="id"
+            selectable={batchMode}
+            selectedIds={selectedBillIds}
+            onSelectionChange={setSelectedBillIds}
+            isRowDisabled={isRowDisabledForBatch}
             renderCell={(bill, columnKey) => {
               if (columnKey === "vendor") {
                 return (
@@ -1790,12 +1920,12 @@ export default function Bills() {
                     },
                     {
                       label: "Pay Bill",
-                      // Hidden when the bill is already paid OR has never been
-                      // pushed to QBO (qboBalanceCents is undefined until first sync).
-                      hidden: (bill: Bill) =>
-                        !!bill.qboPaidAt ||
-                        bill.qboBalanceCents == null ||
-                        bill.qboBalanceCents <= 0,
+                      // Hidden once the bill is fully paid. amountDueCents is
+                      // qbo_balance_cents for concierge bills and amount_cents
+                      // minus recorded bill_payments for everything else — this
+                      // is what makes non-concierge bills payable from here too
+                      // (qboBalanceCents alone never gets set for them).
+                      hidden: (bill: Bill) => (bill.amountDueCents ?? 0) <= 0,
                       icon: (
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M2.25 6.75H15.75M2.25 9H15.75M3 4.5H15C15.8284 4.5 16.5 5.17157 16.5 6V13.5C16.5 14.3284 15.8284 15 15 15H3C2.17157 15 1.5 14.3284 1.5 13.5V6C1.5 5.17157 2.17157 4.5 3 4.5Z"
@@ -1864,12 +1994,28 @@ export default function Bills() {
                     },
                   ]
             }
-            onRowClick={(bill) => {
-              // Bills are read-only here — drafts live in the Record Bill workflow.
-              navigate(`/bills/view?billId=${bill.id}`, {
-                state: { bill: buildBillState(bill) },
-              });
-            }}
+            onRowClick={
+              // In batch mode, clicking anywhere on the row toggles its
+              // checkbox instead of navigating away to the read-only bill view.
+              batchMode
+                ? (bill: Bill) => {
+                    if (isRowDisabledForBatch(bill)) return;
+                    setSelectedBillIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(bill.id)) {
+                        next.delete(bill.id);
+                      } else {
+                        next.add(bill.id);
+                      }
+                      return next;
+                    });
+                  }
+                : (bill) => {
+                    navigate(`/bills/view?billId=${bill.id}`, {
+                      state: { bill: buildBillState(bill) },
+                    });
+                  }
+            }
             
             showColumnModal={showColumnModal}
             onShowColumnModalChange={setShowColumnModal}
@@ -1971,7 +2117,12 @@ export default function Bills() {
             vendorName: payBillTarget.vendor,
             propertyName: payBillTarget.property,
             referenceNumber: payBillTarget.invoiceNumber,
-            qboBalanceCents: payBillTarget.qboBalanceCents ?? 0,
+            // Outstanding balance for either group — was previously always
+            // qboBalanceCents ?? 0, which silently defaulted non-concierge
+            // bills to a $0 outstanding amount.
+            qboBalanceCents: payBillTarget.amountDueCents ?? 0,
+            propertyType: payBillTarget.propertyType,
+            vendorId: payBillTarget.vendorId,
           }}
           onPaid={(result) => {
             // Optimistically update the row so the user sees feedback before
@@ -1982,13 +2133,35 @@ export default function Bills() {
                 b.id === payBillTarget.id
                   ? {
                       ...b,
-                      qboBalanceCents: result.qbo_balance_cents ?? 0,
+                      qboBalanceCents: result.qbo_balance_cents ?? b.qboBalanceCents,
                       qboPaidAt: result.qbo_paid_at ?? b.qboPaidAt,
                     }
                   : b,
               ),
             );
-            // Re-fetch the current tab to drop the row if it moved out of Unpaid.
+            // Re-fetch the current tab to drop the row if it moved out of Unpaid
+            // and pick up the authoritative amountDueCents.
+            loadApprovedBills();
+          }}
+        />
+      )}
+
+      {/* Batch Pay Modal */}
+      {batchPayOpen && (
+        <BatchPayBillModal
+          open={batchPayOpen}
+          onOpenChange={(open) => setBatchPayOpen(open)}
+          bills={selectedBills.map((b) => ({
+            id: b.id,
+            vendorName: b.vendor,
+            propertyName: b.property,
+            referenceNumber: b.invoiceNumber,
+            amountDueCents: b.amountDueCents ?? 0,
+            propertyType: b.propertyType,
+            vendorId: b.vendorId,
+          }))}
+          onDone={() => {
+            setSelectedBillIds(new Set());
             loadApprovedBills();
           }}
         />

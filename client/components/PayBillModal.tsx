@@ -731,7 +731,7 @@ export default function PayBillModal({
           <input
             type="file"
             id="pay-receipt"
-            accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+            accept=".pdf,.png,.jpg,.jpeg,.msg,.eml,application/pdf,image/png,image/jpeg,application/vnd.ms-outlook,message/rfc822"
             disabled={submitting || uploadingReceipt}
             onChange={handleReceiptChange}
             className="block w-full text-sm text-[#303030] file:mr-3 file:rounded-md file:border file:border-[#DADADA] file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#303030] hover:file:bg-gray-50 disabled:opacity-50"
