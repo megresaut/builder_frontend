@@ -53,6 +53,7 @@ export default function PrintChecks() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [printPromptOpen, setPrintPromptOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [startingCheckNumber, setStartingCheckNumber] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
@@ -150,13 +151,22 @@ export default function PrintChecks() {
     return [...banks];
   }, [selectedRows]);
 
-  const handlePrint = async () => {
+  const handleOpenPrintPrompt = () => {
     if (selectedRows.length === 0) {
       toast.error("Select at least one check to print.");
       return;
     }
     if (selectedBanks.length > 1) {
       toast.error("Select checks from a single bank account at a time.");
+      return;
+    }
+    setPrintPromptOpen(true);
+  };
+
+  const handlePrint = async () => {
+    const startNum = parseInt(startingCheckNumber, 10);
+    if (!Number.isFinite(startNum) || startNum <= 0) {
+      toast.error("Enter a valid starting check number.");
       return;
     }
     setPrinting(true);
@@ -166,6 +176,7 @@ export default function PrintChecks() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           payment_ids: selectedRows.map((r) => r.payment_id),
+          starting_check_number: startNum,
         }),
       });
       if (!res.ok) {
@@ -176,6 +187,7 @@ export default function PrintChecks() {
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank", "noopener,noreferrer");
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      setPrintPromptOpen(false);
       setConfirmOpen(true);
     } catch (err: any) {
       toast.error(`Print failed: ${err?.message ?? String(err)}`);
@@ -306,7 +318,7 @@ export default function PrintChecks() {
                   {voiding ? "Voiding…" : "Void Selected"}
                 </Button>
                 <Button
-                  onClick={handlePrint}
+                  onClick={handleOpenPrintPrompt}
                   disabled={printing || selected.size === 0}
                 >
                   {printing ? "Generating PDF…" : "Print Selected"}
@@ -474,6 +486,53 @@ export default function PrintChecks() {
       </div>
 
       <ModalTemplate
+        open={printPromptOpen}
+        onOpenChange={(o) => {
+          if (printing) return;
+          setPrintPromptOpen(o);
+          if (!o) setStartingCheckNumber("");
+        }}
+        title="Print Checks"
+        size="sm"
+        footer={
+          <ModalButtons
+            onCancel={() => setPrintPromptOpen(false)}
+            onConfirm={handlePrint}
+            cancelLabel="Cancel"
+            confirmLabel={printing ? "Generating PDF…" : "Print"}
+            cancelDisabled={printing}
+            confirmDisabled={printing || !startingCheckNumber.trim()}
+          />
+        }
+      >
+        <div className="mb-3 text-sm text-[#717179]">
+          Assign sequential check numbers to{" "}
+          <span className="text-[#303030] font-medium">{selectedRows.length}</span>{" "}
+          check{selectedRows.length === 1 ? "" : "s"}
+          {selectedBanks.length === 1 && (
+            <>
+              {" "}
+              from{" "}
+              <span className="text-[#303030] font-medium">{selectedBanks[0]}</span>
+            </>
+          )}
+          . This number will be printed on the check itself, so make sure it
+          matches the next check in the printer.
+        </div>
+        <FieldShell label="Starting Check Number" htmlFor="check-start-print">
+          <Input
+            id="check-start-print"
+            type="number"
+            min={1}
+            value={startingCheckNumber}
+            onChange={(e) => setStartingCheckNumber(e.target.value)}
+            placeholder="e.g. 5001"
+            disabled={printing}
+          />
+        </FieldShell>
+      </ModalTemplate>
+
+      <ModalTemplate
         open={confirmOpen}
         onOpenChange={(o) => {
           if (submitting) return;
@@ -493,31 +552,26 @@ export default function PrintChecks() {
         }
       >
         <div className="mb-3 text-sm text-[#717179]">
-          You're about to assign sequential check numbers to{" "}
-          <span className="text-[#303030] font-medium">{selectedRows.length}</span>{" "}
-          check{selectedRows.length === 1 ? "" : "s"}
-          {selectedBanks.length === 1 && (
-            <>
-              {" "}
-              from{" "}
-              <span className="text-[#303030] font-medium">{selectedBanks[0]}</span>
-            </>
-          )}
-          .
+          Confirming will assign check{" "}
+          {selectedRows.length === 1 ? "number" : "numbers"} starting at{" "}
+          <span className="text-[#303030] font-medium">#{startingCheckNumber}</span>{" "}
+          to <span className="text-[#303030] font-medium">{selectedRows.length}</span>{" "}
+          check{selectedRows.length === 1 ? "" : "s"} — the same number{selectedRows.length === 1 ? "" : "s"}{" "}
+          already printed on the check{selectedRows.length === 1 ? "" : "s"}. Only confirm
+          after verifying the checks printed correctly.
         </div>
-        <FieldShell label="Starting Check Number" htmlFor="check-start">
+        <FieldShell label="Starting Check Number" htmlFor="check-start-confirm">
           <Input
-            id="check-start"
+            id="check-start-confirm"
             type="number"
             min={1}
             value={startingCheckNumber}
-            onChange={(e) => setStartingCheckNumber(e.target.value)}
-            placeholder="e.g. 5001"
-            disabled={submitting}
+            readOnly
+            disabled
           />
         </FieldShell>
         <div className="mt-2 text-xs text-[#717179]">
-          Each subsequent check uses the next sequential number. Confirm will:
+          Confirm will:
           <ul className="list-disc list-inside mt-1 space-y-0.5">
             <li>Mark each QBO BillPayment as PrintComplete with its check #.</li>
             <li>Push the payment to Buildium.</li>
