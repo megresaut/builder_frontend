@@ -82,6 +82,7 @@ interface HourEntry {
   billing: string | null; // "billable" or "non-billable" - maps to backend no_charge field
   note: string;
   dumpRun: boolean;
+  gasCharge: boolean;
 }
 
 interface ExpenseEntry {
@@ -190,6 +191,7 @@ interface ApiHourLine {
   emergency: boolean;
   no_charge: boolean;
   is_dump_run: boolean;
+  is_gas_charge: boolean;
 
   note: string;
   hour_index: number;
@@ -393,6 +395,7 @@ export default function FtoSubmissionForm() {
       billing: "billable",
       note: "",
       dumpRun: false,
+      gasCharge: false,
     },
   ]);
 
@@ -827,6 +830,7 @@ export default function FtoSubmissionForm() {
 
         note: h.note ?? "",
         dumpRun: h.is_dump_run ?? false,
+        gasCharge: h.is_gas_charge ?? false,
       };
     });
   
@@ -1265,6 +1269,7 @@ export default function FtoSubmissionForm() {
         billing: "billable",
         note: "",
         dumpRun: false,
+        gasCharge: false,
       },
     ]);
   };
@@ -1701,6 +1706,7 @@ export default function FtoSubmissionForm() {
         no_charge: billingToNoCharge(h.billing),
         emergency: h.emergencyRate === "yes",
         is_dump_run: h.dumpRun,
+        is_gas_charge: h.gasCharge,
         hour_index: idx,
         unit_id: getUnitIdAsNumber(h.unitId),
       }));
@@ -1769,6 +1775,7 @@ export default function FtoSubmissionForm() {
       emergency: h.emergencyRate === "yes",
       no_charge: billingToNoCharge(h.billing),
       is_dump_run: h.dumpRun,
+      is_gas_charge: h.gasCharge,
 
       note: h.note ?? "",
     }));
@@ -2269,6 +2276,23 @@ export default function FtoSubmissionForm() {
                             className="text-sm text-[#303030]"
                           >
                             Dump Run
+                          </label>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={entry.gasCharge}
+                            onCheckedChange={(checked) =>
+                              updateHourEntry(entry.id, "gasCharge", checked === true)
+                            }
+                            disabled={isApproved}
+                            id={`gas-charge-${entry.id}`}
+                          />
+                          <label
+                            htmlFor={`gas-charge-${entry.id}`}
+                            className="text-sm text-[#303030]"
+                          >
+                            Gas Charge
                           </label>
                         </div>
 

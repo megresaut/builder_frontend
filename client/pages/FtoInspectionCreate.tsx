@@ -3,7 +3,11 @@ import { useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import BlueButton from "@/components/BlueButton";
 import { CloseIcon } from "@/components/icons";
-import { SelectField, DateField, ComboboxField } from "@/components/forms";
+import {
+  SelectField,
+  DateField,
+  PropertyLocationCombobox,
+} from "@/components/forms";
 import { DateTimeField } from "@/components/forms/DateTimeField";
 import { NumberField } from "@/components/forms/NumberField";
 import { fetchJSON } from "@/api/fetchJSON";
@@ -44,6 +48,7 @@ export default function FtoInspectionCreate() {
   }, []);
   const [dateTime, setDateTime] = useState<string>(initialDateTime);
   const [propertyId, setPropertyId] = useState<string | null>(null);
+  const [locationId, setLocationId] = useState<number | null>(null);
   const [unitId, setUnitId] = useState<string | null>(null);
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [isRecurring, setIsRecurring] = useState<boolean>(false);
@@ -93,13 +98,17 @@ export default function FtoInspectionCreate() {
     };
   }, []);
 
+  const selectedProperty = properties.find(
+    (p) => String(p.id) === propertyId
+  );
+  const hasLocations = (selectedProperty?.locations_count ?? 0) > 0;
+
   useEffect(() => {
-    if (!propertyId) return;
-    const selected = properties.find((p) => String(p.id) === propertyId);
-    if (selected?.property_type === "C") {
+    if (!propertyId || hasLocations) return;
+    if (selectedProperty?.property_type === "C") {
       setUnitId(String(PROPERTY_LEVEL_UNIT_ID));
     }
-  }, [propertyId, properties]);
+  }, [propertyId, hasLocations, selectedProperty]);
 
   const loadUnitsForProperty = async (propId: string) => {
     if (unitsByProperty[propId]) return;
@@ -179,6 +188,7 @@ export default function FtoInspectionCreate() {
     const basePayload = {
       property_id: parsedPropertyId,
       unit_id: parsedUnitId,
+      location_id: locationId,
       checklist_id: parsedTemplateId,
       assigned_field_team_member_id: userId ?? null,
       status: isRecurring ? "scheduled" : "draft",
@@ -255,23 +265,22 @@ export default function FtoInspectionCreate() {
                 error={validationErrors.date}
               />
 
-              <ComboboxField
+              <PropertyLocationCombobox
                 label="Property"
                 required
-                options={properties.map((p) => ({
-                  value: String(p.id),
-                  label: p.name,
-                }))}
-                value={propertyId || ""}
-                onChange={(value) => {
-                  const newPropertyId =
-                    typeof value === "string" ? value : value || null;
-                  setPropertyId(newPropertyId);
+                properties={properties}
+                propertyId={propertyId ? Number(propertyId) : null}
+                locationId={locationId}
+                onChange={({ propertyId: newPropertyId, locationId: newLocationId }) => {
+                  const newPropertyIdStr =
+                    newPropertyId !== null ? String(newPropertyId) : null;
+                  setPropertyId(newPropertyIdStr);
+                  setLocationId(newLocationId);
                   setUnitId(null);
                   setTemplateId(null);
-                  if (newPropertyId) {
-                    loadUnitsForProperty(newPropertyId);
-                    loadTemplatesForProperty(newPropertyId);
+                  if (newPropertyIdStr) {
+                    loadUnitsForProperty(newPropertyIdStr);
+                    loadTemplatesForProperty(newPropertyIdStr);
                   }
                 }}
                 placeholder={
@@ -279,28 +288,31 @@ export default function FtoInspectionCreate() {
                     ? "Loading properties..."
                     : "Select Property"
                 }
+                searchPlaceholder="Search properties..."
                 disabled={propertiesLoading}
                 error={validationErrors.property}
               />
 
-              <SelectField
-                label="Unit"
-                options={getUnitOptions(propertyId)}
-                value={unitId || ""}
-                onChange={(value) =>
-                  setUnitId(
-                    typeof value === "string" ? value : value[0] || null
-                  )
-                }
-                placeholder={
-                  !propertyId
-                    ? "Select property first"
-                    : unitsLoading[propertyId!]
-                    ? "Loading units…"
-                    : "Select Unit"
-                }
-                disabled={!propertyId || (!!propertyId && unitsLoading[propertyId])}
-              />
+              {!hasLocations && (
+                <SelectField
+                  label="Unit"
+                  options={getUnitOptions(propertyId)}
+                  value={unitId || ""}
+                  onChange={(value) =>
+                    setUnitId(
+                      typeof value === "string" ? value : value[0] || null
+                    )
+                  }
+                  placeholder={
+                    !propertyId
+                      ? "Select property first"
+                      : unitsLoading[propertyId!]
+                      ? "Loading units…"
+                      : "Select Unit"
+                  }
+                  disabled={!propertyId || (!!propertyId && unitsLoading[propertyId])}
+                />
+              )}
 
               <SelectField
                 label="Inspection Template (optional)"
@@ -344,7 +356,10 @@ export default function FtoInspectionCreate() {
                   <NumberField
                     label={`Every N ${frequency === "daily" ? "days" : frequency === "weekly" ? "weeks" : "months"}`}
                     value={intervalCount}
-                    onChange={(v) => setIntervalCount(typeof v === "number" ? v : 1)}
+                    onChange={(e) => {
+                      const n = parseInt(e.target.value, 10);
+                      setIntervalCount(Number.isNaN(n) ? 1 : n);
+                    }}
                     min={1}
                   />
                   <DateField

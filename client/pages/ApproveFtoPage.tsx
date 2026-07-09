@@ -22,10 +22,15 @@ import CreateFTOModal from "@/components/CreateFTOModal";
 import BlueButton from "@/components/BlueButton";
 import PdfViewerModal from "@/components/PdfViewerModal";
 import { usePdfViewer } from "@/hooks/usePdfViewer";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { useParams } from "react-router-dom";
 import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { AlertBanner } from "@/components/AlertBanner";
 import {
   Dialog,
@@ -35,7 +40,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { fetchChartOfAccounts } from "@/data/chartOfAccounts";
-import NewVendorModal, { type CreatedVendor } from "@/components/NewVendorModal";
+import NewVendorModal, {
+  type CreatedVendor,
+} from "@/components/NewVendorModal";
 import {
   Select,
   SelectContent,
@@ -52,6 +59,7 @@ interface HourRow {
   noFee: boolean;
   emergency: boolean;
   dumpRun: boolean;
+  gasCharge: boolean;
   amount: string;
   upcharge: string;
   assignee: string;
@@ -125,22 +133,23 @@ interface ExpenseLine {
   bill_id?: number;
 }
 
-
 interface BackendSubmission {
   ID: number;
   FTOID: number;
   FieldTeamMemberID: number;
   HasAttachments?: boolean;
   MaterialsJSON: string | null;
-  HoursJSON: {
-    date_of_work: string;
-    hours_decimal: number;
-    note?: string;
-    no_charge: boolean;
-    emergency: boolean;
-    amount_cents?: number;
-    upcharge_cents?: number;
-  }[] | null;
+  HoursJSON:
+    | {
+        date_of_work: string;
+        hours_decimal: number;
+        note?: string;
+        no_charge: boolean;
+        emergency: boolean;
+        amount_cents?: number;
+        upcharge_cents?: number;
+      }[]
+    | null;
 }
 
 interface Attachment {
@@ -155,7 +164,6 @@ interface AttachmentSummary {
   submission_id: number;
   material_index: number;
 }
-
 
 const fetchAttachmentsForExpense = async (
   submissionId: number,
@@ -175,10 +183,12 @@ const fetchAttachmentsForExpense = async (
   return res.json();
 };
 
-const fetchAttachmentsByFto = async (ftoId: number): Promise<AttachmentSummary[]> => {
+const fetchAttachmentsByFto = async (
+  ftoId: number,
+): Promise<AttachmentSummary[]> => {
   const res = await authFetch(
     `/maintenance/attachments/by-fto?fto_id=${ftoId}`,
-    { headers: { Accept: "application/json" } }
+    { headers: { Accept: "application/json" } },
   );
 
   if (!res.ok) throw new Error("Failed to load attachments (by fto)");
@@ -198,8 +208,9 @@ const fetchAttachmentsByFto = async (ftoId: number): Promise<AttachmentSummary[]
   }));
 };
 
-
-const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]> => {
+const fetchSubmissionsByFto = async (
+  ftoId: number,
+): Promise<BackendSubmission[]> => {
   const res = await authFetch(
     `/maintenance/submissions/by-fto?fto_id=${ftoId}`,
     {
@@ -231,18 +242,17 @@ const fetchSubmissionsByFto = async (ftoId: number): Promise<BackendSubmission[]
 };
 
 // Fetch a single submission by ID (for misc expenses)
-const fetchSubmissionById = async (submissionId: number): Promise<{
+const fetchSubmissionById = async (
+  submissionId: number,
+): Promise<{
   submission: BackendSubmission;
   property_name?: string;
   property_id?: number;
   date_of_work?: string;
 }> => {
-  const res = await authFetch(
-    `/maintenance/submissions/${submissionId}`,
-    {
-      headers: { Accept: "application/json" },
-    },
-  );
+  const res = await authFetch(`/maintenance/submissions/${submissionId}`, {
+    headers: { Accept: "application/json" },
+  });
 
   if (!res.ok) {
     let errMsg = "Failed to fetch submission";
@@ -278,10 +288,12 @@ const fetchSubmissionById = async (submissionId: number): Promise<{
 };
 
 // Fetch attachments by submission ID (for misc expenses)
-const fetchAttachmentsBySubmission = async (submissionId: number): Promise<AttachmentSummary[]> => {
+const fetchAttachmentsBySubmission = async (
+  submissionId: number,
+): Promise<AttachmentSummary[]> => {
   const res = await authFetch(
     `/maintenance/attachments/by-submission?submission_id=${submissionId}`,
-    { headers: { Accept: "application/json" } }
+    { headers: { Accept: "application/json" } },
   );
 
   if (!res.ok) return [];
@@ -297,8 +309,8 @@ const fetchAttachmentsBySubmission = async (submissionId: number): Promise<Attac
   }));
 };
 
-
 const DUMP_RUN_UPCHARGE_CENTS = 5000;
+const GAS_CHARGE_UPCHARGE_CENTS = 500;
 
 const parseMoneyToCents = (value: string): number => {
   const num = parseFloat(value.replace(/[^0-9.-]+/g, ""));
@@ -315,6 +327,7 @@ const buildHoursJSON = (hourRows: HourRow[]) => {
       no_charge: row.noFee,
       emergency: row.emergency,
       is_dump_run: row.dumpRun,
+      is_gas_charge: row.gasCharge,
       hour_index: row.hourIndex ?? index,
     };
     if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
@@ -323,7 +336,7 @@ const buildHoursJSON = (hourRows: HourRow[]) => {
 };
 
 const chargeTypeToExpenseType = (
-  ct: "personal" | "avm" | "client"
+  ct: "personal" | "avm" | "client",
 ): "personal-expense" | "avm-expense" | "client-expense" => {
   if (ct === "avm") return "avm-expense";
   if (ct === "personal") return "personal-expense";
@@ -332,7 +345,7 @@ const chargeTypeToExpenseType = (
 
 const buildMaterialsJSON = (
   expenseRows: ExpenseRow[],
-  options?: { includeAvmreFields: boolean }
+  options?: { includeAvmreFields: boolean },
 ) => {
   const includeAvmreFields = options?.includeAvmreFields ?? false;
   return expenseRows.map((row) => {
@@ -357,7 +370,8 @@ const buildMaterialsJSON = (
       }
       if (row.buildiumAccountId) {
         out.buildium_account_id = row.buildiumAccountId;
-        if (row.buildiumAccountName) out.buildium_account_name = row.buildiumAccountName;
+        if (row.buildiumAccountName)
+          out.buildium_account_name = row.buildiumAccountName;
       }
       out.exported_to_buildium = row.exportedToBuildium ?? false;
       if (row.billId) out.bill_id = row.billId;
@@ -365,7 +379,6 @@ const buildMaterialsJSON = (
     return out;
   });
 };
-
 
 const buildAttachmentIndex = (
   list: AttachmentSummary[],
@@ -381,7 +394,6 @@ const buildAttachmentIndex = (
   return map;
 };
 
-
 const patchSubmission = async (
   submissionId: number,
   payload: {
@@ -389,28 +401,24 @@ const patchSubmission = async (
     materials_json?: any[];
     field_team_member_id?: number;
     property_id?: number;
-  }
+  },
 ) => {
   // Debugging logs removed
 
-  const res = await authFetch(
-    `/maintenance/submissions/${submissionId}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
+  const res = await authFetch(`/maintenance/submissions/${submissionId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || "Failed to patch submission");
   }
 };
-
 
 /**
  * Create a new submission for a specific assignee (field team member)
@@ -452,21 +460,18 @@ const createSubmissionForAssignee = async (
     ...(propertyId != null ? { property_id: propertyId } : {}),
   }));
 
-  const res = await authFetch(
-    `/maintenance/ftos/${ftoId}/submissions`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        tech_id: techId,
-        hours: hourEntries,
-        expenses: expenseEntries,
-      }),
-    }
-  );
+  const res = await authFetch(`/maintenance/ftos/${ftoId}/submissions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      tech_id: techId,
+      hours: hourEntries,
+      expenses: expenseEntries,
+    }),
+  });
 
   if (!res.ok) {
     const text = await res.text();
@@ -476,7 +481,6 @@ const createSubmissionForAssignee = async (
   const data = await res.json();
   return data.submission_id;
 };
-
 
 const extractSubmissionIds = (rows: { id: string }[]): number[] => {
   const ids = new Set<number>();
@@ -494,9 +498,13 @@ const extractSubmissionIds = (rows: { id: string }[]): number[] => {
   return Array.from(ids);
 };
 
-
 const mockTasks = ["HVAC Inspection", "Plumbing Repair", "Door Lock Repair"];
-const mockAssignees = ["John Smith", "Jane Doe", "Mike Johnson", "Sarah Williams"];
+const mockAssignees = [
+  "John Smith",
+  "Jane Doe",
+  "Mike Johnson",
+  "Sarah Williams",
+];
 
 const calculateTotal = (amount: string, upcharge: string): number => {
   const amountNum = parseFloat(amount.replace(/[^0-9.-]+/g, "")) || 0;
@@ -508,20 +516,20 @@ const formatDate = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
 
-
 /** Map backend is_avm_expense to UI chargeType. false → client, true → avm. */
 const isAvmExpenseToChargeType = (isAvm: boolean): "avm" | "client" =>
   isAvm ? "avm" : "client";
 
 /** Derive charge type from API expense line: use expense_type when present, else is_avm_expense. */
-const expenseLineToChargeType = (expense: ExpenseLine): "personal" | "avm" | "client" => {
+const expenseLineToChargeType = (
+  expense: ExpenseLine,
+): "personal" | "avm" | "client" => {
   const et = expense.expense_type;
   if (et === "avm-expense") return "avm";
   if (et === "client-expense") return "client";
   if (et === "personal-expense") return "personal";
   return isAvmExpenseToChargeType(expense.is_avm_expense ?? false);
 };
-
 
 // const parseDueDate = (dateStr: string | undefined): Date | null => {
 //   if (!dateStr) return null;
@@ -568,7 +576,7 @@ const approveSubmission = async (submissionId: number) => {
       headers: {
         Accept: "application/json",
       },
-    }
+    },
   );
 
   if (!res.ok) {
@@ -597,7 +605,7 @@ const rejectSubmission = async (submissionId: number) => {
       headers: {
         Accept: "application/json",
       },
-    }
+    },
   );
 
   if (!res.ok) {
@@ -607,24 +615,20 @@ const rejectSubmission = async (submissionId: number) => {
 };
 
 const updateFtoAmountCents = async (ftoId: number, amountCents: number) => {
-  const res = await authFetch(
-    `/maintenance/ftos/${ftoId}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ amount_cents: amountCents }),
-    }
-  );
+  const res = await authFetch(`/maintenance/ftos/${ftoId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ amount_cents: amountCents }),
+  });
 
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || "Failed to update FTO amount");
   }
 };
-
 
 export default function ApproveFTOPage() {
   const navigate = useNavigate();
@@ -640,10 +644,13 @@ export default function ApproveFTOPage() {
 
   // const ftoId = id ? Number(id) : null;
 
-  const { ftoId, submissionId } = useParams<{ ftoId?: string; submissionId?: string }>();
+  const { ftoId, submissionId } = useParams<{
+    ftoId?: string;
+    submissionId?: string;
+  }>();
   const ftoIdNum = ftoId ? Number(ftoId) : null;
   const submissionIdNum = submissionId ? Number(submissionId) : null;
-  
+
   // Determine if we're in "misc submission" mode (single submission by ID)
   const isMiscMode = submissionIdNum !== null && ftoIdNum === null;
   /** Property's Buildium info (loaded when propertyId set); used for misc export to Buildium */
@@ -663,7 +670,9 @@ export default function ApproveFTOPage() {
   );
   const [task, setTask] = useState(state.task || "");
   const [description, setDescription] = useState(state.description || "");
-  const [dueDate, setDueDate] = useState<Date | null>(parseDueDate(state.dueDate));
+  const [dueDate, setDueDate] = useState<Date | null>(
+    parseDueDate(state.dueDate),
+  );
   const [priority, setPriority] = useState(state.priority || "normal");
 
   // Table rows - will be populated from mock API
@@ -680,7 +689,9 @@ export default function ApproveFTOPage() {
   // that resolves with the created vendor (or null if cancelled), so the
   // approve flow can pause inline until the PM finishes the modal.
   const [newVendorTarget, setNewVendorTarget] = useState<string | null>(null);
-  const newVendorResolverRef = useRef<((v: CreatedVendor | null) => void) | null>(null);
+  const newVendorResolverRef = useRef<
+    ((v: CreatedVendor | null) => void) | null
+  >(null);
   const resolveNewVendor = (name: string): Promise<CreatedVendor | null> =>
     new Promise((resolve) => {
       newVendorResolverRef.current = resolve;
@@ -690,21 +701,31 @@ export default function ApproveFTOPage() {
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(true);
   const [assigneeById, setAssigneeById] = useState<Record<number, string>>({});
   const [hasNoSubmissions, setHasNoSubmissions] = useState(false);
-  const [rateError, setRateError] = useState<"hourly" | "emergency" | null>(null);
+  const [rateError, setRateError] = useState<"hourly" | "emergency" | null>(
+    null,
+  );
   const [propertyId, setPropertyId] = useState<number | null>(null);
   // const [attachmentsByKey, setAttachmentsByKey] = useState<Record<string, AttachmentSummary[]>>({});
-  
+
   // Track submissions by assignee ID so we know which assignees already have submissions
-  const [submissionByAssignee, setSubmissionByAssignee] = useState<Record<number, number>>({});
+  const [submissionByAssignee, setSubmissionByAssignee] = useState<
+    Record<number, number>
+  >({});
   /** All submission IDs for this FTO (so we can PATCH each one on approve, including clearing hours) */
   const [loadedSubmissionIds, setLoadedSubmissionIds] = useState<number[]>([]);
   /** submissionId -> field_team_member_id for patching when a submission has zero rows left */
-  const [loadedSubmissionToAssignee, setLoadedSubmissionToAssignee] = useState<Record<number, number>>({});
+  const [loadedSubmissionToAssignee, setLoadedSubmissionToAssignee] = useState<
+    Record<number, number>
+  >({});
   const [loadedFto, setLoadedFto] = useState<Record<string, any> | null>(null);
   const [showEditFTOModal, setShowEditFTOModal] = useState(false);
   const [showEditMiscModal, setShowEditMiscModal] = useState(false);
-  const [editMiscProperties, setEditMiscProperties] = useState<Array<{ id: number; name: string }>>([]);
-  const [editMiscPropertyId, setEditMiscPropertyId] = useState<number | null>(null);
+  const [editMiscProperties, setEditMiscProperties] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
+  const [editMiscPropertyId, setEditMiscPropertyId] = useState<number | null>(
+    null,
+  );
   const [ftoDetailsVersion, setFtoDetailsVersion] = useState(0);
 
   // Load property Buildium details when propertyId is set (for Buildium expense export)
@@ -721,8 +742,11 @@ export default function ApproveFTOPage() {
         const ptype = data?.property_type ?? "";
         setPropertyBuildiumDetails(
           typeof bid === "string" && bid.trim() !== ""
-            ? { buildium_property_id: bid.trim(), property_type: typeof ptype === "string" ? ptype : "" }
-            : null
+            ? {
+                buildium_property_id: bid.trim(),
+                property_type: typeof ptype === "string" ? ptype : "",
+              }
+            : null,
         );
       })
       .catch(() => {
@@ -735,7 +759,8 @@ export default function ApproveFTOPage() {
 
   // "Add attachment" flow for expense rows with missing attachments
   const attachmentFileInputRef = useRef<HTMLInputElement>(null);
-  const [pendingAttachmentRow, setPendingAttachmentRow] = useState<ExpenseRow | null>(null);
+  const [pendingAttachmentRow, setPendingAttachmentRow] =
+    useState<ExpenseRow | null>(null);
   const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
 
   const handleAddAttachment = (row: ExpenseRow) => {
@@ -743,7 +768,9 @@ export default function ApproveFTOPage() {
     attachmentFileInputRef.current?.click();
   };
 
-  const handleAttachmentFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAttachmentFileSelected = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file || !pendingAttachmentRow) {
       setPendingAttachmentRow(null);
@@ -781,7 +808,9 @@ export default function ApproveFTOPage() {
             propertyId,
           );
         } else {
-          throw new Error("Cannot create submission — no FTO or misc submission context");
+          throw new Error(
+            "Cannot create submission — no FTO or misc submission context",
+          );
         }
         // Update the row's submissionId so future operations target the right submission
         setExpenseRows((prev) =>
@@ -836,7 +865,10 @@ export default function ApproveFTOPage() {
       setExpenseRows((prev) =>
         prev.map((r) => {
           const key = `${r.submissionId}-${r.materialIndex}`;
-          return { ...r, attachmentIds: newAttachmentIndex[key] ?? r.attachmentIds };
+          return {
+            ...r,
+            attachmentIds: newAttachmentIndex[key] ?? r.attachmentIds,
+          };
         }),
       );
     } catch (err) {
@@ -853,17 +885,21 @@ export default function ApproveFTOPage() {
   // filtered to expense accounts that have BOTH qbo_id and buildium_id (so
   // the resulting bill can dual-push without a missing-mapping error).
   // Same filter as RecordBill.tsx so the two pages stay in sync.
-  const [glAccountOptions, setGlAccountOptions] = useState<{ id: string; name: string }[]>([]);
+  const [glAccountOptions, setGlAccountOptions] = useState<
+    { id: string; name: string }[]
+  >([]);
   useEffect(() => {
     let cancelled = false;
     fetchChartOfAccounts({ activeOnly: true })
       .then((accounts) => {
         if (cancelled) return;
         const usable = accounts
-          .filter((a) =>
-            a.account_type === "expense" &&
-            a.qbo_id !== null && a.qbo_id !== "" &&
-            a.buildium_id !== null,
+          .filter(
+            (a) =>
+              a.account_type === "expense" &&
+              a.qbo_id !== null &&
+              a.qbo_id !== "" &&
+              a.buildium_id !== null,
           )
           .map((a) => ({ id: String(a.id), name: a.name }));
         setGlAccountOptions(usable);
@@ -876,7 +912,9 @@ export default function ApproveFTOPage() {
   const filteredGLAccounts = useMemo(
     () =>
       glSearch
-        ? glAccountOptions.filter((gl) => gl.name.toLowerCase().includes(glSearch.toLowerCase()))
+        ? glAccountOptions.filter((gl) =>
+            gl.name.toLowerCase().includes(glSearch.toLowerCase()),
+          )
         : glAccountOptions,
     [glAccountOptions, glSearch],
   );
@@ -896,10 +934,13 @@ export default function ApproveFTOPage() {
         : !row.glAccountId;
 
   // Live vendors for expense section (paginated, same pattern as work order menu)
-  const [isExpenseVendorDropdownOpen, setIsExpenseVendorDropdownOpen] = useState(false);
+  const [isExpenseVendorDropdownOpen, setIsExpenseVendorDropdownOpen] =
+    useState(false);
   const vendorPageSize = 50;
   const vendorRequestIdRef = useRef(0);
-  const [expenseVendors, setExpenseVendors] = useState<Array<{ id: number; name: string }>>([]);
+  const [expenseVendors, setExpenseVendors] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
   const [expenseVendorSearch, setExpenseVendorSearch] = useState("");
   const [expenseVendorOffset, setExpenseVendorOffset] = useState(0);
   const [expenseVendorHasMore, setExpenseVendorHasMore] = useState(true);
@@ -917,11 +958,15 @@ export default function ApproveFTOPage() {
         if (trimmed) params.set("search", trimmed);
         const vendorList = await fetchJSON(`/vendors?${params.toString()}`);
         if (requestId !== vendorRequestIdRef.current) return;
-        const normalized = (Array.isArray(vendorList) ? vendorList : []).map((v: any) => ({
-          id: Number(v.id),
-          name: typeof v.name === "string" ? v.name : String(v.name ?? ""),
-        }));
-        setExpenseVendors((prev) => (append ? [...prev, ...normalized] : normalized));
+        const normalized = (Array.isArray(vendorList) ? vendorList : []).map(
+          (v: any) => ({
+            id: Number(v.id),
+            name: typeof v.name === "string" ? v.name : String(v.name ?? ""),
+          }),
+        );
+        setExpenseVendors((prev) =>
+          append ? [...prev, ...normalized] : normalized,
+        );
         setExpenseVendorHasMore(normalized.length === vendorPageSize);
         setExpenseVendorOffset(offset + normalized.length);
       } catch (err) {
@@ -944,7 +989,11 @@ export default function ApproveFTOPage() {
       fetchExpenseVendorsPage(expenseVendorSearch, 0, false);
     }, 0);
     return () => window.clearTimeout(t);
-  }, [isExpenseVendorDropdownOpen, expenseVendorSearch, fetchExpenseVendorsPage]);
+  }, [
+    isExpenseVendorDropdownOpen,
+    expenseVendorSearch,
+    fetchExpenseVendorsPage,
+  ]);
 
   const expenseVendorOptions = useMemo(
     () =>
@@ -963,7 +1012,13 @@ export default function ApproveFTOPage() {
   const handleExpenseVendorLoadMore = useCallback(() => {
     if (expenseVendorLoading || !expenseVendorHasMore) return;
     fetchExpenseVendorsPage(expenseVendorSearch, expenseVendorOffset, true);
-  }, [expenseVendorLoading, expenseVendorHasMore, expenseVendorSearch, expenseVendorOffset, fetchExpenseVendorsPage]);
+  }, [
+    expenseVendorLoading,
+    expenseVendorHasMore,
+    expenseVendorSearch,
+    expenseVendorOffset,
+    fetchExpenseVendorsPage,
+  ]);
 
   // const makeAttachmentKey = (submissionId: number, materialIndex: number) =>
   //   `${submissionId}-${materialIndex}`;
@@ -972,18 +1027,18 @@ export default function ApproveFTOPage() {
     async function loadAssignees() {
       try {
         const data = await fetchJSON("/users/all");
-  
+
         const map: Record<number, string> = {};
         data.forEach((u: any) => {
           map[Number(u.id)] = u.name || u.email;
         });
-  
+
         setAssigneeById(map);
       } catch (err) {
         console.error("Failed to load users for assignee dropdown:", err);
       }
     }
-  
+
     loadAssignees();
   }, []);
 
@@ -993,14 +1048,17 @@ export default function ApproveFTOPage() {
         value: Number(id),
         label: name,
       })),
-    [assigneeById]
+    [assigneeById],
   );
 
   // Shape expected by CreateFTOModal when editing (same as All Field Team Orders edit)
   const editingFTO = useMemo(() => {
     if (!loadedFto || !ftoIdNum) return null;
     const statusRaw = (loadedFto.status ?? "").toString().toLowerCase();
-    const statusMap: Record<string, "new" | "dispatched" | "completed" | "cancelled"> = {
+    const statusMap: Record<
+      string,
+      "new" | "dispatched" | "completed" | "cancelled"
+    > = {
       new: "new",
       dispatched: "dispatched",
       completed: "completed",
@@ -1018,14 +1076,25 @@ export default function ApproveFTOPage() {
       id: Number(loadedFto.id ?? loadedFto.ID ?? ftoIdNum),
       name: loadedFto.name ?? "",
       description: loadedFto.description ?? "",
-      priority: (loadedFto.priority ?? "normal").toString().toLowerCase() as "low" | "normal" | "high",
+      priority: (loadedFto.priority ?? "normal").toString().toLowerCase() as
+        | "low"
+        | "normal"
+        | "high",
       status,
       due_date,
-      property_id: Number(loadedFto.property_id ?? loadedFto.propertyId ?? loadedFto.PropertyID ?? 0),
-      property_name: loadedFto.property_name ?? loadedFto.property_address ?? undefined,
-      unit_id: loadedFto.unit_id ?? loadedFto.unitId ?? loadedFto.UnitID ?? null,
+      property_id: Number(
+        loadedFto.property_id ??
+          loadedFto.propertyId ??
+          loadedFto.PropertyID ??
+          0,
+      ),
+      property_name:
+        loadedFto.property_name ?? loadedFto.property_address ?? undefined,
+      unit_id:
+        loadedFto.unit_id ?? loadedFto.unitId ?? loadedFto.UnitID ?? null,
       unit_name: loadedFto.unit_name ?? undefined,
-      task_id: loadedFto.task_id ?? loadedFto.taskId ?? loadedFto.TaskID ?? undefined,
+      task_id:
+        loadedFto.task_id ?? loadedFto.taskId ?? loadedFto.TaskID ?? undefined,
       field_team_member_ids: Array.isArray(loadedFto.field_team_member_ids)
         ? loadedFto.field_team_member_ids.map(Number)
         : [],
@@ -1046,12 +1115,9 @@ export default function ApproveFTOPage() {
       if (!ftoIdNum) return;
 
       try {
-        const res = await authFetch(
-          `/maintenance/ftos/${ftoIdNum}`,
-          {
-            headers: { Accept: "application/json" },
-          }
-        );
+        const res = await authFetch(`/maintenance/ftos/${ftoIdNum}`, {
+          headers: { Accept: "application/json" },
+        });
 
         if (!res.ok) {
           console.error("Failed to load FTO details");
@@ -1115,7 +1181,7 @@ export default function ApproveFTOPage() {
       loadFTODetails();
     }
   }, [ftoIdNum, submissionIdNum, isMiscMode, state, ftoDetailsVersion]);
-  
+
   /**
    * Load submissions from API and populate hours/expenses tables
    * Handles both FTO mode (by fto_id) and misc mode (by submission_id)
@@ -1131,7 +1197,8 @@ export default function ApproveFTOPage() {
 
         if (isMiscMode && submissionIdNum) {
           // Misc mode: load single submission by ID
-          const { submission, property_name, property_id, date_of_work } = await fetchSubmissionById(submissionIdNum);
+          const { submission, property_name, property_id, date_of_work } =
+            await fetchSubmissionById(submissionIdNum);
           submissions = [submission];
 
           // Property: prefer the API value (always fresh) over any nav-state
@@ -1146,21 +1213,23 @@ export default function ApproveFTOPage() {
           // dueDate state so the field shows the work date instead of staying
           // blank (FTO mode uses dueDate from the FTO; misc has no FTO).
           if (date_of_work) {
-            const d = typeof date_of_work === "string"
-              ? new Date(date_of_work)
-              : (date_of_work as unknown as Date);
+            const d =
+              typeof date_of_work === "string"
+                ? new Date(date_of_work)
+                : (date_of_work as unknown as Date);
             if (!Number.isNaN(d.getTime())) {
               setDueDate(d);
             }
           }
 
           // Fetch attachments for this submission
-          const attachments = await fetchAttachmentsBySubmission(submissionIdNum);
+          const attachments =
+            await fetchAttachmentsBySubmission(submissionIdNum);
           attachmentIndex = buildAttachmentIndex(attachments);
         } else if (ftoIdNum) {
           // FTO mode: load all submissions for the FTO
           submissions = await fetchSubmissionsByFto(ftoIdNum);
-          
+
           if (submissions && submissions.length > 0) {
             const attachments = await fetchAttachmentsByFto(ftoIdNum);
             attachmentIndex = buildAttachmentIndex(attachments);
@@ -1168,7 +1237,11 @@ export default function ApproveFTOPage() {
         }
 
         // 🚨 HANDLE null / empty explicitly
-        if (!submissions || !Array.isArray(submissions) || submissions.length === 0) {
+        if (
+          !submissions ||
+          !Array.isArray(submissions) ||
+          submissions.length === 0
+        ) {
           setHasNoSubmissions(true);
           setHourRows([]);
           setExpenseRows([]);
@@ -1190,21 +1263,25 @@ export default function ApproveFTOPage() {
           if (submission.HoursJSON) {
             // HoursJSON might be an array or need parsing
             let hoursData = submission.HoursJSON;
-            if (typeof hoursData === 'string') {
+            if (typeof hoursData === "string") {
               try {
                 hoursData = JSON.parse(hoursData);
               } catch {
                 hoursData = [];
               }
             }
-            
+
             if (Array.isArray(hoursData)) {
               hoursData.forEach((hourLine: any, index: number) => {
                 const upchargeCents = hourLine.upcharge_cents ?? 0;
                 const hourIndex = hourLine.hour_index ?? index;
                 const dumpRun = hourLine.is_dump_run || false;
+                const gasCharge = hourLine.is_gas_charge || false;
                 const effectiveUpchargeCents =
-                  upchargeCents !== 0 ? upchargeCents : dumpRun ? DUMP_RUN_UPCHARGE_CENTS : 0;
+                  upchargeCents !== 0
+                    ? upchargeCents
+                    : (dumpRun ? DUMP_RUN_UPCHARGE_CENTS : 0) +
+                      (gasCharge ? GAS_CHARGE_UPCHARGE_CENTS : 0);
                 allHourLines.push({
                   id: `hour-${submission.ID}-${index}`,
                   date: formatDate(new Date(hourLine.date_of_work)),
@@ -1213,6 +1290,7 @@ export default function ApproveFTOPage() {
                   noFee: hourLine.no_charge || false,
                   emergency: hourLine.emergency || false,
                   dumpRun,
+                  gasCharge,
                   amount: `$${((hourLine.amount_cents ?? 0) / 100).toFixed(2)}`,
                   upcharge: `$${(effectiveUpchargeCents / 100).toFixed(2)}`,
                   assignee: assigneeById[submission.FieldTeamMemberID] || "",
@@ -1228,9 +1306,9 @@ export default function ApproveFTOPage() {
           if (submission.MaterialsJSON) {
             try {
               let materialsData: ExpenseLine[];
-              
+
               // MaterialsJSON might be base64 encoded or raw JSON
-              if (typeof submission.MaterialsJSON === 'string') {
+              if (typeof submission.MaterialsJSON === "string") {
                 try {
                   // Try base64 decode first
                   const decodedJson = atob(submission.MaterialsJSON);
@@ -1240,7 +1318,8 @@ export default function ApproveFTOPage() {
                   materialsData = JSON.parse(submission.MaterialsJSON);
                 }
               } else {
-                materialsData = submission.MaterialsJSON as unknown as ExpenseLine[];
+                materialsData =
+                  submission.MaterialsJSON as unknown as ExpenseLine[];
               }
 
               // Handle null or non-array expenses (e.g., when materials are empty)
@@ -1254,7 +1333,8 @@ export default function ApproveFTOPage() {
                     materialIndex: index,
 
                     attachmentIds: attachmentIndex[key] ?? [],
-                    submissionHasAttachments: submission.HasAttachments ?? false,
+                    submissionHasAttachments:
+                      submission.HasAttachments ?? false,
 
                     date: formatDate(new Date(expense.date_of_work)),
                     vendor: expense.vendor_name || "",
@@ -1262,7 +1342,10 @@ export default function ApproveFTOPage() {
                     avmExpense: expense.is_avm_expense,
                     chargeType: expenseLineToChargeType(expense),
                     amount: `$${((expense.amount_cents ?? 0) / 100).toFixed(2)}`,
-                    upcharge: upchargeCents !== 0 ? `$${(upchargeCents / 100).toFixed(2)}` : "$0.00",
+                    upcharge:
+                      upchargeCents !== 0
+                        ? `$${(upchargeCents / 100).toFixed(2)}`
+                        : "$0.00",
                     assignee: assigneeById[submission.FieldTeamMemberID] || "",
                     assigneeId: submission.FieldTeamMemberID,
                     glAccountId: expense.gl_account_id ?? "",
@@ -1273,14 +1356,13 @@ export default function ApproveFTOPage() {
                     exportedToBuildium: expense.exported_to_buildium ?? false,
                     billId: expense.bill_id,
                     paymentMethod:
-                      (expense as { payment_method?: string }).payment_method ===
-                      "personal_card"
+                      (expense as { payment_method?: string })
+                        .payment_method === "personal_card"
                         ? "personal_card"
                         : "company_card",
                   });
                 });
               }
-              
             } catch (e) {
               console.warn("Failed to decode MaterialsJSON:", e);
             }
@@ -1295,29 +1377,48 @@ export default function ApproveFTOPage() {
         setSubmissionByAssignee(assigneeToSubmission);
 
         setLoadedSubmissionIds(submissions.map((s) => s.ID));
-        setLoadedSubmissionToAssignee(Object.fromEntries(submissions.map((s) => [s.ID, s.FieldTeamMemberID])));
+        setLoadedSubmissionToAssignee(
+          Object.fromEntries(
+            submissions.map((s) => [s.ID, s.FieldTeamMemberID]),
+          ),
+        );
 
         setHourRows(allHourLines);
         setExpenseRows(allExpenseLines);
       } catch (error) {
         console.error("Failed to load submissions:", error);
-        
+
         // Check if error is related to missing rates (e.g. "cannot scan NULL into *int64" for hourly_rate_cents / emergency_hourly_rate_cents)
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         const lowerError = errorMessage.toLowerCase();
-        
-        if (lowerError.includes("emergency_hourly_rate") || (lowerError.includes("emergency") && lowerError.includes("rate"))) {
+
+        if (
+          lowerError.includes("emergency_hourly_rate") ||
+          (lowerError.includes("emergency") && lowerError.includes("rate"))
+        ) {
           setRateError("emergency");
-        } else if (lowerError.includes("hourly_rate") || (lowerError.includes("hourly") && lowerError.includes("rate"))) {
+        } else if (
+          lowerError.includes("hourly_rate") ||
+          (lowerError.includes("hourly") && lowerError.includes("rate"))
+        ) {
           setRateError("hourly");
-        } else if (lowerError.includes("scan") && (lowerError.includes("null") || lowerError.includes("emergency") || lowerError.includes("hourly"))) {
-          if (lowerError.includes("emergency_hourly_rate_cents") || lowerError.includes("emergency")) {
+        } else if (
+          lowerError.includes("scan") &&
+          (lowerError.includes("null") ||
+            lowerError.includes("emergency") ||
+            lowerError.includes("hourly"))
+        ) {
+          if (
+            lowerError.includes("emergency_hourly_rate_cents") ||
+            lowerError.includes("emergency")
+          ) {
             setRateError("emergency");
           } else {
             setRateError("hourly");
           }
         }
-        
+
         setHourRows([]);
         setExpenseRows([]);
       } finally {
@@ -1331,32 +1432,48 @@ export default function ApproveFTOPage() {
   // useEffect(() => {
   //   const loadAttachments = async () => {
   //     if (!ftoIdNum) return;
-  
+
   //     try {
   //       const list = await fetchAttachmentsByFto(ftoIdNum);
-  
+
   //       const map: Record<string, AttachmentSummary[]> = {};
   //       for (const att of list) {
   //         const key = makeAttachmentKey(att.submission_id, att.material_index);
   //         if (!map[key]) map[key] = [];
   //         map[key].push(att);
   //       }
-  
+
   //       setAttachmentsByKey(map);
   //     } catch (err) {
   //       console.error("Failed to load attachments by FTO:", err);
   //       setAttachmentsByKey({});
   //     }
   //   };
-  
+
   //   loadAttachments();
   // }, [ftoIdNum]);
-  
 
   const updateHourRow = (id: string, field: keyof HourRow, value: any) => {
     setHourRows((rows) =>
       rows.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
     );
+  };
+
+  // Dump Run ($50) and Gas Charge ($5) both auto-adjust the shared Upcharge
+  // field additively, so checking/unchecking either composes correctly
+  // regardless of the other's state or a PM's manual edit to Upcharge.
+  const toggleUpchargeCheckbox = (
+    row: HourRow,
+    field: "dumpRun" | "gasCharge",
+    deltaCents: number,
+    isChecked: boolean,
+  ) => {
+    updateHourRow(row.id, field, isChecked);
+    const currentUpchargeCents = parseMoneyToCents(row.upcharge);
+    const nextCents = isChecked
+      ? currentUpchargeCents + deltaCents
+      : Math.max(0, currentUpchargeCents - deltaCents);
+    updateHourRow(row.id, "upcharge", `$${(nextCents / 100).toFixed(2)}`);
   };
 
   const updateExpenseRow = (
@@ -1389,6 +1506,7 @@ export default function ApproveFTOPage() {
         noFee: false,
         emergency: false,
         dumpRun: false,
+        gasCharge: false,
         amount: "$0",
         upcharge: "$0",
         assignee: "",
@@ -1476,30 +1594,47 @@ export default function ApproveFTOPage() {
       // DB with both qbo_vendor_id AND buildium_vendor_id. Free-text vendor
       // names that don't match get resolved via the New Vendor modal here,
       // before the approve action actually fires.
-      let vendorCache: Record<string, { id: number; buildiumVendorId: string | null; qboVendorId: string | null }> | null = null;
+      let vendorCache: Record<
+        string,
+        {
+          id: number;
+          buildiumVendorId: string | null;
+          qboVendorId: string | null;
+        }
+      > | null = null;
       if (expenseRows.length > 0 && canExportToBuildium) {
         // Only rows that will actually be exported need a GL ref. Already-booked
         // rows (billId set) are skipped on export and may carry a legacy
         // gl_account_id from before the property-aware picker, so don't block on them.
-        const missingGL = expenseRows.some((r) => !r.billId && expenseGLMissing(r));
+        const missingGL = expenseRows.some(
+          (r) => !r.billId && expenseGLMissing(r),
+        );
         if (missingGL) {
-          throw new Error("Select a GL Account for each expense row before exporting.");
+          throw new Error(
+            "Select a GL Account for each expense row before exporting.",
+          );
         }
 
         vendorCache = {};
         for (const row of expenseRows) {
           const vendorName = row.vendor.trim();
-          if (!vendorName) throw new Error("Each expense row must have a vendor.");
+          if (!vendorName)
+            throw new Error("Each expense row must have a vendor.");
           if (vendorCache[vendorName]) continue;
 
           // 1. Look up by exact case-insensitive name first.
           let match: any = null;
           try {
-            const results = await fetchJSON(`/vendors?search=${encodeURIComponent(vendorName)}&limit=10`);
+            const results = await fetchJSON(
+              `/vendors?search=${encodeURIComponent(vendorName)}&limit=10`,
+            );
             const list = Array.isArray(results) ? results : [];
-            match = list.find((v: any) =>
-              (v.name || "").trim().toLowerCase() === vendorName.toLowerCase(),
-            ) ?? null;
+            match =
+              list.find(
+                (v: any) =>
+                  (v.name || "").trim().toLowerCase() ===
+                  vendorName.toLowerCase(),
+              ) ?? null;
           } catch {
             // soft-fail; treated as no match
           }
@@ -1508,7 +1643,9 @@ export default function ApproveFTOPage() {
           if (!match) {
             const created = await resolveNewVendor(vendorName);
             if (!created) {
-              throw new Error(`Vendor resolution cancelled for "${vendorName}".`);
+              throw new Error(
+                `Vendor resolution cancelled for "${vendorName}".`,
+              );
             }
             match = {
               id: created.id,
@@ -1518,10 +1655,14 @@ export default function ApproveFTOPage() {
           }
 
           if (!match.buildium_vendor_id) {
-            throw new Error(`Vendor "${vendorName}" is not linked to Buildium yet. Open the vendor in settings and re-link, or pick a different vendor.`);
+            throw new Error(
+              `Vendor "${vendorName}" is not linked to Buildium yet. Open the vendor in settings and re-link, or pick a different vendor.`,
+            );
           }
           if (!match.qbo_vendor_id) {
-            throw new Error(`Vendor "${vendorName}" is not linked to QBO yet. Open the vendor in settings and re-link, or pick a different vendor.`);
+            throw new Error(
+              `Vendor "${vendorName}" is not linked to QBO yet. Open the vendor in settings and re-link, or pick a different vendor.`,
+            );
           }
           vendorCache[vendorName] = {
             id: Number(match.id),
@@ -1533,10 +1674,16 @@ export default function ApproveFTOPage() {
 
       // 1) PATCH each loaded submission with its current hour/expense rows (so deletions persist)
       for (const submissionId of loadedSubmissionIds) {
-        const subHourRows = hourRows.filter((r) => r.submissionId === submissionId);
-        const subExpenseRows = expenseRows.filter((r) => r.submissionId === submissionId);
+        const subHourRows = hourRows.filter(
+          (r) => r.submissionId === submissionId,
+        );
+        const subExpenseRows = expenseRows.filter(
+          (r) => r.submissionId === submissionId,
+        );
         const hoursJSON = buildHoursJSON(subHourRows);
-        const materialsJSON = buildMaterialsJSON(subExpenseRows, { includeAvmreFields: canExportToBuildium });
+        const materialsJSON = buildMaterialsJSON(subExpenseRows, {
+          includeAvmreFields: canExportToBuildium,
+        });
         const assigneeId = loadedSubmissionToAssignee[submissionId];
         await patchSubmission(submissionId, {
           hours_json: hoursJSON,
@@ -1554,16 +1701,24 @@ export default function ApproveFTOPage() {
       if (ftoIdNum) {
         const newHourRows = hourRows.filter((r) => r.submissionId === 0);
         const newExpenseRows = expenseRows.filter((r) => r.submissionId === 0);
-        const newAssigneeIds = new Set<number>([
-          ...newHourRows.map((r) => r.assigneeId),
-          ...newExpenseRows.map((r) => r.assigneeId),
-        ].filter((id) => id > 0));
+        const newAssigneeIds = new Set<number>(
+          [
+            ...newHourRows.map((r) => r.assigneeId),
+            ...newExpenseRows.map((r) => r.assigneeId),
+          ].filter((id) => id > 0),
+        );
 
         for (const assigneeId of newAssigneeIds) {
-          const assigneeNewHours = newHourRows.filter((r) => r.assigneeId === assigneeId);
-          const assigneeNewExpenses = newExpenseRows.filter((r) => r.assigneeId === assigneeId);
+          const assigneeNewHours = newHourRows.filter(
+            (r) => r.assigneeId === assigneeId,
+          );
+          const assigneeNewExpenses = newExpenseRows.filter(
+            (r) => r.assigneeId === assigneeId,
+          );
           const hoursJSON = buildHoursJSON(assigneeNewHours);
-          const materialsJSON = buildMaterialsJSON(assigneeNewExpenses, { includeAvmreFields: canExportToBuildium });
+          const materialsJSON = buildMaterialsJSON(assigneeNewExpenses, {
+            includeAvmreFields: canExportToBuildium,
+          });
           const newSubId = await createSubmissionForAssignee(
             ftoIdNum,
             assigneeId,
@@ -1581,22 +1736,32 @@ export default function ApproveFTOPage() {
           setExpenseRows((prev) =>
             prev.map((r) =>
               r.submissionId === 0 && newSubmissionIdByAssignee[r.assigneeId]
-                ? { ...r, submissionId: newSubmissionIdByAssignee[r.assigneeId] }
+                ? {
+                    ...r,
+                    submissionId: newSubmissionIdByAssignee[r.assigneeId],
+                  }
                 : r,
             ),
           );
           setHourRows((prev) =>
             prev.map((r) =>
               r.submissionId === 0 && newSubmissionIdByAssignee[r.assigneeId]
-                ? { ...r, submissionId: newSubmissionIdByAssignee[r.assigneeId] }
+                ? {
+                    ...r,
+                    submissionId: newSubmissionIdByAssignee[r.assigneeId],
+                  }
                 : r,
             ),
           );
           // expenseRows in scope below is the captured-at-render value so we
           // also patch it locally — the setState above is for the next render.
           for (let i = 0; i < expenseRows.length; i++) {
-            if (expenseRows[i].submissionId === 0 && newSubmissionIdByAssignee[expenseRows[i].assigneeId]) {
-              expenseRows[i].submissionId = newSubmissionIdByAssignee[expenseRows[i].assigneeId];
+            if (
+              expenseRows[i].submissionId === 0 &&
+              newSubmissionIdByAssignee[expenseRows[i].assigneeId]
+            ) {
+              expenseRows[i].submissionId =
+                newSubmissionIdByAssignee[expenseRows[i].assigneeId];
             }
           }
         }
@@ -1617,182 +1782,253 @@ export default function ApproveFTOPage() {
         }
         await approveFto(ftoIdNum);
       }
+      toast.success(
+        isMiscMode ? "Expense approved." : "Field Team Order approved.",
+      );
 
-      // --- Export expenses as bills (dual-push QBO + Buildium) ---
+      // --- Export expenses as bills (dual-push QBO + Buildium) + auto-pay ---
+      // Approval has already succeeded and is not affected by anything below —
+      // bill creation and payment run in the background (not awaited by the
+      // caller) so the page doesn't sit on "Approving…" for the whole batch.
       // Skip rows that already have a bill_id (idempotent on re-approve) so
-      // we never double-book in either system.
-      const newlyCreatedBillIds: Record<string, number> = {};
+      // we never double-book in either system. On bill-creation failure the
+      // backend already deletes the partially-created bill (see DualPushBill);
+      // on payment failure the bill stays created-but-unpaid (see
+      // autoPayFromCompanyCard/PayBillInFull) — either way approval stands.
       if (expenseRows.length > 0 && canExportToBuildium && vendorCache) {
-        const buildiumErrors: string[] = [];
-        const exportedRowIds = new Set<string>();
+        const resolvedVendorCache = vendorCache;
+        const runBillExportAndPayment = async () => {
+          const newlyCreatedBillIds: Record<string, number> = {};
+          const buildiumErrors: string[] = [];
+          const paymentWarnings: string[] = [];
+          const exportedRowIds = new Set<string>();
 
-        for (let i = 0; i < expenseRows.length; i++) {
-          const row = expenseRows[i];
-          if (row.billId) continue; // already booked
-          try {
-            const parsedDate = row.date;
-            const dateObj = new Date(parsedDate);
-            const dueDateObj = new Date(dateObj);
-            dueDateObj.setDate(dueDateObj.getDate() + 7);
+          for (let i = 0; i < expenseRows.length; i++) {
+            const row = expenseRows[i];
+            if (row.billId) continue; // already booked
+            try {
+              const parsedDate = row.date;
+              const dateObj = new Date(parsedDate);
+              const dueDateObj = new Date(dateObj);
+              dueDateObj.setDate(dueDateObj.getDate() + 7);
 
-            const toYMD = (d: Date) => d.toISOString().split("T")[0];
-            const dateStr = toYMD(dateObj);
-            const dueDateStr = toYMD(dueDateObj);
+              const toYMD = (d: Date) => d.toISOString().split("T")[0];
+              const dateStr = toYMD(dateObj);
+              const dueDateStr = toYMD(dueDateObj);
 
-            const amountCentsVal = parseMoneyToCents(row.amount);
-            const receiptNote = row.receiptNote || (isMiscMode ? "Misc expense" : "FTO expense");
+              const amountCentsVal = parseMoneyToCents(row.amount);
+              const receiptNote =
+                row.receiptNote ||
+                (isMiscMode ? "Misc expense" : "FTO expense");
 
-            const vendorInfo = vendorCache[row.vendor.trim()];
+              const vendorInfo = resolvedVendorCache[row.vendor.trim()];
 
-            const receiptAttachmentId = row.attachmentIds?.[0] ?? null;
+              const receiptAttachmentId = row.attachmentIds?.[0] ?? null;
 
-            // GL ref: send exactly the one the property-type-aware picker
-            // populated (mirrors Record Bill). Backend enforces XOR.
-            const lineItem: Record<string, unknown> = {
-              line_id: 1,
-              description: receiptNote,
-              amount_cents: amountCentsVal,
-            };
-            if (isConciergeProperty) {
-              lineItem.qbo_item_id = row.qboItemId;
-            } else if (hasNonConciergeProperty) {
-              lineItem.buildium_account_id = row.buildiumAccountId;
-            } else {
-              lineItem.gl_account_id = String(row.glAccountId);
+              // GL ref: send exactly the one the property-type-aware picker
+              // populated (mirrors Record Bill). Backend enforces XOR.
+              const lineItem: Record<string, unknown> = {
+                line_id: 1,
+                description: receiptNote,
+                amount_cents: amountCentsVal,
+              };
+              if (isConciergeProperty) {
+                lineItem.qbo_item_id = row.qboItemId;
+              } else if (hasNonConciergeProperty) {
+                lineItem.buildium_account_id = row.buildiumAccountId;
+              } else {
+                lineItem.gl_account_id = String(row.glAccountId);
+              }
+
+              const exportPayload: Record<string, unknown> = {
+                vendor_id: vendorInfo.id,
+                statement_date: dateStr + "T00:00:00Z",
+                due_date: dueDateStr + "T00:00:00Z",
+                memo: receiptNote,
+                line_items: [lineItem],
+              };
+              if (receiptAttachmentId != null) {
+                exportPayload.attachment_id = receiptAttachmentId;
+              }
+              // The unified bill flow needs the canonical property_id (we resolve
+              // QBO + Buildium ids server-side from there). source_type/source_id
+              // give the resulting bill row a back-pointer to its origin so it
+              // can be traced from the Bills page.
+              if (propertyId != null) {
+                exportPayload.property_id = propertyId;
+              }
+              exportPayload.source_type = isMiscMode
+                ? "misc_expense"
+                : "fto_expense";
+              if (row.submissionId && row.submissionId > 0) {
+                exportPayload.source_id = row.submissionId;
+              }
+
+              // Reimbursement: personal-card lines on a concierge property become
+              // is_reimbursement=true bills tagged to the field-team submitter.
+              // Backend re-validates property_type='C' as defense-in-depth.
+              const isConcierge =
+                propertyBuildiumDetails?.property_type === "C";
+              if (
+                !isMiscMode &&
+                row.paymentMethod === "personal_card" &&
+                isConcierge &&
+                row.assigneeId > 0
+              ) {
+                exportPayload.is_reimbursement = true;
+                exportPayload.reimbursee_user_id = row.assigneeId;
+              }
+
+              // Company-card lines are paid in full automatically on the backend
+              // (shared Operating Credit Card account, memo-tagged with the
+              // submitter's first name) — see autoPayFromCompanyCard. Applies in
+              // both FTO and Misc Expense mode, unlike the reimbursement branch
+              // above (personal-card reimbursements are FTO-only).
+              if (row.paymentMethod === "company_card" && row.assigneeId > 0) {
+                exportPayload.payment_method = "company_card";
+                exportPayload.submitter_user_id = row.assigneeId;
+              }
+
+              const exportRes = await fetchJSON(
+                "/vendors/export-misc-expense-to-buildium",
+                {
+                  method: "POST",
+                  body: JSON.stringify(exportPayload),
+                },
+              );
+              exportedRowIds.add(row.id);
+              if (
+                exportRes &&
+                typeof exportRes === "object" &&
+                (exportRes as any).bill_id
+              ) {
+                newlyCreatedBillIds[row.id] = Number(
+                  (exportRes as any).bill_id,
+                );
+              }
+              const rowWarnings = (exportRes as any)?.warnings as
+                | string[]
+                | undefined;
+              if (rowWarnings?.length) {
+                paymentWarnings.push(`Row ${i + 1}: ${rowWarnings.join(" ")}`);
+              }
+            } catch (billErr) {
+              buildiumErrors.push(
+                `Row ${i + 1}: ${billErr instanceof Error ? billErr.message : String(billErr)}`,
+              );
             }
-
-            const exportPayload: Record<string, unknown> = {
-              vendor_id: vendorInfo.id,
-              statement_date: dateStr + "T00:00:00Z",
-              due_date: dueDateStr + "T00:00:00Z",
-              memo: receiptNote,
-              line_items: [lineItem],
-            };
-            if (receiptAttachmentId != null) {
-              exportPayload.attachment_id = receiptAttachmentId;
-            }
-            // The unified bill flow needs the canonical property_id (we resolve
-            // QBO + Buildium ids server-side from there). source_type/source_id
-            // give the resulting bill row a back-pointer to its origin so it
-            // can be traced from the Bills page.
-            if (propertyId != null) {
-              exportPayload.property_id = propertyId;
-            }
-            exportPayload.source_type = isMiscMode ? "misc_expense" : "fto_expense";
-            if (row.submissionId && row.submissionId > 0) {
-              exportPayload.source_id = row.submissionId;
-            }
-
-            // Reimbursement: personal-card lines on a concierge property become
-            // is_reimbursement=true bills tagged to the field-team submitter.
-            // Backend re-validates property_type='C' as defense-in-depth.
-            const isConcierge =
-              propertyBuildiumDetails?.property_type === "C";
-            if (
-              !isMiscMode &&
-              row.paymentMethod === "personal_card" &&
-              isConcierge &&
-              row.assigneeId > 0
-            ) {
-              exportPayload.is_reimbursement = true;
-              exportPayload.reimbursee_user_id = row.assigneeId;
-            }
-
-            const exportRes = await fetchJSON("/vendors/export-misc-expense-to-buildium", {
-              method: "POST",
-              body: JSON.stringify(exportPayload),
-            });
-            exportedRowIds.add(row.id);
-            if (exportRes && typeof exportRes === "object" && (exportRes as any).bill_id) {
-              newlyCreatedBillIds[row.id] = Number((exportRes as any).bill_id);
-            }
-          } catch (billErr) {
-            buildiumErrors.push(`Row ${i + 1}: ${billErr instanceof Error ? billErr.message : String(billErr)}`);
           }
-        }
 
-        // Persist exported_to_buildium + bill_id for rows that succeeded (even on partial failure).
-        // Include hours_json alongside materials_json so the writeback never
-        // clears hours — partial-PATCH semantics are enforced on the backend
-        // now, but sending both sides keeps the intent explicit.
-        if (exportedRowIds.size > 0) {
-          const updatedRows = expenseRows.map((r) => ({
-            ...r,
-            exportedToBuildium: exportedRowIds.has(r.id) ? true : (r.exportedToBuildium ?? false),
-            billId: newlyCreatedBillIds[r.id] ?? r.billId,
-          }));
-          const submissionIds = [...new Set(updatedRows.map((r) => r.submissionId).filter((id) => id > 0))];
-          for (const subId of submissionIds) {
-            const subExpenseRows = updatedRows.filter((r) => r.submissionId === subId);
-            const subHourRows = hourRows.filter((r) => r.submissionId === subId);
-            await patchSubmission(subId, {
-              hours_json: buildHoursJSON(subHourRows),
-              materials_json: buildMaterialsJSON(subExpenseRows, { includeAvmreFields: true }),
-            });
+          // Persist exported_to_buildium + bill_id for rows that succeeded (even on partial failure).
+          // Include hours_json alongside materials_json so the writeback never
+          // clears hours — partial-PATCH semantics are enforced on the backend
+          // now, but sending both sides keeps the intent explicit.
+          if (exportedRowIds.size > 0) {
+            const updatedRows = expenseRows.map((r) => ({
+              ...r,
+              exportedToBuildium: exportedRowIds.has(r.id)
+                ? true
+                : (r.exportedToBuildium ?? false),
+              billId: newlyCreatedBillIds[r.id] ?? r.billId,
+            }));
+            const submissionIds = [
+              ...new Set(
+                updatedRows.map((r) => r.submissionId).filter((id) => id > 0),
+              ),
+            ];
+            for (const subId of submissionIds) {
+              const subExpenseRows = updatedRows.filter(
+                (r) => r.submissionId === subId,
+              );
+              const subHourRows = hourRows.filter(
+                (r) => r.submissionId === subId,
+              );
+              await patchSubmission(subId, {
+                hours_json: buildHoursJSON(subHourRows),
+                materials_json: buildMaterialsJSON(subExpenseRows, {
+                  includeAvmreFields: true,
+                }),
+              });
+            }
           }
-        }
 
-        if (buildiumErrors.length > 0) {
-          alert("Expenses approved, but some Buildium exports failed:\n\n" + buildiumErrors.join("\n"));
-          returnToList();
-          return;
-        }
+          if (buildiumErrors.length > 0) {
+            toast.error(
+              "Some expenses failed to book as bills:\n\n" +
+                buildiumErrors.join("\n"),
+            );
+          }
+
+          if (paymentWarnings.length > 0) {
+            toast.error(
+              "Bills created, but auto-payment failed for:\n" +
+                paymentWarnings.join("\n") +
+                "\n\nPay these manually from the Bills page.",
+            );
+          }
+
+          if (
+            buildiumErrors.length === 0 &&
+            paymentWarnings.length === 0 &&
+            exportedRowIds.size > 0
+          ) {
+            toast.success(
+              `${exportedRowIds.size} expense${exportedRowIds.size > 1 ? "s" : ""} booked.`,
+            );
+          }
+        };
+
+        // Fire-and-forget: approval already succeeded and the user has moved
+        // on (see returnToList() below); this reports its own outcome via toast.
+        void runBillExportAndPayment();
       }
 
       returnToList();
     } catch (err) {
       console.error("Approve failed:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Failed to approve submission"
+      toast.error(
+        err instanceof Error ? err.message : "Failed to approve submission",
       );
     } finally {
       setIsApproving(false);
     }
   };
-  
 
   const handleReject = async () => {
     try {
       // Only reject existing submissions (from submissionByAssignee)
       const submissionIds = Object.values(submissionByAssignee);
-  
+
       if (submissionIds.length === 0) {
         throw new Error("No existing submissions found to reject");
       }
-  
+
       for (const submissionId of submissionIds) {
         await rejectSubmission(submissionId);
       }
-  
+
       // All submissions rejected
 
       returnToList();
     } catch (err) {
       console.error("Reject failed:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Failed to reject submission"
-      );
+      alert(err instanceof Error ? err.message : "Failed to reject submission");
     }
   };
-  
 
   // Helper to check if a cell is required but empty
   const isHoursCellInvalid = (row: HourRow, field: keyof HourRow) => {
-    const requiredFields = ['date', 'hours', 'assignee', 'amount'];
+    const requiredFields = ["date", "hours", "assignee", "amount"];
     if (!requiredFields.includes(field)) return false;
 
     // Special case: 'assignee' field should check assigneeId (the numeric value)
-    if (field === 'assignee') {
+    if (field === "assignee") {
       return !row.assigneeId || row.assigneeId === 0;
     }
 
     const value = row[field];
-    if (field === 'amount') {
-      return value === '$0' || !value;
+    if (field === "amount") {
+      return value === "$0" || !value;
     }
     return !(value && String(value).trim());
   };
@@ -1800,23 +2036,25 @@ export default function ApproveFTOPage() {
   const isExpensesCellInvalid = (row: ExpenseRow, field: keyof ExpenseRow) => {
     // The GL cell is validated separately via expenseGLMissing (which GL field
     // is required depends on the property type), so it's not listed here.
-    const requiredFields = ['date', 'vendor', 'assignee', 'amount'];
+    const requiredFields = ["date", "vendor", "assignee", "amount"];
     if (!requiredFields.includes(field)) return false;
 
     // Special case: 'assignee' field should check assigneeId (the numeric value)
-    if (field === 'assignee') {
+    if (field === "assignee") {
       return !row.assigneeId || row.assigneeId === 0;
     }
 
     const value = row[field];
-    if (field === 'amount') {
-      return value === '$0' || !value;
+    if (field === "amount") {
+      return value === "$0" || !value;
     }
     return !(value && String(value).trim());
   };
 
   // Track which expense row is being viewed in the receipt modal (for "Change File")
-  const [viewingReceiptRow, setViewingReceiptRow] = useState<ExpenseRow | null>(null);
+  const [viewingReceiptRow, setViewingReceiptRow] = useState<ExpenseRow | null>(
+    null,
+  );
 
   const handlePaperclipClick = (row: ExpenseRow) => {
     if (row.attachmentIds && row.attachmentIds.length > 0) {
@@ -1825,22 +2063,22 @@ export default function ApproveFTOPage() {
       setViewingReceiptRow(row);
       pdfViewer.openPdf(
         `${API_BASE}/maintenance/attachments/${attachmentId}`,
-        "Receipt"
+        "Receipt",
       );
     } else {
       // No attachment — trigger file picker
       handleAddAttachment(row);
     }
   };
-  
-  
-  
 
   const hasMissingAttachments = expenseRows.some(
-    (r) => r.submissionHasAttachments && (!r.attachmentIds || r.attachmentIds.length === 0),
+    (r) =>
+      r.submissionHasAttachments &&
+      (!r.attachmentIds || r.attachmentIds.length === 0),
   );
 
   const hasDumpRun = hourRows.some((r) => r.dumpRun);
+  const hasGasCharge = hourRows.some((r) => r.gasCharge);
 
   return (
     <div
@@ -1879,48 +2117,65 @@ export default function ApproveFTOPage() {
           }}
         >
           <div style={{ minWidth: "100%" }}>
-          {rateError === "hourly" && (
-            <div className="mb-6">
-              <AlertBanner
-                title="No hourly rate"
-                message="This property doesn't have an hourly rate set. Set it on the property to calculate amounts for hours "
-                messageLinkText={propertyId != null ? "here." : undefined}
-                messageLinkOnClick={propertyId != null ? () => navigate(`/property/${propertyId}`) : undefined}
-              />
-            </div>
-          )}
-          {rateError === "emergency" && (
-            <div className="mb-6">
-              <AlertBanner
-                title="No emergency hourly rate"
-                message="This property doesn't have an emergency hourly rate set. Set it on the property to calculate amounts for emergency hours "
-                messageLinkText={propertyId != null ? "here." : undefined}
-                messageLinkOnClick={propertyId != null ? () => navigate(`/property/${propertyId}`) : undefined}
-              />
-            </div>
-          )}
+            {rateError === "hourly" && (
+              <div className="mb-6">
+                <AlertBanner
+                  title="No hourly rate"
+                  message="This property doesn't have an hourly rate set. Set it on the property to calculate amounts for hours "
+                  messageLinkText={propertyId != null ? "here." : undefined}
+                  messageLinkOnClick={
+                    propertyId != null
+                      ? () => navigate(`/property/${propertyId}`)
+                      : undefined
+                  }
+                />
+              </div>
+            )}
+            {rateError === "emergency" && (
+              <div className="mb-6">
+                <AlertBanner
+                  title="No emergency hourly rate"
+                  message="This property doesn't have an emergency hourly rate set. Set it on the property to calculate amounts for emergency hours "
+                  messageLinkText={propertyId != null ? "here." : undefined}
+                  messageLinkOnClick={
+                    propertyId != null
+                      ? () => navigate(`/property/${propertyId}`)
+                      : undefined
+                  }
+                />
+              </div>
+            )}
 
-          {hasMissingAttachments && (
-            <div className="mb-6">
-              <AlertBanner
-                title="Missing receipts"
-                message="One or more expenses indicate a receipt was attached but none was found. Use the paperclip icon on the expense row to add the missing receipt."
-              />
-            </div>
-          )}
+            {hasMissingAttachments && (
+              <div className="mb-6">
+                <AlertBanner
+                  title="Missing receipts"
+                  message="One or more expenses indicate a receipt was attached but none was found. Use the paperclip icon on the expense row to add the missing receipt."
+                />
+              </div>
+            )}
 
-          {hasDumpRun && (
-            <div className="mb-6">
-              <AlertBanner
-                title="This FTO contains a dump run"
-                message="$50 has been automatically applied to the upcharge for the hours submission."
-              />
-            </div>
-          )}
+            {hasDumpRun && (
+              <div className="mb-6">
+                <AlertBanner
+                  title="This FTO contains a dump run"
+                  message="$50 has been automatically applied to the upcharge for the hours submission."
+                />
+              </div>
+            )}
 
-          {hasNoSubmissions && (
-            <div
-              className="
+            {hasGasCharge && (
+              <div className="mb-6">
+                <AlertBanner
+                  title="This FTO contains a gas charge"
+                  message="$5 has been automatically applied to the upcharge for the hours submission."
+                />
+              </div>
+            )}
+
+            {hasNoSubmissions && (
+              <div
+                className="
                 mb-8
                 rounded-lg
                 border border-amber-300
@@ -1930,1098 +2185,1369 @@ export default function ApproveFTOPage() {
                 text-amber-900
                 flex items-start gap-2
               "
-            >
-              <svg
-                className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600"
-                viewBox="0 0 20 20"
-                fill="currentColor"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.451 11.478c.75 1.334-.213 2.99-1.742 2.99H3.548c-1.53 0-2.492-1.656-1.743-2.99L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75V7a.75.75 0 011.5 0v4.25A.75.75 0 0110 12z"
-                  clipRule="evenodd"
-                />
-              </svg>
+                <svg
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.451 11.478c.75 1.334-.213 2.99-1.742 2.99H3.548c-1.53 0-2.492-1.656-1.743-2.99L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75V7a.75.75 0 011.5 0v4.25A.75.75 0 0110 12z"
+                    clipRule="evenodd"
+                  />
+                </svg>
 
-              <div>
-                <div className="font-medium">
-                  {isMiscMode ? "No expense data found" : "No FTO submissions received yet"}
-                </div>
-                <div className="mt-1 text-amber-800">
-                  The field team hasn’t submitted any hours or expenses for this order yet.
-                  You can review the order details now and approve once submissions are added.
+                <div>
+                  <div className="font-medium">
+                    {isMiscMode
+                      ? "No expense data found"
+                      : "No FTO submissions received yet"}
+                  </div>
+                  <div className="mt-1 text-amber-800">
+                    The field team hasn’t submitted any hours or expenses for
+                    this order yet. You can review the order details now and
+                    approve once submissions are added.
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-              {/* FTO Details Section */}
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {/* FTO Details Header + Edit FTO button */}
-                <div className="flex w-full items-start justify-between gap-4">
-                  <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
-                    <div>{isMiscMode ? "Miscellaneous Expense Details" : "FTO Details"}</div>
+            {/* FTO Details Section */}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {/* FTO Details Header + Edit FTO button */}
+              <div className="flex w-full items-start justify-between gap-4">
+                <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[1.3]">
+                  <div>
+                    {isMiscMode
+                      ? "Miscellaneous Expense Details"
+                      : "FTO Details"}
+                  </div>
+                  <div
+                    className="h-px bg-gray-200 mt-5"
+                    style={{ width: "790px" }}
+                  />
+                </div>
+                {isMiscMode && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setShowEditMiscModal(true);
+                      setEditMiscPropertyId(propertyId);
+                      try {
+                        const list = await fetchJSON("/properties");
+                        const arr = Array.isArray(list) ? list : [];
+                        setEditMiscProperties(
+                          arr.map((p: { id: number; name?: string }) => ({
+                            id: Number(p.id),
+                            name: (p.name ?? "").trim() || `Property ${p.id}`,
+                          })),
+                        );
+                      } catch {
+                        setEditMiscProperties([]);
+                      }
+                    }}
+                    className="flex items-center gap-2 shrink-0 rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm font-medium text-[#303030] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                  >
+                    <EditIcon width={16} height={16} color="#525252" />
+                    Edit
+                  </button>
+                )}
+                {!isMiscMode && ftoIdNum && loadedFto && (
+                  <button
+                    type="button"
+                    onClick={() => setShowEditFTOModal(true)}
+                    className="flex items-center gap-2 shrink-0 rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm font-medium text-[#303030] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                  >
+                    <EditIcon width={16} height={16} color="#525252" />
+                    Edit FTO
+                  </button>
+                )}
+              </div>
+
+              {/* Form Fields */}
+              <div
+                style={{
+                  marginTop: "12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "20px",
+                  width: "600px",
+                }}
+              >
+                {/* FTO Name / Expense Type */}
+                <div>
+                  <TextField
+                    label={isMiscMode ? "Expense Type" : "FTO Name"}
+                    value={ftoName}
+                    onChange={() => {}}
+                    disabled={true}
+                  />
+                </div>
+
+                {/* Property, Location, and Unit Row */}
+                <div className="flex gap-5">
+                  <div className="flex-1">
+                    <TextField
+                      label="Property"
+                      value={property}
+                      onChange={() => {}}
+                      disabled={true}
+                    />
+                  </div>
+                  {ftoLocation && (
+                    <div className="flex-1">
+                      <TextField
+                        label="Location"
+                        value={ftoLocation}
+                        onChange={() => {}}
+                        disabled={true}
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <TextField
+                      label="Unit"
+                      value={unit}
+                      onChange={() => {}}
+                      disabled={true}
+                    />
+                  </div>
+                </div>
+
+                {/* Priority and Due Date Row */}
+                <div className="flex gap-5">
+                  <div className="flex-1">
+                    <SelectField
+                      label="Priority"
+                      value={priority}
+                      onChange={() => {}}
+                      disabled={true}
+                      options={[
+                        { value: "low", label: "Low" },
+                        { value: "normal", label: "Normal" },
+                        { value: "high", label: "High" },
+                      ]}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <DateField
+                      label="Due Date"
+                      value={dueDate ? formatDate(dueDate) : ""}
+                      onChange={() => {}}
+                      disabled={true}
+                    />
+                  </div>
+                </div>
+
+                {/* Task - from API (task_name) or N/A */}
+                <div>
+                  <TextField
+                    label="Task"
+                    value={task || "N/A"}
+                    onChange={() => {}}
+                    disabled={true}
+                  />
+                </div>
+
+                {/* Description */}
+                <TextAreaField
+                  label="Description"
+                  value={description}
+                  onChange={() => {}}
+                  placeholder="Task description..."
+                  disabled={true}
+                  autoGrow
+                />
+              </div>
+
+              {/* Hours Section */}
+              <div style={{ marginTop: "60px" }}>
+                {/* Header */}
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
+                    <div className="font-semibold">Hours</div>
+                    <div
+                      className="h-px bg-gray-200 mt-5"
+                      style={{ width: "84.3%" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Hours Table */}
+                <div
+                  className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
+                  style={{
+                    overflowX: "auto",
+                    width: "100%",
+                  }}
+                >
+                  <div
+                    className="flex flex-col border border-[#DADADA]/50 bg-white"
+                    style={{ width: "max-content", minWidth: "100%" }}
+                  >
+                    {/* Table Header */}
+                    <div
+                      className="flex items-center"
+                      style={{ width: "100%" }}
+                    >
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "160px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Date <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "110px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Hours <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "300px",
+                          maxWidth: "380px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Note
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "180px",
+                          maxWidth: "240px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Assignee <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "90px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Non-Billable
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "130px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Emergency Rate
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "100px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Dump Run
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "100px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Gas Charge
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Amount <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Upcharge
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Total
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "80px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Actions
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Table Rows */}
+                    {hourRows.map((row) => (
+                      <div
+                        key={row.id}
+                        className="flex items-start"
+                        style={{ width: "100%" }}
+                      >
+                        {/* Date Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "160px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit && isHoursCellInvalid(row, "date")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <DateFieldCell
+                            value={row.date}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "date", value)
+                            }
+                          />
+                        </div>
+
+                        {/* Hours Cell - 1 decimal */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "110px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isHoursCellInvalid(row, "hours")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <NumberFieldCell
+                            value={row.hours}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "hours", value)
+                            }
+                            placeholder="0"
+                            decimals={1}
+                          />
+                        </div>
+
+                        {/* Note Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "300px",
+                            maxWidth: "380px",
+                            whiteSpace: "normal",
+                            overflowWrap: "anywhere",
+                            wordBreak: "break-word",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            boxShadow: "inset 0 0 0 1px transparent",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "100%",
+                              boxShadow:
+                                attemptedSubmit &&
+                                isHoursCellInvalid(row, "note")
+                                  ? "inset 0 0 0 2px #dc2626"
+                                  : "none",
+                            }}
+                          >
+                            <TextFieldCell
+                              value={row.note}
+                              onChange={(value) =>
+                                updateHourRow(row.id, "note", value)
+                              }
+                              placeholder="Enter note"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Assignee Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "180px",
+                            maxWidth: "240px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isHoursCellInvalid(row, "assignee")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                          title={row.assignee}
+                        >
+                          <SelectFieldCell
+                            value={row.assigneeId.toString()}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "assigneeId", Number(value))
+                            }
+                            placeholder="Select assignee..."
+                            options={assigneeOptions.map((option) => ({
+                              value: option.value.toString(),
+                              label: option.label,
+                            }))}
+                          />
+                        </div>
+
+                        {/* NoFee Cell - Checkbox */}
+                        <div
+                          className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "90px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <Checkbox
+                            checked={row.noFee}
+                            onCheckedChange={(checked) => {
+                              updateHourRow(row.id, "noFee", checked);
+                              if (checked) {
+                                updateHourRow(row.id, "amount", "$0");
+                                updateHourRow(row.id, "upcharge", "$0");
+                              }
+                            }}
+                            className="w-[14px] h-[14px]"
+                          />
+                        </div>
+
+                        {/* Emergency Cell - Checkbox */}
+                        <div
+                          className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "130px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <Checkbox
+                            checked={row.emergency}
+                            onCheckedChange={(checked) =>
+                              updateHourRow(row.id, "emergency", checked)
+                            }
+                            className="w-[14px] h-[14px]"
+                          />
+                        </div>
+
+                        {/* Dump Run Cell - Checkbox */}
+                        <div
+                          className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "100px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <Checkbox
+                            checked={row.dumpRun}
+                            onCheckedChange={(checked) =>
+                              toggleUpchargeCheckbox(
+                                row,
+                                "dumpRun",
+                                DUMP_RUN_UPCHARGE_CENTS,
+                                checked === true,
+                              )
+                            }
+                            className="w-[14px] h-[14px]"
+                          />
+                        </div>
+
+                        {/* Gas Charge Cell - Checkbox */}
+                        <div
+                          className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "100px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <Checkbox
+                            checked={row.gasCharge}
+                            onCheckedChange={(checked) =>
+                              toggleUpchargeCheckbox(
+                                row,
+                                "gasCharge",
+                                GAS_CHARGE_UPCHARGE_CENTS,
+                                checked === true,
+                              )
+                            }
+                            className="w-[14px] h-[14px]"
+                          />
+                        </div>
+
+                        {/* Amount Cell - Currency */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isHoursCellInvalid(row, "amount")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <CurrencyFieldCell
+                            value={row.amount}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "amount", value)
+                            }
+                            disabled={row.noFee}
+                            placeholder="$0"
+                          />
+                        </div>
+
+                        {/* Upcharge Cell - Currency */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <CurrencyFieldCell
+                            value={row.upcharge}
+                            onChange={(value) =>
+                              updateHourRow(row.id, "upcharge", value)
+                            }
+                            disabled={row.noFee}
+                            placeholder="$0"
+                          />
+                        </div>
+
+                        {/* Total Cell - Display only */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <span className="text-[#303030] font-600 text-[13px]">
+                            $
+                            {calculateTotal(row.amount, row.upcharge).toFixed(
+                              2,
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Actions Cell */}
+                        <div
+                          className="flex items-center justify-center gap-2 px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "80px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          {/* 🗑 Delete */}
+                          <button
+                            onClick={() => deleteHourRow(row.id)}
+                            className="text-[#525252] hover:text-[#303030] transition-colors"
+                            title="Delete row"
+                          >
+                            <DeleteIcon
+                              width={16}
+                              height={16}
+                              color="currentColor"
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Add Hours Button */}
+                <button
+                  onClick={addHourRow}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap mb-12"
+                >
+                  + Add Hours
+                </button>
+              </div>
+
+              {/* Expenses Section */}
+              <div style={{ marginTop: "60px" }}>
+                {/* Header */}
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
+                    <div className="font-semibold">Expenses</div>
                     <div
                       className="h-px bg-gray-200 mt-5"
                       style={{ width: "790px" }}
                     />
                   </div>
-                  {isMiscMode && (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setShowEditMiscModal(true);
-                        setEditMiscPropertyId(propertyId);
-                        try {
-                          const list = await fetchJSON("/properties");
-                          const arr = Array.isArray(list) ? list : [];
-                          setEditMiscProperties(
-                            arr.map((p: { id: number; name?: string }) => ({
-                              id: Number(p.id),
-                              name: (p.name ?? "").trim() || `Property ${p.id}`,
-                            }))
-                          );
-                        } catch {
-                          setEditMiscProperties([]);
-                        }
-                      }}
-                      className="flex items-center gap-2 shrink-0 rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm font-medium text-[#303030] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-                    >
-                      <EditIcon width={16} height={16} color="#525252" />
-                      Edit
-                    </button>
-                  )}
-                  {!isMiscMode && ftoIdNum && loadedFto && (
-                    <button
-                      type="button"
-                      onClick={() => setShowEditFTOModal(true)}
-                      className="flex items-center gap-2 shrink-0 rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm font-medium text-[#303030] shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
-                    >
-                      <EditIcon width={16} height={16} color="#525252" />
-                      Edit FTO
-                    </button>
-                  )}
                 </div>
 
-                {/* Form Fields */}
+                {/* Expenses Table */}
                 <div
+                  className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
                   style={{
-                    marginTop: "12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "20px",
-                    width: "600px",
+                    overflowX: "auto",
+                    width: "100%",
                   }}
                 >
-                  {/* FTO Name / Expense Type */}
-                  <div>
-                    <TextField
-                      label={isMiscMode ? "Expense Type" : "FTO Name"}
-                      value={ftoName}
-                      onChange={() => {}}
-                      disabled={true}
-                    />
-                  </div>
-
-                  {/* Property, Location, and Unit Row */}
-                  <div className="flex gap-5">
-                    <div className="flex-1">
-                      <TextField
-                        label="Property"
-                        value={property}
-                        onChange={() => {}}
-                        disabled={true}
-                      />
-                    </div>
-                    {ftoLocation && (
-                      <div className="flex-1">
-                        <TextField
-                          label="Location"
-                          value={ftoLocation}
-                          onChange={() => {}}
-                          disabled={true}
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <TextField
-                        label="Unit"
-                        value={unit}
-                        onChange={() => {}}
-                        disabled={true}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Priority and Due Date Row */}
-                  <div className="flex gap-5">
-                    <div className="flex-1">
-                      <SelectField
-                        label="Priority"
-                        value={priority}
-                        onChange={() => {}}
-                        disabled={true}
-                        options={[
-                          { value: "low", label: "Low" },
-                          { value: "normal", label: "Normal" },
-                          { value: "high", label: "High" },
-                        ]}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <DateField
-                        label="Due Date"
-                        value={dueDate ? formatDate(dueDate) : ""}
-                        onChange={() => {}}
-                        disabled={true}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Task - from API (task_name) or N/A */}
-                  <div>
-                    <TextField
-                      label="Task"
-                      value={task || "N/A"}
-                      onChange={() => {}}
-                      disabled={true}
-                    />
-                  </div>
-
-                  {/* Description */}
-                  <TextAreaField
-                    label="Description"
-                    value={description}
-                    onChange={() => {}}
-                    placeholder="Task description..."
-                    disabled={true}
-                    autoGrow
-                  />
-                </div>
-
-                {/* Hours Section */}
-                <div style={{ marginTop: "60px" }}>
-                  {/* Header */}
-                  <div className="flex flex-col gap-5">
-                    <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
-                      <div className="font-semibold">Hours</div>
-                      <div
-                        className="h-px bg-gray-200 mt-5"
-                        style={{ width: "84.3%" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Hours Table */}
                   <div
-                    className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
-                    style={{
-                      overflowX: "auto",
-                      width: "100%",
-                    }}
+                    className="flex flex-col border border-[#DADADA]/50 bg-white"
+                    style={{ width: "max-content", minWidth: "100%" }}
                   >
-                    <div className="flex flex-col border border-[#DADADA]/50 bg-white" style={{ width: "max-content", minWidth: "100%" }}>
-                      {/* Table Header */}
-                      <div className="flex items-center" style={{ width: "100%" }}>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "160px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Date <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "110px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Hours <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "300px", maxWidth: "380px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Note
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "180px", maxWidth: "240px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Assignee <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "90px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Non-Billable
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "130px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Emergency Rate
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "100px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Dump Run
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Amount <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Upcharge
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Total
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-3 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Actions
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Table Rows */}
-                      {hourRows.map((row) => (
-                        <div key={row.id} className="flex items-start" style={{ width: "100%" }}>
-                          {/* Date Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "160px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'date') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                          >
-                            <DateFieldCell
-                              value={row.date}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "date", value)
-                              }
-                            />
-                          </div>
-
-                          {/* Hours Cell - 1 decimal */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "110px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'hours') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                          >
-                            <NumberFieldCell
-                              value={row.hours}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "hours", value)
-                              }
-                              placeholder="0"
-                              decimals={1}
-                            />
-                          </div>
-
-                          {/* Note Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "300px",
-                              maxWidth: "380px",
-                              whiteSpace: "normal",
-                              overflowWrap: "anywhere",
-                              wordBreak: "break-word",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              boxShadow: "inset 0 0 0 1px transparent",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: "100%",
-                                boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'note') ? "inset 0 0 0 2px #dc2626" : "none",
-                              }}
-                            >
-                              <TextFieldCell
-                                value={row.note}
-                                onChange={(value) =>
-                                  updateHourRow(row.id, "note", value)
-                                }
-                                placeholder="Enter note"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Assignee Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "180px",
-                              maxWidth: "240px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'assignee') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                            title={row.assignee}
-                          >
-                            <SelectFieldCell
-                              value={row.assigneeId.toString()}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "assigneeId", Number(value))
-                              }
-                              placeholder="Select assignee..."
-                              options={assigneeOptions.map((option) => ({
-                                value: option.value.toString(),
-                                label: option.label,
-                              }))}
-                            />
-                          </div>
-
-                          {/* NoFee Cell - Checkbox */}
-                          <div
-                            className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "90px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                          >
-                            <Checkbox
-                              checked={row.noFee}
-                              onCheckedChange={(checked) => {
-                                updateHourRow(row.id, "noFee", checked);
-                                if (checked) {
-                                  updateHourRow(row.id, "amount", "$0");
-                                  updateHourRow(row.id, "upcharge", "$0");
-                                }
-                              }}
-                              className="w-[14px] h-[14px]"
-                            />
-                          </div>
-
-                          {/* Emergency Cell - Checkbox */}
-                          <div
-                            className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "130px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                          >
-                            <Checkbox
-                              checked={row.emergency}
-                              onCheckedChange={(checked) =>
-                                updateHourRow(row.id, "emergency", checked)
-                              }
-                              className="w-[14px] h-[14px]"
-                            />
-                          </div>
-
-                          {/* Dump Run Cell - Checkbox */}
-                          <div
-                            className="flex items-center justify-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{ width: "100px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                          >
-                            <Checkbox
-                              checked={row.dumpRun}
-                              onCheckedChange={(checked) => {
-                                const isChecked = checked === true;
-                                updateHourRow(row.id, "dumpRun", isChecked);
-                                const currentUpchargeCents = parseMoneyToCents(row.upcharge);
-                                if (isChecked && currentUpchargeCents === 0) {
-                                  updateHourRow(
-                                    row.id,
-                                    "upcharge",
-                                    `$${(DUMP_RUN_UPCHARGE_CENTS / 100).toFixed(2)}`,
-                                  );
-                                } else if (!isChecked && currentUpchargeCents === DUMP_RUN_UPCHARGE_CENTS) {
-                                  updateHourRow(row.id, "upcharge", "$0.00");
-                                }
-                              }}
-                              className="w-[14px] h-[14px]"
-                            />
-                          </div>
-
-                          {/* Amount Cell - Currency */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isHoursCellInvalid(row, 'amount') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                          >
-                            <CurrencyFieldCell
-                              value={row.amount}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "amount", value)
-                              }
-                              disabled={row.noFee}
-                              placeholder="$0"
-                            />
-                          </div>
-
-                          {/* Upcharge Cell - Currency */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            <CurrencyFieldCell
-                              value={row.upcharge}
-                              onChange={(value) =>
-                                updateHourRow(row.id, "upcharge", value)
-                              }
-                              disabled={row.noFee}
-                              placeholder="$0"
-                            />
-                          </div>
-
-                          {/* Total Cell - Display only */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            <span className="text-[#303030] font-600 text-[13px]">
-                              $
-                              {calculateTotal(
-                                row.amount,
-                                row.upcharge,
-                              ).toFixed(2)}
-                            </span>
-                          </div>
-
-                          {/* Actions Cell */}
-                          <div
-                            className="flex items-center justify-center gap-2 px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "80px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                            }}
-                          >
-                            {/* 🗑 Delete */}
-                            <button
-                              onClick={() => deleteHourRow(row.id)}
-                              className="text-[#525252] hover:text-[#303030] transition-colors"
-                              title="Delete row"
-                            >
-                              <DeleteIcon width={16} height={16} color="currentColor" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Add Hours Button */}
-                  <button
-                    onClick={addHourRow}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap mb-12"
-                  >
-                    + Add Hours
-                  </button>
-                </div>
-
-                {/* Expenses Section */}
-                <div style={{ marginTop: "60px" }}>
-                  {/* Header */}
-                  <div className="flex flex-col gap-5">
-                    <div className="flex flex-col text-xl text-[#303030] font-semibold leading-[26px]">
-                      <div className="font-semibold">Expenses</div>
+                    {/* Table Header */}
+                    <div
+                      className="flex items-center"
+                      style={{ width: "100%" }}
+                    >
                       <div
-                        className="h-px bg-gray-200 mt-5"
-                        style={{ width: "790px" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Expenses Table */}
-                  <div
-                    className="rounded-xl shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] mb-6"
-                    style={{
-                      overflowX: "auto",
-                      width: "100%",
-                    }}
-                  >
-                    <div className="flex flex-col border border-[#DADADA]/50 bg-white" style={{ width: "max-content", minWidth: "100%" }}>
-                      {/* Table Header */}
-                      <div className="flex items-center" style={{ width: "100%" }}>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "160px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Date <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "200px", maxWidth: "280px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Vendor <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "240px", maxWidth: "300px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Receipt Note
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "180px", maxWidth: "240px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Assignee <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ minWidth: "160px", maxWidth: "200px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Charge Type <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Card
-                          </span>
-                        </div>
-                        {canExportToBuildium && (
-                          <div
-                            className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                            style={{ width: "200px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                          >
-                            <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                              GL Account <span className="text-red-600">*</span>
-                            </span>
-                          </div>
-                        )}
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Amount <span className="text-red-600">*</span>
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Upcharge
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                          style={{ width: "140px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}
-                        >
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Total
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-3 flex-shrink-0" style={{ width: "80px", borderBottom: "1px solid #DADADA", borderRight: "1px solid #DADADA" }}>
-                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
-                            Actions
-                          </span>
-                        </div>
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "160px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Date <span className="text-red-600">*</span>
+                        </span>
                       </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "200px",
+                          maxWidth: "280px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Vendor <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "240px",
+                          maxWidth: "300px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Receipt Note
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "180px",
+                          maxWidth: "240px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Assignee <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          minWidth: "160px",
+                          maxWidth: "200px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Charge Type <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Card
+                        </span>
+                      </div>
+                      {canExportToBuildium && (
+                        <div
+                          className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                          style={{
+                            width: "200px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                            GL Account <span className="text-red-600">*</span>
+                          </span>
+                        </div>
+                      )}
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Amount <span className="text-red-600">*</span>
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Upcharge
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "140px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Total
+                        </span>
+                      </div>
+                      <div
+                        className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                        style={{
+                          width: "80px",
+                          borderBottom: "1px solid #DADADA",
+                          borderRight: "1px solid #DADADA",
+                        }}
+                      >
+                        <span className="text-[#525252] text-[13px] font-medium leading-[140%] tracking-[-0.26px] whitespace-nowrap">
+                          Actions
+                        </span>
+                      </div>
+                    </div>
 
-                      {/* Table Rows */}
-                      {expenseRows.map((row) => (
-                        <div key={row.id} className="flex items-start" style={{ width: "100%" }}>
-                          {/* Date Cell */}
+                    {/* Table Rows */}
+                    {expenseRows.map((row) => (
+                      <div
+                        key={row.id}
+                        className="flex items-start"
+                        style={{ width: "100%" }}
+                      >
+                        {/* Date Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "160px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isExpensesCellInvalid(row, "date")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <DateFieldCell
+                            value={row.date}
+                            onChange={(value) =>
+                              updateExpenseRow(row.id, "date", value)
+                            }
+                          />
+                        </div>
+
+                        {/* Vendor Cell - VendorFieldCell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "200px",
+                            maxWidth: "280px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isExpensesCellInvalid(row, "vendor")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                          title={row.vendor}
+                        >
+                          <VendorFieldCell
+                            value={row.vendor}
+                            onChange={(value) =>
+                              updateExpenseRow(row.id, "vendor", value)
+                            }
+                            placeholder="Select or type vendor..."
+                            options={expenseVendorOptions}
+                            onOpenChange={handleExpenseVendorOpenChange}
+                            onSearchChange={setExpenseVendorSearch}
+                            onLoadMore={handleExpenseVendorLoadMore}
+                            optionsLoading={expenseVendorLoading}
+                            hasMore={expenseVendorHasMore}
+                          />
+                        </div>
+
+                        {/* Receipt Note Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "240px",
+                            maxWidth: "300px",
+                            whiteSpace: "normal",
+                            overflowWrap: "anywhere",
+                            wordBreak: "break-word",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            boxShadow: "inset 0 0 0 1px transparent",
+                          }}
+                        >
                           <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "160px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'date') ? "inset 0 0 0 2px #dc2626" : "none",
+                              width: "100%",
+                              boxShadow:
+                                attemptedSubmit &&
+                                isExpensesCellInvalid(row, "receiptNote")
+                                  ? "inset 0 0 0 2px #dc2626"
+                                  : "none",
                             }}
                           >
-                            <DateFieldCell
-                              value={row.date}
+                            <TextFieldCell
+                              value={row.receiptNote}
                               onChange={(value) =>
-                                updateExpenseRow(row.id, "date", value)
+                                updateExpenseRow(row.id, "receiptNote", value)
                               }
+                              placeholder="Enter receipt note"
                             />
                           </div>
+                        </div>
 
-                          {/* Vendor Cell - VendorFieldCell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "200px",
-                              maxWidth: "280px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'vendor') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                            title={row.vendor}
-                          >
-                            <VendorFieldCell
-                              value={row.vendor}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "vendor", value)
-                              }
-                              placeholder="Select or type vendor..."
-                              options={expenseVendorOptions}
-                              onOpenChange={handleExpenseVendorOpenChange}
-                              onSearchChange={setExpenseVendorSearch}
-                              onLoadMore={handleExpenseVendorLoadMore}
-                              optionsLoading={expenseVendorLoading}
-                              hasMore={expenseVendorHasMore}
-                            />
-                          </div>
+                        {/* Assignee Cell */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "180px",
+                            maxWidth: "240px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isExpensesCellInvalid(row, "assignee")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                          title={row.assignee}
+                        >
+                          <SelectFieldCell
+                            value={row.assigneeId.toString()}
+                            onChange={(value) =>
+                              updateExpenseRow(
+                                row.id,
+                                "assigneeId",
+                                Number(value),
+                              )
+                            }
+                            placeholder="Select assignee..."
+                            options={assigneeOptions.map((option) => ({
+                              value: option.value.toString(),
+                              label: option.label,
+                            }))}
+                          />
+                        </div>
 
-                          {/* Receipt Note Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "240px",
-                              maxWidth: "300px",
-                              whiteSpace: "normal",
-                              overflowWrap: "anywhere",
-                              wordBreak: "break-word",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              boxShadow: "inset 0 0 0 1px transparent",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: "100%",
-                                boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'receiptNote') ? "inset 0 0 0 2px #dc2626" : "none",
-                              }}
-                            >
-                              <TextFieldCell
-                                value={row.receiptNote}
-                                onChange={(value) =>
-                                  updateExpenseRow(row.id, "receiptNote", value)
-                                }
-                                placeholder="Enter receipt note"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Assignee Cell */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "180px",
-                              maxWidth: "240px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'assignee') ? "inset 0 0 0 2px #dc2626" : "none",
-                            }}
-                            title={row.assignee}
-                          >
-                            <SelectFieldCell
-                              value={row.assigneeId.toString()}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "assigneeId", Number(value))
-                              }
-                              placeholder="Select assignee..."
-                              options={assigneeOptions.map((option) => ({
-                                value: option.value.toString(),
-                                label: option.label,
-                              }))}
-                            />
-                          </div>
-
-                          {/* Charge Type Cell - Popover */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              minWidth: "160px",
-                              maxWidth: "200px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                            }}
-                          >
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button
-                                  className="flex items-center justify-between gap-2 w-full h-9 px-3 rounded-md border border-0 text-sm bg-white text-left cursor-pointer hover:bg-gray-50 transition-colors"
-                                  style={{
-                                    fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      color: "var(--color-text-primary, #303030)",
-                                      fontSize: "13px",
-                                      flex: 1,
-                                      textAlign: "left",
-                                      whiteSpace: "nowrap",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                    }}
-                                  >
-                                    {row.chargeType === "personal"
-                                      ? "Personal Expense"
-                                      : row.chargeType === "avm"
-                                        ? "AVM Expense"
-                                        : "Client Expense"}
-                                  </span>
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md p-0"
-                                align="start"
-                                syncTriggerWidth={false}
+                        {/* Charge Type Cell - Popover */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            minWidth: "160px",
+                            maxWidth: "200px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                className="flex items-center justify-between gap-2 w-full h-9 px-3 rounded-md border border-0 text-sm bg-white text-left cursor-pointer hover:bg-gray-50 transition-colors"
+                                style={{
+                                  fontFamily:
+                                    "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                                }}
                               >
-                                <div
+                                <span
                                   style={{
-                                    padding: "4px 0",
-                                    overflowY: "auto",
-                                    overflowX: "hidden",
-                                    overscrollBehavior: "contain",
-                                    WebkitOverflowScrolling: "touch",
+                                    color: "var(--color-text-primary, #303030)",
+                                    fontSize: "13px",
+                                    flex: 1,
+                                    textAlign: "left",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
                                   }}
                                 >
-                                  {[
-                                    { value: "personal", label: "Personal Expense" },
-                                    { value: "avm", label: "AVM Expense" },
-                                    { value: "client", label: "Client Expense" },
-                                  ].map((option) => (
-                                    <button
-                                      key={option.value}
-                                      onClick={() =>
-                                        updateExpenseRow(row.id, "chargeType", option.value as "personal" | "avm" | "client")
-                                      }
-                                      style={{
-                                        width: "100%",
-                                        padding: "8px 12px",
-                                        textAlign: "left",
-                                        backgroundColor:
-                                          row.chargeType === option.value
-                                            ? "rgba(36, 99, 235, 0.15)"
-                                            : "transparent",
-                                        color: "var(--color-text-primary, #303030)",
-                                        border: "none",
-                                        cursor: "pointer",
-                                        fontSize: "13px",
-                                        fontFamily:
-                                          "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                                        transition: "background-color 0.15s",
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                                          row.chargeType === option.value
-                                            ? "rgba(36, 99, 235, 0.15)"
-                                            : "rgba(36, 99, 235, 0.08)";
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                                          row.chargeType === option.value
-                                            ? "rgba(36, 99, 235, 0.15)"
-                                            : "transparent";
-                                      }}
-                                      type="button"
-                                    >
-                                      {option.label}
-                                    </button>
-                                  ))}
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          </div>
+                                  {row.chargeType === "personal"
+                                    ? "Personal Expense"
+                                    : row.chargeType === "avm"
+                                      ? "AVM Expense"
+                                      : "Client Expense"}
+                                </span>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="rounded-lg border border-[var(--color-border-light)] bg-white shadow-md p-0"
+                              align="start"
+                              syncTriggerWidth={false}
+                            >
+                              <div
+                                style={{
+                                  padding: "4px 0",
+                                  overflowY: "auto",
+                                  overflowX: "hidden",
+                                  overscrollBehavior: "contain",
+                                  WebkitOverflowScrolling: "touch",
+                                }}
+                              >
+                                {[
+                                  {
+                                    value: "personal",
+                                    label: "Personal Expense",
+                                  },
+                                  { value: "avm", label: "AVM Expense" },
+                                  { value: "client", label: "Client Expense" },
+                                ].map((option) => (
+                                  <button
+                                    key={option.value}
+                                    onClick={() =>
+                                      updateExpenseRow(
+                                        row.id,
+                                        "chargeType",
+                                        option.value as
+                                          | "personal"
+                                          | "avm"
+                                          | "client",
+                                      )
+                                    }
+                                    style={{
+                                      width: "100%",
+                                      padding: "8px 12px",
+                                      textAlign: "left",
+                                      backgroundColor:
+                                        row.chargeType === option.value
+                                          ? "rgba(36, 99, 235, 0.15)"
+                                          : "transparent",
+                                      color:
+                                        "var(--color-text-primary, #303030)",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      fontSize: "13px",
+                                      fontFamily:
+                                        "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                                      transition: "background-color 0.15s",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      (
+                                        e.currentTarget as HTMLButtonElement
+                                      ).style.backgroundColor =
+                                        row.chargeType === option.value
+                                          ? "rgba(36, 99, 235, 0.15)"
+                                          : "rgba(36, 99, 235, 0.08)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      (
+                                        e.currentTarget as HTMLButtonElement
+                                      ).style.backgroundColor =
+                                        row.chargeType === option.value
+                                          ? "rgba(36, 99, 235, 0.15)"
+                                          : "transparent";
+                                    }}
+                                    type="button"
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
 
-                          {/* Card Cell - Company vs Personal */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                        {/* Card Cell - Company vs Personal */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          <select
+                            value={row.paymentMethod}
+                            onChange={(e) =>
+                              updateExpenseRow(
+                                row.id,
+                                "paymentMethod",
+                                e.target.value as
+                                  | "company_card"
+                                  | "personal_card",
+                              )
+                            }
+                            className="w-full h-9 px-2 rounded-md bg-white text-[13px] cursor-pointer border-0 focus:outline-none"
                             style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
+                              fontFamily:
+                                "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                              color: "var(--color-text-primary, #303030)",
                             }}
                           >
-                            <select
-                              value={row.paymentMethod}
-                              onChange={(e) =>
-                                updateExpenseRow(
-                                  row.id,
-                                  "paymentMethod",
-                                  e.target.value as "company_card" | "personal_card",
-                                )
-                              }
-                              className="w-full h-9 px-2 rounded-md bg-white text-[13px] cursor-pointer border-0 focus:outline-none"
-                              style={{
-                                fontFamily:
-                                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                                color: "var(--color-text-primary, #303030)",
-                              }}
-                            >
-                              <option value="company_card">Company</option>
-                              <option value="personal_card">Personal</option>
-                            </select>
-                          </div>
+                            <option value="company_card">Company</option>
+                            <option value="personal_card">Personal</option>
+                          </select>
+                        </div>
 
-                          {/* GL Account Cell — picker variant depends on the FTO
+                        {/* GL Account Cell — picker variant depends on the FTO
                               property's type (mirrors Record Bill):
                                 C (Concierge)        → QBO passthrough Items
                                 R / OR / HOA / COMM  → Buildium GL accounts (CSV)
                                 unknown/not-loaded   → canonical chart_of_accounts */}
-                          {canExportToBuildium && (
-                            <div
-                              className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                              style={{
-                                width: "200px",
-                                borderBottom: "1px solid #DADADA",
-                                borderRight: "1px solid #DADADA",
-                                boxShadow: attemptedSubmit && canExportToBuildium && !row.billId && expenseGLMissing(row) ? "inset 0 0 0 2px #dc2626" : "none",
-                              }}
-                            >
-                              {isConciergeProperty ? (
-                                <ConciergeGLPicker
-                                  value={row.qboItemId}
-                                  onChange={(qboItemId, displayName) => {
-                                    updateExpenseRow(row.id, "qboItemId", qboItemId);
-                                    updateExpenseRow(row.id, "qboItemName", displayName);
-                                    updateExpenseRow(row.id, "glAccountId", "");
-                                    updateExpenseRow(row.id, "buildiumAccountId", "");
-                                    updateExpenseRow(row.id, "buildiumAccountName", "");
-                                  }}
-                                />
-                              ) : hasNonConciergeProperty ? (
-                                <BuildiumGLPicker
-                                  value={row.buildiumAccountId}
-                                  onChange={(buildiumAccountId, displayName) => {
-                                    updateExpenseRow(row.id, "buildiumAccountId", buildiumAccountId);
-                                    updateExpenseRow(row.id, "buildiumAccountName", displayName);
-                                    updateExpenseRow(row.id, "glAccountId", "");
-                                    updateExpenseRow(row.id, "qboItemId", "");
-                                    updateExpenseRow(row.id, "qboItemName", "");
-                                  }}
-                                />
-                              ) : (
-                                <Select
-                                  value={row.glAccountId}
-                                  onValueChange={(value) => {
-                                    updateExpenseRow(row.id, "glAccountId", value);
-                                    setGlSearch("");
-                                  }}
-                                  onOpenChange={(open) => {
-                                    if (!open) setGlSearch("");
-                                  }}
-                                >
-                                  <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
-                                    <SelectValue placeholder="Select GL Account" />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-white border border-[#E5E7EB] shadow-md p-0">
-                                    <div className="p-2 border-b border-[#E5E7EB]">
-                                      <input
-                                        autoFocus
-                                        placeholder="Type to search…"
-                                        value={glSearch}
-                                        onChange={(e) => setGlSearch(e.target.value)}
-                                        onKeyDown={(e) => e.stopPropagation()}
-                                        className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
-                                      />
-                                    </div>
-                                    <div className="max-h-[240px] overflow-y-auto">
-                                      {filteredGLAccounts.length === 0 && (
-                                        <div className="px-3 py-2 text-sm text-gray-400">No accounts found</div>
-                                      )}
-                                      {filteredGLAccounts.map((gl) => (
-                                        <SelectItem key={gl.id} value={gl.id}>
-                                          {gl.name}
-                                        </SelectItem>
-                                      ))}
-                                    </div>
-                                  </SelectContent>
-                                </Select>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Amount Cell - Currency */}
+                        {canExportToBuildium && (
                           <div
                             className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
                             style={{
-                              width: "140px",
+                              width: "200px",
                               borderBottom: "1px solid #DADADA",
                               borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              boxShadow: attemptedSubmit && isExpensesCellInvalid(row, 'amount') ? "inset 0 0 0 2px #dc2626" : "none",
+                              boxShadow:
+                                attemptedSubmit &&
+                                canExportToBuildium &&
+                                !row.billId &&
+                                expenseGLMissing(row)
+                                  ? "inset 0 0 0 2px #dc2626"
+                                  : "none",
                             }}
                           >
-                            <CurrencyFieldCell
-                              value={row.amount}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "amount", value)
-                              }
-                              placeholder="$0"
-                            />
+                            {isConciergeProperty ? (
+                              <ConciergeGLPicker
+                                value={row.qboItemId}
+                                onChange={(qboItemId, displayName) => {
+                                  updateExpenseRow(
+                                    row.id,
+                                    "qboItemId",
+                                    qboItemId,
+                                  );
+                                  updateExpenseRow(
+                                    row.id,
+                                    "qboItemName",
+                                    displayName,
+                                  );
+                                  updateExpenseRow(row.id, "glAccountId", "");
+                                  updateExpenseRow(
+                                    row.id,
+                                    "buildiumAccountId",
+                                    "",
+                                  );
+                                  updateExpenseRow(
+                                    row.id,
+                                    "buildiumAccountName",
+                                    "",
+                                  );
+                                }}
+                              />
+                            ) : hasNonConciergeProperty ? (
+                              <BuildiumGLPicker
+                                value={row.buildiumAccountId}
+                                onChange={(buildiumAccountId, displayName) => {
+                                  updateExpenseRow(
+                                    row.id,
+                                    "buildiumAccountId",
+                                    buildiumAccountId,
+                                  );
+                                  updateExpenseRow(
+                                    row.id,
+                                    "buildiumAccountName",
+                                    displayName,
+                                  );
+                                  updateExpenseRow(row.id, "glAccountId", "");
+                                  updateExpenseRow(row.id, "qboItemId", "");
+                                  updateExpenseRow(row.id, "qboItemName", "");
+                                }}
+                              />
+                            ) : (
+                              <Select
+                                value={row.glAccountId}
+                                onValueChange={(value) => {
+                                  updateExpenseRow(
+                                    row.id,
+                                    "glAccountId",
+                                    value,
+                                  );
+                                  setGlSearch("");
+                                }}
+                                onOpenChange={(open) => {
+                                  if (!open) setGlSearch("");
+                                }}
+                              >
+                                <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
+                                  <SelectValue placeholder="Select GL Account" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white border border-[#E5E7EB] shadow-md p-0">
+                                  <div className="p-2 border-b border-[#E5E7EB]">
+                                    <input
+                                      autoFocus
+                                      placeholder="Type to search…"
+                                      value={glSearch}
+                                      onChange={(e) =>
+                                        setGlSearch(e.target.value)
+                                      }
+                                      onKeyDown={(e) => e.stopPropagation()}
+                                      className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
+                                    />
+                                  </div>
+                                  <div className="max-h-[240px] overflow-y-auto">
+                                    {filteredGLAccounts.length === 0 && (
+                                      <div className="px-3 py-2 text-sm text-gray-400">
+                                        No accounts found
+                                      </div>
+                                    )}
+                                    {filteredGLAccounts.map((gl) => (
+                                      <SelectItem key={gl.id} value={gl.id}>
+                                        {gl.name}
+                                      </SelectItem>
+                                    ))}
+                                  </div>
+                                </SelectContent>
+                              </Select>
+                            )}
                           </div>
+                        )}
 
-                          {/* Upcharge Cell - Currency */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            <CurrencyFieldCell
-                              value={row.upcharge}
-                              onChange={(value) =>
-                                updateExpenseRow(row.id, "upcharge", value)
-                              }
-                              placeholder="$0"
-                            />
-                          </div>
-
-                          {/* Total Cell - Display only */}
-                          <div
-                            className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "140px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            <span className="text-[#303030] font-600 text-[13px]">
-                              $
-                              {calculateTotal(
-                                row.amount,
-                                row.upcharge,
-                              ).toFixed(2)}
-                            </span>
-                          </div>
-
-                          {/* Actions Cell */}
-                          <div
-                            className="flex items-center justify-center gap-2 px-3 min-h-14 py-2 flex-shrink-0"
-                            style={{
-                              width: "80px",
-                              borderBottom: "1px solid #DADADA",
-                              borderRight: "1px solid #DADADA",
-                            }}
-                          >
-                            {/* 📎 View / Attach Receipt */}
-                            <button
-                              disabled={isUploadingAttachment}
-                              onClick={() => handlePaperclipClick(row)}
-                              className={cn(
-                                "transition-colors",
-                                row.attachmentIds?.length > 0
-                                  ? "text-blue-600 hover:text-blue-700"
-                                  : row.submissionHasAttachments
-                                    ? "text-amber-500 hover:text-amber-600"
-                                    : "text-[#525252] hover:text-[#303030]"
-                              )}
-                              title={
-                                row.attachmentIds?.length > 0
-                                  ? "View receipt"
-                                  : "Attach receipt"
-                              }
-                            >
-                              <PaperclipIcon width={16} height={16} />
-                            </button>
-
-                            {/* 🗑 Delete */}
-                            <button
-                              onClick={() => deleteExpenseRow(row.id)}
-                              className="text-[#525252] hover:text-[#303030] transition-colors"
-                              title="Delete row"
-                            >
-                              <DeleteIcon width={16} height={16} color="currentColor" />
-                            </button>
-                          </div>
-
+                        {/* Amount Cell - Currency */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            boxShadow:
+                              attemptedSubmit &&
+                              isExpensesCellInvalid(row, "amount")
+                                ? "inset 0 0 0 2px #dc2626"
+                                : "none",
+                          }}
+                        >
+                          <CurrencyFieldCell
+                            value={row.amount}
+                            onChange={(value) =>
+                              updateExpenseRow(row.id, "amount", value)
+                            }
+                            placeholder="$0"
+                          />
                         </div>
-                      ))}
-                    </div>
-                  </div>
 
-                  {/* Add Expenses Button */}
-                  <button
-                    onClick={addExpenseRow}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap"
-                  >
-                    + Add Expenses
-                  </button>
+                        {/* Upcharge Cell - Currency */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <CurrencyFieldCell
+                            value={row.upcharge}
+                            onChange={(value) =>
+                              updateExpenseRow(row.id, "upcharge", value)
+                            }
+                            placeholder="$0"
+                          />
+                        </div>
+
+                        {/* Total Cell - Display only */}
+                        <div
+                          className="flex items-center px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "140px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <span className="text-[#303030] font-600 text-[13px]">
+                            $
+                            {calculateTotal(row.amount, row.upcharge).toFixed(
+                              2,
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Actions Cell */}
+                        <div
+                          className="flex items-center justify-center gap-2 px-3 min-h-14 py-2 flex-shrink-0"
+                          style={{
+                            width: "80px",
+                            borderBottom: "1px solid #DADADA",
+                            borderRight: "1px solid #DADADA",
+                          }}
+                        >
+                          {/* 📎 View / Attach Receipt */}
+                          <button
+                            disabled={isUploadingAttachment}
+                            onClick={() => handlePaperclipClick(row)}
+                            className={cn(
+                              "transition-colors",
+                              row.attachmentIds?.length > 0
+                                ? "text-blue-600 hover:text-blue-700"
+                                : row.submissionHasAttachments
+                                  ? "text-amber-500 hover:text-amber-600"
+                                  : "text-[#525252] hover:text-[#303030]",
+                            )}
+                            title={
+                              row.attachmentIds?.length > 0
+                                ? "View receipt"
+                                : "Attach receipt"
+                            }
+                          >
+                            <PaperclipIcon width={16} height={16} />
+                          </button>
+
+                          {/* 🗑 Delete */}
+                          <button
+                            onClick={() => deleteExpenseRow(row.id)}
+                            className="text-[#525252] hover:text-[#303030] transition-colors"
+                            title="Delete row"
+                          >
+                            <DeleteIcon
+                              width={16}
+                              height={16}
+                              color="currentColor"
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Add Expenses Button */}
+                <button
+                  onClick={addExpenseRow}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap"
+                >
+                  + Add Expenses
+                </button>
               </div>
+            </div>
           </div>
-          
         </div>
       </div>
 
@@ -3045,7 +3571,11 @@ export default function ApproveFTOPage() {
             <div>
               FTO Total:{" "}
               <span className="font-semibold">
-                ${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                $
+                {grandTotal.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
           </div>
@@ -3072,7 +3602,9 @@ export default function ApproveFTOPage() {
               }
             >
               {isApproving
-                ? (isMiscMode ? "Approving…" : "Exporting…")
+                ? isMiscMode
+                  ? "Approving…"
+                  : "Exporting…"
                 : canExportToBuildium &&
                     expenseRows.length > 0 &&
                     expenseRows.every((r) => r.exportedToBuildium)
@@ -3127,7 +3659,8 @@ export default function ApproveFTOPage() {
                 lineHeight: 1.4,
                 justifyContent: "center",
                 cursor: "pointer",
-                fontFamily: "Geist, -apple-system, Roboto, Helvetica, sans-serif",
+                fontFamily:
+                  "Geist, -apple-system, Roboto, Helvetica, sans-serif",
                 fontSize: "16px",
                 whiteSpace: "nowrap",
               }}
@@ -3161,11 +3694,18 @@ export default function ApproveFTOPage() {
           <div className="px-6 py-5">
             <ComboboxField
               label="Property"
-              value={editMiscPropertyId != null ? String(editMiscPropertyId) : ""}
-              onChange={(val) => setEditMiscPropertyId(val ? Number(val) : null)}
+              value={
+                editMiscPropertyId != null ? String(editMiscPropertyId) : ""
+              }
+              onChange={(val) =>
+                setEditMiscPropertyId(val ? Number(val) : null)
+              }
               placeholder="Select property..."
               searchPlaceholder="Search properties..."
-              options={editMiscProperties.map((p) => ({ value: String(p.id), label: p.name }))}
+              options={editMiscProperties.map((p) => ({
+                value: String(p.id),
+                label: p.name,
+              }))}
               emptyMessage="No properties found"
             />
           </div>
@@ -3180,18 +3720,28 @@ export default function ApproveFTOPage() {
             <BlueButton
               type="button"
               onClick={async () => {
-                if (submissionIdNum == null || editMiscPropertyId == null) return;
-                const subHourRows = hourRows.filter((r) => r.submissionId === submissionIdNum);
-                const subExpenseRows = expenseRows.filter((r) => r.submissionId === submissionIdNum);
+                if (submissionIdNum == null || editMiscPropertyId == null)
+                  return;
+                const subHourRows = hourRows.filter(
+                  (r) => r.submissionId === submissionIdNum,
+                );
+                const subExpenseRows = expenseRows.filter(
+                  (r) => r.submissionId === submissionIdNum,
+                );
                 const assigneeId = loadedSubmissionToAssignee[submissionIdNum];
                 await patchSubmission(submissionIdNum, {
                   hours_json: buildHoursJSON(subHourRows),
-                  materials_json: buildMaterialsJSON(subExpenseRows, { includeAvmreFields: true }),
+                  materials_json: buildMaterialsJSON(subExpenseRows, {
+                    includeAvmreFields: true,
+                  }),
                   field_team_member_id: assigneeId,
                   property_id: editMiscPropertyId,
                 });
                 setPropertyId(editMiscPropertyId);
-                setProperty(editMiscProperties.find((p) => p.id === editMiscPropertyId)?.name ?? property);
+                setProperty(
+                  editMiscProperties.find((p) => p.id === editMiscPropertyId)
+                    ?.name ?? property,
+                );
                 setShowEditMiscModal(false);
               }}
               disabled={editMiscPropertyId == null}

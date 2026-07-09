@@ -8,6 +8,7 @@ import BlueButton from "@/components/BlueButton";
 import PersonAvatars from "@/components/PersonAvatars";
 import InspectionDetail from "./InspectionDetail";
 import ScheduleInspectionModal, { EditingInspection } from "./ScheduleInspectionModal";
+import EditSeriesModal from "./EditSeriesModal";
 import AddTemplateModal from "./AddTemplateModal";
 import {
   listInspections,
@@ -63,6 +64,7 @@ interface Inspection {
   updated: string;
   templateName: string;
   checklist_id?: number;
+  series_id?: number | null;
 }
 
 interface InspectionsProps {
@@ -154,6 +156,8 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
   );
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [editingInspection, setEditingInspection] = useState<EditingInspection | null>(null);
+  const [showEditSeriesModal, setShowEditSeriesModal] = useState(false);
+  const [editingSeriesId, setEditingSeriesId] = useState<number | null>(null);
   const [showAddTemplateModal, setShowAddTemplateModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fieldManagers, setFieldManagers] = useState<FieldManager[]>(mockFieldManagers);
@@ -289,6 +293,7 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
             updated: new Date(bi.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
             templateName: checklist?.name ?? (bi.checklist_id ? "Default Template" : ""),
             checklist_id: bi.checklist_id,
+            series_id: bi.series_id ?? null,
           };
         });
 
@@ -455,6 +460,12 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
     }
   }, [propertyId, userId, templates]);
 
+  const handleEditSeries = useCallback((inspection: Inspection) => {
+    if (!inspection.series_id) return;
+    setEditingSeriesId(inspection.series_id);
+    setShowEditSeriesModal(true);
+  }, []);
+
   const handleMarkAsComplete = useCallback((inspection: Inspection) => {
     setInspectionsList((prev) =>
       prev.map((i) =>
@@ -570,6 +581,12 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
       onClick: handleEditInspection,
     },
     {
+      label: "Edit Series",
+      icon: <EditIcon width={18} height={18} />,
+      onClick: handleEditSeries,
+      hidden: (inspection: Inspection) => !inspection.series_id,
+    },
+    {
       label: "Mark as Complete",
       icon: <ApproveIcon width={18} height={18} />,
       onClick: handleMarkAsComplete,
@@ -639,6 +656,16 @@ function InspectionsList({ propertyAddress }: InspectionsProps) {
         onConfirm={handleScheduleInspection}
         editing={editingInspection}
         onSave={handleSaveInspection}
+      />
+
+      {/* Edit Series Modal */}
+      <EditSeriesModal
+        open={showEditSeriesModal}
+        onOpenChange={(open) => {
+          setShowEditSeriesModal(open);
+          if (!open) setEditingSeriesId(null);
+        }}
+        seriesId={editingSeriesId}
       />
 
       {/* Add Template Modal */}

@@ -12,6 +12,8 @@ export interface BackendInspection {
   property_state?: string | null;
   property_postal_code?: string | null;
   unit_id?: number | null;
+  location_id?: number | null;
+  location_name?: string | null;
   checklist_id: number | null;
   assigned_field_team_member_id?: number | null;
   status: string; // "draft" | "in_progress" | "submitted" | "reviewed" | "cancelled"
@@ -142,6 +144,32 @@ export async function createRecurringInspection(
   return fetchJSON("/inspections", {
     method: "POST",
     body: JSON.stringify({ ...payload, recurrence }),
+  });
+}
+
+/**
+ * Get an inspection series (recurrence settings for a recurring inspection)
+ */
+export async function getInspectionSeries(id: number): Promise<BackendInspectionSeries> {
+  return fetchJSON(`/inspection-series/${id}`);
+}
+
+/**
+ * Update an inspection series' recurrence settings (frequency, interval, end date).
+ * Note: this only updates the series record — it does not regenerate or
+ * reschedule inspection occurrences already created under the old cadence.
+ */
+export async function updateInspectionSeries(
+  id: number,
+  updates: {
+    frequency?: InspectionFrequency;
+    interval_count?: number;
+    end_at?: string | null;
+  }
+): Promise<BackendInspectionSeries> {
+  return fetchJSON(`/inspection-series/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(updates),
   });
 }
 

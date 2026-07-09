@@ -71,3 +71,28 @@ export async function voidInvoiceLine(
     }),
   });
 }
+
+// disputeInvoiceLine resolves a client dispute on a line — full or partial,
+// before or after payment (mode derived server-side from whether the amount
+// being removed fits the unpaid balance). clientCreditCents is how much less
+// the client owes; vendorCreditCents is how much AVM recovers from the
+// vendor (0 = none). Any gap between the two is recorded as AVM's loss.
+export async function disputeInvoiceLine(
+  invoiceID: number,
+  lineID: number,
+  clientCreditCents: number,
+  vendorCreditCents: number,
+  reason?: string,
+): Promise<unknown> {
+  return fetchJSON(`/invoicing/dispute-line`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      invoice_id: invoiceID,
+      line_id: lineID,
+      client_credit_cents: clientCreditCents,
+      vendor_credit_cents: vendorCreditCents,
+      reason: reason ?? "",
+    }),
+  });
+}

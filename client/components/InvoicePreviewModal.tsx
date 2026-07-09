@@ -12,6 +12,7 @@ import {
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import html2pdf from "html2pdf.js";
 import ExcelJS from "exceljs";
+import { AVMRE_LOGO_DATA_URI } from "./invoicing/avmreLogo";
 
 export interface InvoiceLineItem {
   id: number;
@@ -20,6 +21,11 @@ export interface InvoiceLineItem {
   amount: string;
   billDate?: string;
   billInvoiceNumber?: string;
+  // FTO-hours metadata (blank for other line types).
+  rate?: number;
+  qty?: number;
+  managerCount?: number;
+  travelChargeCents?: number;
 }
 
 // LifecycleStatus drives the lifecycle banner + Commit gating in the preview
@@ -65,6 +71,14 @@ interface InvoicePreviewModalProps {
   // parent uploads + re-attaches it to the QBO invoice, then closes the modal.
   autoReExport?: boolean;
   onReExport?: (pdfBlob: Blob) => void | Promise<void>;
+  // Real DB invoice id, rendered as "Invoice#: INV-0042" in the header.
+  invoiceId?: number | null;
+  // Overpayment rolled over from a previous invoice and applied to this one
+  // (cents). Renders a PAYMENTS row and reduces TOTAL.
+  rolloverPaymentCents?: number | null;
+  // Dispute credit rolled over from a previous invoice and applied to this
+  // one (cents). Renders a CREDITS row and reduces TOTAL.
+  disputeCreditCents?: number | null;
 }
 
 export default function InvoicePreviewModal({
@@ -89,6 +103,9 @@ export default function InvoicePreviewModal({
   onVoidLine,
   autoReExport,
   onReExport,
+  invoiceId,
+  rolloverPaymentCents,
+  disputeCreditCents,
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] =
@@ -128,6 +145,29 @@ export default function InvoicePreviewModal({
 
     return "$" + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
+
+  // FTO-hours metadata columns (Rate/Qty/Manager/Travel Charge) render as
+  // plain numbers, no currency symbol — matches the reference template.
+  const formatPlainNumber = (value: number | undefined): string => {
+    if (value == null || isNaN(value)) return "";
+    return Number.isInteger(value) ? String(value) : value.toFixed(2);
+  };
+
+  // Parses the date-only portion as local calendar components — `new
+  // Date("2026-06-01")` parses as UTC midnight, which renders as the prior
+  // day in any timezone behind UTC.
+  const formatShortDate = (billDate: string | undefined): string => {
+    if (!billDate) return "";
+    const [year, month, day] = billDate.split("T")[0].split("-").map(Number);
+    if (!year || !month || !day) return "";
+    return `${month}/${day}`;
+  };
+
+  // FTO-hours descriptions are generated server-side with the date already
+  // baked in (e.g. "6/13 Meeting with Dolce Plumbing (1.00 hrs)") — strip it
+  // so it isn't shown twice now that Date has its own column.
+  const stripLeadingDate = (description: string): string =>
+    description.replace(/^\d{1,2}\/\d{1,2}\s+/, "");
 
   // Sync state when props change
   useEffect(() => {
@@ -904,89 +944,73 @@ export default function InvoicePreviewModal({
                 boxSizing: "border-box",
               }}
             >
-              {/* Header Section */}
+              {/* Header Section: logo (left) / company info (right) */}
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
+                  alignItems: "flex-start",
                   marginBottom: "5px",
                   width: "725px",
                 }}
               >
-                <div>
-                  <div
-                    style={{
-                      letterSpacing: "1.5px",
-                      font: "700 13px/21px Georgia, serif",
-                    }}
-                  >
+                <img
+                  src={AVMRE_LOGO_DATA_URI}
+                  alt="Absolute Value Property Management"
+                  style={{ width: "220px", height: "auto", marginTop: "2px" }}
+                />
+
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ font: "700 10px/15.4px Arial, sans-serif" }}>
                     AVMRE LLC
                   </div>
-                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
+                  <div style={{ font: "700 10px/15.4px Arial, sans-serif" }}>
                     11 LARGO DRIVE SOUTH
                   </div>
-                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
+                  <div style={{ font: "700 10px/15.4px Arial, sans-serif" }}>
                     SUITE 200
                   </div>
-                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
+                  <div style={{ font: "700 10px/15.4px Arial, sans-serif" }}>
                     STAMFORD, CT 06907
                   </div>
                   <div style={{ font: "700 10px/15.4px Arial, sans-serif" }}>
                     203-987-7050
                   </div>
-
-                  <div style={{ marginTop: "40px" }}>
-                    <div
-                      style={{
-                        letterSpacing: "1.2px",
-                        marginBottom: "4px",
-                        font: "700 9px/15px Georgia, serif",
-                      }}
-                    >
-                      BILL TO:
-                    </div>
-                    <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
-                      {rentalOwner || billTo}
-                    </div>
-                    <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
-                      {"\u00A0"}
-                    </div>
-                  </div>
                 </div>
+              </div>
 
-                <div style={{ fontWeight: "400", marginRight: "25px" }}>
+              {/* Bill To / Property (left) \u2014 Invoice meta (right) */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: "30px",
+                  marginBottom: "5px",
+                  width: "725px",
+                }}
+              >
+                <div style={{ width: "300px" }}>
                   <div
                     style={{
-                      letterSpacing: "1.5px",
-                      font: "700 13px/21px Georgia, serif",
+                      marginBottom: "4px",
+                      paddingBottom: "2px",
+                      borderBottom: "1px solid #002060",
+                      font: "700 9px/15px Arial, sans-serif",
                     }}
                   >
-                    INVOICE
+                    BILL TO:
                   </div>
-                  <div
-                    style={{
-                      width: "150px",
-                      font: "400 10px/15.4px Arial, sans-serif",
-                    }}
-                  >
-                    DATE: {invoiceDate}
-                  </div>
-                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
-                    {"\u00A0"}
-                  </div>
-                  <div style={{ font: "400 10px/15.4px Arial, sans-serif" }}>
-                    {"\u00A0"}
-                  </div>
-                  <div style={{ font: "700 10px/15.4px Arial, sans-serif" }}>
-                    {"\u00A0"}
+                  <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
+                    {rentalOwner || billTo}
                   </div>
 
-                  <div style={{ marginTop: "40px" }}>
+                  <div style={{ marginTop: "16px" }}>
                     <div
                       style={{
-                        letterSpacing: "1.2px",
                         marginBottom: "4px",
-                        font: "700 9px/15px Georgia, serif",
+                        paddingBottom: "2px",
+                        borderBottom: "1px solid #002060",
+                        font: "700 9px/15px Arial, sans-serif",
                       }}
                     >
                       PROPERTY:
@@ -999,6 +1023,51 @@ export default function InvoicePreviewModal({
                     </div>
                   </div>
                 </div>
+
+                <div style={{ width: "220px" }}>
+                  <div
+                    style={{
+                      paddingBottom: "4px",
+                      marginBottom: "4px",
+                      borderBottom: "1px solid #002060",
+                      font: "700 11px/16px Arial, sans-serif",
+                    }}
+                  >
+                    INVOICE
+                  </div>
+                  {invoiceId != null && (
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        font: "400 10px/16px Arial, sans-serif",
+                      }}
+                    >
+                      <span>Invoice#:</span>
+                      <span>INV-{String(invoiceId).padStart(4, "0")}</span>
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      font: "400 10px/16px Arial, sans-serif",
+                    }}
+                  >
+                    <span>DATE:</span>
+                    <span>{invoiceDate}</span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      font: "400 10px/16px Arial, sans-serif",
+                    }}
+                  >
+                    <span>DUE DATE:</span>
+                    <span>Upon Receipt</span>
+                  </div>
+                </div>
               </div>
 
               {/* Table */}
@@ -1006,46 +1075,40 @@ export default function InvoicePreviewModal({
                 style={{
                   width: "100%",
                   borderCollapse: "collapse",
+                  tableLayout: "fixed",
                   marginBottom: "20px",
                 }}
               >
                 <thead>
                   <tr>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        paddingBottom: "8px",
-                        borderBottom: "1px solid #BF8F00",
-                        font: "700 9px/16.5px Arial, sans-serif",
-                        width: "175px",
-                        minWidth: "175px",
-                        maxWidth: "175px",
-                      }}
-                    >
-                      Vendors
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        paddingBottom: "8px",
-                        borderBottom: "1px solid #BF8F00",
-                        font: "700 9px/16.5px Arial, sans-serif",
-                      }}
-                    >
-                      Description
-                    </th>
-                    <th
-                      style={{
-                        fontSize: "9px",
-                        fontWeight: 700,
-                        textAlign: "left",
-                        paddingBottom: "8px",
-                        borderBottom: "1px solid #BF8F00",
-                        width: "120px",
-                      }}
-                    >
-                      AMOUNT
-                    </th>
+                    {[
+                      ["Service Provider", "110px"],
+                      ["Date", "32px"],
+                      ["Service Provided", undefined],
+                      ["Reference#", "65px"],
+                      ["Rate", "32px"],
+                      ["Qty", "28px"],
+                      ["Manager", "45px"],
+                      ["Travel Charge", "60px"],
+                      ["Amount", "75px"],
+                    ].map(([label, width]) => (
+                      <th
+                        key={label}
+                        style={{
+                          textAlign: "center",
+                          paddingTop: "6px",
+                          paddingBottom: "6px",
+                          paddingLeft: "4px",
+                          paddingRight: "4px",
+                          borderTop: "1px solid #002060",
+                          borderBottom: "3px double #002060",
+                          font: "italic 700 9px/16.5px Arial, sans-serif",
+                          ...(width ? { width, minWidth: width } : {}),
+                        }}
+                      >
+                        {label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -1058,21 +1121,26 @@ export default function InvoicePreviewModal({
                       onDrop={(e) => handleDrop(e, index)}
                       style={{
                         opacity: draggedIndex === index ? 0.5 : 1,
-                        backgroundColor: dragOverIndex === index ? "rgba(0, 45, 90, 0.06)" : undefined,
+                        backgroundColor:
+                          dragOverIndex === index
+                            ? "rgba(0, 45, 90, 0.06)"
+                            : index % 2 === 1
+                              ? "#F5F6F8"
+                              : "#FFFFFF",
                         transition: "background-color 0.15s ease",
                       }}
                     >
                       <td
                         style={{
                           fontSize: "11px",
-                          paddingTop: "2px",
-                          paddingBottom: "2px",
-                          borderBottom: "1px solid #BF8F00",
+                          paddingTop: "5px",
+                          paddingBottom: "5px",
+                          paddingLeft: "6px",
                           verticalAlign: "middle",
                           position: "relative",
-                          width: "175px",
-                          minWidth: "175px",
-                          maxWidth: "175px",
+                          width: "110px",
+                          minWidth: "110px",
+                          maxWidth: "110px",
                           overflow: "hidden",
                         }}
                       >
@@ -1166,21 +1234,28 @@ export default function InvoicePreviewModal({
                       <td
                         style={{
                           fontSize: "11px",
-                          paddingTop: "2px",
-                          paddingBottom: "2px",
-                          borderBottom: "1px solid #BF8F00",
+                          paddingTop: "5px",
+                          paddingBottom: "5px",
+                          verticalAlign: "middle",
+                          textAlign: "center",
+                          color: "#002060",
+                          font: "400 9px Arial, sans-serif",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {formatShortDate(item.billDate)}
+                      </td>
+                      <td
+                        style={{
+                          fontSize: "11px",
+                          paddingTop: "5px",
+                          paddingBottom: "5px",
                           verticalAlign: "middle",
                         }}
                       >
                         <input
                           type="text"
-                          value={(() => {
-                            const datePrefix = item.billDate
-                              ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }) + " "
-                              : "";
-                            const invSuffix = item.billInvoiceNumber ? ` · #${item.billInvoiceNumber}` : "";
-                            return `${datePrefix}${item.description}${invSuffix}`;
-                          })()}
+                          value={stripLeadingDate(item.description)}
                           data-field="description"
                           onChange={(e) =>
                             handleUpdateLineItem(
@@ -1213,24 +1288,91 @@ export default function InvoicePreviewModal({
                             font: "400 9px/16.5px Arial, sans-serif",
                           }}
                         >
-                          {(() => {
-                            const datePrefix = item.billDate
-                              ? new Date(item.billDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }) + " "
-                              : "";
-                            const invSuffix = item.billInvoiceNumber ? ` · #${item.billInvoiceNumber}` : "";
-                            return `${datePrefix}${item.description}${invSuffix}`;
-                          })()}
+                          {stripLeadingDate(item.description)}
                         </span>
                       </td>
                       <td
                         style={{
                           fontSize: "11px",
-                          paddingTop: "2px",
-                          paddingBottom: "2px",
-                          borderBottom: "1px solid #BF8F00",
-                          backgroundColor: "#F2F2F2",
-                          textAlign: "left",
-                          paddingRight: "18px",
+                          paddingTop: "5px",
+                          paddingBottom: "5px",
+                          verticalAlign: "middle",
+                          color: "#002060",
+                          font: "400 8px Arial, sans-serif",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {item.billInvoiceNumber ?? ""}
+                      </td>
+                      <td
+                        style={{
+                          fontSize: "11px",
+                          paddingTop: "5px",
+                          paddingBottom: "5px",
+                          paddingRight: "6px",
+                          verticalAlign: "middle",
+                          textAlign: "center",
+                          color: "#002060",
+                          font: "400 9px Arial, sans-serif",
+                        }}
+                      >
+                        {formatPlainNumber(item.rate)}
+                      </td>
+                      <td
+                        style={{
+                          fontSize: "11px",
+                          paddingTop: "5px",
+                          paddingBottom: "5px",
+                          paddingRight: "6px",
+                          verticalAlign: "middle",
+                          textAlign: "center",
+                          color: "#002060",
+                          font: "400 9px Arial, sans-serif",
+                        }}
+                      >
+                        {formatPlainNumber(item.qty)}
+                      </td>
+                      <td
+                        style={{
+                          fontSize: "11px",
+                          paddingTop: "5px",
+                          paddingBottom: "5px",
+                          paddingRight: "6px",
+                          verticalAlign: "middle",
+                          textAlign: "center",
+                          color: "#002060",
+                          font: "400 9px Arial, sans-serif",
+                        }}
+                      >
+                        {formatPlainNumber(item.managerCount)}
+                      </td>
+                      <td
+                        style={{
+                          fontSize: "11px",
+                          paddingTop: "5px",
+                          paddingBottom: "5px",
+                          paddingRight: "6px",
+                          verticalAlign: "middle",
+                          textAlign: "center",
+                          color: "#002060",
+                          font: "400 9px Arial, sans-serif",
+                        }}
+                      >
+                        {formatPlainNumber(
+                          item.travelChargeCents != null
+                            ? item.travelChargeCents / 100
+                            : undefined,
+                        )}
+                      </td>
+                      <td
+                        style={{
+                          fontSize: "11px",
+                          paddingTop: "5px",
+                          paddingBottom: "5px",
+                          textAlign: "right",
+                          paddingRight: "6px",
                           paddingLeft: "8px",
                           verticalAlign: "middle",
                           position: "relative",
@@ -1300,7 +1442,7 @@ export default function InvoicePreviewModal({
                             overflowWrap: "anywhere",
                             wordWrap: "anywhere",
                             font: "400 9px Arial, sans-serif",
-                            textAlign: "left",
+                            textAlign: "right",
                             padding: "0",
                           }}
                         />
@@ -1313,7 +1455,7 @@ export default function InvoicePreviewModal({
                             overflowWrap: "anywhere",
                             wordWrap: "anywhere",
                             font: "400 9px/16.5px Arial, sans-serif",
-                            textAlign: "left",
+                            textAlign: "right",
                           }}
                         >
                           {formatAmountWithCommas(item.amount)}
@@ -1343,94 +1485,121 @@ export default function InvoicePreviewModal({
                       </td>
                     </tr>
                   ))}
+                  <tr>
+                    <td
+                      colSpan={9}
+                      style={{
+                        padding: 0,
+                        height: "4px",
+                        borderTop: "1px solid #002060",
+                        borderBottom: "3px double #002060",
+                      }}
+                    />
+                  </tr>
                 </tbody>
               </table>
 
-              {/* Total */}
+              {/* Summary: Subtotal / Payments-Credits / Total */}
               <div
                 style={{
                   display: "flex",
                   justifyContent: "flex-end",
-                  alignItems: "center",
                   marginBottom: "20px",
                 }}
               >
-                <div
-                  style={{
-                    marginRight: "20px",
-                    font: "700 9px/16.5px Arial, sans-serif",
-                  }}
-                >
-                  TOTAL:
-                </div>
-                <div
-                  style={{
-                    font: "400 9px/16.5px Arial, sans-serif",
-                    backgroundColor: "#F2F2F2",
-                    padding: "8px 12px",
-                    textAlign: "left",
-                    minWidth: "120px",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                    textOverflow: "clip",
-                  }}
-                >
-                  <b>{formatCurrency(calculateTotal())}</b>
+                <div style={{ width: "220px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "4px 6px",
+                      borderBottom: "1px solid #002060",
+                      font: "400 9px/16.5px Arial, sans-serif",
+                    }}
+                  >
+                    <span>SUBTOTAL:</span>
+                    <span>{formatCurrency(calculateTotal())}</span>
+                  </div>
+                  {!!rolloverPaymentCents && (
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "4px 6px",
+                        borderBottom: "1px solid #002060",
+                        font: "400 9px/16.5px Arial, sans-serif",
+                      }}
+                    >
+                      <span>PAYMENTS:</span>
+                      <span>-{formatCurrency(rolloverPaymentCents / 100)}</span>
+                    </div>
+                  )}
+                  {!!disputeCreditCents && (
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "4px 6px",
+                        borderBottom: "1px solid #002060",
+                        font: "400 9px/16.5px Arial, sans-serif",
+                      }}
+                    >
+                      <span>CREDITS:</span>
+                      <span>-{formatCurrency(disputeCreditCents / 100)}</span>
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "4px 6px",
+                      borderBottom: "1px solid #002060",
+                      font: "700 10px/16.5px Arial, sans-serif",
+                    }}
+                  >
+                    <span>TOTAL:</span>
+                    <span>
+                      {formatCurrency(
+                        calculateTotal() -
+                          (rolloverPaymentCents ?? 0) / 100 -
+                          (disputeCreditCents ?? 0) / 100,
+                      )}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Footer */}
               <div
                 style={{
-                  fontSize: "7px",
-                  lineHeight: "16px",
-                  marginTop: "-3px",
+                  fontSize: "8px",
+                  lineHeight: "15px",
+                  fontFamily: "Arial, sans-serif",
                 }}
               >
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontFamily: "Arial, sans-serif",
-                    marginTop: "-4px",
-                  }}
-                >
-                  Please make all checks payable to AVMRE LLC
-                </div>
-                <div
-                  style={{
-                    fontFamily: "Arial, sans-serif",
-                    marginTop: "-4px",
-                  }}
-                >
+                <div>Please make all checks payable to AVMRE LLC</div>
+                <div>
                   If you have any questions concerning this invoice, use the
                   following contact information:
                 </div>
-                <div
-                  style={{ fontFamily: "Arial, sans-serif", marginTop: "-4px" }}
-                >
-                  203-987-7050
-                </div>
-                <div style={{ color: "#0563C1", marginTop: "-4px" }}>
+                <div>203-987-7050</div>
+                <div style={{ color: "#0563C1" }}>
                   <a
                     href="mailto:STAFF@AVMRE.COM"
-                    style={{
-                      color: "inherit",
-                      textDecoration: "none",
-                      fontFamily: "Arial, sans-serif",
-                    }}
+                    style={{ color: "inherit", textDecoration: "none" }}
                   >
                     STAFF@AVMRE.COM
                   </a>
                 </div>
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontFamily: "Arial, sans-serif",
-                    marginTop: "-4px",
-                  }}
-                >
-                  THANK YOU FOR YOUR BUSINESS!
+                <div>THANK YOU FOR YOUR BUSINESS!</div>
+
+                <div style={{ marginTop: "10px" }}>
+                  If you prefer to wire transfer the payment please use the
+                  following info:
                 </div>
+                <div>Bank: Connecticut Community Bank, N.A.</div>
+                <div>ABA#: 021113251</div>
+                <div>Account#: 1419944</div>
               </div>
             </div>
           </div>

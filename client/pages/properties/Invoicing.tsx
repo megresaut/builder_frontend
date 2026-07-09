@@ -20,7 +20,7 @@ import InvoicePreviewModal, {
   type InvoiceLineItem,
   type InvoiceLifecycleStatus,
 } from "@/components/InvoicePreviewModal";
-import { voidInvoiceLine } from "@/data/invoices";
+import { disputeInvoiceLine } from "@/data/invoices";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -465,6 +465,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     paymentStatus: string; // backend payment_status: paid | unpaid | billed_by_invoice | unknown
     billDate?: string | null;
     billInvoiceNumber?: string | null;
+    // FTO-hours metadata — populated only for source_type="fto_hours" lines.
+    unitPrice?: number | null;
+    quantity?: number | null;
+    managerCount?: number | null;
+    travelChargeCents?: number | null;
   }
 
 
@@ -543,10 +548,30 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [unpaidPassthroughCount, setUnpaidPassthroughCount] = useState(0);
   const [currentInvoiceTotalCents, setCurrentInvoiceTotalCents] = useState(0);
   const [currentInvoicePaymentCents, setCurrentInvoicePaymentCents] = useState(0);
-  // Void-confirm dialog: the InvoiceItem the user is voiding (null = closed).
+  // Overpayment / dispute credit rolled over from a PREVIOUS invoice and
+  // applied to this one — distinct from currentInvoicePaymentCents (money
+  // paid directly on this invoice, used for the void/dispute unpaid check).
+  const [currentInvoiceRolloverPaymentCents, setCurrentInvoiceRolloverPaymentCents] = useState(0);
+  const [currentInvoiceDisputeCreditCents, setCurrentInvoiceDisputeCreditCents] = useState(0);
+  // Dispute-confirm dialog: the InvoiceItem being disputed (null = closed).
   const [voidTargetLine, setVoidTargetLine] = useState<InvoiceItem | null>(null);
   const [voidReason, setVoidReason] = useState("");
   const [voiding, setVoiding] = useState(false);
+  // How much of the line is being credited to the client, and how much of
+  // that AVM expects to recover from the vendor. Defaulted to the full line
+  // amount / $0 when the dialog opens; editable for partial disputes.
+  const [disputeClientCreditCents, setDisputeClientCreditCents] = useState(0);
+  const [disputeVendorCreditCents, setDisputeVendorCreditCents] = useState(0);
+  // Raw text the user is actively typing into the two amount fields above —
+  // decoupled from the calculated/clamped cents value so the input isn't
+  // reformatted to "X.00" (and cursor/typing reset) on every keystroke.
+  // null = not being edited right now, so show the canonical formatted value.
+  const [disputeClientCreditDraft, setDisputeClientCreditDraft] = useState<
+    string | null
+  >(null);
+  const [disputeVendorCreditDraft, setDisputeVendorCreditDraft] = useState<
+    string | null
+  >(null);
   // After voiding on an issued invoice, the preview modal opens in this mode to
   // regenerate + re-attach the corrected PDF to QBO, then closes itself.
   const [reExportMode, setReExportMode] = useState(false);
@@ -624,6 +649,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         );
         setCurrentInvoicePaymentCents(
           invoiceData.invoice.payment_amount_cents ?? 0,
+        );
+        setCurrentInvoiceRolloverPaymentCents(
+          invoiceData.invoice.rollover_payment_cents ?? 0,
+        );
+        setCurrentInvoiceDisputeCreditCents(
+          invoiceData.invoice.dispute_credit_cents ?? 0,
         );
         setCurrentQBOPushStatus(invoiceData.invoice.qbo_push_status ?? null);
         setCurrentQBOLastError(invoiceData.invoice.qbo_last_error ?? null);
@@ -708,6 +739,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           sourceType: li.source_type, // raw type for void base/markup pairing
           billDate: li.bill_date ?? null,
           billInvoiceNumber: li.bill_invoice_number ?? null,
+          unitPrice: li.unit_price ?? null,
+          quantity: li.quantity ?? null,
+          managerCount: li.manager_count ?? null,
+          travelChargeCents: li.travel_charge_cents ?? null,
           status: li.status === "approved" ? "Approved" : "Pending Approval",
           statusColor:
             li.status === "approved" ? "#059669" : "#D97706",
@@ -984,6 +1019,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       vendor: item.vendor,
       description: item.description,
       amount: item.amount,
+      billDate: item.billDate ?? undefined,
+      billInvoiceNumber: item.billInvoiceNumber ?? undefined,
+      rate: item.unitPrice ?? undefined,
+      qty: item.quantity ?? undefined,
+      managerCount: item.managerCount ?? undefined,
+      travelChargeCents: item.travelChargeCents ?? undefined,
     },
   ];
 
@@ -1615,9 +1656,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     return;
                   }
 
-                  // For vendor bills, open the redesigned view-bill page.
-                  const isVendorBill = item?.source === "Vendor-Import" || item?.source === "Vendor Bill";
-                  if (isVendorBill && item.sourceId) {
+                  // Any bill-backed line (vendor or utility) opens the same
+                  // ViewBillV2 detail page an All Bills row click opens —
+                  // sourceId is the real bills.id for these source types.
+                  // Gate on sourceType, not the display string, so utility
+                  // lines aren't misrouted to the modal below.
+                  const isBill =
+                    item?.sourceType === "vendor" || item?.sourceType === "utility";
+                  if (isBill && item.sourceId) {
                     navigate(`/bills/view?billId=${item.sourceId}`);
                     return;
                   }
@@ -1639,7 +1685,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 hidden: (item: any) => item?.source === "Management Fee",
               },
               {
-                label: () => "Void line item",
+                label: () => "Dispute line item",
                 icon: (
                   <svg
                     width="18"
@@ -1660,10 +1706,19 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 onClick: (item: any) => {
                   setVoidReason("");
                   setVoidTargetLine(item);
+                  const cents =
+                    Math.round(
+                      parseFloat((item.amount || "").replace(/[^0-9.]/g, "")) * 100,
+                    ) || 0;
+                  setDisputeClientCreditCents(cents);
+                  setDisputeVendorCreditCents(0);
+                  setDisputeClientCreditDraft(null);
+                  setDisputeVendorCreditDraft(null);
                 },
                 // Only meaningful while there's a current invoice that isn't
-                // already void. The confirm dialog enforces the unpaid-balance
-                // rule (and blocks already-paid lines).
+                // already void. The dialog derives before/after-payment mode
+                // automatically (before-payment removes the line; after-payment
+                // issues a credit memo applied to the next invoice).
                 hidden: () =>
                   !currentInvoiceId || currentInvoiceStatus === "void",
               },
@@ -1814,6 +1869,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         amount: item.amount,
                         billDate: item.billDate ?? undefined,
                         billInvoiceNumber: item.billInvoiceNumber ?? undefined,
+                        rate: item.unitPrice ?? undefined,
+                        qty: item.quantity ?? undefined,
+                        managerCount: item.managerCount ?? undefined,
+                        travelChargeCents: item.travelChargeCents ?? undefined,
                       })),
                       invoiceDate: currentInvoiceMonth,
                       showCommitButton: false,
@@ -1854,6 +1913,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                                 amount: item.amount,
                                 billDate: item.billDate ?? undefined,
                                 billInvoiceNumber: item.billInvoiceNumber ?? undefined,
+                                rate: item.unitPrice ?? undefined,
+                                qty: item.quantity ?? undefined,
+                                managerCount: item.managerCount ?? undefined,
+                                travelChargeCents: item.travelChargeCents ?? undefined,
                               }),
                             ),
                             invoiceDate: currentInvoiceMonth,
@@ -2132,6 +2195,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         propertyLocation={fetchedPropertyLocation || propertyLocation || ""}
         billTo={propertyOwnerName}
         rentalOwner={propertyOwnerName}
+        invoiceId={currentInvoiceId}
+        rolloverPaymentCents={currentInvoiceRolloverPaymentCents}
+        disputeCreditCents={currentInvoiceDisputeCreditCents}
         invoiceDate={invoicePreviewInvoiceDate || currentInvoiceMonth}
         lineItems={
           invoicePreviewLineItems.length > 0
@@ -2141,6 +2207,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 vendor: item.vendor,
                 description: item.description,
                 amount: item.amount,
+                billDate: item.billDate ?? undefined,
+                billInvoiceNumber: item.billInvoiceNumber ?? undefined,
+                rate: item.unitPrice ?? undefined,
+                qty: item.quantity ?? undefined,
+                managerCount: item.managerCount ?? undefined,
+                travelChargeCents: item.travelChargeCents ?? undefined,
               }))
         }
         showCommitButton={invoicePreviewShowCommitButton}
@@ -2157,6 +2229,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 const line = invoiceItems.find((it) => it.id === lineId) ?? null;
                 setVoidReason("");
                 setVoidTargetLine(line);
+                const cents = line
+                  ? Math.round(
+                      parseFloat((line.amount || "").replace(/[^0-9.]/g, "")) * 100,
+                    ) || 0
+                  : 0;
+                setDisputeClientCreditCents(cents);
+                setDisputeVendorCreditCents(0);
+                setDisputeClientCreditDraft(null);
+                setDisputeVendorCreditDraft(null);
               }
             : undefined
         }
@@ -2215,12 +2296,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         }
       />
 
-      {/* Void line-item confirmation (sent / paid invoices) */}
+      {/* Dispute line-item confirmation */}
       {voidTargetLine &&
         (() => {
           const parseCents = (s: string) =>
             Math.round(parseFloat((s || "").replace(/[^0-9.]/g, "")) * 100) || 0;
           const t = voidTargetLine;
+          const targetCents = parseCents(t.amount);
           const markupType =
             t.sourceType === "vendor" || t.sourceType === "utility"
               ? "vendor_credit"
@@ -2232,19 +2314,29 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 (i) => i.sourceType === markupType && i.sourceId === t.sourceId,
               )
             : [];
-          const removedLines = [t, ...pairedMarkups];
-          const removedCents = removedLines.reduce(
-            (sum, l) => sum + parseCents(l.amount),
-            0,
+          const combinedCents =
+            targetCents +
+            pairedMarkups.reduce((sum, l) => sum + parseCents(l.amount), 0);
+
+          const clientCreditCents = Math.min(
+            Math.max(disputeClientCreditCents, 0),
+            targetCents,
           );
+          const hasBillForVendorCredit =
+            t.sourceType === "vendor" || t.sourceType === "utility";
+          const vendorCreditCents = hasBillForVendorCredit
+            ? Math.min(Math.max(disputeVendorCreditCents, 0), clientCreditCents)
+            : 0;
+          const lossCents = clientCreditCents - vendorCreditCents;
+
+          const retainedCents = targetCents - clientCreditCents;
+          const removedCents = combinedCents - retainedCents;
           const currentCents = currentInvoiceTotalCents;
           const newCents = currentCents - removedCents;
           const paymentCents = currentInvoicePaymentCents;
           const unpaidCents = currentCents - paymentCents;
-          const ruleOk = removedCents <= unpaidCents;
+          const beforePayment = removedCents <= unpaidCents;
           const closesOut = paymentCents > 0 && newCents === paymentCents;
-          const issued =
-            currentInvoiceStatus === "sent" || currentInvoiceStatus === "paid";
           const fmt = (c: number) => `$${(c / 100).toFixed(2)}`;
 
           return (
@@ -2256,61 +2348,105 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             >
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Void line item</AlertDialogTitle>
+                  <AlertDialogTitle>Dispute line item</AlertDialogTitle>
                   <AlertDialogDescription>
-                    {!ruleOk
-                      ? "This line is already paid — it would need a credit memo, which isn't supported yet."
-                      : issued
-                        ? "This removes the line and re-syncs the reduced invoice to QuickBooks, which reverses its posting."
-                        : "This removes the line from this draft invoice."}
+                    {beforePayment
+                      ? "The client hasn't paid this yet — the line is removed from this invoice."
+                      : "The client already paid this — a credit memo is issued and applied to their next invoice."}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
 
                 <div className="space-y-3 text-sm">
-                  <div className="rounded-md border border-gray-200 divide-y">
-                    {removedLines.map((l) => (
-                      <div
-                        key={l.id}
-                        className="flex justify-between gap-4 px-3 py-2"
-                      >
-                        <span className="text-gray-700">
-                          {l.description || l.source}
-                          {l.id !== t.id && (
-                            <span className="ml-1 text-xs text-amber-600">
-                              (markup)
-                            </span>
-                          )}
-                        </span>
-                        <span className="font-medium text-gray-900">
-                          {l.amount}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="rounded-md border border-gray-200 px-3 py-2">
+                    <div className="flex justify-between gap-4">
+                      <span className="text-gray-700">
+                        {t.description || t.source}
+                      </span>
+                      <span className="font-medium text-gray-900">
+                        {t.amount}
+                      </span>
+                    </div>
                   </div>
 
-                  {pairedMarkups.length > 0 && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      Amount to credit the client
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={
+                        disputeClientCreditDraft ??
+                        (clientCreditCents / 100).toFixed(2)
+                      }
+                      onChange={(e) => {
+                        setDisputeClientCreditDraft(e.target.value);
+                        setDisputeClientCreditCents(parseCents(e.target.value));
+                      }}
+                      onFocus={(e) => {
+                        setDisputeClientCreditDraft(e.target.value);
+                        requestAnimationFrame(() => e.target.select());
+                      }}
+                      onBlur={() => setDisputeClientCreditDraft(null)}
+                      className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      Amount to recover from vendor
+                      {!hasBillForVendorCredit && (
+                        <span className="ml-1 font-normal text-gray-400">
+                          (no underlying bill on this line)
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      disabled={!hasBillForVendorCredit}
+                      value={
+                        disputeVendorCreditDraft ??
+                        (vendorCreditCents / 100).toFixed(2)
+                      }
+                      onChange={(e) => {
+                        setDisputeVendorCreditDraft(e.target.value);
+                        setDisputeVendorCreditCents(parseCents(e.target.value));
+                      }}
+                      onFocus={(e) => {
+                        setDisputeVendorCreditDraft(e.target.value);
+                        requestAnimationFrame(() => e.target.select());
+                      }}
+                      onBlur={() => setDisputeVendorCreditDraft(null)}
+                      className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm disabled:bg-gray-50 disabled:text-gray-400"
+                    />
+                  </div>
+
+                  <div className="flex justify-between rounded-md bg-gray-50 px-3 py-2 text-xs">
+                    <span className="text-gray-600">AVM's loss</span>
+                    <span className="font-medium text-gray-900">
+                      {fmt(lossCents)}
+                    </span>
+                  </div>
+
+                  {pairedMarkups.length > 0 && beforePayment && (
                     <p className="text-xs text-amber-700">
                       Its markup line is removed too — you can't bill markup on a
-                      reimbursement you've voided.
+                      reimbursement you've disputed.
                     </p>
                   )}
 
-                  <div className="flex justify-between border-t pt-2 font-medium">
-                    <span>New invoice total</span>
-                    <span>{fmt(Math.max(newCents, 0))}</span>
-                  </div>
+                  {beforePayment && (
+                    <div className="flex justify-between border-t pt-2 font-medium">
+                      <span>New invoice total</span>
+                      <span>{fmt(Math.max(newCents, 0))}</span>
+                    </div>
+                  )}
 
-                  {closesOut && (
+                  {beforePayment && closesOut && (
                     <p className="rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
                       This brings the balance to $0 — the invoice will close out
                       as paid in full.
-                    </p>
-                  )}
-
-                  {!issued && ruleOk && (
-                    <p className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-500">
-                      This is a draft — clicking Refresh later re-pulls bills and
-                      will restore this line.
                     </p>
                   )}
 
@@ -2323,7 +2459,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       onChange={(e) => setVoidReason(e.target.value)}
                       rows={2}
                       className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
-                      placeholder="e.g. duplicate charge, billed in error"
+                      placeholder="e.g. work quality issue, duplicate charge"
                     />
                   </div>
                 </div>
@@ -2333,44 +2469,57 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction
-                    disabled={!ruleOk || voiding}
+                    disabled={clientCreditCents <= 0 || voiding}
                     onClick={async (e) => {
                       e.preventDefault();
                       if (!currentInvoiceId) return;
                       setVoiding(true);
-                      const toastId = toast.loading("Voiding line item…");
+                      const toastId = toast.loading("Resolving dispute…");
+                      // Only an already-issued (sent/paid) invoice has a QBO
+                      // invoice + attached PDF to regenerate and re-sync — a
+                      // still-draft invoice has neither yet, so re-export
+                      // would just fail trying to re-attach to nothing.
                       const wasIssued =
                         currentInvoiceStatus === "sent" ||
                         currentInvoiceStatus === "paid";
                       try {
-                        await voidInvoiceLine(
+                        await disputeInvoiceLine(
                           currentInvoiceId,
                           t.id,
+                          clientCreditCents,
+                          vendorCreditCents,
                           voidReason,
                         );
                         setVoidTargetLine(null);
                         await loadInvoiceForProperty();
-                        if (wasIssued) {
+                        if (beforePayment && wasIssued) {
                           // Re-open the preview so it regenerates the corrected
                           // PDF and re-attaches it to the QBO invoice. Clear any
                           // stale preview lines so it renders the current set.
                           setInvoicePreviewLineItems([]);
                           setReExportMode(true);
                           setShowInvoicePreview(true);
-                          toast.success("Line item voided", {
+                          toast.success("Dispute resolved", {
                             id: toastId,
                             description:
                               "Invoice updated in QuickBooks; refreshing the attached PDF…",
                           });
-                        } else {
+                        } else if (beforePayment) {
                           setShowInvoicePreview(false);
-                          toast.success("Line item voided", {
+                          toast.success("Dispute resolved", {
                             id: toastId,
                             description: "Invoice total recomputed.",
                           });
+                        } else {
+                          setShowInvoicePreview(false);
+                          toast.success("Dispute resolved", {
+                            id: toastId,
+                            description:
+                              "Credit memo issued — it will apply to the client's next invoice.",
+                          });
                         }
                       } catch (err: any) {
-                        toast.error("Void failed", {
+                        toast.error("Dispute failed", {
                           id: toastId,
                           description: err?.message ?? "Unexpected error",
                         });
@@ -2379,7 +2528,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       }
                     }}
                   >
-                    {voiding ? "Voiding…" : "Void line"}
+                    {voiding ? "Resolving…" : "Resolve dispute"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

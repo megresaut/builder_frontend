@@ -271,7 +271,10 @@ export default function ScheduleInspectionModal({
             <NumberField
               label={`Every N ${frequency === "daily" ? "days" : frequency === "weekly" ? "weeks" : "months"}`}
               value={intervalCount}
-              onChange={(v) => setIntervalCount(typeof v === "number" ? v : 1)}
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10);
+                setIntervalCount(Number.isNaN(n) ? 1 : n);
+              }}
               min={1}
               error={errors.interval}
             />
