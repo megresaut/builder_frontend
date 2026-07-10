@@ -169,6 +169,28 @@ export default function InvoicePreviewModal({
   const stripLeadingDate = (description: string): string =>
     description.replace(/^\d{1,2}\/\d{1,2}\s+/, "");
 
+  // Invoice number = a property/owner differentiator (from the Services
+  // Provided To block: property street number + owner surname) plus a
+  // month-year tail (e.g. Nov 2026 -> "1126"). e.g. INV-544SYKE-0626. The
+  // tail falls back to the padded DB id if the invoice date can't be parsed,
+  // and the differentiator is dropped when neither piece is available.
+  const buildInvoiceNumber = (): string => {
+    if (invoiceId == null) return "";
+    const propNum = (propertyAddress.match(/\d+/)?.[0] ?? "").slice(0, 5);
+    const surname = (rentalOwner || billTo || "").trim().split(/\s+/).pop() ?? "";
+    const ownerTok = surname.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 4);
+    const diff = `${propNum}${ownerTok}`;
+
+    let tail = String(invoiceId).padStart(4, "0");
+    const d = new Date(invoiceDate);
+    if (!isNaN(d.getTime())) {
+      tail =
+        String(d.getMonth() + 1).padStart(2, "0") +
+        String(d.getFullYear() % 100).padStart(2, "0");
+    }
+    return diff ? `INV-${diff}-${tail}` : `INV-${tail}`;
+  };
+
   // Sync state when props change
   useEffect(() => {
     setLineItems(
@@ -979,7 +1001,7 @@ export default function InvoicePreviewModal({
                 </div>
               </div>
 
-              {/* Bill To / Property (left) \u2014 Invoice meta (right) */}
+              {/* Services Provided To (left) \u2014 Invoice meta (right) */}
               <div
                 style={{
                   display: "flex",
@@ -998,29 +1020,16 @@ export default function InvoicePreviewModal({
                       font: "700 9px/15px Arial, sans-serif",
                     }}
                   >
-                    BILL TO:
+                    Services Provided To
                   </div>
                   <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
                     {rentalOwner || billTo}
                   </div>
-
-                  <div style={{ marginTop: "16px" }}>
-                    <div
-                      style={{
-                        marginBottom: "4px",
-                        paddingBottom: "2px",
-                        borderBottom: "1px solid #002060",
-                        font: "700 9px/15px Arial, sans-serif",
-                      }}
-                    >
-                      PROPERTY:
-                    </div>
-                    <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
-                      {propertyAddress}
-                    </div>
-                    <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
-                      {propertyLocation}
-                    </div>
+                  <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
+                    {propertyAddress}
+                  </div>
+                  <div style={{ font: "400 9px/16.5px Arial, sans-serif" }}>
+                    {propertyLocation}
                   </div>
                 </div>
 
@@ -1044,7 +1053,7 @@ export default function InvoicePreviewModal({
                       }}
                     >
                       <span>Invoice#:</span>
-                      <span>INV-{String(invoiceId).padStart(4, "0")}</span>
+                      <span>{buildInvoiceNumber()}</span>
                     </div>
                   )}
                   <div
@@ -1520,34 +1529,30 @@ export default function InvoicePreviewModal({
                     <span>SUBTOTAL:</span>
                     <span>{formatCurrency(calculateTotal())}</span>
                   </div>
-                  {!!rolloverPaymentCents && (
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "4px 6px",
-                        borderBottom: "1px solid #002060",
-                        font: "400 9px/16.5px Arial, sans-serif",
-                      }}
-                    >
-                      <span>PAYMENTS:</span>
-                      <span>-{formatCurrency(rolloverPaymentCents / 100)}</span>
-                    </div>
-                  )}
-                  {!!disputeCreditCents && (
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "4px 6px",
-                        borderBottom: "1px solid #002060",
-                        font: "400 9px/16.5px Arial, sans-serif",
-                      }}
-                    >
-                      <span>CREDITS:</span>
-                      <span>-{formatCurrency(disputeCreditCents / 100)}</span>
-                    </div>
-                  )}
+                  {(() => {
+                    // Combined Payments/Credits line — always shown (even $0),
+                    // matching the reference template. Sums the overpayment
+                    // rollover and dispute credit into one figure.
+                    const creditCents =
+                      (rolloverPaymentCents ?? 0) + (disputeCreditCents ?? 0);
+                    return (
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          padding: "4px 6px",
+                          borderBottom: "1px solid #002060",
+                          font: "400 9px/16.5px Arial, sans-serif",
+                        }}
+                      >
+                        <span>PAYMENTS/CREDITS:</span>
+                        <span>
+                          {creditCents > 0 ? "-" : ""}
+                          {formatCurrency(creditCents / 100)}
+                        </span>
+                      </div>
+                    );
+                  })()}
                   <div
                     style={{
                       display: "flex",

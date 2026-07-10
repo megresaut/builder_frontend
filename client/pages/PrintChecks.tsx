@@ -56,6 +56,13 @@ export default function PrintChecks() {
   const [printPromptOpen, setPrintPromptOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [startingCheckNumber, setStartingCheckNumber] = useState<string>("");
+  const [numberStatus, setNumberStatus] = useState<{
+    buildium_last_number: string | null;
+    buildium_last_date: string | null;
+    platform_last_number: string | null;
+    platform_last_date: string | null;
+  } | null>(null);
+  const [numberStatusLoading, setNumberStatusLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [voiding, setVoiding] = useState(false);
@@ -151,7 +158,7 @@ export default function PrintChecks() {
     return [...banks];
   }, [selectedRows]);
 
-  const handleOpenPrintPrompt = () => {
+  const handleOpenPrintPrompt = async () => {
     if (selectedRows.length === 0) {
       toast.error("Select at least one check to print.");
       return;
@@ -161,6 +168,19 @@ export default function PrintChecks() {
       return;
     }
     setPrintPromptOpen(true);
+    setNumberStatus(null);
+    setNumberStatusLoading(true);
+    try {
+      const qboAcctID = selectedRows[0].bank_qbo_acct_id;
+      const data = await fetchJSON(
+        `/vendors/checks/number-status?qbo_account_id=${encodeURIComponent(qboAcctID)}`,
+      );
+      setNumberStatus(data);
+    } catch {
+      setNumberStatus(null);
+    } finally {
+      setNumberStatusLoading(false);
+    }
   };
 
   const handlePrint = async () => {
@@ -519,6 +539,46 @@ export default function PrintChecks() {
           . This number will be printed on the check itself, so make sure it
           matches the next check in the printer.
         </div>
+        <div className="mb-3 rounded-md border border-[#DADADA] bg-gray-50 px-3 py-2 text-xs text-[#717179]">
+          Buildium and this platform keep two separate sets of check numbers
+          on the same bank account, so they never collide: Buildium keeps its
+          own low numbers, and checks printed here start at{" "}
+          <span className="font-medium text-[#303030]">20000</span>.
+          <div className="mt-2 space-y-0.5">
+            {numberStatusLoading ? (
+              <div>Checking latest known numbers…</div>
+            ) : numberStatus ? (
+              <>
+                <div>
+                  Buildium is last known at{" "}
+                  <span className="font-medium text-[#303030]">
+                    {numberStatus.buildium_last_number
+                      ? `#${numberStatus.buildium_last_number}`
+                      : "no checks recorded yet"}
+                  </span>
+                  {numberStatus.buildium_last_date && (
+                    <> (as of {numberStatus.buildium_last_date})</>
+                  )}
+                  .
+                </div>
+                <div>
+                  This platform last printed{" "}
+                  <span className="font-medium text-[#303030]">
+                    {numberStatus.platform_last_number
+                      ? `#${numberStatus.platform_last_number}`
+                      : "no checks yet"}
+                  </span>
+                  {numberStatus.platform_last_date && (
+                    <> (as of {numberStatus.platform_last_date})</>
+                  )}
+                  .
+                </div>
+              </>
+            ) : (
+              <div>Couldn't load the latest known numbers — proceed with caution.</div>
+            )}
+          </div>
+        </div>
         <FieldShell label="Starting Check Number" htmlFor="check-start-print">
           <Input
             id="check-start-print"
@@ -526,7 +586,7 @@ export default function PrintChecks() {
             min={1}
             value={startingCheckNumber}
             onChange={(e) => setStartingCheckNumber(e.target.value)}
-            placeholder="e.g. 5001"
+            placeholder="e.g. 20001"
             disabled={printing}
           />
         </FieldShell>

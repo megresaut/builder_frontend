@@ -31,6 +31,7 @@ export interface QBOLiveAccount {
   Name: string;
   AccountType: string;
   AccountSubType: string;
+  Classification: string; // Asset | Liability | Equity | Revenue | Expense
   AcctNum: string;
   Description: string;
   Active: boolean;

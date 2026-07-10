@@ -91,97 +91,62 @@ const LOCAL_TYPE_LABEL: Record<AccountType, string> = {
   expense: "Expense",
 };
 
-const QBO_TYPE_OPTIONS: Record<AccountType, { type: string; label: string }[]> = {
-  asset: [
-    { type: "Bank", label: "Bank" },
-    { type: "Accounts Receivable", label: "Accounts Receivable" },
-    { type: "Other Current Asset", label: "Other Current Asset" },
-    { type: "Fixed Asset", label: "Fixed Asset" },
-    { type: "Other Asset", label: "Other Asset" },
-  ],
-  liability: [
-    { type: "Accounts Payable", label: "Accounts Payable" },
-    { type: "Credit Card", label: "Credit Card" },
-    { type: "Long Term Liability", label: "Long Term Liability" },
-    { type: "Other Current Liability", label: "Other Current Liability" },
-  ],
-  equity: [{ type: "Equity", label: "Equity" }],
-  income: [
-    { type: "Income", label: "Income" },
-    { type: "Other Income", label: "Other Income" },
-  ],
-  expense: [
-    { type: "Expense", label: "Expense" },
-    { type: "Other Expense", label: "Other Expense" },
-    { type: "Cost of Goods Sold", label: "Cost of Goods Sold" },
-  ],
+// Account Type + Detail Type options are derived LIVE from QBO (the accounts that
+// already exist in the company file) — see buildQBOOptions() below. QBO exposes no
+// endpoint for the full catalog of valid types, so the only authoritative live source
+// is the existing chart of accounts. Maps QBO's Classification onto our local category.
+const CLASSIFICATION_TO_CATEGORY: Record<string, AccountType> = {
+  Asset: "asset",
+  Liability: "liability",
+  Equity: "equity",
+  Revenue: "income",
+  Expense: "expense",
 };
 
-const QBO_DETAIL_OPTIONS: Record<string, { type: string; label: string }[]> = {
-  Bank: [
-    { type: "CashOnHandAndInBank", label: "Cash on Hand and In Bank" },
-    { type: "Checking", label: "Checking" },
-    { type: "MoneyMarket", label: "Money Market" },
-    { type: "Savings", label: "Savings" },
-  ],
-  "Accounts Receivable": [{ type: "AccountsReceivable", label: "Accounts Receivable" }],
-  "Other Current Asset": [
-    { type: "OtherCurrentAssets", label: "Other Current Assets" },
-    { type: "Inventory", label: "Inventory" },
-    { type: "Prepaid", label: "Prepaid Expenses" },
-    { type: "UndepositedFunds", label: "Undeposited Funds" },
-  ],
-  "Fixed Asset": [
-    { type: "BuildingsAndImprovements", label: "Buildings and Improvements" },
-    { type: "FurnitureAndEquipment", label: "Furniture and Equipment" },
-    { type: "Land", label: "Land" },
-    { type: "VehiclesAndMotorEquipment", label: "Vehicles and Motor Equipment" },
-  ],
-  "Other Asset": [
-    { type: "Loans", label: "Loans to Others" },
-    { type: "OtherLongTermAssets", label: "Other Long-term Assets" },
-  ],
-  "Accounts Payable": [{ type: "AccountsPayable", label: "Accounts Payable" }],
-  "Credit Card": [{ type: "CreditCard", label: "Credit Card" }],
-  "Other Current Liability": [
-    { type: "OtherCurrentLiabilities", label: "Other Current Liabilities" },
-    { type: "PrepaidRevenue", label: "Prepaid Revenue" },
-    { type: "SecurityDeposit", label: "Security Deposit" },
-  ],
-  "Long Term Liability": [
-    { type: "LongTermDebtOther", label: "Long Term Debt – Other" },
-    { type: "NotesPayable", label: "Notes Payable" },
-  ],
-  Equity: [
-    { type: "CommonStock", label: "Common Stock" },
-    { type: "OpeningBalanceEquity", label: "Opening Balance Equity" },
-    { type: "OwnersEquity", label: "Owner's Equity" },
-    { type: "RetainedEarnings", label: "Retained Earnings" },
-  ],
-  Income: [
-    { type: "OtherPrimaryIncome", label: "Other Primary Income" },
-    { type: "ServiceFeeIncome", label: "Service/Fee Income" },
-    { type: "SalesOfProductIncome", label: "Sales of Product Income" },
-  ],
-  "Other Income": [{ type: "OtherMiscellaneousIncome", label: "Other Miscellaneous Income" }],
-  "Cost of Goods Sold": [{ type: "CostOfGoodsSold", label: "Cost of Goods Sold" }],
-  Expense: [
-    { type: "AdvertisingPromotional", label: "Advertising/Promotional" },
-    { type: "AutoExpense", label: "Auto Expense" },
-    { type: "Insurance", label: "Insurance" },
-    { type: "ManagementFees", label: "Management Fees" },
-    { type: "Meals", label: "Meals and Entertainment" },
-    { type: "Office", label: "Office/General Administrative" },
-    { type: "OtherMiscellaneousExpense", label: "Other Miscellaneous Expense" },
-    { type: "ProfessionalFees", label: "Professional Fees" },
-    { type: "RepairsAndMaintenance", label: "Repairs and Maintenance" },
-    { type: "SuppliesMaterials", label: "Supplies/Materials" },
-    { type: "TaxesPaid", label: "Taxes Paid" },
-    { type: "Travel", label: "Travel" },
-    { type: "Utilities", label: "Utilities" },
-  ],
-  "Other Expense": [{ type: "OtherMiscellaneousExpense", label: "Other Miscellaneous Expense" }],
-};
+// QBO returns AccountSubType as a PascalCase enum (e.g. "RepairMaintenance").
+// Turn it into a readable label ("Repair Maintenance") for the dropdown.
+function humanizeSubType(s: string): string {
+  return s
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .trim();
+}
+
+interface QBOOptions {
+  // local category -> QBO account types available under it
+  typesByCategory: Record<AccountType, { type: string; label: string }[]>;
+  // QBO account type -> detail types (AccountSubType) available under it
+  detailsByType: Record<string, { type: string; label: string }[]>;
+}
+
+// Build the create-modal dropdown options from live QBO accounts. Only types/detail
+// types actually present in QBO are offered (no hand-maintained catalog).
+function buildQBOOptions(accounts: QBOLiveAccount[]): QBOOptions {
+  const typeSets: Record<string, Set<string>> = {}; // category -> account types
+  const detailSets: Record<string, Set<string>> = {}; // account type -> detail types
+  for (const a of accounts) {
+    const category = CLASSIFICATION_TO_CATEGORY[a.Classification];
+    if (!a.AccountType || !category) continue;
+    (typeSets[category] ??= new Set()).add(a.AccountType);
+    if (a.AccountSubType) {
+      (detailSets[a.AccountType] ??= new Set()).add(a.AccountSubType);
+    }
+  }
+  const typesByCategory = {} as Record<AccountType, { type: string; label: string }[]>;
+  for (const [cat, set] of Object.entries(typeSets)) {
+    typesByCategory[cat as AccountType] = [...set]
+      .sort()
+      .map((t) => ({ type: t, label: t }));
+  }
+  const detailsByType: Record<string, { type: string; label: string }[]> = {};
+  for (const [type, set] of Object.entries(detailSets)) {
+    detailsByType[type] = [...set]
+      .sort()
+      .map((t) => ({ type: t, label: humanizeSubType(t) }));
+  }
+  return { typesByCategory, detailsByType };
+}
+
 
 // ─── Edit Account Modal ────────────────────────────────────────────────────
 
@@ -266,8 +231,27 @@ function CreateModal({ onClose, onCreated }: CreateModalProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const qboTypeOptions = QBO_TYPE_OPTIONS[accountType] ?? [];
-  const detailOptions = QBO_DETAIL_OPTIONS[qboAccountType] ?? [];
+  // Account Type + Detail Type options are derived live from the QBO chart of accounts.
+  const [liveAccounts, setLiveAccounts] = useState<QBOLiveAccount[] | null>(null);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchLiveChartOfAccounts()
+      .then((accts) => { if (!cancelled) setLiveAccounts(accts); })
+      .catch((err) => {
+        if (!cancelled) setOptionsError(err?.message ?? "Failed to load account types from QBO");
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const { typesByCategory, detailsByType } = useMemo(
+    () => buildQBOOptions(liveAccounts ?? []),
+    [liveAccounts],
+  );
+  const loadingOptions = liveAccounts === null && optionsError === null;
+  const qboTypeOptions = typesByCategory[accountType] ?? [];
+  const detailOptions = detailsByType[qboAccountType] ?? [];
 
   const handleAccountTypeChange = (t: AccountType) => {
     setAccountType(t);
@@ -320,7 +304,7 @@ function CreateModal({ onClose, onCreated }: CreateModalProps) {
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="px-3 py-2 rounded-lg border border-[#DADADA] text-sm outline-none focus:ring-2 focus:ring-[#013764]/20 focus:border-[#013764] resize-none" placeholder="Optional" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#303030]">Account Type <span className="text-rose-500">*</span></label>
+            <label className="text-sm font-medium text-[#303030]">Category <span className="text-rose-500">*</span></label>
             <SearchableSelect
               value={accountType}
               onChange={(v) => handleAccountTypeChange((v || "expense") as AccountType)}
@@ -330,26 +314,28 @@ function CreateModal({ onClose, onCreated }: CreateModalProps) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#303030]">QBO Account Type <span className="text-rose-500">*</span></label>
+            <label className="text-sm font-medium text-[#303030]">Account Type <span className="text-rose-500">*</span></label>
             <SearchableSelect
               value={qboAccountType}
               onChange={(v) => { setQBOAccountType(v); setQBODetailType(""); }}
               options={qboTypeOptions.map((o) => ({ value: o.type, label: o.label }))}
-              allLabel="Select…"
+              allLabel={loadingOptions ? "Loading from QBO…" : "Select…"}
+              disabled={loadingOptions || !!optionsError}
               className="h-10 rounded-lg border-[#DADADA] w-full"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#303030]">QBO Detail Type <span className="text-rose-500">*</span></label>
+            <label className="text-sm font-medium text-[#303030]">Detail Type <span className="text-rose-500">*</span></label>
             <SearchableSelect
               value={qboDetailType}
               onChange={setQBODetailType}
               options={detailOptions.map((o) => ({ value: o.type, label: o.label }))}
-              allLabel="Select…"
-              disabled={!qboAccountType}
+              allLabel={loadingOptions ? "Loading from QBO…" : "Select…"}
+              disabled={loadingOptions || !!optionsError || !qboAccountType}
               className="h-10 rounded-lg border-[#DADADA] w-full"
             />
           </div>
+          {optionsError && <p className="text-sm text-rose-600 bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">Couldn't load account types from QBO: {optionsError}</p>}
           {error && <p className="text-sm text-rose-600 bg-rose-50 border border-rose-200 px-3 py-2 rounded-lg">{error}</p>}
           <div className="flex justify-end gap-2 pt-1">
             <button type="button" onClick={onClose} className="h-9 px-4 rounded-lg border border-[#DADADA] text-sm font-medium text-[#303030] hover:bg-gray-50 transition-colors">Cancel</button>
