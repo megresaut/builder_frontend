@@ -37,6 +37,8 @@ interface AddVendorModalProps {
     notes?: string;
     servicesProvided?: string | string[];
     serviceAreaTags?: string[];
+    taxId?: string;
+    requires1099?: boolean;
   };
 
   onAddVendor?: (vendor: {
@@ -88,6 +90,8 @@ export default function AddVendorModal({
   const [servicesProvided, setServicesProvided] = useState<string[]>([]);
   const [serviceAreaTags, setServiceAreaTags] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
+  const [taxId, setTaxId] = useState("");
+  const [requires1099, setRequires1099] = useState(true);
   const [buildiumCategoryID, setBuildiumCategoryID] = useState<number | null>(null);
   const [categories, setCategories] = useState<BuildiumVendorCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -138,6 +142,8 @@ export default function AddVendorModal({
       );
       setServiceAreaTags(initialVendor.serviceAreaTags ?? []);
       setNotes(initialVendor.notes || "");
+      setTaxId(initialVendor.taxId || "");
+      setRequires1099(initialVendor.requires1099 ?? false);
     } else {
       // Add mode
       setVendorName("");
@@ -152,6 +158,8 @@ export default function AddVendorModal({
       setServicesProvided([]);
       setServiceAreaTags([]);
       setNotes("");
+      setTaxId("");
+      setRequires1099(true);
       setBuildiumCategoryID(null);
     }
 
@@ -206,7 +214,7 @@ export default function AddVendorModal({
           if (isNaN(n)) return null;
           return Math.round(n * 100);
         };
-        await fetchJSON(`/vendors/${initialVendor.id}`, {
+        const updateRes = await fetchJSON(`/vendors/${initialVendor.id}`, {
           method: "PATCH",
           body: JSON.stringify({
             name: vendorName,
@@ -221,8 +229,13 @@ export default function AddVendorModal({
             notes,
             category,
             service_area_tags: serviceAreaTags,
+            tax_id: taxId.trim(),
+            requires_1099: requires1099,
           }),
         });
+        if (Array.isArray(updateRes?.warnings)) {
+          updateRes.warnings.forEach((w: string) => toast.warning(w));
+        }
 
         onEditVendor?.({
           name: vendorName,
@@ -261,7 +274,8 @@ export default function AddVendorModal({
           notes: notes || "",
           category,
           service_area_tags: serviceAreaTags,
-          requires_1099: true,
+          tax_id: taxId.trim(),
+          requires_1099: requires1099,
           has_insurance: true,
           buildium_category_id: buildiumCategoryID,
         }),
@@ -438,6 +452,30 @@ export default function AddVendorModal({
           placeholder="Select services..."
           multiple
         />
+      </ModalField>
+
+      <ModalField label="" spacing="tight">
+        <FieldShell label="Tax ID (EIN or SSN)" htmlFor="vendor-tax-id">
+          <Input
+            id="vendor-tax-id"
+            type="text"
+            value={taxId}
+            onChange={(e) => setTaxId(e.target.value)}
+            placeholder="12-3456789 or 123-45-6789"
+          />
+        </FieldShell>
+      </ModalField>
+
+      <ModalField label="" spacing="tight">
+        <label className="flex items-center gap-2 text-sm text-[#303030] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={requires1099}
+            onChange={(e) => setRequires1099(e.target.checked)}
+            className="h-4 w-4 rounded border-[#DADADA] accent-[#013764]"
+          />
+          Track payments for 1099
+        </label>
       </ModalField>
 
       {!edit && (

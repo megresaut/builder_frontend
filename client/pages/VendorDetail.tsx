@@ -55,6 +55,8 @@ interface VendorDetail {
   notes?: string;
   servicesProvided?: string | string[];
   serviceAreaTags?: string[];
+  taxId?: string;
+  requires1099?: boolean;
 }
 
 interface VendorNote {
@@ -312,10 +314,16 @@ async function apiAddVendorCompliance(
     body.document_mime = uploadInfo.mime;
     body.file_name = uploadInfo.filename;
   }
-  const resp: BackendComplianceDoc = await fetchJSON(`/vendors/compliance/docs/${vendorId}`, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  const resp: BackendComplianceDoc & { warnings?: string[] } = await fetchJSON(
+    `/vendors/compliance/docs/${vendorId}`,
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+  );
+  // W-9 saves trigger a vendor/QBO tax-profile sync server-side; surface any
+  // sync warnings (TIN conflict, QBO unreachable) without failing the save.
+  resp.warnings?.forEach((w) => toast.warning(w));
   // Use the canonical mapper so uploaded_by + file_url match the rest of the
   // list (avoids the "Uploaded by You" vs "Uploaded by <real name>" drift).
   return mapBackendDoc(resp);
@@ -338,10 +346,14 @@ async function apiUpdateVendorCompliance(
   if (patch.policyNumber !== undefined) body.policy_number = patch.policyNumber;
   if (patch.licenseNumber !== undefined) body.license_number = patch.licenseNumber;
   if (patch.expirationDate !== undefined) body.expiration_date = toISODate(patch.expirationDate);
-  const resp: BackendComplianceDoc = await fetchJSON(`/vendors/compliance/docs/update/${docId}`, {
-    method: "PATCH",
-    body: JSON.stringify(body),
-  });
+  const resp: BackendComplianceDoc & { warnings?: string[] } = await fetchJSON(
+    `/vendors/compliance/docs/update/${docId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    },
+  );
+  resp.warnings?.forEach((w) => toast.warning(w));
   return mapBackendDoc(resp);
 }
 
@@ -951,6 +963,8 @@ export default function VendorDetail() {
     serviceAreaTags: Array.isArray(apiVendor.service_area_tags)
       ? apiVendor.service_area_tags
       : [],
+    taxId: apiVendor.tax_id ?? undefined,
+    requires1099: apiVendor.requires_1099 ?? undefined,
   }), []);
 
   // Mock data state for vendor detail
@@ -1534,10 +1548,11 @@ export default function VendorDetail() {
           patch.document_object_key = uploadInfo.object_key;
           patch.document_mime = uploadInfo.mime;
         }
-        await fetchJSON(`/vendors/compliance/docs/update/${editingComplianceId}`, {
+        const updateResp = await fetchJSON(`/vendors/compliance/docs/update/${editingComplianceId}`, {
           method: "PATCH",
           body: JSON.stringify(patch),
         });
+        updateResp?.warnings?.forEach((w: string) => toast.warning(w));
       } else {
         await apiAddVendorCompliance(
           id,
@@ -1755,6 +1770,19 @@ export default function VendorDetail() {
                           value: (() => {
                             const v = (vendorDraft || vendor).emergencyHourlyRate;
                             return v == null ? "" : `$${(v / 100).toFixed(2)}/hr`;
+                          })(),
+                        },
+                        {
+                          label: "TAX ID (1099)",
+                          value: (() => {
+                            const v = vendorDraft || vendor;
+                            const masked = v.taxId
+                              ? `••-•••${v.taxId.replace(/\D/g, "").slice(-4)}`
+                              : "";
+                            if (!masked && !v.requires1099) return "";
+                            return [masked, v.requires1099 ? "1099 tracked" : null]
+                              .filter(Boolean)
+                              .join(" · ");
                           })(),
                         },
                         {
@@ -2176,12 +2204,12 @@ export default function VendorDetail() {
               </>
             )}
 
-            {complianceDocType === "contractors_license" && (
+            {(complianceDocType === "contractors_license" || complianceDocType === "w9") && (
               <TextField
-                label="License Number"
+                label={complianceDocType === "w9" ? "Tax ID (EIN or SSN)" : "License Number"}
                 value={complianceLicenseNumber}
                 onChange={(e) => setComplianceLicenseNumber(e.target.value)}
-                placeholder="e.g. 1045328"
+                placeholder={complianceDocType === "w9" ? "12-3456789 or 123-45-6789" : "e.g. 1045328"}
               />
             )}
 
