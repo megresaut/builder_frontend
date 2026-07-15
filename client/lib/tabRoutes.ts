@@ -28,6 +28,7 @@ export interface DisplayNames {
   property?: string | null;
   vendor?: string | null;
   task?: string | null;
+  project?: string | null;
 }
 
 const SETTINGS_SECTION_LABELS: Record<string, string> = {
@@ -89,6 +90,19 @@ export function identifyRoute(
         resourceId: `vendor-${id}`,
         label: displayNames.vendor ?? `Vendor ${id}`,
         sectionId: "vendors",
+        path: fullPath,
+      };
+    }
+  }
+
+  {
+    const m = pathname.match(/^\/projects\/(\d+)/);
+    if (m) {
+      const id = m[1];
+      return {
+        resourceId: `project-${id}`,
+        label: displayNames.project ?? `Project ${id}`,
+        sectionId: "projects",
         path: fullPath,
       };
     }
@@ -159,6 +173,8 @@ export function identifyRoute(
     "/activity-feed": { label: "Activity Feed", sectionId: "activity-feed" },
     "/recurring-tasks": { label: "Recurring Tasks", sectionId: "recurring-tasks" },
     "/vendors": { label: "Vendors", sectionId: "vendors" },
+    "/projects": { label: "Projects", sectionId: "projects" },
+    "/projects/new": { label: "New Project", sectionId: "projects" },
     "/ai-drafts": { label: "Drafts", sectionId: "ai-drafts" },
   };
 
@@ -199,6 +215,7 @@ const SECTION_TO_TAB_BAR_ID: Record<string, string> = {
   "work-orders": "work-orders",
   vendors: "field-team-orders",
   "vendor-compliance": "field-team-orders",
+  projects: "field-team-orders",
   "operations-calendar": "operations",
   "operations-reminders": "operations",
   "activity-feed": "field-team-orders",

@@ -145,6 +145,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       path.includes("/recurring-tasks") ||
       path.includes("/field-team-orders") ||
       path.includes("/work-orders") ||
+      path.includes("/projects") ||
       path.includes("/activity-feed")
     ) {
       return "maintenance";
@@ -667,6 +668,11 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
         sectionId: "all-tasks",
       },
       {
+        label: "Projects",
+        path: "/projects",
+        sectionId: "projects",
+      },
+      {
         label: "Recurring Tasks",
         path: "/recurring-tasks",
         sectionId: "recurring-tasks",
@@ -716,6 +722,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
       "all-properties": "properties",
       "bills": "bills",
       "all-tasks": "field-team-orders",
+      "projects": "field-team-orders",
       "recurring-tasks": "field-team-orders",
       "field-team-orders": "field-team-orders",
       "work-orders": "work-orders",

@@ -35,7 +35,7 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
-  const { propertyDisplayName, vendorDisplayName, taskDisplayName } = usePropertyBreadcrumb();
+  const { propertyDisplayName, vendorDisplayName, taskDisplayName, projectDisplayName } = usePropertyBreadcrumb();
 
   const { role } = useAuth();
   const showDraftNotifications = role === "admin" || role === "property_manager";
@@ -70,6 +70,7 @@ export default function Header() {
       property: propertyDisplayName,
       vendor: vendorDisplayName,
       task: taskDisplayName,
+      project: projectDisplayName,
     });
     if (!id) return null;
     return { label: id.label, path: id.path, id: id.resourceId };
@@ -144,6 +145,16 @@ export default function Header() {
       items.push({ label: "Recurring Tasks" });
     } else if (path === "/vendors") {
       items.push({ label: "Vendors" });
+    } else if (path === "/projects") {
+      items.push({ label: "Projects" });
+    } else if (path === "/projects/new") {
+      items.push({ label: "Projects", href: "/projects" });
+      items.push({ label: "New Project" });
+    } else if (path.match(/^\/projects\/\d+/)) {
+      const match = path.match(/^\/projects\/(\d+)/);
+      const projectId = match?.[1] ?? "";
+      items.push({ label: "Projects", href: "/projects" });
+      items.push({ label: projectDisplayName ?? `Project ${projectId}` });
     } else if (path.match(/^\/vendors\/\d+/)) {
       const match = path.match(/^\/vendors\/(\d+)/);
       const vendorId = match?.[1] ?? "";
@@ -710,6 +721,14 @@ export default function Header() {
           <path d="M13.3333 1.66667V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           <path d="M6.66667 1.66667V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           <path d="M2.5 8.33334H17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      // Projects — clipboard with task lines
+      projects: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.5 3.33334H14.1667C15.0871 3.33334 15.8333 4.07953 15.8333 5V16.6667C15.8333 17.5871 15.0871 18.3333 14.1667 18.3333H5.83333C4.91286 18.3333 4.16667 17.5871 4.16667 16.6667V5C4.16667 4.07953 4.91286 3.33334 5.83333 3.33334H7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <rect x="7.5" y="1.66667" width="5" height="3.33333" rx="0.833333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M7.08333 9.16667H12.9167M7.08333 12.5H12.9167M7.08333 15.8333H10.4167" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ),
     };

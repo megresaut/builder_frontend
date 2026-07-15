@@ -25,6 +25,9 @@ import BillDrafts from "./pages/BillDrafts";
 import GeneralLedger from "./pages/GeneralLedger";
 import AllProperties from "./pages/AllProperties";
 import AllTasks from "./pages/AllTasks";
+import AllProjects from "./pages/AllProjects";
+import CreateProject from "./pages/CreateProject";
+import ProjectDetail from "./pages/ProjectDetail";
 import RecurringTasks from "./pages/RecurringTasks";
 import Vendors from "./pages/Vendors";
 import VendorDetail from "./pages/VendorDetail";
@@ -390,6 +393,39 @@ export default function App() {
                     <RequireAuth>
                       <ShellLayout>
                         <AllTasks />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/projects"
+                  element={
+                    <RequireAuth allowedRoles={["admin", "property_manager"]}>
+                      <ShellLayout>
+                        <AllProjects />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/projects/new"
+                  element={
+                    <RequireAuth allowedRoles={["admin", "property_manager"]}>
+                      <ShellLayout>
+                        <CreateProject />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/projects/:projectId"
+                  element={
+                    <RequireAuth allowedRoles={["admin", "property_manager"]}>
+                      <ShellLayout>
+                        <ProjectDetail />
                       </ShellLayout>
                     </RequireAuth>
                   }

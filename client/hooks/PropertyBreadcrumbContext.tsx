@@ -10,6 +10,9 @@ interface PropertyBreadcrumbContextValue {
   /** Display name for the current task (e.g. "Fix Plumbing and Heating"). Null when not on a task or before load. */
   taskDisplayName: string | null;
   setTaskDisplayName: (name: string | null) => void;
+  /** Display name for the current project (e.g. "45 Husted Lane Pergola"). Null when not on a project or before load. */
+  projectDisplayName: string | null;
+  setProjectDisplayName: (name: string | null) => void;
 }
 
 const PropertyBreadcrumbContext = createContext<PropertyBreadcrumbContextValue | null>(null);
@@ -21,6 +24,8 @@ export function PropertyBreadcrumbProvider({ children }: { children: React.React
   const vendorSetter = useCallback((name: string | null) => setVendorDisplayName(name), []);
   const [taskDisplayName, setTaskDisplayName] = useState<string | null>(null);
   const taskSetter = useCallback((name: string | null) => setTaskDisplayName(name), []);
+  const [projectDisplayName, setProjectDisplayName] = useState<string | null>(null);
+  const projectSetter = useCallback((name: string | null) => setProjectDisplayName(name), []);
   return (
     <PropertyBreadcrumbContext.Provider
       value={{
@@ -30,6 +35,8 @@ export function PropertyBreadcrumbProvider({ children }: { children: React.React
         setVendorDisplayName: vendorSetter,
         taskDisplayName,
         setTaskDisplayName: taskSetter,
+        projectDisplayName,
+        setProjectDisplayName: projectSetter,
       }}
     >
       {children}
@@ -46,5 +53,7 @@ export function usePropertyBreadcrumb() {
     setVendorDisplayName: () => {},
     taskDisplayName: null,
     setTaskDisplayName: () => {},
+    projectDisplayName: null,
+    setProjectDisplayName: () => {},
   };
 }
