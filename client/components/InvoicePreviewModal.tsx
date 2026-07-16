@@ -867,16 +867,20 @@ export default function InvoicePreviewModal({
     container.style.background = "white";
     container.appendChild(clone);
   
+    // Typed as any because html2pdf.js's bundled type.d.ts omits the
+    // pagebreak option its pagebreak plugin supports (same pattern as the
+    // download handler's opt).
+    const opt: any = {
+      margin: 0,
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "px", format: [816, 1056] },
+      pagebreak: {
+        mode: ["css", "legacy"],
+        avoid: ["tr", ".pdf-avoid-break"],
+      },
+    };
     return await html2pdf()
-      .set({
-        margin: 0,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "px", format: [816, 1056] },
-        pagebreak: {
-          mode: ["css", "legacy"],
-          avoid: ["tr", ".pdf-avoid-break"],
-        },
-      })
+      .set(opt)
       .from(container)
       .outputPdf("blob");
   };
