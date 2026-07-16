@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import { toast } from "sonner";
@@ -44,6 +45,16 @@ interface MatchCandidate {
   name: string;
   score: number;
   strategy: string;
+}
+
+// 409 payload from the duplicate-bill check on approve.
+interface DuplicateBillInfo {
+  bill_id: number;
+  invoice_number: string | null;
+  amount_cents: number;
+  statement_date: string | null;
+  booked_at: string;
+  match_type: "invoice_number" | "heuristic";
 }
 
 interface VendorOption {
@@ -333,7 +344,8 @@ function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailPr
 
   const [approving, setApproving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [alreadyBooked, setAlreadyBooked] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState<DuplicateBillInfo | null>(null);
+  const navigate = useNavigate();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const token = localStorage.getItem("avm_token") ?? "";
   const attachmentUrl = `${API_BASE}/vendors/bill-drafts/${draft.id}/attachment?token=${encodeURIComponent(token)}`;
@@ -382,7 +394,7 @@ function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailPr
     setActiveIdx(lineItems.length);
   };
 
-  const handleApprove = async () => {
+  const handleApprove = async (force = false) => {
     if (!vendorId) { toast.error("Vendor is required."); return; }
     if (!statementDate) { toast.error("Statement Date is required."); return; }
     if (!dueDate) { toast.error("Due Date is required."); return; }
@@ -426,6 +438,7 @@ function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailPr
     });
 
     setApproving(true);
+    setDuplicateInfo(null);
     try {
       const venIdNum = parseInt(vendorId, 10);
       const result = await fetchJSON(`/vendors/bill-drafts/${draft.id}/approve`, {
@@ -438,6 +451,7 @@ function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailPr
           due_date: dueDate ? new Date(dueDate).toISOString() : null,
           memo: memo || null,
           line_items: builtLineItems,
+          force,
         }),
       });
       if (result?.push_warning) {
@@ -447,11 +461,12 @@ function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailPr
         onApproved(draft.id);
       }
     } catch (err: any) {
-      const msg: string = err?.message ?? "";
-      if (msg.includes("already been booked")) {
-        setAlreadyBooked(true);
+      const dup: DuplicateBillInfo | null =
+        err?.status === 409 && err?.body?.duplicate ? err.body.duplicate : null;
+      if (dup) {
+        setDuplicateInfo(dup);
       } else {
-        toast.error(msg || "Failed to approve bill draft.");
+        toast.error(err?.message || "Failed to approve bill draft.");
       }
     } finally {
       setApproving(false);
@@ -700,12 +715,41 @@ function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailPr
             </div>
           )}
 
-          {alreadyBooked && (
+          {duplicateInfo && (
             <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
               <svg className="mt-0.5 shrink-0 w-4 h-4 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
               </svg>
-              <span>This bill has already been booked — feel free to delete this draft.</span>
+              <div className="flex-1 space-y-1.5">
+                <div>
+                  A matching bill already exists: <span className="font-semibold">Bill #{duplicateInfo.bill_id}</span>
+                  {duplicateInfo.invoice_number ? <> (Invoice {duplicateInfo.invoice_number})</> : null}
+                  {" — "}{(duplicateInfo.amount_cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" })}, booked{" "}
+                  {new Date(duplicateInfo.booked_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}.
+                </div>
+                <div className="text-xs text-amber-700">
+                  {duplicateInfo.match_type === "invoice_number"
+                    ? "Same vendor and invoice number — this draft is almost certainly a duplicate. Dismiss it below."
+                    : "Same vendor, property, amount, and statement date, but no invoice number to tell them apart. If this is a different invoice, you can approve anyway."}
+                </div>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <button
+                    onClick={() => navigate(`/bills/view?billId=${duplicateInfo.bill_id}`)}
+                    className="h-7 px-2.5 rounded-md border border-amber-300 bg-white text-xs font-medium text-amber-800 hover:bg-amber-100 transition-colors"
+                  >
+                    View bill #{duplicateInfo.bill_id}
+                  </button>
+                  {duplicateInfo.match_type !== "invoice_number" && (
+                    <button
+                      onClick={() => handleApprove(true)}
+                      disabled={approving || deleting}
+                      className="h-7 px-2.5 rounded-md bg-amber-600 text-xs font-medium text-white hover:bg-amber-700 transition-colors disabled:opacity-50"
+                    >
+                      Approve anyway
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -728,7 +772,7 @@ function DraftDetail({ draft, properties, onApproved, onDeleted }: DraftDetailPr
           <div className="flex items-center justify-between pt-2">
             <div className="flex items-center gap-2">
               <button
-                onClick={handleApprove}
+                onClick={() => handleApprove()}
                 disabled={approving || deleting}
                 className="flex items-center gap-1.5 h-8 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >

@@ -680,7 +680,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           li.source_type === "utility" ||
           li.source_type === "fto_expense";
         const isUnpaid =
-          li.payment_status === "unpaid" || li.payment_status === "unknown";
+          li.payment_status === "unpaid" ||
+          li.payment_status === "unknown" ||
+          li.payment_status === "not_booked";
         return isPassthrough && isUnpaid;
       }).length;
       setUnpaidPassthroughCount(passthroughUnpaid);
@@ -896,8 +898,23 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     return invoiceItemsWithManagementFeeFirst.filter((item) => idSet.has(item.id));
   }, [invoiceItemsWithManagementFeeFirst, selectedLocation, locationGroups]);
 
-  const { handleSortClick: handleInvoiceSortClick, getSortIndicator: getInvoiceSortIndicator, getSortedData: getSortedInvoiceItems } = useSortingTable(filteredInvoiceItems, "invoiceItems");
+  const { handleSortClick: handleInvoiceSortClick, getSortIndicator: getInvoiceSortIndicator, getSortedData: getSortedInvoiceItems } = useSortingTable(filteredInvoiceItems, "invoiceItems", { initialSortBy: "vendor" });
   const { handleSortClick: handleHistorySortClick, getSortIndicator: getHistorySortIndicator, getSortedData: getSortedHistoryItems } = useSortingTable(invoiceHistory, "invoiceHistory");
+
+  // Single source of row order for the on-screen table AND the PDF preview /
+  // commit paths: current column sort applied, then AVMRE lines re-pinned on
+  // top — management fee first, other AVMRE LLC lines next, everyone else
+  // after (Array.sort is stable, so the sorted order is preserved within each
+  // group).
+  const getDisplayedInvoiceItems = () => {
+    const rank = (item: InvoiceItem) =>
+      item.source === "Management Fee"
+        ? 0
+        : (item.vendor || "").trim().toUpperCase() === "AVMRE LLC"
+          ? 1
+          : 2;
+    return [...getSortedInvoiceItems()].sort((a, b) => rank(a) - rank(b));
+  };
 
   const toIsoDateTime = (date: Date) => date.toISOString();
 
@@ -1754,6 +1771,29 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   const ps = item.paymentStatus;
                   if (ps === "paid") return <StatusBadge status="Paid" />;
                   if (ps === "unpaid") return <StatusBadge status="Pending" />;
+                  if (ps === "not_booked") {
+                    // FTO expense with no converted bill. Approved + not booked
+                    // means the bill export silently failed at approval — flag
+                    // it loudly; pre-approval it's just "not exported yet".
+                    const approved = item.status === "Approved";
+                    return (
+                      <div
+                        title={
+                          approved
+                            ? "Approved FTO expense has no vendor bill — the export failed or was skipped at approval. Re-approve the FTO or record the bill manually."
+                            : "FTO expense not yet approved — approving the FTO will create the vendor bill."
+                        }
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap w-fit"
+                        style={
+                          approved
+                            ? { color: "#DC2626", backgroundColor: "#FEE2E2" }
+                            : { color: "#D97706", backgroundColor: "#FEF3C7" }
+                        }
+                      >
+                        {approved ? "⚠ Not Booked" : "Not Exported"}
+                      </div>
+                    );
+                  }
                   // billed_by_invoice (mgmt fee / labor) and unknown — payment
                   // doesn't apply to these line types.
                   return (
@@ -1789,7 +1829,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             sortingHook={{
               handleSortClick: handleInvoiceSortClick,
               getSortIndicator: getInvoiceSortIndicator,
-              getSortedData: getSortedInvoiceItems,
+              getSortedData: getDisplayedInvoiceItems,
             }}
             columnManagementHook={invoiceColumnsManagement}
             currentPage={1}
@@ -1862,7 +1902,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   type="button"
                   onClick={() =>
                     openInvoicePreview({
-                      lineItems: filteredInvoiceItems.map((item) => ({
+                      lineItems: getDisplayedInvoiceItems().map((item) => ({
                         id: item.id,
                         vendor: item.vendor,
                         description: item.description,
@@ -1905,7 +1945,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                           // the modal in commit mode — keeps PDF rendering in
                           // one place. The modal will auto-close after commit.
                           openInvoicePreview({
-                            lineItems: filteredInvoiceItems.map(
+                            lineItems: getDisplayedInvoiceItems().map(
                               (item) => ({
                                 id: item.id,
                                 vendor: item.vendor,
@@ -2202,7 +2242,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         lineItems={
           invoicePreviewLineItems.length > 0
             ? invoicePreviewLineItems
-            : filteredInvoiceItems.map((item) => ({
+            : getDisplayedInvoiceItems().map((item) => ({
                 id: item.id,
                 vendor: item.vendor,
                 description: item.description,

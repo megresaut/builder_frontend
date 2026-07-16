@@ -189,6 +189,11 @@ export default function BatchPayBillModal({
     bills.forEach((b) => initial.set(b.id, { status: "pending" }));
     setResults(new Map(initial));
 
+    // Set when any bill fails because our cached QBO balance was stale — the
+    // backend refreshes the cache as part of the rejected attempt, so a retry
+    // after reload will submit the corrected amount.
+    let staleBalanceFailure = false;
+
     for (const bill of bills) {
       try {
         const res = await authFetch(`/vendors/bills/${bill.id}/pay`, {
@@ -206,12 +211,17 @@ export default function BatchPayBillModal({
         });
         if (!res.ok) {
           let message = `Payment failed (status ${res.status}).`;
+          let code: string | null = null;
           try {
             const body = await res.json();
             if (body?.error) message = String(body.error);
+            if (body?.code) code = String(body.code);
           } catch {
             const text = await res.text().catch(() => "");
             if (text) message = text;
+          }
+          if (code === "amount_exceeds_balance" || code === "qbo_total_mismatch") {
+            staleBalanceFailure = true;
           }
           setResults((prev) => new Map(prev).set(bill.id, { status: "error", message }));
           continue;
@@ -234,6 +244,13 @@ export default function BatchPayBillModal({
 
     setSubmitting(false);
     setDone(true);
+
+    if (staleBalanceFailure) {
+      toast.info(
+        "Some bills had an out-of-date QBO balance — it has been refreshed. Close this dialog and retry the failed bills; the amounts will be up to date.",
+        { duration: 8000 },
+      );
+    }
   };
 
   const handleClose = () => {

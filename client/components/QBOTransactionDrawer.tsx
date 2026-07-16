@@ -107,7 +107,7 @@ function parseEntity(txnType: string, txn: Record<string, any>): ParsedTxn {
     });
     return { ...base, type: "Bill Payment", name: e.VendorRef?.name ?? "—", nameLabel: "Vendor",
       account: e.CheckPayment?.BankAccountRef?.name ?? e.CreditCardPayment?.CCAccountRef?.name,
-      payType: e.PayType, lines, canVoid: true };
+      payType: e.PayType, lines, canVoid: true, canDelete: true };
   }
 
   if (t === "bill") {
