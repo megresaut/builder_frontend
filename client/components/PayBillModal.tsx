@@ -374,6 +374,12 @@ export default function PayBillModal({
         }
         setErrorCode(code);
         setError(message);
+        if (code === "amount_exceeds_balance" || code === "qbo_total_mismatch") {
+          toast.info(
+            "The bill's QBO balance was refreshed during this attempt — please try again with the updated amount.",
+            { duration: 8000 },
+          );
+        }
         return;
       }
       const data = await res.json();
@@ -767,6 +773,7 @@ export default function PayBillModal({
           {(errorCode === "bill_already_paid_in_buildium" ||
             errorCode === "bill_already_paid" ||
             errorCode === "bill_overpay" ||
+            errorCode === "amount_exceeds_balance" ||
             errorCode === "qbo_balance_unknown") && (
             <button
               type="button"

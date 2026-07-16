@@ -79,9 +79,11 @@ export async function fetchJSON(path: string, options: RequestInit = {}) {
   if (!res.ok) {
     const text = await res.text();
     let message = text;
+    let body: any = null;
     try {
       const parsed = JSON.parse(text);
       if (parsed && typeof parsed === "object") {
+        body = parsed;
         message = parsed.error || parsed.message || parsed.detail || text;
       }
     } catch {
@@ -90,7 +92,13 @@ export async function fetchJSON(path: string, options: RequestInit = {}) {
     if (!message || !message.trim()) {
       message = `Request failed (${res.status})`;
     }
-    throw new Error(message);
+    // Attach the status and parsed body so callers can branch on structured
+    // error payloads (e.g. 409 duplicate-bill responses) instead of
+    // string-matching the message.
+    const err = new Error(message) as Error & { status?: number; body?: any };
+    err.status = res.status;
+    err.body = body;
+    throw err;
   }
 
   // 204 No Content (e.g. DELETE) has no body

@@ -48,6 +48,22 @@ interface KpiVendorRow {
 
 type KpiType = "insurance" | "tax" | "agreement" | "lapsed";
 
+interface Report1099Row {
+  qbo_vendor_id: string;
+  vendor_name: string;
+  total_cents: number;
+  payment_count: number;
+  excluded_card_cents: number;
+  over_threshold: boolean;
+}
+
+interface Report1099 {
+  year: number;
+  threshold_cents: number;
+  generated_at: string;
+  rows: Report1099Row[];
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -73,6 +89,34 @@ function formatDate(dateStr: string): string {
   if (!dateStr) return "—";
   const [y, m, d] = dateStr.split("-");
   return `${m}/${d}/${y}`;
+}
+
+function formatCents(cents: number): string {
+  return `$${(cents / 100).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function downloadReportCsv(report: Report1099) {
+  const header = "Vendor,QBO Vendor ID,Payments,Total (non-card),Card Payments (excluded),Over Threshold";
+  const lines = report.rows.map((r) =>
+    [
+      `"${r.vendor_name.replace(/"/g, '""')}"`,
+      r.qbo_vendor_id,
+      r.payment_count,
+      (r.total_cents / 100).toFixed(2),
+      (r.excluded_card_cents / 100).toFixed(2),
+      r.over_threshold ? "yes" : "no",
+    ].join(","),
+  );
+  const blob = new Blob([[header, ...lines].join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `1099-report-${report.year}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ---------------------------------------------------------------------------
@@ -315,6 +359,30 @@ export default function VendorComplianceDashboard() {
   const [kpiVendors, setKpiVendors] = useState<KpiVendorRow[]>([]);
   const [kpiLoading, setKpiLoading] = useState(false);
 
+  // 1099 report state — click-driven, not part of the initial load (the
+  // live QBO pull takes several seconds).
+  const currentYear = new Date().getFullYear();
+  const [reportYear, setReportYear] = useState(currentYear);
+  const [report, setReport] = useState<Report1099 | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+
+  const generate1099Report = useCallback(async (year: number) => {
+    setReportLoading(true);
+    setReportError(null);
+    try {
+      const data: Report1099 = await fetchJSON(
+        `/vendors/compliance/1099-report?year=${year}`,
+      );
+      setReport(data);
+    } catch (err: any) {
+      setReport(null);
+      setReportError(err?.message ?? "Failed to generate the 1099 report");
+    } finally {
+      setReportLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     async function load() {
       try {
@@ -541,6 +609,148 @@ export default function VendorComplianceDashboard() {
                   </tbody>
                 </table>
               </div>
+            )}
+          </div>
+
+          {/* 1099 Payment Report (live from QBO) */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  1099 Payment Report
+                </h2>
+                {report && (
+                  <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700">
+                    {report.rows.filter((r) => r.over_threshold).length} over threshold
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={reportYear}
+                  onChange={(e) => setReportYear(Number(e.target.value))}
+                  disabled={reportLoading}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {[0, 1, 2, 3].map((back) => (
+                    <option key={back} value={currentYear - back}>
+                      {currentYear - back}
+                    </option>
+                  ))}
+                </select>
+                {report && !reportLoading && (
+                  <button
+                    onClick={() => downloadReportCsv(report)}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Export CSV
+                  </button>
+                )}
+                <button
+                  onClick={() => generate1099Report(reportYear)}
+                  disabled={reportLoading}
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {reportLoading ? "Pulling from QuickBooks…" : "Generate Report"}
+                </button>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500 mb-3">
+              Totals reflect QuickBooks (concierge) payments only, excluding
+              card payments (reported on 1099-K by the processor). Final Box 1
+              amounts come from QuickBooks' 1099 wizard.
+            </p>
+
+            {reportError && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-3">
+                {reportError}
+              </div>
+            )}
+
+            {!report && !reportLoading && !reportError && (
+              <div className="text-center py-12 text-gray-400 text-sm bg-gray-50 rounded-lg">
+                Pick a year and generate the report to see 1099-tracked vendor
+                payment totals, live from QuickBooks.
+              </div>
+            )}
+
+            {reportLoading && (
+              <div className="text-center py-12 text-gray-400 text-sm bg-gray-50 rounded-lg">
+                Pulling vendors and payments from QuickBooks — this can take a
+                few seconds…
+              </div>
+            )}
+
+            {report && !reportLoading && (
+              <>
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Vendor
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Payments
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Total (non-card)
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Card (excluded)
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {formatCents(report.threshold_cents)} Threshold
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {report.rows.map((row) => (
+                        <tr
+                          key={row.qbo_vendor_id}
+                          className={row.over_threshold ? "bg-blue-50" : ""}
+                        >
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                            {row.vendor_name}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600 text-right">
+                            {row.payment_count}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                            {formatCents(row.total_cents)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-500 text-right">
+                            {row.excluded_card_cents > 0
+                              ? formatCents(row.excluded_card_cents)
+                              : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {row.over_threshold ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                1099 required
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                under threshold
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {report.rows.length === 0 && (
+                    <div className="text-center py-12 text-gray-400 text-sm">
+                      No vendors are flagged for 1099 tracking in QuickBooks.
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  Generated {new Date(report.generated_at).toLocaleString()} ·
+                  tax year {report.year}
+                </p>
+              </>
             )}
           </div>
 

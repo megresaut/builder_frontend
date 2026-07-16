@@ -206,6 +206,9 @@ interface Bill {
   invoiceNumber: string;
 
   amount: number;
+  // Exact platform total in cents (bills.amount_cents) — used to detect
+  // divergence from the QBO bill total without float round-trips.
+  amountCents?: number;
   glAccount: string;
 
   // 🔁 timestamps now come from backend
@@ -275,6 +278,7 @@ function mapUtilityRowToBill(row: any): Bill {
     })(),
     invoiceNumber: row.reference_number || "",
     amount: (row.amount_cents ?? 0) / 100,
+    amountCents: row.amount_cents ?? undefined,
     glAccount: "",
     importedAt: createdAtMs,
     exportedAt: row.push_status === "pushed" ? createdAtMs : undefined,
@@ -1739,9 +1743,27 @@ export default function Bills() {
                 );
               }
               if (columnKey === "amount") {
+                // Divergence flag: for an unpaid concierge bill, the QBO bill
+                // total should always equal the platform total. A mismatch
+                // means a failed edit sync or a QBO-side change — paying is
+                // blocked server-side until it's resolved.
+                const qboMismatch =
+                  bill.propertyType === "C" &&
+                  (bill.amountDueCents ?? 0) > 0 &&
+                  bill.amountCents != null &&
+                  bill.qboTotalCents != null &&
+                  bill.amountCents !== bill.qboTotalCents;
                 return (
-                  <span className="text-gray-900 font-normal text-sm truncate">
+                  <span className="text-gray-900 font-normal text-sm truncate inline-flex items-center gap-1">
                     ${bill.amount}
+                    {qboMismatch && (
+                      <span
+                        className="text-amber-600 cursor-help"
+                        title={`QBO total differs: platform $${((bill.amountCents ?? 0) / 100).toFixed(2)} vs QBO $${((bill.qboTotalCents ?? 0) / 100).toFixed(2)}. Fix the bill in QBO or re-edit it here before paying.`}
+                      >
+                        ⚠
+                      </span>
+                    )}
                   </span>
                 );
               }

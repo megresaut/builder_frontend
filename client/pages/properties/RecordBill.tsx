@@ -42,6 +42,35 @@ interface Vendor {
   notes: string;
 }
 
+// POSTs a bill create/approve payload; on a 409 duplicate-bill response,
+// asks the user whether to override with force:true. Returns null when the
+// user declines or the match is a same-invoice-number duplicate (caller
+// should abort without saving).
+async function postBillWithDuplicateCheck(url: string, payload: Record<string, any>): Promise<any | null> {
+  try {
+    return await fetchJSON(url, { method: "POST", body: JSON.stringify(payload) });
+  } catch (err: any) {
+    const dup = err?.status === 409 && err?.body?.duplicate ? err.body.duplicate : null;
+    if (!dup) throw err;
+    const amount = (dup.amount_cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+    const booked = new Date(dup.booked_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const invoice = dup.invoice_number ? ` (Invoice ${dup.invoice_number})` : "";
+    if (dup.match_type === "invoice_number") {
+      alert(
+        `This bill is already booked as Bill #${dup.bill_id}${invoice} — ${amount}, booked ${booked}.\n\n` +
+        `Same vendor and invoice number, so it was not saved again.`
+      );
+      return null;
+    }
+    const proceed = window.confirm(
+      `A matching bill already exists: Bill #${dup.bill_id}${invoice} — ${amount}, booked ${booked}.\n\n` +
+      `Same vendor, property, amount, and statement date. If this is a different invoice, click OK to save anyway.`
+    );
+    if (!proceed) return null;
+    return await fetchJSON(url, { method: "POST", body: JSON.stringify({ ...payload, force: true }) });
+  }
+}
+
 interface PropertyUnit {
   id: number;
   property_id: number;
@@ -1458,14 +1487,12 @@ export const RecordBill = () => {
           })),
         };
   
-        const approveRes = await fetchJSON(
+        const approveRes = await postBillWithDuplicateCheck(
           `/vendors/bill-drafts/${billId}/approve`,
-          {
-            method: "POST",
-            body: JSON.stringify(approvePayload),
-          }
+          approvePayload
         );
-  
+        if (!approveRes) return; // duplicate — user declined; finally resets state
+
         approvedBillId = approveRes?.bill_id;
       }
   
@@ -1476,14 +1503,12 @@ export const RecordBill = () => {
         // =====================================================
         // 🆕 FLOW: CREATE MANUAL BILL FIRST
         // =====================================================
-        const createRes = await fetchJSON(`/vendors/bills`, {
-          method: "POST",
-          body: JSON.stringify({
-            ...patchPayload,
-            pdf_object_key: uploadedPdfMeta?.pdf_object_key ?? "",
-            sha256_pdf: uploadedPdfMeta?.sha256_pdf ?? "",
-          }),
+        const createRes = await postBillWithDuplicateCheck(`/vendors/bills`, {
+          ...patchPayload,
+          pdf_object_key: uploadedPdfMeta?.pdf_object_key ?? "",
+          sha256_pdf: uploadedPdfMeta?.sha256_pdf ?? "",
         });
+        if (!createRes) return; // duplicate — user declined; finally resets state
 
         if (!createRes?.bill_id) {
           throw new Error("Bill creation failed: bill_id missing");

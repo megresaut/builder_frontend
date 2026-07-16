@@ -338,6 +338,23 @@ export function ViewBillV2() {
 
   // Delete flow
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Header ≡ dropdown (Duplicate / Refresh from QBO / Delete) + manual QBO
+  // balance re-sync for concierge bills whose cache went stale.
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const headerMenuRef = useRef<HTMLDivElement>(null);
+  const [refreshingQBO, setRefreshingQBO] = useState(false);
+
+  useEffect(() => {
+    if (!headerMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (headerMenuRef.current && !headerMenuRef.current.contains(e.target as Node)) {
+        setHeaderMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [headerMenuOpen]);
   const [deletingBill, setDeletingBill] = useState(false);
 
   // Edit payment flow
@@ -412,6 +429,32 @@ export function ViewBillV2() {
     await fetchAttachments();
     return b;
   }, [billId, fetchAttachments]);
+
+  // ── manual QBO re-sync ────────────────────────────────────────────────────
+  // Pulls the bill's live Balance/TotalAmt from QBO into the local cache, then
+  // reloads the page data. For concierge bills whose cached QBO state went
+  // stale (failed post-edit refresh, webhook gap, or a bill edited in QBO).
+  const handleRefreshFromQBO = async () => {
+    if (!billId || refreshingQBO) return;
+    setRefreshingQBO(true);
+    try {
+      const res = await fetchJSON(`/vendors/bills/${billId}/refresh-qbo`, {
+        method: "POST",
+      });
+      await loadBill();
+      const bal = res?.qbo_balance_cents;
+      toast.success(
+        bal != null
+          ? `Synced from QBO — outstanding balance $${(bal / 100).toFixed(2)}`
+          : "Synced from QBO",
+      );
+    } catch (err: any) {
+      toast.error(`QBO refresh failed: ${err?.message ?? String(err)}`);
+    } finally {
+      setRefreshingQBO(false);
+      setHeaderMenuOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (!billId) {
@@ -1106,21 +1149,51 @@ export function ViewBillV2() {
                 </HeaderButton>
                 <HeaderButton>Enter charges</HeaderButton>
                 <HeaderButton>Request owner contribution</HeaderButton>
-                <HeaderButton>Duplicate bill</HeaderButton>
-                <HeaderButton danger onClick={() => setShowDeleteConfirm(true)}>
-                  Delete bill
-                </HeaderButton>
                 <HeaderButton onClick={() => window.print()}>Print</HeaderButton>
-                <div className="flex items-center rounded-md border border-[#DADADA] bg-white">
+                <div
+                  ref={headerMenuRef}
+                  className="relative flex items-center rounded-md border border-[#DADADA] bg-white"
+                >
                   <button className="h-9 px-2 text-[#9A9A9A] hover:bg-gray-50">
                     <ChevronLeft className="h-4 w-4" />
                   </button>
-                  <button className="h-9 px-2 border-l border-[#DADADA] text-[#9A9A9A] hover:bg-gray-50">
+                  <button
+                    onClick={() => setHeaderMenuOpen((o) => !o)}
+                    className={`h-9 px-2 border-l border-[#DADADA] hover:bg-gray-50 ${headerMenuOpen ? "bg-gray-100 text-[#303030]" : "text-[#9A9A9A]"}`}
+                  >
                     <Menu className="h-4 w-4" />
                   </button>
                   <button className="h-9 px-2 border-l border-[#DADADA] text-[#9A9A9A] hover:bg-gray-50">
                     <ChevronRight className="h-4 w-4" />
                   </button>
+                  {headerMenuOpen && (
+                    <div className="absolute right-0 top-full mt-1 z-20 w-52 rounded-md border border-[#DADADA] bg-white py-1 shadow-lg">
+                      <button
+                        className="block w-full px-3 py-2 text-left text-sm text-[#303030] hover:bg-gray-50"
+                        onClick={() => setHeaderMenuOpen(false)}
+                      >
+                        Duplicate bill
+                      </button>
+                      {bill.property_type === "C" && (
+                        <button
+                          className="block w-full px-3 py-2 text-left text-sm text-[#303030] hover:bg-gray-50 disabled:opacity-50"
+                          disabled={refreshingQBO}
+                          onClick={handleRefreshFromQBO}
+                        >
+                          {refreshingQBO ? "Refreshing from QBO…" : "Refresh from QBO"}
+                        </button>
+                      )}
+                      <button
+                        className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                        onClick={() => {
+                          setHeaderMenuOpen(false);
+                          setShowDeleteConfirm(true);
+                        }}
+                      >
+                        Delete bill
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             )}

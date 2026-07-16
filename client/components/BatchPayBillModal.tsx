@@ -26,6 +26,12 @@ export interface BatchPayBill {
   referenceNumber?: string;
   // Outstanding balance to pay in full — no per-bill amount editing in batch mode.
   amountDueCents: number;
+  // Platform total (bills.amount_cents) and cached QBO bill total. When they
+  // disagree on a concierge bill, the systems have diverged — the backend
+  // refuses the payment (409 qbo_total_mismatch), so surface it up front and
+  // block the batch instead of failing one row mid-run.
+  amountCents?: number;
+  qboTotalCents?: number;
   // All bills passed in must share the same group ('C' vs anything else) —
   // the caller (Bills.tsx) enforces this via the row-selection lock.
   propertyType?: string | null;
@@ -64,6 +70,21 @@ export default function BatchPayBillModal({
   const totalCents = useMemo(
     () => bills.reduce((sum, b) => sum + b.amountDueCents, 0),
     [bills],
+  );
+  // Concierge bills whose platform total disagrees with the QBO bill total.
+  // The backend rejects these (409 qbo_total_mismatch); block the whole batch
+  // so one bad bill doesn't fail silently in the middle of a run.
+  const mismatchedBills = useMemo(
+    () =>
+      isConcierge
+        ? bills.filter(
+            (b) =>
+              b.amountCents != null &&
+              b.qboTotalCents != null &&
+              b.amountCents !== b.qboTotalCents,
+          )
+        : [],
+    [bills, isConcierge],
   );
 
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
@@ -144,6 +165,12 @@ export default function BatchPayBillModal({
 
   const handleSubmit = async () => {
     setError(null);
+    if (mismatchedBills.length > 0) {
+      setError(
+        "Some bills have a QBO total that differs from the platform amount — resolve the mismatch before paying.",
+      );
+      return;
+    }
     if (isConcierge && !accountQBOID) {
       setError("Please choose a Pay From account.");
       return;
@@ -162,6 +189,11 @@ export default function BatchPayBillModal({
     bills.forEach((b) => initial.set(b.id, { status: "pending" }));
     setResults(new Map(initial));
 
+    // Set when any bill fails because our cached QBO balance was stale — the
+    // backend refreshes the cache as part of the rejected attempt, so a retry
+    // after reload will submit the corrected amount.
+    let staleBalanceFailure = false;
+
     for (const bill of bills) {
       try {
         const res = await authFetch(`/vendors/bills/${bill.id}/pay`, {
@@ -179,12 +211,17 @@ export default function BatchPayBillModal({
         });
         if (!res.ok) {
           let message = `Payment failed (status ${res.status}).`;
+          let code: string | null = null;
           try {
             const body = await res.json();
             if (body?.error) message = String(body.error);
+            if (body?.code) code = String(body.code);
           } catch {
             const text = await res.text().catch(() => "");
             if (text) message = text;
+          }
+          if (code === "amount_exceeds_balance" || code === "qbo_total_mismatch") {
+            staleBalanceFailure = true;
           }
           setResults((prev) => new Map(prev).set(bill.id, { status: "error", message }));
           continue;
@@ -207,6 +244,13 @@ export default function BatchPayBillModal({
 
     setSubmitting(false);
     setDone(true);
+
+    if (staleBalanceFailure) {
+      toast.info(
+        "Some bills had an out-of-date QBO balance — it has been refreshed. Close this dialog and retry the failed bills; the amounts will be up to date.",
+        { duration: 8000 },
+      );
+    }
   };
 
   const handleClose = () => {
@@ -238,7 +282,7 @@ export default function BatchPayBillModal({
             cancelLabel="Cancel"
             confirmLabel={submitting ? "Paying…" : `Pay ${bills.length} Bill${bills.length === 1 ? "" : "s"}`}
             cancelDisabled={submitting}
-            confirmDisabled={submitting}
+            confirmDisabled={submitting || mismatchedBills.length > 0}
           />
         )
       }
@@ -250,6 +294,11 @@ export default function BatchPayBillModal({
       <div className="rounded-md border border-[#DADADA] divide-y divide-[#DADADA] mb-4 max-h-48 overflow-y-auto">
         {bills.map((b) => {
           const result = results.get(b.id);
+          const mismatch =
+            isConcierge &&
+            b.amountCents != null &&
+            b.qboTotalCents != null &&
+            b.amountCents !== b.qboTotalCents;
           return (
             <div key={b.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
               <div className="min-w-0">
@@ -258,6 +307,11 @@ export default function BatchPayBillModal({
                   {b.referenceNumber ? <span className="text-[#717179] font-normal"> · Ref {b.referenceNumber}</span> : null}
                 </div>
                 <div className="text-xs text-[#717179] truncate">{b.propertyName}</div>
+                {mismatch && (
+                  <div className="text-xs text-amber-700">
+                    QBO total ${((b.qboTotalCents ?? 0) / 100).toFixed(2)} ≠ platform ${((b.amountCents ?? 0) / 100).toFixed(2)}
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-[#303030]">${(b.amountDueCents / 100).toFixed(2)}</span>
@@ -277,6 +331,14 @@ export default function BatchPayBillModal({
         <span>Total due</span>
         <span className="font-medium">${(totalCents / 100).toFixed(2)}</span>
       </div>
+
+      {mismatchedBills.length > 0 && !done && (
+        <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {mismatchedBills.length === 1 ? "1 bill has" : `${mismatchedBills.length} bills have`} a QBO
+          total that doesn't match the platform amount. Payment is blocked until the totals agree —
+          fix the bill in QBO (or re-edit it here), then use “Refresh from QBO” and retry.
+        </div>
+      )}
 
       {done ? (
         <div className="rounded-md border border-[#DADADA] bg-gray-50 px-3 py-2 text-sm text-[#303030]">

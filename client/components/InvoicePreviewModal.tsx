@@ -117,6 +117,9 @@ export default function InvoicePreviewModal({
   const [showCommitConfirm, setShowCommitConfirm] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  // Layout exploration: true renders AVMRE LLC lines in a full-column table
+  // and all other vendors in a slim table (no Rate/Qty/Manager/Travel Charge).
+  const [splitLayout, setSplitLayout] = useState(true);
 
   const normalizeAmountDraft = (value: string): string => {
     const cleaned = value.replace(/[^\d.]/g, "");
@@ -301,6 +304,58 @@ export default function InvoicePreviewModal({
     return "$" + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
+  // Auto-grow the editable textareas so long vendor names / descriptions wrap
+  // to the next line in the viewer instead of getting cut off.
+  const autoResizeTextarea = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = "0px";
+    el.style.height = `${el.scrollHeight}px`;
+  };
+
+  const isAvmreItem = (item: InvoiceLineItem) =>
+    (item.vendor || "").trim().toUpperCase() === "AVMRE LLC";
+
+  // Rows keep their index into the underlying lineItems array so editing /
+  // drag-reorder / removal keep working when the display is split in two.
+  const indexedLineItems = lineItems.map((item, index) => ({ item, index }));
+  const tableGroups = splitLayout
+    ? [
+        {
+          key: "avmre",
+          title: "AVMRE LLC Services",
+          showMeta: true,
+          rows: indexedLineItems.filter(({ item }) => isAvmreItem(item)),
+        },
+        {
+          key: "passthrough",
+          title: "Vendor Charges",
+          showMeta: false,
+          rows: indexedLineItems.filter(({ item }) => !isAvmreItem(item)),
+        },
+      ].filter((group) => group.rows.length > 0)
+    : [{ key: "all", title: null, showMeta: true, rows: indexedLineItems }];
+
+  const headerColumns = (
+    showMeta: boolean,
+  ): Array<[string, string | undefined]> => {
+    const cols: Array<[string, string | undefined]> = [
+      ["Service Provider", "110px"],
+      ["Date", "52px"],
+      ["Service Provided", undefined],
+      ["Reference#", "65px"],
+    ];
+    if (showMeta) {
+      cols.push(
+        ["Rate", "32px"],
+        ["Qty", "28px"],
+        ["Manager", "45px"],
+        ["Travel Charge", "60px"],
+      );
+    }
+    cols.push(["Amount", "75px"]);
+    return cols;
+  };
+
   const handleDownloadPDF = async () => {
     const invoiceNode = invoiceRef.current;
     if (!invoiceNode) return;
@@ -309,7 +364,9 @@ export default function InvoicePreviewModal({
 
     // Update print-only spans with formatted values
     clone
-      .querySelectorAll<HTMLInputElement>("input.edit-field")
+      .querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+        "input.edit-field, textarea.edit-field",
+      )
       .forEach((input) => {
         const container = input.parentElement;
         const span =
@@ -785,7 +842,9 @@ export default function InvoicePreviewModal({
   
     const clone = invoiceNode.cloneNode(true) as HTMLElement;
   
-    clone.querySelectorAll<HTMLInputElement>("input.edit-field").forEach((input) => {
+    clone.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+      "input.edit-field, textarea.edit-field",
+    ).forEach((input) => {
       const span = document.createElement("span");
       const field = input.dataset.field;
       span.textContent =
@@ -951,7 +1010,18 @@ export default function InvoicePreviewModal({
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto bg-white flex justify-center items-start p-4">
+          <div className="flex-1 overflow-y-auto bg-white flex flex-col items-center p-4">
+            {/* Layout exploration toggle — lives outside the invoiceRef
+                capture node, so it never appears in the generated PDF. */}
+            <button
+              type="button"
+              onClick={() => setSplitLayout((v) => !v)}
+              className="no-print mb-2 rounded border border-[#013764] px-3 py-1 text-xs font-medium text-[#013764] hover:bg-gray-50"
+            >
+              {splitLayout
+                ? "Layout: split AVMRE / vendors — click to compare single table"
+                : "Layout: single table — click to compare split"}
+            </button>
             {/* Invoice Container - Letter Size 8.5x11 inches = 816x1056px */}
             <div
               ref={invoiceRef}
@@ -973,7 +1043,6 @@ export default function InvoicePreviewModal({
                   justifyContent: "space-between",
                   alignItems: "flex-start",
                   marginBottom: "5px",
-                  width: "725px",
                 }}
               >
                 <img
@@ -1008,7 +1077,6 @@ export default function InvoicePreviewModal({
                   justifyContent: "space-between",
                   marginTop: "30px",
                   marginBottom: "5px",
-                  width: "725px",
                 }}
               >
                 <div style={{ width: "300px" }}>
@@ -1079,28 +1147,31 @@ export default function InvoicePreviewModal({
                 </div>
               </div>
 
-              {/* Table */}
+              {/* Line-item table(s) — split layout renders AVMRE LLC rows in a
+                  full-column table and passthrough vendor rows in a slim one,
+                  each under its own section title. */}
+              {tableGroups.map((group) => (
+              <div key={group.key} style={{ marginBottom: "28px" }}>
+                {group.title && (
+                  <div
+                    style={{
+                      font: "italic 700 11px/16px Arial, sans-serif",
+                      marginBottom: "3px",
+                    }}
+                  >
+                    {group.title}
+                  </div>
+                )}
               <table
                 style={{
                   width: "100%",
                   borderCollapse: "collapse",
                   tableLayout: "fixed",
-                  marginBottom: "20px",
                 }}
               >
                 <thead>
                   <tr>
-                    {[
-                      ["Service Provider", "110px"],
-                      ["Date", "32px"],
-                      ["Service Provided", undefined],
-                      ["Reference#", "65px"],
-                      ["Rate", "32px"],
-                      ["Qty", "28px"],
-                      ["Manager", "45px"],
-                      ["Travel Charge", "60px"],
-                      ["Amount", "75px"],
-                    ].map(([label, width]) => (
+                    {headerColumns(group.showMeta).map(([label, width]) => (
                       <th
                         key={label}
                         style={{
@@ -1121,7 +1192,7 @@ export default function InvoicePreviewModal({
                   </tr>
                 </thead>
                 <tbody>
-                  {lineItems.map((item, index) => (
+                  {group.rows.map(({ item, index }, localIdx) => (
                     <tr
                       key={item.id}
                       draggable={false}
@@ -1133,7 +1204,7 @@ export default function InvoicePreviewModal({
                         backgroundColor:
                           dragOverIndex === index
                             ? "rgba(0, 45, 90, 0.06)"
-                            : index % 2 === 1
+                            : localIdx % 2 === 1
                               ? "#F5F6F8"
                               : "#FFFFFF",
                         transition: "background-color 0.15s ease",
@@ -1150,7 +1221,6 @@ export default function InvoicePreviewModal({
                           width: "110px",
                           minWidth: "110px",
                           maxWidth: "110px",
-                          overflow: "hidden",
                         }}
                       >
                         <div
@@ -1200,29 +1270,32 @@ export default function InvoicePreviewModal({
                             <circle cx="15" cy="18" r="1.5" />
                           </svg>
                         </div>
-                        <input
-                          type="text"
+                        <textarea
+                          rows={1}
                           value={item.vendor}
                           data-field="vendor"
-                          onChange={(e) =>
+                          ref={autoResizeTextarea}
+                          onChange={(e) => {
+                            autoResizeTextarea(e.target);
                             handleUpdateLineItem(
                               item.id,
                               "vendor",
                               e.target.value,
-                            )
-                          }
+                            );
+                          }}
                           className="edit-field"
                           style={{
+                            display: "block",
                             width: "100%",
                             border: "none",
                             outline: "none",
                             background: "transparent",
                             color: "#002060",
-                            font: "400 9px Arial, sans-serif",
+                            font: "400 9px/16.5px Arial, sans-serif",
                             padding: 0,
+                            resize: "none",
                             overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
+                            overflowWrap: "anywhere",
                           }}
                         />
                         <span
@@ -1232,9 +1305,7 @@ export default function InvoicePreviewModal({
                             width: "100%",
                             color: "#002060",
                             font: "400 9px/16.5px Arial, sans-serif",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
+                            overflowWrap: "anywhere",
                           }}
                         >
                           {item.vendor}
@@ -1259,31 +1330,38 @@ export default function InvoicePreviewModal({
                           fontSize: "11px",
                           paddingTop: "5px",
                           paddingBottom: "5px",
+                          paddingLeft: "10px",
+                          paddingRight: "10px",
                           verticalAlign: "middle",
                         }}
                       >
-                        <input
-                          type="text"
+                        <textarea
+                          rows={1}
                           value={stripLeadingDate(item.description)}
                           data-field="description"
-                          onChange={(e) =>
+                          ref={autoResizeTextarea}
+                          onChange={(e) => {
+                            autoResizeTextarea(e.target);
                             handleUpdateLineItem(
                               item.id,
                               "description",
                               e.target.value,
-                            )
-                          }
+                            );
+                          }}
                           className="edit-field"
                           style={{
+                            display: "block",
                             width: "100%",
                             border: "none",
                             outline: "none",
                             background: "transparent",
                             color: "#002060",
                             overflowWrap: "anywhere",
-                            wordWrap: "anywhere",
-                            font: "400 9px Arial, sans-serif",
+                            font: "400 9px/16.5px Arial, sans-serif",
                             padding: 0,
+                            resize: "none",
+                            overflow: "hidden",
+                            textAlign: "center",
                           }}
                         />
                         <span
@@ -1293,8 +1371,8 @@ export default function InvoicePreviewModal({
                             width: "100%",
                             color: "#002060",
                             overflowWrap: "anywhere",
-                            wordWrap: "anywhere",
                             font: "400 9px/16.5px Arial, sans-serif",
+                            textAlign: "center",
                           }}
                         >
                           {stripLeadingDate(item.description)}
@@ -1307,74 +1385,76 @@ export default function InvoicePreviewModal({
                           paddingBottom: "5px",
                           verticalAlign: "middle",
                           color: "#002060",
-                          font: "400 8px Arial, sans-serif",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
+                          font: "400 8px/14px Arial, sans-serif",
+                          overflowWrap: "anywhere",
                         }}
                       >
                         {item.billInvoiceNumber ?? ""}
                       </td>
-                      <td
-                        style={{
-                          fontSize: "11px",
-                          paddingTop: "5px",
-                          paddingBottom: "5px",
-                          paddingRight: "6px",
-                          verticalAlign: "middle",
-                          textAlign: "center",
-                          color: "#002060",
-                          font: "400 9px Arial, sans-serif",
-                        }}
-                      >
-                        {formatPlainNumber(item.rate)}
-                      </td>
-                      <td
-                        style={{
-                          fontSize: "11px",
-                          paddingTop: "5px",
-                          paddingBottom: "5px",
-                          paddingRight: "6px",
-                          verticalAlign: "middle",
-                          textAlign: "center",
-                          color: "#002060",
-                          font: "400 9px Arial, sans-serif",
-                        }}
-                      >
-                        {formatPlainNumber(item.qty)}
-                      </td>
-                      <td
-                        style={{
-                          fontSize: "11px",
-                          paddingTop: "5px",
-                          paddingBottom: "5px",
-                          paddingRight: "6px",
-                          verticalAlign: "middle",
-                          textAlign: "center",
-                          color: "#002060",
-                          font: "400 9px Arial, sans-serif",
-                        }}
-                      >
-                        {formatPlainNumber(item.managerCount)}
-                      </td>
-                      <td
-                        style={{
-                          fontSize: "11px",
-                          paddingTop: "5px",
-                          paddingBottom: "5px",
-                          paddingRight: "6px",
-                          verticalAlign: "middle",
-                          textAlign: "center",
-                          color: "#002060",
-                          font: "400 9px Arial, sans-serif",
-                        }}
-                      >
-                        {formatPlainNumber(
-                          item.travelChargeCents != null
-                            ? item.travelChargeCents / 100
-                            : undefined,
-                        )}
-                      </td>
+                      {group.showMeta && (
+                        <>
+                          <td
+                            style={{
+                              fontSize: "11px",
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingRight: "6px",
+                              verticalAlign: "middle",
+                              textAlign: "center",
+                              color: "#002060",
+                              font: "400 9px Arial, sans-serif",
+                            }}
+                          >
+                            {formatPlainNumber(item.rate)}
+                          </td>
+                          <td
+                            style={{
+                              fontSize: "11px",
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingRight: "6px",
+                              verticalAlign: "middle",
+                              textAlign: "center",
+                              color: "#002060",
+                              font: "400 9px Arial, sans-serif",
+                            }}
+                          >
+                            {formatPlainNumber(item.qty)}
+                          </td>
+                          <td
+                            style={{
+                              fontSize: "11px",
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingRight: "6px",
+                              verticalAlign: "middle",
+                              textAlign: "center",
+                              color: "#002060",
+                              font: "400 9px Arial, sans-serif",
+                            }}
+                          >
+                            {formatPlainNumber(item.managerCount)}
+                          </td>
+                          <td
+                            style={{
+                              fontSize: "11px",
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingRight: "6px",
+                              verticalAlign: "middle",
+                              textAlign: "center",
+                              color: "#002060",
+                              font: "400 9px Arial, sans-serif",
+                            }}
+                          >
+                            {formatPlainNumber(
+                              item.travelChargeCents != null
+                                ? item.travelChargeCents / 100
+                                : undefined,
+                            )}
+                          </td>
+                        </>
+                      )}
                       <td
                         style={{
                           fontSize: "11px",
@@ -1449,7 +1529,6 @@ export default function InvoicePreviewModal({
                             background: "transparent",
                             color: "#002060",
                             overflowWrap: "anywhere",
-                            wordWrap: "anywhere",
                             font: "400 9px Arial, sans-serif",
                             textAlign: "right",
                             padding: "0",
@@ -1462,7 +1541,6 @@ export default function InvoicePreviewModal({
                             width: "100%",
                             color: "#002060",
                             overflowWrap: "anywhere",
-                            wordWrap: "anywhere",
                             font: "400 9px/16.5px Arial, sans-serif",
                             textAlign: "right",
                           }}
@@ -1496,7 +1574,7 @@ export default function InvoicePreviewModal({
                   ))}
                   <tr>
                     <td
-                      colSpan={9}
+                      colSpan={group.showMeta ? 9 : 5}
                       style={{
                         padding: 0,
                         height: "4px",
@@ -1507,6 +1585,8 @@ export default function InvoicePreviewModal({
                   </tr>
                 </tbody>
               </table>
+              </div>
+              ))}
 
               {/* Summary: Subtotal / Payments-Credits / Total */}
               <div
