@@ -415,6 +415,11 @@ export default function InvoicePreviewModal({
         orientation: "portrait",
         compress: true,
       },
+      // Keep rows intact across page breaks, and push whole sections
+      // (title + table), the totals block, and the footer to the next page
+      // when they'd otherwise be sliced (only if they fit on one page —
+      // over-long tables still flow with clean row-level breaks).
+      pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".pdf-avoid-break"] },
     };
 
     try {
@@ -867,6 +872,10 @@ export default function InvoicePreviewModal({
         margin: 0,
         html2canvas: { scale: 2 },
         jsPDF: { unit: "px", format: [816, 1056] },
+        pagebreak: {
+          mode: ["css", "legacy"],
+          avoid: ["tr", ".pdf-avoid-break"],
+        },
       })
       .from(container)
       .outputPdf("blob");
@@ -1151,7 +1160,11 @@ export default function InvoicePreviewModal({
                   full-column table and passthrough vendor rows in a slim one,
                   each under its own section title. */}
               {tableGroups.map((group) => (
-              <div key={group.key} style={{ marginBottom: "28px" }}>
+              <div
+                key={group.key}
+                className="pdf-avoid-break"
+                style={{ marginBottom: "28px" }}
+              >
                 {group.title && (
                   <div
                     style={{
@@ -1590,6 +1603,7 @@ export default function InvoicePreviewModal({
 
               {/* Summary: Subtotal / Payments-Credits / Total */}
               <div
+                className="pdf-avoid-break"
                 style={{
                   display: "flex",
                   justifyContent: "flex-end",
@@ -1656,6 +1670,7 @@ export default function InvoicePreviewModal({
 
               {/* Footer */}
               <div
+                className="pdf-avoid-break"
                 style={{
                   fontSize: "8px",
                   lineHeight: "15px",
