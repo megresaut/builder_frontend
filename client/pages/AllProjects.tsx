@@ -202,6 +202,10 @@ export default function AllProjects() {
             onClick: () => navigate("/projects/new"),
             icon: <PlusIcon width={20} height={20} />,
           }}
+          secondaryAction={{
+            label: "✨ New from Meeting Notes",
+            onClick: () => navigate("/projects/intake"),
+          }}
         />
 
         {error && <div className="text-sm text-rose-600">{error}</div>}

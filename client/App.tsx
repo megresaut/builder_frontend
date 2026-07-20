@@ -28,6 +28,7 @@ import AllTasks from "./pages/AllTasks";
 import AllProjects from "./pages/AllProjects";
 import CreateProject from "./pages/CreateProject";
 import ProjectDetail from "./pages/ProjectDetail";
+import ProjectIntake from "./pages/ProjectIntake";
 import RecurringTasks from "./pages/RecurringTasks";
 import Vendors from "./pages/Vendors";
 import VendorDetail from "./pages/VendorDetail";
@@ -415,6 +416,17 @@ export default function App() {
                     <RequireAuth allowedRoles={["admin", "property_manager"]}>
                       <ShellLayout>
                         <CreateProject />
+                      </ShellLayout>
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/projects/intake"
+                  element={
+                    <RequireAuth allowedRoles={["admin", "property_manager"]}>
+                      <ShellLayout>
+                        <ProjectIntake />
                       </ShellLayout>
                     </RequireAuth>
                   }
