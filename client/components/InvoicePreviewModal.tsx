@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { Fragment, useRef, useState, useEffect, type CSSProperties } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +26,11 @@ export interface InvoiceLineItem {
   qty?: number;
   managerCount?: number;
   travelChargeCents?: number;
+  // Raw backend source_type ("management_fee", "fto_hours", "vendor", ...).
+  // Drives the summary/detail split: fto_hours lines are rolled up into a
+  // single "Man Hours" summary line on page 1 and itemized in the page-2
+  // Field Team breakdown.
+  sourceType?: string;
 }
 
 // LifecycleStatus drives the lifecycle banner + Commit gating in the preview
@@ -315,25 +320,66 @@ export default function InvoicePreviewModal({
   const isAvmreItem = (item: InvoiceLineItem) =>
     (item.vendor || "").trim().toUpperCase() === "AVMRE LLC";
 
+  // AVMRE man-hour labor lines (source_type="fto_hours"). In the split layout
+  // these are collapsed into a single "Man Hours" summary line on page 1 and
+  // itemized in the page-2 Field Team breakdown.
+  const isLaborItem = (item: InvoiceLineItem) =>
+    (item.sourceType || "") === "fto_hours";
+
+  const amountToNumber = (amount: string): number =>
+    parseFloat(amount.replace(/[^\d.]/g, "")) || 0;
+
   // Rows keep their index into the underlying lineItems array so editing /
   // drag-reorder / removal keep working when the display is split in two.
   const indexedLineItems = lineItems.map((item, index) => ({ item, index }));
+
+  // Individual man-hour lines — rolled up on page 1, itemized on page 2.
+  const laborRows = indexedLineItems.filter(({ item }) => isLaborItem(item));
+  const laborTotalHours = laborRows.reduce(
+    (sum, { item }) => sum + (item.qty ?? 0),
+    0,
+  );
+  const laborTotalAmount = laborRows.reduce(
+    (sum, { item }) => sum + amountToNumber(item.amount),
+    0,
+  );
+  const laborSummary =
+    splitLayout && laborRows.length > 0
+      ? { hours: laborTotalHours, amount: laborTotalAmount }
+      : null;
+
+  // Split layout renders a single untitled table: AVMRE non-labor lines
+  // (management fee, credits) first, then the collapsed "Man Hours" summary,
+  // then the passthrough vendor charges. laborSummaryAfterCount marks where
+  // the summary row is injected (right after the AVMRE rows). Single layout is
+  // the flat, uncollapsed comparison view.
+  const avmreNonLaborRows = indexedLineItems.filter(
+    ({ item }) => isAvmreItem(item) && !isLaborItem(item),
+  );
+  const passthroughRows = indexedLineItems.filter(
+    ({ item }) => !isAvmreItem(item),
+  );
   const tableGroups = splitLayout
     ? [
         {
-          key: "avmre",
-          title: "AVMRE LLC Services",
+          key: "invoice",
+          title: null,
           showMeta: true,
-          rows: indexedLineItems.filter(({ item }) => isAvmreItem(item)),
+          rows: [...avmreNonLaborRows, ...passthroughRows],
+          laborSummary,
+          laborSummaryAfterCount: avmreNonLaborRows.length,
         },
+      ]
+    : [
         {
-          key: "passthrough",
-          title: "Vendor Charges",
-          showMeta: false,
-          rows: indexedLineItems.filter(({ item }) => !isAvmreItem(item)),
+          key: "all",
+          title: null,
+          showMeta: true,
+          rows: indexedLineItems,
+          laborSummary: null as { hours: number; amount: number } | null,
+          laborSummaryAfterCount: 0,
         },
-      ].filter((group) => group.rows.length > 0)
-    : [{ key: "all", title: null, showMeta: true, rows: indexedLineItems }];
+      ];
 
   const headerColumns = (
     showMeta: boolean,
@@ -346,15 +392,161 @@ export default function InvoicePreviewModal({
     ];
     if (showMeta) {
       cols.push(
-        ["Rate", "32px"],
-        ["Qty", "28px"],
-        ["Manager", "45px"],
+        ["Rate", "38px"],
+        ["Qty", "44px"],
+        ["Manager", "48px"],
         ["Travel Charge", "60px"],
       );
     }
     cols.push(["Amount", "75px"]);
     return cols;
   };
+
+  // Month label for the collapsed labor line, e.g. "May Hours". Derived from
+  // the invoice date (mirrors the "May Management Fee" wording); falls back to
+  // the first token of the date string, then to "Man".
+  const invoiceMonthLabel = (() => {
+    const d = new Date(invoiceDate);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleString("en-US", { month: "long" });
+    }
+    const first = (invoiceDate || "").trim().split(/\s+/)[0] ?? "";
+    return /^[A-Za-z]+$/.test(first) ? first : "Man";
+  })();
+
+  // Collapsed month-hours line for the merged invoice table (e.g. "May Hours").
+  // Read-only rollup of every fto_hours line; injected between the AVMRE rows
+  // and the vendor charges. `stripeGray` continues the table's zebra striping.
+  const renderManHoursSummaryRow = (
+    summary: { hours: number; amount: number },
+    stripeGray: boolean,
+  ) => (
+    <tr
+      key="man-hours-summary"
+      style={{ backgroundColor: stripeGray ? "#F5F6F8" : "#FFFFFF" }}
+    >
+      <td
+        style={{
+          paddingTop: "5px",
+          paddingBottom: "5px",
+          paddingLeft: "6px",
+          verticalAlign: "middle",
+          color: "#002060",
+          font: "400 9px/16.5px Arial, sans-serif",
+        }}
+      >
+        AVMRE LLC
+      </td>
+      <td />
+      <td
+        style={{
+          paddingTop: "5px",
+          paddingBottom: "5px",
+          paddingLeft: "10px",
+          paddingRight: "10px",
+          textAlign: "left",
+          verticalAlign: "middle",
+          color: "#002060",
+          font: "400 9px/16.5px Arial, sans-serif",
+        }}
+      >
+        {`${invoiceMonthLabel} Hours`}
+      </td>
+      <td />
+      <td />
+      <td
+        style={{
+          paddingTop: "5px",
+          paddingBottom: "5px",
+          paddingRight: "6px",
+          textAlign: "center",
+          verticalAlign: "middle",
+          color: "#002060",
+          font: "400 9px Arial, sans-serif",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {formatPlainNumber(summary.hours)}
+      </td>
+      <td />
+      <td />
+      <td
+        style={{
+          paddingTop: "5px",
+          paddingBottom: "5px",
+          paddingRight: "6px",
+          paddingLeft: "8px",
+          textAlign: "right",
+          verticalAlign: "middle",
+          color: "#002060",
+          font: "400 9px/16.5px Arial, sans-serif",
+        }}
+      >
+        {formatAmountWithCommas(String(summary.amount))}
+      </td>
+    </tr>
+  );
+
+  // Each rendered "page" is a letter-size sheet (816x1056px). On screen the
+  // shadow + gap make the page splits visible; both are stripped from the PDF
+  // clone (see handleDownloadPDF / generatePdfBlob) so exported pages stack
+  // flush. minHeight (not fixed height) lets an over-long page grow rather
+  // than clip — html2pdf then row-breaks it cleanly.
+  const pageStyle: CSSProperties = {
+    width: "816px",
+    minHeight: "1056px",
+    padding: "60px 72px",
+    backgroundColor: "white",
+    fontFamily: "Inter, -apple-system, Roboto, Helvetica, sans-serif",
+    color: "#002060",
+    boxSizing: "border-box",
+    boxShadow: "0 1px 8px rgba(0,0,0,0.18)",
+    marginBottom: "16px",
+    // Flex column so the payment footer can sink to the bottom of each sheet
+    // (marginTop:auto on the footer). In the PDF clone minHeight is removed, so
+    // there's no free space and the footer sits directly under the content.
+    display: "flex",
+    flexDirection: "column",
+  };
+
+  // Rendered at the bottom of every page sheet so the payment terms repeat on
+  // each page. A function (not a shared element) so each call is a fresh node.
+  const renderFooter = () => (
+    <div
+      className="pdf-avoid-break"
+      style={{
+        marginTop: "auto",
+        paddingTop: "24px",
+        fontSize: "8px",
+        lineHeight: "15px",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <div>Please make all checks payable to AVMRE LLC</div>
+      <div>
+        If you have any questions concerning this invoice, use the following
+        contact information:
+      </div>
+      <div>203-987-7050</div>
+      <div style={{ color: "#0563C1" }}>
+        <a
+          href="mailto:STAFF@AVMRE.COM"
+          style={{ color: "inherit", textDecoration: "none" }}
+        >
+          STAFF@AVMRE.COM
+        </a>
+      </div>
+      <div>THANK YOU FOR YOUR BUSINESS!</div>
+
+      <div style={{ marginTop: "10px" }}>
+        If you prefer to wire transfer the payment please use the following
+        info:
+      </div>
+      <div>Bank: Connecticut Community Bank, N.A.</div>
+      <div>ABA#: 021113251</div>
+      <div>Account#: 1419944</div>
+    </div>
+  );
 
   const handleDownloadPDF = async () => {
     const invoiceNode = invoiceRef.current;
@@ -383,6 +575,17 @@ export default function InvoicePreviewModal({
     // Remove interactive elements
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
     clone.querySelectorAll(".edit-field").forEach((el) => el.remove());
+
+    // Strip the on-screen page-sheet chrome (drop shadow + inter-page gap) so
+    // exported pages stack flush and don't bleed shadows into the raster.
+    // minHeight is cleared too: a sheet that exactly fills a PDF page plus the
+    // forced page-break on the next sheet produced a blank page in between.
+    // With natural height the break lands cleanly on the next page.
+    clone.querySelectorAll<HTMLElement>(".invoice-page").forEach((el) => {
+      el.style.boxShadow = "none";
+      el.style.margin = "0";
+      el.style.minHeight = "0";
+    });
 
     // Make print-only content visible for screen rendering (PDF capture uses screen styles)
     clone.querySelectorAll<HTMLElement>(".print-only").forEach((el) => {
@@ -419,7 +622,11 @@ export default function InvoicePreviewModal({
       // (title + table), the totals block, and the footer to the next page
       // when they'd otherwise be sliced (only if they fit on one page —
       // over-long tables still flow with clean row-level breaks).
-      pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".pdf-avoid-break"] },
+      pagebreak: {
+        mode: ["css", "legacy"],
+        before: [".pdf-page-break-before"],
+        avoid: ["tr", ".pdf-avoid-break"],
+      },
     };
 
     try {
@@ -861,7 +1068,15 @@ export default function InvoicePreviewModal({
     });
   
     clone.querySelectorAll(".no-print").forEach((el) => el.remove());
-  
+
+    // Strip on-screen page-sheet chrome so exported pages stack flush; clear
+    // minHeight so a full-height sheet + forced break doesn't emit a blank page.
+    clone.querySelectorAll<HTMLElement>(".invoice-page").forEach((el) => {
+      el.style.boxShadow = "none";
+      el.style.margin = "0";
+      el.style.minHeight = "0";
+    });
+
     const container = document.createElement("div");
     container.style.width = "816px";
     container.style.background = "white";
@@ -876,6 +1091,7 @@ export default function InvoicePreviewModal({
       jsPDF: { unit: "px", format: [816, 1056] },
       pagebreak: {
         mode: ["css", "legacy"],
+        before: [".pdf-page-break-before"],
         avoid: ["tr", ".pdf-avoid-break"],
       },
     };
@@ -1023,32 +1239,32 @@ export default function InvoicePreviewModal({
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto bg-white flex flex-col items-center p-4">
+          <div className="flex-1 overflow-y-auto bg-gray-200 flex flex-col items-center p-4">
             {/* Layout exploration toggle — lives outside the invoiceRef
                 capture node, so it never appears in the generated PDF. */}
             <button
               type="button"
               onClick={() => setSplitLayout((v) => !v)}
-              className="no-print mb-2 rounded border border-[#013764] px-3 py-1 text-xs font-medium text-[#013764] hover:bg-gray-50"
+              className="no-print mb-2 rounded border border-[#013764] px-3 py-1 text-xs font-medium text-[#013764] hover:bg-gray-50 bg-white"
             >
               {splitLayout
-                ? "Layout: split AVMRE / vendors — click to compare single table"
-                : "Layout: single table — click to compare split"}
+                ? "Layout: collapsed man-hours — click to expand all line items"
+                : "Layout: all line items — click to collapse man-hours"}
             </button>
-            {/* Invoice Container - Letter Size 8.5x11 inches = 816x1056px */}
+            {/* Invoice Container — holds one or more letter-size page sheets
+                (816x1056px). Page 1 = invoice; page 2 = Field Team labor
+                detail. The gray backdrop + per-page shadow make the page
+                splits visible on screen (stripped from the exported PDF). */}
             <div
               ref={invoiceRef}
               style={{
-                width: "816px",
-                minHeight: "1056px",
-                padding: "60px 72px",
-                backgroundColor: "white",
-                fontFamily:
-                  "Inter, -apple-system, Roboto, Helvetica, sans-serif",
-                color: "#002060",
-                boxSizing: "border-box",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
               }}
             >
+              {/* Page 1 */}
+              <div className="invoice-page" style={pageStyle}>
               {/* Header Section: logo (left) / company info (right) */}
               <div
                 style={{
@@ -1209,9 +1425,21 @@ export default function InvoicePreviewModal({
                   </tr>
                 </thead>
                 <tbody>
-                  {group.rows.map(({ item, index }, localIdx) => (
+                  {/* Summary sits first when there are no AVMRE rows above it. */}
+                  {group.laborSummary &&
+                    group.laborSummaryAfterCount === 0 &&
+                    renderManHoursSummaryRow(group.laborSummary, false)}
+                  {group.rows.map(({ item, index }, localIdx) => {
+                    // Visual position accounts for the injected summary row so
+                    // the zebra striping stays alternating across the merge.
+                    const visualIdx =
+                      group.laborSummary &&
+                      localIdx >= group.laborSummaryAfterCount
+                        ? localIdx + 1
+                        : localIdx;
+                    return (
+                    <Fragment key={item.id}>
                     <tr
-                      key={item.id}
                       draggable={false}
                       onDragOver={(e) => handleDragOver(e, index)}
                       onDragLeave={handleDragLeave}
@@ -1221,7 +1449,7 @@ export default function InvoicePreviewModal({
                         backgroundColor:
                           dragOverIndex === index
                             ? "rgba(0, 45, 90, 0.06)"
-                            : localIdx % 2 === 1
+                            : visualIdx % 2 === 1
                               ? "#F5F6F8"
                               : "#FFFFFF",
                         transition: "background-color 0.15s ease",
@@ -1378,7 +1606,7 @@ export default function InvoicePreviewModal({
                             padding: 0,
                             resize: "none",
                             overflow: "hidden",
-                            textAlign: "center",
+                            textAlign: "left",
                           }}
                         />
                         <span
@@ -1389,7 +1617,7 @@ export default function InvoicePreviewModal({
                             color: "#002060",
                             overflowWrap: "anywhere",
                             font: "400 9px/16.5px Arial, sans-serif",
-                            textAlign: "center",
+                            textAlign: "left",
                           }}
                         >
                           {stripLeadingDate(item.description)}
@@ -1420,6 +1648,7 @@ export default function InvoicePreviewModal({
                               textAlign: "center",
                               color: "#002060",
                               font: "400 9px Arial, sans-serif",
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {formatPlainNumber(item.rate)}
@@ -1434,6 +1663,7 @@ export default function InvoicePreviewModal({
                               textAlign: "center",
                               color: "#002060",
                               font: "400 9px Arial, sans-serif",
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {formatPlainNumber(item.qty)}
@@ -1448,6 +1678,7 @@ export default function InvoicePreviewModal({
                               textAlign: "center",
                               color: "#002060",
                               font: "400 9px Arial, sans-serif",
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {formatPlainNumber(item.managerCount)}
@@ -1462,6 +1693,7 @@ export default function InvoicePreviewModal({
                               textAlign: "center",
                               color: "#002060",
                               font: "400 9px Arial, sans-serif",
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {formatPlainNumber(
@@ -1588,7 +1820,15 @@ export default function InvoicePreviewModal({
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    {group.laborSummary &&
+                      localIdx === group.laborSummaryAfterCount - 1 &&
+                      renderManHoursSummaryRow(
+                        group.laborSummary,
+                        group.laborSummaryAfterCount % 2 === 1,
+                      )}
+                    </Fragment>
+                    );
+                  })}
                   <tr>
                     <td
                       colSpan={group.showMeta ? 9 : 5}
@@ -1672,39 +1912,240 @@ export default function InvoicePreviewModal({
                 </div>
               </div>
 
-              {/* Footer */}
-              <div
-                className="pdf-avoid-break"
-                style={{
-                  fontSize: "8px",
-                  lineHeight: "15px",
-                  fontFamily: "Arial, sans-serif",
-                }}
-              >
-                <div>Please make all checks payable to AVMRE LLC</div>
-                <div>
-                  If you have any questions concerning this invoice, use the
-                  following contact information:
-                </div>
-                <div>203-987-7050</div>
-                <div style={{ color: "#0563C1" }}>
-                  <a
-                    href="mailto:STAFF@AVMRE.COM"
-                    style={{ color: "inherit", textDecoration: "none" }}
-                  >
-                    STAFF@AVMRE.COM
-                  </a>
-                </div>
-                <div>THANK YOU FOR YOUR BUSINESS!</div>
-
-                <div style={{ marginTop: "10px" }}>
-                  If you prefer to wire transfer the payment please use the
-                  following info:
-                </div>
-                <div>Bank: Connecticut Community Bank, N.A.</div>
-                <div>ABA#: 021113251</div>
-                <div>Account#: 1419944</div>
+              {/* Payment footer repeats on every page. marginTop:auto sinks it
+                  to the bottom of the sheet in the on-screen preview. */}
+              {renderFooter()}
               </div>
+              {/* end Page 1 sheet */}
+
+              {/* Page 2 — Field Team labor breakdown, its own letter-size sheet.
+                  Itemizes every man-hour the page-1 "Man Hours" line rolls up;
+                  forced onto a fresh page via pdf-page-break-before. The payment
+                  footer trails it as the true bottom of the document. */}
+              {laborSummary && (
+                <div
+                  className="invoice-page pdf-page-break-before"
+                  style={pageStyle}
+                >
+                  <div
+                    style={{
+                      font: "italic 700 11px/16px Arial, sans-serif",
+                      marginBottom: "3px",
+                    }}
+                  >
+                    Field Team — Labor Detail
+                  </div>
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      tableLayout: "fixed",
+                    }}
+                  >
+                    <thead>
+                      <tr>
+                        {headerColumns(true)
+                          .filter(([label]) => label !== "Reference#")
+                          .map(([label, width]) => (
+                            <th
+                              key={label}
+                              style={{
+                                textAlign: "center",
+                                paddingTop: "6px",
+                                paddingBottom: "6px",
+                                paddingLeft: "4px",
+                                paddingRight: "4px",
+                                borderTop: "1px solid #002060",
+                                borderBottom: "3px double #002060",
+                                font: "italic 700 9px/16.5px Arial, sans-serif",
+                                ...(width ? { width, minWidth: width } : {}),
+                              }}
+                            >
+                              {label}
+                            </th>
+                          ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {laborRows.map(({ item }, localIdx) => (
+                        <tr
+                          key={item.id}
+                          style={{
+                            backgroundColor:
+                              localIdx % 2 === 1 ? "#F5F6F8" : "#FFFFFF",
+                          }}
+                        >
+                          <td
+                            style={{
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingLeft: "6px",
+                              verticalAlign: "middle",
+                              color: "#002060",
+                              font: "400 9px/16.5px Arial, sans-serif",
+                              overflowWrap: "anywhere",
+                            }}
+                          >
+                            {item.vendor}
+                          </td>
+                          <td
+                            style={{
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              textAlign: "center",
+                              verticalAlign: "middle",
+                              color: "#002060",
+                              font: "400 9px Arial, sans-serif",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {formatShortDate(item.billDate)}
+                          </td>
+                          <td
+                            style={{
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingLeft: "10px",
+                              paddingRight: "10px",
+                              textAlign: "left",
+                              verticalAlign: "middle",
+                              color: "#002060",
+                              font: "400 9px/16.5px Arial, sans-serif",
+                              overflowWrap: "anywhere",
+                            }}
+                          >
+                            {stripLeadingDate(item.description)}
+                          </td>
+                          <td
+                            style={{
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingRight: "6px",
+                              textAlign: "center",
+                              verticalAlign: "middle",
+                              color: "#002060",
+                              font: "400 9px Arial, sans-serif",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {formatPlainNumber(item.rate)}
+                          </td>
+                          <td
+                            style={{
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingRight: "6px",
+                              textAlign: "center",
+                              verticalAlign: "middle",
+                              color: "#002060",
+                              font: "400 9px Arial, sans-serif",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {formatPlainNumber(item.qty)}
+                          </td>
+                          <td
+                            style={{
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingRight: "6px",
+                              textAlign: "center",
+                              verticalAlign: "middle",
+                              color: "#002060",
+                              font: "400 9px Arial, sans-serif",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {formatPlainNumber(item.managerCount)}
+                          </td>
+                          <td
+                            style={{
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingRight: "6px",
+                              textAlign: "center",
+                              verticalAlign: "middle",
+                              color: "#002060",
+                              font: "400 9px Arial, sans-serif",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {formatPlainNumber(
+                              item.travelChargeCents != null
+                                ? item.travelChargeCents / 100
+                                : undefined,
+                            )}
+                          </td>
+                          <td
+                            style={{
+                              paddingTop: "5px",
+                              paddingBottom: "5px",
+                              paddingRight: "6px",
+                              paddingLeft: "8px",
+                              textAlign: "right",
+                              verticalAlign: "middle",
+                              color: "#002060",
+                              font: "400 9px/16.5px Arial, sans-serif",
+                            }}
+                          >
+                            {formatAmountWithCommas(item.amount)}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td
+                          colSpan={8}
+                          style={{
+                            padding: 0,
+                            height: "4px",
+                            borderTop: "1px solid #002060",
+                            borderBottom: "3px double #002060",
+                          }}
+                        />
+                      </tr>
+                      <tr>
+                        <td
+                          colSpan={4}
+                          style={{
+                            paddingTop: "5px",
+                            paddingLeft: "6px",
+                            color: "#002060",
+                            font: "700 9px/16.5px Arial, sans-serif",
+                          }}
+                        >
+                          Total Man Hours
+                        </td>
+                        <td
+                          style={{
+                            paddingTop: "5px",
+                            paddingRight: "6px",
+                            textAlign: "center",
+                            color: "#002060",
+                            font: "700 9px Arial, sans-serif",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {formatPlainNumber(laborTotalHours)}
+                        </td>
+                        <td colSpan={2} />
+                        <td
+                          style={{
+                            paddingTop: "5px",
+                            paddingRight: "6px",
+                            paddingLeft: "8px",
+                            textAlign: "right",
+                            color: "#002060",
+                            font: "700 9px/16.5px Arial, sans-serif",
+                          }}
+                        >
+                          {formatAmountWithCommas(String(laborTotalAmount))}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  {renderFooter()}
+                </div>
+              )}
             </div>
           </div>
 
