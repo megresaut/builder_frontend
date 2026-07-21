@@ -114,6 +114,7 @@ interface MiscSubmission {
   propertyId: number | null;
   propertyName: string;
   dateOfWork: string;
+  dateOfWorkRaw: string;
   status: string;
   techName: string;
   amount: number;
@@ -530,6 +531,7 @@ const transformAPIMiscSubmission = (apiData: APIMiscSubmissionResponse[]): MiscS
       propertyId: sub.property_id ?? sub.PropertyID ?? null,
       propertyName: sub.property_name || "Unknown Property",
       dateOfWork,
+      dateOfWorkRaw: sub.DateOfWork,
       status: sub.Status || "submitted",
       techName: sub.fto_name || "Unknown Tech", // fto_name is repurposed for tech name
       amount: calculateMiscAmount(sub.MaterialsJSON),
@@ -677,6 +679,14 @@ export default function FieldTeamOrders() {
   const [filterTimesheetStatus, setFilterTimesheetStatus] = usePageState<string[]>("filterTimesheetStatus", ["awaiting-submission", "submitted", "rejected", "approved"]);
   const [filterFtoStatus, setFilterFtoStatus] = usePageState<string[]>("filterFtoStatus", []);
   const [filterPriority, setFilterPriority] = usePageState<string[]>("filterPriority", []);
+  // Misc Expenses filter bar — mirrors the FTO filter bar but scoped to the
+  // fields a misc submission actually has (property, tech, status, date range).
+  const [showMiscFilterBar, setShowMiscFilterBar] = usePageState("showMiscFilterBar", false);
+  const [miscFilterDateFrom, setMiscFilterDateFrom] = usePageState("miscFilterDateFrom", "");
+  const [miscFilterDateTo, setMiscFilterDateTo] = usePageState("miscFilterDateTo", "");
+  const [miscFilterProperty, setMiscFilterProperty] = usePageState<string[]>("miscFilterProperty", []);
+  const [miscFilterTech, setMiscFilterTech] = usePageState<string[]>("miscFilterTech", []);
+  const [miscFilterStatus, setMiscFilterStatus] = usePageState<string[]>("miscFilterStatus", []);
   // Clear persisted modal state when leaving the page so it doesn't reopen when returning (e.g. from Approve FTO).
   // usePageState now keys by selectedTab, so just writing through the existing setter cleans up the right bucket.
   useEffect(() => {
@@ -802,6 +812,11 @@ export default function FieldTeamOrders() {
     filterTimesheetStatus,
     filterFtoStatus,
     filterPriority,
+    miscFilterDateFrom,
+    miscFilterDateTo,
+    miscFilterProperty,
+    miscFilterTech,
+    miscFilterStatus,
   ]);
 
   // Unique values for filter dropdowns (from current orders)
@@ -857,15 +872,47 @@ export default function FieldTeamOrders() {
     return true;
   });
 
+  // Unique property/tech options for the misc filter dropdowns (from misc data).
+  // Property is keyed on propertyId so the filter is stable against name drift;
+  // label uses the human-readable name.
+  const uniqueMiscPropertyOptions = Array.from(
+    miscSubmissions
+      .reduce((acc, s) => {
+        if (s.propertyId != null && !acc.has(s.propertyId)) {
+          acc.set(s.propertyId, s.propertyName || "");
+        }
+        return acc;
+      }, new Map<number, string>())
+      .entries()
+  )
+    .map(([id, name]) => ({ value: String(id), label: name }))
+    .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: "base" }));
+  const uniqueMiscTechMembers = Array.from(
+    new Set(miscSubmissions.map((s) => s.techName).filter(Boolean))
+  ).sort();
+
   const filteredMiscSubmissions = miscSubmissions.filter((sub) => {
     const searchLower = miscSearchValue.toLowerCase();
-    return (
+    const matchesSearch =
+      !searchLower ||
       sub.propertyName.toLowerCase().includes(searchLower) ||
       sub.dateOfWork.toLowerCase().includes(searchLower) ||
       sub.status.toLowerCase().includes(searchLower) ||
       sub.techName.toLowerCase().includes(searchLower) ||
-      sub.description.toLowerCase().includes(searchLower)
-    );
+      sub.description.toLowerCase().includes(searchLower);
+    if (!matchesSearch) return false;
+
+    if (miscFilterDateFrom || miscFilterDateTo) {
+      const subDate = sub.dateOfWorkRaw ? new Date(sub.dateOfWorkRaw) : null;
+      if (!subDate || isNaN(subDate.getTime())) return false;
+      const subDateStr = subDate.toISOString().slice(0, 10);
+      if (miscFilterDateFrom && subDateStr < miscFilterDateFrom) return false;
+      if (miscFilterDateTo && subDateStr > miscFilterDateTo) return false;
+    }
+    if (miscFilterProperty.length > 0 && !miscFilterProperty.includes(String(sub.propertyId))) return false;
+    if (miscFilterTech.length > 0 && !miscFilterTech.includes(sub.techName)) return false;
+    if (miscFilterStatus.length > 0 && !miscFilterStatus.includes(sub.status)) return false;
+    return true;
   });
 
   const { handleSortClick, getSortIndicator, getSortedData } =
@@ -1345,6 +1392,79 @@ export default function FieldTeamOrders() {
             </div>
           )}
 
+          {/* Misc Expenses Filter bar - toggled by Filter button */}
+          {selectedTab === "misc" && showMiscFilterBar && (
+            <div
+              className="flex flex-wrap items-center gap-4 p-4 rounded-lg border border-[#E5E5E5] bg-gray-50/80"
+              style={{ borderColor: "var(--color-border-light)" }}
+            >
+              <span className="text-sm font-medium text-[#303030] shrink-0">
+                Filter by
+              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Date from
+                  </label>
+                  <input
+                    type="date"
+                    value={miscFilterDateFrom}
+                    onChange={(e) => setMiscFilterDateFrom(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Date to
+                  </label>
+                  <input
+                    type="date"
+                    value={miscFilterDateTo}
+                    onChange={(e) => setMiscFilterDateTo(e.target.value)}
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+                <MultiSelectFilter
+                  label="Property"
+                  options={uniqueMiscPropertyOptions}
+                  selected={miscFilterProperty}
+                  onChange={setMiscFilterProperty}
+                />
+                <MultiSelectFilter
+                  label="Tech"
+                  options={uniqueMiscTechMembers.map((name) => ({ value: name, label: name }))}
+                  selected={miscFilterTech}
+                  onChange={setMiscFilterTech}
+                />
+                <MultiSelectFilter
+                  label="Status"
+                  options={[
+                    { value: "awaiting-submission", label: "Awaiting submission" },
+                    { value: "submitted", label: "Submitted" },
+                    { value: "rejected", label: "Rejected" },
+                    { value: "approved", label: "Approved" },
+                  ]}
+                  selected={miscFilterStatus}
+                  onChange={setMiscFilterStatus}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMiscFilterDateFrom("");
+                  setMiscFilterDateTo("");
+                  setMiscFilterProperty([]);
+                  setMiscFilterTech([]);
+                  setMiscFilterStatus([]);
+                  setCurrentPage(1);
+                }}
+                className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+
           {/* FTO Table */}
           {selectedTab === "ftos" && (
             <>
@@ -1554,6 +1674,11 @@ export default function FieldTeamOrders() {
                   showSearchBar={true}
                   searchValue={miscSearchValue}
                   onSearchChange={setMiscSearchValue}
+                  onFilterClick={() => {
+                    setShowPageSizeDropdown(false);
+                    setOpenMenuId(null);
+                    setShowMiscFilterBar(!showMiscFilterBar);
+                  }}
                   renderCell={(sub: MiscSubmission, columnKey) => {
                     if (columnKey === "propertyName") {
                       return (

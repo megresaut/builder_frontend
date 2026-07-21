@@ -1042,6 +1042,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       qty: item.quantity ?? undefined,
       managerCount: item.managerCount ?? undefined,
       travelChargeCents: item.travelChargeCents ?? undefined,
+      sourceType: item.sourceType ?? undefined,
     },
   ];
 
@@ -1913,6 +1914,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         qty: item.quantity ?? undefined,
                         managerCount: item.managerCount ?? undefined,
                         travelChargeCents: item.travelChargeCents ?? undefined,
+                        sourceType: item.sourceType ?? undefined,
                       })),
                       invoiceDate: currentInvoiceMonth,
                       showCommitButton: false,
@@ -1957,6 +1959,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                                 qty: item.quantity ?? undefined,
                                 managerCount: item.managerCount ?? undefined,
                                 travelChargeCents: item.travelChargeCents ?? undefined,
+                                sourceType: item.sourceType ?? undefined,
                               }),
                             ),
                             invoiceDate: currentInvoiceMonth,
@@ -2253,6 +2256,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 qty: item.quantity ?? undefined,
                 managerCount: item.managerCount ?? undefined,
                 travelChargeCents: item.travelChargeCents ?? undefined,
+                sourceType: item.sourceType ?? undefined,
               }))
         }
         showCommitButton={invoicePreviewShowCommitButton}
