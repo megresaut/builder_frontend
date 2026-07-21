@@ -6,7 +6,7 @@
  * §8 (FE-type ⇄ DTO parity table) — the spec is law for this module.
  */
 
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, authFetch } from "@/api/fetchJSON";
 
 /* --------------------------------- enums --------------------------------- */
 
@@ -271,6 +271,9 @@ export interface CreateProjectPayload {
     budget_category_index?: number;
   }[];
   tasks?: { task_id: number; milestone_index?: number }[];
+  // Intake audit trail — set only by the "New Project from Meeting Notes" flow.
+  intake_notes?: string;
+  intake_extraction?: unknown; // the model's raw extraction JSON (IntakeDraft.raw_extraction)
 }
 
 export interface UpdateProjectPayload {
@@ -355,6 +358,130 @@ export async function getProjectSummary(id: number): Promise<ProjectSummary> {
 
 export async function createProject(payload: CreateProjectPayload): Promise<ProjectSummary> {
   return fetchJSON("/projects", { method: "POST", body: JSON.stringify(payload) });
+}
+
+/* ----------------------------- intake pipeline ---------------------------- */
+// "New Project from Meeting Notes": POST notes → model-structured draft. The
+// draft is NOT saved — it feeds the review UI, then createProject persists it.
+
+export interface IntakeScopeItem {
+  name: string;
+  amount_cents: number | null; // null = unpriced
+  hint: string;
+  confidence: number;
+}
+
+export interface IntakeVendor {
+  name: string;
+  trade: string;
+  quote_amount: string; // as mentioned in the notes, "" if none
+  quote_note: string;
+  // enrichment from our records (advisory):
+  known: boolean;
+  vendor_id: number | null;
+  has_coi: boolean;
+  coi_expires_on: string | null; // "YYYY-MM-DD"
+}
+
+export interface IntakeFlag {
+  text: string;
+}
+
+export interface IntakeDraft {
+  title: string;
+  summary: string;
+  start_date: string | null;
+  target_end_date: string | null;
+  scope: IntakeScopeItem[];
+  vendors: IntakeVendor[];
+  flags: IntakeFlag[];
+  raw_extraction: unknown; // pass back as intake_extraction on create (audit)
+}
+
+export async function extractProjectIntake(payload: {
+  property_id: number;
+  notes: string;
+}): Promise<IntakeDraft> {
+  return fetchJSON("/projects/intake/extract", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/* ------------------------------ quotes (Phase 2) -------------------------- */
+
+export type QuoteStatus = "received" | "shortlisted" | "accepted" | "rejected";
+export type QuoteSource = "manual" | "verbal_intake" | "written" | "uploaded";
+export type QuoteVerdict = "fair" | "high" | "low" | "insufficient_data";
+
+export interface QuoteAnalysis {
+  verdict: QuoteVerdict;
+  reasoning: string;
+  suggested_low_cents: number;
+  suggested_high_cents: number;
+  red_flags: string[];
+  confidence: number;
+  comparables_used?: number;
+}
+
+export interface ProjectQuote {
+  id: number;
+  project_id: number;
+  vendor_id: number | null;
+  vendor_name: string;
+  trade: string;
+  scope_description: string;
+  amount_cents: number;
+  status: QuoteStatus;
+  source: QuoteSource;
+  ai_analysis: QuoteAnalysis | null;
+  analyzed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  // Bidding (Part B / B3)
+  budget_item_id: number | null;
+  supersedes_quote_id: number | null;
+}
+
+export interface CreateQuotePayload {
+  vendor_id?: number | null;
+  vendor_name?: string;
+  trade?: string;
+  scope_description?: string;
+  amount_cents: number;
+  source?: QuoteSource;
+  budget_item_id?: number | null;
+  supersedes_quote_id?: number | null; // create as a revision of an earlier quote
+}
+
+export interface UpdateQuotePayload {
+  status?: Exclude<QuoteStatus, "accepted">; // accept goes through acceptQuote
+  vendor_name?: string;
+  trade?: string;
+  scope_description?: string;
+  amount_cents?: number;
+  budget_item_id?: number | null;
+}
+
+export async function listQuotes(projectId: number): Promise<ProjectQuote[]> {
+  const data = await fetchJSON(`/projects/${projectId}/quotes`);
+  return data ?? [];
+}
+
+export async function createQuote(projectId: number, payload: CreateQuotePayload): Promise<ProjectQuote> {
+  return fetchJSON(`/projects/${projectId}/quotes`, { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function updateQuote(projectId: number, quoteId: number, payload: UpdateQuotePayload): Promise<ProjectQuote> {
+  return fetchJSON(`/projects/${projectId}/quotes/${quoteId}`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+export async function deleteQuote(projectId: number, quoteId: number): Promise<void> {
+  return fetchJSON(`/projects/${projectId}/quotes/${quoteId}`, { method: "DELETE" });
+}
+
+export async function analyzeQuote(projectId: number, quoteId: number): Promise<ProjectQuote> {
+  return fetchJSON(`/projects/${projectId}/quotes/${quoteId}/analyze`, { method: "POST" });
 }
 
 export async function updateProject(id: number, payload: UpdateProjectPayload): Promise<Project> {
@@ -532,6 +659,196 @@ export async function getCashFlow(projectId: number): Promise<CashFlowEntry[]> {
   return data ?? [];
 }
 
+/* -------------------- siloed project invoicing (Part A / P0) --------------- */
+// The client-billing lane: payment schedule → project invoice → client payment.
+// FULLY separate from the monthly per-property invoicing (invoices/
+// invoice_line_items) — different endpoints, different tables. Types mirror the
+// Go DTOs in modules/projects/http/invoicing.go exactly (snake_case, cents).
+
+export type ProjectInvoiceStatus = "draft" | "sent" | "partially_paid" | "paid" | "void";
+export type ProjectInvoiceLineSource =
+  | "manual"
+  | "budget_category"
+  | "change_order"
+  | "installment"
+  | "cost_reimbursement";
+export type InstallmentBasis = "percent" | "fixed";
+export type InstallmentStatus = "upcoming" | "due" | "invoiced" | "paid";
+
+export interface ProjectInvoiceLine {
+  id: number;
+  description: string;
+  amount_cents: number; // negative allowed = credit
+  sort_order: number;
+  source_type: ProjectInvoiceLineSource;
+  source_id: number | null;
+}
+
+export interface ProjectInvoicePayment {
+  id: number;
+  kind: string; // 'deposit' | 'progress_payment'
+  amount_cents: number;
+  received_on: string; // "YYYY-MM-DD"
+  reference: string;
+  via_qbo: boolean;
+}
+
+export interface ProjectInvoice {
+  id: number;
+  project_id: number;
+  seq: number;
+  invoice_number: string; // 'PI-{project_id}-{seq:03d}'
+  status: ProjectInvoiceStatus;
+  title: string;
+  notes: string;
+  issue_date: string | null;
+  due_date: string | null;
+  total_amount_cents: number; // derived from lines
+  paid_cents: number; // Σ linked payments
+  sent_at: string | null;
+  client_email: string | null;
+  created_by_user_id: number | null;
+  created_at: string;
+  updated_at: string;
+  lines: ProjectInvoiceLine[]; // [] on the list endpoint, populated on detail
+  payments: ProjectInvoicePayment[]; // [] on the list endpoint, populated on detail
+}
+
+export interface PaymentInstallment {
+  id: number;
+  project_id: number;
+  label: string;
+  basis: InstallmentBasis;
+  percent_bps: number | null; // percent basis; basis points (10000 = 100%)
+  amount_cents: number | null; // fixed basis (stored)
+  resolved_amount_cents: number; // fixed amount, or percent × current budget
+  due_date: string | null;
+  milestone_id: number | null;
+  milestone_name: string | null;
+  milestone_complete: boolean;
+  sort_order: number;
+  project_invoice_id: number | null;
+  invoice_number: string | null;
+  status: InstallmentStatus; // derived server-side
+}
+
+export interface BillableInstallment {
+  id: number;
+  label: string;
+  basis: InstallmentBasis;
+  resolved_amount_cents: number;
+  due_date: string | null;
+  milestone_name: string | null;
+}
+export interface BillableChangeOrder {
+  id: number;
+  co_number: string;
+  description: string;
+  amount_cents: number;
+}
+export interface Billables {
+  installments_due: BillableInstallment[];
+  change_orders_unbilled: BillableChangeOrder[];
+  unreimbursed_spend_cents: number;
+}
+
+export interface CreateInvoiceLineInput {
+  description: string;
+  amount_cents: number;
+  source_type: ProjectInvoiceLineSource;
+  source_id?: number | null;
+}
+export interface CreateInvoicePayload {
+  title: string;
+  notes?: string;
+  issue_date?: string;
+  due_date?: string;
+  client_email?: string;
+  lines: CreateInvoiceLineInput[];
+}
+export interface UpdateInvoicePayload {
+  title?: string;
+  notes?: string;
+  issue_date?: string;
+  due_date?: string;
+  client_email?: string;
+  lines?: CreateInvoiceLineInput[]; // full-replace (draft only)
+}
+export interface RecordInvoicePaymentPayload {
+  amount_cents: number;
+  received_on: string;
+  reference?: string;
+}
+export interface InstallmentInput {
+  id?: number;
+  label: string;
+  basis: InstallmentBasis;
+  percent_bps?: number | null;
+  amount_cents?: number | null;
+  due_date?: string | null;
+  milestone_id?: number | null;
+}
+
+export async function listProjectInvoices(projectId: number): Promise<ProjectInvoice[]> {
+  const data = await fetchJSON(`/projects/${projectId}/invoices`);
+  return data ?? [];
+}
+
+export async function getProjectInvoice(projectId: number, invoiceId: number): Promise<ProjectInvoice> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}`);
+}
+
+export async function createProjectInvoice(projectId: number, payload: CreateInvoicePayload): Promise<ProjectInvoice> {
+  return fetchJSON(`/projects/${projectId}/invoices`, { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function updateProjectInvoice(
+  projectId: number,
+  invoiceId: number,
+  payload: UpdateInvoicePayload,
+): Promise<ProjectInvoice> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+export async function sendProjectInvoice(projectId: number, invoiceId: number): Promise<ProjectInvoice> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/send`, { method: "POST" });
+}
+
+export async function recordInvoicePayment(
+  projectId: number,
+  invoiceId: number,
+  payload: RecordInvoicePaymentPayload,
+): Promise<ProjectInvoice> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/payments`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function voidProjectInvoice(projectId: number, invoiceId: number): Promise<ProjectInvoice> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/void`, { method: "POST" });
+}
+
+export async function getBillables(projectId: number): Promise<Billables> {
+  return fetchJSON(`/projects/${projectId}/billables`);
+}
+
+export async function getPaymentSchedule(projectId: number): Promise<PaymentInstallment[]> {
+  const data = await fetchJSON(`/projects/${projectId}/payment-schedule`);
+  return data ?? [];
+}
+
+export async function putPaymentSchedule(
+  projectId: number,
+  installments: InstallmentInput[],
+): Promise<PaymentInstallment[]> {
+  const data = await fetchJSON(`/projects/${projectId}/payment-schedule`, {
+    method: "PUT",
+    body: JSON.stringify({ installments }),
+  });
+  return data ?? [];
+}
+
 /* ------------------------------ display helpers ----------------------------- */
 // Ported unchanged from mockProjects.ts (§7), plus a `cancelled` entry in
 // PROJECT_STATUS_META (§8 divergence: plan adds `cancelled`, mock lacked it).
@@ -619,3 +936,149 @@ export const FTO_STATUS_META: Record<FTOStatus, { label: string; dot: string }> 
   completed: { label: "Completed", dot: "#16A34A" },
   cancelled: { label: "Cancelled", dot: "#EF4444" },
 };
+
+/* --------------------- quotes bidding (Part B / B3) ----------------------- */
+
+export interface AcceptQuotePayload {
+  copy_to_budget?: boolean; // also copy the accepted amount into the budget category
+}
+
+export async function acceptQuote(
+  projectId: number,
+  quoteId: number,
+  payload: AcceptQuotePayload = {},
+): Promise<ProjectQuote> {
+  return fetchJSON(`/projects/${projectId}/quotes/${quoteId}/accept`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/* ------------------ vendor payment schedules (Part B / B1) ---------------- */
+
+export type VendorPaymentStatus = "scheduled" | "paid";
+
+export interface VendorPayment {
+  id: number;
+  project_id: number;
+  budget_item_id: number | null;
+  vendor_id: number | null;
+  vendor_name: string;
+  label: string;
+  amount_cents: number;
+  due_date: string | null;
+  status: VendorPaymentStatus;
+  paid_on: string | null;
+  bill_id: number | null;
+  notes: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateVendorPaymentPayload {
+  budget_item_id?: number | null;
+  vendor_id?: number | null;
+  vendor_name?: string;
+  label?: string;
+  amount_cents: number;
+  due_date?: string | null;
+  notes?: string;
+  sort_order?: number;
+}
+
+export interface UpdateVendorPaymentPayload {
+  budget_item_id?: number | null;
+  vendor_id?: number | null;
+  vendor_name?: string;
+  label?: string;
+  amount_cents?: number;
+  due_date?: string | null;
+  status?: VendorPaymentStatus;
+  paid_on?: string | null;
+  bill_id?: number | null;
+  notes?: string;
+  sort_order?: number;
+}
+
+export async function listVendorPayments(projectId: number): Promise<VendorPayment[]> {
+  const data = await fetchJSON(`/projects/${projectId}/vendor-payments`);
+  return data ?? [];
+}
+
+export async function createVendorPayment(projectId: number, payload: CreateVendorPaymentPayload): Promise<VendorPayment> {
+  return fetchJSON(`/projects/${projectId}/vendor-payments`, { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function updateVendorPayment(
+  projectId: number,
+  vpId: number,
+  payload: UpdateVendorPaymentPayload,
+): Promise<VendorPayment> {
+  return fetchJSON(`/projects/${projectId}/vendor-payments/${vpId}`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+export async function deleteVendorPayment(projectId: number, vpId: number): Promise<void> {
+  await fetchJSON(`/projects/${projectId}/vendor-payments/${vpId}`, { method: "DELETE" });
+}
+
+/* ------------------------------ files (Part B / B2) ----------------------- */
+
+export type ProjectFileSource = "project" | "task" | "work_order" | "field_team" | "invoice";
+
+export interface ProjectFileRow {
+  id: number;
+  source: ProjectFileSource;
+  name: string;
+  parent: string;
+  object_key: string;
+  mime: string;
+  size_bytes: number;
+  download: string; // "/files/<object_key>"
+  created_at: string;
+  deletable: boolean;
+}
+
+export async function listProjectFiles(projectId: number): Promise<ProjectFileRow[]> {
+  const data = await fetchJSON(`/projects/${projectId}/files`);
+  return data ?? [];
+}
+
+export async function uploadProjectFile(projectId: number, file: File): Promise<ProjectFileRow> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await authFetch(`/projects/${projectId}/files`, { method: "POST", body: form });
+  if (!res.ok) {
+    let msg = "Failed to upload file";
+    try {
+      const b = await res.json();
+      if (b?.error) msg = b.error;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+export async function deleteProjectFile(projectId: number, fileId: number): Promise<void> {
+  await fetchJSON(`/projects/${projectId}/files/${fileId}`, { method: "DELETE" });
+}
+
+/* ------------------------------ vendor lookup ----------------------------- */
+// Lightweight vendor typeahead source for pickers (vendor payment stages, etc.).
+// Backed by GET /vendors?search=&limit= (name ILIKE, active only, ORDER BY name).
+
+export interface VendorLite {
+  id: number;
+  name: string;
+  category?: string;
+}
+
+export async function searchVendors(query: string, limit = 10): Promise<VendorLite[]> {
+  const q = new URLSearchParams();
+  if (query.trim()) q.set("search", query.trim());
+  q.set("limit", String(limit));
+  const data = await fetchJSON(`/vendors?${q.toString()}`);
+  return (data ?? []).map((v: any) => ({ id: v.id, name: v.name, category: v.category }));
+}

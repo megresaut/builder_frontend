@@ -12,6 +12,10 @@ interface PageHeaderProps {
     label: string;
     onClick: () => void;
     icon?: React.ReactNode;
+    // "danger" (default) keeps the maroon outline used for destructive actions
+    // like Deactivate; "neutral" is a clean grey outline for non-destructive
+    // secondary actions that should sit quietly beside the primary button.
+    variant?: "danger" | "neutral";
   };
 }
 
@@ -79,10 +83,20 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           {secondaryAction && (
             <button
               onClick={secondaryAction.onClick}
-              className="flex h-9 items-center gap-2 px-3 rounded-lg border border-[#982740] bg-white text-[#982740] hover:bg-[#fef2f5] transition-colors"
+              className={
+                secondaryAction.variant === "neutral"
+                  ? "flex h-9 items-center gap-2 px-3 rounded-lg border border-[#DADADA] bg-white text-[#303030] hover:bg-[#F7F7F8] transition-colors"
+                  : "flex h-9 items-center gap-2 px-3 rounded-lg border border-[#982740] bg-white text-[#982740] hover:bg-[#fef2f5] transition-colors"
+              }
             >
               {secondaryAction.icon && (
-                <div className="text-[#982740]">{secondaryAction.icon}</div>
+                <div
+                  className={
+                    secondaryAction.variant === "neutral" ? "text-[#013764]" : "text-[#982740]"
+                  }
+                >
+                  {secondaryAction.icon}
+                </div>
               )}
               <span className="font-medium text-base leading-normal">
                 {secondaryAction.label}

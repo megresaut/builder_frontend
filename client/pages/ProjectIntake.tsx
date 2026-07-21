@@ -1,42 +1,57 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import PageTemplate from "@/layout/PageTemplate";
+import { SparkleIcon } from "@/components/icons";
+import { fetchJSON } from "@/api/fetchJSON";
+import {
+  extractProjectIntake,
+  createProject,
+  type IntakeDraft,
+  type CreateProjectPayload,
+} from "@/data/projects";
 
 /**
- * Project Intake — frontend-only DEMO of the preplanning → auto-create pipeline
- * (see PREPLANNING outline). Flow: freeform meeting notes → simulated model
- * extraction → human review with provenance markers + flags → create.
- * No API calls; everything is local sample state and resets on reload.
+ * Project Intake — "New Project from Meeting Notes".
+ * Flow: freeform notes → model extraction (POST /projects/intake/extract) →
+ * human review of a single calm AI draft → create (POST /projects). The raw
+ * notes and the model's extraction are stored with the created project for
+ * auditing. Nothing is persisted until the reviewer hits Create.
  */
 
 type Step = "notes" | "extracting" | "review" | "created";
 
+interface SimpleProperty {
+  id: number;
+  name: string;
+  address_line1: string | null;
+  city: string | null;
+  state: string | null;
+}
+function propertyLabel(p: SimpleProperty) {
+  const address = [p.address_line1, p.city, p.state].filter(Boolean).join(", ");
+  return address ? `${p.name} — ${address}` : p.name;
+}
+
+const EXTRACTION_STEPS = [
+  "Reading meeting notes…",
+  "Structuring scope & budget…",
+  "Matching vendors & checking insurance…",
+  "Assembling the draft…",
+];
+
 /* ------------------------------- primitives ------------------------------- */
 
-function Pill({ label, text, bg }: { label: string; text: string; bg: string }) {
-  return (
-    <span className="inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium" style={{ color: text, backgroundColor: bg }}>
-      {label}
-    </span>
-  );
-}
-
-function SampleBanner({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
-      <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold uppercase tracking-wider">Demo</span>
-      <span>{children}</span>
-    </div>
-  );
-}
+const field =
+  "w-full rounded-md border border-[#D7DCE3] bg-white px-3 py-2.5 text-sm text-[#17202B] focus:border-[#013764] focus:outline-none focus:ring-2 focus:ring-[#EAF0F6]";
+const labelCls = "block text-[11px] font-semibold uppercase tracking-[0.06em] text-[#8A93A0] mb-1.5";
 
 function Card({ title, action, children }: { title?: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]">
+    <div className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
       {title && (
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-[15px]">
+          <h3 className="text-[13.5px] font-semibold text-[#17202B]">{title}</h3>
           {action}
         </div>
       )}
@@ -45,265 +60,243 @@ function Card({ title, action, children }: { title?: string; action?: React.Reac
   );
 }
 
-/** Provenance chip: AI-extracted until the field is touched, then "edited". */
-function Prov({ edited }: { edited: boolean }) {
-  return edited ? (
-    <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-500">edited</span>
-  ) : (
-    <span className="rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-violet-700">✨ AI</span>
+type ChipTone = "ai" | "good" | "warn" | "bad" | "muted";
+const chipTones: Record<ChipTone, string> = {
+  ai: "bg-[#E9F0F7] text-[#2F5578]",
+  good: "bg-[#E7F6EC] text-[#15803D]",
+  warn: "bg-[#F8EEDD] text-[#B45309]",
+  bad: "bg-[#FBEBEC] text-[#B4232B]",
+  muted: "bg-[#EAF0F6] text-[#5C6672]",
+};
+function Chip({ tone, children }: { tone: ChipTone; children: React.ReactNode }) {
+  return (
+    <span className={`inline-flex h-[22px] items-center gap-1 rounded-full px-2.5 text-[11.5px] font-semibold ${chipTones[tone]}`}>
+      {children}
+    </span>
   );
 }
 
-const fieldCls =
-  "w-full rounded-md border border-[#DADADA] px-3 py-2 text-sm focus:border-[#013764] focus:outline-none";
+const btnPrimary =
+  "inline-flex h-10 items-center gap-2 rounded-lg bg-[#013764] px-[18px] text-sm font-medium text-white transition-colors hover:bg-[#024a86] disabled:opacity-60";
+const btnGhost =
+  "inline-flex h-10 items-center gap-2 rounded-lg border border-[#D7DCE3] bg-white px-4 text-sm font-medium text-[#17202B] transition-colors hover:bg-gray-50";
+const btnGhostSm =
+  "inline-flex h-[30px] items-center gap-1.5 rounded-lg border border-[#D7DCE3] bg-white px-2.5 text-xs font-medium text-[#17202B] hover:bg-gray-50";
 
-/* -------------------------------- sample data ------------------------------ */
+/* --------------------------------- types ---------------------------------- */
 
-const SAMPLE_NOTES = `Meeting w/ the Hendersons @ 78 Round Hill Rd — Sat Jul 12
-On call: me (Carter), Mrs. Henderson, Tony from Aqua Pools (phone, last 20 min)
-
-They want to redo the whole backyard for next summer. Main pieces: gunite pool (~18x36), pool house w/ half bath + outdoor shower, new bluestone patio connecting to the existing deck, landscaping/privacy plantings along the north fence, electrical + gas runs for the pool heater and the pool house.
-
-Tony quoted 145k verbal for the pool itself — includes excavation, gunite, plaster, coping, standard equipment package. Heater is separate depending on the gas run. No timeline given, says "get on the list now".
-
-Pool house — they liked the 14x20 design from the Hekma project. Bring Teixera in for masonry/foundation again, maybe DiSanto for framing. No numbers yet.
-
-Frank Clark can do the electrical — ballpark 30-35k for panel upgrade + runs to pool equipment + pool house subpanel. He wasn't on the call, number came from his text to me Friday.
-
-Patio — Mrs. H wants the same cedar lake stone as Husted Lane. Teixera again probably. Rough guess 60-70k?
-
-Budget talk: they're comfortable "all-in around 400, maybe 450 if the pool house is right". Want to start after Labor Day, pool usable by Memorial Day '27.
-
-TODO: get Tony's quote in writing, COI for Aqua Pools (new vendor for us), ask DiSanto for a framing quote, check gas line capacity w/ Guasco's.`;
-
-interface ScopeItem {
+interface ScopeRow {
   key: number;
   name: string;
-  amount: string; // dollars, editable text
+  amount: string; // dollars text, "" = unpriced
   hint?: string;
 }
-
-const EXTRACTED_TITLE = "78 Round Hill Rd — Pool & Pool House";
-const EXTRACTED_SUMMARY =
-  "Full backyard renovation: gunite pool (~18x36), 14x20 pool house with half bath and outdoor shower, bluestone patio, privacy landscaping, and supporting electrical + gas infrastructure. Construction targeted from Sep 2026; pool usable by Memorial Day 2027.";
-const EXTRACTED_SCOPE: ScopeItem[] = [
-  { key: 1, name: "Pool installation", amount: "145000", hint: "From Aqua Pools verbal quote" },
-  { key: 2, name: "Pool house construction", amount: "", hint: "No numbers yet — Teixera / DiSanto" },
-  { key: 3, name: "Patio & masonry", amount: "65000", hint: "PM rough guess 60–70k, midpoint" },
-  { key: 4, name: "Electrical", amount: "32500", hint: "Frank Clark ballpark 30–35k, midpoint" },
-  { key: 5, name: "Landscaping & plantings", amount: "", hint: "North fence privacy — unpriced" },
-  { key: 6, name: "Gas run / pool heater", amount: "", hint: "Depends on Guasco's capacity check" },
-];
-const EXTRACTED_START = "2026-09-08";
-const EXTRACTED_END = "2027-05-31";
-const EXTRACTED_BUDGET_NOTES =
-  "Client comfortable at $400k all-in, up to $450k if the pool house is right. Verbal/ballpark quotes cover ~$242k; pool house, landscaping, and gas run are unpriced.";
-
-interface ExtractedVendor {
-  name: string;
-  trade: string;
-  onCall: boolean;
-  known: boolean; // matched against the vendor list
-  coi: boolean; // insurance on file (vendor-compliance)
-  quote?: { amount: string; scope: string; analysis: "needs_review" | "missing_info" | "looks_complete"; analysisNote: string };
-}
-
-const EXTRACTED_VENDORS: ExtractedVendor[] = [
-  {
-    name: "Aqua Pools (Tony)",
-    trade: "Pool contractor",
-    onCall: true,
-    known: false,
-    coi: false,
-    quote: {
-      amount: "$145,000",
-      scope: "Excavation, gunite, plaster, coping, standard equipment package. Heater excluded.",
-      analysis: "needs_review",
-      analysisNote: "Verbal only, no timeline, heater excluded — get it in writing.",
-    },
-  },
-  {
-    name: "Frank Clark",
-    trade: "Electrical",
-    onCall: false,
-    known: true,
-    coi: true,
-    quote: {
-      amount: "$30,000–35,000",
-      scope: "Panel upgrade, runs to pool equipment, pool house subpanel.",
-      analysis: "missing_info",
-      analysisNote: "Text-message ballpark, no itemization — recorded midpoint $32,500.",
-    },
-  },
-  { name: "Teixera Construction", trade: "Masonry / foundation", onCall: false, known: true, coi: true },
-  { name: "DiSanto Builders", trade: "Framing", onCall: false, known: true, coi: false },
-];
-
-const QUOTE_ANALYSIS_META = {
-  looks_complete: { label: "Looks complete", text: "#15803D", bg: "#E7F6EC" },
-  missing_info: { label: "Missing info", text: "#B45309", bg: "#FCF2E1" },
-  needs_review: { label: "Needs review", text: "#B91C1C", bg: "#FCEAEA" },
-};
-
-interface Flag {
+interface FlagRow {
   id: number;
   text: string;
   resolved: boolean;
 }
-
-const EXTRACTED_FLAGS: Flag[] = [
-  { id: 1, text: "Aqua Pools is not in the vendor system — request COI before contracting.", resolved: false },
-  { id: 2, text: "Pool quote is verbal — get it in writing (a written quote will supersede it as a revision).", resolved: false },
-  { id: 3, text: "Frank Clark's number is a text-message ballpark ($30–35k) — midpoint $32,500 recorded.", resolved: false },
-  { id: 4, text: "Patio figure is the PM's rough guess, not a vendor quote.", resolved: false },
-  { id: 5, text: "Timeline inferred from “after Labor Day” / “Memorial Day '27” — confirm dates with client.", resolved: false },
-  { id: 6, text: "Gas line capacity check with Guasco's needed before the heater decision.", resolved: false },
-];
-
-const EXTRACTION_STEPS = [
-  "Reading meeting notes…",
-  "Identifying scope items…",
-  "Matching vendors against the vendor list…",
-  "Checking insurance (COI) on file…",
-  "Analyzing quotes for completeness…",
-  "Assembling project draft…",
-];
 
 /* --------------------------------- page ----------------------------------- */
 
 export default function ProjectIntake() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("notes");
-  const [notes, setNotes] = useState(SAMPLE_NOTES);
-  const [property, setProperty] = useState("(C) 78 Round Hill Rd — Greenwich, CT");
+
+  const [properties, setProperties] = useState<SimpleProperty[]>([]);
+  const [propertyId, setPropertyId] = useState<number | "">("");
+  const [loadingProps, setLoadingProps] = useState(true);
+
+  const [notes, setNotes] = useState("");
   const [extractIdx, setExtractIdx] = useState(0);
 
-  // review state
-  const [title, setTitle] = useState(EXTRACTED_TITLE);
-  const [summary, setSummary] = useState(EXTRACTED_SUMMARY);
-  const [scope, setScope] = useState<ScopeItem[]>(EXTRACTED_SCOPE);
-  const [startDate, setStartDate] = useState(EXTRACTED_START);
-  const [endDate, setEndDate] = useState(EXTRACTED_END);
-  const [budgetNotes, setBudgetNotes] = useState(EXTRACTED_BUDGET_NOTES);
-  const [flags, setFlags] = useState<Flag[]>(EXTRACTED_FLAGS);
-  const [edited, setEdited] = useState<Set<string>>(new Set());
-  const scopeSeq = useRef(100);
+  // review state — populated from the extracted draft
+  const [draft, setDraft] = useState<IntakeDraft | null>(null);
+  const [title, setTitle] = useState("");
+  const [summary, setSummary] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [scope, setScope] = useState<ScopeRow[]>([]);
+  const [flags, setFlags] = useState<FlagRow[]>([]);
+  const scopeSeq = useRef(1000);
 
-  const mark = (field: string) => setEdited((s) => (s.has(field) ? s : new Set(s).add(field)));
+  const [creating, setCreating] = useState(false);
+  const [created, setCreated] = useState<{ id: number; name: string } | null>(null);
 
-  // Simulated extraction: cycle through step messages, then land on review.
+  // load real properties for the selector
+  useEffect(() => {
+    let alive = true;
+    fetchJSON("/properties")
+      .then((rows: SimpleProperty[]) => {
+        if (alive) setProperties(rows ?? []);
+      })
+      .catch(() => {
+        if (alive) toast.error("Couldn't load properties");
+      })
+      .finally(() => {
+        if (alive) setLoadingProps(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // cycle the loading labels while extraction is in flight (cosmetic)
   useEffect(() => {
     if (step !== "extracting") return;
     setExtractIdx(0);
-    const iv = setInterval(() => setExtractIdx((i) => Math.min(i + 1, EXTRACTION_STEPS.length - 1)), 450);
-    const done = setTimeout(() => setStep("review"), 450 * EXTRACTION_STEPS.length + 300);
-    return () => {
-      clearInterval(iv);
-      clearTimeout(done);
-    };
+    const iv = setInterval(() => setExtractIdx((i) => Math.min(i + 1, EXTRACTION_STEPS.length - 1)), 900);
+    return () => clearInterval(iv);
   }, [step]);
 
-  const scopeTotal = scope.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+  const scopeTotal = scope.reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
   const openFlags = flags.filter((f) => !f.resolved).length;
+  const stepIdx = { notes: 0, extracting: 1, review: 2, created: 3 }[step];
+
+  async function runExtract() {
+    if (propertyId === "") {
+      toast.error("Pick a property first");
+      return;
+    }
+    if (!notes.trim()) {
+      toast.error("Add some notes first");
+      return;
+    }
+    setStep("extracting");
+    try {
+      const d = await extractProjectIntake({ property_id: Number(propertyId), notes: notes.trim() });
+      setDraft(d);
+      setTitle(d.title ?? "");
+      setSummary(d.summary ?? "");
+      setStartDate(d.start_date ?? "");
+      setEndDate(d.target_end_date ?? "");
+      setScope(
+        (d.scope ?? []).map((s, i) => ({
+          key: i,
+          name: s.name,
+          amount: s.amount_cents == null ? "" : String(s.amount_cents / 100),
+          hint: s.hint,
+        })),
+      );
+      setFlags((d.flags ?? []).map((f, i) => ({ id: i, text: f.text, resolved: false })));
+      setStep("review");
+    } catch (e: any) {
+      toast.error(e?.message || "Extraction failed");
+      setStep("notes");
+    }
+  }
+
+  async function runCreate() {
+    if (propertyId === "") return;
+    setCreating(true);
+    try {
+      const payload: CreateProjectPayload = {
+        name: title.trim() || "Untitled project",
+        property_id: Number(propertyId),
+        status: "planning",
+        description: summary.trim(),
+        start_date: startDate || undefined,
+        target_end_date: endDate || undefined,
+        budget: scope
+          .filter((s) => s.name.trim())
+          .map((s) => {
+            const n = Number(s.amount);
+            return {
+              name: s.name.trim(),
+              amount_cents: s.amount.trim() === "" || !Number.isFinite(n) ? 0 : Math.round(n * 100),
+            };
+          }),
+        intake_notes: notes.trim(),
+        intake_extraction: draft?.raw_extraction,
+      };
+      const res = await createProject(payload);
+      setCreated({ id: res.project.id, name: res.project.name });
+      setStep("created");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to create project");
+    } finally {
+      setCreating(false);
+    }
+  }
 
   return (
     <PageTemplate>
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <div>
-          <button onClick={() => navigate("/projects")} className="text-sm text-gray-500 hover:text-gray-700">
-            ← Projects
-          </button>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold text-[#303030]">New Project from Meeting Notes</h1>
-            <Pill label="Intake" text="#7C3AED" bg="#F1EBFD" />
-          </div>
-          <p className="mt-1 text-sm text-gray-500">
-            Capture the messy first conversation, let the model structure it, review, and create the project — nothing goes
-            live without your sign-off.
-          </p>
-        </div>
+      <div className="mx-auto max-w-[940px] pb-20">
+        {/* header */}
+        <button onClick={() => navigate("/projects")} className="mb-6 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+          Projects
+        </button>
+        <h1 className="text-[24px] font-semibold leading-[1.15] tracking-[-0.01em] text-[#17202B]">New project from meeting notes</h1>
+        <p className="mt-1.5 max-w-[62ch] text-[#5C6672]">
+          Capture the messy first conversation, let the model structure it into a draft, then review and create — nothing is
+          saved until you sign off.
+        </p>
 
-        <SampleBanner>
-          Frontend-only preview for the preplanning pipeline. The notes are pre-loaded with a realistic sample and the
-          "extraction" is simulated — no model call, nothing saved.
-        </SampleBanner>
-
-        {/* step indicator */}
-        <div className="flex items-center gap-2 text-xs font-medium">
-          {(["Notes", "Extract", "Review", "Create"] as const).map((label, i) => {
-            const stepIdx = { notes: 0, extracting: 1, review: 2, created: 3 }[step];
+        {/* stepper */}
+        <nav className="my-7 flex items-center" aria-label="Progress">
+          {(["Notes", "Extract", "Review", "Create"] as const).map((lbl, i) => {
             const active = i === stepIdx;
             const done = i < stepIdx;
             return (
-              <div key={label} className="flex items-center gap-2">
-                {i > 0 && <span className="h-px w-8 bg-gray-300" />}
-                <span
-                  className={`flex h-6 items-center gap-1.5 rounded-full px-2.5 ${
-                    active ? "bg-[#013764] text-white" : done ? "bg-[#E7F6EC] text-green-700" : "bg-gray-100 text-gray-400"
-                  }`}
-                >
-                  {done ? "✓" : i + 1} {label}
-                </span>
-              </div>
+              <Fragment key={lbl}>
+                {i > 0 && <span className="mx-3 h-px min-w-[20px] flex-1 bg-gray-300" />}
+                <div className={`flex items-center gap-2 text-[13px] font-medium ${active ? "text-[#17202B]" : done ? "text-[#5C6672]" : "text-[#8A93A0]"}`}>
+                  <span
+                    className={`flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full border-[1.5px] text-[12px] font-semibold ${
+                      active
+                        ? "border-[#013764] bg-[#013764] text-white"
+                        : done
+                          ? "border-transparent bg-[#EAF0F6] text-[#013764]"
+                          : "border-[#D7DCE3] bg-white text-[#8A93A0]"
+                    }`}
+                  >
+                    {done ? "✓" : i + 1}
+                  </span>
+                  {lbl}
+                </div>
+              </Fragment>
             );
           })}
-        </div>
+        </nav>
 
         {/* ------------------------------ step: notes ------------------------------ */}
         {step === "notes" && (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-[18px]">
             <Card title="Property">
-              <select value={property} onChange={(e) => setProperty(e.target.value)} className={fieldCls} aria-label="Property">
-                <option>(C) 78 Round Hill Rd — Greenwich, CT</option>
-                <option>(C) 45 Husted Lane — Greenwich, CT</option>
-                <option>(C) 3 Hekma Rd — Greenwich, CT</option>
+              <label className={labelCls} htmlFor="pi-prop">Property</label>
+              <select
+                id="pi-prop"
+                value={propertyId}
+                onChange={(e) => setPropertyId(e.target.value === "" ? "" : Number(e.target.value))}
+                className={field}
+                disabled={loadingProps && properties.length === 0}
+              >
+                <option value="">{loadingProps && properties.length === 0 ? "Loading properties…" : "Select a property…"}</option>
+                {properties.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {propertyLabel(p)}
+                  </option>
+                ))}
               </select>
             </Card>
 
-            <Card
-              title="Meeting Notes"
-              action={
-                <button onClick={() => setNotes("")} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-                  Clear
-                </button>
-              }
-            >
+            <Card title="Meeting notes" action={<button onClick={() => setNotes("")} className={btnGhostSm}>Clear</button>}>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                rows={16}
-                placeholder={"Dump everything from the meeting — scope as discussed, vendors mentioned, verbal quotes, budget talk, timeline…\nThe model structures it in the next step; you review before anything is created."}
-                className={`${fieldCls} font-mono text-[13px] leading-relaxed`}
+                spellCheck={false}
+                placeholder={"Dump everything — scope, vendors, verbal quotes, budget talk, timeline…"}
+                className={`${field} min-h-[340px] resize-y font-mono text-[13px] leading-relaxed`}
               />
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium uppercase tracking-wide text-gray-400">Attachments</span>
-                {["pool-house-sketch.pdf", "hekma-poolhouse-photos.zip"].map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => toast.info("Attachment preview isn't wired in this demo")}
-                    className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                  >
-                    📎 {f}
-                  </button>
-                ))}
-                <button onClick={() => toast.info("Upload isn't wired in this demo")} className="rounded-full border border-dashed border-gray-300 px-2.5 py-1 text-xs text-gray-400 hover:text-gray-600">
-                  + Attach
-                </button>
-              </div>
+              <p className="mt-3 text-[12.5px] text-[#8A93A0]">
+                The model structures it in the next step; you review before anything is created.
+              </p>
             </Card>
 
             <div className="flex justify-end">
-              <button
-                onClick={() => {
-                  if (!notes.trim()) {
-                    toast.error("Add some notes first");
-                    return;
-                  }
-                  setStep("extracting");
-                }}
-                className="h-10 rounded-lg bg-[#013764] px-5 text-sm font-medium text-white hover:bg-[#003a73]"
-              >
-                ✨ Extract project draft
+              <button onClick={runExtract} className={btnPrimary}>
+                <SparkleIcon width={16} height={16} /> Extract project draft
               </button>
             </div>
           </div>
@@ -312,216 +305,219 @@ export default function ProjectIntake() {
         {/* ---------------------------- step: extracting ---------------------------- */}
         {step === "extracting" && (
           <Card>
-            <div className="flex flex-col items-center gap-4 py-10">
-              <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-gray-200 border-t-[#013764]" />
-              <div className="text-sm font-medium text-gray-900">{EXTRACTION_STEPS[extractIdx]}</div>
-              <div className="flex flex-col gap-1 text-xs text-gray-400">
-                {EXTRACTION_STEPS.slice(0, extractIdx).map((s) => (
-                  <span key={s}>✓ {s.replace("…", "")}</span>
-                ))}
-              </div>
+            <div className="flex flex-col items-center gap-4 py-16 text-center">
+              <span className="h-[34px] w-[34px] animate-spin rounded-full border-[3px] border-[#D7DCE3] border-t-[#013764] motion-reduce:animate-none" />
+              <div className="text-sm font-medium text-[#17202B]">{EXTRACTION_STEPS[extractIdx]}</div>
+              <div className="text-[13px] text-[#8A93A0]">This usually takes a few seconds.</div>
             </div>
           </Card>
         )}
 
         {/* ------------------------------ step: review ------------------------------ */}
         {step === "review" && (
-          <div className="flex flex-col gap-6">
-            <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm text-gray-700">
-              <span className="font-semibold text-[#013764]">Review before anything is created.</span>{" "}
-              Fields marked <Prov edited={false} /> came from the model; anything you touch becomes <Prov edited={true} />.
-              The raw notes and the extraction are kept with the project for auditing.
+          <div className="flex flex-col gap-[18px]">
+            <div className="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5 text-[12.5px] text-[#5C6672]">
+              <span className="text-[#2F5578]"><SparkleIcon width={14} height={14} /></span>
+              <span>
+                Everything below is an <b className="font-semibold text-[#17202B]">AI draft</b> from your notes. Edit anything —
+                the raw notes and this draft are saved with the project for auditing.
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
-              {/* left rail: source notes + flags */}
-              <div className="flex flex-col gap-6">
-                <Card title="Source Notes">
-                  <div className="max-h-64 overflow-y-auto whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-gray-600">
-                    {notes}
+            <Card title="Project">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className={labelCls} htmlFor="pi-title">Project title</label>
+                  <input id="pi-title" value={title} onChange={(e) => setTitle(e.target.value)} className={field} />
+                </div>
+                <div>
+                  <label className={labelCls} htmlFor="pi-summary">Summary</label>
+                  <textarea id="pi-summary" value={summary} onChange={(e) => setSummary(e.target.value)} rows={3} className={`${field} resize-y leading-relaxed`} />
+                </div>
+                <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                  <div>
+                    <label className={labelCls} htmlFor="pi-start">Start</label>
+                    <input id="pi-start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={field} />
                   </div>
-                </Card>
-                <Card title={`Flags (${openFlags} open)`}>
-                  <div className="flex flex-col gap-2.5">
-                    {flags.map((f) => (
-                      <div key={f.id} className={`flex items-start justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${f.resolved ? "border-gray-100 bg-gray-50 text-gray-400 line-through" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
-                        <span>⚠ {f.text}</span>
-                        {!f.resolved && (
-                          <button
-                            onClick={() => setFlags((v) => v.map((x) => (x.id === f.id ? { ...x, resolved: true } : x)))}
-                            className="shrink-0 font-medium text-amber-700 hover:underline"
-                          >
-                            Resolve
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                  <div>
+                    <label className={labelCls} htmlFor="pi-end">Target completion</label>
+                    <input id="pi-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={field} />
                   </div>
-                </Card>
+                </div>
               </div>
+            </Card>
 
-              {/* right: the draft */}
-              <div className="flex flex-col gap-6">
-                <Card title="Project">
-                  <div className="flex flex-col gap-4">
-                    <div>
-                      <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-                        Title <Prov edited={edited.has("title")} />
-                      </div>
-                      <input value={title} onChange={(e) => { setTitle(e.target.value); mark("title"); }} className={fieldCls} aria-label="Project title" />
-                    </div>
-                    <div>
-                      <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-                        Summary <Prov edited={edited.has("summary")} />
-                      </div>
-                      <textarea value={summary} onChange={(e) => { setSummary(e.target.value); mark("summary"); }} rows={3} className={fieldCls} aria-label="Project summary" />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-                          Start <Prov edited={edited.has("start")} />
-                        </div>
-                        <input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); mark("start"); }} className={fieldCls} aria-label="Start date" />
-                      </div>
-                      <div>
-                        <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-                          Target end <Prov edited={edited.has("end")} />
-                        </div>
-                        <input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); mark("end"); }} className={fieldCls} aria-label="Target end date" />
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card
-                  title="Scope → Budget Categories"
-                  action={
-                    <button
-                      onClick={() => setScope((s) => [...s, { key: scopeSeq.current++, name: "", amount: "" }])}
-                      className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      + Category
-                    </button>
-                  }
-                >
-                  <div className="flex flex-col gap-2">
-                    {scope.map((c) => (
-                      <div key={c.key} className="flex flex-wrap items-center gap-2">
+            <Card
+              title="Scope & budget"
+              action={
+                <button onClick={() => setScope((s) => [...s, { key: scopeSeq.current++, name: "", amount: "" }])} className={btnGhostSm}>
+                  + Category
+                </button>
+              }
+            >
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th className="pb-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[#8A93A0]">Category</th>
+                    <th className="pb-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.06em] text-[#8A93A0]">Amount</th>
+                    <th className="w-9" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {scope.map((c) => (
+                    <tr key={c.key} className="border-t border-gray-100">
+                      <td className="py-1.5 align-middle">
                         <input
                           value={c.name}
                           placeholder="Category"
                           aria-label="Category name"
-                          onChange={(e) => { setScope((s) => s.map((x) => (x.key === c.key ? { ...x, name: e.target.value } : x))); mark(`scope-${c.key}`); }}
-                          className={`${fieldCls} min-w-[180px] flex-1`}
+                          onChange={(e) => setScope((s) => s.map((x) => (x.key === c.key ? { ...x, name: e.target.value } : x)))}
+                          className="w-full rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm text-[#17202B] hover:border-gray-200 focus:border-[#013764] focus:bg-white focus:outline-none"
                         />
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400">$</span>
+                        {c.hint && <div className="px-2 text-[11.5px] text-[#8A93A0]">{c.hint}</div>}
+                      </td>
+                      <td className="py-1.5 text-right align-middle">
+                        <span className="inline-flex items-center justify-end gap-0.5">
+                          <span className="text-[#8A93A0]">$</span>
                           <input
-                            type="number"
                             value={c.amount}
+                            inputMode="numeric"
                             placeholder="unpriced"
                             aria-label="Category amount in dollars"
-                            onChange={(e) => { setScope((s) => s.map((x) => (x.key === c.key ? { ...x, amount: e.target.value } : x))); mark(`scope-${c.key}`); }}
-                            className={`${fieldCls} w-32 text-right tabular-nums`}
+                            onChange={(e) => setScope((s) => s.map((x) => (x.key === c.key ? { ...x, amount: e.target.value.replace(/[^0-9.]/g, "") } : x)))}
+                            className="w-[108px] rounded-md border border-transparent bg-transparent px-2 py-1.5 text-right text-sm tabular-nums text-[#17202B] placeholder:italic placeholder:text-[#8A93A0] hover:border-gray-200 focus:border-[#013764] focus:bg-white focus:outline-none"
                           />
-                        </div>
-                        <Prov edited={edited.has(`scope-${c.key}`) || c.key >= 100} />
-                        <button onClick={() => setScope((s) => s.filter((x) => x.key !== c.key))} aria-label="Remove category" className="px-1 text-gray-400 hover:text-red-600">✕</button>
-                        {c.hint && <span className="w-full pl-1 text-xs text-gray-400 sm:w-auto">{c.hint}</span>}
-                      </div>
-                    ))}
-                    <div className="mt-1 flex justify-between border-t border-gray-100 pt-3 text-sm font-semibold text-gray-900">
-                      <span>Priced so far</span>
-                      <span className="tabular-nums">${scopeTotal.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </Card>
+                        </span>
+                      </td>
+                      <td className="py-1.5 align-middle">
+                        <button
+                          onClick={() => setScope((s) => s.filter((x) => x.key !== c.key))}
+                          aria-label="Remove category"
+                          className="rounded-md px-1.5 py-1 text-[15px] leading-none text-[#8A93A0] hover:bg-[#FBEBEC] hover:text-[#B4232B]"
+                        >
+                          ×
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td className="border-t-[1.5px] border-[#D7DCE3] pt-3 text-sm font-semibold text-[#17202B]">Priced so far</td>
+                    <td className="border-t-[1.5px] border-[#D7DCE3] pt-3 text-right text-sm font-semibold tabular-nums text-[#17202B]">
+                      ${scopeTotal.toLocaleString()}
+                    </td>
+                    <td className="border-t-[1.5px] border-[#D7DCE3]" />
+                  </tr>
+                </tfoot>
+              </table>
+            </Card>
 
-                <Card title="Vendors & Quotes">
-                  <div className="flex flex-col gap-3">
-                    {EXTRACTED_VENDORS.map((v) => (
-                      <div key={v.name} className="rounded-lg border border-gray-200 px-4 py-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-medium text-gray-900">{v.name}</span>
-                          <span className="text-xs text-gray-500">{v.trade}</span>
-                          {v.onCall && <Pill label="On the call" text="#1D4ED8" bg="#E7EEFE" />}
-                          {v.known ? <Pill label="Known vendor" text="#15803D" bg="#E7F6EC" /> : <Pill label="Not in vendor list" text="#B91C1C" bg="#FCEAEA" />}
-                          {v.known && (v.coi ? <Pill label="COI on file" text="#15803D" bg="#E7F6EC" /> : <Pill label="COI expired" text="#B45309" bg="#FCF2E1" />)}
-                        </div>
-                        {v.quote ? (
-                          <div className="mt-2 rounded-md bg-gray-50 px-3 py-2">
-                            <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                              <span className="font-medium tabular-nums text-gray-900">{v.quote.amount}</span>
-                              <Pill {...QUOTE_ANALYSIS_META[v.quote.analysis]} label={QUOTE_ANALYSIS_META[v.quote.analysis].label} />
-                            </div>
-                            <div className="mt-1 text-xs text-gray-600">{v.quote.scope}</div>
-                            <div className="mt-1 text-xs text-amber-700">{v.quote.analysisNote}</div>
-                          </div>
+            <Card title="Vendors mentioned">
+              <div>
+                {(draft?.vendors ?? []).length === 0 && (
+                  <div className="text-[13px] text-[#8A93A0]">No vendors mentioned in the notes.</div>
+                )}
+                {(draft?.vendors ?? []).map((v, i) => (
+                  <div key={`${v.name}-${i}`} className={`py-3 ${i > 0 ? "border-t border-gray-100" : "pt-0.5"}`}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-[#17202B]">{v.name}</span>
+                      {v.trade && <span className="text-[13px] text-[#5C6672]">{v.trade}</span>}
+                      <span className="ml-auto flex flex-wrap gap-1.5">
+                        {v.known && <Chip tone="muted">Known vendor</Chip>}
+                        {!v.known ? (
+                          <Chip tone="bad">Not in vendor list</Chip>
+                        ) : v.has_coi ? (
+                          <Chip tone="good">{v.coi_expires_on ? `COI on file · exp ${v.coi_expires_on}` : "COI on file"}</Chip>
                         ) : (
-                          <div className="mt-2 text-xs text-gray-400">No quote yet — mentioned for this project.</div>
+                          <Chip tone="warn">No COI on file</Chip>
                         )}
+                      </span>
+                    </div>
+                    {v.quote_amount ? (
+                      <div className="mt-2 flex items-baseline gap-2 text-[13px] text-[#5C6672]">
+                        <b className="font-semibold tabular-nums text-[#17202B]">{v.quote_amount}</b>
+                        {v.quote_note && <span>{v.quote_note}</span>}
                       </div>
-                    ))}
-                    <p className="text-xs text-gray-400">
-                      Quotes land on the project's Quotes tab as “received (verbal — from intake)”. New vendors are flagged,
-                      never auto-created.
-                    </p>
+                    ) : (
+                      <div className="mt-2 text-[13px] text-[#8A93A0]">No quote yet — mentioned for this project.</div>
+                    )}
                   </div>
-                </Card>
-
-                <Card title="Budget Notes">
-                  <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-                    <Prov edited={edited.has("budgetNotes")} />
-                  </div>
-                  <textarea value={budgetNotes} onChange={(e) => { setBudgetNotes(e.target.value); mark("budgetNotes"); }} rows={2} className={fieldCls} aria-label="Budget notes" />
-                </Card>
-
-                <div className="flex items-center justify-between">
-                  <button onClick={() => setStep("notes")} className="h-10 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    ← Back to notes
-                  </button>
-                  <button
-                    onClick={() => setStep("created")}
-                    className="h-10 rounded-lg bg-[#013764] px-5 text-sm font-medium text-white hover:bg-[#003a73]"
-                  >
-                    Create project in Planning
-                  </button>
-                </div>
+                ))}
+                <p className="mt-3.5 text-[12.5px] text-[#8A93A0]">
+                  Matched against your vendor list; new vendors are flagged, never auto-created. Quote fair-price analysis
+                  comes in a later phase.
+                </p>
               </div>
+            </Card>
+
+            <Card title={`Follow-ups (${openFlags} open)`}>
+              <div>
+                {flags.length === 0 && <div className="text-[13px] text-[#8A93A0]">No follow-ups raised.</div>}
+                {flags.map((f, i) => (
+                  <div key={f.id} className={`flex items-start gap-2.5 py-2.5 ${i > 0 ? "border-t border-gray-100" : ""} ${f.resolved ? "text-[#8A93A0]" : ""}`}>
+                    <span className={`mt-1.5 h-[7px] w-[7px] flex-none rounded-full ${f.resolved ? "bg-[#D7DCE3]" : "bg-[#B45309]"}`} />
+                    <span className={`flex-1 text-[13px] ${f.resolved ? "line-through" : "text-[#5C6672]"}`}>{f.text}</span>
+                    {!f.resolved && (
+                      <button
+                        onClick={() => setFlags((v) => v.map((x) => (x.id === f.id ? { ...x, resolved: true } : x)))}
+                        className="px-1 text-[12.5px] font-semibold text-[#B45309] hover:underline"
+                      >
+                        Resolve
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <details className="group rounded-[10px] border border-gray-100 bg-gray-50">
+              <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[13px] font-medium text-[#5C6672] [&::-webkit-details-marker]:hidden">
+                <svg className="transition-transform group-open:rotate-90" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+                View source notes
+              </summary>
+              <div className="max-h-[260px] overflow-auto whitespace-pre-wrap border-t border-gray-100 px-4 py-3.5 font-mono text-[12px] leading-[1.65] text-[#5C6672]">
+                {notes}
+              </div>
+            </details>
+
+            <div className="mt-1 flex items-center justify-between">
+              <button onClick={() => setStep("notes")} className={btnGhost}>Back to notes</button>
+              <button onClick={runCreate} disabled={creating} className={btnPrimary}>
+                {creating ? "Creating…" : "Create project in Planning"}
+              </button>
             </div>
           </div>
         )}
 
         {/* ------------------------------ step: created ----------------------------- */}
-        {step === "created" && (
+        {step === "created" && created && (
           <Card>
-            <div className="flex flex-col items-center gap-4 py-8 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-2xl text-green-700">✓</span>
+            <div className="flex flex-col items-center gap-3.5 py-12 text-center">
+              <div className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#E7F6EC] text-[#15803D]">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
+              </div>
               <div>
-                <div className="text-lg font-semibold text-gray-900">{title}</div>
-                <div className="mt-0.5 text-sm text-gray-500">created in <span className="font-medium text-gray-700">Planning</span> for {property}</div>
+                <h2 className="text-[19px] font-semibold text-[#17202B]">{created.name}</h2>
+                <p className="text-[#5C6672]">Created in <b className="font-semibold text-[#17202B]">Planning</b> — you can keep building it out from here.</p>
               </div>
-              <div className="grid grid-cols-2 gap-x-10 gap-y-2 text-sm text-gray-600 sm:grid-cols-4">
-                <div><span className="font-semibold text-gray-900">{scope.filter((s) => s.name.trim()).length}</span> budget categories</div>
-                <div><span className="font-semibold text-gray-900">{EXTRACTED_VENDORS.length}</span> vendors linked</div>
-                <div><span className="font-semibold text-gray-900">2</span> quotes logged</div>
-                <div><span className="font-semibold text-gray-900">{openFlags}</span> flags carried over</div>
+              <div className="my-1.5 flex flex-wrap justify-center gap-x-[34px] gap-y-3">
+                <div className="text-center">
+                  <b className="block text-[20px] font-semibold tabular-nums text-[#17202B]">{scope.filter((s) => s.name.trim()).length}</b>
+                  <span className="text-[12.5px] text-[#5C6672]">budget categories</span>
+                </div>
+                <div className="text-center">
+                  <b className="block text-[20px] font-semibold tabular-nums text-[#17202B]">{draft?.vendors.length ?? 0}</b>
+                  <span className="text-[12.5px] text-[#5C6672]">vendors surfaced</span>
+                </div>
+                <div className="text-center">
+                  <b className="block text-[20px] font-semibold tabular-nums text-[#17202B]">{openFlags}</b>
+                  <span className="text-[12.5px] text-[#5C6672]">follow-ups</span>
+                </div>
               </div>
-              <p className="max-w-lg text-xs text-gray-400">
-                Scope items became Payables budget categories; verbal quotes landed on the Quotes tab as received; open flags
-                appear on the project Dashboard. The raw notes and extraction output are stored with the project for auditing.
-              </p>
-              <div className="flex gap-2">
-                <button onClick={() => { setStep("notes"); toast.info("Demo reset"); }} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  Run demo again
-                </button>
-                {/* Points at the demo DB's real pergola project (id 1) so the demo flows on. */}
-                <button onClick={() => navigate("/projects/1")} className="h-9 rounded-lg border border-[#013764] bg-white px-3 text-sm font-medium text-[#013764] hover:bg-[#013764]/5">
-                  See a built-out project →
-                </button>
-                <button onClick={() => navigate("/projects")} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]">
-                  Back to Projects
-                </button>
+              <div className="mt-1.5 flex gap-2.5">
+                <button onClick={() => navigate("/projects")} className={btnGhost}>Back to Projects</button>
+                <button onClick={() => navigate(`/projects/${created.id}`)} className={btnPrimary}>Open project →</button>
               </div>
             </div>
           </Card>

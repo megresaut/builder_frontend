@@ -31,6 +31,7 @@ export { ClockIcon } from "./ClockIcon";
 export { DollarIcon } from "./DollarIcon";
 export { DocumentIcon } from "./DocumentIcon";
 export { NoteIcon } from "./NoteIcon";
+export { SparkleIcon } from "./SparkleIcon";
 export { SyncIcon } from "./SyncIcon";
 export { RecordBillIcon } from "./RecordBillIcon";
 export { FlagIcon } from "./FlagIcon";

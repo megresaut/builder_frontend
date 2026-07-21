@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import PageTemplate from "@/layout/PageTemplate";
 import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, API_BASE } from "@/api/fetchJSON";
 import {
   getProjectSummary,
   updateProject,
@@ -16,10 +16,32 @@ import {
   createChangeOrder,
   updateChangeOrder,
   putSchedule,
-  createDraw,
   listPayments,
   createPayment,
   getCashFlow,
+  listQuotes,
+  createQuote,
+  updateQuote,
+  deleteQuote,
+  analyzeQuote,
+  listProjectInvoices,
+  getProjectInvoice,
+  createProjectInvoice,
+  sendProjectInvoice,
+  recordInvoicePayment,
+  voidProjectInvoice,
+  getBillables,
+  getPaymentSchedule,
+  putPaymentSchedule,
+  acceptQuote,
+  listVendorPayments,
+  createVendorPayment,
+  updateVendorPayment,
+  deleteVendorPayment,
+  listProjectFiles,
+  uploadProjectFile,
+  deleteProjectFile,
+  searchVendors,
   formatUSD,
   formatUSDPrecise,
   PROJECT_STATUS_META,
@@ -38,6 +60,23 @@ import {
   type PaymentKind,
   type WorkOrderStatus,
   type FTOStatus,
+  type ProjectQuote,
+  type QuoteStatus,
+  type QuoteVerdict,
+  type ProjectInvoice,
+  type ProjectInvoiceStatus,
+  type ProjectInvoiceLine,
+  type PaymentInstallment,
+  type Billables,
+  type CreateInvoiceLineInput,
+  type InstallmentInput,
+  type InstallmentBasis,
+  type BudgetCategory,
+  type VendorPayment,
+  type VendorPaymentStatus,
+  type ProjectFileRow,
+  type ProjectFileSource,
+  type VendorLite,
 } from "@/data/projects";
 import {
   BudgetEditor,
@@ -60,7 +99,7 @@ const TABS: { key: TabKey; label: string }[] = [
   // Two-lane money model: "Payables" = vendor lane (budget plan, quotes, vendor payment
   // schedules, spend); "Receivables" = client lane (payment schedule, project invoices,
   // receipts); Cash Flow = where the lanes meet. Siloed from monthly invoicing per
-  // PROJECT_INVOICING_SPEC.md. The old SOV/draws BillingTab stays dormant (spec P2 deletes it).
+  // PROJECT_INVOICING_SPEC.md. The old SOV/draws BillingTab was retired in the project-financials build.
   // Quotes = pre-commitment (bidding); accepting one feeds Payables (budget + vendor schedule).
   { key: "quotes", label: "Quotes" },
   { key: "budget", label: "Payables" },
@@ -597,7 +636,7 @@ function BudgetTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary; on
 
       {/* Vendor lane: when each vendor gets paid what (deposit terms etc.) — sample preview.
           Quotes live on their own tab (pre-commitment); accepted quotes seed these schedules. */}
-      <VendorScheduleCard />
+      <VendorScheduleCard projectId={summary.project.id} />
 
       {/* COs are budget amendments (current budget = original + approved COs), so the log lives here. */}
       <ChangeOrderLog summary={summary} onRefresh={onRefresh} />
@@ -988,507 +1027,6 @@ function FieldTeamTab({ summary }: { summary: ProjectSummary }) {
   );
 }
 
-/* ------------------------------ progress billing --------------------------- */
-/* NOTE: BillingTab (SOV / draws / client billing) is currently NOT rendered — the
-   tab was collapsed in favor of Cash Flow's paid-vs-repaid view. The backend
-   (schedule, draws, change-order headroom) is untouched; re-add the tab entry in
-   TABS and the render branch in ProjectDetailPage to restore it. */
-
-interface ScheduleLineDraft {
-  key: number; // client-local React key
-  id?: number; // real DB id (existing lines)
-  description: string;
-  scheduledValueCents: number;
-  percentComplete: number;
-  retainagePercent: number;
-  billedToDateCents: number; // derived, display-only
-}
-
-// Sample data rendered only while the project has no real schedule of values.
-// Illustrates the intent of this tab (client-side contract billing) — clearly
-// badged as sample in the UI and never persisted.
-const SAMPLE_SCHEDULE: ScheduleLineDraft[] = [
-  { key: -101, description: "Deposit / mobilization", scheduledValueCents: 3_426_600, percentComplete: 100, retainagePercent: 0, billedToDateCents: 3_426_600 },
-  { key: -102, description: "Masonry & stonework — Teixera", scheduledValueCents: 16_214_600, percentComplete: 45, retainagePercent: 0, billedToDateCents: 5_000_000 },
-  { key: -103, description: "Electrical — Frank Clark", scheduledValueCents: 4_645_000, percentComplete: 0, retainagePercent: 0, billedToDateCents: 0 },
-  { key: -104, description: "Plumbing & heat — Guasco's", scheduledValueCents: 6_927_000, percentComplete: 0, retainagePercent: 0, billedToDateCents: 0 },
-  { key: -105, description: "A/V — American Knight", scheduledValueCents: 1_938_500, percentComplete: 0, retainagePercent: 0, billedToDateCents: 0 },
-  { key: -106, description: "Site & final cleanup — AVM", scheduledValueCents: 1_115_103, percentComplete: 0, retainagePercent: 0, billedToDateCents: 0 },
-];
-
-const SAMPLE_DRAWS = [
-  { number: "Draw #1", date: "Mar 12, 2026", covers: "Deposit / mobilization", amountCents: 3_426_600, status: "Paid", paid: true },
-  { number: "Draw #2", date: "Jun 30, 2026", covers: "Masonry & stonework — 45% complete", amountCents: 5_000_000, status: "Sent — awaiting payment", paid: false },
-];
-
-// Sample vendor spend (Budget-side number) for the billing-vs-cost comparison.
-const SAMPLE_SPENT_CENTS = 9_640_000;
-const SAMPLE_OUTSTANDING_CENTS = 5_000_000;
-
-function BillingTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [drawOpen, setDrawOpen] = useState(false);
-  const [draft, setDraft] = useState<ScheduleLineDraft[]>([]);
-  const keySeq = useRef(-1);
-
-  const toDrafts = (lines: ScheduleLine[]): ScheduleLineDraft[] =>
-    lines.map((l) => ({
-      key: l.id,
-      id: l.id,
-      description: l.description,
-      scheduledValueCents: l.scheduled_value_cents,
-      percentComplete: l.percent_complete,
-      retainagePercent: l.retainage_percent,
-      billedToDateCents: l.billed_to_date_cents,
-    }));
-
-  // Sample mode: no real schedule exists yet — show badged illustration data.
-  const sample = !editing && summary.schedule.length === 0;
-  const viewRows: ScheduleLineDraft[] = editing ? draft : sample ? SAMPLE_SCHEDULE : toDrafts(summary.schedule);
-  const totalScheduled = viewRows.reduce((s, l) => s + l.scheduledValueCents, 0);
-  const totalBilled = viewRows.reduce((s, l) => s + l.billedToDateCents, 0);
-  const earned = (l: ScheduleLineDraft) => Math.round((l.scheduledValueCents * l.percentComplete) / 100);
-
-  const fin = summary.financials;
-  // Contract = SOV + approved COs (approved COs are exactly the over-billing headroom draws get).
-  const contractValue = totalScheduled + fin.approved_change_orders_cents;
-  const leftToBill = contractValue - totalBilled;
-  const outstanding = sample ? SAMPLE_OUTSTANDING_CENTS : fin.outstanding_invoices_cents;
-  const vendorSpent = sample ? SAMPLE_SPENT_CENTS : fin.spent_cents;
-  const fronting = vendorSpent - totalBilled; // >0: AVM has paid out more than it has asked the client for
-
-  const startEdit = () => {
-    setDraft(toDrafts(summary.schedule));
-    setEditing(true);
-  };
-  const save = async () => {
-    setSaving(true);
-    try {
-      await putSchedule(summary.project.id, {
-        lines: draft.map((l) => ({
-          ...(l.id != null ? { id: l.id } : {}),
-          description: l.description.trim() || "Untitled line",
-          scheduled_value_cents: l.scheduledValueCents,
-          percent_complete: l.percentComplete,
-          retainage_percent: l.retainagePercent,
-        })),
-      });
-      toast.success("Schedule of values saved");
-      setEditing(false);
-      onRefresh();
-    } catch (e) {
-      toast.error(errMessage(e, "Failed to save schedule"));
-    } finally {
-      setSaving(false);
-    }
-  };
-  const cancel = () => setEditing(false);
-  const patch = (key: number, p: Partial<ScheduleLineDraft>) =>
-    setDraft((d) => d.map((l) => (l.key === key ? { ...l, ...p } : l)));
-  const addLine = () =>
-    setDraft((d) => [
-      ...d,
-      { key: keySeq.current--, description: "", scheduledValueCents: 0, percentComplete: 0, retainagePercent: 0, billedToDateCents: 0 },
-    ]);
-  const removeLine = (key: number) => setDraft((d) => d.filter((l) => l.key !== key));
-
-  return (
-    <div className="flex flex-col gap-6">
-      {/* What this tab is for — the client side, vs Budget's vendor-cost side. */}
-      <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm leading-relaxed text-gray-700">
-        <span className="font-semibold text-[#013764]">This is the client side of the project.</span>{" "}
-        <span className="font-medium">Budget</span> tracks what the work costs AVM — vendor bills against plan. This tab tracks
-        what we charge the owner: the agreed billing schedule, the invoices (draws) issued against it, and what's still billable.
-        Money actually received shows up in <span className="font-medium">Cash Flow</span>.
-      </div>
-
-      {sample && (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold uppercase tracking-wider">Sample data</span>
-          <span>No billing schedule exists for this project yet — everything below is an illustration. Use “Edit” on the schedule to build the real one.</span>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        <KpiCard
-          label="Contract Value"
-          value={formatUSD(contractValue)}
-          subtitle={fin.approved_change_orders_cents > 0 ? `Schedule + ${formatUSD(fin.approved_change_orders_cents)} approved COs` : "What the client agreed to pay"}
-          accent="navy"
-        />
-        <KpiCard
-          label="Billed to Client"
-          value={formatUSD(totalBilled)}
-          subtitle={`${contractValue ? Math.round((totalBilled / contractValue) * 100) : 0}% of contract invoiced`}
-          accent="blue"
-        />
-        <KpiCard
-          label="Outstanding"
-          value={formatUSD(outstanding)}
-          subtitle="Invoiced, awaiting payment"
-          accent="amber"
-          valueColor={outstanding > 0 ? "#B45309" : undefined}
-        />
-        <KpiCard label="Left to Bill" value={formatUSD(leftToBill)} subtitle="Not yet invoiced" accent="violet" />
-      </div>
-
-      <Card
-        title="Billing Schedule — what we invoice the client against"
-        action={
-          editing ? (
-            <div className="flex items-center gap-2">
-              <button onClick={cancel} disabled={saving} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
-              <button onClick={save} disabled={saving} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
-                {saving ? "Saving…" : "Save changes"}
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <button onClick={startEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit</button>
-              {/* New draw button — the Phase-4 entry point promised in Decision #46.
-                  The adjacent "Generate progress report" button is kept inert exactly
-                  as in the mock (Decision #46) and is intentionally NOT wired here. */}
-              <button
-                onClick={() => setDrawOpen(true)}
-                disabled={summary.schedule.length === 0}
-                title={summary.schedule.length === 0 ? "Add schedule-of-values lines first" : "Bill a progress draw against the schedule of values"}
-                className="h-7 rounded-lg border border-[#013764] bg-white px-2.5 text-xs font-medium text-[#013764] hover:bg-[#013764]/5 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                New draw
-              </button>
-              <button className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">Generate progress report</button>
-            </div>
-          )
-        }
-      >
-        {viewRows.length === 0 && !editing ? (
-          <p className="text-sm text-gray-500">No schedule of values yet. Use “Edit” to build the billing schedule.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <Th>Work item</Th><Th right>Scheduled value</Th><Th>% Complete</Th><Th right>Earned</Th><Th right>Billed to date</Th><Th right>To bill</Th>
-                  {editing && <Th>{""}</Th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {viewRows.map((l) => {
-                  const earnedCents = earned(l);
-                  const toBill = earnedCents - l.billedToDateCents;
-                  return (
-                    <tr key={l.key} className="hover:bg-gray-50">
-                      <td className="py-3 pr-4 text-gray-900">
-                        {editing ? (
-                          <input
-                            aria-label="Work item description"
-                            value={l.description}
-                            placeholder="Work item"
-                            onChange={(e) => patch(l.key, { description: e.target.value })}
-                            className="w-full min-w-[160px] rounded-md border border-[#DADADA] px-2 py-1 focus:border-[#013764] focus:outline-none"
-                          />
-                        ) : (
-                          l.description
-                        )}
-                      </td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-900">
-                        {editing ? (
-                          <div className="flex items-center justify-end gap-1">
-                            <span className="text-gray-400" aria-hidden="true">$</span>
-                            <input
-                              type="number"
-                              aria-label="Scheduled value in dollars"
-                              value={l.scheduledValueCents / 100}
-                              onChange={(e) => patch(l.key, { scheduledValueCents: Math.max(0, Math.round((Number(e.target.value) || 0) * 100)) })}
-                              className="w-24 rounded-md border border-[#DADADA] px-2 py-1 text-right tabular-nums focus:border-[#013764] focus:outline-none"
-                            />
-                          </div>
-                        ) : (
-                          formatUSD(l.scheduledValueCents)
-                        )}
-                      </td>
-                      <td className="py-3 pr-4">
-                        {editing ? (
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="number"
-                              min={0}
-                              max={100}
-                              aria-label="Percent complete"
-                              value={l.percentComplete}
-                              onChange={(e) => patch(l.key, { percentComplete: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
-                              className="w-16 rounded-md border border-[#DADADA] px-2 py-1 text-right tabular-nums focus:border-[#013764] focus:outline-none"
-                            />
-                            <span className="text-gray-500">%</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <Bar percent={l.percentComplete} />
-                            <span className="w-9 text-right text-xs text-gray-600 tabular-nums">{l.percentComplete}%</span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-700">{formatUSD(earnedCents)}</td>
-                      {/* Billed-to-date is derived from invoices (Decision #17) — read-only, 0 until Phase 4. */}
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-700">{formatUSD(l.billedToDateCents)}</td>
-                      <td className={`py-3 pr-4 text-right tabular-nums font-medium ${toBill > 0 ? "text-green-700" : "text-gray-400"}`}>
-                        {toBill > 0 ? formatUSD(toBill) : "—"}
-                      </td>
-                      {editing && (
-                        <td className="py-3 text-right">
-                          <button type="button" onClick={() => removeLine(l.key)} title="Remove line" aria-label="Remove line" className="px-1.5 text-gray-400 hover:text-red-600">✕</button>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-gray-200 font-semibold text-gray-900">
-                  <td className="py-3 pr-4">Total</td>
-                  <td className="py-3 pr-4 text-right tabular-nums">{formatUSD(totalScheduled)}</td>
-                  <td className="py-3 pr-4" />
-                  <td className="py-3 pr-4" />
-                  <td className="py-3 pr-4 text-right tabular-nums">{formatUSD(totalBilled)}</td>
-                  <td className="py-3 pr-4" />
-                  {editing && <td className="py-3" />}
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        )}
-        {editing && (
-          <div className="mt-3 flex items-center justify-between">
-            <button onClick={addLine} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">+ Add line</button>
-            <p className="text-xs text-gray-400">
-              Editing updates % complete and scheduled value. Billed-to-date is derived from invoices. Earned and “to bill” recalculate live.
-            </p>
-          </div>
-        )}
-      </Card>
-
-      {/* Draws are the invoices this tab exists to produce — each one is a draft
-          invoice in the normal invoicing pipeline (source_type='project_progress'). */}
-      <Card title="Draw History — invoices issued to the client">
-        {sample ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <Th>Draw</Th><Th>Date</Th><Th>Covers</Th><Th right>Amount</Th><Th>Status</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {SAMPLE_DRAWS.map((d) => (
-                  <tr key={d.number} className="hover:bg-gray-50">
-                    <td className="py-3 pr-4 font-medium text-gray-900">{d.number}</td>
-                    <td className="py-3 pr-4 text-gray-700">{d.date}</td>
-                    <td className="py-3 pr-4 text-gray-700">{d.covers}</td>
-                    <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(d.amountCents)}</td>
-                    <td className="py-3 pr-4">
-                      {d.paid ? <Pill label={d.status} text="#15803D" bg="#E7F6EC" /> : <Pill label={d.status} text="#B45309" bg="#FCF2E1" />}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : fin.billed_to_date_cents > 0 ? (
-          <p className="text-sm text-gray-600">
-            {formatUSD(fin.billed_to_date_cents)} billed to the client across progress draws, {formatUSD(fin.outstanding_invoices_cents)} still
-            outstanding. Each draw is a draft invoice — find and send them under <span className="font-medium">Invoicing</span>.
-          </p>
-        ) : (
-          <p className="text-sm text-gray-500">
-            No draws yet. “New draw” invoices the client for completed work against the schedule above and creates a draft invoice
-            in the normal invoicing pipeline.
-          </p>
-        )}
-      </Card>
-
-      {/* The one-glance contrast with the Budget tab: money out vs money asked for. */}
-      <Card title="Billing vs. Cost — where AVM stands">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-lg bg-gray-50 px-4 py-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Paid to vendors</div>
-            <div className="mt-1 text-xl font-semibold tabular-nums text-gray-900">{formatUSD(vendorSpent)}</div>
-            <div className="mt-0.5 text-xs text-gray-500">Cost side — tracked on the Budget tab</div>
-          </div>
-          <div className="rounded-lg bg-gray-50 px-4 py-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Billed to client</div>
-            <div className="mt-1 text-xl font-semibold tabular-nums text-gray-900">{formatUSD(totalBilled)}</div>
-            <div className="mt-0.5 text-xs text-gray-500">Revenue side — driven from this tab</div>
-          </div>
-          <div className={`rounded-lg px-4 py-3 ${fronting > 0 ? "bg-red-50" : "bg-green-50"}`}>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-              {fronting > 0 ? "AVM is fronting" : "Billed ahead by"}
-            </div>
-            <div className={`mt-1 text-xl font-semibold tabular-nums ${fronting > 0 ? "text-red-700" : "text-green-700"}`}>
-              {formatUSD(Math.abs(fronting))}
-            </div>
-            <div className="mt-0.5 text-xs text-gray-500">
-              {fronting > 0 ? "Spend not yet invoiced to the client" : "Invoiced ahead of vendor spend"}
-            </div>
-          </div>
-        </div>
-        <p className="mt-3 text-xs text-gray-400">
-          Whether the client has actually <span className="font-medium text-gray-500">paid</span> what we billed lives on the Cash Flow tab.
-        </p>
-      </Card>
-
-      {drawOpen && (
-        <NewDrawModal
-          projectId={summary.project.id}
-          lines={summary.schedule}
-          onSaved={onRefresh}
-          onClose={() => setDrawOpen(false)}
-        />
-      )}
-    </div>
-  );
-}
-
-/* ---------------------------------- draw ----------------------------------- */
-
-function NewDrawModal({
-  projectId,
-  lines,
-  onSaved,
-  onClose,
-}: {
-  projectId: number;
-  lines: ScheduleLine[];
-  onSaved: () => void;
-  onClose: () => void;
-}) {
-  // Per-line draw amount in dollars, keyed by schedule-line id. Empty = not billed.
-  const [amounts, setAmounts] = useState<Record<number, string>>({});
-  const [memo, setMemo] = useState("");
-  const [saving, setSaving] = useState(false);
-  const uid = useId();
-
-  const setAmount = (id: number, v: string) => setAmounts((a) => ({ ...a, [id]: v }));
-  const fillRemaining = (l: ScheduleLine) => {
-    const remainingCents = Math.max(0, l.scheduled_value_cents - l.billed_to_date_cents);
-    setAmount(l.id, remainingCents ? (remainingCents / 100).toFixed(2) : "");
-  };
-
-  const drawLines = lines
-    .map((l) => ({ id: l.id, cents: Math.round((Number(amounts[l.id]) || 0) * 100) }))
-    .filter((x) => x.cents > 0);
-  const totalCents = drawLines.reduce((s, x) => s + x.cents, 0);
-  const canSubmit = drawLines.length > 0 && !saving;
-
-  const submit = async () => {
-    if (drawLines.length === 0) {
-      toast.error("Enter a draw amount on at least one line");
-      return;
-    }
-    setSaving(true);
-    try {
-      const res = await createDraw(projectId, {
-        lines: drawLines.map((x) => ({ schedule_line_id: x.id, amount_cents: x.cents })),
-        memo: memo.trim() || undefined,
-      });
-      toast.success(`Draft draw invoice created — ${formatUSD(res.total_amount_cents)}`);
-      onSaved();
-      onClose();
-    } catch (e) {
-      // Surfaces the backend 400 over-billing message verbatim (names the line).
-      toast.error(errMessage(e, "Failed to create draw"));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <ModalShell
-      title="New progress draw"
-      onClose={onClose}
-      maxWidth="max-w-2xl"
-      footer={
-        <>
-          <button type="button" onClick={onClose} disabled={saving} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
-          <button type="button" onClick={submit} disabled={!canSubmit} className="h-9 rounded-lg bg-[#013764] px-3 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50 disabled:cursor-not-allowed">
-            {saving ? "Creating…" : `Create draw${totalCents ? ` — ${formatUSD(totalCents)}` : ""}`}
-          </button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-4">
-        <p className="text-xs text-gray-500">
-          Bill an amount against each schedule-of-values line. This creates one draft invoice
-          (no QBO/Buildium push). Billing past a line’s scheduled value is only allowed within
-          the approved change-order allowance — otherwise the draw is rejected.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <Th>Work item</Th><Th right>Scheduled</Th><Th right>Billed</Th><Th right>Left</Th><Th right>This draw</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {lines.map((l) => {
-                const leftCents = l.scheduled_value_cents - l.billed_to_date_cents;
-                return (
-                  <tr key={l.id} className="hover:bg-gray-50">
-                    <td className="py-2 pr-4 text-gray-900">{l.description}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums text-gray-700">{formatUSD(l.scheduled_value_cents)}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums text-gray-700">{formatUSD(l.billed_to_date_cents)}</td>
-                    <td className={`py-2 pr-4 text-right tabular-nums ${leftCents > 0 ? "text-gray-700" : "text-gray-400"}`}>{formatUSD(leftCents)}</td>
-                    <td className="py-2 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <span className="text-gray-400" aria-hidden="true">$</span>
-                        <input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          aria-label={`Draw amount for ${l.description}`}
-                          value={amounts[l.id] ?? ""}
-                          placeholder="0.00"
-                          onChange={(e) => setAmount(l.id, e.target.value)}
-                          className="w-24 rounded-md border border-[#DADADA] px-2 py-1 text-right tabular-nums focus:border-[#013764] focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => fillRemaining(l)}
-                          title="Fill remaining"
-                          aria-label={`Fill remaining for ${l.description}`}
-                          className="rounded px-1 text-xs text-[#013764] hover:underline"
-                        >
-                          max
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-gray-200 font-semibold text-gray-900">
-                <td className="py-2 pr-4" colSpan={4}>Total this draw</td>
-                <td className="py-2 pr-4 text-right tabular-nums">{formatUSD(totalCents)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor={`${uid}-memo`} className={labelCls}>Memo (optional)</label>
-          <input
-            id={`${uid}-memo`}
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-            placeholder="e.g. Progress billing #2"
-            className={fieldCls}
-          />
-        </div>
-      </div>
-    </ModalShell>
-  );
-}
-
 /* -------------------------------- cash flow -------------------------------- */
 
 function RecordPaymentModal({
@@ -1584,34 +1122,6 @@ function RecordPaymentModal({
   );
 }
 
-// Sample ledger rendered only while the project has zero real cash activity.
-// Clearly badged in the UI, never persisted — illustrates the paid-vs-repaid model.
-const SAMPLE_CASHFLOW: CashFlowEntry[] = [
-  { date: "2026-02-20", direction: "inbound", kind: "Deposit", description: "Project deposit — 10% of budget", party: "Owner", amount_cents: 3_426_600 },
-  { date: "2026-03-03", direction: "outbound", kind: "Vendor Bill Payment", description: "Mobilization & footings", party: "Teixera Construction", amount_cents: 2_850_000 },
-  { date: "2026-03-28", direction: "outbound", kind: "Vendor Bill Payment", description: "Cedar lake stone — 50% materials deposit", party: "Teixera Construction", amount_cents: 4_088_139 },
-  { date: "2026-04-15", direction: "outbound", kind: "Vendor Bill Payment", description: "Dumpster rental — April", party: "County Waste", amount_cents: 165_000 },
-  { date: "2026-05-02", direction: "outbound", kind: "Vendor Bill Payment", description: "Progress bill #2 — footings + walls", party: "Teixera Construction", amount_cents: 4_500_000 },
-  { date: "2026-05-20", direction: "inbound", kind: "Progress Payment", description: "Reimbursement — costs through April", party: "Owner", amount_cents: 8_426_600 },
-  { date: "2026-06-05", direction: "outbound", kind: "Vendor Bill Payment", description: "Rough plumbing — deposit", party: "Guasco's Plumbing", amount_cents: 1_240_000 },
-  { date: "2026-06-18", direction: "outbound", kind: "Vendor Bill Payment", description: "Portapotty — May/June", party: "AVM (misc)", amount_cents: 75_000 },
-];
-
-// Upcoming (not yet moved) money, shown per lane in sample mode. Out-side rows come
-// from vendor payment schedules (Payables tab); in-side rows from the client payment
-// schedule + outstanding invoices (Receivables tab). Amounts reconcile with those tabs.
-const SAMPLE_UPCOMING_OUT = [
-  { label: "Frank Clark — 30% electrical deposit", when: "Due Jul 17, 2026 (work start)", amountCents: 1_393_500, urgent: true },
-  { label: "American Knight — 60% A/V deposit", when: "On quote acceptance", amountCents: 1_163_132 },
-  { label: "Guasco's Plumbing — balance", when: "On plumbing completion", amountCents: 5_687_000 },
-  { label: "Teixera — masonry balance", when: "On masonry completion", amountCents: 8_203_111 },
-];
-const SAMPLE_UPCOMING_IN = [
-  { label: "Invoice PI-45-003 — masonry progress (sent)", when: "Due Aug 7, 2026", amountCents: 4_500_000, urgent: true },
-  { label: "Installment — masonry 50% complete", when: "Due now — invoice it on Receivables", amountCents: 8_500_000, urgent: true },
-  { label: "Installment — rough-ins complete", when: "Aug 15, 2026", amountCents: 12_000_000 },
-  { label: "Installment — final balance", when: "On completion", amountCents: 10_340_203 },
-];
 
 function CashFlowTab({ projectId, onRefreshSummary }: { projectId: number; onRefreshSummary: () => void }) {
   const [entries, setEntries] = useState<CashFlowEntry[] | null>(null);
@@ -1646,25 +1156,13 @@ function CashFlowTab({ projectId, onRefreshSummary }: { projectId: number; onRef
     return <div className="py-12 text-center text-sm text-gray-500">Loading cash flow…</div>;
   }
 
-  // Sample mode: no real cash activity yet — show badged illustration data.
-  const sample = entries.length === 0;
-  const viewEntries = sample ? SAMPLE_CASHFLOW : entries;
+  const viewEntries = entries;
   const inTotal = viewEntries.filter((c) => c.direction === "inbound").reduce((s, c) => s + c.amount_cents, 0);
   const outTotal = viewEntries.filter((c) => c.direction === "outbound").reduce((s, c) => s + c.amount_cents, 0);
   const net = inTotal - outTotal;
 
   return (
     <div className="flex flex-col gap-6">
-      {sample && (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold uppercase tracking-wider">Sample data</span>
-          <span>
-            No cash activity on this project yet — the ledger below is an illustration. Vendor payments appear automatically
-            when bills on this project's work orders are paid; client payments are logged with “Record payment.”
-          </span>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <KpiCard label="Paid to Vendors" value={formatUSD(outTotal)} subtitle="AVM money out on this project" accent="red" valueColor="#B91C1C" />
         <KpiCard label="Repaid by Client" value={formatUSD(inTotal)} subtitle="Deposits + progress payments received" accent="green" valueColor="#15803D" />
@@ -1708,7 +1206,6 @@ function CashFlowTab({ projectId, onRefreshSummary }: { projectId: number; onRef
             sign="−"
             amountColor="text-red-700"
             emptyText="No vendor payments yet — they appear automatically when bills on this project's work are paid."
-            upcoming={sample ? SAMPLE_UPCOMING_OUT : undefined}
             upcomingHint="From vendor payment schedules (Payables)"
           />
         </Card>
@@ -1727,19 +1224,10 @@ function CashFlowTab({ projectId, onRefreshSummary }: { projectId: number; onRef
             sign="+"
             amountColor="text-green-700"
             emptyText="No client payments yet — record one, or they arrive automatically when a project invoice is paid."
-            upcoming={sample ? SAMPLE_UPCOMING_IN : undefined}
             upcomingHint="From the client payment schedule + outstanding invoices (Receivables)"
           />
         </Card>
       </div>
-
-      {sample && (
-        <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-          <span className="font-semibold text-gray-900">Near-term position:</span> {formatUSD(13_000_000)} expected in
-          (outstanding invoice + due installment) against {formatUSD(1_393_500)} committed out (Frank Clark deposit) — the
-          current {formatUSD(-net > 0 ? -net : 0)} fronting gap closes once PI-45-003 is paid.
-        </div>
-      )}
 
       {recordOpen && (
         <RecordPaymentModal
@@ -1761,16 +1249,7 @@ function CashFlowTab({ projectId, onRefreshSummary }: { projectId: number; onRef
    payment-schedule installments, quotes, files. All state is local + badged as
    sample; interactions work in-page and reset on reload. No API calls. */
 
-function SampleBanner({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
-      <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold uppercase tracking-wider">Sample data</span>
-      <span>{children}</span>
-    </div>
-  );
-}
-
-type PInvoiceStatus = "draft" | "sent" | "partially_paid" | "paid" | "void";
+type PInvoiceStatus = ProjectInvoiceStatus;
 
 const P_INVOICE_STATUS_META: Record<PInvoiceStatus, { label: string; text: string; bg: string }> = {
   draft: { label: "Draft", text: "#374151", bg: "#F3F4F6" },
@@ -1780,145 +1259,171 @@ const P_INVOICE_STATUS_META: Record<PInvoiceStatus, { label: string; text: strin
   void: { label: "Void", text: "#6B7280", bg: "#F3F4F6" },
 };
 
-interface PInvoiceLine {
-  description: string;
-  amountCents: number;
-  sourceType: "manual" | "installment" | "change_order" | "cost_reimbursement";
-}
-interface PInvoicePayment {
-  date: string;
-  amountCents: number;
-  reference: string;
-  viaQbo?: boolean;
-}
-interface PInvoice {
-  id: number;
-  number: string;
-  title: string;
-  status: PInvoiceStatus;
-  issueDate: string;
-  dueDate?: string;
-  lines: PInvoiceLine[];
-  payments: PInvoicePayment[];
-}
-interface PInstallment {
-  id: number;
-  label: string;
-  basisLabel: string; // "10% of budget" | "Fixed"
-  amountCents: number;
-  trigger: string; // human-readable due trigger
-  triggerMet: boolean; // due date passed or linked milestone complete
-  invoiceId: number | null;
-}
+const INSTALLMENT_STATUS_META: Record<PaymentInstallment["status"], { label: string; text: string; bg: string }> = {
+  upcoming: { label: "Upcoming", text: "#6B7280", bg: "#F3F4F6" },
+  due: { label: "Due now", text: "#B45309", bg: "#FCF2E1" },
+  invoiced: { label: "Invoiced", text: "#1D4ED8", bg: "#E7EEFE" },
+  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
+};
 
-const SAMPLE_INSTALLMENTS: PInstallment[] = [
-  { id: 1, label: "Deposit", basisLabel: "10% of budget", amountCents: 3_426_600, trigger: "On signing", triggerMet: true, invoiceId: 1 },
-  { id: 2, label: "Masonry 50% complete", basisLabel: "Fixed", amountCents: 8_500_000, trigger: "Milestone: Construction Work", triggerMet: true, invoiceId: null },
-  { id: 3, label: "Rough-ins complete (electric + plumbing)", basisLabel: "Fixed", amountCents: 12_000_000, trigger: "Due Aug 15, 2026", triggerMet: false, invoiceId: null },
-  { id: 4, label: "Final balance", basisLabel: "Fixed", amountCents: 10_340_203, trigger: "On completion", triggerMet: false, invoiceId: null },
-];
+// "YYYY-MM-DD" → "Feb 18, 2026"; anything falsy → "—".
+function fmtProjDate(d: string | null | undefined): string {
+  if (!d) return "—";
+  const dt = new Date(`${d}T00:00:00`);
+  if (Number.isNaN(dt.getTime())) return d;
+  return dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+const isoToday = () => new Date().toISOString().slice(0, 10);
 
-const SAMPLE_PROJECT_INVOICES: PInvoice[] = [
-  {
-    id: 1, number: "PI-45-001", title: "Project deposit", status: "paid", issueDate: "Feb 18, 2026", dueDate: "Mar 4, 2026",
-    lines: [{ description: "Deposit — 10% of project budget", amountCents: 3_426_600, sourceType: "installment" }],
-    payments: [{ date: "Feb 20, 2026", amountCents: 3_426_600, reference: "QBO payment link", viaQbo: true }],
-  },
-  {
-    id: 2, number: "PI-45-002", title: "Reimbursement — costs through April", status: "paid", issueDate: "May 12, 2026", dueDate: "May 26, 2026",
-    lines: [{ description: "Unreimbursed project costs through Apr 30", amountCents: 8_426_600, sourceType: "cost_reimbursement" }],
-    payments: [{ date: "May 20, 2026", amountCents: 8_426_600, reference: "QBO payment link", viaQbo: true }],
-  },
-  {
-    id: 3, number: "PI-45-003", title: "Masonry progress — partial billing", status: "sent", issueDate: "Jul 8, 2026", dueDate: "Aug 7, 2026",
-    lines: [{ description: "Masonry & stonework — progress through Jun 30", amountCents: 4_500_000, sourceType: "manual" }],
-    payments: [],
-  },
-];
-
-// One unbilled approved change order, offered as a billable line in the builder.
-const SAMPLE_UNBILLED_CO = { id: 900, label: "CO-01 · Bluestone cap upgrade (approved)", amountCents: 650_000 };
-
-const paidCents = (inv: PInvoice) => inv.payments.reduce((s, p) => s + p.amountCents, 0);
+function installmentBasisLabel(inst: PaymentInstallment): string {
+  if (inst.basis === "percent") return `${((inst.percent_bps ?? 0) / 100).toLocaleString("en-US")}% of budget`;
+  return "Fixed";
+}
+function installmentTrigger(inst: PaymentInstallment): string {
+  if (inst.milestone_name) return `Milestone: ${inst.milestone_name}`;
+  if (inst.due_date) return `Due ${fmtProjDate(inst.due_date)}`;
+  return "On signing";
+}
 
 function InvoicingTab({ summary }: { summary: ProjectSummary }) {
-  const [invoices, setInvoices] = useState<PInvoice[]>(SAMPLE_PROJECT_INVOICES);
-  const [installments, setInstallments] = useState<PInstallment[]>(SAMPLE_INSTALLMENTS);
-  const [coBilledOnInvoiceId, setCoBilledOnInvoiceId] = useState<number | null>(null);
+  const projectId = summary.project.id;
+  const cancelled = summary.project.status === "cancelled";
+  const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
+  const [schedule, setSchedule] = useState<PaymentInstallment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [builderOpen, setBuilderOpen] = useState(false);
-  const [detailId, setDetailId] = useState<number | null>(null);
-  const nextId = useRef(100);
+  const [billables, setBillables] = useState<Billables | null>(null);
+  const [detail, setDetail] = useState<ProjectInvoice | null>(null);
+  const [scheduleEditorOpen, setScheduleEditorOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const [inv, sch] = await Promise.all([listProjectInvoices(projectId), getPaymentSchedule(projectId)]);
+      setInvoices(inv);
+      setSchedule(sch);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load invoicing");
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const budget = summary.financials.current_budget_cents;
-  const active = invoices.filter((i) => i.status !== "void");
-  const issued = active.filter((i) => i.status !== "draft");
-  const invTotal = (inv: PInvoice) => inv.lines.reduce((s, l) => s + l.amountCents, 0);
-  const billed = issued.reduce((s, i) => s + invTotal(i), 0);
-  const received = active.reduce((s, i) => s + paidCents(i), 0);
-  const outstanding = issued.reduce((s, i) => s + Math.max(0, invTotal(i) - paidCents(i)), 0);
+  const issued = invoices.filter((i) => i.status !== "void" && i.status !== "draft");
+  const billed = issued.reduce((s, i) => s + i.total_amount_cents, 0);
+  const received = invoices.filter((i) => i.status !== "void").reduce((s, i) => s + i.paid_cents, 0);
+  const outstanding = issued.reduce((s, i) => s + Math.max(0, i.total_amount_cents - i.paid_cents), 0);
   const leftToBill = Math.max(0, budget - billed);
 
-  const instStatus = (inst: PInstallment): { label: string; text: string; bg: string } => {
-    if (inst.invoiceId != null) {
-      const inv = invoices.find((i) => i.id === inst.invoiceId);
-      if (inv && inv.status === "paid") return { label: "Paid", text: "#15803D", bg: "#E7F6EC" };
-      return { label: "Invoiced", text: "#1D4ED8", bg: "#E7EEFE" };
+  const openDetail = async (id: number) => {
+    try {
+      setDetail(await getProjectInvoice(projectId, id));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load invoice");
     }
-    if (inst.triggerMet) return { label: "Due now", text: "#B45309", bg: "#FCF2E1" };
-    return { label: "Upcoming", text: "#6B7280", bg: "#F3F4F6" };
   };
 
-  const createInvoice = (title: string, lines: PInvoiceLine[], instIds: number[], includesCo: boolean) => {
-    const id = nextId.current++;
-    const seq = invoices.length + 1;
-    const inv: PInvoice = {
-      id,
-      number: `PI-${summary.project.id}-${String(seq).padStart(3, "0")}`,
-      title,
-      status: "draft",
-      issueDate: "Jul 15, 2026",
-      lines,
-      payments: [],
-    };
-    setInvoices((v) => [inv, ...v]);
-    setInstallments((v) => v.map((x) => (instIds.includes(x.id) ? { ...x, invoiceId: id } : x)));
-    if (includesCo) setCoBilledOnInvoiceId(id);
-    setBuilderOpen(false);
-    setDetailId(id);
-    toast.success(`${inv.number} created as draft`);
+  const openBuilder = async () => {
+    setBuilderOpen(true);
+    setBillables(null);
+    try {
+      setBillables(await getBillables(projectId));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load billable items");
+    }
   };
 
-  const mutateInvoice = (id: number, fn: (inv: PInvoice) => PInvoice) =>
-    setInvoices((v) => v.map((i) => (i.id === id ? fn(i) : i)));
-
-  const sendInvoice = (id: number) => {
-    mutateInvoice(id, (i) => ({ ...i, status: "sent" }));
-    toast.success("Invoice sent — PDF emailed to the client (sample)");
-  };
-  const recordPayment = (id: number, amountCents: number) => {
-    mutateInvoice(id, (i) => {
-      const payments = [...i.payments, { date: "Jul 15, 2026", amountCents, reference: "Manual entry" }];
-      const paid = payments.reduce((s, p) => s + p.amountCents, 0);
-      return { ...i, payments, status: paid >= invTotal(i) ? "paid" : "partially_paid" };
-    });
-    toast.success("Payment recorded — a linked row lands in Cash Flow (sample)");
-  };
-  const voidInvoice = (id: number) => {
-    mutateInvoice(id, (i) => ({ ...i, status: "void" }));
-    setInstallments((v) => v.map((x) => (x.invoiceId === id ? { ...x, invoiceId: null } : x)));
-    if (coBilledOnInvoiceId === id) setCoBilledOnInvoiceId(null);
-    toast.success("Invoice voided — linked installments released");
+  const doCreate = async (title: string, lines: CreateInvoiceLineInput[]) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const created = await createProjectInvoice(projectId, { title, lines });
+      setBuilderOpen(false);
+      setBillables(null);
+      await load();
+      setDetail(created);
+      toast.success(`${created.invoice_number} created as draft`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create invoice");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const detail = detailId != null ? invoices.find((i) => i.id === detailId) : undefined;
+  // Bill a single due installment straight from its schedule row.
+  const invoiceInstallment = (inst: PaymentInstallment) =>
+    doCreate(inst.label, [
+      {
+        description: `${inst.label} — per payment schedule`,
+        amount_cents: inst.resolved_amount_cents,
+        source_type: "installment",
+        source_id: inst.id,
+      },
+    ]);
+
+  const doSend = async (id: number) => {
+    try {
+      const updated = await sendProjectInvoice(projectId, id);
+      setDetail(updated);
+      await load();
+      toast.success("Invoice sent to client");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to send invoice");
+    }
+  };
+
+  const doRecordPayment = async (id: number, amountCents: number) => {
+    try {
+      const updated = await recordInvoicePayment(projectId, id, { amount_cents: amountCents, received_on: isoToday() });
+      setDetail(updated);
+      await load();
+      toast.success("Payment recorded — a linked row lands in Cash Flow");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to record payment");
+    }
+  };
+
+  const doVoid = async (id: number) => {
+    const inv = detail;
+    if (inv && inv.paid_cents > 0 && !window.confirm(
+      `This invoice has ${formatUSD(inv.paid_cents)} in recorded payments. Voiding it keeps those payments in Cash Flow but drops the invoice from receivables totals. Void anyway?`,
+    )) {
+      return;
+    }
+    try {
+      const updated = await voidProjectInvoice(projectId, id);
+      setDetail(updated);
+      await load();
+      toast.success("Invoice voided — linked installments released");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to void invoice");
+    }
+  };
+
+  const saveSchedule = async (installments: InstallmentInput[]) => {
+    try {
+      const next = await putPaymentSchedule(projectId, installments);
+      setSchedule(next);
+      setScheduleEditorOpen(false);
+      toast.success("Payment schedule saved");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save payment schedule");
+    }
+  };
+
+  const totalScheduled = schedule.reduce((s, i) => s + i.resolved_amount_cents, 0);
 
   return (
     <div className="flex flex-col gap-6">
-      <SampleBanner>
-        Interactive preview (local state, resets on reload). This is the <strong>client lane</strong>: the agreed payment
-        schedule, the project invoices issued against it, and receipts. Vendor-side money lives on Payables; the two lanes
-        meet on Cash Flow. Completely separate from monthly invoices.
-      </SampleBanner>
+      <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs text-gray-600">
+        This is the <strong>client lane</strong>: the agreed payment schedule, the project invoices issued against it, and
+        receipts. Vendor-side money lives on Payables; the two lanes meet on Cash Flow. Completely separate from monthly invoices.
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         <KpiCard label="Billed to Client" value={formatUSD(billed)} subtitle={`${budget ? Math.round((billed / budget) * 100) : 0}% of budget`} accent="navy" />
@@ -1929,72 +1434,85 @@ function InvoicingTab({ summary }: { summary: ProjectSummary }) {
 
       <Card
         title="Client Payment Schedule"
-        action={<span className="text-xs text-gray-400">The agreed plan for when the client pays what</span>}
+        action={
+          <button
+            onClick={() => setScheduleEditorOpen(true)}
+            disabled={cancelled}
+            className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Edit schedule
+          </button>
+        }
       >
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <Th>Installment</Th><Th>Basis</Th><Th right>Amount</Th><Th>Trigger</Th><Th>Status</Th><Th right>{""}</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {installments.map((inst) => {
-                const meta = instStatus(inst);
-                const linked = inst.invoiceId != null ? invoices.find((i) => i.id === inst.invoiceId) : undefined;
-                return (
-                  <tr key={inst.id} className="hover:bg-gray-50">
-                    <td className="py-3 pr-4 font-medium text-gray-900">{inst.label}</td>
-                    <td className="py-3 pr-4 text-gray-500">{inst.basisLabel}</td>
-                    <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(inst.amountCents)}</td>
-                    <td className="py-3 pr-4 text-gray-500">{inst.trigger}</td>
-                    <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
-                    <td className="py-3 text-right">
-                      {inst.invoiceId == null && inst.triggerMet ? (
-                        <button
-                          onClick={() =>
-                            createInvoice(
-                              inst.label,
-                              [{ description: `${inst.label} — per payment schedule`, amountCents: inst.amountCents, sourceType: "installment" }],
-                              [inst.id],
-                              false,
-                            )
-                          }
-                          className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]"
-                        >
-                          Invoice now
-                        </button>
-                      ) : linked ? (
-                        <button onClick={() => setDetailId(linked.id)} className="text-xs font-medium text-blue-600 hover:underline">
-                          {linked.number}
-                        </button>
-                      ) : null}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-gray-200 font-semibold text-gray-900">
-                <td className="py-3 pr-4" colSpan={2}>Total scheduled</td>
-                <td className="py-3 pr-4 text-right tabular-nums">{formatUSD(installments.reduce((s, i) => s + i.amountCents, 0))}</td>
-                <td colSpan={3} />
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        {loading ? (
+          <p className="text-sm text-gray-500">Loading…</p>
+        ) : schedule.length === 0 ? (
+          <p className="text-sm text-gray-500">No payment schedule defined yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <Th>Installment</Th><Th>Basis</Th><Th right>Amount</Th><Th>Trigger</Th><Th>Status</Th><Th right>{""}</Th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {schedule.map((inst) => {
+                  const meta = INSTALLMENT_STATUS_META[inst.status];
+                  return (
+                    <tr key={inst.id} className="hover:bg-gray-50">
+                      <td className="py-3 pr-4 font-medium text-gray-900">{inst.label}</td>
+                      <td className="py-3 pr-4 text-gray-500">{installmentBasisLabel(inst)}</td>
+                      <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(inst.resolved_amount_cents)}</td>
+                      <td className="py-3 pr-4 text-gray-500">{installmentTrigger(inst)}</td>
+                      <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
+                      <td className="py-3 text-right">
+                        {inst.status === "due" && !cancelled ? (
+                          <button
+                            onClick={() => invoiceInstallment(inst)}
+                            disabled={busy}
+                            className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
+                          >
+                            Invoice now
+                          </button>
+                        ) : inst.project_invoice_id != null ? (
+                          <button onClick={() => openDetail(inst.project_invoice_id!)} className="text-xs font-medium text-blue-600 hover:underline">
+                            {inst.invoice_number ?? "View"}
+                          </button>
+                        ) : null}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-gray-200 font-semibold text-gray-900">
+                  <td className="py-3 pr-4" colSpan={2}>Total scheduled</td>
+                  <td className="py-3 pr-4 text-right tabular-nums">{formatUSD(totalScheduled)}</td>
+                  <td colSpan={3} />
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
       </Card>
 
       <Card
         title="Project Invoices"
         action={
-          <button onClick={() => setBuilderOpen(true)} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">
+          <button
+            onClick={openBuilder}
+            disabled={cancelled}
+            className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
+          >
             + New invoice
           </button>
         }
       >
-        {invoices.length === 0 ? (
-          <p className="text-sm text-gray-500">No project invoices yet.</p>
+        {loading ? (
+          <p className="text-sm text-gray-500">Loading…</p>
+        ) : invoices.length === 0 ? (
+          <p className="text-sm text-gray-500">No project invoices yet. Bill a due installment above, or start a new invoice.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -2007,12 +1525,12 @@ function InvoicingTab({ summary }: { summary: ProjectSummary }) {
                 {invoices.map((inv) => {
                   const meta = P_INVOICE_STATUS_META[inv.status];
                   return (
-                    <tr key={inv.id} onClick={() => setDetailId(inv.id)} className="cursor-pointer hover:bg-gray-50">
-                      <td className="py-3 pr-4 font-medium text-blue-600">{inv.number}</td>
+                    <tr key={inv.id} onClick={() => openDetail(inv.id)} className="cursor-pointer hover:bg-gray-50">
+                      <td className="py-3 pr-4 font-medium text-blue-600">{inv.invoice_number}</td>
                       <td className="py-3 pr-4 text-gray-900">{inv.title}</td>
-                      <td className="py-3 pr-4 text-gray-500">{inv.issueDate}</td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(invTotal(inv))}</td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-700">{paidCents(inv) > 0 ? formatUSD(paidCents(inv)) : "—"}</td>
+                      <td className="py-3 pr-4 text-gray-500">{fmtProjDate(inv.issue_date)}</td>
+                      <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(inv.total_amount_cents)}</td>
+                      <td className="py-3 pr-4 text-right tabular-nums text-gray-700">{inv.paid_cents > 0 ? formatUSD(inv.paid_cents) : "—"}</td>
                       <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
                     </tr>
                   );
@@ -2025,21 +1543,29 @@ function InvoicingTab({ summary }: { summary: ProjectSummary }) {
 
       {builderOpen && (
         <ProjectInvoiceBuilderModal
-          installments={installments.filter((i) => i.invoiceId == null)}
-          coAvailable={coBilledOnInvoiceId == null}
-          unreimbursedCents={0 /* sample: all fronted costs already billed (spent − billed ≤ 0) */}
-          onCreate={createInvoice}
-          onClose={() => setBuilderOpen(false)}
+          billables={billables}
+          busy={busy}
+          onCreate={doCreate}
+          onClose={() => {
+            setBuilderOpen(false);
+            setBillables(null);
+          }}
         />
       )}
       {detail && (
         <ProjectInvoiceDetailModal
           invoice={detail}
-          totalCents={invTotal(detail)}
-          onSend={() => sendInvoice(detail.id)}
-          onRecordPayment={(cents) => recordPayment(detail.id, cents)}
-          onVoid={() => voidInvoice(detail.id)}
-          onClose={() => setDetailId(null)}
+          onSend={() => doSend(detail.id)}
+          onRecordPayment={(cents) => doRecordPayment(detail.id, cents)}
+          onVoid={() => doVoid(detail.id)}
+          onClose={() => setDetail(null)}
+        />
+      )}
+      {scheduleEditorOpen && (
+        <ProjectScheduleEditorModal
+          schedule={schedule}
+          onSave={saveSchedule}
+          onClose={() => setScheduleEditorOpen(false)}
         />
       )}
     </div>
@@ -2047,52 +1573,77 @@ function InvoicingTab({ summary }: { summary: ProjectSummary }) {
 }
 
 function ProjectInvoiceBuilderModal({
-  installments,
-  coAvailable,
-  unreimbursedCents,
+  billables,
+  busy,
   onCreate,
   onClose,
 }: {
-  installments: PInstallment[];
-  coAvailable: boolean;
-  unreimbursedCents: number;
-  onCreate: (title: string, lines: PInvoiceLine[], instIds: number[], includesCo: boolean) => void;
+  billables: Billables | null;
+  busy: boolean;
+  onCreate: (title: string, lines: CreateInvoiceLineInput[]) => void;
   onClose: () => void;
 }) {
-  // Due installments come pre-checked — they're what the builder exists to bill.
-  const [selected, setSelected] = useState<number[]>(installments.filter((i) => i.triggerMet).map((i) => i.id));
-  const [includeCo, setIncludeCo] = useState(false);
+  const installments = billables?.installments_due ?? [];
+  const changeOrders = billables?.change_orders_unbilled ?? [];
+  const unreimbursedCents = billables?.unreimbursed_spend_cents ?? 0;
+
+  const [selectedInst, setSelectedInst] = useState<number[]>([]);
+  const [selectedCo, setSelectedCo] = useState<number[]>([]);
   const [includeCosts, setIncludeCosts] = useState(false);
   const [manual, setManual] = useState<{ key: number; description: string; amount: string }[]>([]);
   const [title, setTitle] = useState("");
+  const [primed, setPrimed] = useState(false);
   const manualSeq = useRef(-1);
 
-  const toggle = (id: number) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  // Pre-check all due installments once billables arrive — they're what the
+  // builder exists to bill.
+  useEffect(() => {
+    if (billables && !primed) {
+      setSelectedInst(billables.installments_due.map((i) => i.id));
+      setPrimed(true);
+    }
+  }, [billables, primed]);
+
+  const toggle = (id: number, list: number[], set: (v: number[]) => void) =>
+    set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+
   const manualCents = manual.reduce((s, m) => s + Math.round((Number(m.amount) || 0) * 100), 0);
   const total =
-    installments.filter((i) => selected.includes(i.id)).reduce((s, i) => s + i.amountCents, 0) +
-    (includeCo ? SAMPLE_UNBILLED_CO.amountCents : 0) +
+    installments.filter((i) => selectedInst.includes(i.id)).reduce((s, i) => s + i.resolved_amount_cents, 0) +
+    changeOrders.filter((c) => selectedCo.includes(c.id)).reduce((s, c) => s + c.amount_cents, 0) +
     (includeCosts ? unreimbursedCents : 0) +
     manualCents;
 
   const create = () => {
-    const lines: PInvoiceLine[] = [
+    const lines: CreateInvoiceLineInput[] = [
       ...installments
-        .filter((i) => selected.includes(i.id))
-        .map((i): PInvoiceLine => ({ description: `${i.label} — per payment schedule`, amountCents: i.amountCents, sourceType: "installment" })),
-      ...(includeCo ? [{ description: SAMPLE_UNBILLED_CO.label, amountCents: SAMPLE_UNBILLED_CO.amountCents, sourceType: "change_order" as const }] : []),
+        .filter((i) => selectedInst.includes(i.id))
+        .map((i): CreateInvoiceLineInput => ({
+          description: `${i.label} — per payment schedule`,
+          amount_cents: i.resolved_amount_cents,
+          source_type: "installment",
+          source_id: i.id,
+        })),
+      ...changeOrders
+        .filter((c) => selectedCo.includes(c.id))
+        .map((c): CreateInvoiceLineInput => ({
+          description: `${c.co_number} · ${c.description}`,
+          amount_cents: c.amount_cents,
+          source_type: "change_order",
+          source_id: c.id,
+        })),
       ...(includeCosts && unreimbursedCents > 0
-        ? [{ description: "Unreimbursed project costs to date", amountCents: unreimbursedCents, sourceType: "cost_reimbursement" as const }]
+        ? [{ description: "Unreimbursed project costs to date", amount_cents: unreimbursedCents, source_type: "cost_reimbursement" as const }]
         : []),
       ...manual
         .filter((m) => m.description.trim() && Number(m.amount))
-        .map((m): PInvoiceLine => ({ description: m.description.trim(), amountCents: Math.round(Number(m.amount) * 100), sourceType: "manual" })),
+        .map((m): CreateInvoiceLineInput => ({ description: m.description.trim(), amount_cents: Math.round(Number(m.amount) * 100), source_type: "manual" })),
     ];
     if (lines.length === 0) {
       toast.error("Add at least one line");
       return;
     }
-    onCreate(title.trim() || "Project invoice", lines, selected, includeCo);
+    onCreate(title.trim() || "Project invoice", lines);
   };
 
   const rowCls = "flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5";
@@ -2106,128 +1657,131 @@ function ProjectInvoiceBuilderModal({
       footer={
         <>
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-          <button onClick={create} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]">
-            Create draft{total > 0 ? ` — ${formatUSD(total)}` : ""}
+          <button onClick={create} disabled={busy} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
+            Create draft{total !== 0 ? ` — ${formatUSD(total)}` : ""}
           </button>
         </>
       }
     >
-      <div className="flex flex-col gap-5">
-        <div>
-          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Title</label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Masonry milestone billing"
-            className="mt-1 w-full rounded-md border border-[#DADADA] px-3 py-2 text-sm focus:border-[#013764] focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">From the payment schedule</div>
-          <div className="flex flex-col gap-2">
-            {installments.length === 0 && <p className="text-sm text-gray-500">All installments are invoiced.</p>}
-            {installments.map((i) => (
-              <label key={i.id} className={`${rowCls} cursor-pointer ${selected.includes(i.id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
-                <span className="flex items-center gap-2.5 text-sm text-gray-900">
-                  <input type="checkbox" className={checkCls} checked={selected.includes(i.id)} onChange={() => toggle(i.id)} />
-                  {i.label}
-                  {i.triggerMet && <Pill label="Due now" text="#B45309" bg="#FCF2E1" />}
-                </span>
-                <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(i.amountCents)}</span>
-              </label>
-            ))}
+      {!billables ? (
+        <p className="py-6 text-center text-sm text-gray-500">Loading billable items…</p>
+      ) : (
+        <div className="flex flex-col gap-5">
+          <div>
+            <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Title</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Masonry milestone billing"
+              className="mt-1 w-full rounded-md border border-[#DADADA] px-3 py-2 text-sm focus:border-[#013764] focus:outline-none"
+            />
           </div>
-        </div>
 
-        <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Other billable items</div>
-          <div className="flex flex-col gap-2">
-            {coAvailable && (
-              <label className={`${rowCls} cursor-pointer ${includeCo ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
-                <span className="flex items-center gap-2.5 text-sm text-gray-900">
-                  <input type="checkbox" className={checkCls} checked={includeCo} onChange={() => setIncludeCo((v) => !v)} />
-                  {SAMPLE_UNBILLED_CO.label}
-                </span>
-                <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(SAMPLE_UNBILLED_CO.amountCents)}</span>
-              </label>
-            )}
-            <label className={`${rowCls} ${unreimbursedCents > 0 ? "cursor-pointer" : "opacity-60"}`}>
-              <span className="flex items-center gap-2.5 text-sm text-gray-900">
-                <input
-                  type="checkbox"
-                  className={checkCls}
-                  disabled={unreimbursedCents === 0}
-                  checked={includeCosts}
-                  onChange={() => setIncludeCosts((v) => !v)}
-                />
-                Unreimbursed costs to date
-                {unreimbursedCents === 0 && <span className="text-xs text-gray-400">(all fronted costs already billed)</span>}
-              </span>
-              <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(unreimbursedCents)}</span>
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Manual lines</span>
-            <button
-              onClick={() => setManual((m) => [...m, { key: manualSeq.current--, description: "", amount: "" }])}
-              className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-            >
-              + Add line
-            </button>
-          </div>
-          {manual.length === 0 ? (
-            <p className="text-xs text-gray-400">Freeform charges or credits (negative amounts allowed).</p>
-          ) : (
+          <div>
+            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">From the payment schedule</div>
             <div className="flex flex-col gap-2">
-              {manual.map((m) => (
-                <div key={m.key} className="flex items-center gap-2">
-                  <input
-                    value={m.description}
-                    placeholder="Description"
-                    onChange={(e) => setManual((v) => v.map((x) => (x.key === m.key ? { ...x, description: e.target.value } : x)))}
-                    className="flex-1 rounded-md border border-[#DADADA] px-2 py-1.5 text-sm focus:border-[#013764] focus:outline-none"
-                  />
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-400">$</span>
-                    <input
-                      type="number"
-                      value={m.amount}
-                      placeholder="0.00"
-                      onChange={(e) => setManual((v) => v.map((x) => (x.key === m.key ? { ...x, amount: e.target.value } : x)))}
-                      className="w-28 rounded-md border border-[#DADADA] px-2 py-1.5 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
-                    />
-                  </div>
-                  <button onClick={() => setManual((v) => v.filter((x) => x.key !== m.key))} aria-label="Remove line" className="px-1 text-gray-400 hover:text-red-600">✕</button>
-                </div>
+              {installments.length === 0 && <p className="text-sm text-gray-500">No installments are due.</p>}
+              {installments.map((i) => (
+                <label key={i.id} className={`${rowCls} cursor-pointer ${selectedInst.includes(i.id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
+                  <span className="flex items-center gap-2.5 text-sm text-gray-900">
+                    <input type="checkbox" className={checkCls} checked={selectedInst.includes(i.id)} onChange={() => toggle(i.id, selectedInst, setSelectedInst)} />
+                    {i.label}
+                    <Pill label="Due now" text="#B45309" bg="#FCF2E1" />
+                  </span>
+                  <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(i.resolved_amount_cents)}</span>
+                </label>
               ))}
             </div>
-          )}
+          </div>
+
+          <div>
+            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Other billable items</div>
+            <div className="flex flex-col gap-2">
+              {changeOrders.map((c) => (
+                <label key={c.id} className={`${rowCls} cursor-pointer ${selectedCo.includes(c.id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
+                  <span className="flex items-center gap-2.5 text-sm text-gray-900">
+                    <input type="checkbox" className={checkCls} checked={selectedCo.includes(c.id)} onChange={() => toggle(c.id, selectedCo, setSelectedCo)} />
+                    {c.co_number} · {c.description}
+                  </span>
+                  <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(c.amount_cents)}</span>
+                </label>
+              ))}
+              <label className={`${rowCls} ${unreimbursedCents > 0 ? "cursor-pointer" : "opacity-60"}`}>
+                <span className="flex items-center gap-2.5 text-sm text-gray-900">
+                  <input
+                    type="checkbox"
+                    className={checkCls}
+                    disabled={unreimbursedCents === 0}
+                    checked={includeCosts}
+                    onChange={() => setIncludeCosts((v) => !v)}
+                  />
+                  Unreimbursed costs to date
+                  {unreimbursedCents === 0 && <span className="text-xs text-gray-400">(all fronted costs already billed)</span>}
+                </span>
+                <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(unreimbursedCents)}</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Manual lines</span>
+              <button
+                onClick={() => setManual((m) => [...m, { key: manualSeq.current--, description: "", amount: "" }])}
+                className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              >
+                + Add line
+              </button>
+            </div>
+            {manual.length === 0 ? (
+              <p className="text-xs text-gray-400">Freeform charges or credits (negative amounts allowed).</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {manual.map((m) => (
+                  <div key={m.key} className="flex items-center gap-2">
+                    <input
+                      value={m.description}
+                      placeholder="Description"
+                      onChange={(e) => setManual((v) => v.map((x) => (x.key === m.key ? { ...x, description: e.target.value } : x)))}
+                      className="flex-1 rounded-md border border-[#DADADA] px-2 py-1.5 text-sm focus:border-[#013764] focus:outline-none"
+                    />
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-400">$</span>
+                      <input
+                        type="number"
+                        value={m.amount}
+                        placeholder="0.00"
+                        onChange={(e) => setManual((v) => v.map((x) => (x.key === m.key ? { ...x, amount: e.target.value } : x)))}
+                        className="w-28 rounded-md border border-[#DADADA] px-2 py-1.5 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
+                      />
+                    </div>
+                    <button onClick={() => setManual((v) => v.filter((x) => x.key !== m.key))} aria-label="Remove line" className="px-1 text-gray-400 hover:text-red-600">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </ModalShell>
   );
 }
 
 function ProjectInvoiceDetailModal({
   invoice,
-  totalCents,
   onSend,
   onRecordPayment,
   onVoid,
   onClose,
 }: {
-  invoice: PInvoice;
-  totalCents: number;
+  invoice: ProjectInvoice;
   onSend: () => void;
   onRecordPayment: (cents: number) => void;
   onVoid: () => void;
   onClose: () => void;
 }) {
-  const paid = paidCents(invoice);
+  const totalCents = invoice.total_amount_cents;
+  const paid = invoice.paid_cents;
   const remaining = Math.max(0, totalCents - paid);
   const [payAmount, setPayAmount] = useState(String(remaining / 100));
   const meta = P_INVOICE_STATUS_META[invoice.status];
@@ -2235,7 +1789,7 @@ function ProjectInvoiceDetailModal({
 
   return (
     <ModalShell
-      title={`${invoice.number} · ${invoice.title}`}
+      title={`${invoice.invoice_number} · ${invoice.title}`}
       onClose={onClose}
       maxWidth="max-w-2xl"
       footer={
@@ -2282,20 +1836,20 @@ function ProjectInvoiceDetailModal({
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
           <Pill label={meta.label} text={meta.text} bg={meta.bg} />
-          <span>Issued {invoice.issueDate}</span>
-          {invoice.dueDate && <span>Due {invoice.dueDate}</span>}
+          <span>Issued {fmtProjDate(invoice.issue_date)}</span>
+          {invoice.due_date && <span>Due {fmtProjDate(invoice.due_date)}</span>}
           <span className="ml-auto font-semibold tabular-nums text-gray-900">{formatUSD(totalCents)}</span>
         </div>
 
         <div>
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Lines</div>
           <div className="flex flex-col divide-y divide-gray-100 rounded-lg border border-gray-200">
-            {invoice.lines.map((l, i) => (
-              <div key={i} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
+            {invoice.lines.map((l: ProjectInvoiceLine) => (
+              <div key={l.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
                 <span className="text-gray-900">{l.description}</span>
                 <span className="flex shrink-0 items-center gap-2">
-                  <span className="text-[11px] uppercase tracking-wide text-gray-400">{l.sourceType.replace("_", " ")}</span>
-                  <span className="font-medium tabular-nums text-gray-900">{formatUSD(l.amountCents)}</span>
+                  <span className="text-[11px] uppercase tracking-wide text-gray-400">{l.source_type.replace(/_/g, " ")}</span>
+                  <span className="font-medium tabular-nums text-gray-900">{formatUSD(l.amount_cents)}</span>
                 </span>
               </div>
             ))}
@@ -2308,13 +1862,14 @@ function ProjectInvoiceDetailModal({
             <p className="text-sm text-gray-500">No payments yet.</p>
           ) : (
             <div className="flex flex-col divide-y divide-gray-100 rounded-lg border border-gray-200">
-              {invoice.payments.map((p, i) => (
-                <div key={i} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
+              {invoice.payments.map((p) => (
+                <div key={p.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
                   <span className="text-gray-700">
-                    {p.date} · {p.reference}
-                    {p.viaQbo && <span className="ml-2 rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700">auto-reconciled via QBO</span>}
+                    {fmtProjDate(p.received_on)}
+                    {p.reference ? ` · ${p.reference}` : ""}
+                    {p.via_qbo && <span className="ml-2 rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700">auto-reconciled via QBO</span>}
                   </span>
-                  <span className="font-medium tabular-nums text-green-700">{formatUSD(p.amountCents)}</span>
+                  <span className="font-medium tabular-nums text-green-700">{formatUSD(p.amount_cents)}</span>
                 </div>
               ))}
             </div>
@@ -2328,6 +1883,181 @@ function ProjectInvoiceDetailModal({
           Payments recorded here also create a linked row in the project's Cash Flow ledger. Project invoices never touch the
           monthly invoice flow.
         </p>
+      </div>
+    </ModalShell>
+  );
+}
+
+interface ScheduleRowDraft {
+  key: number;
+  id?: number;
+  label: string;
+  basis: InstallmentBasis;
+  percentPct: string; // percent basis, as whole/decimal percent (10 = 10%)
+  amountDollars: string; // fixed basis, dollars
+  dueDate: string; // "YYYY-MM-DD" or ""
+  locked: boolean; // invoiced — money/basis read-only, cannot remove
+}
+
+// Editor for the client payment schedule (full-replace PUT). Invoiced (locked)
+// installments are shown read-only and always re-submitted so the backend won't
+// reject the replace. Percent installments are entered as a percent of the
+// current budget; fixed installments as a dollar amount.
+function ProjectScheduleEditorModal({
+  schedule,
+  onSave,
+  onClose,
+}: {
+  schedule: PaymentInstallment[];
+  onSave: (installments: InstallmentInput[]) => void;
+  onClose: () => void;
+}) {
+  const seq = useRef(-1);
+  const [rows, setRows] = useState<ScheduleRowDraft[]>(() =>
+    schedule.map((s) => ({
+      key: s.id,
+      id: s.id,
+      label: s.label,
+      basis: s.basis,
+      percentPct: s.percent_bps != null ? String(s.percent_bps / 100) : "",
+      amountDollars: s.amount_cents != null ? String(s.amount_cents / 100) : "",
+      dueDate: s.due_date ?? "",
+      locked: s.status === "invoiced" || s.status === "paid",
+    })),
+  );
+
+  const update = (key: number, patch: Partial<ScheduleRowDraft>) =>
+    setRows((v) => v.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+  const addRow = () =>
+    setRows((v) => [
+      ...v,
+      { key: seq.current--, label: "", basis: "fixed", percentPct: "", amountDollars: "", dueDate: "", locked: false },
+    ]);
+  const removeRow = (key: number) => setRows((v) => v.filter((r) => r.key !== key));
+
+  const save = () => {
+    const out: InstallmentInput[] = [];
+    for (const r of rows) {
+      if (r.locked) {
+        // Re-submit unchanged (backend keeps money/basis; only order may shift).
+        out.push({ id: r.id, label: r.label, basis: r.basis });
+        continue;
+      }
+      if (!r.label.trim()) {
+        toast.error("Each installment needs a label");
+        return;
+      }
+      if (r.basis === "percent") {
+        const pct = Number(r.percentPct);
+        if (!(pct >= 0 && pct <= 100)) {
+          toast.error(`"${r.label}": percent must be between 0 and 100`);
+          return;
+        }
+        out.push({
+          id: r.id,
+          label: r.label.trim(),
+          basis: "percent",
+          percent_bps: Math.round(pct * 100),
+          due_date: r.dueDate || null,
+        });
+      } else {
+        const amt = Number(r.amountDollars);
+        if (!(amt >= 0)) {
+          toast.error(`"${r.label}": amount must be a positive number`);
+          return;
+        }
+        out.push({
+          id: r.id,
+          label: r.label.trim(),
+          basis: "fixed",
+          amount_cents: Math.round(amt * 100),
+          due_date: r.dueDate || null,
+        });
+      }
+    }
+    onSave(out);
+  };
+
+  const inputCls = "rounded-md border border-[#DADADA] px-2 py-1.5 text-sm focus:border-[#013764] focus:outline-none";
+
+  return (
+    <ModalShell
+      title="Edit payment schedule"
+      onClose={onClose}
+      maxWidth="max-w-3xl"
+      footer={
+        <>
+          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button onClick={save} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]">Save schedule</button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <p className="text-xs text-gray-500">
+          Installments drive project invoicing. A <strong>percent</strong> installment bills a share of the current budget; a{" "}
+          <strong>fixed</strong> installment bills a set amount. Invoiced installments are locked.
+        </p>
+        {rows.length === 0 && <p className="text-sm text-gray-500">No installments yet — add one below.</p>}
+        {rows.map((r) => (
+          <div key={r.key} className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2.5 ${r.locked ? "border-gray-200 bg-gray-50" : "border-gray-200"}`}>
+            <input
+              value={r.label}
+              disabled={r.locked}
+              placeholder="Label (e.g. Deposit)"
+              onChange={(e) => update(r.key, { label: e.target.value })}
+              className={`${inputCls} min-w-[10rem] flex-1 disabled:bg-transparent disabled:text-gray-500`}
+            />
+            <select
+              value={r.basis}
+              disabled={r.locked}
+              onChange={(e) => update(r.key, { basis: e.target.value as InstallmentBasis })}
+              className={`${inputCls} disabled:bg-transparent disabled:text-gray-500`}
+            >
+              <option value="fixed">Fixed $</option>
+              <option value="percent">% of budget</option>
+            </select>
+            {r.basis === "percent" ? (
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  value={r.percentPct}
+                  disabled={r.locked}
+                  placeholder="10"
+                  onChange={(e) => update(r.key, { percentPct: e.target.value })}
+                  className={`${inputCls} w-20 text-right tabular-nums disabled:bg-transparent disabled:text-gray-500`}
+                />
+                <span className="text-gray-400">%</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <span className="text-gray-400">$</span>
+                <input
+                  type="number"
+                  value={r.amountDollars}
+                  disabled={r.locked}
+                  placeholder="0.00"
+                  onChange={(e) => update(r.key, { amountDollars: e.target.value })}
+                  className={`${inputCls} w-28 text-right tabular-nums disabled:bg-transparent disabled:text-gray-500`}
+                />
+              </div>
+            )}
+            <input
+              type="date"
+              value={r.dueDate}
+              disabled={r.locked}
+              onChange={(e) => update(r.key, { dueDate: e.target.value })}
+              className={`${inputCls} disabled:bg-transparent disabled:text-gray-500`}
+            />
+            {r.locked ? (
+              <Pill label="Invoiced" text="#1D4ED8" bg="#E7EEFE" />
+            ) : (
+              <button onClick={() => removeRow(r.key)} aria-label="Remove installment" className="px-1 text-gray-400 hover:text-red-600">✕</button>
+            )}
+          </div>
+        ))}
+        <button onClick={addRow} className="self-start h-8 rounded-lg border border-[#DADADA] bg-white px-3 text-xs font-medium text-gray-700 hover:bg-gray-50">
+          + Add installment
+        </button>
       </div>
     </ModalShell>
   );
@@ -2416,91 +2146,67 @@ function CashLane({
 
 /* --------------------- vendor payment schedule (sample) --------------------- */
 
-interface VendorStage {
-  id: number;
-  vendor: string;
-  label: string;
-  amountCents: number;
-  trigger: string;
-  status: "paid" | "due" | "upcoming";
-  paidDate?: string;
-}
-
-// Reconciles with the Cash Flow sample: paid stages sum to $126,781.39 — the sample's
-// vendor outflows minus unscheduled misc (dumpster $1,650 + portapotty $750).
-const SAMPLE_VENDOR_STAGES: VendorStage[] = [
-  { id: 1, vendor: "Teixera Construction — Masonry", label: "Mobilization", amountCents: 2_850_000, trigger: "Contract signing", status: "paid", paidDate: "Mar 3, 2026" },
-  { id: 2, vendor: "Teixera Construction — Masonry", label: "Stone materials — 50% deposit", amountCents: 4_088_139, trigger: "Materials order", status: "paid", paidDate: "Mar 28, 2026" },
-  { id: 3, vendor: "Teixera Construction — Masonry", label: "Progress — masonry 50%", amountCents: 4_500_000, trigger: "Milestone: Construction Work", status: "paid", paidDate: "May 2, 2026" },
-  { id: 4, vendor: "Teixera Construction — Masonry", label: "Balance", amountCents: 8_203_111, trigger: "On masonry completion", status: "upcoming" },
-  { id: 5, vendor: "Frank Clark — Electrical", label: "30% deposit", amountCents: 1_393_500, trigger: "Work start — Jul 17, 2026", status: "due" },
-  { id: 6, vendor: "Frank Clark — Electrical", label: "Balance", amountCents: 3_251_500, trigger: "On electrical completion", status: "upcoming" },
-  { id: 7, vendor: "Guasco's Plumbing — Plumbing/Heat", label: "Rough-in deposit", amountCents: 1_240_000, trigger: "Rough-in start", status: "paid", paidDate: "Jun 5, 2026" },
-  { id: 8, vendor: "Guasco's Plumbing — Plumbing/Heat", label: "Balance", amountCents: 5_687_000, trigger: "On plumbing completion", status: "upcoming" },
-  { id: 9, vendor: "American Knight — A/V", label: "60% deposit", amountCents: 1_163_132, trigger: "On quote acceptance", status: "upcoming" },
-  { id: 10, vendor: "American Knight — A/V", label: "Balance", amountCents: 775_421, trigger: "On A/V completion", status: "upcoming" },
-];
-
-const VENDOR_STAGE_META: Record<VendorStage["status"], { label: string; text: string; bg: string }> = {
+const VENDOR_STAGE_META: Record<VendorPaymentStatus, { label: string; text: string; bg: string }> = {
+  scheduled: { label: "Scheduled", text: "#6B7280", bg: "#F3F4F6" },
   paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
-  due: { label: "Due now", text: "#B45309", bg: "#FCF2E1" },
-  upcoming: { label: "Upcoming", text: "#6B7280", bg: "#F3F4F6" },
 };
 
-function VendorScheduleCard() {
-  const [stages, setStages] = useState<VendorStage[]>(SAMPLE_VENDOR_STAGES);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<VendorStage[]>([]);
-  const seq = useRef(1000);
+// Real Payables-tab "Vendor Payment Schedules" (Part B / B1) — the forward plan
+// of what AVM pays each vendor, grouped by vendor. Add/edit/delete stages and
+// mark them paid; all persisted via /projects/{id}/vendor-payments.
+function VendorScheduleCard({ projectId }: { projectId: number }) {
+  const [stages, setStages] = useState<VendorPayment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<VendorPayment | null>(null); // stage being edited
+  const [creating, setCreating] = useState(false);
 
-  const rows = editing ? draft : stages;
-  const vendors = [...new Set(rows.map((s) => s.vendor))];
-  const committed = rows.reduce((s, x) => s + x.amountCents, 0);
-  const paid = rows.filter((s) => s.status === "paid").reduce((s, x) => s + x.amountCents, 0);
-  const dueNow = rows.filter((s) => s.status === "due").reduce((s, x) => s + x.amountCents, 0);
+  const load = useCallback(async () => {
+    try {
+      setStages(await listVendorPayments(projectId));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load vendor payments");
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const startEdit = () => {
-    setDraft(stages.map((s) => ({ ...s })));
-    setEditing(true);
-  };
-  const save = () => {
-    setStages(draft.filter((s) => s.label.trim()));
-    setEditing(false);
-    toast.success("Vendor payment schedules saved — due stages update Cash Flow's upcoming outflows");
-  };
-  const patch = (id: number, p: Partial<VendorStage>) =>
-    setDraft((d) => d.map((s) => (s.id === id ? { ...s, ...p } : s)));
-  const addStage = (vendor: string) =>
-    setDraft((d) => [...d, { id: seq.current++, vendor, label: "", amountCents: 0, trigger: "", status: "upcoming" }]);
-  const removeStage = (id: number) => setDraft((d) => d.filter((s) => s.id !== id));
-  const markPaid = (id: number) => {
-    setStages((v) => v.map((s) => (s.id === id ? { ...s, status: "paid", paidDate: "Jul 15, 2026" } : s)));
-    toast.success("Stage marked paid — in the real flow you'd link it to the bill payment");
-  };
+  const committed = stages.reduce((s, x) => s + x.amount_cents, 0);
+  const paid = stages.filter((s) => s.status === "paid").reduce((s, x) => s + x.amount_cents, 0);
+  const scheduledUnpaid = committed - paid;
+  const vendors = [...new Set(stages.map((s) => s.vendor_name || "(unnamed vendor)"))];
 
-  const fieldCls = "rounded-md border border-[#DADADA] px-2 py-1 text-sm focus:border-[#013764] focus:outline-none";
+  const markPaid = async (vp: VendorPayment) => {
+    try {
+      await updateVendorPayment(projectId, vp.id, { status: "paid", paid_on: new Date().toISOString().slice(0, 10) });
+      await load();
+      toast.success("Stage marked paid");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to mark paid");
+    }
+  };
+  const remove = async (vp: VendorPayment) => {
+    if (!window.confirm(`Delete "${vp.label || "this stage"}"?`)) return;
+    try {
+      await deleteVendorPayment(projectId, vp.id);
+      await load();
+      toast.success("Stage deleted");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to delete");
+    }
+  };
 
   return (
     <Card
       title="Vendor Payment Schedules"
       action={
-        editing ? (
-          <div className="flex items-center gap-2">
-            <button onClick={() => setEditing(false)} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-            <button onClick={save} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">Save changes</button>
-          </div>
-        ) : (
-          <button onClick={startEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit</button>
-        )
+        <button onClick={() => setCreating(true)} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">
+          + Add stage
+        </button>
       }
     >
-      <div className="mb-4">
-        <SampleBanner>
-          Each vendor's payment terms (deposits, progress stages, balance), seeded from their accepted quote and editable
-          until paid. Due stages surface as upcoming outflows on Cash Flow. Misc spend (dumpster, portapotty) isn't
-          scheduled — it shows only in actuals.
-        </SampleBanner>
-      </div>
       <div className="mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-lg bg-gray-50 px-4 py-3">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Committed to vendors</div>
@@ -2510,294 +2216,755 @@ function VendorScheduleCard() {
           <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Paid so far</div>
           <div className="mt-1 text-xl font-semibold tabular-nums text-gray-900">{formatUSD(paid)}</div>
         </div>
-        <div className={`rounded-lg px-4 py-3 ${dueNow > 0 ? "bg-amber-50" : "bg-gray-50"}`}>
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Due now</div>
-          <div className={`mt-1 text-xl font-semibold tabular-nums ${dueNow > 0 ? "text-amber-700" : "text-gray-900"}`}>{formatUSD(dueNow)}</div>
+        <div className={`rounded-lg px-4 py-3 ${scheduledUnpaid > 0 ? "bg-amber-50" : "bg-gray-50"}`}>
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Scheduled, unpaid</div>
+          <div className={`mt-1 text-xl font-semibold tabular-nums ${scheduledUnpaid > 0 ? "text-amber-700" : "text-gray-900"}`}>{formatUSD(scheduledUnpaid)}</div>
         </div>
       </div>
-      <div className="flex flex-col gap-5">
-        {vendors.map((v) => {
-          const vStages = rows.filter((s) => s.vendor === v);
-          const vTotal = vStages.reduce((s, x) => s + x.amountCents, 0);
-          return (
-            <div key={v}>
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium text-gray-900">{v}</span>
-                <span className="flex items-center gap-3">
+
+      {loading ? (
+        <p className="text-sm text-gray-500">Loading…</p>
+      ) : stages.length === 0 ? (
+        <p className="text-sm text-gray-500">No vendor payment stages yet. Add one to plan a vendor's deposits, progress, and balance.</p>
+      ) : (
+        <div className="flex flex-col gap-5">
+          {vendors.map((v) => {
+            const vStages = stages.filter((s) => (s.vendor_name || "(unnamed vendor)") === v);
+            const vTotal = vStages.reduce((s, x) => s + x.amount_cents, 0);
+            return (
+              <div key={v}>
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="font-medium text-gray-900">{v}</span>
                   <span className="tabular-nums text-gray-500">{formatUSD(vTotal)}</span>
-                  {editing && (
-                    <button onClick={() => addStage(v)} className="text-xs font-medium text-blue-600 hover:underline">
-                      + Stage
-                    </button>
-                  )}
-                </span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {vStages.map((s) => {
-                  const meta = VENDOR_STAGE_META[s.status];
-                  const locked = s.status === "paid";
-                  if (editing && !locked) {
+                </div>
+                <div className="flex flex-col gap-2">
+                  {vStages.map((s) => {
+                    const meta = VENDOR_STAGE_META[s.status];
                     return (
-                      <div key={s.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-[#013764]/30 bg-[#013764]/[0.02] px-3 py-2.5">
-                        <input
-                          aria-label="Stage label"
-                          value={s.label}
-                          placeholder="Stage (e.g. 30% deposit)"
-                          onChange={(e) => patch(s.id, { label: e.target.value })}
-                          className={`${fieldCls} min-w-[150px] flex-1`}
-                        />
-                        <input
-                          aria-label="Trigger"
-                          value={s.trigger}
-                          placeholder="Trigger (date, milestone, event)"
-                          onChange={(e) => patch(s.id, { trigger: e.target.value })}
-                          className={`${fieldCls} min-w-[170px] flex-1`}
-                        />
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400">$</span>
-                          <input
-                            type="number"
-                            aria-label="Amount in dollars"
-                            value={s.amountCents / 100}
-                            onChange={(e) => patch(s.id, { amountCents: Math.max(0, Math.round((Number(e.target.value) || 0) * 100)) })}
-                            className={`${fieldCls} w-28 text-right tabular-nums`}
-                          />
+                      <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5">
+                        <div className="min-w-0">
+                          <div className="truncate text-sm text-gray-900">{s.label || "(untitled stage)"}</div>
+                          <div className="text-xs text-gray-500">
+                            {s.status === "paid" && s.paid_on ? `Paid ${s.paid_on}` : s.notes || (s.due_date ? `Due ${s.due_date}` : "Scheduled")}
+                          </div>
                         </div>
-                        <select
-                          aria-label="Stage status"
-                          value={s.status}
-                          onChange={(e) => patch(s.id, { status: e.target.value as VendorStage["status"] })}
-                          className={fieldCls}
-                        >
-                          <option value="upcoming">Upcoming</option>
-                          <option value="due">Due now</option>
-                        </select>
-                        <button onClick={() => removeStage(s.id)} title="Remove stage" aria-label="Remove stage" className="px-1 text-gray-400 hover:text-red-600">✕</button>
+                        <div className="flex shrink-0 items-center gap-3">
+                          {s.status === "scheduled" && (
+                            <>
+                              <button onClick={() => markPaid(s)} className="text-xs font-medium text-green-700 hover:underline">Mark paid</button>
+                              <button onClick={() => setEditing(s)} className="text-xs font-medium text-blue-600 hover:underline">Edit</button>
+                            </>
+                          )}
+                          <button onClick={() => remove(s)} aria-label="Delete stage" className="text-xs text-gray-400 hover:text-red-600">✕</button>
+                          <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(s.amount_cents)}</span>
+                          <Pill label={meta.label} text={meta.text} bg={meta.bg} />
+                        </div>
                       </div>
                     );
-                  }
-                  return (
-                    <div key={s.id} className={`flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5 ${editing ? "opacity-70" : ""}`}>
-                      <div className="min-w-0">
-                        <div className="truncate text-sm text-gray-900">{s.label}</div>
-                        <div className="text-xs text-gray-500">
-                          {s.status === "paid" && s.paidDate ? `Paid ${s.paidDate}` : s.trigger}
-                          {editing && locked && <span className="ml-2 text-gray-400">🔒 paid — locked</span>}
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-3">
-                        {!editing && s.status === "due" && (
-                          <button onClick={() => markPaid(s.id)} className="text-xs font-medium text-green-700 hover:underline">
-                            Mark paid
-                          </button>
-                        )}
-                        <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(s.amountCents)}</span>
-                        <Pill label={meta.label} text={meta.text} bg={meta.bg} />
-                      </div>
-                    </div>
-                  );
-                })}
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-      {editing && (
-        <p className="mt-3 text-xs text-gray-400">
-          Paid stages are locked — they're history, tied to actual bill payments. New vendors appear here when their quote is
-          accepted on the Quotes tab.
-        </p>
+            );
+          })}
+        </div>
+      )}
+
+      {(creating || editing) && (
+        <VendorPaymentModal
+          projectId={projectId}
+          existing={editing}
+          onSaved={async () => {
+            setCreating(false);
+            setEditing(null);
+            await load();
+          }}
+          onClose={() => {
+            setCreating(false);
+            setEditing(null);
+          }}
+        />
       )}
     </Card>
   );
 }
 
-/* ------------------------------ quotes (sample) ----------------------------- */
+// VendorTypeahead: search the real vendor list (GET /vendors?search=) as you
+// type. Picking a result links vendor_id; typing a name that isn't picked keeps
+// vendor_id null (free-text fallback for vendors not yet in the system).
+function VendorTypeahead({ value, onChange }: { value: string; onChange: (name: string, vendorId: number | null) => void }) {
+  const [results, setResults] = useState<VendorLite[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
 
-interface PQuote {
-  id: number;
-  category: string;
-  vendor: string;
-  amountCents: number;
-  status: "received" | "shortlisted" | "accepted" | "rejected";
-  note?: string;
-  supersededNote?: string;
+  // Debounced search on the current value.
+  useEffect(() => {
+    if (!open) return;
+    const q = value.trim();
+    if (q.length < 2) {
+      setResults([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const r = await searchVendors(q, 8);
+        if (!cancelled) setResults(r);
+      } catch {
+        if (!cancelled) setResults([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [value, open]);
+
+  // Close the dropdown on outside click.
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const fieldCls = "mt-1 w-full rounded-md border border-[#DADADA] px-3 py-2 text-sm focus:border-[#013764] focus:outline-none";
+  return (
+    <div ref={boxRef} className="relative">
+      <input
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value, null); // typing = free-text until a result is picked
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        placeholder="Search vendors, or type a new name"
+        className={fieldCls}
+        autoComplete="off"
+      />
+      {open && value.trim().length >= 2 && (
+        <div className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+          {loading ? (
+            <div className="px-3 py-2 text-sm text-gray-400">Searching…</div>
+          ) : results.length === 0 ? (
+            <div className="px-3 py-2 text-sm text-gray-400">No match — “{value.trim()}” will be saved as a new name.</div>
+          ) : (
+            results.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => {
+                  onChange(v.name, v.id);
+                  setOpen(false);
+                }}
+                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50"
+              >
+                <span className="text-gray-900">{v.name}</span>
+                {v.category && <span className="shrink-0 text-[11px] text-gray-400">{v.category}</span>}
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
-const SAMPLE_QUOTES: PQuote[] = [
-  { id: 1, category: "Frank Clark - Electrical", vendor: "Frank Clark", amountCents: 4_645_000, status: "accepted", note: "Rev 2 — added exterior outlets", supersededNote: "Supersedes Rev 1 ($49,200)" },
-  { id: 2, category: "Frank Clark - Electrical", vendor: "Nutmeg Electric", amountCents: 5_210_000, status: "rejected" },
-  { id: 3, category: "Frank Clark - Electrical", vendor: "Greenwich Electric Co", amountCents: 4_890_000, status: "rejected" },
-  { id: 4, category: "American Knight - A/V", vendor: "American Knight", amountCents: 1_938_553, status: "shortlisted", note: "60% deposit terms" },
-  { id: 5, category: "American Knight - A/V", vendor: "Sound & Vision CT", amountCents: 2_200_000, status: "received" },
-];
+function VendorPaymentModal({
+  projectId,
+  existing,
+  onSaved,
+  onClose,
+}: {
+  projectId: number;
+  existing: VendorPayment | null;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const [vendorName, setVendorName] = useState(existing?.vendor_name ?? "");
+  const [vendorId, setVendorId] = useState<number | null>(existing?.vendor_id ?? null);
+  const [label, setLabel] = useState(existing?.label ?? "");
+  const [amount, setAmount] = useState(existing ? String(existing.amount_cents / 100) : "");
+  const [notes, setNotes] = useState(existing?.notes ?? "");
+  const [dueDate, setDueDate] = useState(existing?.due_date ?? "");
+  const [busy, setBusy] = useState(false);
 
-const QUOTE_STATUS_META: Record<PQuote["status"], { label: string; text: string; bg: string }> = {
+  const save = async () => {
+    if (!vendorName.trim()) {
+      toast.error("Vendor name is required");
+      return;
+    }
+    const amountCents = Math.max(0, Math.round((Number(amount) || 0) * 100));
+    setBusy(true);
+    try {
+      if (existing) {
+        await updateVendorPayment(projectId, existing.id, {
+          vendor_name: vendorName.trim(),
+          vendor_id: vendorId,
+          label: label.trim(),
+          amount_cents: amountCents,
+          notes: notes.trim(),
+          due_date: dueDate || null,
+        });
+        toast.success("Stage updated");
+      } else {
+        await createVendorPayment(projectId, {
+          vendor_name: vendorName.trim(),
+          vendor_id: vendorId,
+          label: label.trim(),
+          amount_cents: amountCents,
+          notes: notes.trim(),
+          due_date: dueDate || null,
+        });
+        toast.success("Stage added");
+      }
+      onSaved();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const fieldCls = "mt-1 w-full rounded-md border border-[#DADADA] px-3 py-2 text-sm focus:border-[#013764] focus:outline-none";
+  return (
+    <ModalShell
+      title={existing ? "Edit vendor payment stage" : "Add vendor payment stage"}
+      onClose={onClose}
+      maxWidth="max-w-lg"
+      footer={
+        <>
+          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button onClick={save} disabled={busy} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">Save</button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <div>
+          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Vendor</label>
+          <VendorTypeahead
+            value={vendorName}
+            onChange={(name, id) => {
+              setVendorName(name);
+              setVendorId(id);
+            }}
+          />
+          <p className="mt-1 text-[11px] text-gray-400">Pick a vendor from the list, or type a name for one not yet in the system.</p>
+        </div>
+        <div>
+          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Stage label</label>
+          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. 30% deposit" className={fieldCls} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Amount ($)</label>
+            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className={`${fieldCls} text-right tabular-nums`} />
+          </div>
+          <div>
+            <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Due date</label>
+            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={fieldCls} />
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Trigger / notes</label>
+          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. On masonry completion" className={fieldCls} />
+        </div>
+      </div>
+    </ModalShell>
+  );
+}
+
+/* --------------------------------- quotes --------------------------------- */
+
+const QUOTE_STATUS_META: Record<QuoteStatus, { label: string; text: string; bg: string }> = {
   received: { label: "Received", text: "#6B7280", bg: "#F3F4F6" },
   shortlisted: { label: "Shortlisted", text: "#1D4ED8", bg: "#E7EEFE" },
   accepted: { label: "Accepted", text: "#15803D", bg: "#E7F6EC" },
   rejected: { label: "Rejected", text: "#B91C1C", bg: "#FCEAEA" },
 };
 
-function QuotesCard() {
-  const [quotes, setQuotes] = useState<PQuote[]>(SAMPLE_QUOTES);
-  const categories = [...new Set(quotes.map((q) => q.category))];
+const VERDICT_META: Record<QuoteVerdict, { label: string; text: string; bg: string }> = {
+  fair: { label: "Fair price", text: "#15803D", bg: "#E7F6EC" },
+  high: { label: "Above market", text: "#B4232B", bg: "#FBEBEC" },
+  low: { label: "Below market", text: "#B45309", bg: "#F8EEDD" },
+  insufficient_data: { label: "Not enough data", text: "#6B7280", bg: "#F3F4F6" },
+};
 
-  const accept = (q: PQuote) => {
-    setQuotes((v) =>
-      v.map((x) =>
-        x.category !== q.category ? x : x.id === q.id ? { ...x, status: "accepted" } : { ...x, status: "rejected" },
-      ),
-    );
-    toast.success(
-      `${q.vendor} accepted — you'd be prompted to update the category budget to ${formatUSD(q.amountCents)} and seed their payment schedule on Payables`,
-    );
-  };
-
+function QuoteAnalysisPanel({ a }: { a: NonNullable<ProjectQuote["ai_analysis"]> }) {
+  const meta = VERDICT_META[a.verdict] ?? VERDICT_META.insufficient_data;
+  const hasRange = a.suggested_low_cents > 0 || a.suggested_high_cents > 0;
   return (
-    <Card title="Quotes" action={<span className="text-xs text-gray-400">Compare bids per category · sample preview</span>}>
-      <div className="mb-4">
-        <SampleBanner>
-          The bidding workspace: competing quotes per budget category, revisions kept like work-order history. Accepting a
-          quote rejects the others, offers to update the category budget, and seeds that vendor's payment schedule on
-          Payables from the quoted terms.
-        </SampleBanner>
+    <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Pill label={meta.label} text={meta.text} bg={meta.bg} />
+        {hasRange && (
+          <span className="text-xs text-gray-500">
+            Fair range{" "}
+            <span className="font-medium tabular-nums text-gray-700">
+              {formatUSD(a.suggested_low_cents)}–{formatUSD(a.suggested_high_cents)}
+            </span>
+          </span>
+        )}
+        {typeof a.confidence === "number" && (
+          <span className="ml-auto text-[11px] text-gray-400">confidence {Math.round(a.confidence * 100)}%</span>
+        )}
       </div>
-      <div className="flex flex-col gap-5">
-        {categories.map((cat) => (
-          <div key={cat}>
-            <div className="mb-2 text-sm font-medium text-gray-900">{cat}</div>
-            <div className="flex flex-col gap-2">
-              {quotes
-                .filter((q) => q.category === cat)
-                .map((q) => {
-                  const meta = QUOTE_STATUS_META[q.status];
-                  return (
-                    <div key={q.id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 text-sm text-gray-900">
-                          <span className="font-medium">{q.vendor}</span>
-                          <Pill label={meta.label} text={meta.text} bg={meta.bg} />
-                        </div>
-                        {(q.note || q.supersededNote) && (
-                          <div className="mt-0.5 text-xs text-gray-500">
-                            {q.note}
-                            {q.note && q.supersededNote ? " · " : ""}
-                            <span className="text-gray-400">{q.supersededNote}</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 items-center gap-3">
-                        <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(q.amountCents)}</span>
-                        {q.status !== "accepted" && q.status !== "rejected" && (
-                          <button onClick={() => accept(q)} className="text-xs font-medium text-green-700 hover:underline">
-                            Accept
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-// Quotes get their own tab: bidding is pre-commitment, Payables is post-commitment.
-// The link between them is the accept action (budget update + vendor schedule seed).
-function QuotesTab() {
-  return (
-    <div className="flex flex-col gap-6">
-      <QuotesCard />
+      {a.reasoning && <p className="mt-2 text-[13px] leading-relaxed text-gray-600">{a.reasoning}</p>}
+      {a.red_flags?.length > 0 && (
+        <ul className="mt-2 flex flex-col gap-1">
+          {a.red_flags.map((f, i) => (
+            <li key={i} className="flex items-start gap-2 text-[12.5px] text-amber-800">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {typeof a.comparables_used === "number" && (
+        <div className="mt-2 text-[11px] text-gray-400">
+          Based on {a.comparables_used} comparable{a.comparables_used === 1 ? "" : "s"} from your records + market knowledge.
+        </div>
+      )}
     </div>
   );
 }
 
-/* ------------------------------- files (sample) ----------------------------- */
+function NewQuoteModal({
+  projectId,
+  budget,
+  reviseOf,
+  onSaved,
+  onClose,
+}: {
+  projectId: number;
+  budget: { id: number; name: string }[];
+  reviseOf?: ProjectQuote | null;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const [vendorName, setVendorName] = useState(reviseOf?.vendor_name ?? "");
+  const [trade, setTrade] = useState(reviseOf?.trade ?? "");
+  const [amount, setAmount] = useState(reviseOf ? String(reviseOf.amount_cents / 100) : "");
+  const [scope, setScope] = useState(reviseOf?.scope_description ?? "");
+  const [budgetItemId, setBudgetItemId] = useState<number | "">(reviseOf?.budget_item_id ?? "");
+  const [saving, setSaving] = useState(false);
+  const uid = useId();
 
-interface PFile {
-  id: number;
-  name: string;
-  source: "Task" | "Work Order" | "Field Team" | "Quote";
-  parent: string;
-  type: string;
-  size: string;
-  uploaded: string;
+  const submit = async () => {
+    if (!vendorName.trim() && !trade.trim()) {
+      toast.error("Add a vendor or trade");
+      return;
+    }
+    setSaving(true);
+    try {
+      await createQuote(projectId, {
+        vendor_name: vendorName.trim(),
+        trade: trade.trim(),
+        scope_description: scope.trim(),
+        amount_cents: Math.round((Number(amount) || 0) * 100),
+        budget_item_id: budgetItemId === "" ? null : budgetItemId,
+        supersedes_quote_id: reviseOf ? reviseOf.id : null,
+      });
+      toast.success(reviseOf ? "Revision added & analyzed" : "Quote added & analyzed");
+      onSaved();
+      onClose();
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to add quote"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <ModalShell
+      title={reviseOf ? "Revise quote" : "Add quote"}
+      onClose={onClose}
+      footer={
+        <>
+          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button onClick={submit} disabled={saving} className="h-9 rounded-lg bg-[#013764] px-4 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
+            {saving ? "Analyzing…" : "Add & analyze"}
+          </button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        {reviseOf && (
+          <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
+            Revising <span className="font-medium text-gray-700">{reviseOf.vendor_name || "quote"}</span> ({formatUSD(reviseOf.amount_cents)}). The
+            original is kept for history; this becomes the current quote.
+          </p>
+        )}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor={`${uid}-vendor`} className={labelCls}>Vendor</label>
+            <input id={`${uid}-vendor`} className={`${fieldCls} mt-1`} value={vendorName} onChange={(e) => setVendorName(e.target.value)} placeholder="e.g. Frank Clark" />
+          </div>
+          <div>
+            <label htmlFor={`${uid}-trade`} className={labelCls}>Trade</label>
+            <input id={`${uid}-trade`} className={`${fieldCls} mt-1`} value={trade} onChange={(e) => setTrade(e.target.value)} placeholder="e.g. Electrical" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor={`${uid}-amount`} className={labelCls}>Quoted amount ($)</label>
+            <input id={`${uid}-amount`} type="number" className={`${fieldCls} mt-1 text-right tabular-nums`} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+          </div>
+          <div>
+            <label htmlFor={`${uid}-cat`} className={labelCls}>Budget category</label>
+            <select
+              id={`${uid}-cat`}
+              className={`${fieldCls} mt-1`}
+              value={budgetItemId}
+              onChange={(e) => setBudgetItemId(e.target.value ? Number(e.target.value) : "")}
+            >
+              <option value="">Unassigned</option>
+              {budget.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label htmlFor={`${uid}-scope`} className={labelCls}>Scope</label>
+          <textarea id={`${uid}-scope`} className={`${fieldCls} mt-1`} rows={3} value={scope} onChange={(e) => setScope(e.target.value)} placeholder="What the quote covers — the more detail, the better the fairness analysis." />
+        </div>
+      </div>
+    </ModalShell>
+  );
 }
 
-const SAMPLE_FILES: PFile[] = [
-  { id: 1, name: "pergola-plans-v3.pdf", source: "Task", parent: "Pergola construction", type: "PDF", size: "4.2 MB", uploaded: "Feb 10, 2026" },
-  { id: 2, name: "permit-application.pdf", source: "Task", parent: "Permitting", type: "PDF", size: "1.1 MB", uploaded: "Feb 14, 2026" },
-  { id: 3, name: "teixera-quote-rev2.pdf", source: "Quote", parent: "Teixera Construction — Masonry", type: "PDF", size: "820 KB", uploaded: "Feb 22, 2026" },
-  { id: 4, name: "frank-clark-electrical-quote.pdf", source: "Quote", parent: "Frank Clark - Electrical", type: "PDF", size: "610 KB", uploaded: "Mar 2, 2026" },
-  { id: 5, name: "footing-inspection-photos.zip", source: "Work Order", parent: "WO-1204 · Footings", type: "ZIP", size: "18.6 MB", uploaded: "Apr 3, 2026" },
-  { id: 6, name: "stone-delivery-receipt.jpg", source: "Field Team", parent: "FTO-88 · Stone staging", type: "Image", size: "2.4 MB", uploaded: "Apr 11, 2026" },
-  { id: 7, name: "masonry-progress-jun.pdf", source: "Work Order", parent: "WO-1231 · Stonework", type: "PDF", size: "6.8 MB", uploaded: "Jun 30, 2026" },
+// Quotes tab: capture competing vendor quotes grouped by budget category, run an
+// AI fairness analysis (grounded in our historical costs + market knowledge),
+// shortlist, revise (immutable history), and accept one per category —
+// optionally copying the accepted amount into the budget (Part B / B3).
+function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCategory[] }) {
+  const [quotes, setQuotes] = useState<ProjectQuote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [reviseOf, setReviseOf] = useState<ProjectQuote | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      setQuotes(await listQuotes(projectId));
+    } catch (e) {
+      setError(errMessage(e, "Failed to load quotes"));
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
+  useEffect(() => {
+    setLoading(true);
+    load();
+  }, [load]);
+
+  const runAnalyze = async (q: ProjectQuote) => {
+    setBusyId(q.id);
+    try {
+      await analyzeQuote(projectId, q.id);
+      load();
+    } catch (e) {
+      toast.error(errMessage(e, "Analysis failed"));
+    } finally {
+      setBusyId(null);
+    }
+  };
+  const changeStatus = async (q: ProjectQuote, status: Exclude<QuoteStatus, "accepted">) => {
+    try {
+      await updateQuote(projectId, q.id, { status });
+      load();
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to update quote"));
+    }
+  };
+  const accept = async (q: ProjectQuote, copyToBudget: boolean) => {
+    try {
+      await acceptQuote(projectId, q.id, { copy_to_budget: copyToBudget });
+      toast.success(copyToBudget ? "Accepted — amount copied into the budget" : "Quote accepted");
+      load();
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to accept quote"));
+    }
+  };
+  const remove = async (q: ProjectQuote) => {
+    try {
+      await deleteQuote(projectId, q.id);
+      toast.success("Quote deleted");
+      load();
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to delete quote"));
+    }
+  };
+
+  const catName = (id: number | null): string => {
+    if (id == null) return "Unassigned";
+    return budget.find((b) => b.id === id)?.name ?? `Category #${id}`;
+  };
+  // Quotes that a later revision supersedes (dimmed as history).
+  const supersededIds = new Set(quotes.map((q) => q.supersedes_quote_id).filter((x): x is number => x != null));
+
+  // Group by budget category (Unassigned last).
+  const groups = new Map<number | null, ProjectQuote[]>();
+  for (const q of quotes) {
+    const key = q.budget_item_id;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(q);
+  }
+  const groupKeys = [...groups.keys()].sort((a, b) => {
+    if (a == null) return 1;
+    if (b == null) return -1;
+    return catName(a).localeCompare(catName(b));
+  });
+
+  const renderQuote = (q: ProjectQuote) => {
+    const sMeta = QUOTE_STATUS_META[q.status];
+    const superseded = supersededIds.has(q.id);
+    return (
+      <div key={q.id} className={`rounded-lg border border-gray-200 p-3.5 ${superseded ? "opacity-60" : ""}`}>
+        <div className="flex flex-wrap items-start gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-medium text-gray-900">{q.vendor_name || "Unnamed vendor"}</span>
+              {q.trade && <span className="text-xs text-gray-500">{q.trade}</span>}
+              <Pill label={sMeta.label} text={sMeta.text} bg={sMeta.bg} />
+              {superseded && <span className="text-[11px] text-gray-400">superseded</span>}
+              {q.supersedes_quote_id != null && <span className="text-[11px] text-gray-400">revision</span>}
+              {q.source === "verbal_intake" && <span className="text-[11px] text-gray-400">from intake</span>}
+            </div>
+            {q.scope_description && <div className="mt-1 text-[13px] text-gray-500">{q.scope_description}</div>}
+          </div>
+          <div className="ml-auto text-right">
+            <div className="text-sm font-semibold tabular-nums text-gray-900">{formatUSD(q.amount_cents)}</div>
+          </div>
+        </div>
+
+        {q.ai_analysis && <QuoteAnalysisPanel a={q.ai_analysis} />}
+
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => runAnalyze(q)}
+            disabled={busyId === q.id}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#013764] px-3 text-xs font-medium text-[#013764] hover:bg-[#013764]/5 disabled:opacity-50"
+          >
+            {busyId === q.id ? "Analyzing…" : q.ai_analysis ? "Re-analyze" : "Analyze fairness"}
+          </button>
+          {q.status !== "accepted" && (
+            <button onClick={() => accept(q, false)} className="text-xs font-medium text-green-700 hover:underline">Accept</button>
+          )}
+          {q.status !== "accepted" && q.budget_item_id != null && (
+            <button onClick={() => accept(q, true)} className="text-xs font-medium text-green-700 hover:underline">Accept → budget</button>
+          )}
+          {q.status !== "shortlisted" && q.status !== "accepted" && (
+            <button onClick={() => changeStatus(q, "shortlisted")} className="text-xs font-medium text-blue-600 hover:underline">Shortlist</button>
+          )}
+          <button onClick={() => setReviseOf(q)} className="text-xs font-medium text-gray-600 hover:underline">Revise</button>
+          {q.status !== "rejected" && (
+            <button onClick={() => changeStatus(q, "rejected")} className="text-xs font-medium text-gray-500 hover:underline">Reject</button>
+          )}
+          {q.status !== "received" && (
+            <button onClick={() => changeStatus(q, "received")} className="text-xs font-medium text-gray-400 hover:underline">Reset</button>
+          )}
+          <button onClick={() => remove(q)} className="ml-auto text-xs font-medium text-gray-400 hover:text-red-600">Delete</button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <Card
+      title="Quotes"
+      action={
+        <button onClick={() => setCreateOpen(true)} className="h-8 rounded-lg bg-[#013764] px-3 text-xs font-medium text-white hover:bg-[#003a73]">
+          + New quote
+        </button>
+      }
+    >
+      {loading ? (
+        <div className="py-8 text-center text-sm text-gray-400">Loading quotes…</div>
+      ) : error ? (
+        <div className="py-8 text-center text-sm text-rose-600">{error}</div>
+      ) : quotes.length === 0 ? (
+        <div className="py-8 text-center text-sm text-gray-400">
+          No quotes yet. Add competing vendor quotes per budget category to check whether prices are fair.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-6">
+          {groupKeys.map((key) => (
+            <div key={key ?? "unassigned"}>
+              <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">{catName(key)}</div>
+              <div className="flex flex-col gap-3">{groups.get(key)!.map(renderQuote)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {createOpen && <NewQuoteModal projectId={projectId} budget={budget} onSaved={load} onClose={() => setCreateOpen(false)} />}
+      {reviseOf && (
+        <NewQuoteModal
+          projectId={projectId}
+          budget={budget}
+          reviseOf={reviseOf}
+          onSaved={load}
+          onClose={() => setReviseOf(null)}
+        />
+      )}
+    </Card>
+  );
+}
+
+/* ----------------------------------- files ---------------------------------- */
+
+const FILE_SOURCE_META: Record<ProjectFileSource, { label: string; text: string; bg: string }> = {
+  project: { label: "Project", text: "#374151", bg: "#F3F4F6" },
+  task: { label: "Task", text: "#1D4ED8", bg: "#E7EEFE" },
+  work_order: { label: "Work Order", text: "#B45309", bg: "#FCF2E1" },
+  field_team: { label: "Field Team", text: "#15803D", bg: "#E7F6EC" },
+  invoice: { label: "Invoice", text: "#7C3AED", bg: "#F1EBFD" },
+};
+
+const FILE_FILTERS: { key: "all" | ProjectFileSource; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "project", label: "Project" },
+  { key: "task", label: "Task" },
+  { key: "work_order", label: "Work Order" },
+  { key: "field_team", label: "Field Team" },
+  { key: "invoice", label: "Invoice" },
 ];
 
-const FILE_SOURCES = ["All", "Task", "Work Order", "Field Team", "Quote"] as const;
+function formatBytes(n: number): string {
+  if (!n) return "—";
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
 
-function FilesTab() {
-  const [filter, setFilter] = useState<(typeof FILE_SOURCES)[number]>("All");
-  const rows = filter === "All" ? SAMPLE_FILES : SAMPLE_FILES.filter((f) => f.source === filter);
+// Real Files tab (Part B / B2): aggregates every attachment on the project —
+// direct uploads plus attachments living on its tasks / work orders / FTOs /
+// project invoices — and supports direct upload + delete of project files.
+function FilesTab({ projectId }: { projectId: number }) {
+  const [files, setFiles] = useState<ProjectFileRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | ProjectFileSource>("all");
+  const [uploading, setUploading] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setFiles(await listProjectFiles(projectId));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load files");
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const rows = filter === "all" ? files : files.filter((f) => f.source === filter);
+
+  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+    setUploading(true);
+    try {
+      await uploadProjectFile(projectId, file);
+      await load();
+      toast.success("File uploaded");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const remove = async (f: ProjectFileRow) => {
+    if (!window.confirm(`Delete "${f.name}"?`)) return;
+    try {
+      await deleteProjectFile(projectId, f.id);
+      await load();
+      toast.success("File deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
-      <SampleBanner>
-        One place for every attachment on this project — pulled from tasks, work orders, field team orders, and quotes,
-        labeled by where it came from. Preview only; the aggregate endpoint ships with the invoicing backend.
-      </SampleBanner>
-
       <Card
         title="Project Files"
         action={
           <div className="flex flex-wrap items-center gap-1.5">
-            {FILE_SOURCES.map((s) => (
+            {FILE_FILTERS.map((s) => (
               <button
-                key={s}
+                key={s.key}
                 type="button"
-                aria-pressed={filter === s}
-                onClick={() => setFilter(s)}
+                aria-pressed={filter === s.key}
+                onClick={() => setFilter(s.key)}
                 className={`h-7 rounded-full px-3 text-xs font-medium transition-colors ${
-                  filter === s ? "bg-[#013764] text-white" : "border border-[#DADADA] bg-white text-gray-600 hover:bg-gray-50"
+                  filter === s.key ? "bg-[#013764] text-white" : "border border-[#DADADA] bg-white text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                {s}
+                {s.label}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => fileInput.current?.click()}
+              disabled={uploading}
+              className="ml-1 h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
+            >
+              {uploading ? "Uploading…" : "+ Upload"}
+            </button>
+            <input ref={fileInput} type="file" className="hidden" onChange={onPick} />
           </div>
         }
       >
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <Th>File</Th><Th>Source</Th><Th>Attached to</Th><Th>Type</Th><Th right>Size</Th><Th>Uploaded</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {rows.map((f) => (
-                <tr key={f.id} className="hover:bg-gray-50">
-                  <td className="py-3 pr-4 font-medium text-blue-600">{f.name}</td>
-                  <td className="py-3 pr-4">
-                    <Pill
-                      label={f.source}
-                      text={f.source === "Quote" ? "#7C3AED" : f.source === "Task" ? "#1D4ED8" : f.source === "Work Order" ? "#B45309" : "#15803D"}
-                      bg={f.source === "Quote" ? "#F1EBFD" : f.source === "Task" ? "#E7EEFE" : f.source === "Work Order" ? "#FCF2E1" : "#E7F6EC"}
-                    />
-                  </td>
-                  <td className="py-3 pr-4 text-gray-700">{f.parent}</td>
-                  <td className="py-3 pr-4 text-gray-500">{f.type}</td>
-                  <td className="py-3 pr-4 text-right tabular-nums text-gray-500">{f.size}</td>
-                  <td className="py-3 pr-4 text-gray-500">{f.uploaded}</td>
+        {loading ? (
+          <p className="text-sm text-gray-500">Loading…</p>
+        ) : rows.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            {filter === "all" ? "No files yet. Upload one, or attach files on tasks, work orders, or invoices." : "No files from this source."}
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <Th>File</Th><Th>Source</Th><Th>Attached to</Th><Th>Type</Th><Th right>Size</Th><Th right>{""}</Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {rows.map((f) => {
+                  const meta = FILE_SOURCE_META[f.source];
+                  return (
+                    <tr key={`${f.source}-${f.id}`} className="hover:bg-gray-50">
+                      <td className="py-3 pr-4">
+                        <a href={`${API_BASE}${f.download}`} target="_blank" rel="noreferrer" className="font-medium text-blue-600 hover:underline">{f.name}</a>
+                      </td>
+                      <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
+                      <td className="py-3 pr-4 text-gray-700">{f.parent || "—"}</td>
+                      <td className="py-3 pr-4 text-gray-500">{f.mime || "—"}</td>
+                      <td className="py-3 pr-4 text-right tabular-nums text-gray-500">{formatBytes(f.size_bytes)}</td>
+                      <td className="py-3 text-right">
+                        {f.deletable && (
+                          <button onClick={() => remove(f)} aria-label="Delete file" className="text-xs text-gray-400 hover:text-red-600">✕</button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
     </div>
   );
@@ -3115,11 +3282,11 @@ export default function ProjectDetail() {
               {maintenanceTab === "field-team" && <FieldTeamTab summary={summary} />}
             </div>
           )}
-          {tab === "quotes" && <QuotesTab />}
+          {tab === "quotes" && <QuotesTab projectId={project.id} budget={summary.budget} />}
           {tab === "budget" && <BudgetTab summary={summary} onEdit={() => setEditOpen(true)} onRefresh={load} />}
           {tab === "invoicing" && <InvoicingTab summary={summary} />}
           {tab === "cashflow" && <CashFlowTab projectId={project.id} onRefreshSummary={load} />}
-          {tab === "files" && <FilesTab />}
+          {tab === "files" && <FilesTab projectId={project.id} />}
         </div>
       </div>
 

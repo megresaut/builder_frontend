@@ -5,6 +5,7 @@ import PageTemplate from "@/layout/PageTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
 import {
   createProject,
+  createQuote,
   listUnassignedTasks,
   formatUSD,
   type CreateProjectPayload,
@@ -26,6 +27,16 @@ interface SimpleProperty {
   address_line1: string | null;
   city: string | null;
   state: string | null;
+}
+
+// A vendor quote captured during project creation. Persisted after the project
+// exists (POST /projects/{id}/quotes), linked to its budget category by index.
+interface QuoteDraft {
+  key: number;
+  vendorName: string;
+  trade: string;
+  amount: string; // dollars
+  categoryId: number | null; // CategoryDraft.id; null = unassigned
 }
 
 interface SimpleManager {
@@ -89,6 +100,8 @@ export default function CreateProject() {
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<CategoryDraft[]>([]);
   const [milestones, setMilestones] = useState<MilestoneDraft[]>([]);
+  const [quotes, setQuotes] = useState<QuoteDraft[]>([]);
+  const quoteSeq = useRef(-1);
   const [attached, setAttached] = useState<Set<number>>(new Set());
   const [taskMilestone, setTaskMilestone] = useState<Record<number, number | "">>({});
 
@@ -211,6 +224,29 @@ export default function CreateProject() {
     setSubmitting(true);
     try {
       const created = await createProject(payload);
+
+      // Optional quotes: persist after the project exists, linking each to its
+      // budget category by index (created.budget mirrors the categories order).
+      const quoteRows = quotes.filter((q) => q.vendorName.trim() || Number(q.amount) > 0);
+      let quoteFailures = 0;
+      for (const q of quoteRows) {
+        const idx = q.categoryId != null ? categoryIndexById.get(q.categoryId) : undefined;
+        const budgetItemId = idx != null ? (created.budget[idx]?.id ?? null) : null;
+        try {
+          await createQuote(created.project.id, {
+            vendor_name: q.vendorName.trim(),
+            trade: q.trade.trim(),
+            amount_cents: dollarsToCents(q.amount),
+            budget_item_id: budgetItemId,
+          });
+        } catch {
+          quoteFailures++;
+        }
+      }
+      if (quoteFailures > 0) {
+        toast.error(`${quoteFailures} quote(s) couldn't be added — add them on the project's Quotes tab.`);
+      }
+
       navigate(`/projects/${created.project.id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create project");
@@ -315,6 +351,69 @@ export default function CreateProject() {
 
             <SectionCard title="Milestones" subtitle="Dated checkpoints to track progress. Optionally tie one to a budget category.">
               <MilestonesEditor milestones={milestones} categories={categories} onChange={setMilestones} newId={nextId} />
+            </SectionCard>
+
+            <SectionCard title="Quotes" subtitle="Optionally capture competing vendor quotes now — they'll open on the project's Quotes tab, ready for fairness analysis.">
+              <div className="flex flex-col gap-2">
+                {quotes.length === 0 && (
+                  <p className="text-sm text-gray-400">No quotes yet — add vendor bids to compare per category.</p>
+                )}
+                {quotes.map((q) => (
+                  <div key={q.key} className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5">
+                    <input
+                      aria-label="Quote vendor"
+                      value={q.vendorName}
+                      placeholder="Vendor"
+                      onChange={(e) => setQuotes((v) => v.map((x) => (x.key === q.key ? { ...x, vendorName: e.target.value } : x)))}
+                      className={`${field} min-w-[140px] flex-1`}
+                    />
+                    <input
+                      aria-label="Quote trade"
+                      value={q.trade}
+                      placeholder="Trade (e.g. Electrical)"
+                      onChange={(e) => setQuotes((v) => v.map((x) => (x.key === q.key ? { ...x, trade: e.target.value } : x)))}
+                      className={`${field} min-w-[130px] flex-1`}
+                    />
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-400">$</span>
+                      <input
+                        type="number"
+                        aria-label="Quote amount in dollars"
+                        value={q.amount}
+                        placeholder="0"
+                        onChange={(e) => setQuotes((v) => v.map((x) => (x.key === q.key ? { ...x, amount: e.target.value } : x)))}
+                        className={`${field} w-28 text-right tabular-nums`}
+                      />
+                    </div>
+                    <select
+                      aria-label="Quote budget category"
+                      value={q.categoryId ?? ""}
+                      onChange={(e) => setQuotes((v) => v.map((x) => (x.key === q.key ? { ...x, categoryId: e.target.value ? Number(e.target.value) : null } : x)))}
+                      className={`${field} max-w-[12rem]`}
+                    >
+                      <option value="">No category</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name.trim() || "Untitled category"}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setQuotes((v) => v.filter((x) => x.key !== q.key))}
+                      aria-label="Remove quote"
+                      className="px-1.5 text-gray-400 hover:text-red-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setQuotes((v) => [...v, { key: quoteSeq.current--, vendorName: "", trade: "", amount: "", categoryId: null }])}
+                  className="h-7 w-fit rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  + Add quote
+                </button>
+              </div>
             </SectionCard>
 
             <SectionCard title="Attach existing tasks" subtitle="Pull standalone tasks into this project — optionally assign each to a milestone.">

@@ -7,7 +7,7 @@ import ColumnFilterModal from "@/components/ColumnFilterModal";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
-import { PlusIcon, DotsIcon, CalendarIcon, UserIcon } from "@/components/icons";
+import { PlusIcon, DotsIcon, CalendarIcon, UserIcon, SparkleIcon } from "@/components/icons";
 import {
   listProjects,
   PROJECT_STATUS_META,
@@ -203,8 +203,10 @@ export default function AllProjects() {
             icon: <PlusIcon width={20} height={20} />,
           }}
           secondaryAction={{
-            label: "✨ New from Meeting Notes",
+            label: "New from Meeting Notes",
             onClick: () => navigate("/projects/intake"),
+            icon: <SparkleIcon width={16} height={16} />,
+            variant: "neutral",
           }}
         />
 
