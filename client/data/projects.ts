@@ -26,6 +26,7 @@ export interface Project {
   description: string;
   status: ProjectStatus;
   original_budget_cents: number;
+  contract_amount_cents: number | null; // agreed client price (Package A); null = unset
   percent_complete: number;
   start_date: string | null; // "YYYY-MM-DD"
   target_end_date: string | null;
@@ -50,7 +51,8 @@ export interface BudgetCategory {
   id: number;
   name: string;
   amount_cents: number;
-  spent_cents: number;
+  spent_cents: number; // paid (Σ bill_payments) via milestone rollup
+  committed_cents: number; // booked (Σ bills) via the same rollup (Package A)
   sort_order: number;
   sub_budgets: BudgetSubItem[];
 }
@@ -206,14 +208,39 @@ export interface ProjectFinancials {
   original_budget_cents: number;
   approved_change_orders_cents: number;
   current_budget_cents: number;
-  spent_cents: number;
-  remaining_budget_cents: number;
+  spent_cents: number; // paid (Σ bill_payments) — retained for back-compat
+  committed_cents: number; // Σ booked bills (Package A)
+  paid_cents: number; // == spent_cents (cash out); clearer alias
+  unpaid_committed_cents: number; // committed − paid (booked, not yet paid)
+  remaining_budget_cents: number; // current_budget − committed (D3)
   collected_cents: number;
   billed_to_date_cents: number;
+  billed_vs_cost_cents: number; // billed_to_date − committed (over/under-billing)
   outstanding_invoices_cents: number;
   net_cash_cents: number;
+  // Contract / margin (nullable — omitted server-side when contract unset).
+  // projected_margin = contract − committed is the OWNER BUDGET VARIANCE (headroom
+  // vs cost), NOT AVM P&L profit — project billing is DFO cost-recovery (D5).
+  contract_amount_cents: number | null;
+  projected_margin_cents: number | null;
+  margin_pct: number | null;
+  project_fee_income_cents: number; // Σ fee/markup invoice lines = true AVM earnings (D5)
   pending_change_orders_cents: number;
   pending_change_orders_count: number;
+}
+
+// VendorFinancialSummary — Package B: money by vendor for the Payables tab.
+// A cost/vendor rollup keyed on the bill's own vendor. quoted = Σ budget-item
+// amounts stamped to the vendor; committed/paid = Σ project bills; planned = Σ
+// forward-looking vendor payment plan; remaining = quoted − committed.
+export interface VendorFinancialSummary {
+  vendor_id: number;
+  vendor_name: string;
+  quoted_cents: number;
+  committed_cents: number;
+  paid_cents: number;
+  remaining_cents: number;
+  planned_cents: number;
 }
 
 export interface ProjectSummary {
@@ -227,6 +254,7 @@ export interface ProjectSummary {
   schedule: ScheduleLine[];
   work_orders: ProjectWorkOrderRow[];
   field_team_orders: ProjectFTORow[];
+  vendor_summary: VendorFinancialSummary[]; // Package B: money by vendor
 }
 
 export interface ProjectListItem {
@@ -286,6 +314,7 @@ export interface UpdateProjectPayload {
   manager_user_id?: number | null;
   description?: string;
   is_visible_to_client?: boolean;
+  contract_amount_cents?: number; // agreed client price (Package A); integer cents
 }
 
 export interface PutBudgetPayload {
@@ -707,6 +736,8 @@ export interface ProjectInvoice {
   paid_cents: number; // Σ linked payments
   sent_at: string | null;
   client_email: string | null;
+  qbo_invoice_id: string | null; // Package C: set once pushed to QBO
+  qbo_push_status: string | null; // 'pushed' | 'error' | null (not pushed)
   created_by_user_id: number | null;
   created_at: string;
   updated_at: string;
@@ -827,6 +858,20 @@ export async function recordInvoicePayment(
 
 export async function voidProjectInvoice(projectId: number, invoiceId: number): Promise<ProjectInvoice> {
   return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/void`, { method: "POST" });
+}
+
+export interface PushInvoiceToQboResult {
+  invoice_id: number;
+  qbo_invoice_id: string;
+  qbo_push_status: string;
+  qbo_pushed_at: string | null;
+  already_pushed: boolean;
+}
+
+// Package C: push a project's client invoice to QuickBooks (concierge only).
+// Non-concierge → 409, concierge missing QBO customer → 400, QBO failure → 502.
+export async function pushInvoiceToQbo(projectId: number, invoiceId: number): Promise<PushInvoiceToQboResult> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/push-qbo`, { method: "POST" });
 }
 
 export async function getBillables(projectId: number): Promise<Billables> {

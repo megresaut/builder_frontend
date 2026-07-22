@@ -35,6 +35,7 @@ import {
   updateChangeOrder,
   putSchedule,
   createPayment,
+  pushInvoiceToQbo,
   getCashFlow,
   PROJECT_STATUS_META,
   MILESTONE_STATUS_META,
@@ -115,6 +116,7 @@ const SUMMARY_FIXTURE = {
     description: "Gut renovation of the kitchen and primary bathroom.",
     status: "active",
     original_budget_cents: 34000000,
+    contract_amount_cents: 40000000,
     percent_complete: 50,
     start_date: "2026-03-02",
     target_end_date: "2026-09-30",
@@ -133,11 +135,19 @@ const SUMMARY_FIXTURE = {
     approved_change_orders_cents: 2600000,
     current_budget_cents: 36600000,
     spent_cents: 17850000,
-    remaining_budget_cents: 18750000,
+    committed_cents: 21000000,
+    paid_cents: 17850000,
+    unpaid_committed_cents: 3150000,
+    remaining_budget_cents: 15600000,
     collected_cents: 20400000,
     billed_to_date_cents: 0,
+    billed_vs_cost_cents: -21000000,
     outstanding_invoices_cents: 0,
     net_cash_cents: 2550000,
+    contract_amount_cents: 40000000,
+    projected_margin_cents: 19000000,
+    margin_pct: 0.475,
+    project_fee_income_cents: 0,
     pending_change_orders_cents: 1050000,
     pending_change_orders_count: 2,
   },
@@ -162,6 +172,7 @@ const SUMMARY_FIXTURE = {
       name: "Demolition & Site Prep",
       amount_cents: 2500000,
       spent_cents: 2500000,
+      committed_cents: 2500000,
       sort_order: 0,
       sub_budgets: [
         { id: 15, name: "Demo labor", amount_cents: 1600000, sort_order: 0 },
@@ -238,6 +249,17 @@ const SUMMARY_FIXTURE = {
       due_date: "2026-03-20T00:00:00Z",
     },
   ],
+  vendor_summary: [
+    {
+      vendor_id: 88,
+      vendor_name: "Greenwich Demo Co",
+      quoted_cents: 2500000,
+      committed_cents: 2500000,
+      paid_cents: 2400000,
+      remaining_cents: 0,
+      planned_cents: 2500000,
+    },
+  ],
 } satisfies ProjectSummary;
 
 // GET /projects/{id}/cashflow (§6, verbatim)
@@ -284,16 +306,18 @@ const PAYMENT_FIXTURE = {
 const EXPECTED_KEYS = {
   Project: [
     "id", "property_id", "property_name", "property_address", "name",
-    "description", "status", "original_budget_cents", "percent_complete",
-    "start_date", "target_end_date", "actual_end_date", "manager_user_id",
-    "manager_name", "manager_initials", "is_visible_to_client",
+    "description", "status", "original_budget_cents", "contract_amount_cents",
+    "percent_complete", "start_date", "target_end_date", "actual_end_date",
+    "manager_user_id", "manager_name", "manager_initials", "is_visible_to_client",
     "created_by_user_id", "last_edited_by_user_id", "created_at", "updated_at",
   ],
   ProjectFinancials: [
     "original_budget_cents", "approved_change_orders_cents",
-    "current_budget_cents", "spent_cents", "remaining_budget_cents",
-    "collected_cents", "billed_to_date_cents", "outstanding_invoices_cents",
-    "net_cash_cents", "pending_change_orders_cents",
+    "current_budget_cents", "spent_cents", "committed_cents", "paid_cents",
+    "unpaid_committed_cents", "remaining_budget_cents", "collected_cents",
+    "billed_to_date_cents", "billed_vs_cost_cents", "outstanding_invoices_cents",
+    "net_cash_cents", "contract_amount_cents", "projected_margin_cents",
+    "margin_pct", "project_fee_income_cents", "pending_change_orders_cents",
     "pending_change_orders_count",
   ],
   ProjectCounts: ["tasks", "work_orders", "field_team_orders"],
@@ -301,7 +325,7 @@ const EXPECTED_KEYS = {
     "id", "name", "status", "priority", "milestone_id", "work_order_count",
     "fto_count", "spent_cents", "due_date", "assignee_initials",
   ],
-  BudgetCategoryView: ["id", "name", "amount_cents", "spent_cents", "sort_order", "sub_budgets"],
+  BudgetCategoryView: ["id", "name", "amount_cents", "spent_cents", "committed_cents", "sort_order", "sub_budgets"],
   BudgetSubItemView: ["id", "name", "amount_cents", "sort_order"],
   MilestoneView: [
     "id", "project_id", "name", "target_date", "status", "budget_item_id",
@@ -329,6 +353,11 @@ const EXPECTED_KEYS = {
   ProjectSummary: [
     "project", "financials", "counts", "tasks", "budget", "milestones",
     "change_orders", "schedule", "work_orders", "field_team_orders",
+    "vendor_summary",
+  ],
+  VendorFinancialSummary: [
+    "vendor_id", "vendor_name", "quoted_cents", "committed_cents",
+    "paid_cents", "remaining_cents", "planned_cents",
   ],
   ProjectListItem: [
     "id", "name", "property_id", "property_name", "property_address", "status",
@@ -368,6 +397,7 @@ describe("§8 parity: §6 response fixtures carry exactly the Go DTO json keys",
     expectExactKeys(SUMMARY_FIXTURE.schedule[0], EXPECTED_KEYS.ProjectScheduleLine);
     expectExactKeys(SUMMARY_FIXTURE.work_orders[0], EXPECTED_KEYS.ProjectWorkOrderRow);
     expectExactKeys(SUMMARY_FIXTURE.field_team_orders[0], EXPECTED_KEYS.ProjectFTORow);
+    expectExactKeys(SUMMARY_FIXTURE.vendor_summary[0], EXPECTED_KEYS.VendorFinancialSummary);
   });
 
   it("ProjectListItem / UnassignedTaskRow / CashFlowEntry / ProjectPayment", () => {
@@ -683,6 +713,21 @@ describe("§6 request wire format", () => {
         reference: "Initial project deposit (30%)",
       },
     });
+  });
+
+  it("POST /projects/{id}/invoices/{iid}/push-qbo (Package C) — path + method, no body", async () => {
+    mockFetch.mockResolvedValueOnce({
+      invoice_id: 9,
+      qbo_invoice_id: "145",
+      qbo_push_status: "pushed",
+      qbo_pushed_at: "2026-07-22T13:00:00Z",
+      already_pushed: false,
+    });
+    const res = await pushInvoiceToQbo(1, 9);
+    expect(lastCall().path).toBe("/projects/1/invoices/9/push-qbo");
+    expect(lastCall().method).toBe("POST");
+    expect(res.qbo_invoice_id).toBe("145");
+    expect(res.qbo_push_status).toBe("pushed");
   });
 });
 

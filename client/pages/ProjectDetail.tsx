@@ -30,6 +30,7 @@ import {
   sendProjectInvoice,
   recordInvoicePayment,
   voidProjectInvoice,
+  pushInvoiceToQbo,
   getBillables,
   getPaymentSchedule,
   putPaymentSchedule,
@@ -72,6 +73,7 @@ import {
   type InstallmentInput,
   type InstallmentBasis,
   type BudgetCategory,
+  type VendorFinancialSummary,
   type VendorPayment,
   type VendorPaymentStatus,
   type ProjectFileRow,
@@ -85,6 +87,8 @@ import {
   milestonesToDrafts,
   draftsToBudgetPayload,
   draftsToMilestonesPayload,
+  dollarsToCents,
+  centsToInput,
   type CategoryDraft,
   type MilestoneDraft,
 } from "@/components/projects/ProjectEditors";
@@ -193,6 +197,18 @@ function Pill({ label, text, bg }: { label: string; text: string; bg: string }) 
       {label}
     </span>
   );
+}
+
+// QboStatusBadge (Package C) — the receivable-side push status of a project
+// invoice: pushed (green), error (red), or not yet pushed (neutral).
+function QboStatusBadge({ invoice }: { invoice: ProjectInvoice }) {
+  if (invoice.qbo_push_status === "pushed") {
+    return <Pill label="Pushed" text="#047857" bg="#D1FAE5" />;
+  }
+  if (invoice.qbo_push_status === "error") {
+    return <Pill label="Error" text="#B91C1C" bg="#FEE2E2" />;
+  }
+  return <span className="text-xs text-gray-400">—</span>;
 }
 
 function Dot({ label, color }: { label: string; color: string }) {
@@ -583,16 +599,20 @@ function MilestonesCard({ summary, onEdit }: { summary: ProjectSummary; onEdit: 
 
 function BudgetTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary; onEdit: () => void; onRefresh: () => void }) {
   const categories = summary.budget;
+  const fin = summary.financials;
   const totalAllocated = categories.reduce((s, c) => s + c.amount_cents, 0);
   const totalSpent = categories.reduce((s, c) => s + c.spent_cents, 0);
-  const remaining = totalAllocated - totalSpent;
+  const totalCommitted = categories.reduce((s, c) => s + c.committed_cents, 0);
+  // Remaining nets COMMITTED (D3) — money already booked stops looking available.
+  const remaining = fin.remaining_budget_cents;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard label="Allocated" value={formatUSD(totalAllocated)} subtitle="Across all categories" accent="navy" />
-        <KpiCard label="Spent" value={formatUSD(totalSpent)} subtitle={`${totalAllocated ? Math.round((totalSpent / totalAllocated) * 100) : 0}% of budget`} accent="violet" />
-        <KpiCard label="Remaining" value={formatUSD(remaining)} subtitle="Unspent budget" accent={remaining >= 0 ? "green" : "red"} valueColor={remaining >= 0 ? "#15803D" : "#B91C1C"} />
+        <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle={fin.unpaid_committed_cents > 0 ? `${formatUSD(fin.unpaid_committed_cents)} booked · unpaid` : "All committed is paid"} accent="amber" valueColor={fin.unpaid_committed_cents > 0 ? "#B45309" : undefined} />
+        <KpiCard label="Paid" value={formatUSD(fin.paid_cents)} subtitle={`${totalAllocated ? Math.round((fin.paid_cents / totalAllocated) * 100) : 0}% of budget`} accent="violet" />
+        <KpiCard label="Remaining" value={formatUSD(remaining)} subtitle="Budget − committed" accent={remaining >= 0 ? "green" : "red"} valueColor={remaining >= 0 ? "#15803D" : "#B91C1C"} />
       </div>
 
       <Card title="Budget Breakdown" action={<button onClick={onEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit budget</button>}>
@@ -601,18 +621,32 @@ function BudgetTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary; on
         ) : (
           <div className="flex flex-col gap-5">
             {categories.map((c) => {
-              const pct = c.amount_cents > 0 ? (c.spent_cents / c.amount_cents) * 100 : 0;
-              const over = c.spent_cents > c.amount_cents;
+              const pct = c.amount_cents > 0 ? (c.committed_cents / c.amount_cents) * 100 : 0;
+              const paidPct = c.amount_cents > 0 ? (c.spent_cents / c.amount_cents) * 100 : 0;
+              const over = c.committed_cents > c.amount_cents;
+              const unpaidCommitted = c.committed_cents - c.spent_cents;
               return (
                 <div key={c.id}>
                   <div className="mb-1 flex items-center justify-between text-sm">
                     <span className="font-medium text-gray-900">{c.name}</span>
                     <span className="tabular-nums text-gray-700">
-                      <span className={over ? "font-semibold text-red-700" : ""}>{formatUSD(c.spent_cents)}</span>
-                      <span className="text-gray-400"> / {formatUSD(c.amount_cents)}</span>
+                      <span className={over ? "font-semibold text-red-700" : ""}>{formatUSD(c.committed_cents)}</span>
+                      <span className="text-gray-400"> committed / {formatUSD(c.amount_cents)}</span>
                     </span>
                   </div>
-                  <Bar percent={pct} color={over ? "#DC2626" : "#013764"} />
+                  {/* Three-segment: committed (amber) with the paid portion (violet) overlaid. */}
+                  <div className="relative">
+                    <Bar percent={pct} color={over ? "#DC2626" : "#F59E0B"} />
+                    <div className="absolute inset-0">
+                      <Bar percent={paidPct} color="#7C3AED" />
+                    </div>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+                    <span>{formatUSD(c.spent_cents)} paid</span>
+                    {unpaidCommitted > 0 && (
+                      <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700">{formatUSD(unpaidCommitted)} booked · unpaid</span>
+                    )}
+                  </div>
                   {c.sub_budgets.length > 0 && (
                     <div className="mt-2 flex flex-col gap-1 border-l-2 border-gray-100 pl-3">
                       {c.sub_budgets.map((s) => (
@@ -627,12 +661,16 @@ function BudgetTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary; on
               );
             })}
             <div className="flex justify-between border-t border-gray-100 pt-3 text-sm font-semibold text-gray-900">
-              <span>Total</span>
-              <span className="tabular-nums">{formatUSD(totalSpent)} <span className="font-normal text-gray-400">/ {formatUSD(totalAllocated)}</span></span>
+              <span>Total committed</span>
+              <span className="tabular-nums">{formatUSD(totalCommitted)} <span className="font-normal text-gray-400">/ {formatUSD(totalAllocated)}</span></span>
             </div>
           </div>
         )}
       </Card>
+
+      {/* Package B: money by vendor — quoted vs committed vs paid vs remaining, plus
+          the forward-looking plan. Cost/vendor rollup keyed on the bill's own vendor. */}
+      <VendorFinancialsCard vendors={summary.vendor_summary} />
 
       {/* Vendor lane: when each vendor gets paid what (deposit terms etc.) — sample preview.
           Quotes live on their own tab (pre-commitment); accepted quotes seed these schedules. */}
@@ -641,6 +679,46 @@ function BudgetTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary; on
       {/* COs are budget amendments (current budget = original + approved COs), so the log lives here. */}
       <ChangeOrderLog summary={summary} onRefresh={onRefresh} />
     </div>
+  );
+}
+
+// VendorFinancialsCard (Package B) — the Payables group-by-vendor view: per
+// vendor, quoted (from accepted quotes) vs committed (booked bills) vs paid vs
+// remaining, plus the forward-looking planned amount (plan-vs-actual).
+function VendorFinancialsCard({ vendors }: { vendors: VendorFinancialSummary[] }) {
+  return (
+    <Card title="By Vendor">
+      {vendors.length === 0 ? (
+        <p className="text-sm text-gray-500">No vendor spend yet. Vendors are attached when you accept a quote into the budget or book a bill against a work order.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 text-left text-xs uppercase tracking-wide text-gray-400">
+                <th className="py-2 pr-4 font-medium">Vendor</th>
+                <th className="py-2 pr-4 text-right font-medium">Quoted</th>
+                <th className="py-2 pr-4 text-right font-medium">Committed</th>
+                <th className="py-2 pr-4 text-right font-medium">Paid</th>
+                <th className="py-2 pr-4 text-right font-medium">Remaining</th>
+                <th className="py-2 pr-4 text-right font-medium">Planned</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vendors.map((v) => (
+                <tr key={v.vendor_id} className="border-b border-gray-50 last:border-0">
+                  <td className="py-2.5 pr-4 font-medium text-gray-900">{v.vendor_name || `Vendor #${v.vendor_id}`}</td>
+                  <td className="py-2.5 pr-4 text-right tabular-nums text-gray-700">{formatUSD(v.quoted_cents)}</td>
+                  <td className="py-2.5 pr-4 text-right tabular-nums text-gray-900">{formatUSD(v.committed_cents)}</td>
+                  <td className="py-2.5 pr-4 text-right tabular-nums text-gray-700">{formatUSD(v.paid_cents)}</td>
+                  <td className={`py-2.5 pr-4 text-right tabular-nums ${v.remaining_cents < 0 ? "font-semibold text-red-700" : "text-gray-700"}`}>{formatUSD(v.remaining_cents)}</td>
+                  <td className="py-2.5 pr-4 text-right tabular-nums text-gray-400">{formatUSD(v.planned_cents)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -655,12 +733,39 @@ function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: ()
       <div className="flex flex-col gap-6 min-w-0">
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
           <KpiCard label="Current Budget" value={formatUSD(budget)} subtitle={fin.approved_change_orders_cents > 0 ? `${formatUSD(fin.original_budget_cents)} + ${formatUSD(fin.approved_change_orders_cents)} COs` : "No change orders"} accent="navy" />
-          <KpiCard label="Spent" value={formatUSD(fin.spent_cents)} subtitle={`${formatUSD(fin.remaining_budget_cents)} remaining`} accent="violet" />
+          <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle={fin.unpaid_committed_cents > 0 ? `${formatUSD(fin.unpaid_committed_cents)} booked · unpaid` : "All committed is paid"} accent="amber" valueColor={fin.unpaid_committed_cents > 0 ? "#B45309" : undefined} />
+          <KpiCard label="Paid" value={formatUSD(fin.paid_cents)} subtitle={`${formatUSD(fin.remaining_budget_cents)} remaining (net committed)`} accent="violet" valueColor={fin.remaining_budget_cents < 0 ? "#B91C1C" : undefined} />
           <KpiCard label="% Complete" value={`${project.percent_complete}%`} subtitle="Weighted across work" accent="blue" />
           <KpiCard label="Payments In" value={formatUSD(fin.collected_cents)} subtitle="Deposits + progress" accent="green" valueColor="#15803D" />
           <KpiCard label="Outstanding" value={fin.outstanding_invoices_cents > 0 ? formatUSD(fin.outstanding_invoices_cents) : "$0"} subtitle="Billed, awaiting pay" accent="amber" valueColor={fin.outstanding_invoices_cents > 0 ? "#B45309" : undefined} />
           <KpiCard label="Net Cash Position" value={formatUSD(fin.net_cash_cents)} subtitle="In minus out" accent={fin.net_cash_cents >= 0 ? "green" : "red"} valueColor={fin.net_cash_cents >= 0 ? "#15803D" : "#B91C1C"} />
+          {fin.contract_amount_cents != null && (
+            <KpiCard
+              label="Owner Budget Variance"
+              value={formatUSD(fin.projected_margin_cents ?? 0)}
+              subtitle={`Contract ${formatUSD(fin.contract_amount_cents)}${fin.margin_pct != null ? ` · ${(fin.margin_pct * 100).toFixed(1)}%` : ""}`}
+              accent={(fin.projected_margin_cents ?? 0) >= 0 ? "green" : "red"}
+              valueColor={(fin.projected_margin_cents ?? 0) >= 0 ? "#15803D" : "#B91C1C"}
+            />
+          )}
         </div>
+
+        {/* Over/under-billing indicator: billed-to-client vs cost incurred (committed). */}
+        {(fin.billed_to_date_cents > 0 || fin.committed_cents > 0) && (
+          <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${fin.billed_vs_cost_cents >= 0 ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
+            <span className={`mt-0.5 ${fin.billed_vs_cost_cents >= 0 ? "text-emerald-600" : "text-amber-600"}`}>
+              {fin.billed_vs_cost_cents >= 0 ? "▲" : "▼"}
+            </span>
+            <div className="text-sm">
+              <span className={`font-semibold ${fin.billed_vs_cost_cents >= 0 ? "text-emerald-800" : "text-amber-800"}`}>
+                {fin.billed_vs_cost_cents >= 0 ? "Over-billing" : "Under-billing"} {formatUSD(Math.abs(fin.billed_vs_cost_cents))}
+              </span>
+              <span className="ml-1 text-gray-600">
+                — billed {formatUSD(fin.billed_to_date_cents)} vs committed cost {formatUSD(fin.committed_cents)}.
+              </span>
+            </div>
+          </div>
+        )}
 
         {fin.pending_change_orders_count > 0 && (
           <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
@@ -677,10 +782,11 @@ function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: ()
           </div>
         )}
 
-        <Card title="Budget vs. Spent">
+        <Card title="Budget · Committed · Paid">
           <div className="flex flex-col gap-4">
             {[
-              { label: "Spent to date", value: fin.spent_cents, color: "#7C3AED" },
+              { label: "Committed (booked bills)", value: fin.committed_cents, color: "#B45309" },
+              { label: "Paid to date", value: fin.paid_cents, color: "#7C3AED" },
               { label: "Billed to client", value: fin.billed_to_date_cents, color: "#013764" },
               { label: "Collected from client", value: fin.collected_cents, color: "#16A34A" },
             ].map((row) => (
@@ -1405,6 +1511,18 @@ function InvoicingTab({ summary }: { summary: ProjectSummary }) {
     }
   };
 
+  const doPushQbo = async (id: number) => {
+    try {
+      const res = await pushInvoiceToQbo(projectId, id);
+      await load();
+      if (detail?.id === id) await openDetail(id);
+      toast.success(res.already_pushed ? "Already in QuickBooks" : `Pushed to QuickBooks (invoice ${res.qbo_invoice_id})`);
+    } catch (e) {
+      // Non-concierge → 409, missing customer → 400, QBO failure → 502; surface it.
+      toast.error(e instanceof Error ? e.message : "Failed to push invoice to QuickBooks");
+    }
+  };
+
   const saveSchedule = async (installments: InstallmentInput[]) => {
     try {
       const next = await putPaymentSchedule(projectId, installments);
@@ -1518,7 +1636,7 @@ function InvoicingTab({ summary }: { summary: ProjectSummary }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <Th>Invoice</Th><Th>Title</Th><Th>Issued</Th><Th right>Total</Th><Th right>Paid</Th><Th>Status</Th>
+                  <Th>Invoice</Th><Th>Title</Th><Th>Issued</Th><Th right>Total</Th><Th right>Paid</Th><Th>Status</Th><Th>QBO</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1532,6 +1650,7 @@ function InvoicingTab({ summary }: { summary: ProjectSummary }) {
                       <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(inv.total_amount_cents)}</td>
                       <td className="py-3 pr-4 text-right tabular-nums text-gray-700">{inv.paid_cents > 0 ? formatUSD(inv.paid_cents) : "—"}</td>
                       <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
+                      <td className="py-3 pr-4"><QboStatusBadge invoice={inv} /></td>
                     </tr>
                   );
                 })}
@@ -1558,6 +1677,7 @@ function InvoicingTab({ summary }: { summary: ProjectSummary }) {
           onSend={() => doSend(detail.id)}
           onRecordPayment={(cents) => doRecordPayment(detail.id, cents)}
           onVoid={() => doVoid(detail.id)}
+          onPushQbo={() => doPushQbo(detail.id)}
           onClose={() => setDetail(null)}
         />
       )}
@@ -1772,20 +1892,28 @@ function ProjectInvoiceDetailModal({
   onSend,
   onRecordPayment,
   onVoid,
+  onPushQbo,
   onClose,
 }: {
   invoice: ProjectInvoice;
   onSend: () => void;
   onRecordPayment: (cents: number) => void;
   onVoid: () => void;
+  onPushQbo: () => void | Promise<void>;
   onClose: () => void;
 }) {
   const totalCents = invoice.total_amount_cents;
   const paid = invoice.paid_cents;
   const remaining = Math.max(0, totalCents - paid);
   const [payAmount, setPayAmount] = useState(String(remaining / 100));
+  const [pushing, setPushing] = useState(false);
   const meta = P_INVOICE_STATUS_META[invoice.status];
   const canPay = invoice.status === "sent" || invoice.status === "partially_paid";
+  const pushed = invoice.qbo_push_status === "pushed";
+  // Push to QBO once the invoice has left draft (so it's a real receivable), while
+  // not void. The backend fail-loud gate (409 non-concierge / 400 no customer) is
+  // the source of truth; the button stays optimistic.
+  const canPushQbo = invoice.status !== "void" && invoice.status !== "draft";
 
   return (
     <ModalShell
@@ -1800,6 +1928,16 @@ function ProjectInvoiceDetailModal({
             </button>
           )}
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Close</button>
+          {canPushQbo && (
+            <button
+              onClick={async () => { setPushing(true); try { await onPushQbo(); } finally { setPushing(false); } }}
+              disabled={pushing || pushed}
+              title={pushed ? "Already pushed to QuickBooks" : "Post this invoice to QuickBooks (concierge only)"}
+              className={`h-9 rounded-lg px-3.5 text-sm font-medium ${pushed ? "cursor-default border border-emerald-200 bg-emerald-50 text-emerald-700" : "border border-[#013764] bg-white text-[#013764] hover:bg-[#013764]/5 disabled:opacity-50"}`}
+            >
+              {pushed ? "In QuickBooks ✓" : pushing ? "Pushing…" : "Push to QuickBooks"}
+            </button>
+          )}
           {invoice.status === "draft" && (
             <button onClick={onSend} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]">
               Send to client
@@ -2990,6 +3128,9 @@ function UpdateProjectModal({
   const [managerUserId, setManagerUserId] = useState<number | "">(project.manager_user_id ?? "");
   const [managers, setManagers] = useState<{ id: number; name: string }[]>([]);
   const [description, setDescription] = useState(project.description);
+  const [contractAmount, setContractAmount] = useState(
+    project.contract_amount_cents != null ? centsToInput(project.contract_amount_cents) : "",
+  );
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<CategoryDraft[]>(() => categoriesToDrafts(summary.budget));
   const [milestones, setMilestones] = useState<MilestoneDraft[]>(() => milestonesToDrafts(summary.milestones));
@@ -3037,6 +3178,7 @@ function UpdateProjectModal({
         ...(targetEndDate ? { target_end_date: targetEndDate } : {}),
         manager_user_id: managerUserId === "" ? null : managerUserId,
         description,
+        ...(contractAmount.trim() !== "" ? { contract_amount_cents: dollarsToCents(contractAmount) } : {}),
       });
       // Budget first: the PUT response carries real ids for new categories so
       // milestone → budget links can be resolved (index-aligned, Decision #11).
@@ -3116,6 +3258,21 @@ function UpdateProjectModal({
               <div>
                 <label htmlFor={`${uid}-desc`} className={labelCls}>Description</label>
                 <textarea id={`${uid}-desc`} rows={2} className={`${fieldCls} mt-1 resize-none`} value={description} onChange={(e) => setDescription(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor={`${uid}-contract`} className={labelCls}>Contract amount (agreed client price)</label>
+                <div className="relative mt-1">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                  <input
+                    id={`${uid}-contract`}
+                    inputMode="decimal"
+                    placeholder="Optional"
+                    className={`${fieldCls} pl-6`}
+                    value={contractAmount}
+                    onChange={(e) => setContractAmount(e.target.value)}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-400">Basis for the owner budget-variance figure. Leave blank to omit.</p>
               </div>
             </div>
 
