@@ -589,10 +589,68 @@ function ChangeOrderLog({ summary, onRefresh }: { summary: ProjectSummary; onRef
 
 /* ------------------------------- milestones ------------------------------- */
 
-function MilestonesCard({ summary, onEdit }: { summary: ProjectSummary; onEdit: () => void }) {
+// MilestonesCard — Dashboard timeline of project milestones. View mode is the
+// status/date/category-tag list; "Edit" swaps in the same MilestonesEditor the
+// Update-project modal uses (add / edit / remove; name, target date, status,
+// budget-category link). Save calls putMilestones then refreshes the summary.
+function MilestonesCard({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
   const milestones = summary.milestones;
   const done = milestones.filter((m) => m.status === "complete").length;
   const catName = (id: number | null) => summary.budget.find((c) => c.id === id)?.name;
+
+  const [editing, setEditing] = useState(false);
+  const [drafts, setDrafts] = useState<MilestoneDraft[]>(() => milestonesToDrafts(milestones));
+  const [saving, setSaving] = useState(false);
+  const seq = useRef(1);
+
+  const nextId = () => seq.current++;
+
+  // The MilestonesEditor's category dropdown + the budget_item_id resolution in
+  // draftsToMilestonesPayload need category drafts index-aligned with the real
+  // budget. Budget isn't edited here, so drafts and "saved" are both the current
+  // budget (identity mapping of category ids).
+  const categoryDrafts = categoriesToDrafts(summary.budget);
+
+  const beginEdit = () => {
+    const ms = milestonesToDrafts(milestones);
+    setDrafts(ms);
+    seq.current =
+      Math.max(0, ...ms.map((m) => m.id), ...categoryDrafts.map((c) => c.id)) + 1;
+    setEditing(true);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await putMilestones(
+        summary.project.id,
+        draftsToMilestonesPayload(drafts, categoryDrafts, summary.budget),
+      );
+      toast.success("Milestones updated");
+      onRefresh();
+      setEditing(false);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to update milestones"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (editing) {
+    return (
+      <Card
+        title="Milestones"
+        action={
+          <div className="flex items-center gap-2">
+            <button onClick={() => setEditing(false)} disabled={saving} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+            <button onClick={save} disabled={saving} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50">{saving ? "Saving…" : "Save milestones"}</button>
+          </div>
+        }
+      >
+        <MilestonesEditor milestones={drafts} categories={categoryDrafts} onChange={setDrafts} newId={nextId} />
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -600,7 +658,7 @@ function MilestonesCard({ summary, onEdit }: { summary: ProjectSummary; onEdit: 
       action={
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">{done}/{milestones.length} complete</span>
-          <button onClick={onEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">+ Milestone</button>
+          <button onClick={beginEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">+ Milestone</button>
         </div>
       }
     >
@@ -766,7 +824,7 @@ function BudgetCard({
 /* --------------------------------- tabs ----------------------------------- */
 
 
-function DashboardTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary; onEdit: () => void; onRefresh: () => void }) {
+function DashboardTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
   const project = summary.project;
   const fin = summary.financials;
   const budget = fin.current_budget_cents;
@@ -818,7 +876,7 @@ function DashboardTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary;
 
         <BudgetCard projectId={project.id} budget={summary.budget} onRefresh={onRefresh} />
 
-        <MilestonesCard summary={summary} onEdit={onEdit} />
+        <MilestonesCard summary={summary} onRefresh={onRefresh} />
       </div>
 
       {/* right rail — project details */}
@@ -3257,7 +3315,7 @@ export default function ProjectDetail() {
         </div>
 
         <div className="pt-6">
-          {tab === "dashboard" && <DashboardTab summary={summary} onEdit={() => setEditOpen(true)} onRefresh={load} />}
+          {tab === "dashboard" && <DashboardTab summary={summary} onRefresh={load} />}
           {tab === "maintenance" && (
             <div className="flex flex-col gap-6">
               <div className="flex flex-wrap items-center gap-2">
