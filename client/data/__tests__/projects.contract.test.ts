@@ -294,6 +294,9 @@ const PAYMENT_FIXTURE = {
   reference: "Initial project deposit (30%)",
   deposit_account_qbo_id: null,
   qbo_payment_id: null,
+  receipt_object_key: null,
+  receipt_mime: null,
+  receipt_filename: null,
   created_by_user_id: 3,
   created_at: "2026-03-03T15:00:00Z",
 } satisfies ProjectPayment;
@@ -373,8 +376,9 @@ const EXPECTED_KEYS = {
   CashFlowEntry: ["date", "direction", "kind", "description", "party", "amount_cents"],
   ProjectPayment: [
     "id", "project_id", "kind", "amount_cents", "received_on", "reference",
-    "deposit_account_qbo_id", "qbo_payment_id", "created_by_user_id",
-    "created_at",
+    "deposit_account_qbo_id", "qbo_payment_id",
+    "receipt_object_key", "receipt_mime", "receipt_filename",
+    "created_by_user_id", "created_at",
   ],
 } as const;
 

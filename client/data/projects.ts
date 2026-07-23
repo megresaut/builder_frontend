@@ -139,6 +139,9 @@ export interface ProjectPayment {
   reference: string;
   deposit_account_qbo_id: string | null;
   qbo_payment_id: string | null;
+  receipt_object_key: string | null; // proof attachment (served at /files/<key>)
+  receipt_mime: string | null;
+  receipt_filename: string | null;
   created_by_user_id: number | null;
   created_at: string;
 }
@@ -688,6 +691,28 @@ export async function getCashFlow(projectId: number): Promise<CashFlowEntry[]> {
   return data ?? [];
 }
 
+/* ----------------------------- project bills ------------------------------ */
+// Bills booked on the project via its work orders / FTOs (money out). Σ booked =
+// financials.committed_cents, Σ paid = financials.paid_cents.
+
+export interface ProjectBillRow {
+  id: number;
+  vendor_id: number | null;
+  vendor_name: string;
+  statement_date: string | null; // "YYYY-MM-DD"
+  booked_cents: number; // bills.amount_cents (committed)
+  paid_cents: number; // Σ bill_payments
+  description: string; // memo, else invoice #
+  work_order_name: string;
+  qbo_bill_id: string | null;
+  buildium_bill_id: string | null;
+}
+
+export async function listProjectBills(projectId: number): Promise<ProjectBillRow[]> {
+  const data = await fetchJSON(`/projects/${projectId}/bills`);
+  return data ?? [];
+}
+
 /* -------------------- siloed project invoicing (Part A / P0) --------------- */
 // The client-billing lane: payment schedule → project invoice → client payment.
 // FULLY separate from the monthly per-property invoicing (invoices/
@@ -1108,6 +1133,39 @@ export async function uploadProjectFile(projectId: number, file: File): Promise<
 
 export async function deleteProjectFile(projectId: number, fileId: number): Promise<void> {
   await fetchJSON(`/projects/${projectId}/files/${fileId}`, { method: "DELETE" });
+}
+
+export interface PaymentReceiptResult {
+  payment_id: number;
+  receipt_object_key: string;
+  receipt_mime: string;
+  receipt_filename: string;
+  download: string; // "/files/<object_key>"
+}
+
+// Attach a receipt/proof file to a recorded client payment (multipart).
+export async function uploadPaymentReceipt(
+  projectId: number,
+  paymentId: number,
+  file: File,
+): Promise<PaymentReceiptResult> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await authFetch(`/projects/${projectId}/payments/${paymentId}/receipt`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    let msg = "Failed to upload receipt";
+    try {
+      const b = await res.json();
+      if (b?.error) msg = b.error;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(msg);
+  }
+  return res.json();
 }
 
 /* ------------------------------ vendor lookup ----------------------------- */

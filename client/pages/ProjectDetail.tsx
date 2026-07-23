@@ -42,6 +42,8 @@ import {
   listProjectFiles,
   uploadProjectFile,
   deleteProjectFile,
+  listProjectBills,
+  uploadPaymentReceipt,
   searchVendors,
   formatUSD,
   formatUSDPrecise,
@@ -78,6 +80,7 @@ import {
   type VendorPaymentStatus,
   type ProjectFileRow,
   type ProjectFileSource,
+  type ProjectBillRow,
   type VendorLite,
 } from "@/data/projects";
 import {
@@ -93,7 +96,7 @@ import {
   type MilestoneDraft,
 } from "@/components/projects/ProjectEditors";
 
-type TabKey = "dashboard" | "maintenance" | "quotes" | "budget" | "invoicing" | "cashflow" | "files";
+type TabKey = "dashboard" | "maintenance" | "quotes" | "financials" | "files";
 type MaintenanceSubTabKey = "tasks" | "work-orders" | "field-team";
 
 const TABS: { key: TabKey; label: string }[] = [
@@ -106,9 +109,11 @@ const TABS: { key: TabKey; label: string }[] = [
   // PROJECT_INVOICING_SPEC.md. The old SOV/draws BillingTab was retired in the project-financials build.
   // Quotes = pre-commitment (bidding); accepting one feeds Payables (budget + vendor schedule).
   { key: "quotes", label: "Quotes" },
-  { key: "budget", label: "Payables" },
-  { key: "invoicing", label: "Receivables" },
-  { key: "cashflow", label: "Cash Flow" },
+  // "Financials" is the single money tab: it consolidated + replaced the former
+  // Payables / Receivables / Cash Flow tabs. Vendor bills paid out (via the
+  // project's work orders), client payments in, and invoice create/send/push —
+  // all here. Siloed from monthly invoicing.
+  { key: "financials", label: "Financials" },
   { key: "files", label: "Files" },
 ];
 
@@ -597,94 +602,6 @@ function MilestonesCard({ summary, onEdit }: { summary: ProjectSummary; onEdit: 
 
 /* --------------------------------- tabs ----------------------------------- */
 
-function BudgetTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary; onEdit: () => void; onRefresh: () => void }) {
-  const categories = summary.budget;
-  const fin = summary.financials;
-  const totalAllocated = categories.reduce((s, c) => s + c.amount_cents, 0);
-  const totalSpent = categories.reduce((s, c) => s + c.spent_cents, 0);
-  const totalCommitted = categories.reduce((s, c) => s + c.committed_cents, 0);
-  // Remaining nets COMMITTED (D3) — money already booked stops looking available.
-  const remaining = fin.remaining_budget_cents;
-
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard label="Allocated" value={formatUSD(totalAllocated)} subtitle="Across all categories" accent="navy" />
-        <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle={fin.unpaid_committed_cents > 0 ? `${formatUSD(fin.unpaid_committed_cents)} booked · unpaid` : "All committed is paid"} accent="amber" valueColor={fin.unpaid_committed_cents > 0 ? "#B45309" : undefined} />
-        <KpiCard label="Paid" value={formatUSD(fin.paid_cents)} subtitle={`${totalAllocated ? Math.round((fin.paid_cents / totalAllocated) * 100) : 0}% of budget`} accent="violet" />
-        <KpiCard label="Remaining" value={formatUSD(remaining)} subtitle="Budget − committed" accent={remaining >= 0 ? "green" : "red"} valueColor={remaining >= 0 ? "#15803D" : "#B91C1C"} />
-      </div>
-
-      <Card title="Budget Breakdown" action={<button onClick={onEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit budget</button>}>
-        {categories.length === 0 ? (
-          <p className="text-sm text-gray-500">No budget categories yet.</p>
-        ) : (
-          <div className="flex flex-col gap-5">
-            {categories.map((c) => {
-              const pct = c.amount_cents > 0 ? (c.committed_cents / c.amount_cents) * 100 : 0;
-              const paidPct = c.amount_cents > 0 ? (c.spent_cents / c.amount_cents) * 100 : 0;
-              const over = c.committed_cents > c.amount_cents;
-              const unpaidCommitted = c.committed_cents - c.spent_cents;
-              return (
-                <div key={c.id}>
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-900">{c.name}</span>
-                    <span className="tabular-nums text-gray-700">
-                      <span className={over ? "font-semibold text-red-700" : ""}>{formatUSD(c.committed_cents)}</span>
-                      <span className="text-gray-400"> committed / {formatUSD(c.amount_cents)}</span>
-                    </span>
-                  </div>
-                  {/* Three-segment: committed (amber) with the paid portion (violet) overlaid. */}
-                  <div className="relative">
-                    <Bar percent={pct} color={over ? "#DC2626" : "#F59E0B"} />
-                    <div className="absolute inset-0">
-                      <Bar percent={paidPct} color="#7C3AED" />
-                    </div>
-                  </div>
-                  <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
-                    <span>{formatUSD(c.spent_cents)} paid</span>
-                    {unpaidCommitted > 0 && (
-                      <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700">{formatUSD(unpaidCommitted)} booked · unpaid</span>
-                    )}
-                  </div>
-                  {c.sub_budgets.length > 0 && (
-                    <div className="mt-2 flex flex-col gap-1 border-l-2 border-gray-100 pl-3">
-                      {c.sub_budgets.map((s) => (
-                        <div key={s.id} className="flex items-center justify-between text-xs text-gray-500">
-                          <span>{s.name}</span>
-                          <span className="tabular-nums">{formatUSD(s.amount_cents)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <div className="flex justify-between border-t border-gray-100 pt-3 text-sm font-semibold text-gray-900">
-              <span>Total committed</span>
-              <span className="tabular-nums">{formatUSD(totalCommitted)} <span className="font-normal text-gray-400">/ {formatUSD(totalAllocated)}</span></span>
-            </div>
-          </div>
-        )}
-      </Card>
-
-      {/* Package B: money by vendor — quoted vs committed vs paid vs remaining, plus
-          the forward-looking plan. Cost/vendor rollup keyed on the bill's own vendor. */}
-      <VendorFinancialsCard vendors={summary.vendor_summary} />
-
-      {/* Vendor lane: when each vendor gets paid what (deposit terms etc.) — sample preview.
-          Quotes live on their own tab (pre-commitment); accepted quotes seed these schedules. */}
-      <VendorScheduleCard projectId={summary.project.id} />
-
-      {/* COs are budget amendments (current budget = original + approved COs), so the log lives here. */}
-      <ChangeOrderLog summary={summary} onRefresh={onRefresh} />
-    </div>
-  );
-}
-
-// VendorFinancialsCard (Package B) — the Payables group-by-vendor view: per
-// vendor, quoted (from accepted quotes) vs committed (booked bills) vs paid vs
-// remaining, plus the forward-looking planned amount (plan-vs-actual).
 function VendorFinancialsCard({ vendors }: { vendors: VendorFinancialSummary[] }) {
   return (
     <Card title="By Vendor">
@@ -1150,18 +1067,27 @@ function RecordPaymentModal({
   const [amount, setAmount] = useState("");
   const [receivedOn, setReceivedOn] = useState("");
   const [reference, setReference] = useState("");
+  const [receipt, setReceipt] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const uid = useId();
 
   const submit = async () => {
     setSaving(true);
     try {
-      await createPayment(projectId, {
+      const created = await createPayment(projectId, {
         kind,
         amount_cents: Math.max(0, Math.round((Number(amount) || 0) * 100)),
         received_on: receivedOn,
         reference: reference.trim(),
       });
+      // Attach the receipt (optional) to the freshly-created payment.
+      if (receipt) {
+        try {
+          await uploadPaymentReceipt(projectId, created.id, receipt);
+        } catch (e) {
+          toast.error(errMessage(e, "Payment saved, but the receipt failed to upload"));
+        }
+      }
       toast.success("Payment recorded");
       onSaved();
       onClose();
@@ -1209,13 +1135,36 @@ function RecordPaymentModal({
             <input id={`${uid}-reference`} className={`${fieldCls} mt-1`} value={reference} onChange={(e) => setReference(e.target.value)} placeholder="e.g. Initial project deposit (30%)" />
           </div>
         </div>
+        <div>
+          <label htmlFor={`${uid}-receipt`} className={labelCls}>Receipt / proof (optional)</label>
+          <input
+            id={`${uid}-receipt`}
+            type="file"
+            className="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border file:border-[#DADADA] file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-50"
+            onChange={(e) => setReceipt(e.target.files?.[0] ?? null)}
+          />
+          {receipt && <div className="mt-1 truncate text-xs text-gray-500">{receipt.name}</div>}
+        </div>
         {payments.length > 0 && (
           <div className="border-t border-gray-100 pt-3">
             <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Previously recorded</div>
             <div className="flex flex-col gap-1">
               {payments.slice(0, 5).map((p) => (
                 <div key={p.id} className="flex items-center justify-between text-xs text-gray-500">
-                  <span className="truncate">{formatMaybeDate(p.received_on)} · {p.kind === "deposit" ? "Deposit" : "Progress payment"}{p.reference ? ` · ${p.reference}` : ""}</span>
+                  <span className="flex items-center gap-1.5 truncate">
+                    {formatMaybeDate(p.received_on)} · {p.kind === "deposit" ? "Deposit" : "Progress payment"}{p.reference ? ` · ${p.reference}` : ""}
+                    {p.receipt_object_key && (
+                      <a
+                        href={`/files/${p.receipt_object_key}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={p.receipt_filename ?? "View receipt"}
+                        className="text-blue-600 hover:underline"
+                      >
+                        📎
+                      </a>
+                    )}
+                  </span>
                   <span className="tabular-nums text-gray-700">{formatUSD(p.amount_cents)}</span>
                 </div>
               ))}
@@ -1229,109 +1178,322 @@ function RecordPaymentModal({
 }
 
 
-function CashFlowTab({ projectId, onRefreshSummary }: { projectId: number; onRefreshSummary: () => void }) {
-  const [entries, setEntries] = useState<CashFlowEntry[] | null>(null);
+/* ------------------- EXPLORATORY: consolidated Financials tab ---------------- */
+/* One tab that answers: what have we paid OUT to vendors, and what have we taken
+   IN from the client, and where do we net. Composes the already-loaded
+   ProjectSummary + getCashFlow + listProjectInvoices + listPayments. No new
+   backend endpoints. Intentionally lean vs. Payables/Receivables/Cash Flow. */
+type PInvoiceStatus = ProjectInvoiceStatus;
+
+const P_INVOICE_STATUS_META: Record<PInvoiceStatus, { label: string; text: string; bg: string }> = {
+  draft: { label: "Draft", text: "#374151", bg: "#F3F4F6" },
+  sent: { label: "Sent", text: "#1D4ED8", bg: "#E7EEFE" },
+  partially_paid: { label: "Partially Paid", text: "#B45309", bg: "#FCF2E1" },
+  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
+  void: { label: "Void", text: "#6B7280", bg: "#F3F4F6" },
+};
+
+function FinancialsTab({
+  summary,
+  projectId,
+  onRefreshSummary,
+}: {
+  summary: ProjectSummary;
+  projectId: number;
+  onRefreshSummary: () => void;
+}) {
+  const fin = summary.financials;
+  const cancelled = summary.project.status === "cancelled";
+  const [cashflow, setCashflow] = useState<CashFlowEntry[] | null>(null);
+  const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
   const [payments, setPayments] = useState<ProjectPayment[]>([]);
+  const [bills, setBills] = useState<ProjectBillRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [recordOpen, setRecordOpen] = useState(false);
+  // Invoice management (folded in from the retired Receivables tab).
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [billables, setBillables] = useState<Billables | null>(null);
+  const [detail, setDetail] = useState<ProjectInvoice | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setError(null);
-      const [cf, pays] = await Promise.all([getCashFlow(projectId), listPayments(projectId)]);
-      setEntries(cf);
+      const [cf, inv, pays, bl] = await Promise.all([
+        getCashFlow(projectId),
+        listProjectInvoices(projectId),
+        listPayments(projectId),
+        listProjectBills(projectId),
+      ]);
+      setCashflow(cf);
+      setInvoices(inv);
       setPayments(pays);
+      setBills(bl);
     } catch (e) {
-      setError(errMessage(e, "Failed to load cash flow"));
+      setError(errMessage(e, "Failed to load financials"));
     }
   }, [projectId]);
-
   useEffect(() => {
     load();
   }, [load]);
 
+  const openBuilder = async () => {
+    setBuilderOpen(true);
+    setBillables(null);
+    try {
+      setBillables(await getBillables(projectId));
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to load billable items"));
+    }
+  };
+  const openDetail = async (id: number) => {
+    try {
+      setDetail(await getProjectInvoice(projectId, id));
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to load invoice"));
+    }
+  };
+  const doCreate = async (title: string, lines: CreateInvoiceLineInput[]) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const created = await createProjectInvoice(projectId, { title, lines });
+      setBuilderOpen(false);
+      setBillables(null);
+      await load();
+      setDetail(created);
+      toast.success(`${created.invoice_number} created as draft`);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to create invoice"));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const doSend = async (id: number) => {
+    try {
+      const updated = await sendProjectInvoice(projectId, id);
+      setDetail(updated);
+      await load();
+      onRefreshSummary();
+      toast.success("Invoice sent to client");
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to send invoice"));
+    }
+  };
+  const doRecordInvoicePayment = async (id: number, amountCents: number) => {
+    try {
+      const updated = await recordInvoicePayment(projectId, id, { amount_cents: amountCents, received_on: isoToday() });
+      setDetail(updated);
+      await load();
+      onRefreshSummary();
+      toast.success("Payment recorded");
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to record payment"));
+    }
+  };
+  const doVoid = async (id: number) => {
+    if (detail && detail.paid_cents > 0 && !window.confirm(
+      `This invoice has ${formatUSD(detail.paid_cents)} in recorded payments. Voiding drops it from receivables totals but keeps those payments. Void anyway?`,
+    )) return;
+    try {
+      const updated = await voidProjectInvoice(projectId, id);
+      setDetail(updated);
+      await load();
+      onRefreshSummary();
+      toast.success("Invoice voided");
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to void invoice"));
+    }
+  };
+  const doPushQbo = async (id: number) => {
+    try {
+      const res = await pushInvoiceToQbo(projectId, id);
+      await load();
+      if (detail?.id === id) await openDetail(id);
+      toast.success(res.already_pushed ? "Already in QuickBooks" : `Pushed to QuickBooks (invoice ${res.qbo_invoice_id})`);
+    } catch (e) {
+      // Non-concierge → 409, missing customer → 400, QBO failure → 502.
+      toast.error(errMessage(e, "Failed to push invoice to QuickBooks"));
+    }
+  };
+
   if (error) {
     return (
       <div className="py-12 text-center text-sm text-gray-500">
-        {error}{" "}
-        <button onClick={load} className="text-blue-600 hover:underline">Retry</button>
+        {error} <button onClick={load} className="text-blue-600 hover:underline">Retry</button>
       </div>
     );
   }
-  if (entries === null) {
-    return <div className="py-12 text-center text-sm text-gray-500">Loading cash flow…</div>;
+  if (cashflow === null) {
+    return <div className="py-12 text-center text-sm text-gray-500">Loading financials…</div>;
   }
 
-  const viewEntries = entries;
-  const inTotal = viewEntries.filter((c) => c.direction === "inbound").reduce((s, c) => s + c.amount_cents, 0);
-  const outTotal = viewEntries.filter((c) => c.direction === "outbound").reduce((s, c) => s + c.amount_cents, 0);
-  const net = inTotal - outTotal;
+  const paidOut = cashflow.filter((c) => c.direction === "outbound").reduce((s, c) => s + c.amount_cents, 0);
+  const receivedIn = cashflow.filter((c) => c.direction === "inbound").reduce((s, c) => s + c.amount_cents, 0);
+  const net = receivedIn - paidOut;
+  const clientPayments = cashflow.filter((c) => c.direction === "inbound");
+  const overUnder = fin.billed_vs_cost_cents; // billed_to_date − committed
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <KpiCard label="Paid to Vendors" value={formatUSD(outTotal)} subtitle="AVM money out on this project" accent="red" valueColor="#B91C1C" />
-        <KpiCard label="Repaid by Client" value={formatUSD(inTotal)} subtitle="Deposits + progress payments received" accent="green" valueColor="#15803D" />
+      {/* Compact summary header */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {fin.contract_amount_cents != null && (
+          <KpiCard label="Contract" value={formatUSD(fin.contract_amount_cents)} accent="navy" />
+        )}
+        <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle="Booked bills" accent="amber" valueColor="#B45309" />
+        <KpiCard label="Paid to vendors" value={formatUSD(fin.paid_cents)} subtitle="Cash out" accent="violet" valueColor="#7C3AED" />
+        <KpiCard label="Remaining" value={formatUSD(fin.remaining_budget_cents)} subtitle="Budget − committed" accent="navy" />
+        <KpiCard label="Collected" value={formatUSD(fin.collected_cents)} subtitle="From client" accent="green" valueColor="#15803D" />
         <KpiCard
-          label={net < 0 ? "AVM is Fronting" : "Collected Ahead"}
-          value={formatUSD(Math.abs(net))}
-          subtitle={net < 0 ? "Paid out, not yet repaid by client" : "Received ahead of vendor spend"}
-          accent={net < 0 ? "amber" : "green"}
-          valueColor={net < 0 ? "#B45309" : "#15803D"}
+          label={overUnder >= 0 ? "Over-billed" : "Under-billed"}
+          value={formatUSD(Math.abs(overUnder))}
+          subtitle={overUnder >= 0 ? "Billed ahead of cost" : "Cost ahead of billing"}
+          accent={overUnder >= 0 ? "green" : "amber"}
+          valueColor={overUnder >= 0 ? "#15803D" : "#B45309"}
         />
       </div>
 
-      <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-        {net < 0 ? (
-          <>
-            <span className="font-semibold">The client currently owes AVM {formatUSD(-net)}</span> for project costs we've
-            fronted — money paid to vendors that hasn't been repaid yet. Bill it through the owner's invoice, then record the
-            payment here when it lands.
-          </>
-        ) : net > 0 ? (
-          <>
-            <span className="font-semibold">AVM is holding {formatUSD(net)} of client money</span> — collected ahead of vendor
-            spend. Upcoming vendor payments up to this amount are already covered.
-          </>
-        ) : (
-          <>
-            <span className="font-semibold">Fully settled</span> — everything paid to vendors has been repaid by the client.
-          </>
-        )}
+      {/* Net strip */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
+        <span className="text-gray-600">
+          Paid to vendors <span className="font-semibold text-red-700">−{formatUSD(paidOut)}</span>
+          <span className="mx-2 text-gray-300">·</span>
+          Received from client <span className="font-semibold text-green-700">+{formatUSD(receivedIn)}</span>
+        </span>
+        <span className={`font-semibold ${net < 0 ? "text-amber-700" : "text-green-700"}`}>
+          {net < 0 ? `AVM fronting ${formatUSD(-net)}` : net > 0 ? `Collected ahead ${formatUSD(net)}` : "Fully settled"}
+        </span>
       </div>
 
-      {/* Two lanes: the vendor lane and the client lane, side by side. Actuals on top,
-          upcoming (from the Payables / Receivables schedules) below — this is where the
-          two directions meet, and the only place both appear together. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        <Card title="AVM → Vendors — money out">
-          <CashLane
-            rows={viewEntries.filter((c) => c.direction === "outbound")}
-            totalCents={outTotal}
-            totalLabel="Paid to vendors"
-            sign="−"
-            amountColor="text-red-700"
-            emptyText="No vendor payments yet — they appear automatically when bills on this project's work are paid."
-            upcomingHint="From vendor payment schedules (Payables)"
-          />
+      {/* Two lanes: bills → vendors (out), payments ← client (in) */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+        {/* Bills booked on the project (money out) — per-bill via WO/FTO. */}
+        <Card title="Vendor bills">
+          {bills.length === 0 ? (
+            <div className="py-8 text-center text-sm text-gray-500">
+              No vendor bills booked on this project yet. Bills flow in from the project's work orders.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500">
+                    <th className="pb-2 font-semibold">Vendor</th>
+                    <th className="pb-2 font-semibold">Bill / work order</th>
+                    <th className="pb-2 text-right font-semibold">Booked</th>
+                    <th className="pb-2 text-right font-semibold">Paid</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {bills.map((b) => (
+                    <tr key={b.id}>
+                      <td className="py-2 pr-2 text-gray-900">{b.vendor_name || (b.vendor_id ? `Vendor #${b.vendor_id}` : "—")}</td>
+                      <td className="py-2 pr-2 text-gray-600">
+                        <span className="block truncate max-w-[16rem]">{b.description || b.work_order_name || `Bill #${b.id}`}</span>
+                        {b.statement_date && <span className="text-xs text-gray-400">{fmtProjDate(b.statement_date)}</span>}
+                      </td>
+                      <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(b.booked_cents)}</td>
+                      <td className="py-2 text-right tabular-nums text-violet-700">{formatUSD(b.paid_cents)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-gray-200 font-semibold text-gray-900">
+                    <td className="pt-2" colSpan={2}>Total</td>
+                    <td className="pt-2 text-right tabular-nums">{formatUSD(fin.committed_cents)}</td>
+                    <td className="pt-2 text-right tabular-nums text-violet-700">{formatUSD(fin.paid_cents)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+              <div className="mt-2 text-xs text-gray-400">Booked = bill total (committed) · Paid = settled with the vendor.</div>
+            </div>
+          )}
         </Card>
+
+        {/* Payments received from client */}
         <Card
-          title="Client → AVM — money in"
+          title="Client payments received"
           action={
-            <button onClick={() => setRecordOpen(true)} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            <button
+              onClick={() => setRecordOpen(true)}
+              className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
               + Record payment
             </button>
           }
         >
-          <CashLane
-            rows={viewEntries.filter((c) => c.direction === "inbound")}
-            totalCents={inTotal}
-            totalLabel="Received from client"
-            sign="+"
-            amountColor="text-green-700"
-            emptyText="No client payments yet — record one, or they arrive automatically when a project invoice is paid."
-            upcomingHint="From the client payment schedule + outstanding invoices (Receivables)"
-          />
+          {clientPayments.length === 0 ? (
+            <div className="py-8 text-center text-sm text-gray-500">
+              No client payments yet — record one, or they arrive automatically when a project invoice is paid.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500">
+                    <th className="pb-2 font-semibold">Date</th>
+                    <th className="pb-2 font-semibold">Reference</th>
+                    <th className="pb-2 text-right font-semibold">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {clientPayments.map((c, i) => (
+                    <tr key={i}>
+                      <td className="py-2 pr-2 text-gray-700">{fmtProjDate(c.date)}</td>
+                      <td className="py-2 pr-2 text-gray-900">{c.description || c.kind}</td>
+                      <td className="py-2 text-right tabular-nums text-green-700">+{formatUSD(c.amount_cents)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-gray-200 font-semibold text-gray-900">
+                    <td className="pt-2" colSpan={2}>Total received</td>
+                    <td className="pt-2 text-right tabular-nums text-green-700">+{formatUSD(receivedIn)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+
+          {/* Invoices — create / send / push-to-QBO all live here now. */}
+          <div className="mt-4 border-t border-gray-100 pt-3">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Invoices</div>
+              <button
+                onClick={openBuilder}
+                disabled={cancelled}
+                className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                + New invoice
+              </button>
+            </div>
+            {invoices.length === 0 ? (
+              <div className="py-3 text-center text-xs text-gray-400">No invoices yet — create one to bill the client.</div>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {invoices.map((inv) => {
+                  const meta = P_INVOICE_STATUS_META[inv.status];
+                  return (
+                    <button
+                      key={inv.id}
+                      onClick={() => openDetail(inv.id)}
+                      className="flex w-full items-center justify-between rounded-lg px-1.5 py-1 text-left text-sm hover:bg-gray-50"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-gray-900">{inv.invoice_number}</span>
+                        <Pill label={meta.label} text={meta.text} bg={meta.bg} />
+                        <QboStatusBadge invoice={inv} />
+                      </span>
+                      <span className="tabular-nums text-gray-600">
+                        {formatUSD(inv.paid_cents)} / {formatUSD(inv.total_amount_cents)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </Card>
       </div>
 
@@ -1346,33 +1508,33 @@ function CashFlowTab({ projectId, onRefreshSummary }: { projectId: number; onRef
           onClose={() => setRecordOpen(false)}
         />
       )}
+
+      {builderOpen && (
+        <ProjectInvoiceBuilderModal
+          billables={billables}
+          busy={busy}
+          onCreate={doCreate}
+          onClose={() => {
+            setBuilderOpen(false);
+            setBillables(null);
+          }}
+        />
+      )}
+
+      {detail && (
+        <ProjectInvoiceDetailModal
+          invoice={detail}
+          onSend={() => doSend(detail.id)}
+          onRecordPayment={(cents) => doRecordInvoicePayment(detail.id, cents)}
+          onVoid={() => doVoid(detail.id)}
+          onPushQbo={() => doPushQbo(detail.id)}
+          onClose={() => setDetail(null)}
+        />
+      )}
     </div>
   );
 }
 
-/* ------------------- project invoicing (spec preview, sample) --------------- */
-/* Frontend-only preview of PROJECT_INVOICING_SPEC.md: siloed project invoices,
-   payment-schedule installments, quotes, files. All state is local + badged as
-   sample; interactions work in-page and reset on reload. No API calls. */
-
-type PInvoiceStatus = ProjectInvoiceStatus;
-
-const P_INVOICE_STATUS_META: Record<PInvoiceStatus, { label: string; text: string; bg: string }> = {
-  draft: { label: "Draft", text: "#374151", bg: "#F3F4F6" },
-  sent: { label: "Sent", text: "#1D4ED8", bg: "#E7EEFE" },
-  partially_paid: { label: "Partially Paid", text: "#B45309", bg: "#FCF2E1" },
-  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
-  void: { label: "Void", text: "#6B7280", bg: "#F3F4F6" },
-};
-
-const INSTALLMENT_STATUS_META: Record<PaymentInstallment["status"], { label: string; text: string; bg: string }> = {
-  upcoming: { label: "Upcoming", text: "#6B7280", bg: "#F3F4F6" },
-  due: { label: "Due now", text: "#B45309", bg: "#FCF2E1" },
-  invoiced: { label: "Invoiced", text: "#1D4ED8", bg: "#E7EEFE" },
-  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
-};
-
-// "YYYY-MM-DD" → "Feb 18, 2026"; anything falsy → "—".
 function fmtProjDate(d: string | null | undefined): string {
   if (!d) return "—";
   const dt = new Date(`${d}T00:00:00`);
@@ -1389,307 +1551,6 @@ function installmentTrigger(inst: PaymentInstallment): string {
   if (inst.milestone_name) return `Milestone: ${inst.milestone_name}`;
   if (inst.due_date) return `Due ${fmtProjDate(inst.due_date)}`;
   return "On signing";
-}
-
-function InvoicingTab({ summary }: { summary: ProjectSummary }) {
-  const projectId = summary.project.id;
-  const cancelled = summary.project.status === "cancelled";
-  const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
-  const [schedule, setSchedule] = useState<PaymentInstallment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [builderOpen, setBuilderOpen] = useState(false);
-  const [billables, setBillables] = useState<Billables | null>(null);
-  const [detail, setDetail] = useState<ProjectInvoice | null>(null);
-  const [scheduleEditorOpen, setScheduleEditorOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      const [inv, sch] = await Promise.all([listProjectInvoices(projectId), getPaymentSchedule(projectId)]);
-      setInvoices(inv);
-      setSchedule(sch);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to load invoicing");
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const budget = summary.financials.current_budget_cents;
-  const issued = invoices.filter((i) => i.status !== "void" && i.status !== "draft");
-  const billed = issued.reduce((s, i) => s + i.total_amount_cents, 0);
-  const received = invoices.filter((i) => i.status !== "void").reduce((s, i) => s + i.paid_cents, 0);
-  const outstanding = issued.reduce((s, i) => s + Math.max(0, i.total_amount_cents - i.paid_cents), 0);
-  const leftToBill = Math.max(0, budget - billed);
-
-  const openDetail = async (id: number) => {
-    try {
-      setDetail(await getProjectInvoice(projectId, id));
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to load invoice");
-    }
-  };
-
-  const openBuilder = async () => {
-    setBuilderOpen(true);
-    setBillables(null);
-    try {
-      setBillables(await getBillables(projectId));
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to load billable items");
-    }
-  };
-
-  const doCreate = async (title: string, lines: CreateInvoiceLineInput[]) => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const created = await createProjectInvoice(projectId, { title, lines });
-      setBuilderOpen(false);
-      setBillables(null);
-      await load();
-      setDetail(created);
-      toast.success(`${created.invoice_number} created as draft`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to create invoice");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  // Bill a single due installment straight from its schedule row.
-  const invoiceInstallment = (inst: PaymentInstallment) =>
-    doCreate(inst.label, [
-      {
-        description: `${inst.label} — per payment schedule`,
-        amount_cents: inst.resolved_amount_cents,
-        source_type: "installment",
-        source_id: inst.id,
-      },
-    ]);
-
-  const doSend = async (id: number) => {
-    try {
-      const updated = await sendProjectInvoice(projectId, id);
-      setDetail(updated);
-      await load();
-      toast.success("Invoice sent to client");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to send invoice");
-    }
-  };
-
-  const doRecordPayment = async (id: number, amountCents: number) => {
-    try {
-      const updated = await recordInvoicePayment(projectId, id, { amount_cents: amountCents, received_on: isoToday() });
-      setDetail(updated);
-      await load();
-      toast.success("Payment recorded — a linked row lands in Cash Flow");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to record payment");
-    }
-  };
-
-  const doVoid = async (id: number) => {
-    const inv = detail;
-    if (inv && inv.paid_cents > 0 && !window.confirm(
-      `This invoice has ${formatUSD(inv.paid_cents)} in recorded payments. Voiding it keeps those payments in Cash Flow but drops the invoice from receivables totals. Void anyway?`,
-    )) {
-      return;
-    }
-    try {
-      const updated = await voidProjectInvoice(projectId, id);
-      setDetail(updated);
-      await load();
-      toast.success("Invoice voided — linked installments released");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to void invoice");
-    }
-  };
-
-  const doPushQbo = async (id: number) => {
-    try {
-      const res = await pushInvoiceToQbo(projectId, id);
-      await load();
-      if (detail?.id === id) await openDetail(id);
-      toast.success(res.already_pushed ? "Already in QuickBooks" : `Pushed to QuickBooks (invoice ${res.qbo_invoice_id})`);
-    } catch (e) {
-      // Non-concierge → 409, missing customer → 400, QBO failure → 502; surface it.
-      toast.error(e instanceof Error ? e.message : "Failed to push invoice to QuickBooks");
-    }
-  };
-
-  const saveSchedule = async (installments: InstallmentInput[]) => {
-    try {
-      const next = await putPaymentSchedule(projectId, installments);
-      setSchedule(next);
-      setScheduleEditorOpen(false);
-      toast.success("Payment schedule saved");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to save payment schedule");
-    }
-  };
-
-  const totalScheduled = schedule.reduce((s, i) => s + i.resolved_amount_cents, 0);
-
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs text-gray-600">
-        This is the <strong>client lane</strong>: the agreed payment schedule, the project invoices issued against it, and
-        receipts. Vendor-side money lives on Payables; the two lanes meet on Cash Flow. Completely separate from monthly invoices.
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        <KpiCard label="Billed to Client" value={formatUSD(billed)} subtitle={`${budget ? Math.round((billed / budget) * 100) : 0}% of budget`} accent="navy" />
-        <KpiCard label="Received" value={formatUSD(received)} subtitle="Payments on project invoices" accent="green" valueColor="#15803D" />
-        <KpiCard label="Outstanding" value={formatUSD(outstanding)} subtitle="Invoiced, awaiting payment" accent="amber" valueColor={outstanding > 0 ? "#B45309" : undefined} />
-        <KpiCard label="Left to Bill" value={formatUSD(leftToBill)} subtitle="Budget not yet invoiced" accent="violet" />
-      </div>
-
-      <Card
-        title="Client Payment Schedule"
-        action={
-          <button
-            onClick={() => setScheduleEditorOpen(true)}
-            disabled={cancelled}
-            className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
-            Edit schedule
-          </button>
-        }
-      >
-        {loading ? (
-          <p className="text-sm text-gray-500">Loading…</p>
-        ) : schedule.length === 0 ? (
-          <p className="text-sm text-gray-500">No payment schedule defined yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <Th>Installment</Th><Th>Basis</Th><Th right>Amount</Th><Th>Trigger</Th><Th>Status</Th><Th right>{""}</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {schedule.map((inst) => {
-                  const meta = INSTALLMENT_STATUS_META[inst.status];
-                  return (
-                    <tr key={inst.id} className="hover:bg-gray-50">
-                      <td className="py-3 pr-4 font-medium text-gray-900">{inst.label}</td>
-                      <td className="py-3 pr-4 text-gray-500">{installmentBasisLabel(inst)}</td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(inst.resolved_amount_cents)}</td>
-                      <td className="py-3 pr-4 text-gray-500">{installmentTrigger(inst)}</td>
-                      <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
-                      <td className="py-3 text-right">
-                        {inst.status === "due" && !cancelled ? (
-                          <button
-                            onClick={() => invoiceInstallment(inst)}
-                            disabled={busy}
-                            className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
-                          >
-                            Invoice now
-                          </button>
-                        ) : inst.project_invoice_id != null ? (
-                          <button onClick={() => openDetail(inst.project_invoice_id!)} className="text-xs font-medium text-blue-600 hover:underline">
-                            {inst.invoice_number ?? "View"}
-                          </button>
-                        ) : null}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-gray-200 font-semibold text-gray-900">
-                  <td className="py-3 pr-4" colSpan={2}>Total scheduled</td>
-                  <td className="py-3 pr-4 text-right tabular-nums">{formatUSD(totalScheduled)}</td>
-                  <td colSpan={3} />
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      <Card
-        title="Project Invoices"
-        action={
-          <button
-            onClick={openBuilder}
-            disabled={cancelled}
-            className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
-          >
-            + New invoice
-          </button>
-        }
-      >
-        {loading ? (
-          <p className="text-sm text-gray-500">Loading…</p>
-        ) : invoices.length === 0 ? (
-          <p className="text-sm text-gray-500">No project invoices yet. Bill a due installment above, or start a new invoice.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <Th>Invoice</Th><Th>Title</Th><Th>Issued</Th><Th right>Total</Th><Th right>Paid</Th><Th>Status</Th><Th>QBO</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {invoices.map((inv) => {
-                  const meta = P_INVOICE_STATUS_META[inv.status];
-                  return (
-                    <tr key={inv.id} onClick={() => openDetail(inv.id)} className="cursor-pointer hover:bg-gray-50">
-                      <td className="py-3 pr-4 font-medium text-blue-600">{inv.invoice_number}</td>
-                      <td className="py-3 pr-4 text-gray-900">{inv.title}</td>
-                      <td className="py-3 pr-4 text-gray-500">{fmtProjDate(inv.issue_date)}</td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(inv.total_amount_cents)}</td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-700">{inv.paid_cents > 0 ? formatUSD(inv.paid_cents) : "—"}</td>
-                      <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
-                      <td className="py-3 pr-4"><QboStatusBadge invoice={inv} /></td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      {builderOpen && (
-        <ProjectInvoiceBuilderModal
-          billables={billables}
-          busy={busy}
-          onCreate={doCreate}
-          onClose={() => {
-            setBuilderOpen(false);
-            setBillables(null);
-          }}
-        />
-      )}
-      {detail && (
-        <ProjectInvoiceDetailModal
-          invoice={detail}
-          onSend={() => doSend(detail.id)}
-          onRecordPayment={(cents) => doRecordPayment(detail.id, cents)}
-          onVoid={() => doVoid(detail.id)}
-          onPushQbo={() => doPushQbo(detail.id)}
-          onClose={() => setDetail(null)}
-        />
-      )}
-      {scheduleEditorOpen && (
-        <ProjectScheduleEditorModal
-          schedule={schedule}
-          onSave={saveSchedule}
-          onClose={() => setScheduleEditorOpen(false)}
-        />
-      )}
-    </div>
-  );
 }
 
 function ProjectInvoiceBuilderModal({
@@ -3440,9 +3301,7 @@ export default function ProjectDetail() {
             </div>
           )}
           {tab === "quotes" && <QuotesTab projectId={project.id} budget={summary.budget} />}
-          {tab === "budget" && <BudgetTab summary={summary} onEdit={() => setEditOpen(true)} onRefresh={load} />}
-          {tab === "invoicing" && <InvoicingTab summary={summary} />}
-          {tab === "cashflow" && <CashFlowTab projectId={project.id} onRefreshSummary={load} />}
+          {tab === "financials" && <FinancialsTab summary={summary} projectId={project.id} onRefreshSummary={load} />}
           {tab === "files" && <FilesTab projectId={project.id} />}
         </div>
       </div>
