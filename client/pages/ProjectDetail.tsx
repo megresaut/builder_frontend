@@ -645,10 +645,128 @@ function MilestonesCard({ summary, onEdit }: { summary: ProjectSummary; onEdit: 
   );
 }
 
+/* --------------------------------- budget --------------------------------- */
+
+// Category-level spend indicator: a stacked bar (paid solid over committed
+// lighter, budget = track) plus a "N% committed" label. Percent text shows the
+// true committed/budget ratio (can exceed 100 when over-committed → amber); the
+// bar itself is clamped at 100%.
+function CategoryProgress({ amount, committed, spent }: { amount: number; committed: number; spent: number }) {
+  const committedPct = amount > 0 ? (committed / amount) * 100 : 0;
+  const paidPct = amount > 0 ? (spent / amount) * 100 : 0;
+  const over = committedPct > 100;
+  const committedColor = over ? "#FCD34D" : "#93C5FD";
+  const paidColor = over ? "#B45309" : "#013764";
+  return (
+    <div className="mt-1.5 flex items-center gap-2">
+      <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 min-w-[80px]">
+        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(100, committedPct)}%`, backgroundColor: committedColor }} />
+        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(100, paidPct)}%`, backgroundColor: paidColor }} />
+      </div>
+      <span className={`shrink-0 text-[11px] tabular-nums ${over ? "font-medium text-amber-600" : "text-gray-400"}`}>
+        {Math.round(committedPct)}% committed
+      </span>
+    </div>
+  );
+}
+
+// BudgetCard — the Dashboard's budget structure. View mode renders the real
+// budget set at project creation (categories → sub-budgets) with a per-category
+// spend indicator. "Edit" swaps in the same BudgetEditor the Update-project
+// modal uses; Save calls putBudget then refreshes the summary.
+function BudgetCard({
+  projectId,
+  budget,
+  onRefresh,
+}: {
+  projectId: number;
+  budget: BudgetCategory[];
+  onRefresh: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [categories, setCategories] = useState<CategoryDraft[]>(() => categoriesToDrafts(budget));
+  const [saving, setSaving] = useState(false);
+  const seq = useRef(1);
+
+  const nextId = () => seq.current++;
+
+  const beginEdit = () => {
+    const drafts = categoriesToDrafts(budget);
+    setCategories(drafts);
+    seq.current = Math.max(0, ...drafts.flatMap((c) => [c.id, ...c.subBudgets.map((s) => s.id)])) + 1;
+    setEditing(true);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await putBudget(projectId, draftsToBudgetPayload(categories));
+      toast.success("Budget updated");
+      onRefresh();
+      setEditing(false);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to update budget"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (editing) {
+    return (
+      <Card
+        title="Budget"
+        action={
+          <div className="flex items-center gap-2">
+            <button onClick={() => setEditing(false)} disabled={saving} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+            <button onClick={save} disabled={saving} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50">{saving ? "Saving…" : "Save budget"}</button>
+          </div>
+        }
+      >
+        <BudgetEditor categories={categories} onChange={setCategories} newId={nextId} />
+      </Card>
+    );
+  }
+
+  return (
+    <Card
+      title="Budget"
+      action={
+        <button onClick={beginEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit</button>
+      }
+    >
+      {budget.length === 0 ? (
+        <p className="text-sm text-gray-500">No budget set for this project yet.</p>
+      ) : (
+        <div className="flex flex-col divide-y divide-gray-100">
+          {budget.map((cat) => (
+            <div key={cat.id} className="py-2.5 first:pt-0 last:pb-0">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm font-medium text-gray-900">{cat.name}</span>
+                <span className="text-sm font-semibold text-gray-900 tabular-nums">{formatUSD(cat.amount_cents)}</span>
+              </div>
+              <CategoryProgress amount={cat.amount_cents} committed={cat.committed_cents} spent={cat.spent_cents} />
+              {cat.sub_budgets.length > 0 && (
+                <div className="mt-2 flex flex-col gap-1 border-l border-gray-100 pl-3">
+                  {cat.sub_budgets.map((sub) => (
+                    <div key={sub.id} className="flex items-baseline justify-between gap-3">
+                      <span className="text-sm text-gray-600">{sub.name}</span>
+                      <span className="text-sm text-gray-700 tabular-nums">{formatUSD(sub.amount_cents)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 /* --------------------------------- tabs ----------------------------------- */
 
 
-function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: () => void }) {
+function DashboardTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary; onEdit: () => void; onRefresh: () => void }) {
   const project = summary.project;
   const fin = summary.financials;
   const budget = fin.current_budget_cents;
@@ -658,22 +776,12 @@ function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: ()
       {/* main column */}
       <div className="flex flex-col gap-6 min-w-0">
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
-          <KpiCard label="Current Budget" value={formatUSD(budget)} subtitle={fin.approved_change_orders_cents > 0 ? `${formatUSD(fin.original_budget_cents)} + ${formatUSD(fin.approved_change_orders_cents)} COs` : "No change orders"} accent="navy" />
-          <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle={fin.unpaid_committed_cents > 0 ? `${formatUSD(fin.unpaid_committed_cents)} booked · unpaid` : "All committed is paid"} accent="amber" valueColor={fin.unpaid_committed_cents > 0 ? "#B45309" : undefined} />
-          <KpiCard label="Paid" value={formatUSD(fin.paid_cents)} subtitle={`${formatUSD(fin.remaining_budget_cents)} remaining (net committed)`} accent="violet" valueColor={fin.remaining_budget_cents < 0 ? "#B91C1C" : undefined} />
+          <KpiCard label="Total Budget" value={formatUSD(fin.current_budget_cents)} subtitle={fin.approved_change_orders_cents > 0 ? `${formatUSD(fin.original_budget_cents)} + ${formatUSD(fin.approved_change_orders_cents)} COs` : "No change orders"} accent="navy" />
+          <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle="booked bills" accent="amber" valueColor={fin.unpaid_committed_cents > 0 ? "#B45309" : undefined} />
+          <KpiCard label="Remaining" value={formatUSD(fin.remaining_budget_cents)} subtitle="net of committed" accent="violet" valueColor={fin.remaining_budget_cents < 0 ? "#B91C1C" : undefined} />
           <KpiCard label="% Complete" value={`${project.percent_complete}%`} subtitle="Weighted across work" accent="blue" />
-          <KpiCard label="Payments In" value={formatUSD(fin.collected_cents)} subtitle="Deposits + progress" accent="green" valueColor="#15803D" />
-          <KpiCard label="Outstanding" value={fin.outstanding_invoices_cents > 0 ? formatUSD(fin.outstanding_invoices_cents) : "$0"} subtitle="Billed, awaiting pay" accent="amber" valueColor={fin.outstanding_invoices_cents > 0 ? "#B45309" : undefined} />
-          <KpiCard label="Net Cash Position" value={formatUSD(fin.net_cash_cents)} subtitle="In minus out" accent={fin.net_cash_cents >= 0 ? "green" : "red"} valueColor={fin.net_cash_cents >= 0 ? "#15803D" : "#B91C1C"} />
-          {fin.contract_amount_cents != null && (
-            <KpiCard
-              label="Owner Budget Variance"
-              value={formatUSD(fin.projected_margin_cents ?? 0)}
-              subtitle={`Contract ${formatUSD(fin.contract_amount_cents)}${fin.margin_pct != null ? ` · ${(fin.margin_pct * 100).toFixed(1)}%` : ""}`}
-              accent={(fin.projected_margin_cents ?? 0) >= 0 ? "green" : "red"}
-              valueColor={(fin.projected_margin_cents ?? 0) >= 0 ? "#15803D" : "#B91C1C"}
-            />
-          )}
+          <KpiCard label="Collected from Client" value={formatUSD(fin.collected_cents)} subtitle="Deposits + progress" accent="green" valueColor="#15803D" />
+          <KpiCard label="Net Cash Position" value={formatUSD(fin.net_cash_cents)} subtitle="collected − paid" accent={fin.net_cash_cents >= 0 ? "green" : "red"} valueColor={fin.net_cash_cents >= 0 ? "#15803D" : "#B91C1C"} />
         </div>
 
         {/* Over/under-billing indicator: billed-to-client vs cost incurred (committed). */}
@@ -708,26 +816,7 @@ function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: ()
           </div>
         )}
 
-        <Card title="Budget · Committed · Paid">
-          <div className="flex flex-col gap-4">
-            {[
-              { label: "Committed (booked bills)", value: fin.committed_cents, color: "#B45309" },
-              { label: "Paid to date", value: fin.paid_cents, color: "#7C3AED" },
-              { label: "Billed to client", value: fin.billed_to_date_cents, color: "#013764" },
-              { label: "Collected from client", value: fin.collected_cents, color: "#16A34A" },
-            ].map((row) => (
-              <div key={row.label}>
-                <div className="mb-1 flex justify-between text-sm">
-                  <span className="text-gray-600">{row.label}</span>
-                  <span className="font-medium text-gray-900 tabular-nums">
-                    {formatUSD(row.value)} <span className="text-gray-400">of {formatUSD(budget)}</span>
-                  </span>
-                </div>
-                <Bar percent={budget > 0 ? (row.value / budget) * 100 : 0} color={row.color} />
-              </div>
-            ))}
-          </div>
-        </Card>
+        <BudgetCard projectId={project.id} budget={summary.budget} onRefresh={onRefresh} />
 
         <MilestonesCard summary={summary} onEdit={onEdit} />
       </div>
@@ -743,9 +832,20 @@ function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: ()
             </div>
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">
               <dt className="text-gray-500">Project manager</dt>
-              <dd className="flex items-center gap-2">
-                {project.manager_initials && <Avatar initials={project.manager_initials} />}
-                <span className="text-gray-800">{project.manager_name || "Unassigned"}</span>
+              <dd>
+                <PersonAvatars
+                  people={
+                    project.manager_name || project.manager_initials
+                      ? [{
+                          id: "pm",
+                          name: project.manager_name || "Unassigned",
+                          initials: project.manager_initials || "?",
+                        }]
+                      : []
+                  }
+                  fallback="—"
+                  size="sm"
+                />
               </dd>
             </div>
             <div className="border-t border-gray-100 pt-3">
@@ -3157,7 +3257,7 @@ export default function ProjectDetail() {
         </div>
 
         <div className="pt-6">
-          {tab === "dashboard" && <DashboardTab summary={summary} onEdit={() => setEditOpen(true)} />}
+          {tab === "dashboard" && <DashboardTab summary={summary} onEdit={() => setEditOpen(true)} onRefresh={load} />}
           {tab === "maintenance" && (
             <div className="flex flex-col gap-6">
               <div className="flex flex-wrap items-center gap-2">
