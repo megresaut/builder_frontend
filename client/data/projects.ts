@@ -1142,6 +1142,9 @@ export interface ProjectFileRow {
   download: string; // "/files/<object_key>"
   created_at: string;
   deletable: boolean;
+  label: string; // "what it belongs to" — direct project uploads only (migration 140)
+  description: string;
+  uploaded_by: string; // uploader display name ("" if unknown)
 }
 
 export async function listProjectFiles(projectId: number): Promise<ProjectFileRow[]> {
@@ -1149,9 +1152,15 @@ export async function listProjectFiles(projectId: number): Promise<ProjectFileRo
   return data ?? [];
 }
 
-export async function uploadProjectFile(projectId: number, file: File): Promise<ProjectFileRow> {
+export async function uploadProjectFile(
+  projectId: number,
+  file: File,
+  meta?: { label?: string; description?: string },
+): Promise<ProjectFileRow> {
   const form = new FormData();
   form.append("file", file);
+  if (meta?.label) form.append("label", meta.label);
+  if (meta?.description) form.append("description", meta.description);
   const res = await authFetch(`/projects/${projectId}/files`, { method: "POST", body: form });
   if (!res.ok) {
     let msg = "Failed to upload file";

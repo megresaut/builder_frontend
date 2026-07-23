@@ -2472,6 +2472,8 @@ function FilesTab({ projectId }: { projectId: number }) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [picked, setPicked] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [uploadLabel, setUploadLabel] = useState("");
+  const [uploadDescription, setUploadDescription] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -2492,6 +2494,8 @@ function FilesTab({ projectId }: { projectId: number }) {
   const openUpload = () => {
     setPicked(null);
     setDragOver(false);
+    setUploadLabel("");
+    setUploadDescription("");
     setUploadOpen(true);
   };
 
@@ -2499,7 +2503,10 @@ function FilesTab({ projectId }: { projectId: number }) {
     if (!picked) return;
     setUploading(true);
     try {
-      await uploadProjectFile(projectId, picked);
+      await uploadProjectFile(projectId, picked, {
+        label: uploadLabel.trim(),
+        description: uploadDescription.trim(),
+      });
       await load();
       toast.success("File uploaded");
       setUploadOpen(false);
@@ -2569,8 +2576,19 @@ function FilesTab({ projectId }: { projectId: number }) {
                     <tr key={`${f.source}-${f.id}`} className="hover:bg-gray-50">
                       <td className="py-3 pr-4">
                         <a href={`${API_BASE}${f.download}`} target="_blank" rel="noreferrer" className="font-medium text-blue-600 hover:underline">{f.name}</a>
+                        {f.description && <div className="mt-0.5 text-xs text-gray-500">{f.description}</div>}
+                        {(f.uploaded_by || f.created_at) && (
+                          <div className="mt-0.5 text-[11px] text-gray-400">
+                            {f.uploaded_by ? `${f.uploaded_by} · ` : ""}{f.created_at?.slice(0, 10)}
+                          </div>
+                        )}
                       </td>
-                      <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
+                      <td className="py-3 pr-4">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <Pill label={meta.label} text={meta.text} bg={meta.bg} />
+                          {f.label && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">{f.label}</span>}
+                        </div>
+                      </td>
                       <td className="py-3 pr-4 text-gray-700">{f.parent || "—"}</td>
                       <td className="py-3 pr-4 text-gray-500">{f.mime || "—"}</td>
                       <td className="py-3 pr-4 text-right tabular-nums text-gray-500">{formatBytes(f.size_bytes)}</td>
@@ -2656,6 +2674,38 @@ function FilesTab({ projectId }: { projectId: number }) {
               Choose a different file
             </button>
           )}
+
+          <div className="mt-4 grid gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-500">Label</label>
+              <input
+                type="text"
+                list="project-file-labels"
+                value={uploadLabel}
+                onChange={(e) => setUploadLabel(e.target.value)}
+                placeholder="What it belongs to — e.g. Contract, Permit, Estimate, Photo"
+                className="h-9 w-full rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#013764] focus:outline-none"
+              />
+              <datalist id="project-file-labels">
+                <option value="Contract" />
+                <option value="Permit" />
+                <option value="Estimate" />
+                <option value="Invoice" />
+                <option value="Photo" />
+                <option value="Other" />
+              </datalist>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-500">Description</label>
+              <textarea
+                value={uploadDescription}
+                onChange={(e) => setUploadDescription(e.target.value)}
+                placeholder="Optional note about this file"
+                rows={2}
+                className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#013764] focus:outline-none"
+              />
+            </div>
+          </div>
         </ModalShell>
       )}
     </div>
