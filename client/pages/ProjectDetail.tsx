@@ -99,11 +99,9 @@ import CreateWorkOrderModalV2, { type TaskOption } from "@/components/CreateWork
 import CreateFTOModal from "@/components/CreateFTOModal";
 import GlobalTable from "@/components/GlobalTable";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
-import PageHeader from "@/components/PageHeader";
 import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
-import { Plus } from "lucide-react";
 
 type TabKey = "dashboard" | "maintenance" | "quotes" | "financials" | "files";
 type MaintenanceSubTabKey = "tasks" | "work-orders" | "field-team";
@@ -251,6 +249,42 @@ function SegmentedControl<T extends string>({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+// MaintenanceSubTabBar — the Work-tab sub-tab row: SegmentedControl (Tasks /
+// Work Orders / Field Team Orders with counts) on the left, and the active
+// sub-tab's contextual create/attach actions (passed as children) right-aligned
+// on the same row.
+function MaintenanceSubTabBar({
+  value,
+  onChange,
+  summary,
+  children,
+}: {
+  value: MaintenanceSubTabKey;
+  onChange: (v: MaintenanceSubTabKey) => void;
+  summary: ProjectSummary;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <SegmentedControl
+        value={value}
+        onChange={(v) => onChange(v as MaintenanceSubTabKey)}
+        options={MAINTENANCE_SUBTABS.map((t) => ({
+          key: t.key,
+          label: t.label,
+          count:
+            t.key === "tasks"
+              ? summary.counts.tasks
+              : t.key === "work-orders"
+              ? summary.counts.work_orders
+              : summary.counts.field_team_orders,
+        }))}
+      />
+      {children && <div className="ml-auto flex items-center gap-2">{children}</div>}
     </div>
   );
 }
@@ -1177,7 +1211,17 @@ function FilterPill({
   );
 }
 
-function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
+function TasksTab({
+  summary,
+  onRefresh,
+  subTab,
+  onSubTabChange,
+}: {
+  summary: ProjectSummary;
+  onRefresh: () => void;
+  subTab: MaintenanceSubTabKey;
+  onSubTabChange: (v: MaintenanceSubTabKey) => void;
+}) {
   const navigate = useNavigate();
   const [attachOpen, setAttachOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -1281,29 +1325,26 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
 
   return (
     <div className="flex flex-col gap-6">
+      <MaintenanceSubTabBar value={subTab} onChange={onSubTabChange} summary={summary}>
+        <button
+          onClick={() => setCreateOpen(true)}
+          className="h-8 rounded-lg bg-[#013764] px-3 text-xs font-medium text-white hover:bg-[#003a73]"
+        >
+          + New task
+        </button>
+        <button
+          onClick={() => setAttachOpen(true)}
+          className="h-8 rounded-lg border border-[#DADADA] bg-white px-3 text-xs font-medium text-[#303030] hover:bg-gray-100"
+        >
+          + Attach task
+        </button>
+      </MaintenanceSubTabBar>
+
       <div className="grid grid-cols-3 gap-3">
         <KpiCard label="Not Started" value={String(notStartedCount)} subtitle="Tasks not yet started" accent="amber" />
         <KpiCard label="In Progress" value={String(inProgressCount)} subtitle="Tasks underway" accent="blue" />
         <KpiCard label="Completed" value={String(completedCount)} subtitle="Tasks finished" accent="green" valueColor="#15803D" />
       </div>
-
-      {/* Section heading — mirrors the task-detail Work Orders layout: title +
-          subtitle on the left, the create/attach actions on the right. */}
-      <PageHeader
-        title="Tasks"
-        subtitle="Tasks attached to this project, in one place"
-        action={{
-          label: "New task",
-          onClick: () => setCreateOpen(true),
-          icon: <Plus className="w-5 h-5" />,
-        }}
-        secondaryAction={{
-          label: "Attach task",
-          onClick: () => setAttachOpen(true),
-          icon: <Plus className="w-5 h-5" />,
-          variant: "neutral",
-        }}
-      />
 
       {tasks.length === 0 ? (
         <p className="text-sm text-gray-500">No tasks attached yet. Use “+ Attach task” to pull existing tasks into this project.</p>
@@ -1512,7 +1553,17 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
   );
 }
 
-function WorkOrdersTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
+function WorkOrdersTab({
+  summary,
+  onRefresh,
+  subTab,
+  onSubTabChange,
+}: {
+  summary: ProjectSummary;
+  onRefresh: () => void;
+  subTab: MaintenanceSubTabKey;
+  onSubTabChange: (v: MaintenanceSubTabKey) => void;
+}) {
   const [createOpen, setCreateOpen] = useState(false);
   const wos = summary.work_orders;
   const tasks = summary.tasks;
@@ -1540,12 +1591,20 @@ function WorkOrdersTab({ summary, onRefresh }: { summary: ProjectSummary; onRefr
   const totalBilled = wos.reduce((s, w) => s + w.billed_cents, 0);
   return (
     <div className="flex flex-col gap-6">
+      <MaintenanceSubTabBar value={subTab} onChange={onSubTabChange} summary={summary}>
+        <button
+          onClick={openCreate}
+          className="h-8 rounded-lg bg-[#013764] px-3 text-xs font-medium text-white hover:bg-[#003a73]"
+        >
+          + New work order
+        </button>
+      </MaintenanceSubTabBar>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <KpiCard label="Work Orders" value={String(wos.length)} subtitle="Across all tasks" accent="navy" />
         <KpiCard label="Completed" value={String(wos.filter((w) => w.status === "completed").length)} subtitle="Finished & billed" accent="green" valueColor="#15803D" />
         <KpiCard label="Billed to Date" value={formatUSD(totalBilled)} subtitle="Vendor work performed" accent="violet" />
       </div>
-      <Card title={`Work Orders (${wos.length})`} action={<button onClick={openCreate} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">+ New work order</button>}>
+      <Card title={`Work Orders (${wos.length})`}>
         {wos.length === 0 ? (
           <p className="text-sm text-gray-500">No work orders on this project’s tasks yet.</p>
         ) : (
@@ -1589,7 +1648,17 @@ function WorkOrdersTab({ summary, onRefresh }: { summary: ProjectSummary; onRefr
   );
 }
 
-function FieldTeamTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
+function FieldTeamTab({
+  summary,
+  onRefresh,
+  subTab,
+  onSubTabChange,
+}: {
+  summary: ProjectSummary;
+  onRefresh: () => void;
+  subTab: MaintenanceSubTabKey;
+  onSubTabChange: (v: MaintenanceSubTabKey) => void;
+}) {
   const [createOpen, setCreateOpen] = useState(false);
   const ftos = summary.field_team_orders;
   const tasks = summary.tasks;
@@ -1615,28 +1684,29 @@ function FieldTeamTab({ summary, onRefresh }: { summary: ProjectSummary; onRefre
   const totalAmount = ftos.reduce((s, f) => s + (f.amount_cents ?? 0), 0);
   return (
     <div className="flex flex-col gap-6">
+      <MaintenanceSubTabBar value={subTab} onChange={onSubTabChange} summary={summary}>
+        {hasTasks && (
+          <SearchableSelect
+            className="w-44 rounded-md border-[#DADADA] text-xs"
+            value={taskId != null ? String(taskId) : ""}
+            onChange={(v) => setTaskId(v === "" ? null : Number(v))}
+            options={tasks.map((t) => ({ value: String(t.id), label: t.name }))}
+            allLabel="Select task"
+          />
+        )}
+        <button
+          onClick={openCreate}
+          className="h-8 rounded-lg bg-[#013764] px-3 text-xs font-medium text-white hover:bg-[#003a73]"
+        >
+          + New field team order
+        </button>
+      </MaintenanceSubTabBar>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <KpiCard label="Field Team Orders" value={String(ftos.length)} subtitle="In-house field work" accent="navy" />
         <KpiCard label="Total Hours" value={String(totalHours)} subtitle="Logged by field team" accent="blue" />
         <KpiCard label="Labor Cost" value={formatUSD(totalAmount)} subtitle="At standard rate" accent="violet" />
       </div>
-      <Card
-        title={`Field Team Orders (${ftos.length})`}
-        action={
-          <div className="flex items-center gap-2">
-            {hasTasks && (
-              <SearchableSelect
-                className="w-44 rounded-md border-[#DADADA] text-xs"
-                value={taskId != null ? String(taskId) : ""}
-                onChange={(v) => setTaskId(v === "" ? null : Number(v))}
-                options={tasks.map((t) => ({ value: String(t.id), label: t.name }))}
-                allLabel="Select task"
-              />
-            )}
-            <button onClick={openCreate} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">+ New field team order</button>
-          </div>
-        }
-      >
+      <Card title={`Field Team Orders (${ftos.length})`}>
         {ftos.length === 0 ? (
           <p className="text-sm text-gray-500">No field team orders on this project.</p>
         ) : (
@@ -3831,27 +3901,17 @@ export default function ProjectDetail() {
         <div className="pt-6">
           {tab === "dashboard" && <DashboardTab summary={summary} onRefresh={load} />}
           {tab === "maintenance" && (
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-wrap items-center gap-2">
-                <SegmentedControl
-                  value={maintenanceTab}
-                  onChange={(v) => setMaintenanceTab(v as MaintenanceSubTabKey)}
-                  options={MAINTENANCE_SUBTABS.map((t) => ({
-                    key: t.key,
-                    label: t.label,
-                    count:
-                      t.key === "tasks"
-                        ? summary.counts.tasks
-                        : t.key === "work-orders"
-                        ? summary.counts.work_orders
-                        : summary.counts.field_team_orders,
-                  }))}
-                />
-              </div>
-              {maintenanceTab === "tasks" && <TasksTab summary={summary} onRefresh={load} />}
-              {maintenanceTab === "work-orders" && <WorkOrdersTab summary={summary} onRefresh={load} />}
-              {maintenanceTab === "field-team" && <FieldTeamTab summary={summary} onRefresh={load} />}
-            </div>
+            <>
+              {maintenanceTab === "tasks" && (
+                <TasksTab summary={summary} onRefresh={load} subTab={maintenanceTab} onSubTabChange={setMaintenanceTab} />
+              )}
+              {maintenanceTab === "work-orders" && (
+                <WorkOrdersTab summary={summary} onRefresh={load} subTab={maintenanceTab} onSubTabChange={setMaintenanceTab} />
+              )}
+              {maintenanceTab === "field-team" && (
+                <FieldTeamTab summary={summary} onRefresh={load} subTab={maintenanceTab} onSubTabChange={setMaintenanceTab} />
+              )}
+            </>
           )}
           {tab === "quotes" && <QuotesTab projectId={project.id} budget={summary.budget} />}
           {tab === "financials" && <FinancialsTab summary={summary} projectId={project.id} onRefreshSummary={load} />}
