@@ -79,6 +79,10 @@ interface CreateTaskModalProps {
   };
   onSubmit?: (form: any) => void;
   onTaskUpdated?: (taskId: number) => void;
+  /** Fires after a successful CREATE with the newly-created task (as returned
+   * by POST /maintenance/tasks). Lets a caller act on the new task id, e.g.
+   * attach it to a project. Only invoked in create mode. */
+  onCreated?: (task: any) => void;
   variant?: "compact" | "withMessageAndAttachments";
   /** When opening for create (no editData), preselect this property (e.g. from property page). */
   defaultPropertyId?: number;
@@ -98,6 +102,7 @@ export default function CreateTaskModal({
   editData,
   onSubmit,
   onTaskUpdated,
+  onCreated,
   variant = "withMessageAndAttachments",
   defaultPropertyId,
   onApprove,
@@ -826,11 +831,12 @@ export default function CreateTaskModal({
       }
     } else {
       try {
-        await fetchJSON("/maintenance/tasks", {
+        const created = await fetchJSON("/maintenance/tasks", {
           method: "POST",
           body: JSON.stringify(payload),
         });
         dispatchTasksRefresh(selectedPropertyId);
+        onCreated?.(created);
       } catch (error) {
         console.error("Failed to create task:", error);
         setErrors({ submit: "Failed to create task" });

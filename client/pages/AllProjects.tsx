@@ -8,6 +8,7 @@ import { usePageState } from "@/hooks/usePageState";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import { PlusIcon, DotsIcon, CalendarIcon, UserIcon, SparkleIcon } from "@/components/icons";
+import { PropertyManagerAvatarCombined } from "@/components/PropertyManagerAvater";
 import {
   listProjects,
   PROJECT_STATUS_META,
@@ -57,14 +58,6 @@ function ProgressBar({ percent }: { percent: number }) {
       </div>
       <span className="text-xs text-gray-600 w-8 text-right">{percent}%</span>
     </div>
-  );
-}
-
-function Avatar({ initials }: { initials: string }) {
-  return (
-    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-blue-200 bg-blue-50 text-[11px] font-semibold text-blue-700">
-      {initials}
-    </span>
   );
 }
 
@@ -280,11 +273,10 @@ export default function AllProjects() {
             if (columnKey === "target")
               return <span className="text-gray-900 text-sm">{row.target}</span>;
             if (columnKey === "manager")
-              return (
-                <div className="flex items-center gap-2">
-                  <Avatar initials={row.managerInitials} />
-                  <span className="text-gray-700 text-sm truncate">{row.manager}</span>
-                </div>
+              return row.manager ? (
+                <PropertyManagerAvatarCombined name={row.manager} isCreator={false} />
+              ) : (
+                <span className="text-gray-400 text-sm">—</span>
               );
             return null;
           }}

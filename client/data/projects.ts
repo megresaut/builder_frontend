@@ -26,6 +26,7 @@ export interface Project {
   description: string;
   status: ProjectStatus;
   original_budget_cents: number;
+  contract_amount_cents: number | null; // agreed client price (Package A); null = unset
   percent_complete: number;
   start_date: string | null; // "YYYY-MM-DD"
   target_end_date: string | null;
@@ -33,6 +34,13 @@ export interface Project {
   manager_user_id: number | null;
   manager_name: string;
   manager_initials: string;
+  // Field team managers + collaborators (migration 142) — display-only lists.
+  // The *_ids arrays are the stored ids; the resolved arrays carry name +
+  // initials for display. All four are always present ([], never null).
+  field_team_manager_ids: number[];
+  collaborator_ids: number[];
+  field_team_managers: { id: number; name: string; initials: string }[];
+  collaborators: { id: number; name: string; initials: string }[];
   is_visible_to_client: boolean;
   created_by_user_id: number | null;
   last_edited_by_user_id: number | null;
@@ -50,7 +58,8 @@ export interface BudgetCategory {
   id: number;
   name: string;
   amount_cents: number;
-  spent_cents: number;
+  spent_cents: number; // paid (Σ bill_payments) via milestone rollup
+  committed_cents: number; // booked (Σ bills) via the same rollup (Package A)
   sort_order: number;
   sub_budgets: BudgetSubItem[];
 }
@@ -137,6 +146,10 @@ export interface ProjectPayment {
   reference: string;
   deposit_account_qbo_id: string | null;
   qbo_payment_id: string | null;
+  receipt_object_key: string | null; // proof attachment (served at /files/<key>)
+  receipt_mime: string | null;
+  receipt_filename: string | null;
+  allocated_cents: number; // Σ of this payment's allocations to bills (≤ amount_cents)
   created_by_user_id: number | null;
   created_at: string;
 }
@@ -206,14 +219,39 @@ export interface ProjectFinancials {
   original_budget_cents: number;
   approved_change_orders_cents: number;
   current_budget_cents: number;
-  spent_cents: number;
-  remaining_budget_cents: number;
+  spent_cents: number; // paid (Σ bill_payments) — retained for back-compat
+  committed_cents: number; // Σ booked bills (Package A)
+  paid_cents: number; // == spent_cents (cash out); clearer alias
+  unpaid_committed_cents: number; // committed − paid (booked, not yet paid)
+  remaining_budget_cents: number; // current_budget − committed (D3)
   collected_cents: number;
   billed_to_date_cents: number;
+  billed_vs_cost_cents: number; // billed_to_date − committed (over/under-billing)
   outstanding_invoices_cents: number;
   net_cash_cents: number;
+  // Contract / margin (nullable — omitted server-side when contract unset).
+  // projected_margin = contract − committed is the OWNER BUDGET VARIANCE (headroom
+  // vs cost), NOT AVM P&L profit — project billing is DFO cost-recovery (D5).
+  contract_amount_cents: number | null;
+  projected_margin_cents: number | null;
+  margin_pct: number | null;
+  project_fee_income_cents: number; // Σ fee/markup invoice lines = true AVM earnings (D5)
   pending_change_orders_cents: number;
   pending_change_orders_count: number;
+}
+
+// VendorFinancialSummary — Package B: money by vendor for the Payables tab.
+// A cost/vendor rollup keyed on the bill's own vendor. quoted = Σ budget-item
+// amounts stamped to the vendor; committed/paid = Σ project bills; planned = Σ
+// forward-looking vendor payment plan; remaining = quoted − committed.
+export interface VendorFinancialSummary {
+  vendor_id: number;
+  vendor_name: string;
+  quoted_cents: number;
+  committed_cents: number;
+  paid_cents: number;
+  remaining_cents: number;
+  planned_cents: number;
 }
 
 export interface ProjectSummary {
@@ -227,6 +265,7 @@ export interface ProjectSummary {
   schedule: ScheduleLine[];
   work_orders: ProjectWorkOrderRow[];
   field_team_orders: ProjectFTORow[];
+  vendor_summary: VendorFinancialSummary[]; // Package B: money by vendor
 }
 
 export interface ProjectListItem {
@@ -256,6 +295,8 @@ export interface CreateProjectPayload {
   property_id: number;
   status?: ProjectStatus;
   manager_user_id?: number | null;
+  field_team_manager_ids?: number[];
+  collaborator_ids?: number[];
   start_date?: string;
   target_end_date?: string;
   description?: string;
@@ -284,8 +325,11 @@ export interface UpdateProjectPayload {
   target_end_date?: string;
   actual_end_date?: string;
   manager_user_id?: number | null;
+  field_team_manager_ids?: number[];
+  collaborator_ids?: number[];
   description?: string;
   is_visible_to_client?: boolean;
+  contract_amount_cents?: number; // agreed client price (Package A); integer cents
 }
 
 export interface PutBudgetPayload {
@@ -441,6 +485,19 @@ export interface ProjectQuote {
   // Bidding (Part B / B3)
   budget_item_id: number | null;
   supersedes_quote_id: number | null;
+  // Per-sub-budget breakdown (migration 144): null for leaf-linked quotes; an
+  // array of {budget_item_id, amount_cents} (Σ = amount_cents) when the quote is
+  // tied to a category that has sub-budgets. Accept → budget overwrites each child.
+  budget_breakdown: { budget_item_id: number; amount_cents: number }[] | null;
+  // Quote document (uploaded via the attachment endpoint) — all null until a file
+  // is attached. Served at /files/<attachment_object_key>.
+  attachment_object_key: string | null;
+  attachment_file_name: string | null;
+  attachment_mime: string | null;
+  attachment_size_bytes: number | null;
+  // Set on accept: accepting a quote auto-creates a Task + Work Order (backend).
+  created_task_id: number | null;
+  created_work_order_id: number | null;
 }
 
 export interface CreateQuotePayload {
@@ -452,15 +509,40 @@ export interface CreateQuotePayload {
   source?: QuoteSource;
   budget_item_id?: number | null;
   supersedes_quote_id?: number | null; // create as a revision of an earlier quote
+  // Optional per-sub-budget split. When set, budget_item_id must be a category
+  // and each entry a sub-budget of it; amount_cents should equal the Σ (backend
+  // recomputes it authoritatively).
+  budget_breakdown?: { budget_item_id: number; amount_cents: number }[];
 }
 
 export interface UpdateQuotePayload {
   status?: Exclude<QuoteStatus, "accepted">; // accept goes through acceptQuote
+  vendor_id?: number | null;
   vendor_name?: string;
   trade?: string;
   scope_description?: string;
   amount_cents?: number;
   budget_item_id?: number | null;
+  // When set, budget_item_id must be a category and each entry a sub-budget of
+  // it; amount_cents is set to Σ breakdown (backend authoritative).
+  budget_breakdown?: { budget_item_id: number; amount_cents: number }[];
+  // Free-text reason for the edit, stamped onto the revision-history row.
+  note?: string;
+}
+
+// One audited edit of a quote (migration 145). before/after_snapshot capture the
+// tracked-field set { amount_cents, trade, scope_description, vendor_id,
+// vendor_name, budget_item_id, budget_breakdown, status }; changed_fields lists
+// only the fields that moved.
+export interface QuoteRevision {
+  id: number;
+  quote_id: number;
+  revised_by_name: string;
+  revised_at: string;
+  before_snapshot: Record<string, unknown>;
+  after_snapshot: Record<string, unknown>;
+  changed_fields: string[];
+  note: string;
 }
 
 export async function listQuotes(projectId: number): Promise<ProjectQuote[]> {
@@ -482,6 +564,42 @@ export async function deleteQuote(projectId: number, quoteId: number): Promise<v
 
 export async function analyzeQuote(projectId: number, quoteId: number): Promise<ProjectQuote> {
   return fetchJSON(`/projects/${projectId}/quotes/${quoteId}/analyze`, { method: "POST" });
+}
+
+// The auditable edit trail for a quote, newest first (migration 145).
+export async function listQuoteRevisions(projectId: number, quoteId: number): Promise<QuoteRevision[]> {
+  const data = await fetchJSON(`/projects/${projectId}/quotes/${quoteId}/revisions`);
+  return data ?? [];
+}
+
+export interface UploadQuoteAttachmentResult {
+  object_key: string;
+  download: string; // "/files/<object_key>"
+}
+
+// Attach a quote document (PDF/image) to a quote (multipart, field `file`).
+export async function uploadQuoteAttachment(
+  projectId: number,
+  quoteId: number,
+  file: File,
+): Promise<UploadQuoteAttachmentResult> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await authFetch(`/projects/${projectId}/quotes/${quoteId}/attachment`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    let msg = "Failed to upload quote document";
+    try {
+      const b = await res.json();
+      if (b?.error) msg = b.error;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(msg);
+  }
+  return res.json();
 }
 
 export async function updateProject(id: number, payload: UpdateProjectPayload): Promise<Project> {
@@ -659,6 +777,62 @@ export async function getCashFlow(projectId: number): Promise<CashFlowEntry[]> {
   return data ?? [];
 }
 
+/* ----------------------------- project bills ------------------------------ */
+// Bills booked on the project via its work orders / FTOs (money out). Σ booked =
+// financials.committed_cents, Σ paid = financials.paid_cents.
+
+export interface ProjectBillRow {
+  id: number;
+  vendor_id: number | null;
+  vendor_name: string;
+  statement_date: string | null; // "YYYY-MM-DD"
+  booked_cents: number; // bills.amount_cents (committed)
+  paid_cents: number; // Σ bill_payments
+  covered_cents: number; // Σ client payment allocations to this bill (migration 139)
+  description: string; // memo, else invoice #
+  work_order_name: string;
+  qbo_bill_id: string | null;
+  buildium_bill_id: string | null;
+}
+
+export async function listProjectBills(projectId: number): Promise<ProjectBillRow[]> {
+  const data = await fetchJSON(`/projects/${projectId}/bills`);
+  return data ?? [];
+}
+
+/* ------------------- payment → bill allocations (tracking) ----------------- */
+// Manually split a collected client payment across the project's bills. Pure
+// platform tracking (no GL impact): drives the derived covered_cents on bills
+// and allocated_cents on payments.
+
+export interface PaymentAllocation {
+  id: number;
+  bill_id: number;
+  amount_cents: number;
+  vendor_name: string; // joined for display
+  description: string; // bill memo/invoice # for display
+}
+
+export async function getPaymentAllocations(
+  projectId: number,
+  paymentId: number,
+): Promise<PaymentAllocation[]> {
+  const data = await fetchJSON(`/projects/${projectId}/payments/${paymentId}/allocations`);
+  return data ?? [];
+}
+
+export async function putPaymentAllocations(
+  projectId: number,
+  paymentId: number,
+  allocations: { bill_id: number; amount_cents: number }[],
+): Promise<PaymentAllocation[]> {
+  const data = await fetchJSON(`/projects/${projectId}/payments/${paymentId}/allocations`, {
+    method: "PUT",
+    body: JSON.stringify({ allocations }),
+  });
+  return data ?? [];
+}
+
 /* -------------------- siloed project invoicing (Part A / P0) --------------- */
 // The client-billing lane: payment schedule → project invoice → client payment.
 // FULLY separate from the monthly per-property invoicing (invoices/
@@ -707,6 +881,8 @@ export interface ProjectInvoice {
   paid_cents: number; // Σ linked payments
   sent_at: string | null;
   client_email: string | null;
+  qbo_invoice_id: string | null; // Package C: set once pushed to QBO
+  qbo_push_status: string | null; // 'pushed' | 'error' | null (not pushed)
   created_by_user_id: number | null;
   created_at: string;
   updated_at: string;
@@ -829,6 +1005,20 @@ export async function voidProjectInvoice(projectId: number, invoiceId: number): 
   return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/void`, { method: "POST" });
 }
 
+export interface PushInvoiceToQboResult {
+  invoice_id: number;
+  qbo_invoice_id: string;
+  qbo_push_status: string;
+  qbo_pushed_at: string | null;
+  already_pushed: boolean;
+}
+
+// Package C: push a project's client invoice to QuickBooks (concierge only).
+// Non-concierge → 409, concierge missing QBO customer → 400, QBO failure → 502.
+export async function pushInvoiceToQbo(projectId: number, invoiceId: number): Promise<PushInvoiceToQboResult> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/push-qbo`, { method: "POST" });
+}
+
 export async function getBillables(projectId: number): Promise<Billables> {
   return fetchJSON(`/projects/${projectId}/billables`);
 }
@@ -943,11 +1133,16 @@ export interface AcceptQuotePayload {
   copy_to_budget?: boolean; // also copy the accepted amount into the budget category
 }
 
+// Accept returns the updated quote (with created_task_id/created_work_order_id
+// populated) PLUS a warnings array — e.g. when the auto Work Order couldn't be
+// created. Surface non-empty warnings to the user.
+export type AcceptQuoteResult = ProjectQuote & { warnings: string[] };
+
 export async function acceptQuote(
   projectId: number,
   quoteId: number,
   payload: AcceptQuotePayload = {},
-): Promise<ProjectQuote> {
+): Promise<AcceptQuoteResult> {
   return fetchJSON(`/projects/${projectId}/quotes/${quoteId}/accept`, {
     method: "POST",
     body: JSON.stringify(payload),
@@ -1024,7 +1219,7 @@ export async function deleteVendorPayment(projectId: number, vpId: number): Prom
 
 /* ------------------------------ files (Part B / B2) ----------------------- */
 
-export type ProjectFileSource = "project" | "task" | "work_order" | "field_team" | "invoice";
+export type ProjectFileSource = "project" | "task" | "work_order" | "field_team" | "invoice" | "bill" | "quote";
 
 export interface ProjectFileRow {
   id: number;
@@ -1037,6 +1232,11 @@ export interface ProjectFileRow {
   download: string; // "/files/<object_key>"
   created_at: string;
   deletable: boolean;
+  // Association (migration 141) is conveyed via `source` (project/task/work_order/
+  // invoice) + `parent` (associated task/WO name). description/uploaded_by are set
+  // for direct project uploads only.
+  description: string;
+  uploaded_by: string; // uploader display name ("" if unknown)
 }
 
 export async function listProjectFiles(projectId: number): Promise<ProjectFileRow[]> {
@@ -1044,9 +1244,16 @@ export async function listProjectFiles(projectId: number): Promise<ProjectFileRo
   return data ?? [];
 }
 
-export async function uploadProjectFile(projectId: number, file: File): Promise<ProjectFileRow> {
+export async function uploadProjectFile(
+  projectId: number,
+  file: File,
+  meta?: { associated_type?: string; associated_id?: number; description?: string },
+): Promise<ProjectFileRow> {
   const form = new FormData();
   form.append("file", file);
+  if (meta?.associated_type) form.append("associated_type", meta.associated_type);
+  if (meta?.associated_id != null) form.append("associated_id", String(meta.associated_id));
+  if (meta?.description) form.append("description", meta.description);
   const res = await authFetch(`/projects/${projectId}/files`, { method: "POST", body: form });
   if (!res.ok) {
     let msg = "Failed to upload file";
@@ -1063,6 +1270,39 @@ export async function uploadProjectFile(projectId: number, file: File): Promise<
 
 export async function deleteProjectFile(projectId: number, fileId: number): Promise<void> {
   await fetchJSON(`/projects/${projectId}/files/${fileId}`, { method: "DELETE" });
+}
+
+export interface PaymentReceiptResult {
+  payment_id: number;
+  receipt_object_key: string;
+  receipt_mime: string;
+  receipt_filename: string;
+  download: string; // "/files/<object_key>"
+}
+
+// Attach a receipt/proof file to a recorded client payment (multipart).
+export async function uploadPaymentReceipt(
+  projectId: number,
+  paymentId: number,
+  file: File,
+): Promise<PaymentReceiptResult> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await authFetch(`/projects/${projectId}/payments/${paymentId}/receipt`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    let msg = "Failed to upload receipt";
+    try {
+      const b = await res.json();
+      if (b?.error) msg = b.error;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(msg);
+  }
+  return res.json();
 }
 
 /* ------------------------------ vendor lookup ----------------------------- */

@@ -20,6 +20,7 @@ import {
   type CategoryDraft,
   type MilestoneDraft,
 } from "@/components/projects/ProjectEditors";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 interface SimpleProperty {
   id: number;
@@ -95,6 +96,11 @@ export default function CreateProject() {
   const [propertyId, setPropertyId] = useState<number | "">("");
   const [status, setStatus] = useState<ProjectStatus>("planning");
   const [managerUserId, setManagerUserId] = useState<number | "">("");
+  // Field team managers + collaborators (migration 142) — multi-selects, display
+  // only. SearchableSelect multi mode works in string[]; converted to number[]
+  // for the payload.
+  const [fieldTeamManagerIds, setFieldTeamManagerIds] = useState<string[]>([]);
+  const [collaboratorIds, setCollaboratorIds] = useState<string[]>([]);
   const [startDate, setStartDate] = useState("");
   const [targetEndDate, setTargetEndDate] = useState("");
   const [description, setDescription] = useState("");
@@ -107,6 +113,8 @@ export default function CreateProject() {
 
   const [properties, setProperties] = useState<SimpleProperty[]>([]);
   const [managers, setManagers] = useState<SimpleManager[]>([]);
+  const [fieldTeam, setFieldTeam] = useState<SimpleManager[]>([]);
+  const [allUsers, setAllUsers] = useState<SimpleManager[]>([]);
   const [unassignedTasks, setUnassignedTasks] = useState<UnassignedTask[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -114,20 +122,23 @@ export default function CreateProject() {
   useEffect(() => {
     let cancelled = false;
     setOptionsLoading(true);
+    const toManager = (u: any): SimpleManager => {
+      const uname = u.name || u.email || `User #${u.id}`;
+      return { id: Number(u.id), name: uname, initials: initialsFromName(uname) };
+    };
     Promise.all([
       fetchJSON("/properties").catch(() => []),
       fetchJSON("/users/property-managers").catch(() => []),
       listUnassignedTasks().catch(() => []),
+      fetchJSON("/users/field-team").catch(() => []),
+      fetchJSON("/users").catch(() => []),
     ])
-      .then(([propsRes, managersRes, tasksRes]) => {
+      .then(([propsRes, managersRes, tasksRes, fieldTeamRes, allUsersRes]) => {
         if (cancelled) return;
         setProperties(propsRes || []);
-        setManagers(
-          (managersRes || []).map((u: any) => {
-            const uname = u.name || u.email || `User #${u.id}`;
-            return { id: Number(u.id), name: uname, initials: initialsFromName(uname) };
-          }),
-        );
+        setManagers((managersRes || []).map(toManager));
+        setFieldTeam((fieldTeamRes || []).map(toManager));
+        setAllUsers((allUsersRes || []).map(toManager));
         setUnassignedTasks(tasksRes || []);
       })
       .catch((err) => {
@@ -213,6 +224,8 @@ export default function CreateProject() {
       property_id: propertyId,
       status,
       ...(managerUserId !== "" ? { manager_user_id: managerUserId } : {}),
+      ...(fieldTeamManagerIds.length ? { field_team_manager_ids: fieldTeamManagerIds.map(Number) } : {}),
+      ...(collaboratorIds.length ? { collaborator_ids: collaboratorIds.map(Number) } : {}),
       ...(startDate ? { start_date: startDate } : {}),
       ...(targetEndDate ? { target_end_date: targetEndDate } : {}),
       ...(description.trim() ? { description: description.trim() } : {}),
@@ -284,48 +297,64 @@ export default function CreateProject() {
                 </div>
                 <div>
                   <label htmlFor="cp-property" className={label}>Property<span className="text-red-500" aria-hidden="true"> *</span></label>
-                  <select
-                    id="cp-property"
-                    required
-                    aria-required="true"
+                  <SearchableSelect
                     className={`${field} mt-1`}
-                    value={propertyId}
-                    onChange={(e) => setPropertyId(e.target.value === "" ? "" : Number(e.target.value))}
+                    value={propertyId === "" ? "" : String(propertyId)}
+                    onChange={(v) => setPropertyId(v === "" ? "" : Number(v))}
+                    options={properties.map((p) => ({ value: String(p.id), label: propertyLabel(p) }))}
+                    allLabel={optionsLoading && properties.length === 0 ? "Loading properties…" : "Select a property…"}
                     disabled={optionsLoading && properties.length === 0}
-                  >
-                    <option value="">
-                      {optionsLoading && properties.length === 0 ? "Loading properties…" : "Select a property…"}
-                    </option>
-                    {properties.map((p) => (
-                      <option key={p.id} value={p.id}>{propertyLabel(p)}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="cp-status" className={label}>Status</label>
-                    <select id="cp-status" className={`${field} mt-1`} value={status} onChange={(e) => setStatus(e.target.value as ProjectStatus)}>
-                      <option value="planning">Planning</option>
-                      <option value="active">Active</option>
-                      <option value="on_hold">On Hold</option>
-                      <option value="completed">Completed</option>
-                    </select>
+                    <SearchableSelect
+                      className={`${field} mt-1`}
+                      value={status}
+                      onChange={(v) => setStatus((v || "planning") as ProjectStatus)}
+                      options={[
+                        { value: "planning", label: "Planning" },
+                        { value: "active", label: "Active" },
+                        { value: "on_hold", label: "On Hold" },
+                        { value: "completed", label: "Completed" },
+                      ]}
+                      allLabel="Select status"
+                    />
                   </div>
                   <div>
                     <label htmlFor="cp-manager" className={label}>Project manager</label>
-                    <select
-                      id="cp-manager"
+                    <SearchableSelect
                       className={`${field} mt-1`}
-                      value={managerUserId}
-                      onChange={(e) => setManagerUserId(e.target.value === "" ? "" : Number(e.target.value))}
-                    >
-                      <option value="">
-                        {optionsLoading && managers.length === 0 ? "Loading…" : "Unassigned"}
-                      </option>
-                      {managers.map((m) => (
-                        <option key={m.id} value={m.id}>{m.name}</option>
-                      ))}
-                    </select>
+                      value={managerUserId === "" ? "" : String(managerUserId)}
+                      onChange={(v) => setManagerUserId(v === "" ? "" : Number(v))}
+                      options={managers.map((m) => ({ value: String(m.id), label: m.name }))}
+                      allLabel={optionsLoading && managers.length === 0 ? "Loading…" : "Unassigned"}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={label}>Field team managers</label>
+                    <SearchableSelect
+                      multiSelect
+                      className={`${field} mt-1`}
+                      value={fieldTeamManagerIds}
+                      onChange={setFieldTeamManagerIds}
+                      options={fieldTeam.map((m) => ({ value: String(m.id), label: m.name }))}
+                      allLabel={optionsLoading && fieldTeam.length === 0 ? "Loading…" : "None"}
+                    />
+                  </div>
+                  <div>
+                    <label className={label}>Collaborators</label>
+                    <SearchableSelect
+                      multiSelect
+                      className={`${field} mt-1`}
+                      value={collaboratorIds}
+                      onChange={setCollaboratorIds}
+                      options={allUsers.map((m) => ({ value: String(m.id), label: m.name }))}
+                      allLabel={optionsLoading && allUsers.length === 0 ? "Loading…" : "None"}
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -385,17 +414,13 @@ export default function CreateProject() {
                         className={`${field} w-28 text-right tabular-nums`}
                       />
                     </div>
-                    <select
-                      aria-label="Quote budget category"
-                      value={q.categoryId ?? ""}
-                      onChange={(e) => setQuotes((v) => v.map((x) => (x.key === q.key ? { ...x, categoryId: e.target.value ? Number(e.target.value) : null } : x)))}
+                    <SearchableSelect
                       className={`${field} max-w-[12rem]`}
-                    >
-                      <option value="">No category</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name.trim() || "Untitled category"}</option>
-                      ))}
-                    </select>
+                      value={q.categoryId != null ? String(q.categoryId) : ""}
+                      onChange={(val) => setQuotes((prev) => prev.map((x) => (x.key === q.key ? { ...x, categoryId: val ? Number(val) : null } : x)))}
+                      options={categories.map((c) => ({ value: String(c.id), label: c.name.trim() || "Untitled category" }))}
+                      allLabel="No category"
+                    />
                     <button
                       type="button"
                       onClick={() => setQuotes((v) => v.filter((x) => x.key !== q.key))}
@@ -436,19 +461,13 @@ export default function CreateProject() {
                         </span>
                       </label>
                       {checked && milestones.length > 0 && (
-                        <select
-                          aria-label={`Milestone for ${t.name}`}
-                          value={taskMilestone[t.id] ?? ""}
-                          onChange={(e) =>
-                            setTaskMilestone((prev) => ({ ...prev, [t.id]: e.target.value === "" ? "" : Number(e.target.value) }))
-                          }
+                        <SearchableSelect
                           className={`${smallField} max-w-[160px]`}
-                        >
-                          <option value="">No milestone</option>
-                          {milestones.map((m, i) => (
-                            <option key={m.id} value={m.id}>{m.name.trim() || `Milestone ${i + 1}`}</option>
-                          ))}
-                        </select>
+                          value={taskMilestone[t.id] != null && taskMilestone[t.id] !== "" ? String(taskMilestone[t.id]) : ""}
+                          onChange={(val) => setTaskMilestone((prev) => ({ ...prev, [t.id]: val === "" ? "" : Number(val) }))}
+                          options={milestones.map((m, i) => ({ value: String(m.id), label: m.name.trim() || `Milestone ${i + 1}` }))}
+                          allLabel="No milestone"
+                        />
                       )}
                     </div>
                   );

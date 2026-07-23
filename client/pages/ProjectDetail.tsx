@@ -24,23 +24,24 @@ import {
   updateQuote,
   deleteQuote,
   analyzeQuote,
+  listQuoteRevisions,
+  uploadQuoteAttachment,
   listProjectInvoices,
   getProjectInvoice,
   createProjectInvoice,
   sendProjectInvoice,
   recordInvoicePayment,
   voidProjectInvoice,
+  pushInvoiceToQbo,
   getBillables,
-  getPaymentSchedule,
-  putPaymentSchedule,
   acceptQuote,
-  listVendorPayments,
-  createVendorPayment,
-  updateVendorPayment,
-  deleteVendorPayment,
   listProjectFiles,
   uploadProjectFile,
   deleteProjectFile,
+  listProjectBills,
+  uploadPaymentReceipt,
+  getPaymentAllocations,
+  putPaymentAllocations,
   searchVendors,
   formatUSD,
   formatUSDPrecise,
@@ -50,6 +51,7 @@ import {
   FTO_STATUS_META,
   MILESTONE_STATUS_META,
   type ProjectSummary,
+  type ProjectTaskRow,
   type ProjectStatus,
   type ChangeOrder,
   type ChangeOrderStatus,
@@ -63,6 +65,7 @@ import {
   type ProjectQuote,
   type QuoteStatus,
   type QuoteVerdict,
+  type QuoteRevision,
   type ProjectInvoice,
   type ProjectInvoiceStatus,
   type ProjectInvoiceLine,
@@ -72,10 +75,11 @@ import {
   type InstallmentInput,
   type InstallmentBasis,
   type BudgetCategory,
-  type VendorPayment,
-  type VendorPaymentStatus,
+  type VendorFinancialSummary,
   type ProjectFileRow,
   type ProjectFileSource,
+  type ProjectBillRow,
+  type PaymentAllocation,
   type VendorLite,
 } from "@/data/projects";
 import {
@@ -85,11 +89,23 @@ import {
   milestonesToDrafts,
   draftsToBudgetPayload,
   draftsToMilestonesPayload,
+  dollarsToCents,
+  centsToInput,
   type CategoryDraft,
   type MilestoneDraft,
 } from "@/components/projects/ProjectEditors";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import PersonAvatars from "@/components/PersonAvatars";
+import CreateTaskModal from "@/components/CreateTaskModal";
+import CreateWorkOrderModalV2, { type TaskOption } from "@/components/CreateWorkOrderModalV2";
+import CreateFTOModal from "@/components/CreateFTOModal";
+import GlobalTable from "@/components/GlobalTable";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
+import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
 
-type TabKey = "dashboard" | "maintenance" | "quotes" | "budget" | "invoicing" | "cashflow" | "files";
+type TabKey = "dashboard" | "maintenance" | "quotes" | "financials" | "files";
 type MaintenanceSubTabKey = "tasks" | "work-orders" | "field-team";
 
 const TABS: { key: TabKey; label: string }[] = [
@@ -102,9 +118,11 @@ const TABS: { key: TabKey; label: string }[] = [
   // PROJECT_INVOICING_SPEC.md. The old SOV/draws BillingTab was retired in the project-financials build.
   // Quotes = pre-commitment (bidding); accepting one feeds Payables (budget + vendor schedule).
   { key: "quotes", label: "Quotes" },
-  { key: "budget", label: "Payables" },
-  { key: "invoicing", label: "Receivables" },
-  { key: "cashflow", label: "Cash Flow" },
+  // "Financials" is the single money tab: it consolidated + replaced the former
+  // Payables / Receivables / Cash Flow tabs. Vendor bills paid out (via the
+  // project's work orders), client payments in, and invoice create/send/push —
+  // all here. Siloed from monthly invoicing.
+  { key: "financials", label: "Financials" },
   { key: "files", label: "Files" },
 ];
 
@@ -195,6 +213,96 @@ function Pill({ label, text, bg }: { label: string; text: string; bg: string }) 
   );
 }
 
+// SegmentedControl — a contained iOS-style segmented toggle (gray track, white
+// active thumb, optional count badges). Replaces the loose pill rows on the
+// Files filter and the Work sub-toggle for a calmer, more grouped look.
+function SegmentedControl<T extends string>({
+  value,
+  onChange,
+  options,
+  size = "md",
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { key: T; label: string; count?: number }[];
+  size?: "sm" | "md";
+}) {
+  const h = size === "sm" ? "h-7" : "h-8";
+  const txt = size === "sm" ? "text-xs" : "text-sm";
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5" role="tablist">
+      {options.map((o) => {
+        const active = value === o.key;
+        return (
+          <button
+            key={o.key}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(o.key)}
+            className={`${h} ${txt} rounded-md px-3 font-medium transition-colors ${
+              active ? "bg-white text-[#013764] shadow-sm" : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            {o.label}
+            {typeof o.count === "number" && (
+              <span className={`ml-1.5 tabular-nums ${active ? "text-gray-400" : "text-gray-400"}`}>{o.count}</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// MaintenanceSubTabBar — the Work-tab sub-tab row: SegmentedControl (Tasks /
+// Work Orders / Field Team Orders with counts) on the left, and the active
+// sub-tab's contextual create/attach actions (passed as children) right-aligned
+// on the same row.
+function MaintenanceSubTabBar({
+  value,
+  onChange,
+  summary,
+  children,
+}: {
+  value: MaintenanceSubTabKey;
+  onChange: (v: MaintenanceSubTabKey) => void;
+  summary: ProjectSummary;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <SegmentedControl
+        value={value}
+        onChange={(v) => onChange(v as MaintenanceSubTabKey)}
+        options={MAINTENANCE_SUBTABS.map((t) => ({
+          key: t.key,
+          label: t.label,
+          count:
+            t.key === "tasks"
+              ? summary.counts.tasks
+              : t.key === "work-orders"
+              ? summary.counts.work_orders
+              : summary.counts.field_team_orders,
+        }))}
+      />
+      {children && <div className="ml-auto flex items-center gap-2">{children}</div>}
+    </div>
+  );
+}
+
+// QboStatusBadge (Package C) — the receivable-side push status of a project
+// invoice: pushed (green), error (red), or not yet pushed (neutral).
+function QboStatusBadge({ invoice }: { invoice: ProjectInvoice }) {
+  if (invoice.qbo_push_status === "pushed") {
+    return <Pill label="Pushed" text="#047857" bg="#D1FAE5" />;
+  }
+  if (invoice.qbo_push_status === "error") {
+    return <Pill label="Error" text="#B91C1C" bg="#FEE2E2" />;
+  }
+  return <span className="text-xs text-gray-400">—</span>;
+}
+
 function Dot({ label, color }: { label: string; color: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-sm text-gray-700 whitespace-nowrap">
@@ -280,6 +388,58 @@ function Th({ children, right }: { children: React.ReactNode; right?: boolean })
   );
 }
 
+/* -------- Styled table header cell (matches GlobalTable / All Bills) -------- */
+// Icon + label header on a subtle gray background, used by the Tasks list table.
+function IconTh({
+  icon,
+  children,
+  right,
+}: {
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+  right?: boolean;
+}) {
+  return (
+    <th className="px-3 py-3 text-left whitespace-nowrap">
+      <div className={`flex items-center gap-2 ${right ? "justify-end" : ""}`}>
+        {icon && <span className="text-gray-500 shrink-0">{icon}</span>}
+        <span className="text-sm font-medium text-gray-700">{children}</span>
+      </div>
+    </th>
+  );
+}
+
+// Compact 14px stroke icons (self-contained, no external assets) for table headers.
+const thIcon = {
+  task: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+  ),
+  status: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+  ),
+  priority: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg>
+  ),
+  milestone: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.5L12 14.6 7.1 17.2l.9-5.5-4-3.9L9.5 7z" /></svg>
+  ),
+  wrench: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z" /></svg>
+  ),
+  users: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+  ),
+  money: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+  ),
+  calendar: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+  ),
+  user: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+  ),
+};
+
 /* ------------------------------ modal shell ------------------------------- */
 
 /**
@@ -290,6 +450,13 @@ function Th({ children, right }: { children: React.ReactNode; right?: boolean })
  */
 function useDialogFocus(onClose: () => void) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  // Read the latest onClose via a ref so the focus/keydown effect can run ONCE
+  // on mount. Callers pass a fresh onClose arrow each render; if it were an
+  // effect dep, every keystroke inside the dialog would tear down + re-run this
+  // effect, re-focusing the dialog's first focusable element and yanking the
+  // cursor out of whatever field is being typed in.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     const prevFocused = document.activeElement as HTMLElement | null;
     const dialog = dialogRef.current;
@@ -300,7 +467,7 @@ function useDialogFocus(onClose: () => void) {
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !dialog) return;
@@ -328,7 +495,8 @@ function useDialogFocus(onClose: () => void) {
       document.removeEventListener("keydown", onKey);
       if (prevFocused && document.contains(prevFocused)) prevFocused.focus();
     };
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount-once: focus trap set up on open, torn down on close
   return dialogRef;
 }
 
@@ -430,10 +598,16 @@ function NewChangeOrderModal({
           </div>
           <div>
             <label htmlFor={`${uid}-status`} className={labelCls}>Status</label>
-            <select id={`${uid}-status`} className={`${fieldCls} mt-1`} value={status} onChange={(e) => setStatus(e.target.value as "draft" | "pending_approval")}>
-              <option value="draft">Draft</option>
-              <option value="pending_approval">Pending Approval</option>
-            </select>
+            <SearchableSelect
+              className={`${fieldCls} mt-1`}
+              value={status}
+              onChange={(v) => setStatus((v || "draft") as "draft" | "pending_approval")}
+              options={[
+                { value: "draft", label: "Draft" },
+                { value: "pending_approval", label: "Pending Approval" },
+              ]}
+              allLabel="Select status"
+            />
           </div>
         </div>
       </div>
@@ -523,10 +697,68 @@ function ChangeOrderLog({ summary, onRefresh }: { summary: ProjectSummary; onRef
 
 /* ------------------------------- milestones ------------------------------- */
 
-function MilestonesCard({ summary, onEdit }: { summary: ProjectSummary; onEdit: () => void }) {
+// MilestonesCard — Dashboard timeline of project milestones. View mode is the
+// status/date/category-tag list; "Edit" swaps in the same MilestonesEditor the
+// Update-project modal uses (add / edit / remove; name, target date, status,
+// budget-category link). Save calls putMilestones then refreshes the summary.
+function MilestonesCard({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
   const milestones = summary.milestones;
   const done = milestones.filter((m) => m.status === "complete").length;
   const catName = (id: number | null) => summary.budget.find((c) => c.id === id)?.name;
+
+  const [editing, setEditing] = useState(false);
+  const [drafts, setDrafts] = useState<MilestoneDraft[]>(() => milestonesToDrafts(milestones));
+  const [saving, setSaving] = useState(false);
+  const seq = useRef(1);
+
+  const nextId = () => seq.current++;
+
+  // The MilestonesEditor's category dropdown + the budget_item_id resolution in
+  // draftsToMilestonesPayload need category drafts index-aligned with the real
+  // budget. Budget isn't edited here, so drafts and "saved" are both the current
+  // budget (identity mapping of category ids).
+  const categoryDrafts = categoriesToDrafts(summary.budget);
+
+  const beginEdit = () => {
+    const ms = milestonesToDrafts(milestones);
+    setDrafts(ms);
+    seq.current =
+      Math.max(0, ...ms.map((m) => m.id), ...categoryDrafts.map((c) => c.id)) + 1;
+    setEditing(true);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await putMilestones(
+        summary.project.id,
+        draftsToMilestonesPayload(drafts, categoryDrafts, summary.budget),
+      );
+      toast.success("Milestones updated");
+      onRefresh();
+      setEditing(false);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to update milestones"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (editing) {
+    return (
+      <Card
+        title="Milestones"
+        action={
+          <div className="flex items-center gap-2">
+            <button onClick={() => setEditing(false)} disabled={saving} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+            <button onClick={save} disabled={saving} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50">{saving ? "Saving…" : "Save milestones"}</button>
+          </div>
+        }
+      >
+        <MilestonesEditor milestones={drafts} categories={categoryDrafts} onChange={setDrafts} newId={nextId} />
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -534,7 +766,7 @@ function MilestonesCard({ summary, onEdit }: { summary: ProjectSummary; onEdit: 
       action={
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">{done}/{milestones.length} complete</span>
-          <button onClick={onEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">+ Milestone</button>
+          <button onClick={beginEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">+ Milestone</button>
         </div>
       }
     >
@@ -579,72 +811,128 @@ function MilestonesCard({ summary, onEdit }: { summary: ProjectSummary; onEdit: 
   );
 }
 
-/* --------------------------------- tabs ----------------------------------- */
+/* --------------------------------- budget --------------------------------- */
 
-function BudgetTab({ summary, onEdit, onRefresh }: { summary: ProjectSummary; onEdit: () => void; onRefresh: () => void }) {
-  const categories = summary.budget;
-  const totalAllocated = categories.reduce((s, c) => s + c.amount_cents, 0);
-  const totalSpent = categories.reduce((s, c) => s + c.spent_cents, 0);
-  const remaining = totalAllocated - totalSpent;
-
+// Category-level spend indicator: a stacked bar (paid solid over committed
+// lighter, budget = track) plus a "N% committed" label. Percent text shows the
+// true committed/budget ratio (can exceed 100 when over-committed → amber); the
+// bar itself is clamped at 100%.
+function CategoryProgress({ amount, committed, spent }: { amount: number; committed: number; spent: number }) {
+  const committedPct = amount > 0 ? (committed / amount) * 100 : 0;
+  const paidPct = amount > 0 ? (spent / amount) * 100 : 0;
+  const over = committedPct > 100;
+  const committedColor = over ? "#FCD34D" : "#93C5FD";
+  const paidColor = over ? "#B45309" : "#013764";
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <KpiCard label="Allocated" value={formatUSD(totalAllocated)} subtitle="Across all categories" accent="navy" />
-        <KpiCard label="Spent" value={formatUSD(totalSpent)} subtitle={`${totalAllocated ? Math.round((totalSpent / totalAllocated) * 100) : 0}% of budget`} accent="violet" />
-        <KpiCard label="Remaining" value={formatUSD(remaining)} subtitle="Unspent budget" accent={remaining >= 0 ? "green" : "red"} valueColor={remaining >= 0 ? "#15803D" : "#B91C1C"} />
+    <div className="mt-1.5 flex items-center gap-2">
+      <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 min-w-[80px]">
+        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(100, committedPct)}%`, backgroundColor: committedColor }} />
+        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(100, paidPct)}%`, backgroundColor: paidColor }} />
       </div>
-
-      <Card title="Budget Breakdown" action={<button onClick={onEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit budget</button>}>
-        {categories.length === 0 ? (
-          <p className="text-sm text-gray-500">No budget categories yet.</p>
-        ) : (
-          <div className="flex flex-col gap-5">
-            {categories.map((c) => {
-              const pct = c.amount_cents > 0 ? (c.spent_cents / c.amount_cents) * 100 : 0;
-              const over = c.spent_cents > c.amount_cents;
-              return (
-                <div key={c.id}>
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-900">{c.name}</span>
-                    <span className="tabular-nums text-gray-700">
-                      <span className={over ? "font-semibold text-red-700" : ""}>{formatUSD(c.spent_cents)}</span>
-                      <span className="text-gray-400"> / {formatUSD(c.amount_cents)}</span>
-                    </span>
-                  </div>
-                  <Bar percent={pct} color={over ? "#DC2626" : "#013764"} />
-                  {c.sub_budgets.length > 0 && (
-                    <div className="mt-2 flex flex-col gap-1 border-l-2 border-gray-100 pl-3">
-                      {c.sub_budgets.map((s) => (
-                        <div key={s.id} className="flex items-center justify-between text-xs text-gray-500">
-                          <span>{s.name}</span>
-                          <span className="tabular-nums">{formatUSD(s.amount_cents)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <div className="flex justify-between border-t border-gray-100 pt-3 text-sm font-semibold text-gray-900">
-              <span>Total</span>
-              <span className="tabular-nums">{formatUSD(totalSpent)} <span className="font-normal text-gray-400">/ {formatUSD(totalAllocated)}</span></span>
-            </div>
-          </div>
-        )}
-      </Card>
-
-      {/* Vendor lane: when each vendor gets paid what (deposit terms etc.) — sample preview.
-          Quotes live on their own tab (pre-commitment); accepted quotes seed these schedules. */}
-      <VendorScheduleCard projectId={summary.project.id} />
-
-      {/* COs are budget amendments (current budget = original + approved COs), so the log lives here. */}
-      <ChangeOrderLog summary={summary} onRefresh={onRefresh} />
+      <span className={`shrink-0 text-[11px] tabular-nums ${over ? "font-medium text-amber-600" : "text-gray-400"}`}>
+        {Math.round(committedPct)}% committed
+      </span>
     </div>
   );
 }
 
-function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: () => void }) {
+// BudgetCard — the Dashboard's budget structure. View mode renders the real
+// budget set at project creation (categories → sub-budgets) with a per-category
+// spend indicator. "Edit" swaps in the same BudgetEditor the Update-project
+// modal uses; Save calls putBudget then refreshes the summary.
+function BudgetCard({
+  projectId,
+  budget,
+  onRefresh,
+}: {
+  projectId: number;
+  budget: BudgetCategory[];
+  onRefresh: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [categories, setCategories] = useState<CategoryDraft[]>(() => categoriesToDrafts(budget));
+  const [saving, setSaving] = useState(false);
+  const seq = useRef(1);
+
+  const nextId = () => seq.current++;
+
+  const beginEdit = () => {
+    const drafts = categoriesToDrafts(budget);
+    setCategories(drafts);
+    seq.current = Math.max(0, ...drafts.flatMap((c) => [c.id, ...c.subBudgets.map((s) => s.id)])) + 1;
+    setEditing(true);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await putBudget(projectId, draftsToBudgetPayload(categories));
+      toast.success("Budget updated");
+      onRefresh();
+      setEditing(false);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to update budget"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (editing) {
+    return (
+      <Card
+        title="Budget"
+        action={
+          <div className="flex items-center gap-2">
+            <button onClick={() => setEditing(false)} disabled={saving} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+            <button onClick={save} disabled={saving} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50">{saving ? "Saving…" : "Save budget"}</button>
+          </div>
+        }
+      >
+        <BudgetEditor categories={categories} onChange={setCategories} newId={nextId} />
+      </Card>
+    );
+  }
+
+  return (
+    <Card
+      title="Budget"
+      action={
+        <button onClick={beginEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit</button>
+      }
+    >
+      {budget.length === 0 ? (
+        <p className="text-sm text-gray-500">No budget set for this project yet.</p>
+      ) : (
+        <div className="flex flex-col divide-y divide-gray-100">
+          {budget.map((cat) => (
+            <div key={cat.id} className="py-2.5 first:pt-0 last:pb-0">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm font-medium text-gray-900">{cat.name}</span>
+                <span className="text-sm font-semibold text-gray-900 tabular-nums">{formatUSD(cat.amount_cents)}</span>
+              </div>
+              <CategoryProgress amount={cat.amount_cents} committed={cat.committed_cents} spent={cat.spent_cents} />
+              {cat.sub_budgets.length > 0 && (
+                <div className="mt-2 flex flex-col gap-1 border-l border-gray-100 pl-3">
+                  {cat.sub_budgets.map((sub) => (
+                    <div key={sub.id} className="flex items-baseline justify-between gap-3">
+                      <span className="text-sm text-gray-600">{sub.name}</span>
+                      <span className="text-sm text-gray-700 tabular-nums">{formatUSD(sub.amount_cents)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* --------------------------------- tabs ----------------------------------- */
+
+
+function DashboardTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
   const project = summary.project;
   const fin = summary.financials;
   const budget = fin.current_budget_cents;
@@ -654,13 +942,30 @@ function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: ()
       {/* main column */}
       <div className="flex flex-col gap-6 min-w-0">
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
-          <KpiCard label="Current Budget" value={formatUSD(budget)} subtitle={fin.approved_change_orders_cents > 0 ? `${formatUSD(fin.original_budget_cents)} + ${formatUSD(fin.approved_change_orders_cents)} COs` : "No change orders"} accent="navy" />
-          <KpiCard label="Spent" value={formatUSD(fin.spent_cents)} subtitle={`${formatUSD(fin.remaining_budget_cents)} remaining`} accent="violet" />
+          <KpiCard label="Total Budget" value={formatUSD(fin.current_budget_cents)} subtitle={fin.approved_change_orders_cents > 0 ? `${formatUSD(fin.original_budget_cents)} + ${formatUSD(fin.approved_change_orders_cents)} COs` : "No change orders"} accent="navy" />
+          <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle="booked bills" accent="amber" valueColor={fin.unpaid_committed_cents > 0 ? "#B45309" : undefined} />
+          <KpiCard label="Remaining" value={formatUSD(fin.remaining_budget_cents)} subtitle="net of committed" accent="violet" valueColor={fin.remaining_budget_cents < 0 ? "#B91C1C" : undefined} />
           <KpiCard label="% Complete" value={`${project.percent_complete}%`} subtitle="Weighted across work" accent="blue" />
-          <KpiCard label="Payments In" value={formatUSD(fin.collected_cents)} subtitle="Deposits + progress" accent="green" valueColor="#15803D" />
-          <KpiCard label="Outstanding" value={fin.outstanding_invoices_cents > 0 ? formatUSD(fin.outstanding_invoices_cents) : "$0"} subtitle="Billed, awaiting pay" accent="amber" valueColor={fin.outstanding_invoices_cents > 0 ? "#B45309" : undefined} />
-          <KpiCard label="Net Cash Position" value={formatUSD(fin.net_cash_cents)} subtitle="In minus out" accent={fin.net_cash_cents >= 0 ? "green" : "red"} valueColor={fin.net_cash_cents >= 0 ? "#15803D" : "#B91C1C"} />
+          <KpiCard label="Collected from Client" value={formatUSD(fin.collected_cents)} subtitle="Deposits + progress" accent="green" valueColor="#15803D" />
+          <KpiCard label="Net Cash Position" value={formatUSD(fin.net_cash_cents)} subtitle="collected − paid" accent={fin.net_cash_cents >= 0 ? "green" : "red"} valueColor={fin.net_cash_cents >= 0 ? "#15803D" : "#B91C1C"} />
         </div>
+
+        {/* Over/under-billing indicator: billed-to-client vs cost incurred (committed). */}
+        {(fin.billed_to_date_cents > 0 || fin.committed_cents > 0) && (
+          <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${fin.billed_vs_cost_cents >= 0 ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
+            <span className={`mt-0.5 ${fin.billed_vs_cost_cents >= 0 ? "text-emerald-600" : "text-amber-600"}`}>
+              {fin.billed_vs_cost_cents >= 0 ? "▲" : "▼"}
+            </span>
+            <div className="text-sm">
+              <span className={`font-semibold ${fin.billed_vs_cost_cents >= 0 ? "text-emerald-800" : "text-amber-800"}`}>
+                {fin.billed_vs_cost_cents >= 0 ? "Over-billing" : "Under-billing"} {formatUSD(Math.abs(fin.billed_vs_cost_cents))}
+              </span>
+              <span className="ml-1 text-gray-600">
+                — billed {formatUSD(fin.billed_to_date_cents)} vs committed cost {formatUSD(fin.committed_cents)}.
+              </span>
+            </div>
+          </div>
+        )}
 
         {fin.pending_change_orders_count > 0 && (
           <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
@@ -677,27 +982,9 @@ function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: ()
           </div>
         )}
 
-        <Card title="Budget vs. Spent">
-          <div className="flex flex-col gap-4">
-            {[
-              { label: "Spent to date", value: fin.spent_cents, color: "#7C3AED" },
-              { label: "Billed to client", value: fin.billed_to_date_cents, color: "#013764" },
-              { label: "Collected from client", value: fin.collected_cents, color: "#16A34A" },
-            ].map((row) => (
-              <div key={row.label}>
-                <div className="mb-1 flex justify-between text-sm">
-                  <span className="text-gray-600">{row.label}</span>
-                  <span className="font-medium text-gray-900 tabular-nums">
-                    {formatUSD(row.value)} <span className="text-gray-400">of {formatUSD(budget)}</span>
-                  </span>
-                </div>
-                <Bar percent={budget > 0 ? (row.value / budget) * 100 : 0} color={row.color} />
-              </div>
-            ))}
-          </div>
-        </Card>
+        <BudgetCard projectId={project.id} budget={summary.budget} onRefresh={onRefresh} />
 
-        <MilestonesCard summary={summary} onEdit={onEdit} />
+        <MilestonesCard summary={summary} onRefresh={onRefresh} />
       </div>
 
       {/* right rail — project details */}
@@ -711,9 +998,49 @@ function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: ()
             </div>
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">
               <dt className="text-gray-500">Project manager</dt>
-              <dd className="flex items-center gap-2">
-                {project.manager_initials && <Avatar initials={project.manager_initials} />}
-                <span className="text-gray-800">{project.manager_name || "Unassigned"}</span>
+              <dd>
+                <PersonAvatars
+                  people={
+                    project.manager_name || project.manager_initials
+                      ? [{
+                          id: "pm",
+                          name: project.manager_name || "Unassigned",
+                          initials: project.manager_initials || "?",
+                        }]
+                      : []
+                  }
+                  fallback="—"
+                  size="sm"
+                />
+              </dd>
+            </div>
+            <div className="border-t border-gray-100 pt-3">
+              <dt className="text-gray-500">Field team managers</dt>
+              <dd className="mt-1">
+                <PersonAvatars
+                  people={(project.field_team_managers ?? []).map((m) => ({
+                    id: m.id,
+                    name: m.name,
+                    initials: m.initials,
+                  }))}
+                  fallback="—"
+                  size="sm"
+                />
+              </dd>
+            </div>
+            <div className="border-t border-gray-100 pt-3">
+              <dt className="text-gray-500">Collaborators</dt>
+              <dd className="mt-1">
+                <PersonAvatars
+                  people={(project.collaborators ?? []).map((m) => ({
+                    id: m.id,
+                    name: m.name,
+                    initials: m.initials,
+                  }))}
+                  type="collaborator"
+                  fallback="—"
+                  size="sm"
+                />
               </dd>
             </div>
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">
@@ -854,10 +1181,141 @@ function AttachTasksModal({
   );
 }
 
-function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
+// Column definitions for the project Tasks GlobalTable. Keys double as the
+// sort field (see useSortingTable) and the renderCell switch discriminator.
+const PROJECT_TASK_COLUMNS = [
+  { key: "name", label: "Task", icon: thIcon.task },
+  { key: "status", label: "Status", icon: thIcon.status },
+  { key: "priority", label: "Priority", icon: thIcon.priority },
+  { key: "milestone_id", label: "Milestone / Section", icon: thIcon.milestone },
+  { key: "work_order_count", label: "WOs", icon: thIcon.wrench },
+  { key: "fto_count", label: "FTOs", icon: thIcon.users },
+  { key: "spent_cents", label: "Spent", icon: thIcon.money },
+  { key: "due_date", label: "Due", icon: thIcon.calendar },
+  { key: "assignee_initials", label: "Owner", icon: thIcon.user },
+];
+const PROJECT_TASK_COLUMN_KEYS = PROJECT_TASK_COLUMNS.map((c) => c.key);
+
+// A single toggle pill used by the Tasks filter bar (Status / Priority facets).
+function FilterPill({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-8 rounded-full border px-3 text-xs font-medium transition-colors ${
+        active
+          ? "border-[#013764] bg-[#013764] text-white"
+          : "border-[#DADADA] bg-white text-[#303030] hover:bg-gray-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function TasksTab({
+  summary,
+  onRefresh,
+  subTab,
+  onSubTabChange,
+}: {
+  summary: ProjectSummary;
+  onRefresh: () => void;
+  subTab: MaintenanceSubTabKey;
+  onSubTabChange: (v: MaintenanceSubTabKey) => void;
+}) {
+  const navigate = useNavigate();
   const [attachOpen, setAttachOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const milestones = summary.milestones;
   const tasks = summary.tasks;
+
+  // Status KPIs: count only the three primary task statuses; deferred/closed/
+  // cancelled are intentionally excluded from these tiles.
+  // Count by the SAME status bucket the Status column displays (taskStatusBucket),
+  // not a literal string match — real task statuses like "open" bucket into
+  // "not_started" but aren't that exact string, so exact-match under-counted.
+  const notStartedCount = tasks.filter((t) => taskStatusBucket(t.status) === "not_started").length;
+  const inProgressCount = tasks.filter((t) => taskStatusBucket(t.status) === "in_progress").length;
+  const completedCount = tasks.filter((t) => taskStatusBucket(t.status) === "completed").length;
+
+  // Shared GlobalTable plumbing (sorting / column management / pagination),
+  // matching the task-detail Work Orders + AllTasks pages.
+  const [searchQuery, setSearchQuery] = usePageState("projectTasksSearch", "");
+  const [showFilterBar, setShowFilterBar] = usePageState("projectTasksFilterBar", false);
+  const [filterStatus, setFilterStatus] = usePageState<string[]>("projectTasksFilterStatus", []);
+  const [filterPriority, setFilterPriority] = usePageState<string[]>("projectTasksFilterPriority", []);
+  const [currentPage, setCurrentPage] = usePageState("projectTasksPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("projectTasksPerPage", 25);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState("projectTasksPageSize", false);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>("projectTasksMenu", null);
+
+  // Search (by task name) + Status/Priority facet filters are applied before
+  // handing the rows to the sorting hook.
+  const filteredTasks = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return tasks.filter((t) => {
+      if (q && !t.name.toLowerCase().includes(q)) return false;
+      if (filterStatus.length && !filterStatus.includes(taskStatusBucket(t.status))) return false;
+      if (filterPriority.length && !filterPriority.includes(t.priority)) return false;
+      return true;
+    });
+  }, [tasks, searchQuery, filterStatus, filterPriority]);
+
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    filteredTasks,
+    "projectTasks",
+  );
+  const {
+    columnOrder,
+    visibleColumns,
+    draggedColumn,
+    dropTargetColumn,
+    dropPosition,
+    showColumnModal,
+    setShowColumnModal,
+    columnMenuPos,
+    columnButtonRef,
+    toggleColumnVisibility,
+    handleColumnDragStart,
+    handleColumnDragOver,
+    handleColumnDragLeave,
+    handleColumnDrop,
+  } = useColumnManagement(PROJECT_TASK_COLUMN_KEYS);
+
+  const toggleInList = (
+    list: string[],
+    setList: (v: string[]) => void,
+    value: string,
+  ) => {
+    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+    setCurrentPage(1);
+  };
+
+  // New task: create via the shared CreateTaskModal (scoped to this project's
+  // property), then attach the fresh task to the project via the same fetcher
+  // "+ Attach task" uses, and reload so it appears in the list + counts.
+  const handleTaskCreated = async (task: any) => {
+    const taskId = task?.id ?? task?.task?.id;
+    setCreateOpen(false);
+    if (taskId != null) {
+      try {
+        await attachTasks(summary.project.id, [{ task_id: taskId }]);
+        toast.success("Task created and added to project");
+      } catch (e) {
+        toast.error(errMessage(e, "Task created, but could not attach it to the project"));
+      }
+    }
+    onRefresh();
+  };
 
   const assignMilestone = async (taskId: number, milestoneId: number | null) => {
     try {
@@ -879,56 +1337,203 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
   };
 
   return (
-    <Card
-      title={`Tasks in this project (${tasks.length})`}
-      action={<button onClick={() => setAttachOpen(true)} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">+ Attach task</button>}
-    >
+    <div className="flex flex-col gap-6">
+      <MaintenanceSubTabBar value={subTab} onChange={onSubTabChange} summary={summary}>
+        <button
+          onClick={() => setCreateOpen(true)}
+          className="h-8 rounded-lg bg-[#013764] px-3 text-xs font-medium text-white hover:bg-[#003a73]"
+        >
+          + New task
+        </button>
+        <button
+          onClick={() => setAttachOpen(true)}
+          className="h-8 rounded-lg border border-[#DADADA] bg-white px-3 text-xs font-medium text-[#303030] hover:bg-gray-100"
+        >
+          + Attach task
+        </button>
+      </MaintenanceSubTabBar>
+
+      <div className="grid grid-cols-3 gap-3">
+        <KpiCard label="Not Started" value={String(notStartedCount)} subtitle="Tasks not yet started" accent="amber" />
+        <KpiCard label="In Progress" value={String(inProgressCount)} subtitle="Tasks underway" accent="blue" />
+        <KpiCard label="Completed" value={String(completedCount)} subtitle="Tasks finished" accent="green" valueColor="#15803D" />
+      </div>
+
       {tasks.length === 0 ? (
         <p className="text-sm text-gray-500">No tasks attached yet. Use “+ Attach task” to pull existing tasks into this project.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <Th>Task</Th><Th>Status</Th><Th>Priority</Th><Th>Milestone / Section</Th><Th>WOs</Th><Th>FTOs</Th><Th right>Spent</Th><Th>Due</Th><Th>Owner</Th><Th>{""}</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {tasks.map((t) => {
-                const bucket = taskStatusBucket(t.status);
+        <>
+          {showFilterBar && (
+            <div className="flex flex-wrap items-center gap-4 rounded-lg border border-gray-200 bg-white p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Status</span>
+                {(["not_started", "in_progress", "completed"] as const).map((s) => (
+                  <FilterPill
+                    key={s}
+                    label={taskStatusMeta[s].label}
+                    active={filterStatus.includes(s)}
+                    onClick={() => toggleInList(filterStatus, setFilterStatus, s)}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Priority</span>
+                {(["low", "medium", "high", "urgent"] as const).map((p) => (
+                  <FilterPill
+                    key={p}
+                    label={priorityDisplay(p).label}
+                    active={filterPriority.includes(p)}
+                    onClick={() => toggleInList(filterPriority, setFilterPriority, p)}
+                  />
+                ))}
+              </div>
+              {(filterStatus.length > 0 || filterPriority.length > 0) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterStatus([]);
+                    setFilterPriority([]);
+                    setCurrentPage(1);
+                  }}
+                  className="ml-auto h-8 rounded-lg border border-[#DADADA] bg-white px-3 text-xs font-medium text-[#303030] hover:bg-gray-100"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          )}
+
+          <GlobalTable
+            columns={PROJECT_TASK_COLUMNS}
+            data={getSortedData()}
+            rowKey="id"
+            title={`Tasks in this project (${tasks.length})`}
+            searchValue={searchQuery}
+            onSearchChange={(v) => {
+              setSearchQuery(v);
+              setCurrentPage(1);
+            }}
+            onFilterClick={() => {
+              setShowPageSizeDropdown(false);
+              setOpenMenuId(null);
+              setShowFilterBar(!showFilterBar);
+            }}
+            renderCell={(t: ProjectTaskRow, columnKey) => {
+              if (columnKey === "name") {
                 return (
-                  <tr key={t.id} className="hover:bg-gray-50">
-                    <td className="py-3 pr-4 text-blue-600">{t.name}</td>
-                    <td className="py-3 pr-4"><Dot label={taskStatusMeta[bucket].label} color={taskStatusMeta[bucket].dot} /></td>
-                    <td className="py-3 pr-4"><Dot {...priorityDisplay(t.priority)} /></td>
-                    <td className="py-3 pr-4">
-                      <select
-                        aria-label={`Milestone for ${t.name}`}
-                        value={t.milestone_id ?? ""}
-                        onChange={(e) => assignMilestone(t.id, e.target.value === "" ? null : Number(e.target.value))}
-                        className="max-w-[180px] rounded-md border border-[#DADADA] bg-white px-2 py-1 text-sm text-gray-700 focus:border-[#013764] focus:outline-none"
-                      >
-                        <option value="">— None —</option>
-                        {milestones.map((m) => (
-                          <option key={m.id} value={m.id}>{m.name}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="py-3 pr-4 text-gray-700">{t.work_order_count}</td>
-                    <td className="py-3 pr-4 text-gray-700">{t.fto_count}</td>
-                    <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(t.spent_cents)}</td>
-                    <td className="py-3 pr-4 text-gray-700">{formatMaybeDate(t.due_date)}</td>
-                    <td className="py-3 pr-4">{t.assignee_initials ? <Avatar initials={t.assignee_initials} /> : <span className="text-gray-400">—</span>}</td>
-                    <td className="py-3">
-                      <button type="button" onClick={() => detach(t.id)} title="Detach from project" aria-label={`Detach ${t.name} from project`} className="px-1.5 text-gray-400 hover:text-red-600">✕</button>
-                    </td>
-                  </tr>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/tasks/${t.id}/summary`)}
+                    className="max-w-[280px] truncate text-left text-sm font-medium text-blue-600 hover:underline"
+                    title={t.name}
+                  >
+                    {t.name}
+                  </button>
                 );
-              })}
-            </tbody>
-          </table>
-        </div>
+              }
+              if (columnKey === "status") {
+                const bucket = taskStatusBucket(t.status);
+                return <Dot label={taskStatusMeta[bucket].label} color={taskStatusMeta[bucket].dot} />;
+              }
+              if (columnKey === "priority") {
+                return <Dot {...priorityDisplay(t.priority)} />;
+              }
+              if (columnKey === "milestone_id") {
+                return (
+                  <SearchableSelect
+                    className="max-w-[180px] rounded-md border-[#DADADA]"
+                    value={t.milestone_id != null ? String(t.milestone_id) : ""}
+                    onChange={(v) => assignMilestone(t.id, v === "" ? null : Number(v))}
+                    options={milestones.map((m) => ({ value: String(m.id), label: m.name }))}
+                    allLabel="— None —"
+                  />
+                );
+              }
+              if (columnKey === "work_order_count") {
+                return <span className="text-sm text-gray-700">{t.work_order_count}</span>;
+              }
+              if (columnKey === "fto_count") {
+                return <span className="text-sm text-gray-700">{t.fto_count}</span>;
+              }
+              if (columnKey === "spent_cents") {
+                return <span className="text-sm tabular-nums text-gray-900">{formatUSD(t.spent_cents)}</span>;
+              }
+              if (columnKey === "due_date") {
+                return <span className="text-sm text-gray-700">{formatMaybeDate(t.due_date)}</span>;
+              }
+              if (columnKey === "assignee_initials") {
+                return t.assignee_initials ? (
+                  <Avatar initials={t.assignee_initials} />
+                ) : (
+                  <span className="text-gray-400">—</span>
+                );
+              }
+              return null;
+            }}
+            getCellClassName={(_row, columnKey) =>
+              columnKey === "spent_cents" ? "text-right" : ""
+            }
+            sortingHook={{ handleSortClick, getSortIndicator, getSortedData }}
+            columnManagementHook={{
+              columnOrder,
+              visibleColumns,
+              draggedColumn,
+              dropTargetColumn,
+              dropPosition,
+              columnMenuPos,
+              columnButtonRef,
+              toggleColumnVisibility,
+              handleColumnDragStart,
+              handleColumnDragOver,
+              handleColumnDragLeave,
+              handleColumnDrop,
+            }}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+            showPageSizeDropdown={showPageSizeDropdown}
+            onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+            openMenuId={openMenuId}
+            onOpenMenuIdChange={setOpenMenuId}
+            emptyMessage="No tasks match your search or filters."
+            actions={[
+              {
+                label: "Detach from project",
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#982740" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6L6 18" />
+                    <path d="M6 6l12 12" />
+                  </svg>
+                ),
+                onClick: (t: ProjectTaskRow) => detach(t.id),
+                className: "text-[#982740]",
+              },
+            ]}
+            headerActions={
+              <button
+                ref={columnButtonRef}
+                onClick={() => {
+                  setShowPageSizeDropdown(false);
+                  setOpenMenuId(null);
+                  setShowColumnModal((prev) => !prev);
+                }}
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                data-test="column-button"
+              >
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="3" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="8" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="13" r="1.5" fill="#303030" />
+                </svg>
+              </button>
+            }
+            showColumnModal={showColumnModal}
+            onShowColumnModalChange={setShowColumnModal}
+          />
+        </>
       )}
+
       {attachOpen && (
         <AttachTasksModal
           projectId={summary.project.id}
@@ -937,21 +1542,82 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
           onClose={() => setAttachOpen(false)}
         />
       )}
-    </Card>
+      <CreateTaskModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        defaultPropertyId={summary.project.property_id}
+        onCreated={handleTaskCreated}
+      />
+
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={PROJECT_TASK_COLUMNS.map((col) => ({
+          key: col.key,
+          label: col.label,
+          icon: col.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+        buttonRef={columnButtonRef}
+      />
+    </div>
   );
 }
 
-function WorkOrdersTab({ summary }: { summary: ProjectSummary }) {
+function WorkOrdersTab({
+  summary,
+  onRefresh,
+  subTab,
+  onSubTabChange,
+}: {
+  summary: ProjectSummary;
+  onRefresh: () => void;
+  subTab: MaintenanceSubTabKey;
+  onSubTabChange: (v: MaintenanceSubTabKey) => void;
+}) {
+  const [createOpen, setCreateOpen] = useState(false);
   const wos = summary.work_orders;
+  const tasks = summary.tasks;
+  const hasTasks = tasks.length > 0;
+
+  // A work order belongs to a task, so the WO modal's own task dropdown is fed
+  // this project's tasks (property-scoped). No tasks → prompt to add one first.
+  const taskOptions: TaskOption[] = tasks.map((t) => ({
+    id: t.id,
+    label: t.name,
+    name: t.name,
+    propertyId: summary.project.property_id,
+    priority: t.priority,
+    status: t.status,
+  }));
+
+  const openCreate = () => {
+    if (!hasTasks) {
+      toast.error("Add a task to this project first — work orders belong to a task.");
+      return;
+    }
+    setCreateOpen(true);
+  };
+
   const totalBilled = wos.reduce((s, w) => s + w.billed_cents, 0);
   return (
     <div className="flex flex-col gap-6">
+      <MaintenanceSubTabBar value={subTab} onChange={onSubTabChange} summary={summary}>
+        <button
+          onClick={openCreate}
+          className="h-8 rounded-lg bg-[#013764] px-3 text-xs font-medium text-white hover:bg-[#003a73]"
+        >
+          + New work order
+        </button>
+      </MaintenanceSubTabBar>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <KpiCard label="Work Orders" value={String(wos.length)} subtitle="Across all tasks" accent="navy" />
         <KpiCard label="Completed" value={String(wos.filter((w) => w.status === "completed").length)} subtitle="Finished & billed" accent="green" valueColor="#15803D" />
         <KpiCard label="Billed to Date" value={formatUSD(totalBilled)} subtitle="Vendor work performed" accent="violet" />
       </div>
-      <Card title={`Work Orders (${wos.length})`} action={<button disabled title="Create work orders from the Maintenance module" className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white opacity-50 cursor-not-allowed">+ New work order</button>}>
+      <Card title={`Work Orders (${wos.length})`}>
         {wos.length === 0 ? (
           <p className="text-sm text-gray-500">No work orders on this project’s tasks yet.</p>
         ) : (
@@ -980,22 +1646,80 @@ function WorkOrdersTab({ summary }: { summary: ProjectSummary }) {
           </div>
         )}
       </Card>
+      <CreateWorkOrderModalV2
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        mode="create"
+        propertyId={summary.project.property_id}
+        taskOptions={taskOptions}
+        onWorkOrderCreated={() => {
+          setCreateOpen(false);
+          onRefresh();
+        }}
+      />
     </div>
   );
 }
 
-function FieldTeamTab({ summary }: { summary: ProjectSummary }) {
+function FieldTeamTab({
+  summary,
+  onRefresh,
+  subTab,
+  onSubTabChange,
+}: {
+  summary: ProjectSummary;
+  onRefresh: () => void;
+  subTab: MaintenanceSubTabKey;
+  onSubTabChange: (v: MaintenanceSubTabKey) => void;
+}) {
+  const [createOpen, setCreateOpen] = useState(false);
   const ftos = summary.field_team_orders;
+  const tasks = summary.tasks;
+  const hasTasks = tasks.length > 0;
+  // FTOs hang off a task; the FTO modal takes a single locked task, so pick one
+  // of the project's tasks here before opening.
+  const [taskId, setTaskId] = useState<number | null>(tasks[0]?.id ?? null);
+  const selectedTask = tasks.find((t) => t.id === taskId) ?? null;
+
+  const openCreate = () => {
+    if (!hasTasks) {
+      toast.error("Add a task to this project first — field team orders belong to a task.");
+      return;
+    }
+    if (taskId == null) {
+      toast.error("Pick a task for this field team order.");
+      return;
+    }
+    setCreateOpen(true);
+  };
+
   const totalHours = ftos.reduce((s, f) => s + f.hours_decimal, 0);
   const totalAmount = ftos.reduce((s, f) => s + (f.amount_cents ?? 0), 0);
   return (
     <div className="flex flex-col gap-6">
+      <MaintenanceSubTabBar value={subTab} onChange={onSubTabChange} summary={summary}>
+        {hasTasks && (
+          <SearchableSelect
+            className="w-44 rounded-md border-[#DADADA] text-xs"
+            value={taskId != null ? String(taskId) : ""}
+            onChange={(v) => setTaskId(v === "" ? null : Number(v))}
+            options={tasks.map((t) => ({ value: String(t.id), label: t.name }))}
+            allLabel="Select task"
+          />
+        )}
+        <button
+          onClick={openCreate}
+          className="h-8 rounded-lg bg-[#013764] px-3 text-xs font-medium text-white hover:bg-[#003a73]"
+        >
+          + New field team order
+        </button>
+      </MaintenanceSubTabBar>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <KpiCard label="Field Team Orders" value={String(ftos.length)} subtitle="In-house field work" accent="navy" />
         <KpiCard label="Total Hours" value={String(totalHours)} subtitle="Logged by field team" accent="blue" />
         <KpiCard label="Labor Cost" value={formatUSD(totalAmount)} subtitle="At standard rate" accent="violet" />
       </div>
-      <Card title={`Field Team Orders (${ftos.length})`} action={<button disabled title="Create field team orders from the Maintenance module" className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white opacity-50 cursor-not-allowed">+ New field team order</button>}>
+      <Card title={`Field Team Orders (${ftos.length})`}>
         {ftos.length === 0 ? (
           <p className="text-sm text-gray-500">No field team orders on this project.</p>
         ) : (
@@ -1023,6 +1747,18 @@ function FieldTeamTab({ summary }: { summary: ProjectSummary }) {
           </div>
         )}
       </Card>
+      <CreateFTOModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        lockedPropertyId={summary.project.property_id}
+        lockedPropertyLabel={summary.project.property_name}
+        lockedTaskId={taskId ?? undefined}
+        lockedTaskLabel={selectedTask?.name}
+        onSuccess={() => {
+          setCreateOpen(false);
+          onRefresh();
+        }}
+      />
     </div>
   );
 }
@@ -1044,18 +1780,29 @@ function RecordPaymentModal({
   const [amount, setAmount] = useState("");
   const [receivedOn, setReceivedOn] = useState("");
   const [reference, setReference] = useState("");
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [receiptDrag, setReceiptDrag] = useState(false);
+  const receiptInput = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const uid = useId();
 
   const submit = async () => {
     setSaving(true);
     try {
-      await createPayment(projectId, {
+      const created = await createPayment(projectId, {
         kind,
         amount_cents: Math.max(0, Math.round((Number(amount) || 0) * 100)),
         received_on: receivedOn,
         reference: reference.trim(),
       });
+      // Attach the receipt (optional) to the freshly-created payment.
+      if (receipt) {
+        try {
+          await uploadPaymentReceipt(projectId, created.id, receipt);
+        } catch (e) {
+          toast.error(errMessage(e, "Payment saved, but the receipt failed to upload"));
+        }
+      }
       toast.success("Payment recorded");
       onSaved();
       onClose();
@@ -1083,10 +1830,16 @@ function RecordPaymentModal({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor={`${uid}-kind`} className={labelCls}>Type</label>
-            <select id={`${uid}-kind`} className={`${fieldCls} mt-1`} value={kind} onChange={(e) => setKind(e.target.value as PaymentKind)}>
-              <option value="deposit">Deposit</option>
-              <option value="progress_payment">Progress payment</option>
-            </select>
+            <SearchableSelect
+              className={`${fieldCls} mt-1`}
+              value={kind}
+              onChange={(v) => setKind((v || "deposit") as PaymentKind)}
+              options={[
+                { value: "deposit", label: "Deposit" },
+                { value: "progress_payment", label: "Progress payment" },
+              ]}
+              allLabel="Select type"
+            />
           </div>
           <div>
             <label htmlFor={`${uid}-amount`} className={labelCls}>Amount ($)</label>
@@ -1103,13 +1856,65 @@ function RecordPaymentModal({
             <input id={`${uid}-reference`} className={`${fieldCls} mt-1`} value={reference} onChange={(e) => setReference(e.target.value)} placeholder="e.g. Initial project deposit (30%)" />
           </div>
         </div>
+        <div>
+          <span className={labelCls}>Receipt / proof (optional)</span>
+          <div
+            onDragOver={(e) => { e.preventDefault(); setReceiptDrag(true); }}
+            onDragLeave={() => setReceiptDrag(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setReceiptDrag(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) setReceipt(f);
+            }}
+            onClick={() => receiptInput.current?.click()}
+            className={`mt-1 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed px-4 py-5 text-center transition-colors ${
+              receiptDrag ? "border-[#013764] bg-[#013764]/5" : "border-[#DADADA] hover:bg-gray-50"
+            }`}
+          >
+            <div className="text-xl text-gray-400" aria-hidden="true">⬆</div>
+            {receipt ? (
+              <p className="text-sm font-medium text-gray-900">{receipt.name}</p>
+            ) : (
+              <p className="text-xs text-gray-600">Drag and drop a file here, or click to browse</p>
+            )}
+            <input
+              ref={receiptInput}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                if (f) setReceipt(f);
+              }}
+            />
+          </div>
+          {receipt && (
+            <button type="button" onClick={() => setReceipt(null)} className="mt-1 text-xs text-gray-400 hover:text-gray-700">
+              Choose a different file
+            </button>
+          )}
+        </div>
         {payments.length > 0 && (
           <div className="border-t border-gray-100 pt-3">
             <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Previously recorded</div>
             <div className="flex flex-col gap-1">
               {payments.slice(0, 5).map((p) => (
                 <div key={p.id} className="flex items-center justify-between text-xs text-gray-500">
-                  <span className="truncate">{formatMaybeDate(p.received_on)} · {p.kind === "deposit" ? "Deposit" : "Progress payment"}{p.reference ? ` · ${p.reference}` : ""}</span>
+                  <span className="flex items-center gap-1.5 truncate">
+                    {formatMaybeDate(p.received_on)} · {p.kind === "deposit" ? "Deposit" : "Progress payment"}{p.reference ? ` · ${p.reference}` : ""}
+                    {p.receipt_object_key && (
+                      <a
+                        href={`/files/${p.receipt_object_key}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={p.receipt_filename ?? "View receipt"}
+                        className="text-blue-600 hover:underline"
+                      >
+                        📎
+                      </a>
+                    )}
+                  </span>
                   <span className="tabular-nums text-gray-700">{formatUSD(p.amount_cents)}</span>
                 </div>
               ))}
@@ -1123,109 +1928,537 @@ function RecordPaymentModal({
 }
 
 
-function CashFlowTab({ projectId, onRefreshSummary }: { projectId: number; onRefreshSummary: () => void }) {
-  const [entries, setEntries] = useState<CashFlowEntry[] | null>(null);
+// AllocatePaymentModal — manually split ONE collected payment across the
+// project's bills (pure tracking). Σ inputs is capped at the payment amount; the
+// remainder stays unallocated. Full-amount allocation allowed (a bill may be
+// covered past its cost), so we don't cap per bill.
+function AllocatePaymentModal({
+  projectId,
+  payment,
+  bills,
+  onSaved,
+  onClose,
+}: {
+  projectId: number;
+  payment: ProjectPayment;
+  bills: ProjectBillRow[];
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  // billId -> dollar string
+  const [amounts, setAmounts] = useState<Record<number, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const existing = await getPaymentAllocations(projectId, payment.id);
+        if (!alive) return;
+        const seed: Record<number, string> = {};
+        existing.forEach((a: PaymentAllocation) => {
+          seed[a.bill_id] = centsToInput(a.amount_cents);
+        });
+        setAmounts(seed);
+      } catch (e) {
+        toast.error(errMessage(e, "Failed to load allocations"));
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [projectId, payment.id]);
+
+  const allocatedCents = Object.values(amounts).reduce((s, v) => s + dollarsToCents(v), 0);
+  const remainingCents = payment.amount_cents - allocatedCents;
+  const over = remainingCents < 0;
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const allocations = bills
+        .map((b) => ({ bill_id: b.id, amount_cents: dollarsToCents(amounts[b.id] ?? "") }))
+        .filter((a) => a.amount_cents > 0);
+      await putPaymentAllocations(projectId, payment.id, allocations);
+      toast.success("Allocation saved");
+      onSaved();
+      onClose();
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to save allocation"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <ModalShell
+      title="Allocate payment to bills"
+      maxWidth="max-w-2xl"
+      onClose={onClose}
+      footer={
+        <>
+          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button onClick={save} disabled={saving || over || loading} className="h-9 rounded-lg bg-[#013764] px-4 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
+            {saving ? "Saving…" : "Save allocation"}
+          </button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        {/* Running header */}
+        <div className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${over ? "border-red-200 bg-red-50" : "border-gray-200 bg-gray-50"}`}>
+          <span className="text-gray-600">
+            {payment.reference || (payment.kind === "deposit" ? "Deposit" : "Progress payment")} · {formatUSD(payment.amount_cents)}
+          </span>
+          <span className={`font-semibold ${over ? "text-red-700" : "text-gray-900"}`}>
+            {over
+              ? `Over by ${formatUSD(-remainingCents)}`
+              : `${formatUSD(remainingCents)} of ${formatUSD(payment.amount_cents)} left to allocate`}
+          </span>
+        </div>
+
+        {loading ? (
+          <div className="py-8 text-center text-sm text-gray-500">Loading…</div>
+        ) : bills.length === 0 ? (
+          <div className="py-8 text-center text-sm text-gray-500">No vendor bills on this project to allocate against yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500">
+                  <th className="pb-2 font-semibold">Vendor</th>
+                  <th className="pb-2 font-semibold">Bill</th>
+                  <th className="pb-2 text-right font-semibold">Booked</th>
+                  <th className="pb-2 text-right font-semibold">Covered</th>
+                  <th className="pb-2 text-right font-semibold">Allocate ($)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {bills.map((b) => (
+                  <tr key={b.id}>
+                    <td className="py-2 pr-2 text-gray-900">{b.vendor_name || (b.vendor_id ? `Vendor #${b.vendor_id}` : "—")}</td>
+                    <td className="py-2 pr-2 text-gray-600">
+                      <span className="block truncate max-w-[14rem]">{b.description || b.work_order_name || `Bill #${b.id}`}</span>
+                    </td>
+                    <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(b.booked_cents)}</td>
+                    <td className="py-2 text-right tabular-nums text-gray-500">{formatUSD(b.covered_cents)}</td>
+                    <td className="py-2 pl-2 text-right">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        className="h-8 w-28 rounded-lg border border-[#DADADA] bg-white px-2 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
+                        value={amounts[b.id] ?? ""}
+                        onChange={(e) => setAmounts((m) => ({ ...m, [b.id]: e.target.value }))}
+                        placeholder="0"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="mt-2 text-xs text-gray-400">
+              Allocation is platform tracking only — it records which bills this client payment covers and doesn't post to QuickBooks or change the budget.
+            </div>
+          </div>
+        )}
+      </div>
+    </ModalShell>
+  );
+}
+
+/* ------------------- EXPLORATORY: consolidated Financials tab ---------------- */
+/* One tab that answers: what have we paid OUT to vendors, and what have we taken
+   IN from the client, and where do we net. Composes the already-loaded
+   ProjectSummary + getCashFlow + listProjectInvoices + listPayments. No new
+   backend endpoints. Intentionally lean vs. Payables/Receivables/Cash Flow. */
+type PInvoiceStatus = ProjectInvoiceStatus;
+
+const P_INVOICE_STATUS_META: Record<PInvoiceStatus, { label: string; text: string; bg: string }> = {
+  draft: { label: "Draft", text: "#374151", bg: "#F3F4F6" },
+  sent: { label: "Sent", text: "#1D4ED8", bg: "#E7EEFE" },
+  partially_paid: { label: "Partially Paid", text: "#B45309", bg: "#FCF2E1" },
+  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
+  void: { label: "Void", text: "#6B7280", bg: "#F3F4F6" },
+};
+
+function FinancialsTab({
+  summary,
+  projectId,
+  onRefreshSummary,
+}: {
+  summary: ProjectSummary;
+  projectId: number;
+  onRefreshSummary: () => void;
+}) {
+  const fin = summary.financials;
+  const cancelled = summary.project.status === "cancelled";
+  const [cashflow, setCashflow] = useState<CashFlowEntry[] | null>(null);
+  const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
   const [payments, setPayments] = useState<ProjectPayment[]>([]);
+  const [bills, setBills] = useState<ProjectBillRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [recordOpen, setRecordOpen] = useState(false);
+  const [allocatePayment, setAllocatePayment] = useState<ProjectPayment | null>(null);
+  // Invoice management (folded in from the retired Receivables tab).
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [billables, setBillables] = useState<Billables | null>(null);
+  const [detail, setDetail] = useState<ProjectInvoice | null>(null);
+  const [busy, setBusy] = useState(false);
+  // Over/under-billing banner dismissal, persisted per-project so it doesn't nag.
+  const bannerKey = `pfv2:billing-banner-dismissed:${projectId}`;
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(bannerKey) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    try {
+      localStorage.setItem(bannerKey, "1");
+    } catch {
+      /* ignore */
+    }
+  };
 
   const load = useCallback(async () => {
     try {
       setError(null);
-      const [cf, pays] = await Promise.all([getCashFlow(projectId), listPayments(projectId)]);
-      setEntries(cf);
+      const [cf, inv, pays, bl] = await Promise.all([
+        getCashFlow(projectId),
+        listProjectInvoices(projectId),
+        listPayments(projectId),
+        listProjectBills(projectId),
+      ]);
+      setCashflow(cf);
+      setInvoices(inv);
       setPayments(pays);
+      setBills(bl);
     } catch (e) {
-      setError(errMessage(e, "Failed to load cash flow"));
+      setError(errMessage(e, "Failed to load financials"));
     }
   }, [projectId]);
-
   useEffect(() => {
     load();
   }, [load]);
 
+  const openBuilder = async () => {
+    setBuilderOpen(true);
+    setBillables(null);
+    try {
+      setBillables(await getBillables(projectId));
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to load billable items"));
+    }
+  };
+  const openDetail = async (id: number) => {
+    try {
+      setDetail(await getProjectInvoice(projectId, id));
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to load invoice"));
+    }
+  };
+  const doCreate = async (title: string, lines: CreateInvoiceLineInput[]) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const created = await createProjectInvoice(projectId, { title, lines });
+      setBuilderOpen(false);
+      setBillables(null);
+      await load();
+      setDetail(created);
+      toast.success(`${created.invoice_number} created as draft`);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to create invoice"));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const doSend = async (id: number) => {
+    try {
+      const updated = await sendProjectInvoice(projectId, id);
+      setDetail(updated);
+      await load();
+      onRefreshSummary();
+      toast.success("Invoice sent to client");
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to send invoice"));
+    }
+  };
+  const doRecordInvoicePayment = async (id: number, amountCents: number) => {
+    try {
+      const updated = await recordInvoicePayment(projectId, id, { amount_cents: amountCents, received_on: isoToday() });
+      setDetail(updated);
+      await load();
+      onRefreshSummary();
+      toast.success("Payment recorded");
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to record payment"));
+    }
+  };
+  const doVoid = async (id: number) => {
+    if (detail && detail.paid_cents > 0 && !window.confirm(
+      `This invoice has ${formatUSD(detail.paid_cents)} in recorded payments. Voiding drops it from receivables totals but keeps those payments. Void anyway?`,
+    )) return;
+    try {
+      const updated = await voidProjectInvoice(projectId, id);
+      setDetail(updated);
+      await load();
+      onRefreshSummary();
+      toast.success("Invoice voided");
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to void invoice"));
+    }
+  };
+  const doPushQbo = async (id: number) => {
+    try {
+      const res = await pushInvoiceToQbo(projectId, id);
+      await load();
+      if (detail?.id === id) await openDetail(id);
+      toast.success(res.already_pushed ? "Already in QuickBooks" : `Pushed to QuickBooks (invoice ${res.qbo_invoice_id})`);
+    } catch (e) {
+      // Non-concierge → 409, missing customer → 400, QBO failure → 502.
+      toast.error(errMessage(e, "Failed to push invoice to QuickBooks"));
+    }
+  };
+
   if (error) {
     return (
       <div className="py-12 text-center text-sm text-gray-500">
-        {error}{" "}
-        <button onClick={load} className="text-blue-600 hover:underline">Retry</button>
+        {error} <button onClick={load} className="text-blue-600 hover:underline">Retry</button>
       </div>
     );
   }
-  if (entries === null) {
-    return <div className="py-12 text-center text-sm text-gray-500">Loading cash flow…</div>;
+  if (cashflow === null) {
+    return <div className="py-12 text-center text-sm text-gray-500">Loading financials…</div>;
   }
 
-  const viewEntries = entries;
-  const inTotal = viewEntries.filter((c) => c.direction === "inbound").reduce((s, c) => s + c.amount_cents, 0);
-  const outTotal = viewEntries.filter((c) => c.direction === "outbound").reduce((s, c) => s + c.amount_cents, 0);
-  const net = inTotal - outTotal;
+  const paidOut = cashflow.filter((c) => c.direction === "outbound").reduce((s, c) => s + c.amount_cents, 0);
+  const receivedIn = cashflow.filter((c) => c.direction === "inbound").reduce((s, c) => s + c.amount_cents, 0);
+  const net = receivedIn - paidOut;
+  const overUnder = fin.billed_vs_cost_cents; // billed_to_date − committed
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <KpiCard label="Paid to Vendors" value={formatUSD(outTotal)} subtitle="AVM money out on this project" accent="red" valueColor="#B91C1C" />
-        <KpiCard label="Repaid by Client" value={formatUSD(inTotal)} subtitle="Deposits + progress payments received" accent="green" valueColor="#15803D" />
-        <KpiCard
-          label={net < 0 ? "AVM is Fronting" : "Collected Ahead"}
-          value={formatUSD(Math.abs(net))}
-          subtitle={net < 0 ? "Paid out, not yet repaid by client" : "Received ahead of vendor spend"}
-          accent={net < 0 ? "amber" : "green"}
-          valueColor={net < 0 ? "#B45309" : "#15803D"}
-        />
+      {/* Over/under-billing banner — first thing shown; dismissible per project. */}
+      {!bannerDismissed && (fin.billed_to_date_cents > 0 || fin.committed_cents > 0) && (
+        <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${overUnder >= 0 ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
+          <span className={`mt-0.5 ${overUnder >= 0 ? "text-emerald-600" : "text-amber-600"}`}>{overUnder >= 0 ? "▲" : "▼"}</span>
+          <div className="flex-1 text-sm">
+            <span className={`font-semibold ${overUnder >= 0 ? "text-emerald-800" : "text-amber-800"}`}>
+              {overUnder >= 0 ? "Over-billing" : "Under-billing"} {formatUSD(Math.abs(overUnder))}
+            </span>
+            <span className="ml-1 text-gray-600">
+              — billed {formatUSD(fin.billed_to_date_cents)} vs committed cost {formatUSD(fin.committed_cents)}.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={dismissBanner}
+            aria-label="Dismiss over/under-billing banner"
+            className="ml-2 text-gray-400 hover:text-gray-600"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Financial summary — four money metrics + net position as one cohesive
+          block. Cards reuse the Dashboard KpiCard styling; the net-position row
+          is attached directly beneath (same border treatment) so it reads as a
+          single unit rather than a floating strip. */}
+      <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle="Booked bills" accent="amber" valueColor="#B45309" />
+          <KpiCard label="Paid to vendors" value={formatUSD(fin.paid_cents)} subtitle="Cash out" accent="violet" valueColor="#7C3AED" />
+          <KpiCard label="Collected from client" value={formatUSD(fin.collected_cents)} subtitle="Cash in" accent="green" valueColor="#15803D" />
+          <KpiCard label="Remaining" value={formatUSD(fin.remaining_budget_cents)} subtitle="Budget − committed" accent="navy" valueColor={fin.remaining_budget_cents < 0 ? "#B91C1C" : undefined} />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+          <span className="text-gray-600">
+            <span className="mr-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Net position</span>
+            Paid to vendors <span className="font-semibold text-red-700">−{formatUSD(paidOut)}</span>
+            <span className="mx-2 text-gray-300">·</span>
+            Received from client <span className="font-semibold text-green-700">+{formatUSD(receivedIn)}</span>
+          </span>
+          <span className={`font-semibold ${net < 0 ? "text-amber-700" : "text-green-700"}`}>
+            {net < 0 ? `AVM fronting ${formatUSD(-net)}` : net > 0 ? `Collected ahead ${formatUSD(net)}` : "Fully settled"}
+          </span>
+        </div>
       </div>
 
-      <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-        {net < 0 ? (
-          <>
-            <span className="font-semibold">The client currently owes AVM {formatUSD(-net)}</span> for project costs we've
-            fronted — money paid to vendors that hasn't been repaid yet. Bill it through the owner's invoice, then record the
-            payment here when it lands.
-          </>
-        ) : net > 0 ? (
-          <>
-            <span className="font-semibold">AVM is holding {formatUSD(net)} of client money</span> — collected ahead of vendor
-            spend. Upcoming vendor payments up to this amount are already covered.
-          </>
-        ) : (
-          <>
-            <span className="font-semibold">Fully settled</span> — everything paid to vendors has been repaid by the client.
-          </>
-        )}
-      </div>
-
-      {/* Two lanes: the vendor lane and the client lane, side by side. Actuals on top,
-          upcoming (from the Payables / Receivables schedules) below — this is where the
-          two directions meet, and the only place both appear together. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        <Card title="AVM → Vendors — money out">
-          <CashLane
-            rows={viewEntries.filter((c) => c.direction === "outbound")}
-            totalCents={outTotal}
-            totalLabel="Paid to vendors"
-            sign="−"
-            amountColor="text-red-700"
-            emptyText="No vendor payments yet — they appear automatically when bills on this project's work are paid."
-            upcomingHint="From vendor payment schedules (Payables)"
-          />
+      {/* Two lanes: bills → vendors (out), payments ← client (in) */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+        {/* Bills booked on the project (money out) — per-bill via WO/FTO. */}
+        <Card title="Vendor bills">
+          {bills.length === 0 ? (
+            <div className="py-8 text-center text-sm text-gray-500">
+              No vendor bills booked on this project yet. Bills flow in from the project's work orders.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500">
+                    <th className="pb-2 font-semibold">Vendor</th>
+                    <th className="pb-2 font-semibold">Bill / work order</th>
+                    <th className="pb-2 text-right font-semibold">Booked</th>
+                    <th className="pb-2 text-right font-semibold">Paid</th>
+                    <th className="pb-2 text-right font-semibold">Covered</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {bills.map((b) => {
+                    const fullyCovered = b.covered_cents >= b.booked_cents && b.booked_cents > 0;
+                    return (
+                    <tr key={b.id}>
+                      <td className="py-2 pr-2 text-gray-900">{b.vendor_name || (b.vendor_id ? `Vendor #${b.vendor_id}` : "—")}</td>
+                      <td className="py-2 pr-2 text-gray-600">
+                        <span className="block truncate max-w-[16rem]">{b.description || b.work_order_name || `Bill #${b.id}`}</span>
+                        {b.statement_date && <span className="text-xs text-gray-400">{fmtProjDate(b.statement_date)}</span>}
+                      </td>
+                      <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(b.booked_cents)}</td>
+                      <td className="py-2 text-right tabular-nums text-violet-700">{formatUSD(b.paid_cents)}</td>
+                      <td className="py-2 text-right tabular-nums">
+                        {b.covered_cents > 0 ? (
+                          <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ${fullyCovered ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`} title={fullyCovered ? "Fully covered by client payments" : "Partially covered by client payments"}>
+                            {formatUSD(b.covered_cents)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+                    </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-gray-200 font-semibold text-gray-900">
+                    <td className="pt-2" colSpan={2}>Total</td>
+                    <td className="pt-2 text-right tabular-nums">{formatUSD(fin.committed_cents)}</td>
+                    <td className="pt-2 text-right tabular-nums text-violet-700">{formatUSD(fin.paid_cents)}</td>
+                    <td className="pt-2 text-right tabular-nums">{formatUSD(bills.reduce((s, b) => s + b.covered_cents, 0))}</td>
+                  </tr>
+                </tfoot>
+              </table>
+              <div className="mt-2 text-xs text-gray-400">Booked = bill total (committed) · Paid = settled with the vendor · Covered = client payments allocated to this bill.</div>
+            </div>
+          )}
         </Card>
+
+        {/* Payments received from client */}
         <Card
-          title="Client → AVM — money in"
+          title="Client payments received"
           action={
-            <button onClick={() => setRecordOpen(true)} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            <button
+              onClick={() => setRecordOpen(true)}
+              className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
               + Record payment
             </button>
           }
         >
-          <CashLane
-            rows={viewEntries.filter((c) => c.direction === "inbound")}
-            totalCents={inTotal}
-            totalLabel="Received from client"
-            sign="+"
-            amountColor="text-green-700"
-            emptyText="No client payments yet — record one, or they arrive automatically when a project invoice is paid."
-            upcomingHint="From the client payment schedule + outstanding invoices (Receivables)"
-          />
+          {payments.length === 0 ? (
+            <div className="py-8 text-center text-sm text-gray-500">
+              No client payments yet — record one, or they arrive automatically when a project invoice is paid.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500">
+                    <th className="pb-2 font-semibold">Date</th>
+                    <th className="pb-2 font-semibold">Reference</th>
+                    <th className="pb-2 text-right font-semibold">Amount</th>
+                    <th className="pb-2" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {payments.map((p) => {
+                    const unallocated = p.amount_cents - p.allocated_cents;
+                    return (
+                    <tr key={p.id}>
+                      <td className="py-2 pr-2 text-gray-700">{fmtProjDate(p.received_on)}</td>
+                      <td className="py-2 pr-2">
+                        <span className="flex items-center gap-1.5 text-gray-900">
+                          {p.reference || (p.kind === "deposit" ? "Deposit" : "Progress payment")}
+                          {p.receipt_object_key && (
+                            <a href={`/files/${p.receipt_object_key}`} target="_blank" rel="noreferrer" title={p.receipt_filename ?? "View receipt"} className="text-blue-600 hover:underline">📎</a>
+                          )}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-gray-400">
+                          {p.allocated_cents > 0
+                            ? <>{formatUSD(p.allocated_cents)} allocated{unallocated > 0 ? ` · ${formatUSD(unallocated)} unallocated` : " · fully allocated"}</>
+                            : <>{formatUSD(p.amount_cents)} unallocated</>}
+                        </span>
+                      </td>
+                      <td className="py-2 text-right align-top tabular-nums text-green-700">+{formatUSD(p.amount_cents)}</td>
+                      <td className="py-2 pl-2 text-right align-top">
+                        <button
+                          onClick={() => setAllocatePayment(p)}
+                          className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                          Allocate
+                        </button>
+                      </td>
+                    </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-gray-200 font-semibold text-gray-900">
+                    <td className="pt-2" colSpan={2}>Total received</td>
+                    <td className="pt-2 text-right tabular-nums text-green-700">+{formatUSD(fin.collected_cents)}</td>
+                    <td className="pt-2" />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+
+          {/* Invoices — create / send / push-to-QBO all live here now. */}
+          <div className="mt-4 border-t border-gray-100 pt-3">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Invoices</div>
+              <button
+                onClick={openBuilder}
+                disabled={cancelled}
+                className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                + New invoice
+              </button>
+            </div>
+            {invoices.length === 0 ? (
+              <div className="py-3 text-center text-xs text-gray-400">No invoices yet — create one to bill the client.</div>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {invoices.map((inv) => {
+                  const meta = P_INVOICE_STATUS_META[inv.status];
+                  return (
+                    <button
+                      key={inv.id}
+                      onClick={() => openDetail(inv.id)}
+                      className="flex w-full items-center justify-between rounded-lg px-1.5 py-1 text-left text-sm hover:bg-gray-50"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-gray-900">{inv.invoice_number}</span>
+                        <Pill label={meta.label} text={meta.text} bg={meta.bg} />
+                        <QboStatusBadge invoice={inv} />
+                      </span>
+                      <span className="tabular-nums text-gray-600">
+                        {formatUSD(inv.paid_cents)} / {formatUSD(inv.total_amount_cents)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </Card>
       </div>
 
@@ -1240,33 +2473,46 @@ function CashFlowTab({ projectId, onRefreshSummary }: { projectId: number; onRef
           onClose={() => setRecordOpen(false)}
         />
       )}
+
+      {allocatePayment && (
+        <AllocatePaymentModal
+          projectId={projectId}
+          payment={allocatePayment}
+          bills={bills}
+          onSaved={() => {
+            load();
+            onRefreshSummary();
+          }}
+          onClose={() => setAllocatePayment(null)}
+        />
+      )}
+
+      {builderOpen && (
+        <ProjectInvoiceBuilderModal
+          billables={billables}
+          busy={busy}
+          onCreate={doCreate}
+          onClose={() => {
+            setBuilderOpen(false);
+            setBillables(null);
+          }}
+        />
+      )}
+
+      {detail && (
+        <ProjectInvoiceDetailModal
+          invoice={detail}
+          onSend={() => doSend(detail.id)}
+          onRecordPayment={(cents) => doRecordInvoicePayment(detail.id, cents)}
+          onVoid={() => doVoid(detail.id)}
+          onPushQbo={() => doPushQbo(detail.id)}
+          onClose={() => setDetail(null)}
+        />
+      )}
     </div>
   );
 }
 
-/* ------------------- project invoicing (spec preview, sample) --------------- */
-/* Frontend-only preview of PROJECT_INVOICING_SPEC.md: siloed project invoices,
-   payment-schedule installments, quotes, files. All state is local + badged as
-   sample; interactions work in-page and reset on reload. No API calls. */
-
-type PInvoiceStatus = ProjectInvoiceStatus;
-
-const P_INVOICE_STATUS_META: Record<PInvoiceStatus, { label: string; text: string; bg: string }> = {
-  draft: { label: "Draft", text: "#374151", bg: "#F3F4F6" },
-  sent: { label: "Sent", text: "#1D4ED8", bg: "#E7EEFE" },
-  partially_paid: { label: "Partially Paid", text: "#B45309", bg: "#FCF2E1" },
-  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
-  void: { label: "Void", text: "#6B7280", bg: "#F3F4F6" },
-};
-
-const INSTALLMENT_STATUS_META: Record<PaymentInstallment["status"], { label: string; text: string; bg: string }> = {
-  upcoming: { label: "Upcoming", text: "#6B7280", bg: "#F3F4F6" },
-  due: { label: "Due now", text: "#B45309", bg: "#FCF2E1" },
-  invoiced: { label: "Invoiced", text: "#1D4ED8", bg: "#E7EEFE" },
-  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
-};
-
-// "YYYY-MM-DD" → "Feb 18, 2026"; anything falsy → "—".
 function fmtProjDate(d: string | null | undefined): string {
   if (!d) return "—";
   const dt = new Date(`${d}T00:00:00`);
@@ -1283,293 +2529,6 @@ function installmentTrigger(inst: PaymentInstallment): string {
   if (inst.milestone_name) return `Milestone: ${inst.milestone_name}`;
   if (inst.due_date) return `Due ${fmtProjDate(inst.due_date)}`;
   return "On signing";
-}
-
-function InvoicingTab({ summary }: { summary: ProjectSummary }) {
-  const projectId = summary.project.id;
-  const cancelled = summary.project.status === "cancelled";
-  const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
-  const [schedule, setSchedule] = useState<PaymentInstallment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [builderOpen, setBuilderOpen] = useState(false);
-  const [billables, setBillables] = useState<Billables | null>(null);
-  const [detail, setDetail] = useState<ProjectInvoice | null>(null);
-  const [scheduleEditorOpen, setScheduleEditorOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      const [inv, sch] = await Promise.all([listProjectInvoices(projectId), getPaymentSchedule(projectId)]);
-      setInvoices(inv);
-      setSchedule(sch);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to load invoicing");
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const budget = summary.financials.current_budget_cents;
-  const issued = invoices.filter((i) => i.status !== "void" && i.status !== "draft");
-  const billed = issued.reduce((s, i) => s + i.total_amount_cents, 0);
-  const received = invoices.filter((i) => i.status !== "void").reduce((s, i) => s + i.paid_cents, 0);
-  const outstanding = issued.reduce((s, i) => s + Math.max(0, i.total_amount_cents - i.paid_cents), 0);
-  const leftToBill = Math.max(0, budget - billed);
-
-  const openDetail = async (id: number) => {
-    try {
-      setDetail(await getProjectInvoice(projectId, id));
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to load invoice");
-    }
-  };
-
-  const openBuilder = async () => {
-    setBuilderOpen(true);
-    setBillables(null);
-    try {
-      setBillables(await getBillables(projectId));
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to load billable items");
-    }
-  };
-
-  const doCreate = async (title: string, lines: CreateInvoiceLineInput[]) => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const created = await createProjectInvoice(projectId, { title, lines });
-      setBuilderOpen(false);
-      setBillables(null);
-      await load();
-      setDetail(created);
-      toast.success(`${created.invoice_number} created as draft`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to create invoice");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  // Bill a single due installment straight from its schedule row.
-  const invoiceInstallment = (inst: PaymentInstallment) =>
-    doCreate(inst.label, [
-      {
-        description: `${inst.label} — per payment schedule`,
-        amount_cents: inst.resolved_amount_cents,
-        source_type: "installment",
-        source_id: inst.id,
-      },
-    ]);
-
-  const doSend = async (id: number) => {
-    try {
-      const updated = await sendProjectInvoice(projectId, id);
-      setDetail(updated);
-      await load();
-      toast.success("Invoice sent to client");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to send invoice");
-    }
-  };
-
-  const doRecordPayment = async (id: number, amountCents: number) => {
-    try {
-      const updated = await recordInvoicePayment(projectId, id, { amount_cents: amountCents, received_on: isoToday() });
-      setDetail(updated);
-      await load();
-      toast.success("Payment recorded — a linked row lands in Cash Flow");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to record payment");
-    }
-  };
-
-  const doVoid = async (id: number) => {
-    const inv = detail;
-    if (inv && inv.paid_cents > 0 && !window.confirm(
-      `This invoice has ${formatUSD(inv.paid_cents)} in recorded payments. Voiding it keeps those payments in Cash Flow but drops the invoice from receivables totals. Void anyway?`,
-    )) {
-      return;
-    }
-    try {
-      const updated = await voidProjectInvoice(projectId, id);
-      setDetail(updated);
-      await load();
-      toast.success("Invoice voided — linked installments released");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to void invoice");
-    }
-  };
-
-  const saveSchedule = async (installments: InstallmentInput[]) => {
-    try {
-      const next = await putPaymentSchedule(projectId, installments);
-      setSchedule(next);
-      setScheduleEditorOpen(false);
-      toast.success("Payment schedule saved");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to save payment schedule");
-    }
-  };
-
-  const totalScheduled = schedule.reduce((s, i) => s + i.resolved_amount_cents, 0);
-
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs text-gray-600">
-        This is the <strong>client lane</strong>: the agreed payment schedule, the project invoices issued against it, and
-        receipts. Vendor-side money lives on Payables; the two lanes meet on Cash Flow. Completely separate from monthly invoices.
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        <KpiCard label="Billed to Client" value={formatUSD(billed)} subtitle={`${budget ? Math.round((billed / budget) * 100) : 0}% of budget`} accent="navy" />
-        <KpiCard label="Received" value={formatUSD(received)} subtitle="Payments on project invoices" accent="green" valueColor="#15803D" />
-        <KpiCard label="Outstanding" value={formatUSD(outstanding)} subtitle="Invoiced, awaiting payment" accent="amber" valueColor={outstanding > 0 ? "#B45309" : undefined} />
-        <KpiCard label="Left to Bill" value={formatUSD(leftToBill)} subtitle="Budget not yet invoiced" accent="violet" />
-      </div>
-
-      <Card
-        title="Client Payment Schedule"
-        action={
-          <button
-            onClick={() => setScheduleEditorOpen(true)}
-            disabled={cancelled}
-            className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
-            Edit schedule
-          </button>
-        }
-      >
-        {loading ? (
-          <p className="text-sm text-gray-500">Loading…</p>
-        ) : schedule.length === 0 ? (
-          <p className="text-sm text-gray-500">No payment schedule defined yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <Th>Installment</Th><Th>Basis</Th><Th right>Amount</Th><Th>Trigger</Th><Th>Status</Th><Th right>{""}</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {schedule.map((inst) => {
-                  const meta = INSTALLMENT_STATUS_META[inst.status];
-                  return (
-                    <tr key={inst.id} className="hover:bg-gray-50">
-                      <td className="py-3 pr-4 font-medium text-gray-900">{inst.label}</td>
-                      <td className="py-3 pr-4 text-gray-500">{installmentBasisLabel(inst)}</td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(inst.resolved_amount_cents)}</td>
-                      <td className="py-3 pr-4 text-gray-500">{installmentTrigger(inst)}</td>
-                      <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
-                      <td className="py-3 text-right">
-                        {inst.status === "due" && !cancelled ? (
-                          <button
-                            onClick={() => invoiceInstallment(inst)}
-                            disabled={busy}
-                            className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
-                          >
-                            Invoice now
-                          </button>
-                        ) : inst.project_invoice_id != null ? (
-                          <button onClick={() => openDetail(inst.project_invoice_id!)} className="text-xs font-medium text-blue-600 hover:underline">
-                            {inst.invoice_number ?? "View"}
-                          </button>
-                        ) : null}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-gray-200 font-semibold text-gray-900">
-                  <td className="py-3 pr-4" colSpan={2}>Total scheduled</td>
-                  <td className="py-3 pr-4 text-right tabular-nums">{formatUSD(totalScheduled)}</td>
-                  <td colSpan={3} />
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      <Card
-        title="Project Invoices"
-        action={
-          <button
-            onClick={openBuilder}
-            disabled={cancelled}
-            className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
-          >
-            + New invoice
-          </button>
-        }
-      >
-        {loading ? (
-          <p className="text-sm text-gray-500">Loading…</p>
-        ) : invoices.length === 0 ? (
-          <p className="text-sm text-gray-500">No project invoices yet. Bill a due installment above, or start a new invoice.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <Th>Invoice</Th><Th>Title</Th><Th>Issued</Th><Th right>Total</Th><Th right>Paid</Th><Th>Status</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {invoices.map((inv) => {
-                  const meta = P_INVOICE_STATUS_META[inv.status];
-                  return (
-                    <tr key={inv.id} onClick={() => openDetail(inv.id)} className="cursor-pointer hover:bg-gray-50">
-                      <td className="py-3 pr-4 font-medium text-blue-600">{inv.invoice_number}</td>
-                      <td className="py-3 pr-4 text-gray-900">{inv.title}</td>
-                      <td className="py-3 pr-4 text-gray-500">{fmtProjDate(inv.issue_date)}</td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-900">{formatUSD(inv.total_amount_cents)}</td>
-                      <td className="py-3 pr-4 text-right tabular-nums text-gray-700">{inv.paid_cents > 0 ? formatUSD(inv.paid_cents) : "—"}</td>
-                      <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      {builderOpen && (
-        <ProjectInvoiceBuilderModal
-          billables={billables}
-          busy={busy}
-          onCreate={doCreate}
-          onClose={() => {
-            setBuilderOpen(false);
-            setBillables(null);
-          }}
-        />
-      )}
-      {detail && (
-        <ProjectInvoiceDetailModal
-          invoice={detail}
-          onSend={() => doSend(detail.id)}
-          onRecordPayment={(cents) => doRecordPayment(detail.id, cents)}
-          onVoid={() => doVoid(detail.id)}
-          onClose={() => setDetail(null)}
-        />
-      )}
-      {scheduleEditorOpen && (
-        <ProjectScheduleEditorModal
-          schedule={schedule}
-          onSave={saveSchedule}
-          onClose={() => setScheduleEditorOpen(false)}
-        />
-      )}
-    </div>
-  );
 }
 
 function ProjectInvoiceBuilderModal({
@@ -1772,20 +2731,28 @@ function ProjectInvoiceDetailModal({
   onSend,
   onRecordPayment,
   onVoid,
+  onPushQbo,
   onClose,
 }: {
   invoice: ProjectInvoice;
   onSend: () => void;
   onRecordPayment: (cents: number) => void;
   onVoid: () => void;
+  onPushQbo: () => void | Promise<void>;
   onClose: () => void;
 }) {
   const totalCents = invoice.total_amount_cents;
   const paid = invoice.paid_cents;
   const remaining = Math.max(0, totalCents - paid);
   const [payAmount, setPayAmount] = useState(String(remaining / 100));
+  const [pushing, setPushing] = useState(false);
   const meta = P_INVOICE_STATUS_META[invoice.status];
   const canPay = invoice.status === "sent" || invoice.status === "partially_paid";
+  const pushed = invoice.qbo_push_status === "pushed";
+  // Push to QBO once the invoice has left draft (so it's a real receivable), while
+  // not void. The backend fail-loud gate (409 non-concierge / 400 no customer) is
+  // the source of truth; the button stays optimistic.
+  const canPushQbo = invoice.status !== "void" && invoice.status !== "draft";
 
   return (
     <ModalShell
@@ -1800,6 +2767,16 @@ function ProjectInvoiceDetailModal({
             </button>
           )}
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Close</button>
+          {canPushQbo && (
+            <button
+              onClick={async () => { setPushing(true); try { await onPushQbo(); } finally { setPushing(false); } }}
+              disabled={pushing || pushed}
+              title={pushed ? "Already pushed to QuickBooks" : "Post this invoice to QuickBooks (concierge only)"}
+              className={`h-9 rounded-lg px-3.5 text-sm font-medium ${pushed ? "cursor-default border border-emerald-200 bg-emerald-50 text-emerald-700" : "border border-[#013764] bg-white text-[#013764] hover:bg-[#013764]/5 disabled:opacity-50"}`}
+            >
+              {pushed ? "In QuickBooks ✓" : pushing ? "Pushing…" : "Push to QuickBooks"}
+            </button>
+          )}
           {invoice.status === "draft" && (
             <button onClick={onSend} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]">
               Send to client
@@ -1888,595 +2865,6 @@ function ProjectInvoiceDetailModal({
   );
 }
 
-interface ScheduleRowDraft {
-  key: number;
-  id?: number;
-  label: string;
-  basis: InstallmentBasis;
-  percentPct: string; // percent basis, as whole/decimal percent (10 = 10%)
-  amountDollars: string; // fixed basis, dollars
-  dueDate: string; // "YYYY-MM-DD" or ""
-  locked: boolean; // invoiced — money/basis read-only, cannot remove
-}
-
-// Editor for the client payment schedule (full-replace PUT). Invoiced (locked)
-// installments are shown read-only and always re-submitted so the backend won't
-// reject the replace. Percent installments are entered as a percent of the
-// current budget; fixed installments as a dollar amount.
-function ProjectScheduleEditorModal({
-  schedule,
-  onSave,
-  onClose,
-}: {
-  schedule: PaymentInstallment[];
-  onSave: (installments: InstallmentInput[]) => void;
-  onClose: () => void;
-}) {
-  const seq = useRef(-1);
-  const [rows, setRows] = useState<ScheduleRowDraft[]>(() =>
-    schedule.map((s) => ({
-      key: s.id,
-      id: s.id,
-      label: s.label,
-      basis: s.basis,
-      percentPct: s.percent_bps != null ? String(s.percent_bps / 100) : "",
-      amountDollars: s.amount_cents != null ? String(s.amount_cents / 100) : "",
-      dueDate: s.due_date ?? "",
-      locked: s.status === "invoiced" || s.status === "paid",
-    })),
-  );
-
-  const update = (key: number, patch: Partial<ScheduleRowDraft>) =>
-    setRows((v) => v.map((r) => (r.key === key ? { ...r, ...patch } : r)));
-  const addRow = () =>
-    setRows((v) => [
-      ...v,
-      { key: seq.current--, label: "", basis: "fixed", percentPct: "", amountDollars: "", dueDate: "", locked: false },
-    ]);
-  const removeRow = (key: number) => setRows((v) => v.filter((r) => r.key !== key));
-
-  const save = () => {
-    const out: InstallmentInput[] = [];
-    for (const r of rows) {
-      if (r.locked) {
-        // Re-submit unchanged (backend keeps money/basis; only order may shift).
-        out.push({ id: r.id, label: r.label, basis: r.basis });
-        continue;
-      }
-      if (!r.label.trim()) {
-        toast.error("Each installment needs a label");
-        return;
-      }
-      if (r.basis === "percent") {
-        const pct = Number(r.percentPct);
-        if (!(pct >= 0 && pct <= 100)) {
-          toast.error(`"${r.label}": percent must be between 0 and 100`);
-          return;
-        }
-        out.push({
-          id: r.id,
-          label: r.label.trim(),
-          basis: "percent",
-          percent_bps: Math.round(pct * 100),
-          due_date: r.dueDate || null,
-        });
-      } else {
-        const amt = Number(r.amountDollars);
-        if (!(amt >= 0)) {
-          toast.error(`"${r.label}": amount must be a positive number`);
-          return;
-        }
-        out.push({
-          id: r.id,
-          label: r.label.trim(),
-          basis: "fixed",
-          amount_cents: Math.round(amt * 100),
-          due_date: r.dueDate || null,
-        });
-      }
-    }
-    onSave(out);
-  };
-
-  const inputCls = "rounded-md border border-[#DADADA] px-2 py-1.5 text-sm focus:border-[#013764] focus:outline-none";
-
-  return (
-    <ModalShell
-      title="Edit payment schedule"
-      onClose={onClose}
-      maxWidth="max-w-3xl"
-      footer={
-        <>
-          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-          <button onClick={save} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]">Save schedule</button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-3">
-        <p className="text-xs text-gray-500">
-          Installments drive project invoicing. A <strong>percent</strong> installment bills a share of the current budget; a{" "}
-          <strong>fixed</strong> installment bills a set amount. Invoiced installments are locked.
-        </p>
-        {rows.length === 0 && <p className="text-sm text-gray-500">No installments yet — add one below.</p>}
-        {rows.map((r) => (
-          <div key={r.key} className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2.5 ${r.locked ? "border-gray-200 bg-gray-50" : "border-gray-200"}`}>
-            <input
-              value={r.label}
-              disabled={r.locked}
-              placeholder="Label (e.g. Deposit)"
-              onChange={(e) => update(r.key, { label: e.target.value })}
-              className={`${inputCls} min-w-[10rem] flex-1 disabled:bg-transparent disabled:text-gray-500`}
-            />
-            <select
-              value={r.basis}
-              disabled={r.locked}
-              onChange={(e) => update(r.key, { basis: e.target.value as InstallmentBasis })}
-              className={`${inputCls} disabled:bg-transparent disabled:text-gray-500`}
-            >
-              <option value="fixed">Fixed $</option>
-              <option value="percent">% of budget</option>
-            </select>
-            {r.basis === "percent" ? (
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  value={r.percentPct}
-                  disabled={r.locked}
-                  placeholder="10"
-                  onChange={(e) => update(r.key, { percentPct: e.target.value })}
-                  className={`${inputCls} w-20 text-right tabular-nums disabled:bg-transparent disabled:text-gray-500`}
-                />
-                <span className="text-gray-400">%</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <span className="text-gray-400">$</span>
-                <input
-                  type="number"
-                  value={r.amountDollars}
-                  disabled={r.locked}
-                  placeholder="0.00"
-                  onChange={(e) => update(r.key, { amountDollars: e.target.value })}
-                  className={`${inputCls} w-28 text-right tabular-nums disabled:bg-transparent disabled:text-gray-500`}
-                />
-              </div>
-            )}
-            <input
-              type="date"
-              value={r.dueDate}
-              disabled={r.locked}
-              onChange={(e) => update(r.key, { dueDate: e.target.value })}
-              className={`${inputCls} disabled:bg-transparent disabled:text-gray-500`}
-            />
-            {r.locked ? (
-              <Pill label="Invoiced" text="#1D4ED8" bg="#E7EEFE" />
-            ) : (
-              <button onClick={() => removeRow(r.key)} aria-label="Remove installment" className="px-1 text-gray-400 hover:text-red-600">✕</button>
-            )}
-          </div>
-        ))}
-        <button onClick={addRow} className="self-start h-8 rounded-lg border border-[#DADADA] bg-white px-3 text-xs font-medium text-gray-700 hover:bg-gray-50">
-          + Add installment
-        </button>
-      </div>
-    </ModalShell>
-  );
-}
-
-/* ------------------------------ cash lanes ---------------------------------- */
-
-interface UpcomingRow {
-  label: string;
-  when: string;
-  amountCents: number;
-  urgent?: boolean;
-}
-
-function CashLane({
-  rows,
-  totalCents,
-  totalLabel,
-  sign,
-  amountColor,
-  emptyText,
-  upcoming,
-  upcomingHint,
-}: {
-  rows: CashFlowEntry[];
-  totalCents: number;
-  totalLabel: string;
-  sign: "+" | "−";
-  amountColor: string;
-  emptyText: string;
-  upcoming?: UpcomingRow[];
-  upcomingHint?: string;
-}) {
-  return (
-    <div className="flex flex-col">
-      {rows.length === 0 ? (
-        <p className="py-2 text-sm text-gray-500">{emptyText}</p>
-      ) : (
-        <div className="flex flex-col divide-y divide-gray-100">
-          {rows.map((c, idx) => (
-            <div key={`${c.date}-${idx}`} className="flex items-center justify-between gap-3 py-2.5">
-              <div className="min-w-0">
-                <div className="truncate text-sm text-gray-900">{c.description}</div>
-                <div className="text-xs text-gray-500">
-                  {c.date} · {c.party}
-                  {c.kind === "Deposit" || c.kind === "Progress Payment" ? ` · ${c.kind}` : ""}
-                </div>
-              </div>
-              <span className={`shrink-0 text-sm font-medium tabular-nums ${amountColor}`}>
-                {sign}
-                {formatUSDPrecise(c.amount_cents)}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="mt-1 flex items-center justify-between border-t-2 border-gray-200 pt-3 text-sm font-semibold text-gray-900">
-        <span>{totalLabel}</span>
-        <span className={`tabular-nums ${amountColor}`}>
-          {sign}
-          {formatUSD(totalCents)}
-        </span>
-      </div>
-      {upcoming && upcoming.length > 0 && (
-        <div className="mt-4">
-          <div className="mb-2 flex items-baseline justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Upcoming</span>
-            {upcomingHint && <span className="text-[11px] text-gray-400">{upcomingHint}</span>}
-          </div>
-          <div className="flex flex-col gap-2">
-            {upcoming.map((u) => (
-              <div key={u.label} className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-gray-300 px-3 py-2">
-                <div className="min-w-0">
-                  <div className="truncate text-sm text-gray-700">{u.label}</div>
-                  <div className={`text-xs ${u.urgent ? "font-medium text-amber-700" : "text-gray-400"}`}>{u.when}</div>
-                </div>
-                <span className="shrink-0 text-sm tabular-nums text-gray-500">{formatUSD(u.amountCents)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* --------------------- vendor payment schedule (sample) --------------------- */
-
-const VENDOR_STAGE_META: Record<VendorPaymentStatus, { label: string; text: string; bg: string }> = {
-  scheduled: { label: "Scheduled", text: "#6B7280", bg: "#F3F4F6" },
-  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
-};
-
-// Real Payables-tab "Vendor Payment Schedules" (Part B / B1) — the forward plan
-// of what AVM pays each vendor, grouped by vendor. Add/edit/delete stages and
-// mark them paid; all persisted via /projects/{id}/vendor-payments.
-function VendorScheduleCard({ projectId }: { projectId: number }) {
-  const [stages, setStages] = useState<VendorPayment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<VendorPayment | null>(null); // stage being edited
-  const [creating, setCreating] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      setStages(await listVendorPayments(projectId));
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to load vendor payments");
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const committed = stages.reduce((s, x) => s + x.amount_cents, 0);
-  const paid = stages.filter((s) => s.status === "paid").reduce((s, x) => s + x.amount_cents, 0);
-  const scheduledUnpaid = committed - paid;
-  const vendors = [...new Set(stages.map((s) => s.vendor_name || "(unnamed vendor)"))];
-
-  const markPaid = async (vp: VendorPayment) => {
-    try {
-      await updateVendorPayment(projectId, vp.id, { status: "paid", paid_on: new Date().toISOString().slice(0, 10) });
-      await load();
-      toast.success("Stage marked paid");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to mark paid");
-    }
-  };
-  const remove = async (vp: VendorPayment) => {
-    if (!window.confirm(`Delete "${vp.label || "this stage"}"?`)) return;
-    try {
-      await deleteVendorPayment(projectId, vp.id);
-      await load();
-      toast.success("Stage deleted");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to delete");
-    }
-  };
-
-  return (
-    <Card
-      title="Vendor Payment Schedules"
-      action={
-        <button onClick={() => setCreating(true)} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">
-          + Add stage
-        </button>
-      }
-    >
-      <div className="mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-lg bg-gray-50 px-4 py-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Committed to vendors</div>
-          <div className="mt-1 text-xl font-semibold tabular-nums text-gray-900">{formatUSD(committed)}</div>
-        </div>
-        <div className="rounded-lg bg-gray-50 px-4 py-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Paid so far</div>
-          <div className="mt-1 text-xl font-semibold tabular-nums text-gray-900">{formatUSD(paid)}</div>
-        </div>
-        <div className={`rounded-lg px-4 py-3 ${scheduledUnpaid > 0 ? "bg-amber-50" : "bg-gray-50"}`}>
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Scheduled, unpaid</div>
-          <div className={`mt-1 text-xl font-semibold tabular-nums ${scheduledUnpaid > 0 ? "text-amber-700" : "text-gray-900"}`}>{formatUSD(scheduledUnpaid)}</div>
-        </div>
-      </div>
-
-      {loading ? (
-        <p className="text-sm text-gray-500">Loading…</p>
-      ) : stages.length === 0 ? (
-        <p className="text-sm text-gray-500">No vendor payment stages yet. Add one to plan a vendor's deposits, progress, and balance.</p>
-      ) : (
-        <div className="flex flex-col gap-5">
-          {vendors.map((v) => {
-            const vStages = stages.filter((s) => (s.vendor_name || "(unnamed vendor)") === v);
-            const vTotal = vStages.reduce((s, x) => s + x.amount_cents, 0);
-            return (
-              <div key={v}>
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-900">{v}</span>
-                  <span className="tabular-nums text-gray-500">{formatUSD(vTotal)}</span>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {vStages.map((s) => {
-                    const meta = VENDOR_STAGE_META[s.status];
-                    return (
-                      <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5">
-                        <div className="min-w-0">
-                          <div className="truncate text-sm text-gray-900">{s.label || "(untitled stage)"}</div>
-                          <div className="text-xs text-gray-500">
-                            {s.status === "paid" && s.paid_on ? `Paid ${s.paid_on}` : s.notes || (s.due_date ? `Due ${s.due_date}` : "Scheduled")}
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-3">
-                          {s.status === "scheduled" && (
-                            <>
-                              <button onClick={() => markPaid(s)} className="text-xs font-medium text-green-700 hover:underline">Mark paid</button>
-                              <button onClick={() => setEditing(s)} className="text-xs font-medium text-blue-600 hover:underline">Edit</button>
-                            </>
-                          )}
-                          <button onClick={() => remove(s)} aria-label="Delete stage" className="text-xs text-gray-400 hover:text-red-600">✕</button>
-                          <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(s.amount_cents)}</span>
-                          <Pill label={meta.label} text={meta.text} bg={meta.bg} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {(creating || editing) && (
-        <VendorPaymentModal
-          projectId={projectId}
-          existing={editing}
-          onSaved={async () => {
-            setCreating(false);
-            setEditing(null);
-            await load();
-          }}
-          onClose={() => {
-            setCreating(false);
-            setEditing(null);
-          }}
-        />
-      )}
-    </Card>
-  );
-}
-
-// VendorTypeahead: search the real vendor list (GET /vendors?search=) as you
-// type. Picking a result links vendor_id; typing a name that isn't picked keeps
-// vendor_id null (free-text fallback for vendors not yet in the system).
-function VendorTypeahead({ value, onChange }: { value: string; onChange: (name: string, vendorId: number | null) => void }) {
-  const [results, setResults] = useState<VendorLite[]>([]);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const boxRef = useRef<HTMLDivElement>(null);
-
-  // Debounced search on the current value.
-  useEffect(() => {
-    if (!open) return;
-    const q = value.trim();
-    if (q.length < 2) {
-      setResults([]);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    const t = setTimeout(async () => {
-      try {
-        const r = await searchVendors(q, 8);
-        if (!cancelled) setResults(r);
-      } catch {
-        if (!cancelled) setResults([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }, 250);
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
-  }, [value, open]);
-
-  // Close the dropdown on outside click.
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
-
-  const fieldCls = "mt-1 w-full rounded-md border border-[#DADADA] px-3 py-2 text-sm focus:border-[#013764] focus:outline-none";
-  return (
-    <div ref={boxRef} className="relative">
-      <input
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value, null); // typing = free-text until a result is picked
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        placeholder="Search vendors, or type a new name"
-        className={fieldCls}
-        autoComplete="off"
-      />
-      {open && value.trim().length >= 2 && (
-        <div className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
-          {loading ? (
-            <div className="px-3 py-2 text-sm text-gray-400">Searching…</div>
-          ) : results.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-gray-400">No match — “{value.trim()}” will be saved as a new name.</div>
-          ) : (
-            results.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => {
-                  onChange(v.name, v.id);
-                  setOpen(false);
-                }}
-                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50"
-              >
-                <span className="text-gray-900">{v.name}</span>
-                {v.category && <span className="shrink-0 text-[11px] text-gray-400">{v.category}</span>}
-              </button>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function VendorPaymentModal({
-  projectId,
-  existing,
-  onSaved,
-  onClose,
-}: {
-  projectId: number;
-  existing: VendorPayment | null;
-  onSaved: () => void;
-  onClose: () => void;
-}) {
-  const [vendorName, setVendorName] = useState(existing?.vendor_name ?? "");
-  const [vendorId, setVendorId] = useState<number | null>(existing?.vendor_id ?? null);
-  const [label, setLabel] = useState(existing?.label ?? "");
-  const [amount, setAmount] = useState(existing ? String(existing.amount_cents / 100) : "");
-  const [notes, setNotes] = useState(existing?.notes ?? "");
-  const [dueDate, setDueDate] = useState(existing?.due_date ?? "");
-  const [busy, setBusy] = useState(false);
-
-  const save = async () => {
-    if (!vendorName.trim()) {
-      toast.error("Vendor name is required");
-      return;
-    }
-    const amountCents = Math.max(0, Math.round((Number(amount) || 0) * 100));
-    setBusy(true);
-    try {
-      if (existing) {
-        await updateVendorPayment(projectId, existing.id, {
-          vendor_name: vendorName.trim(),
-          vendor_id: vendorId,
-          label: label.trim(),
-          amount_cents: amountCents,
-          notes: notes.trim(),
-          due_date: dueDate || null,
-        });
-        toast.success("Stage updated");
-      } else {
-        await createVendorPayment(projectId, {
-          vendor_name: vendorName.trim(),
-          vendor_id: vendorId,
-          label: label.trim(),
-          amount_cents: amountCents,
-          notes: notes.trim(),
-          due_date: dueDate || null,
-        });
-        toast.success("Stage added");
-      }
-      onSaved();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to save");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const fieldCls = "mt-1 w-full rounded-md border border-[#DADADA] px-3 py-2 text-sm focus:border-[#013764] focus:outline-none";
-  return (
-    <ModalShell
-      title={existing ? "Edit vendor payment stage" : "Add vendor payment stage"}
-      onClose={onClose}
-      maxWidth="max-w-lg"
-      footer={
-        <>
-          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-          <button onClick={save} disabled={busy} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">Save</button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-4">
-        <div>
-          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Vendor</label>
-          <VendorTypeahead
-            value={vendorName}
-            onChange={(name, id) => {
-              setVendorName(name);
-              setVendorId(id);
-            }}
-          />
-          <p className="mt-1 text-[11px] text-gray-400">Pick a vendor from the list, or type a name for one not yet in the system.</p>
-        </div>
-        <div>
-          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Stage label</label>
-          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. 30% deposit" className={fieldCls} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Amount ($)</label>
-            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className={`${fieldCls} text-right tabular-nums`} />
-          </div>
-          <div>
-            <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Due date</label>
-            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={fieldCls} />
-          </div>
-        </div>
-        <div>
-          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Trigger / notes</label>
-          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. On masonry completion" className={fieldCls} />
-        </div>
-      </div>
-    </ModalShell>
-  );
-}
 
 /* --------------------------------- quotes --------------------------------- */
 
@@ -2533,47 +2921,133 @@ function QuoteAnalysisPanel({ a }: { a: NonNullable<ProjectQuote["ai_analysis"]>
   );
 }
 
+// NewQuoteModal is a create-OR-edit modal. Passing `quote` puts it in edit mode:
+// fields are prefilled, a "Reason for revision" note appears, and submit PATCHes
+// the quote IN PLACE (updateQuote) — an auditable edit, not a new quote row.
 function NewQuoteModal({
   projectId,
   budget,
-  reviseOf,
+  quote,
   onSaved,
   onClose,
 }: {
   projectId: number;
-  budget: { id: number; name: string }[];
-  reviseOf?: ProjectQuote | null;
+  budget: BudgetCategory[];
+  quote?: ProjectQuote;
   onSaved: () => void;
   onClose: () => void;
 }) {
-  const [vendorName, setVendorName] = useState(reviseOf?.vendor_name ?? "");
-  const [trade, setTrade] = useState(reviseOf?.trade ?? "");
-  const [amount, setAmount] = useState(reviseOf ? String(reviseOf.amount_cents / 100) : "");
-  const [scope, setScope] = useState(reviseOf?.scope_description ?? "");
-  const [budgetItemId, setBudgetItemId] = useState<number | "">(reviseOf?.budget_item_id ?? "");
+  const isEdit = quote != null;
+  // Vendor is now picked by id from a real dropdown (GET /vendors via the shared
+  // searchVendors fetcher). We keep both the id (for the payload) and the name
+  // (for display); the label comes from the loaded vendor list.
+  const [vendors, setVendors] = useState<VendorLite[]>([]);
+  const [vendorId, setVendorId] = useState<number | "">(quote?.vendor_id ?? "");
+  const [trade, setTrade] = useState(quote?.trade ?? "");
+  const [amount, setAmount] = useState(
+    isEdit && !(quote!.budget_breakdown && quote!.budget_breakdown.length > 0)
+      ? String(quote!.amount_cents / 100)
+      : "",
+  );
+  const [scope, setScope] = useState(quote?.scope_description ?? "");
+  const [budgetItemId, setBudgetItemId] = useState<number | "">(quote?.budget_item_id ?? "");
+  // Per-sub-budget amounts (keyed by sub-budget id) — used only when the selected
+  // budget line is a CATEGORY that has sub-budgets (migration 144 breakdown).
+  const [subAmounts, setSubAmounts] = useState<Record<number, string>>(() => {
+    const init: Record<number, string> = {};
+    for (const line of quote?.budget_breakdown ?? []) {
+      init[line.budget_item_id] = String(line.amount_cents / 100);
+    }
+    return init;
+  });
+  // Reason for revision — edit-mode only; stamped onto the history row.
+  const [note, setNote] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [saving, setSaving] = useState(false);
   const uid = useId();
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  // Preload active vendors once; SearchableSelect filters the list client-side.
+  useEffect(() => {
+    let cancelled = false;
+    searchVendors("", 1000)
+      .then((rows) => {
+        if (!cancelled) setVendors(rows);
+      })
+      .catch(() => {
+        /* dropdown stays empty; validation blocks submit */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The selected budget line, when it's a CATEGORY that has sub-budgets. In that
+  // case we capture a per-sub-line breakdown instead of a single amount, and the
+  // Quoted amount is the (read-only) Σ of the sub-line amounts.
+  const selectedCategoryWithSubs =
+    budgetItemId === ""
+      ? undefined
+      : budget.find((c) => c.id === budgetItemId && (c.sub_budgets?.length ?? 0) > 0);
+  const subTotalCents = selectedCategoryWithSubs
+    ? selectedCategoryWithSubs.sub_budgets.reduce(
+        (acc, s) => acc + Math.round((Number(subAmounts[s.id]) || 0) * 100),
+        0,
+      )
+    : 0;
 
   const submit = async () => {
-    if (!vendorName.trim() && !trade.trim()) {
-      toast.error("Add a vendor or trade");
+    if (vendorId === "") {
+      toast.error("Select a vendor");
       return;
     }
     setSaving(true);
     try {
-      await createQuote(projectId, {
-        vendor_name: vendorName.trim(),
-        trade: trade.trim(),
-        scope_description: scope.trim(),
-        amount_cents: Math.round((Number(amount) || 0) * 100),
-        budget_item_id: budgetItemId === "" ? null : budgetItemId,
-        supersedes_quote_id: reviseOf ? reviseOf.id : null,
-      });
-      toast.success(reviseOf ? "Revision added & analyzed" : "Quote added & analyzed");
+      const vendorName = vendors.find((v) => v.id === vendorId)?.name ?? quote?.vendor_name ?? "";
+      const breakdown = selectedCategoryWithSubs
+        ? selectedCategoryWithSubs.sub_budgets.map((s) => ({
+            budget_item_id: s.id,
+            amount_cents: Math.round((Number(subAmounts[s.id]) || 0) * 100),
+          }))
+        : undefined;
+      const amountCents = selectedCategoryWithSubs ? subTotalCents : Math.round((Number(amount) || 0) * 100);
+      if (isEdit) {
+        // In-place edit → PATCH the quote; the backend appends a revision row when
+        // a tracked field moved and propagates an amount change into any created WO.
+        await updateQuote(projectId, quote!.id, {
+          vendor_id: vendorId,
+          vendor_name: vendorName,
+          trade: trade.trim(),
+          scope_description: scope.trim(),
+          amount_cents: amountCents,
+          budget_item_id: budgetItemId === "" ? null : budgetItemId,
+          ...(breakdown ? { budget_breakdown: breakdown } : {}),
+          note: note.trim(),
+        });
+        if (file) {
+          await uploadQuoteAttachment(projectId, quote!.id, file);
+        }
+        toast.success("Quote updated");
+      } else {
+        const newQuote = await createQuote(projectId, {
+          vendor_id: vendorId,
+          vendor_name: vendorName,
+          trade: trade.trim(),
+          scope_description: scope.trim(),
+          amount_cents: amountCents,
+          budget_item_id: budgetItemId === "" ? null : budgetItemId,
+          ...(breakdown ? { budget_breakdown: breakdown } : {}),
+        });
+        if (file) {
+          await uploadQuoteAttachment(projectId, newQuote.id, file);
+        }
+        toast.success("Quote added & analyzed");
+      }
       onSaved();
       onClose();
     } catch (e) {
-      toast.error(errMessage(e, "Failed to add quote"));
+      toast.error(errMessage(e, isEdit ? "Failed to update quote" : "Failed to add quote"));
     } finally {
       setSaving(false);
     }
@@ -2581,28 +3055,28 @@ function NewQuoteModal({
 
   return (
     <ModalShell
-      title={reviseOf ? "Revise quote" : "Add quote"}
+      title={isEdit ? "Edit quote" : "Add quote"}
       onClose={onClose}
       footer={
         <>
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
           <button onClick={submit} disabled={saving} className="h-9 rounded-lg bg-[#013764] px-4 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
-            {saving ? "Analyzing…" : "Add & analyze"}
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Add & analyze"}
           </button>
         </>
       }
     >
       <div className="flex flex-col gap-4">
-        {reviseOf && (
-          <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
-            Revising <span className="font-medium text-gray-700">{reviseOf.vendor_name || "quote"}</span> ({formatUSD(reviseOf.amount_cents)}). The
-            original is kept for history; this becomes the current quote.
-          </p>
-        )}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor={`${uid}-vendor`} className={labelCls}>Vendor</label>
-            <input id={`${uid}-vendor`} className={`${fieldCls} mt-1`} value={vendorName} onChange={(e) => setVendorName(e.target.value)} placeholder="e.g. Frank Clark" />
+            <SearchableSelect
+              className={`${fieldCls} mt-1`}
+              value={vendorId === "" ? "" : String(vendorId)}
+              onChange={(v) => setVendorId(v ? Number(v) : "")}
+              options={vendors.map((v) => ({ value: String(v.id), label: v.name }))}
+              allLabel="Select a vendor…"
+            />
           </div>
           <div>
             <label htmlFor={`${uid}-trade`} className={labelCls}>Trade</label>
@@ -2612,42 +3086,279 @@ function NewQuoteModal({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor={`${uid}-amount`} className={labelCls}>Quoted amount ($)</label>
-            <input id={`${uid}-amount`} type="number" className={`${fieldCls} mt-1 text-right tabular-nums`} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+            {selectedCategoryWithSubs ? (
+              // Category with sub-budgets: the amount is the read-only Σ of the
+              // per-sub-line inputs below.
+              <input
+                id={`${uid}-amount`}
+                type="text"
+                readOnly
+                aria-label="Quoted amount (auto-summed from sub-budgets)"
+                className={`${fieldCls} mt-1 text-right tabular-nums bg-gray-50 text-gray-700`}
+                value={formatUSD(subTotalCents)}
+              />
+            ) : (
+              <input id={`${uid}-amount`} type="number" className={`${fieldCls} mt-1 text-right tabular-nums`} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+            )}
           </div>
           <div>
-            <label htmlFor={`${uid}-cat`} className={labelCls}>Budget category</label>
-            <select
-              id={`${uid}-cat`}
+            <label htmlFor={`${uid}-cat`} className={labelCls}>Budget line</label>
+            <SearchableSelect
               className={`${fieldCls} mt-1`}
-              value={budgetItemId}
-              onChange={(e) => setBudgetItemId(e.target.value ? Number(e.target.value) : "")}
-            >
-              <option value="">Unassigned</option>
-              {budget.map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
+              value={budgetItemId === "" ? "" : String(budgetItemId)}
+              onChange={(v) => setBudgetItemId(v ? Number(v) : "")}
+              options={budget.flatMap((b) => {
+                const hasSubs = (b.sub_budgets?.length ?? 0) > 0;
+                return [
+                  { value: String(b.id), label: hasSubs ? `${b.name || "Untitled"} (category)` : (b.name || "Untitled") },
+                  ...(b.sub_budgets ?? []).map((s) => ({ value: String(s.id), label: `   ↳ ${s.name || "Untitled"}` })),
+                ];
+              })}
+              allLabel="Unassigned"
+            />
           </div>
         </div>
+        {selectedCategoryWithSubs && (
+          <div className="rounded-xl border border-[#DADADA] bg-gray-50/50 p-3">
+            <p className="mb-2 text-xs font-medium text-gray-600">
+              Break the quote down by sub-budget — the total above is the sum, and Accept → budget updates each line.
+            </p>
+            <div className="flex flex-col gap-2">
+              {selectedCategoryWithSubs.sub_budgets.map((s) => (
+                <div key={s.id} className="grid grid-cols-2 items-center gap-3">
+                  <label htmlFor={`${uid}-sub-${s.id}`} className="truncate text-sm text-gray-700" title={s.name || "Untitled"}>
+                    {s.name || "Untitled"}
+                  </label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+                    <input
+                      id={`${uid}-sub-${s.id}`}
+                      type="number"
+                      className={`${fieldCls} pl-6 text-right tabular-nums`}
+                      value={subAmounts[s.id] ?? ""}
+                      onChange={(e) => setSubAmounts((prev) => ({ ...prev, [s.id]: e.target.value }))}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div>
           <label htmlFor={`${uid}-scope`} className={labelCls}>Scope</label>
           <textarea id={`${uid}-scope`} className={`${fieldCls} mt-1`} rows={3} value={scope} onChange={(e) => setScope(e.target.value)} placeholder="What the quote covers — the more detail, the better the fairness analysis." />
+        </div>
+        {isEdit && (
+          <div>
+            <label htmlFor={`${uid}-note`} className={labelCls}>Reason for revision (optional)</label>
+            <input id={`${uid}-note`} className={`${fieldCls} mt-1`} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why is this quote being changed? — recorded in the history." />
+          </div>
+        )}
+        <div>
+          <label className={labelCls}>Quote document (optional)</label>
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) setFile(f);
+            }}
+            onClick={() => fileInput.current?.click()}
+            className={`mt-1 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-6 py-6 text-center transition-colors ${
+              dragOver ? "border-[#013764] bg-[#013764]/5" : "border-[#DADADA] hover:bg-gray-50"
+            }`}
+          >
+            <div className="text-xl text-gray-400" aria-hidden="true">⬆</div>
+            {file ? (
+              <p className="text-sm font-medium text-gray-900">{file.name}</p>
+            ) : (
+              <p className="text-sm text-gray-600">Drag and drop the quote PDF here, or click to browse</p>
+            )}
+            <input
+              ref={fileInput}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                if (f) setFile(f);
+              }}
+            />
+          </div>
+          {file && (
+            <button type="button" onClick={() => setFile(null)} className="mt-1.5 text-xs text-gray-400 hover:text-gray-700">
+              Remove file
+            </button>
+          )}
         </div>
       </div>
     </ModalShell>
   );
 }
 
+// Human labels for the tracked revision fields (migration 145 changed_fields).
+const QUOTE_FIELD_LABELS: Record<string, string> = {
+  amount_cents: "amount",
+  trade: "trade",
+  scope_description: "scope",
+  vendor_id: "vendor",
+  vendor_name: "vendor",
+  budget_item_id: "budget line",
+  budget_breakdown: "budget breakdown",
+  status: "status",
+};
+
+function quoteFieldSummary(fields: string[]): string {
+  const labels: string[] = [];
+  for (const f of fields) {
+    const l = QUOTE_FIELD_LABELS[f] ?? f;
+    if (!labels.includes(l)) labels.push(l);
+  }
+  if (labels.length === 0) return "the quote";
+  if (labels.length === 1) return labels[0];
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
+}
+
+function snapStr(snap: Record<string, unknown>, key: string): string | null {
+  const v = snap?.[key];
+  if (v == null) return null;
+  return String(v);
+}
+function snapNum(snap: Record<string, unknown>, key: string): number | null {
+  const v = snap?.[key];
+  return typeof v === "number" ? v : null;
+}
+
+// QuoteHistoryModal renders the auditable revision trail (migration 145) as a
+// timeline mirroring the WO EstimateHistoryTimeline: each row reads
+// "{who} changed {fields}" with amount $A → $B and scope/vendor/trade deltas plus
+// the reason note, newest first. Fetched lazily when opened.
+function QuoteHistoryModal({
+  projectId,
+  quote,
+  onClose,
+}: {
+  projectId: number;
+  quote: ProjectQuote;
+  onClose: () => void;
+}) {
+  const [revisions, setRevisions] = useState<QuoteRevision[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listQuoteRevisions(projectId, quote.id)
+      .then((rows) => {
+        if (!cancelled) setRevisions(rows);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(errMessage(e, "Failed to load history"));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, quote.id]);
+
+  return (
+    <ModalShell
+      title="Quote history"
+      onClose={onClose}
+      footer={
+        <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          Close
+        </button>
+      }
+    >
+      {error ? (
+        <p className="py-6 text-center text-sm text-rose-600">{error}</p>
+      ) : revisions === null ? (
+        <p className="py-6 text-center text-sm text-gray-400">Loading history…</p>
+      ) : revisions.length === 0 ? (
+        <p className="py-6 text-center text-sm text-gray-400">
+          No edits yet. Editing this quote records an entry here.
+        </p>
+      ) : (
+        <div className="relative">
+          <div className="absolute left-[7px] top-2 bottom-2 w-px bg-[#e5e5e5]" aria-hidden />
+          {revisions.map((rev) => {
+            const before = rev.before_snapshot ?? {};
+            const after = rev.after_snapshot ?? {};
+            const oldAmt = snapNum(before, "amount_cents");
+            const newAmt = snapNum(after, "amount_cents");
+            const amtChanged = rev.changed_fields.includes("amount_cents");
+            const scopeChanged = rev.changed_fields.includes("scope_description");
+            const vendorChanged = rev.changed_fields.includes("vendor_name") || rev.changed_fields.includes("vendor_id");
+            const tradeChanged = rev.changed_fields.includes("trade");
+            const statusChanged = rev.changed_fields.includes("status");
+            return (
+              <div key={rev.id} className="relative flex gap-4 pl-8 pb-5 last:pb-0">
+                <div className="absolute left-0 w-[15px] h-[15px] rounded-full border-2 border-[#2463eb] bg-white" aria-hidden />
+                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                  <div className="text-[#303030] text-sm font-medium">
+                    {rev.revised_by_name || "Someone"} changed {quoteFieldSummary(rev.changed_fields)}
+                  </div>
+                  {amtChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Amount: <span className="text-[#717179]">{oldAmt != null ? formatUSD(oldAmt) : "—"}</span>
+                      {" → "}
+                      <span className="text-[#013764] font-semibold tabular-nums">{newAmt != null ? formatUSD(newAmt) : "—"}</span>
+                    </div>
+                  )}
+                  {vendorChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Vendor: <span className="text-[#717179]">{snapStr(before, "vendor_name") || "—"}</span>
+                      {" → "}
+                      <span className="text-[#303030] font-medium">{snapStr(after, "vendor_name") || "—"}</span>
+                    </div>
+                  )}
+                  {tradeChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Trade: <span className="text-[#717179]">{snapStr(before, "trade") || "—"}</span>
+                      {" → "}
+                      <span className="text-[#303030] font-medium">{snapStr(after, "trade") || "—"}</span>
+                    </div>
+                  )}
+                  {statusChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Status: <span className="text-[#717179]">{snapStr(before, "status") || "—"}</span>
+                      {" → "}
+                      <span className="text-[#303030] font-medium">{snapStr(after, "status") || "—"}</span>
+                    </div>
+                  )}
+                  {scopeChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Scope: <span className="text-[#717179]">“{snapStr(before, "scope_description") || "—"}”</span>
+                      {" → "}
+                      <span className="text-[#303030]">“{snapStr(after, "scope_description") || "—"}”</span>
+                    </div>
+                  )}
+                  {rev.note && <div className="text-[#525252] text-xs italic">“{rev.note}”</div>}
+                  <div className="text-[#717179] text-xs">{new Date(rev.revised_at).toLocaleString()}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </ModalShell>
+  );
+}
+
 // Quotes tab: capture competing vendor quotes grouped by budget category, run an
 // AI fairness analysis (grounded in our historical costs + market knowledge),
-// shortlist, revise (immutable history), and accept one per category —
+// shortlist, edit in place (auditable history), and accept one per category —
 // optionally copying the accepted amount into the budget (Part B / B3).
 function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCategory[] }) {
   const [quotes, setQuotes] = useState<ProjectQuote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [reviseOf, setReviseOf] = useState<ProjectQuote | null>(null);
+  const [editQuote, setEditQuote] = useState<ProjectQuote | null>(null);
+  const [historyQuote, setHistoryQuote] = useState<ProjectQuote | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
@@ -2686,8 +3397,16 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
   };
   const accept = async (q: ProjectQuote, copyToBudget: boolean) => {
     try {
-      await acceptQuote(projectId, q.id, { copy_to_budget: copyToBudget });
-      toast.success(copyToBudget ? "Accepted — amount copied into the budget" : "Quote accepted");
+      const res = await acceptQuote(projectId, q.id, { copy_to_budget: copyToBudget });
+      if (res.warnings && res.warnings.length > 0) {
+        res.warnings.forEach((w) => toast.warning(w));
+      } else {
+        toast.success(
+          copyToBudget
+            ? "Accepted — task & work order created; amount copied into the budget"
+            : "Accepted — task & work order created",
+        );
+      }
       load();
     } catch (e) {
       toast.error(errMessage(e, "Failed to accept quote"));
@@ -2707,9 +3426,6 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
     if (id == null) return "Unassigned";
     return budget.find((b) => b.id === id)?.name ?? `Category #${id}`;
   };
-  // Quotes that a later revision supersedes (dimmed as history).
-  const supersededIds = new Set(quotes.map((q) => q.supersedes_quote_id).filter((x): x is number => x != null));
-
   // Group by budget category (Unassigned last).
   const groups = new Map<number | null, ProjectQuote[]>();
   for (const q of quotes) {
@@ -2725,18 +3441,32 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
 
   const renderQuote = (q: ProjectQuote) => {
     const sMeta = QUOTE_STATUS_META[q.status];
-    const superseded = supersededIds.has(q.id);
+    // AI analysis is stale when the quote was edited after it was last analyzed.
+    const analysisStale =
+      q.ai_analysis != null && q.analyzed_at != null && new Date(q.analyzed_at) < new Date(q.updated_at);
     return (
-      <div key={q.id} className={`rounded-lg border border-gray-200 p-3.5 ${superseded ? "opacity-60" : ""}`}>
+      <div key={q.id} className="rounded-lg border border-gray-200 p-3.5">
         <div className="flex flex-wrap items-start gap-2">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium text-gray-900">{q.vendor_name || "Unnamed vendor"}</span>
               {q.trade && <span className="text-xs text-gray-500">{q.trade}</span>}
               <Pill label={sMeta.label} text={sMeta.text} bg={sMeta.bg} />
-              {superseded && <span className="text-[11px] text-gray-400">superseded</span>}
-              {q.supersedes_quote_id != null && <span className="text-[11px] text-gray-400">revision</span>}
               {q.source === "verbal_intake" && <span className="text-[11px] text-gray-400">from intake</span>}
+              {q.created_work_order_id != null && (
+                <span className="text-[11px] font-medium text-green-700">→ WO created</span>
+              )}
+              {q.attachment_object_key && (
+                <a
+                  href={`${API_BASE}/files/${q.attachment_object_key}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={q.attachment_file_name ?? "Quote document"}
+                  className="text-[11px] text-blue-600 hover:underline"
+                >
+                  📎 {q.attachment_file_name || "Document"}
+                </a>
+              )}
             </div>
             {q.scope_description && <div className="mt-1 text-[13px] text-gray-500">{q.scope_description}</div>}
           </div>
@@ -2755,6 +3485,13 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
           >
             {busyId === q.id ? "Analyzing…" : q.ai_analysis ? "Re-analyze" : "Analyze fairness"}
           </button>
+          {analysisStale && busyId !== q.id && (
+            <span className="text-[11px] text-amber-600" title="This quote changed after its last analysis.">
+              inputs changed — re-analyze
+            </span>
+          )}
+          <button onClick={() => setEditQuote(q)} className="text-xs font-medium text-gray-600 hover:underline">Edit</button>
+          <button onClick={() => setHistoryQuote(q)} className="text-xs font-medium text-gray-600 hover:underline">View history</button>
           {q.status !== "accepted" && (
             <button onClick={() => accept(q, false)} className="text-xs font-medium text-green-700 hover:underline">Accept</button>
           )}
@@ -2764,7 +3501,6 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
           {q.status !== "shortlisted" && q.status !== "accepted" && (
             <button onClick={() => changeStatus(q, "shortlisted")} className="text-xs font-medium text-blue-600 hover:underline">Shortlist</button>
           )}
-          <button onClick={() => setReviseOf(q)} className="text-xs font-medium text-gray-600 hover:underline">Revise</button>
           {q.status !== "rejected" && (
             <button onClick={() => changeStatus(q, "rejected")} className="text-xs font-medium text-gray-500 hover:underline">Reject</button>
           )}
@@ -2805,14 +3541,17 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
         </div>
       )}
       {createOpen && <NewQuoteModal projectId={projectId} budget={budget} onSaved={load} onClose={() => setCreateOpen(false)} />}
-      {reviseOf && (
+      {editQuote && (
         <NewQuoteModal
           projectId={projectId}
           budget={budget}
-          reviseOf={reviseOf}
+          quote={editQuote}
           onSaved={load}
-          onClose={() => setReviseOf(null)}
+          onClose={() => setEditQuote(null)}
         />
+      )}
+      {historyQuote && (
+        <QuoteHistoryModal projectId={projectId} quote={historyQuote} onClose={() => setHistoryQuote(null)} />
       )}
     </Card>
   );
@@ -2826,6 +3565,8 @@ const FILE_SOURCE_META: Record<ProjectFileSource, { label: string; text: string;
   work_order: { label: "Work Order", text: "#B45309", bg: "#FCF2E1" },
   field_team: { label: "Field Team", text: "#15803D", bg: "#E7F6EC" },
   invoice: { label: "Invoice", text: "#7C3AED", bg: "#F1EBFD" },
+  bill: { label: "Bill", text: "#B91C1C", bg: "#FEECEC" },
+  quote: { label: "Quote", text: "#0E7490", bg: "#E0F2FE" },
 };
 
 const FILE_FILTERS: { key: "all" | ProjectFileSource; label: string }[] = [
@@ -2835,6 +3576,8 @@ const FILE_FILTERS: { key: "all" | ProjectFileSource; label: string }[] = [
   { key: "work_order", label: "Work Order" },
   { key: "field_team", label: "Field Team" },
   { key: "invoice", label: "Invoice" },
+  { key: "bill", label: "Bills" },
+  { key: "quote", label: "Quote" },
 ];
 
 function formatBytes(n: number): string {
@@ -2847,11 +3590,17 @@ function formatBytes(n: number): string {
 // Real Files tab (Part B / B2): aggregates every attachment on the project —
 // direct uploads plus attachments living on its tasks / work orders / FTOs /
 // project invoices — and supports direct upload + delete of project files.
-function FilesTab({ projectId }: { projectId: number }) {
+function FilesTab({ projectId, summary }: { projectId: number; summary: ProjectSummary }) {
   const [files, setFiles] = useState<ProjectFileRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | ProjectFileSource>("all");
   const [uploading, setUploading] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [picked, setPicked] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  // Association: encoded as "project" | "invoice" | "task:<id>" | "work_order:<id>".
+  const [assoc, setAssoc] = useState<string>("project");
+  const [uploadDescription, setUploadDescription] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -2869,15 +3618,28 @@ function FilesTab({ projectId }: { projectId: number }) {
 
   const rows = filter === "all" ? files : files.filter((f) => f.source === filter);
 
-  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow re-selecting the same file
-    if (!file) return;
+  const openUpload = () => {
+    setPicked(null);
+    setDragOver(false);
+    setAssoc("project");
+    setUploadDescription("");
+    setUploadOpen(true);
+  };
+
+  const confirmUpload = async () => {
+    if (!picked) return;
     setUploading(true);
     try {
-      await uploadProjectFile(projectId, file);
+      const [aType, aId] = assoc.split(":");
+      await uploadProjectFile(projectId, picked, {
+        associated_type: aType,
+        associated_id: aId ? Number(aId) : undefined,
+        description: uploadDescription.trim(),
+      });
       await load();
       toast.success("File uploaded");
+      setUploadOpen(false);
+      setPicked(null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -2901,29 +3663,24 @@ function FilesTab({ projectId }: { projectId: number }) {
       <Card
         title="Project Files"
         action={
-          <div className="flex flex-wrap items-center gap-1.5">
-            {FILE_FILTERS.map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                aria-pressed={filter === s.key}
-                onClick={() => setFilter(s.key)}
-                className={`h-7 rounded-full px-3 text-xs font-medium transition-colors ${
-                  filter === s.key ? "bg-[#013764] text-white" : "border border-[#DADADA] bg-white text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            <SegmentedControl
+              size="sm"
+              value={filter}
+              onChange={(v) => setFilter(v as "all" | ProjectFileSource)}
+              options={FILE_FILTERS.map((s) => ({
+                key: s.key,
+                label: s.label,
+                count: s.key === "all" ? files.length : files.filter((f) => f.source === s.key).length,
+              }))}
+            />
             <button
               type="button"
-              onClick={() => fileInput.current?.click()}
-              disabled={uploading}
-              className="ml-1 h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
+              onClick={openUpload}
+              className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]"
             >
-              {uploading ? "Uploading…" : "+ Upload"}
+              + Upload
             </button>
-            <input ref={fileInput} type="file" className="hidden" onChange={onPick} />
           </div>
         }
       >
@@ -2948,8 +3705,18 @@ function FilesTab({ projectId }: { projectId: number }) {
                     <tr key={`${f.source}-${f.id}`} className="hover:bg-gray-50">
                       <td className="py-3 pr-4">
                         <a href={`${API_BASE}${f.download}`} target="_blank" rel="noreferrer" className="font-medium text-blue-600 hover:underline">{f.name}</a>
+                        {f.description && <div className="mt-0.5 text-xs text-gray-500">{f.description}</div>}
+                        {(f.uploaded_by || f.created_at) && (
+                          <div className="mt-0.5 text-[11px] text-gray-400">
+                            {f.uploaded_by ? `${f.uploaded_by} · ` : ""}{f.created_at?.slice(0, 10)}
+                          </div>
+                        )}
                       </td>
-                      <td className="py-3 pr-4"><Pill label={meta.label} text={meta.text} bg={meta.bg} /></td>
+                      <td className="py-3 pr-4">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <Pill label={meta.label} text={meta.text} bg={meta.bg} />
+                        </div>
+                      </td>
                       <td className="py-3 pr-4 text-gray-700">{f.parent || "—"}</td>
                       <td className="py-3 pr-4 text-gray-500">{f.mime || "—"}</td>
                       <td className="py-3 pr-4 text-right tabular-nums text-gray-500">{formatBytes(f.size_bytes)}</td>
@@ -2966,6 +3733,104 @@ function FilesTab({ projectId }: { projectId: number }) {
           </div>
         )}
       </Card>
+
+      {uploadOpen && (
+        <ModalShell
+          title="Upload file"
+          onClose={() => setUploadOpen(false)}
+          maxWidth="max-w-md"
+          footer={
+            <>
+              <button
+                type="button"
+                onClick={() => setUploadOpen(false)}
+                className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmUpload}
+                disabled={!picked || uploading}
+                className="h-9 rounded-lg bg-[#013764] px-4 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
+              >
+                {uploading ? "Uploading…" : "Upload"}
+              </button>
+            </>
+          }
+        >
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) setPicked(f);
+            }}
+            onClick={() => fileInput.current?.click()}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
+              dragOver ? "border-[#013764] bg-[#013764]/5" : "border-[#DADADA] hover:bg-gray-50"
+            }`}
+          >
+            <div className="text-2xl text-gray-400" aria-hidden="true">⬆</div>
+            {picked ? (
+              <p className="text-sm font-medium text-gray-900">{picked.name}</p>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600">Drag and drop a file here, or click to browse</p>
+                <p className="text-xs text-gray-400">Attached directly to this project</p>
+              </>
+            )}
+            <input
+              ref={fileInput}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                if (f) setPicked(f);
+              }}
+            />
+          </div>
+          {picked && (
+            <button
+              type="button"
+              onClick={() => setPicked(null)}
+              className="mt-2 text-xs text-gray-400 hover:text-gray-700"
+            >
+              Choose a different file
+            </button>
+          )}
+
+          <div className="mt-4 grid gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-500">Associate with</label>
+              <SearchableSelect
+                value={assoc}
+                onChange={(v) => setAssoc(v)}
+                allLabel="Project (overall)"
+                options={[
+                  { value: "project", label: "Project (overall)" },
+                  { value: "invoice", label: "Invoice" },
+                  ...summary.tasks.map((t) => ({ value: `task:${t.id}`, label: `Task: ${t.name}` })),
+                  ...summary.work_orders.map((w) => ({ value: `work_order:${w.id}`, label: `Work Order: ${w.name}` })),
+                ]}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-500">Description</label>
+              <textarea
+                value={uploadDescription}
+                onChange={(e) => setUploadDescription(e.target.value)}
+                placeholder="Optional note about this file"
+                rows={2}
+                className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#013764] focus:outline-none"
+              />
+            </div>
+          </div>
+        </ModalShell>
+      )}
     </div>
   );
 }
@@ -2989,7 +3854,21 @@ function UpdateProjectModal({
   const [targetEndDate, setTargetEndDate] = useState(project.target_end_date ?? "");
   const [managerUserId, setManagerUserId] = useState<number | "">(project.manager_user_id ?? "");
   const [managers, setManagers] = useState<{ id: number; name: string }[]>([]);
+  // Field team managers + collaborators (migration 142) — display-only multi-
+  // selects. SearchableSelect multi mode uses string[]; converted to number[]
+  // for the PATCH body.
+  const [fieldTeamManagerIds, setFieldTeamManagerIds] = useState<string[]>(
+    (project.field_team_manager_ids ?? []).map(String),
+  );
+  const [collaboratorIds, setCollaboratorIds] = useState<string[]>(
+    (project.collaborator_ids ?? []).map(String),
+  );
+  const [fieldTeam, setFieldTeam] = useState<{ id: number; name: string }[]>([]);
+  const [allUsers, setAllUsers] = useState<{ id: number; name: string }[]>([]);
   const [description, setDescription] = useState(project.description);
+  const [contractAmount, setContractAmount] = useState(
+    project.contract_amount_cents != null ? centsToInput(project.contract_amount_cents) : "",
+  );
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<CategoryDraft[]>(() => categoriesToDrafts(summary.budget));
   const [milestones, setMilestones] = useState<MilestoneDraft[]>(() => milestonesToDrafts(summary.milestones));
@@ -2997,18 +3876,25 @@ function UpdateProjectModal({
   const titleId = useId();
   const dialogRef = useDialogFocus(onClose);
 
-  // Manager picker reuses the existing users data source (spec §7).
+  // Manager / field-team / collaborator pickers reuse the existing users data
+  // sources (spec §7). Field team candidates come from /users/field-team,
+  // collaborators from /users (all users).
   useEffect(() => {
     let cancelled = false;
-    fetchJSON("/users/property-managers")
-      .then((rows) => {
+    const toRow = (u: { id: number; name?: string; email?: string }) => ({
+      id: u.id,
+      name: u.name || u.email || `User ${u.id}`,
+    });
+    Promise.all([
+      fetchJSON("/users/property-managers").catch(() => []),
+      fetchJSON("/users/field-team").catch(() => []),
+      fetchJSON("/users").catch(() => []),
+    ])
+      .then(([managersRes, fieldTeamRes, allUsersRes]) => {
         if (cancelled) return;
-        setManagers(
-          ((rows ?? []) as { id: number; name?: string; email?: string }[]).map((u) => ({
-            id: u.id,
-            name: u.name || u.email || `User ${u.id}`,
-          })),
-        );
+        setManagers(((managersRes ?? []) as any[]).map(toRow));
+        setFieldTeam(((fieldTeamRes ?? []) as any[]).map(toRow));
+        setAllUsers(((allUsersRes ?? []) as any[]).map(toRow));
       })
       .catch(() => {});
     return () => {
@@ -3036,7 +3922,10 @@ function UpdateProjectModal({
         ...(startDate ? { start_date: startDate } : {}),
         ...(targetEndDate ? { target_end_date: targetEndDate } : {}),
         manager_user_id: managerUserId === "" ? null : managerUserId,
+        field_team_manager_ids: fieldTeamManagerIds.map(Number),
+        collaborator_ids: collaboratorIds.map(Number),
         description,
+        ...(contractAmount.trim() !== "" ? { contract_amount_cents: dollarsToCents(contractAmount) } : {}),
       });
       // Budget first: the PUT response carries real ids for new categories so
       // milestone → budget links can be resolved (index-aligned, Decision #11).
@@ -3076,13 +3965,19 @@ function UpdateProjectModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor={`${uid}-status`} className={labelCls}>Status</label>
-                  <select id={`${uid}-status`} className={`${fieldCls} mt-1`} value={status} onChange={(e) => setStatus(e.target.value as ProjectStatus)}>
-                    <option value="planning">Planning</option>
-                    <option value="active">Active</option>
-                    <option value="on_hold">On Hold</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+                  <SearchableSelect
+                    className={`${fieldCls} mt-1`}
+                    value={status}
+                    onChange={(v) => setStatus((v || "planning") as ProjectStatus)}
+                    options={[
+                      { value: "planning", label: "Planning" },
+                      { value: "active", label: "Active" },
+                      { value: "on_hold", label: "On Hold" },
+                      { value: "completed", label: "Completed" },
+                      { value: "cancelled", label: "Cancelled" },
+                    ]}
+                    allLabel="Select status"
+                  />
                 </div>
                 <div>
                   <label htmlFor={`${uid}-percent`} className={labelCls}>% Complete</label>
@@ -3101,21 +3996,56 @@ function UpdateProjectModal({
               </div>
               <div>
                 <label htmlFor={`${uid}-manager`} className={labelCls}>Project manager</label>
-                <select
-                  id={`${uid}-manager`}
+                <SearchableSelect
                   className={`${fieldCls} mt-1`}
-                  value={managerUserId}
-                  onChange={(e) => setManagerUserId(e.target.value === "" ? "" : Number(e.target.value))}
-                >
-                  <option value="">Unassigned</option>
-                  {managerOptions.map((m) => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
+                  value={managerUserId === "" ? "" : String(managerUserId)}
+                  onChange={(v) => setManagerUserId(v === "" ? "" : Number(v))}
+                  options={managerOptions.map((m) => ({ value: String(m.id), label: m.name }))}
+                  allLabel="Unassigned"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Field team managers</label>
+                  <SearchableSelect
+                    multiSelect
+                    className={`${fieldCls} mt-1`}
+                    value={fieldTeamManagerIds}
+                    onChange={setFieldTeamManagerIds}
+                    options={fieldTeam.map((m) => ({ value: String(m.id), label: m.name }))}
+                    allLabel="None"
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Collaborators</label>
+                  <SearchableSelect
+                    multiSelect
+                    className={`${fieldCls} mt-1`}
+                    value={collaboratorIds}
+                    onChange={setCollaboratorIds}
+                    options={allUsers.map((m) => ({ value: String(m.id), label: m.name }))}
+                    allLabel="None"
+                  />
+                </div>
               </div>
               <div>
                 <label htmlFor={`${uid}-desc`} className={labelCls}>Description</label>
                 <textarea id={`${uid}-desc`} rows={2} className={`${fieldCls} mt-1 resize-none`} value={description} onChange={(e) => setDescription(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor={`${uid}-contract`} className={labelCls}>Contract amount (agreed client price)</label>
+                <div className="relative mt-1">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                  <input
+                    id={`${uid}-contract`}
+                    inputMode="decimal"
+                    placeholder="Optional"
+                    className={`${fieldCls} pl-6`}
+                    value={contractAmount}
+                    onChange={(e) => setContractAmount(e.target.value)}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-400">Basis for the owner budget-variance figure. Leave blank to omit.</p>
               </div>
             </div>
 
@@ -3257,36 +4187,23 @@ export default function ProjectDetail() {
         </div>
 
         <div className="pt-6">
-          {tab === "dashboard" && <DashboardTab summary={summary} onEdit={() => setEditOpen(true)} />}
+          {tab === "dashboard" && <DashboardTab summary={summary} onRefresh={load} />}
           {tab === "maintenance" && (
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-wrap items-center gap-2">
-                {MAINTENANCE_SUBTABS.map((t) => (
-                  <button
-                    key={t.key}
-                    type="button"
-                    aria-pressed={maintenanceTab === t.key}
-                    onClick={() => setMaintenanceTab(t.key)}
-                    className={`h-8 rounded-full px-3.5 text-sm font-medium transition-colors ${
-                      maintenanceTab === t.key
-                        ? "bg-[#013764] text-white"
-                        : "border border-[#DADADA] bg-white text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-              {maintenanceTab === "tasks" && <TasksTab summary={summary} onRefresh={load} />}
-              {maintenanceTab === "work-orders" && <WorkOrdersTab summary={summary} />}
-              {maintenanceTab === "field-team" && <FieldTeamTab summary={summary} />}
-            </div>
+            <>
+              {maintenanceTab === "tasks" && (
+                <TasksTab summary={summary} onRefresh={load} subTab={maintenanceTab} onSubTabChange={setMaintenanceTab} />
+              )}
+              {maintenanceTab === "work-orders" && (
+                <WorkOrdersTab summary={summary} onRefresh={load} subTab={maintenanceTab} onSubTabChange={setMaintenanceTab} />
+              )}
+              {maintenanceTab === "field-team" && (
+                <FieldTeamTab summary={summary} onRefresh={load} subTab={maintenanceTab} onSubTabChange={setMaintenanceTab} />
+              )}
+            </>
           )}
           {tab === "quotes" && <QuotesTab projectId={project.id} budget={summary.budget} />}
-          {tab === "budget" && <BudgetTab summary={summary} onEdit={() => setEditOpen(true)} onRefresh={load} />}
-          {tab === "invoicing" && <InvoicingTab summary={summary} />}
-          {tab === "cashflow" && <CashFlowTab projectId={project.id} onRefreshSummary={load} />}
-          {tab === "files" && <FilesTab projectId={project.id} />}
+          {tab === "financials" && <FinancialsTab summary={summary} projectId={project.id} onRefreshSummary={load} />}
+          {tab === "files" && <FilesTab projectId={project.id} summary={summary} />}
         </div>
       </div>
 
