@@ -49,6 +49,7 @@ import {
   FTO_STATUS_META,
   MILESTONE_STATUS_META,
   type ProjectSummary,
+  type ProjectTaskRow,
   type ProjectStatus,
   type ChangeOrder,
   type ChangeOrderStatus,
@@ -95,6 +96,13 @@ import PersonAvatars from "@/components/PersonAvatars";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateWorkOrderModalV2, { type TaskOption } from "@/components/CreateWorkOrderModalV2";
 import CreateFTOModal from "@/components/CreateFTOModal";
+import GlobalTable from "@/components/GlobalTable";
+import ColumnFilterModal from "@/components/ColumnFilterModal";
+import PageHeader from "@/components/PageHeader";
+import { usePageState } from "@/hooks/usePageState";
+import { useSortingTable } from "@/hooks/useSortingTable";
+import { useColumnManagement } from "@/hooks/useColumnManagement";
+import { Plus } from "lucide-react";
 
 type TabKey = "dashboard" | "maintenance" | "quotes" | "financials" | "files";
 type MaintenanceSubTabKey = "tasks" | "work-orders" | "field-team";
@@ -1128,6 +1136,46 @@ function AttachTasksModal({
   );
 }
 
+// Column definitions for the project Tasks GlobalTable. Keys double as the
+// sort field (see useSortingTable) and the renderCell switch discriminator.
+const PROJECT_TASK_COLUMNS = [
+  { key: "name", label: "Task", icon: thIcon.task },
+  { key: "status", label: "Status", icon: thIcon.status },
+  { key: "priority", label: "Priority", icon: thIcon.priority },
+  { key: "milestone_id", label: "Milestone / Section", icon: thIcon.milestone },
+  { key: "work_order_count", label: "WOs", icon: thIcon.wrench },
+  { key: "fto_count", label: "FTOs", icon: thIcon.users },
+  { key: "spent_cents", label: "Spent", icon: thIcon.money },
+  { key: "due_date", label: "Due", icon: thIcon.calendar },
+  { key: "assignee_initials", label: "Owner", icon: thIcon.user },
+];
+const PROJECT_TASK_COLUMN_KEYS = PROJECT_TASK_COLUMNS.map((c) => c.key);
+
+// A single toggle pill used by the Tasks filter bar (Status / Priority facets).
+function FilterPill({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-8 rounded-full border px-3 text-xs font-medium transition-colors ${
+        active
+          ? "border-[#013764] bg-[#013764] text-white"
+          : "border-[#DADADA] bg-white text-[#303030] hover:bg-gray-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
 function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
   const navigate = useNavigate();
   const [attachOpen, setAttachOpen] = useState(false);
@@ -1140,6 +1188,59 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
   const notStartedCount = tasks.filter((t) => t.status === "not_started").length;
   const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
   const completedCount = tasks.filter((t) => t.status === "completed").length;
+
+  // Shared GlobalTable plumbing (sorting / column management / pagination),
+  // matching the task-detail Work Orders + AllTasks pages.
+  const [searchQuery, setSearchQuery] = usePageState("projectTasksSearch", "");
+  const [showFilterBar, setShowFilterBar] = usePageState("projectTasksFilterBar", false);
+  const [filterStatus, setFilterStatus] = usePageState<string[]>("projectTasksFilterStatus", []);
+  const [filterPriority, setFilterPriority] = usePageState<string[]>("projectTasksFilterPriority", []);
+  const [currentPage, setCurrentPage] = usePageState("projectTasksPage", 1);
+  const [itemsPerPage, setItemsPerPage] = usePageState("projectTasksPerPage", 25);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = usePageState("projectTasksPageSize", false);
+  const [openMenuId, setOpenMenuId] = usePageState<number | null>("projectTasksMenu", null);
+
+  // Search (by task name) + Status/Priority facet filters are applied before
+  // handing the rows to the sorting hook.
+  const filteredTasks = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return tasks.filter((t) => {
+      if (q && !t.name.toLowerCase().includes(q)) return false;
+      if (filterStatus.length && !filterStatus.includes(taskStatusBucket(t.status))) return false;
+      if (filterPriority.length && !filterPriority.includes(t.priority)) return false;
+      return true;
+    });
+  }, [tasks, searchQuery, filterStatus, filterPriority]);
+
+  const { handleSortClick, getSortIndicator, getSortedData } = useSortingTable(
+    filteredTasks,
+    "projectTasks",
+  );
+  const {
+    columnOrder,
+    visibleColumns,
+    draggedColumn,
+    dropTargetColumn,
+    dropPosition,
+    showColumnModal,
+    setShowColumnModal,
+    columnMenuPos,
+    columnButtonRef,
+    toggleColumnVisibility,
+    handleColumnDragStart,
+    handleColumnDragOver,
+    handleColumnDragLeave,
+    handleColumnDrop,
+  } = useColumnManagement(PROJECT_TASK_COLUMN_KEYS);
+
+  const toggleInList = (
+    list: string[],
+    setList: (v: string[]) => void,
+    value: string,
+  ) => {
+    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+    setCurrentPage(1);
+  };
 
   // New task: create via the shared CreateTaskModal (scoped to this project's
   // property), then attach the fresh task to the project via the same fetcher
@@ -1184,74 +1285,200 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
         <KpiCard label="In Progress" value={String(inProgressCount)} subtitle="Tasks underway" accent="blue" />
         <KpiCard label="Completed" value={String(completedCount)} subtitle="Tasks finished" accent="green" valueColor="#15803D" />
       </div>
-      <Card
-      title={`Tasks in this project (${tasks.length})`}
-      action={
-        <div className="flex items-center gap-2">
-          <button onClick={() => setCreateOpen(true)} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">+ New task</button>
-          <button onClick={() => setAttachOpen(true)} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">+ Attach task</button>
-        </div>
-      }
-    >
+
+      {/* Section heading — mirrors the task-detail Work Orders layout: title +
+          subtitle on the left, the create/attach actions on the right. */}
+      <PageHeader
+        title="Tasks"
+        subtitle="Tasks attached to this project, in one place"
+        action={{
+          label: "New task",
+          onClick: () => setCreateOpen(true),
+          icon: <Plus className="w-5 h-5" />,
+        }}
+        secondaryAction={{
+          label: "Attach task",
+          onClick: () => setAttachOpen(true),
+          icon: <Plus className="w-5 h-5" />,
+          variant: "neutral",
+        }}
+      />
+
       {tasks.length === 0 ? (
         <p className="text-sm text-gray-500">No tasks attached yet. Use “+ Attach task” to pull existing tasks into this project.</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="h-12 border-b border-gray-200 bg-gray-50">
-                <IconTh icon={thIcon.task}>Task</IconTh>
-                <IconTh icon={thIcon.status}>Status</IconTh>
-                <IconTh icon={thIcon.priority}>Priority</IconTh>
-                <IconTh icon={thIcon.milestone}>Milestone / Section</IconTh>
-                <IconTh icon={thIcon.wrench}>WOs</IconTh>
-                <IconTh icon={thIcon.users}>FTOs</IconTh>
-                <IconTh icon={thIcon.money} right>Spent</IconTh>
-                <IconTh icon={thIcon.calendar}>Due</IconTh>
-                <IconTh icon={thIcon.user}>Owner</IconTh>
-                <th className="px-3 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {tasks.map((t) => {
-                const bucket = taskStatusBucket(t.status);
+        <>
+          {showFilterBar && (
+            <div className="flex flex-wrap items-center gap-4 rounded-lg border border-gray-200 bg-white p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Status</span>
+                {(["not_started", "in_progress", "completed"] as const).map((s) => (
+                  <FilterPill
+                    key={s}
+                    label={taskStatusMeta[s].label}
+                    active={filterStatus.includes(s)}
+                    onClick={() => toggleInList(filterStatus, setFilterStatus, s)}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Priority</span>
+                {(["low", "medium", "high", "urgent"] as const).map((p) => (
+                  <FilterPill
+                    key={p}
+                    label={priorityDisplay(p).label}
+                    active={filterPriority.includes(p)}
+                    onClick={() => toggleInList(filterPriority, setFilterPriority, p)}
+                  />
+                ))}
+              </div>
+              {(filterStatus.length > 0 || filterPriority.length > 0) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterStatus([]);
+                    setFilterPriority([]);
+                    setCurrentPage(1);
+                  }}
+                  className="ml-auto h-8 rounded-lg border border-[#DADADA] bg-white px-3 text-xs font-medium text-[#303030] hover:bg-gray-100"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          )}
+
+          <GlobalTable
+            columns={PROJECT_TASK_COLUMNS}
+            data={getSortedData()}
+            rowKey="id"
+            title={`Tasks in this project (${tasks.length})`}
+            searchValue={searchQuery}
+            onSearchChange={(v) => {
+              setSearchQuery(v);
+              setCurrentPage(1);
+            }}
+            onFilterClick={() => {
+              setShowPageSizeDropdown(false);
+              setOpenMenuId(null);
+              setShowFilterBar(!showFilterBar);
+            }}
+            renderCell={(t: ProjectTaskRow, columnKey) => {
+              if (columnKey === "name") {
                 return (
-                  <tr key={t.id} className="h-12 transition-colors hover:bg-gray-50">
-                    <td className="px-3 py-3 whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/tasks/${t.id}/summary`)}
-                        className="text-left font-medium text-blue-600 hover:underline"
-                      >
-                        {t.name}
-                      </button>
-                    </td>
-                    <td className="px-3 py-3 whitespace-nowrap"><Dot label={taskStatusMeta[bucket].label} color={taskStatusMeta[bucket].dot} /></td>
-                    <td className="px-3 py-3 whitespace-nowrap"><Dot {...priorityDisplay(t.priority)} /></td>
-                    <td className="px-3 py-3">
-                      <SearchableSelect
-                        className="max-w-[180px] rounded-md border-[#DADADA]"
-                        value={t.milestone_id != null ? String(t.milestone_id) : ""}
-                        onChange={(v) => assignMilestone(t.id, v === "" ? null : Number(v))}
-                        options={milestones.map((m) => ({ value: String(m.id), label: m.name }))}
-                        allLabel="— None —"
-                      />
-                    </td>
-                    <td className="px-3 py-3 whitespace-nowrap text-gray-700">{t.work_order_count}</td>
-                    <td className="px-3 py-3 whitespace-nowrap text-gray-700">{t.fto_count}</td>
-                    <td className="px-3 py-3 whitespace-nowrap text-right tabular-nums text-gray-900">{formatUSD(t.spent_cents)}</td>
-                    <td className="px-3 py-3 whitespace-nowrap text-gray-700">{formatMaybeDate(t.due_date)}</td>
-                    <td className="px-3 py-3 whitespace-nowrap">{t.assignee_initials ? <Avatar initials={t.assignee_initials} /> : <span className="text-gray-400">—</span>}</td>
-                    <td className="px-3 py-3 whitespace-nowrap">
-                      <button type="button" onClick={() => detach(t.id)} title="Detach from project" aria-label={`Detach ${t.name} from project`} className="px-1.5 text-gray-400 hover:text-red-600">✕</button>
-                    </td>
-                  </tr>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/tasks/${t.id}/summary`)}
+                    className="max-w-[280px] truncate text-left text-sm font-medium text-blue-600 hover:underline"
+                    title={t.name}
+                  >
+                    {t.name}
+                  </button>
                 );
-              })}
-            </tbody>
-          </table>
-        </div>
+              }
+              if (columnKey === "status") {
+                const bucket = taskStatusBucket(t.status);
+                return <Dot label={taskStatusMeta[bucket].label} color={taskStatusMeta[bucket].dot} />;
+              }
+              if (columnKey === "priority") {
+                return <Dot {...priorityDisplay(t.priority)} />;
+              }
+              if (columnKey === "milestone_id") {
+                return (
+                  <SearchableSelect
+                    className="max-w-[180px] rounded-md border-[#DADADA]"
+                    value={t.milestone_id != null ? String(t.milestone_id) : ""}
+                    onChange={(v) => assignMilestone(t.id, v === "" ? null : Number(v))}
+                    options={milestones.map((m) => ({ value: String(m.id), label: m.name }))}
+                    allLabel="— None —"
+                  />
+                );
+              }
+              if (columnKey === "work_order_count") {
+                return <span className="text-sm text-gray-700">{t.work_order_count}</span>;
+              }
+              if (columnKey === "fto_count") {
+                return <span className="text-sm text-gray-700">{t.fto_count}</span>;
+              }
+              if (columnKey === "spent_cents") {
+                return <span className="text-sm tabular-nums text-gray-900">{formatUSD(t.spent_cents)}</span>;
+              }
+              if (columnKey === "due_date") {
+                return <span className="text-sm text-gray-700">{formatMaybeDate(t.due_date)}</span>;
+              }
+              if (columnKey === "assignee_initials") {
+                return t.assignee_initials ? (
+                  <Avatar initials={t.assignee_initials} />
+                ) : (
+                  <span className="text-gray-400">—</span>
+                );
+              }
+              return null;
+            }}
+            getCellClassName={(_row, columnKey) =>
+              columnKey === "spent_cents" ? "text-right" : ""
+            }
+            sortingHook={{ handleSortClick, getSortIndicator, getSortedData }}
+            columnManagementHook={{
+              columnOrder,
+              visibleColumns,
+              draggedColumn,
+              dropTargetColumn,
+              dropPosition,
+              columnMenuPos,
+              columnButtonRef,
+              toggleColumnVisibility,
+              handleColumnDragStart,
+              handleColumnDragOver,
+              handleColumnDragLeave,
+              handleColumnDrop,
+            }}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+            showPageSizeDropdown={showPageSizeDropdown}
+            onShowPageSizeDropdownChange={setShowPageSizeDropdown}
+            openMenuId={openMenuId}
+            onOpenMenuIdChange={setOpenMenuId}
+            emptyMessage="No tasks match your search or filters."
+            actions={[
+              {
+                label: "Detach from project",
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#982740" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6L6 18" />
+                    <path d="M6 6l12 12" />
+                  </svg>
+                ),
+                onClick: (t: ProjectTaskRow) => detach(t.id),
+                className: "text-[#982740]",
+              },
+            ]}
+            headerActions={
+              <button
+                ref={columnButtonRef}
+                onClick={() => {
+                  setShowPageSizeDropdown(false);
+                  setOpenMenuId(null);
+                  setShowColumnModal((prev) => !prev);
+                }}
+                className="flex h-9 w-9 justify-center items-center rounded-lg border border-[#DADADA] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] hover:bg-gray-50 transition-colors"
+                data-test="column-button"
+              >
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="3" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="8" r="1.5" fill="#303030" />
+                  <circle cx="8" cy="13" r="1.5" fill="#303030" />
+                </svg>
+              </button>
+            }
+            showColumnModal={showColumnModal}
+            onShowColumnModalChange={setShowColumnModal}
+          />
+        </>
       )}
+
       {attachOpen && (
         <AttachTasksModal
           projectId={summary.project.id}
@@ -1266,7 +1493,20 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
         defaultPropertyId={summary.project.property_id}
         onCreated={handleTaskCreated}
       />
-      </Card>
+
+      <ColumnFilterModal
+        isOpen={showColumnModal}
+        position={columnMenuPos}
+        columns={PROJECT_TASK_COLUMNS.map((col) => ({
+          key: col.key,
+          label: col.label,
+          icon: col.icon || null,
+        }))}
+        visibleColumns={visibleColumns}
+        onToggleColumn={toggleColumnVisibility}
+        onClose={() => setShowColumnModal(false)}
+        buttonRef={columnButtonRef}
+      />
     </div>
   );
 }
