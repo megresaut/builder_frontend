@@ -24,6 +24,7 @@ import {
   updateQuote,
   deleteQuote,
   analyzeQuote,
+  listQuoteRevisions,
   uploadQuoteAttachment,
   listProjectInvoices,
   getProjectInvoice,
@@ -64,6 +65,7 @@ import {
   type ProjectQuote,
   type QuoteStatus,
   type QuoteVerdict,
+  type QuoteRevision,
   type ProjectInvoice,
   type ProjectInvoiceStatus,
   type ProjectInvoiceLine,
@@ -2916,29 +2918,47 @@ function QuoteAnalysisPanel({ a }: { a: NonNullable<ProjectQuote["ai_analysis"]>
   );
 }
 
+// NewQuoteModal is a create-OR-edit modal. Passing `quote` puts it in edit mode:
+// fields are prefilled, a "Reason for revision" note appears, and submit PATCHes
+// the quote IN PLACE (updateQuote) — an auditable edit, not a new quote row.
 function NewQuoteModal({
   projectId,
   budget,
+  quote,
   onSaved,
   onClose,
 }: {
   projectId: number;
   budget: BudgetCategory[];
+  quote?: ProjectQuote;
   onSaved: () => void;
   onClose: () => void;
 }) {
+  const isEdit = quote != null;
   // Vendor is now picked by id from a real dropdown (GET /vendors via the shared
   // searchVendors fetcher). We keep both the id (for the payload) and the name
   // (for display); the label comes from the loaded vendor list.
   const [vendors, setVendors] = useState<VendorLite[]>([]);
-  const [vendorId, setVendorId] = useState<number | "">("");
-  const [trade, setTrade] = useState("");
-  const [amount, setAmount] = useState("");
-  const [scope, setScope] = useState("");
-  const [budgetItemId, setBudgetItemId] = useState<number | "">("");
+  const [vendorId, setVendorId] = useState<number | "">(quote?.vendor_id ?? "");
+  const [trade, setTrade] = useState(quote?.trade ?? "");
+  const [amount, setAmount] = useState(
+    isEdit && !(quote!.budget_breakdown && quote!.budget_breakdown.length > 0)
+      ? String(quote!.amount_cents / 100)
+      : "",
+  );
+  const [scope, setScope] = useState(quote?.scope_description ?? "");
+  const [budgetItemId, setBudgetItemId] = useState<number | "">(quote?.budget_item_id ?? "");
   // Per-sub-budget amounts (keyed by sub-budget id) — used only when the selected
   // budget line is a CATEGORY that has sub-budgets (migration 144 breakdown).
-  const [subAmounts, setSubAmounts] = useState<Record<number, string>>({});
+  const [subAmounts, setSubAmounts] = useState<Record<number, string>>(() => {
+    const init: Record<number, string> = {};
+    for (const line of quote?.budget_breakdown ?? []) {
+      init[line.budget_item_id] = String(line.amount_cents / 100);
+    }
+    return init;
+  });
+  // Reason for revision — edit-mode only; stamped onto the history row.
+  const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -2981,7 +3001,7 @@ function NewQuoteModal({
     }
     setSaving(true);
     try {
-      const vendorName = vendors.find((v) => v.id === vendorId)?.name ?? "";
+      const vendorName = vendors.find((v) => v.id === vendorId)?.name ?? quote?.vendor_name ?? "";
       const breakdown = selectedCategoryWithSubs
         ? selectedCategoryWithSubs.sub_budgets.map((s) => ({
             budget_item_id: s.id,
@@ -2989,23 +3009,42 @@ function NewQuoteModal({
           }))
         : undefined;
       const amountCents = selectedCategoryWithSubs ? subTotalCents : Math.round((Number(amount) || 0) * 100);
-      const newQuote = await createQuote(projectId, {
-        vendor_id: vendorId,
-        vendor_name: vendorName,
-        trade: trade.trim(),
-        scope_description: scope.trim(),
-        amount_cents: amountCents,
-        budget_item_id: budgetItemId === "" ? null : budgetItemId,
-        ...(breakdown ? { budget_breakdown: breakdown } : {}),
-      });
-      if (file) {
-        await uploadQuoteAttachment(projectId, newQuote.id, file);
+      if (isEdit) {
+        // In-place edit → PATCH the quote; the backend appends a revision row when
+        // a tracked field moved and propagates an amount change into any created WO.
+        await updateQuote(projectId, quote!.id, {
+          vendor_id: vendorId,
+          vendor_name: vendorName,
+          trade: trade.trim(),
+          scope_description: scope.trim(),
+          amount_cents: amountCents,
+          budget_item_id: budgetItemId === "" ? null : budgetItemId,
+          ...(breakdown ? { budget_breakdown: breakdown } : {}),
+          note: note.trim(),
+        });
+        if (file) {
+          await uploadQuoteAttachment(projectId, quote!.id, file);
+        }
+        toast.success("Quote updated");
+      } else {
+        const newQuote = await createQuote(projectId, {
+          vendor_id: vendorId,
+          vendor_name: vendorName,
+          trade: trade.trim(),
+          scope_description: scope.trim(),
+          amount_cents: amountCents,
+          budget_item_id: budgetItemId === "" ? null : budgetItemId,
+          ...(breakdown ? { budget_breakdown: breakdown } : {}),
+        });
+        if (file) {
+          await uploadQuoteAttachment(projectId, newQuote.id, file);
+        }
+        toast.success("Quote added & analyzed");
       }
-      toast.success("Quote added & analyzed");
       onSaved();
       onClose();
     } catch (e) {
-      toast.error(errMessage(e, "Failed to add quote"));
+      toast.error(errMessage(e, isEdit ? "Failed to update quote" : "Failed to add quote"));
     } finally {
       setSaving(false);
     }
@@ -3013,13 +3052,13 @@ function NewQuoteModal({
 
   return (
     <ModalShell
-      title="Add quote"
+      title={isEdit ? "Edit quote" : "Add quote"}
       onClose={onClose}
       footer={
         <>
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
           <button onClick={submit} disabled={saving} className="h-9 rounded-lg bg-[#013764] px-4 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
-            {saving ? "Analyzing…" : "Add & analyze"}
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Add & analyze"}
           </button>
         </>
       }
@@ -3107,6 +3146,12 @@ function NewQuoteModal({
           <label htmlFor={`${uid}-scope`} className={labelCls}>Scope</label>
           <textarea id={`${uid}-scope`} className={`${fieldCls} mt-1`} rows={3} value={scope} onChange={(e) => setScope(e.target.value)} placeholder="What the quote covers — the more detail, the better the fairness analysis." />
         </div>
+        {isEdit && (
+          <div>
+            <label htmlFor={`${uid}-note`} className={labelCls}>Reason for revision (optional)</label>
+            <input id={`${uid}-note`} className={`${fieldCls} mt-1`} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why is this quote being changed? — recorded in the history." />
+          </div>
+        )}
         <div>
           <label className={labelCls}>Quote document (optional)</label>
           <div
@@ -3151,15 +3196,166 @@ function NewQuoteModal({
   );
 }
 
+// Human labels for the tracked revision fields (migration 145 changed_fields).
+const QUOTE_FIELD_LABELS: Record<string, string> = {
+  amount_cents: "amount",
+  trade: "trade",
+  scope_description: "scope",
+  vendor_id: "vendor",
+  vendor_name: "vendor",
+  budget_item_id: "budget line",
+  budget_breakdown: "budget breakdown",
+  status: "status",
+};
+
+function quoteFieldSummary(fields: string[]): string {
+  const labels: string[] = [];
+  for (const f of fields) {
+    const l = QUOTE_FIELD_LABELS[f] ?? f;
+    if (!labels.includes(l)) labels.push(l);
+  }
+  if (labels.length === 0) return "the quote";
+  if (labels.length === 1) return labels[0];
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
+}
+
+function snapStr(snap: Record<string, unknown>, key: string): string | null {
+  const v = snap?.[key];
+  if (v == null) return null;
+  return String(v);
+}
+function snapNum(snap: Record<string, unknown>, key: string): number | null {
+  const v = snap?.[key];
+  return typeof v === "number" ? v : null;
+}
+
+// QuoteHistoryModal renders the auditable revision trail (migration 145) as a
+// timeline mirroring the WO EstimateHistoryTimeline: each row reads
+// "{who} changed {fields}" with amount $A → $B and scope/vendor/trade deltas plus
+// the reason note, newest first. Fetched lazily when opened.
+function QuoteHistoryModal({
+  projectId,
+  quote,
+  onClose,
+}: {
+  projectId: number;
+  quote: ProjectQuote;
+  onClose: () => void;
+}) {
+  const [revisions, setRevisions] = useState<QuoteRevision[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listQuoteRevisions(projectId, quote.id)
+      .then((rows) => {
+        if (!cancelled) setRevisions(rows);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(errMessage(e, "Failed to load history"));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, quote.id]);
+
+  return (
+    <ModalShell
+      title="Quote history"
+      onClose={onClose}
+      footer={
+        <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          Close
+        </button>
+      }
+    >
+      {error ? (
+        <p className="py-6 text-center text-sm text-rose-600">{error}</p>
+      ) : revisions === null ? (
+        <p className="py-6 text-center text-sm text-gray-400">Loading history…</p>
+      ) : revisions.length === 0 ? (
+        <p className="py-6 text-center text-sm text-gray-400">
+          No edits yet. Editing this quote records an entry here.
+        </p>
+      ) : (
+        <div className="relative">
+          <div className="absolute left-[7px] top-2 bottom-2 w-px bg-[#e5e5e5]" aria-hidden />
+          {revisions.map((rev) => {
+            const before = rev.before_snapshot ?? {};
+            const after = rev.after_snapshot ?? {};
+            const oldAmt = snapNum(before, "amount_cents");
+            const newAmt = snapNum(after, "amount_cents");
+            const amtChanged = rev.changed_fields.includes("amount_cents");
+            const scopeChanged = rev.changed_fields.includes("scope_description");
+            const vendorChanged = rev.changed_fields.includes("vendor_name") || rev.changed_fields.includes("vendor_id");
+            const tradeChanged = rev.changed_fields.includes("trade");
+            const statusChanged = rev.changed_fields.includes("status");
+            return (
+              <div key={rev.id} className="relative flex gap-4 pl-8 pb-5 last:pb-0">
+                <div className="absolute left-0 w-[15px] h-[15px] rounded-full border-2 border-[#2463eb] bg-white" aria-hidden />
+                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                  <div className="text-[#303030] text-sm font-medium">
+                    {rev.revised_by_name || "Someone"} changed {quoteFieldSummary(rev.changed_fields)}
+                  </div>
+                  {amtChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Amount: <span className="text-[#717179]">{oldAmt != null ? formatUSD(oldAmt) : "—"}</span>
+                      {" → "}
+                      <span className="text-[#013764] font-semibold tabular-nums">{newAmt != null ? formatUSD(newAmt) : "—"}</span>
+                    </div>
+                  )}
+                  {vendorChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Vendor: <span className="text-[#717179]">{snapStr(before, "vendor_name") || "—"}</span>
+                      {" → "}
+                      <span className="text-[#303030] font-medium">{snapStr(after, "vendor_name") || "—"}</span>
+                    </div>
+                  )}
+                  {tradeChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Trade: <span className="text-[#717179]">{snapStr(before, "trade") || "—"}</span>
+                      {" → "}
+                      <span className="text-[#303030] font-medium">{snapStr(after, "trade") || "—"}</span>
+                    </div>
+                  )}
+                  {statusChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Status: <span className="text-[#717179]">{snapStr(before, "status") || "—"}</span>
+                      {" → "}
+                      <span className="text-[#303030] font-medium">{snapStr(after, "status") || "—"}</span>
+                    </div>
+                  )}
+                  {scopeChanged && (
+                    <div className="text-[#525252] text-xs">
+                      Scope: <span className="text-[#717179]">“{snapStr(before, "scope_description") || "—"}”</span>
+                      {" → "}
+                      <span className="text-[#303030]">“{snapStr(after, "scope_description") || "—"}”</span>
+                    </div>
+                  )}
+                  {rev.note && <div className="text-[#525252] text-xs italic">“{rev.note}”</div>}
+                  <div className="text-[#717179] text-xs">{new Date(rev.revised_at).toLocaleString()}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </ModalShell>
+  );
+}
+
 // Quotes tab: capture competing vendor quotes grouped by budget category, run an
 // AI fairness analysis (grounded in our historical costs + market knowledge),
-// shortlist, revise (immutable history), and accept one per category —
+// shortlist, edit in place (auditable history), and accept one per category —
 // optionally copying the accepted amount into the budget (Part B / B3).
 function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCategory[] }) {
   const [quotes, setQuotes] = useState<ProjectQuote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [editQuote, setEditQuote] = useState<ProjectQuote | null>(null);
+  const [historyQuote, setHistoryQuote] = useState<ProjectQuote | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
@@ -3227,9 +3423,6 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
     if (id == null) return "Unassigned";
     return budget.find((b) => b.id === id)?.name ?? `Category #${id}`;
   };
-  // Quotes that a later revision supersedes (dimmed as history).
-  const supersededIds = new Set(quotes.map((q) => q.supersedes_quote_id).filter((x): x is number => x != null));
-
   // Group by budget category (Unassigned last).
   const groups = new Map<number | null, ProjectQuote[]>();
   for (const q of quotes) {
@@ -3245,17 +3438,17 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
 
   const renderQuote = (q: ProjectQuote) => {
     const sMeta = QUOTE_STATUS_META[q.status];
-    const superseded = supersededIds.has(q.id);
+    // AI analysis is stale when the quote was edited after it was last analyzed.
+    const analysisStale =
+      q.ai_analysis != null && q.analyzed_at != null && new Date(q.analyzed_at) < new Date(q.updated_at);
     return (
-      <div key={q.id} className={`rounded-lg border border-gray-200 p-3.5 ${superseded ? "opacity-60" : ""}`}>
+      <div key={q.id} className="rounded-lg border border-gray-200 p-3.5">
         <div className="flex flex-wrap items-start gap-2">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium text-gray-900">{q.vendor_name || "Unnamed vendor"}</span>
               {q.trade && <span className="text-xs text-gray-500">{q.trade}</span>}
               <Pill label={sMeta.label} text={sMeta.text} bg={sMeta.bg} />
-              {superseded && <span className="text-[11px] text-gray-400">superseded</span>}
-              {q.supersedes_quote_id != null && <span className="text-[11px] text-gray-400">revision</span>}
               {q.source === "verbal_intake" && <span className="text-[11px] text-gray-400">from intake</span>}
               {q.created_work_order_id != null && (
                 <span className="text-[11px] font-medium text-green-700">→ WO created</span>
@@ -3289,6 +3482,13 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
           >
             {busyId === q.id ? "Analyzing…" : q.ai_analysis ? "Re-analyze" : "Analyze fairness"}
           </button>
+          {analysisStale && busyId !== q.id && (
+            <span className="text-[11px] text-amber-600" title="This quote changed after its last analysis.">
+              inputs changed — re-analyze
+            </span>
+          )}
+          <button onClick={() => setEditQuote(q)} className="text-xs font-medium text-gray-600 hover:underline">Edit</button>
+          <button onClick={() => setHistoryQuote(q)} className="text-xs font-medium text-gray-600 hover:underline">View history</button>
           {q.status !== "accepted" && (
             <button onClick={() => accept(q, false)} className="text-xs font-medium text-green-700 hover:underline">Accept</button>
           )}
@@ -3338,6 +3538,18 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
         </div>
       )}
       {createOpen && <NewQuoteModal projectId={projectId} budget={budget} onSaved={load} onClose={() => setCreateOpen(false)} />}
+      {editQuote && (
+        <NewQuoteModal
+          projectId={projectId}
+          budget={budget}
+          quote={editQuote}
+          onSaved={load}
+          onClose={() => setEditQuote(null)}
+        />
+      )}
+      {historyQuote && (
+        <QuoteHistoryModal projectId={projectId} quote={historyQuote} onClose={() => setHistoryQuote(null)} />
+      )}
     </Card>
   );
 }

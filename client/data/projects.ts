@@ -517,11 +517,32 @@ export interface CreateQuotePayload {
 
 export interface UpdateQuotePayload {
   status?: Exclude<QuoteStatus, "accepted">; // accept goes through acceptQuote
+  vendor_id?: number | null;
   vendor_name?: string;
   trade?: string;
   scope_description?: string;
   amount_cents?: number;
   budget_item_id?: number | null;
+  // When set, budget_item_id must be a category and each entry a sub-budget of
+  // it; amount_cents is set to Σ breakdown (backend authoritative).
+  budget_breakdown?: { budget_item_id: number; amount_cents: number }[];
+  // Free-text reason for the edit, stamped onto the revision-history row.
+  note?: string;
+}
+
+// One audited edit of a quote (migration 145). before/after_snapshot capture the
+// tracked-field set { amount_cents, trade, scope_description, vendor_id,
+// vendor_name, budget_item_id, budget_breakdown, status }; changed_fields lists
+// only the fields that moved.
+export interface QuoteRevision {
+  id: number;
+  quote_id: number;
+  revised_by_name: string;
+  revised_at: string;
+  before_snapshot: Record<string, unknown>;
+  after_snapshot: Record<string, unknown>;
+  changed_fields: string[];
+  note: string;
 }
 
 export async function listQuotes(projectId: number): Promise<ProjectQuote[]> {
@@ -543,6 +564,12 @@ export async function deleteQuote(projectId: number, quoteId: number): Promise<v
 
 export async function analyzeQuote(projectId: number, quoteId: number): Promise<ProjectQuote> {
   return fetchJSON(`/projects/${projectId}/quotes/${quoteId}/analyze`, { method: "POST" });
+}
+
+// The auditable edit trail for a quote, newest first (migration 145).
+export async function listQuoteRevisions(projectId: number, quoteId: number): Promise<QuoteRevision[]> {
+  const data = await fetchJSON(`/projects/${projectId}/quotes/${quoteId}/revisions`);
+  return data ?? [];
 }
 
 export interface UploadQuoteAttachmentResult {
