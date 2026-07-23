@@ -1240,9 +1240,12 @@ function TasksTab({
 
   // Status KPIs: count only the three primary task statuses; deferred/closed/
   // cancelled are intentionally excluded from these tiles.
-  const notStartedCount = tasks.filter((t) => t.status === "not_started").length;
-  const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
-  const completedCount = tasks.filter((t) => t.status === "completed").length;
+  // Count by the SAME status bucket the Status column displays (taskStatusBucket),
+  // not a literal string match — real task statuses like "open" bucket into
+  // "not_started" but aren't that exact string, so exact-match under-counted.
+  const notStartedCount = tasks.filter((t) => taskStatusBucket(t.status) === "not_started").length;
+  const inProgressCount = tasks.filter((t) => taskStatusBucket(t.status) === "in_progress").length;
+  const completedCount = tasks.filter((t) => taskStatusBucket(t.status) === "completed").length;
 
   // Shared GlobalTable plumbing (sorting / column management / pagination),
   // matching the task-detail Work Orders + AllTasks pages.
