@@ -17,6 +17,7 @@ import {
   type PutBudgetPayload,
   type PutMilestonesPayload,
 } from "@/data/projects";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 export interface SubDraft {
   id: number;
@@ -310,17 +311,24 @@ export function MilestonesEditor({
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500" aria-hidden="true">{i + 1}</span>
           <input aria-label={`Milestone ${i + 1} name`} className={`${smallField} min-w-[160px] flex-1`} placeholder="Milestone name" value={m.name} onChange={(e) => patch(m.id, { name: e.target.value })} />
           <input type="date" aria-label={`Milestone ${i + 1} target date`} className={`${smallField} w-40`} value={m.targetDate} onChange={(e) => patch(m.id, { targetDate: e.target.value })} />
-          <select aria-label={`Milestone ${i + 1} status`} className={smallField} value={m.status} onChange={(e) => patch(m.id, { status: e.target.value as MilestoneStatus })}>
-            <option value="not_started">Not started</option>
-            <option value="in_progress">In progress</option>
-            <option value="complete">Complete</option>
-          </select>
-          <select aria-label={`Milestone ${i + 1} budget category link`} className={smallField} value={m.categoryId ?? ""} onChange={(e) => patch(m.id, { categoryId: e.target.value === "" ? null : Number(e.target.value) })}>
-            <option value="">No budget link</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name || "Untitled category"}</option>
-            ))}
-          </select>
+          <SearchableSelect
+            className={`${smallField} w-36`}
+            value={m.status}
+            onChange={(v) => patch(m.id, { status: (v || "not_started") as MilestoneStatus })}
+            options={[
+              { value: "not_started", label: "Not started" },
+              { value: "in_progress", label: "In progress" },
+              { value: "complete", label: "Complete" },
+            ]}
+            allLabel="Status"
+          />
+          <SearchableSelect
+            className={`${smallField} w-44`}
+            value={m.categoryId != null ? String(m.categoryId) : ""}
+            onChange={(v) => patch(m.id, { categoryId: v === "" ? null : Number(v) })}
+            options={categories.map((c) => ({ value: String(c.id), label: c.name || "Untitled category" }))}
+            allLabel="No budget link"
+          />
           {m.taskCount > 0 && <span className="text-xs text-gray-400">{m.taskCount} task{m.taskCount > 1 ? "s" : ""}</span>}
           <button type="button" onClick={() => remove(m.id)} className="px-1.5 text-gray-400 hover:text-red-600" title="Remove milestone" aria-label={`Remove milestone ${i + 1}`}>✕</button>
         </div>

@@ -32,13 +32,7 @@ import {
   voidProjectInvoice,
   pushInvoiceToQbo,
   getBillables,
-  getPaymentSchedule,
-  putPaymentSchedule,
   acceptQuote,
-  listVendorPayments,
-  createVendorPayment,
-  updateVendorPayment,
-  deleteVendorPayment,
   listProjectFiles,
   uploadProjectFile,
   deleteProjectFile,
@@ -76,8 +70,6 @@ import {
   type InstallmentBasis,
   type BudgetCategory,
   type VendorFinancialSummary,
-  type VendorPayment,
-  type VendorPaymentStatus,
   type ProjectFileRow,
   type ProjectFileSource,
   type ProjectBillRow,
@@ -95,6 +87,7 @@ import {
   type CategoryDraft,
   type MilestoneDraft,
 } from "@/components/projects/ProjectEditors";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 type TabKey = "dashboard" | "maintenance" | "quotes" | "financials" | "files";
 type MaintenanceSubTabKey = "tasks" | "work-orders" | "field-team";
@@ -201,6 +194,48 @@ function Pill({ label, text, bg }: { label: string; text: string; bg: string }) 
     <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" style={{ color: text, backgroundColor: bg }}>
       {label}
     </span>
+  );
+}
+
+// SegmentedControl — a contained iOS-style segmented toggle (gray track, white
+// active thumb, optional count badges). Replaces the loose pill rows on the
+// Files filter and the Work sub-toggle for a calmer, more grouped look.
+function SegmentedControl<T extends string>({
+  value,
+  onChange,
+  options,
+  size = "md",
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { key: T; label: string; count?: number }[];
+  size?: "sm" | "md";
+}) {
+  const h = size === "sm" ? "h-7" : "h-8";
+  const txt = size === "sm" ? "text-xs" : "text-sm";
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5" role="tablist">
+      {options.map((o) => {
+        const active = value === o.key;
+        return (
+          <button
+            key={o.key}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(o.key)}
+            className={`${h} ${txt} rounded-md px-3 font-medium transition-colors ${
+              active ? "bg-white text-[#013764] shadow-sm" : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            {o.label}
+            {typeof o.count === "number" && (
+              <span className={`ml-1.5 tabular-nums ${active ? "text-gray-400" : "text-gray-400"}`}>{o.count}</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -451,10 +486,16 @@ function NewChangeOrderModal({
           </div>
           <div>
             <label htmlFor={`${uid}-status`} className={labelCls}>Status</label>
-            <select id={`${uid}-status`} className={`${fieldCls} mt-1`} value={status} onChange={(e) => setStatus(e.target.value as "draft" | "pending_approval")}>
-              <option value="draft">Draft</option>
-              <option value="pending_approval">Pending Approval</option>
-            </select>
+            <SearchableSelect
+              className={`${fieldCls} mt-1`}
+              value={status}
+              onChange={(v) => setStatus((v || "draft") as "draft" | "pending_approval")}
+              options={[
+                { value: "draft", label: "Draft" },
+                { value: "pending_approval", label: "Pending Approval" },
+              ]}
+              allLabel="Select status"
+            />
           </div>
         </div>
       </div>
@@ -602,42 +643,6 @@ function MilestonesCard({ summary, onEdit }: { summary: ProjectSummary; onEdit: 
 
 /* --------------------------------- tabs ----------------------------------- */
 
-function VendorFinancialsCard({ vendors }: { vendors: VendorFinancialSummary[] }) {
-  return (
-    <Card title="By Vendor">
-      {vendors.length === 0 ? (
-        <p className="text-sm text-gray-500">No vendor spend yet. Vendors are attached when you accept a quote into the budget or book a bill against a work order.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 text-left text-xs uppercase tracking-wide text-gray-400">
-                <th className="py-2 pr-4 font-medium">Vendor</th>
-                <th className="py-2 pr-4 text-right font-medium">Quoted</th>
-                <th className="py-2 pr-4 text-right font-medium">Committed</th>
-                <th className="py-2 pr-4 text-right font-medium">Paid</th>
-                <th className="py-2 pr-4 text-right font-medium">Remaining</th>
-                <th className="py-2 pr-4 text-right font-medium">Planned</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vendors.map((v) => (
-                <tr key={v.vendor_id} className="border-b border-gray-50 last:border-0">
-                  <td className="py-2.5 pr-4 font-medium text-gray-900">{v.vendor_name || `Vendor #${v.vendor_id}`}</td>
-                  <td className="py-2.5 pr-4 text-right tabular-nums text-gray-700">{formatUSD(v.quoted_cents)}</td>
-                  <td className="py-2.5 pr-4 text-right tabular-nums text-gray-900">{formatUSD(v.committed_cents)}</td>
-                  <td className="py-2.5 pr-4 text-right tabular-nums text-gray-700">{formatUSD(v.paid_cents)}</td>
-                  <td className={`py-2.5 pr-4 text-right tabular-nums ${v.remaining_cents < 0 ? "font-semibold text-red-700" : "text-gray-700"}`}>{formatUSD(v.remaining_cents)}</td>
-                  <td className="py-2.5 pr-4 text-right tabular-nums text-gray-400">{formatUSD(v.planned_cents)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Card>
-  );
-}
 
 function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: () => void }) {
   const project = summary.project;
@@ -925,17 +930,13 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
                     <td className="py-3 pr-4"><Dot label={taskStatusMeta[bucket].label} color={taskStatusMeta[bucket].dot} /></td>
                     <td className="py-3 pr-4"><Dot {...priorityDisplay(t.priority)} /></td>
                     <td className="py-3 pr-4">
-                      <select
-                        aria-label={`Milestone for ${t.name}`}
-                        value={t.milestone_id ?? ""}
-                        onChange={(e) => assignMilestone(t.id, e.target.value === "" ? null : Number(e.target.value))}
-                        className="max-w-[180px] rounded-md border border-[#DADADA] bg-white px-2 py-1 text-sm text-gray-700 focus:border-[#013764] focus:outline-none"
-                      >
-                        <option value="">— None —</option>
-                        {milestones.map((m) => (
-                          <option key={m.id} value={m.id}>{m.name}</option>
-                        ))}
-                      </select>
+                      <SearchableSelect
+                        className="max-w-[180px] rounded-md border-[#DADADA]"
+                        value={t.milestone_id != null ? String(t.milestone_id) : ""}
+                        onChange={(v) => assignMilestone(t.id, v === "" ? null : Number(v))}
+                        options={milestones.map((m) => ({ value: String(m.id), label: m.name }))}
+                        allLabel="— None —"
+                      />
                     </td>
                     <td className="py-3 pr-4 text-gray-700">{t.work_order_count}</td>
                     <td className="py-3 pr-4 text-gray-700">{t.fto_count}</td>
@@ -1115,10 +1116,16 @@ function RecordPaymentModal({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor={`${uid}-kind`} className={labelCls}>Type</label>
-            <select id={`${uid}-kind`} className={`${fieldCls} mt-1`} value={kind} onChange={(e) => setKind(e.target.value as PaymentKind)}>
-              <option value="deposit">Deposit</option>
-              <option value="progress_payment">Progress payment</option>
-            </select>
+            <SearchableSelect
+              className={`${fieldCls} mt-1`}
+              value={kind}
+              onChange={(v) => setKind((v || "deposit") as PaymentKind)}
+              options={[
+                { value: "deposit", label: "Deposit" },
+                { value: "progress_payment", label: "Progress payment" },
+              ]}
+              allLabel="Select type"
+            />
           </div>
           <div>
             <label htmlFor={`${uid}-amount`} className={labelCls}>Amount ($)</label>
@@ -1887,595 +1894,6 @@ function ProjectInvoiceDetailModal({
   );
 }
 
-interface ScheduleRowDraft {
-  key: number;
-  id?: number;
-  label: string;
-  basis: InstallmentBasis;
-  percentPct: string; // percent basis, as whole/decimal percent (10 = 10%)
-  amountDollars: string; // fixed basis, dollars
-  dueDate: string; // "YYYY-MM-DD" or ""
-  locked: boolean; // invoiced — money/basis read-only, cannot remove
-}
-
-// Editor for the client payment schedule (full-replace PUT). Invoiced (locked)
-// installments are shown read-only and always re-submitted so the backend won't
-// reject the replace. Percent installments are entered as a percent of the
-// current budget; fixed installments as a dollar amount.
-function ProjectScheduleEditorModal({
-  schedule,
-  onSave,
-  onClose,
-}: {
-  schedule: PaymentInstallment[];
-  onSave: (installments: InstallmentInput[]) => void;
-  onClose: () => void;
-}) {
-  const seq = useRef(-1);
-  const [rows, setRows] = useState<ScheduleRowDraft[]>(() =>
-    schedule.map((s) => ({
-      key: s.id,
-      id: s.id,
-      label: s.label,
-      basis: s.basis,
-      percentPct: s.percent_bps != null ? String(s.percent_bps / 100) : "",
-      amountDollars: s.amount_cents != null ? String(s.amount_cents / 100) : "",
-      dueDate: s.due_date ?? "",
-      locked: s.status === "invoiced" || s.status === "paid",
-    })),
-  );
-
-  const update = (key: number, patch: Partial<ScheduleRowDraft>) =>
-    setRows((v) => v.map((r) => (r.key === key ? { ...r, ...patch } : r)));
-  const addRow = () =>
-    setRows((v) => [
-      ...v,
-      { key: seq.current--, label: "", basis: "fixed", percentPct: "", amountDollars: "", dueDate: "", locked: false },
-    ]);
-  const removeRow = (key: number) => setRows((v) => v.filter((r) => r.key !== key));
-
-  const save = () => {
-    const out: InstallmentInput[] = [];
-    for (const r of rows) {
-      if (r.locked) {
-        // Re-submit unchanged (backend keeps money/basis; only order may shift).
-        out.push({ id: r.id, label: r.label, basis: r.basis });
-        continue;
-      }
-      if (!r.label.trim()) {
-        toast.error("Each installment needs a label");
-        return;
-      }
-      if (r.basis === "percent") {
-        const pct = Number(r.percentPct);
-        if (!(pct >= 0 && pct <= 100)) {
-          toast.error(`"${r.label}": percent must be between 0 and 100`);
-          return;
-        }
-        out.push({
-          id: r.id,
-          label: r.label.trim(),
-          basis: "percent",
-          percent_bps: Math.round(pct * 100),
-          due_date: r.dueDate || null,
-        });
-      } else {
-        const amt = Number(r.amountDollars);
-        if (!(amt >= 0)) {
-          toast.error(`"${r.label}": amount must be a positive number`);
-          return;
-        }
-        out.push({
-          id: r.id,
-          label: r.label.trim(),
-          basis: "fixed",
-          amount_cents: Math.round(amt * 100),
-          due_date: r.dueDate || null,
-        });
-      }
-    }
-    onSave(out);
-  };
-
-  const inputCls = "rounded-md border border-[#DADADA] px-2 py-1.5 text-sm focus:border-[#013764] focus:outline-none";
-
-  return (
-    <ModalShell
-      title="Edit payment schedule"
-      onClose={onClose}
-      maxWidth="max-w-3xl"
-      footer={
-        <>
-          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-          <button onClick={save} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]">Save schedule</button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-3">
-        <p className="text-xs text-gray-500">
-          Installments drive project invoicing. A <strong>percent</strong> installment bills a share of the current budget; a{" "}
-          <strong>fixed</strong> installment bills a set amount. Invoiced installments are locked.
-        </p>
-        {rows.length === 0 && <p className="text-sm text-gray-500">No installments yet — add one below.</p>}
-        {rows.map((r) => (
-          <div key={r.key} className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2.5 ${r.locked ? "border-gray-200 bg-gray-50" : "border-gray-200"}`}>
-            <input
-              value={r.label}
-              disabled={r.locked}
-              placeholder="Label (e.g. Deposit)"
-              onChange={(e) => update(r.key, { label: e.target.value })}
-              className={`${inputCls} min-w-[10rem] flex-1 disabled:bg-transparent disabled:text-gray-500`}
-            />
-            <select
-              value={r.basis}
-              disabled={r.locked}
-              onChange={(e) => update(r.key, { basis: e.target.value as InstallmentBasis })}
-              className={`${inputCls} disabled:bg-transparent disabled:text-gray-500`}
-            >
-              <option value="fixed">Fixed $</option>
-              <option value="percent">% of budget</option>
-            </select>
-            {r.basis === "percent" ? (
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  value={r.percentPct}
-                  disabled={r.locked}
-                  placeholder="10"
-                  onChange={(e) => update(r.key, { percentPct: e.target.value })}
-                  className={`${inputCls} w-20 text-right tabular-nums disabled:bg-transparent disabled:text-gray-500`}
-                />
-                <span className="text-gray-400">%</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <span className="text-gray-400">$</span>
-                <input
-                  type="number"
-                  value={r.amountDollars}
-                  disabled={r.locked}
-                  placeholder="0.00"
-                  onChange={(e) => update(r.key, { amountDollars: e.target.value })}
-                  className={`${inputCls} w-28 text-right tabular-nums disabled:bg-transparent disabled:text-gray-500`}
-                />
-              </div>
-            )}
-            <input
-              type="date"
-              value={r.dueDate}
-              disabled={r.locked}
-              onChange={(e) => update(r.key, { dueDate: e.target.value })}
-              className={`${inputCls} disabled:bg-transparent disabled:text-gray-500`}
-            />
-            {r.locked ? (
-              <Pill label="Invoiced" text="#1D4ED8" bg="#E7EEFE" />
-            ) : (
-              <button onClick={() => removeRow(r.key)} aria-label="Remove installment" className="px-1 text-gray-400 hover:text-red-600">✕</button>
-            )}
-          </div>
-        ))}
-        <button onClick={addRow} className="self-start h-8 rounded-lg border border-[#DADADA] bg-white px-3 text-xs font-medium text-gray-700 hover:bg-gray-50">
-          + Add installment
-        </button>
-      </div>
-    </ModalShell>
-  );
-}
-
-/* ------------------------------ cash lanes ---------------------------------- */
-
-interface UpcomingRow {
-  label: string;
-  when: string;
-  amountCents: number;
-  urgent?: boolean;
-}
-
-function CashLane({
-  rows,
-  totalCents,
-  totalLabel,
-  sign,
-  amountColor,
-  emptyText,
-  upcoming,
-  upcomingHint,
-}: {
-  rows: CashFlowEntry[];
-  totalCents: number;
-  totalLabel: string;
-  sign: "+" | "−";
-  amountColor: string;
-  emptyText: string;
-  upcoming?: UpcomingRow[];
-  upcomingHint?: string;
-}) {
-  return (
-    <div className="flex flex-col">
-      {rows.length === 0 ? (
-        <p className="py-2 text-sm text-gray-500">{emptyText}</p>
-      ) : (
-        <div className="flex flex-col divide-y divide-gray-100">
-          {rows.map((c, idx) => (
-            <div key={`${c.date}-${idx}`} className="flex items-center justify-between gap-3 py-2.5">
-              <div className="min-w-0">
-                <div className="truncate text-sm text-gray-900">{c.description}</div>
-                <div className="text-xs text-gray-500">
-                  {c.date} · {c.party}
-                  {c.kind === "Deposit" || c.kind === "Progress Payment" ? ` · ${c.kind}` : ""}
-                </div>
-              </div>
-              <span className={`shrink-0 text-sm font-medium tabular-nums ${amountColor}`}>
-                {sign}
-                {formatUSDPrecise(c.amount_cents)}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="mt-1 flex items-center justify-between border-t-2 border-gray-200 pt-3 text-sm font-semibold text-gray-900">
-        <span>{totalLabel}</span>
-        <span className={`tabular-nums ${amountColor}`}>
-          {sign}
-          {formatUSD(totalCents)}
-        </span>
-      </div>
-      {upcoming && upcoming.length > 0 && (
-        <div className="mt-4">
-          <div className="mb-2 flex items-baseline justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Upcoming</span>
-            {upcomingHint && <span className="text-[11px] text-gray-400">{upcomingHint}</span>}
-          </div>
-          <div className="flex flex-col gap-2">
-            {upcoming.map((u) => (
-              <div key={u.label} className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-gray-300 px-3 py-2">
-                <div className="min-w-0">
-                  <div className="truncate text-sm text-gray-700">{u.label}</div>
-                  <div className={`text-xs ${u.urgent ? "font-medium text-amber-700" : "text-gray-400"}`}>{u.when}</div>
-                </div>
-                <span className="shrink-0 text-sm tabular-nums text-gray-500">{formatUSD(u.amountCents)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* --------------------- vendor payment schedule (sample) --------------------- */
-
-const VENDOR_STAGE_META: Record<VendorPaymentStatus, { label: string; text: string; bg: string }> = {
-  scheduled: { label: "Scheduled", text: "#6B7280", bg: "#F3F4F6" },
-  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
-};
-
-// Real Payables-tab "Vendor Payment Schedules" (Part B / B1) — the forward plan
-// of what AVM pays each vendor, grouped by vendor. Add/edit/delete stages and
-// mark them paid; all persisted via /projects/{id}/vendor-payments.
-function VendorScheduleCard({ projectId }: { projectId: number }) {
-  const [stages, setStages] = useState<VendorPayment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<VendorPayment | null>(null); // stage being edited
-  const [creating, setCreating] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      setStages(await listVendorPayments(projectId));
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to load vendor payments");
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const committed = stages.reduce((s, x) => s + x.amount_cents, 0);
-  const paid = stages.filter((s) => s.status === "paid").reduce((s, x) => s + x.amount_cents, 0);
-  const scheduledUnpaid = committed - paid;
-  const vendors = [...new Set(stages.map((s) => s.vendor_name || "(unnamed vendor)"))];
-
-  const markPaid = async (vp: VendorPayment) => {
-    try {
-      await updateVendorPayment(projectId, vp.id, { status: "paid", paid_on: new Date().toISOString().slice(0, 10) });
-      await load();
-      toast.success("Stage marked paid");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to mark paid");
-    }
-  };
-  const remove = async (vp: VendorPayment) => {
-    if (!window.confirm(`Delete "${vp.label || "this stage"}"?`)) return;
-    try {
-      await deleteVendorPayment(projectId, vp.id);
-      await load();
-      toast.success("Stage deleted");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to delete");
-    }
-  };
-
-  return (
-    <Card
-      title="Vendor Payment Schedules"
-      action={
-        <button onClick={() => setCreating(true)} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">
-          + Add stage
-        </button>
-      }
-    >
-      <div className="mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-lg bg-gray-50 px-4 py-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Committed to vendors</div>
-          <div className="mt-1 text-xl font-semibold tabular-nums text-gray-900">{formatUSD(committed)}</div>
-        </div>
-        <div className="rounded-lg bg-gray-50 px-4 py-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Paid so far</div>
-          <div className="mt-1 text-xl font-semibold tabular-nums text-gray-900">{formatUSD(paid)}</div>
-        </div>
-        <div className={`rounded-lg px-4 py-3 ${scheduledUnpaid > 0 ? "bg-amber-50" : "bg-gray-50"}`}>
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Scheduled, unpaid</div>
-          <div className={`mt-1 text-xl font-semibold tabular-nums ${scheduledUnpaid > 0 ? "text-amber-700" : "text-gray-900"}`}>{formatUSD(scheduledUnpaid)}</div>
-        </div>
-      </div>
-
-      {loading ? (
-        <p className="text-sm text-gray-500">Loading…</p>
-      ) : stages.length === 0 ? (
-        <p className="text-sm text-gray-500">No vendor payment stages yet. Add one to plan a vendor's deposits, progress, and balance.</p>
-      ) : (
-        <div className="flex flex-col gap-5">
-          {vendors.map((v) => {
-            const vStages = stages.filter((s) => (s.vendor_name || "(unnamed vendor)") === v);
-            const vTotal = vStages.reduce((s, x) => s + x.amount_cents, 0);
-            return (
-              <div key={v}>
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-900">{v}</span>
-                  <span className="tabular-nums text-gray-500">{formatUSD(vTotal)}</span>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {vStages.map((s) => {
-                    const meta = VENDOR_STAGE_META[s.status];
-                    return (
-                      <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5">
-                        <div className="min-w-0">
-                          <div className="truncate text-sm text-gray-900">{s.label || "(untitled stage)"}</div>
-                          <div className="text-xs text-gray-500">
-                            {s.status === "paid" && s.paid_on ? `Paid ${s.paid_on}` : s.notes || (s.due_date ? `Due ${s.due_date}` : "Scheduled")}
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-3">
-                          {s.status === "scheduled" && (
-                            <>
-                              <button onClick={() => markPaid(s)} className="text-xs font-medium text-green-700 hover:underline">Mark paid</button>
-                              <button onClick={() => setEditing(s)} className="text-xs font-medium text-blue-600 hover:underline">Edit</button>
-                            </>
-                          )}
-                          <button onClick={() => remove(s)} aria-label="Delete stage" className="text-xs text-gray-400 hover:text-red-600">✕</button>
-                          <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(s.amount_cents)}</span>
-                          <Pill label={meta.label} text={meta.text} bg={meta.bg} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {(creating || editing) && (
-        <VendorPaymentModal
-          projectId={projectId}
-          existing={editing}
-          onSaved={async () => {
-            setCreating(false);
-            setEditing(null);
-            await load();
-          }}
-          onClose={() => {
-            setCreating(false);
-            setEditing(null);
-          }}
-        />
-      )}
-    </Card>
-  );
-}
-
-// VendorTypeahead: search the real vendor list (GET /vendors?search=) as you
-// type. Picking a result links vendor_id; typing a name that isn't picked keeps
-// vendor_id null (free-text fallback for vendors not yet in the system).
-function VendorTypeahead({ value, onChange }: { value: string; onChange: (name: string, vendorId: number | null) => void }) {
-  const [results, setResults] = useState<VendorLite[]>([]);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const boxRef = useRef<HTMLDivElement>(null);
-
-  // Debounced search on the current value.
-  useEffect(() => {
-    if (!open) return;
-    const q = value.trim();
-    if (q.length < 2) {
-      setResults([]);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    const t = setTimeout(async () => {
-      try {
-        const r = await searchVendors(q, 8);
-        if (!cancelled) setResults(r);
-      } catch {
-        if (!cancelled) setResults([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }, 250);
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
-  }, [value, open]);
-
-  // Close the dropdown on outside click.
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
-
-  const fieldCls = "mt-1 w-full rounded-md border border-[#DADADA] px-3 py-2 text-sm focus:border-[#013764] focus:outline-none";
-  return (
-    <div ref={boxRef} className="relative">
-      <input
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value, null); // typing = free-text until a result is picked
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        placeholder="Search vendors, or type a new name"
-        className={fieldCls}
-        autoComplete="off"
-      />
-      {open && value.trim().length >= 2 && (
-        <div className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
-          {loading ? (
-            <div className="px-3 py-2 text-sm text-gray-400">Searching…</div>
-          ) : results.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-gray-400">No match — “{value.trim()}” will be saved as a new name.</div>
-          ) : (
-            results.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => {
-                  onChange(v.name, v.id);
-                  setOpen(false);
-                }}
-                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50"
-              >
-                <span className="text-gray-900">{v.name}</span>
-                {v.category && <span className="shrink-0 text-[11px] text-gray-400">{v.category}</span>}
-              </button>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function VendorPaymentModal({
-  projectId,
-  existing,
-  onSaved,
-  onClose,
-}: {
-  projectId: number;
-  existing: VendorPayment | null;
-  onSaved: () => void;
-  onClose: () => void;
-}) {
-  const [vendorName, setVendorName] = useState(existing?.vendor_name ?? "");
-  const [vendorId, setVendorId] = useState<number | null>(existing?.vendor_id ?? null);
-  const [label, setLabel] = useState(existing?.label ?? "");
-  const [amount, setAmount] = useState(existing ? String(existing.amount_cents / 100) : "");
-  const [notes, setNotes] = useState(existing?.notes ?? "");
-  const [dueDate, setDueDate] = useState(existing?.due_date ?? "");
-  const [busy, setBusy] = useState(false);
-
-  const save = async () => {
-    if (!vendorName.trim()) {
-      toast.error("Vendor name is required");
-      return;
-    }
-    const amountCents = Math.max(0, Math.round((Number(amount) || 0) * 100));
-    setBusy(true);
-    try {
-      if (existing) {
-        await updateVendorPayment(projectId, existing.id, {
-          vendor_name: vendorName.trim(),
-          vendor_id: vendorId,
-          label: label.trim(),
-          amount_cents: amountCents,
-          notes: notes.trim(),
-          due_date: dueDate || null,
-        });
-        toast.success("Stage updated");
-      } else {
-        await createVendorPayment(projectId, {
-          vendor_name: vendorName.trim(),
-          vendor_id: vendorId,
-          label: label.trim(),
-          amount_cents: amountCents,
-          notes: notes.trim(),
-          due_date: dueDate || null,
-        });
-        toast.success("Stage added");
-      }
-      onSaved();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to save");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const fieldCls = "mt-1 w-full rounded-md border border-[#DADADA] px-3 py-2 text-sm focus:border-[#013764] focus:outline-none";
-  return (
-    <ModalShell
-      title={existing ? "Edit vendor payment stage" : "Add vendor payment stage"}
-      onClose={onClose}
-      maxWidth="max-w-lg"
-      footer={
-        <>
-          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-          <button onClick={save} disabled={busy} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">Save</button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-4">
-        <div>
-          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Vendor</label>
-          <VendorTypeahead
-            value={vendorName}
-            onChange={(name, id) => {
-              setVendorName(name);
-              setVendorId(id);
-            }}
-          />
-          <p className="mt-1 text-[11px] text-gray-400">Pick a vendor from the list, or type a name for one not yet in the system.</p>
-        </div>
-        <div>
-          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Stage label</label>
-          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. 30% deposit" className={fieldCls} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Amount ($)</label>
-            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className={`${fieldCls} text-right tabular-nums`} />
-          </div>
-          <div>
-            <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Due date</label>
-            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={fieldCls} />
-          </div>
-        </div>
-        <div>
-          <label className="text-xs font-medium uppercase tracking-wide text-gray-500">Trigger / notes</label>
-          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. On masonry completion" className={fieldCls} />
-        </div>
-      </div>
-    </ModalShell>
-  );
-}
 
 /* --------------------------------- quotes --------------------------------- */
 
@@ -2540,7 +1958,7 @@ function NewQuoteModal({
   onClose,
 }: {
   projectId: number;
-  budget: { id: number; name: string }[];
+  budget: BudgetCategory[];
   reviseOf?: ProjectQuote | null;
   onSaved: () => void;
   onClose: () => void;
@@ -2614,18 +2032,21 @@ function NewQuoteModal({
             <input id={`${uid}-amount`} type="number" className={`${fieldCls} mt-1 text-right tabular-nums`} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
           </div>
           <div>
-            <label htmlFor={`${uid}-cat`} className={labelCls}>Budget category</label>
-            <select
-              id={`${uid}-cat`}
+            <label htmlFor={`${uid}-cat`} className={labelCls}>Budget line</label>
+            <SearchableSelect
               className={`${fieldCls} mt-1`}
-              value={budgetItemId}
-              onChange={(e) => setBudgetItemId(e.target.value ? Number(e.target.value) : "")}
-            >
-              <option value="">Unassigned</option>
-              {budget.map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
+              value={budgetItemId === "" ? "" : String(budgetItemId)}
+              onChange={(v) => setBudgetItemId(v ? Number(v) : "")}
+              options={budget.flatMap((b) => {
+                const hasSubs = (b.sub_budgets?.length ?? 0) > 0;
+                return [
+                  { value: String(b.id), label: hasSubs ? `${b.name || "Untitled"} (category)` : (b.name || "Untitled") },
+                  ...(b.sub_budgets ?? []).map((s) => ({ value: String(s.id), label: `   ↳ ${s.name || "Untitled"}` })),
+                ];
+              })}
+              allLabel="Unassigned"
+            />
+            <p className="mt-1 text-[11px] text-gray-400">Tip: link to a sub-budget (indented) or a category with no sub-lines — accepting a quote copies its amount onto that exact line. A category that has sub-lines won’t receive the copy.</p>
           </div>
         </div>
         <div>
@@ -2851,6 +2272,9 @@ function FilesTab({ projectId }: { projectId: number }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | ProjectFileSource>("all");
   const [uploading, setUploading] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [picked, setPicked] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -2868,15 +2292,21 @@ function FilesTab({ projectId }: { projectId: number }) {
 
   const rows = filter === "all" ? files : files.filter((f) => f.source === filter);
 
-  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow re-selecting the same file
-    if (!file) return;
+  const openUpload = () => {
+    setPicked(null);
+    setDragOver(false);
+    setUploadOpen(true);
+  };
+
+  const confirmUpload = async () => {
+    if (!picked) return;
     setUploading(true);
     try {
-      await uploadProjectFile(projectId, file);
+      await uploadProjectFile(projectId, picked);
       await load();
       toast.success("File uploaded");
+      setUploadOpen(false);
+      setPicked(null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -2900,29 +2330,24 @@ function FilesTab({ projectId }: { projectId: number }) {
       <Card
         title="Project Files"
         action={
-          <div className="flex flex-wrap items-center gap-1.5">
-            {FILE_FILTERS.map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                aria-pressed={filter === s.key}
-                onClick={() => setFilter(s.key)}
-                className={`h-7 rounded-full px-3 text-xs font-medium transition-colors ${
-                  filter === s.key ? "bg-[#013764] text-white" : "border border-[#DADADA] bg-white text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            <SegmentedControl
+              size="sm"
+              value={filter}
+              onChange={(v) => setFilter(v as "all" | ProjectFileSource)}
+              options={FILE_FILTERS.map((s) => ({
+                key: s.key,
+                label: s.label,
+                count: s.key === "all" ? files.length : files.filter((f) => f.source === s.key).length,
+              }))}
+            />
             <button
               type="button"
-              onClick={() => fileInput.current?.click()}
-              disabled={uploading}
-              className="ml-1 h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
+              onClick={openUpload}
+              className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]"
             >
-              {uploading ? "Uploading…" : "+ Upload"}
+              + Upload
             </button>
-            <input ref={fileInput} type="file" className="hidden" onChange={onPick} />
           </div>
         }
       >
@@ -2965,6 +2390,77 @@ function FilesTab({ projectId }: { projectId: number }) {
           </div>
         )}
       </Card>
+
+      {uploadOpen && (
+        <ModalShell
+          title="Upload file"
+          onClose={() => setUploadOpen(false)}
+          maxWidth="max-w-md"
+          footer={
+            <>
+              <button
+                type="button"
+                onClick={() => setUploadOpen(false)}
+                className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmUpload}
+                disabled={!picked || uploading}
+                className="h-9 rounded-lg bg-[#013764] px-4 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
+              >
+                {uploading ? "Uploading…" : "Upload"}
+              </button>
+            </>
+          }
+        >
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) setPicked(f);
+            }}
+            onClick={() => fileInput.current?.click()}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
+              dragOver ? "border-[#013764] bg-[#013764]/5" : "border-[#DADADA] hover:bg-gray-50"
+            }`}
+          >
+            <div className="text-2xl text-gray-400" aria-hidden="true">⬆</div>
+            {picked ? (
+              <p className="text-sm font-medium text-gray-900">{picked.name}</p>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600">Drag and drop a file here, or click to browse</p>
+                <p className="text-xs text-gray-400">Attached directly to this project</p>
+              </>
+            )}
+            <input
+              ref={fileInput}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                if (f) setPicked(f);
+              }}
+            />
+          </div>
+          {picked && (
+            <button
+              type="button"
+              onClick={() => setPicked(null)}
+              className="mt-2 text-xs text-gray-400 hover:text-gray-700"
+            >
+              Choose a different file
+            </button>
+          )}
+        </ModalShell>
+      )}
     </div>
   );
 }
@@ -3079,13 +2575,19 @@ function UpdateProjectModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor={`${uid}-status`} className={labelCls}>Status</label>
-                  <select id={`${uid}-status`} className={`${fieldCls} mt-1`} value={status} onChange={(e) => setStatus(e.target.value as ProjectStatus)}>
-                    <option value="planning">Planning</option>
-                    <option value="active">Active</option>
-                    <option value="on_hold">On Hold</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+                  <SearchableSelect
+                    className={`${fieldCls} mt-1`}
+                    value={status}
+                    onChange={(v) => setStatus((v || "planning") as ProjectStatus)}
+                    options={[
+                      { value: "planning", label: "Planning" },
+                      { value: "active", label: "Active" },
+                      { value: "on_hold", label: "On Hold" },
+                      { value: "completed", label: "Completed" },
+                      { value: "cancelled", label: "Cancelled" },
+                    ]}
+                    allLabel="Select status"
+                  />
                 </div>
                 <div>
                   <label htmlFor={`${uid}-percent`} className={labelCls}>% Complete</label>
@@ -3104,17 +2606,13 @@ function UpdateProjectModal({
               </div>
               <div>
                 <label htmlFor={`${uid}-manager`} className={labelCls}>Project manager</label>
-                <select
-                  id={`${uid}-manager`}
+                <SearchableSelect
                   className={`${fieldCls} mt-1`}
-                  value={managerUserId}
-                  onChange={(e) => setManagerUserId(e.target.value === "" ? "" : Number(e.target.value))}
-                >
-                  <option value="">Unassigned</option>
-                  {managerOptions.map((m) => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
+                  value={managerUserId === "" ? "" : String(managerUserId)}
+                  onChange={(v) => setManagerUserId(v === "" ? "" : Number(v))}
+                  options={managerOptions.map((m) => ({ value: String(m.id), label: m.name }))}
+                  allLabel="Unassigned"
+                />
               </div>
               <div>
                 <label htmlFor={`${uid}-desc`} className={labelCls}>Description</label>
@@ -3279,21 +2777,20 @@ export default function ProjectDetail() {
           {tab === "maintenance" && (
             <div className="flex flex-col gap-6">
               <div className="flex flex-wrap items-center gap-2">
-                {MAINTENANCE_SUBTABS.map((t) => (
-                  <button
-                    key={t.key}
-                    type="button"
-                    aria-pressed={maintenanceTab === t.key}
-                    onClick={() => setMaintenanceTab(t.key)}
-                    className={`h-8 rounded-full px-3.5 text-sm font-medium transition-colors ${
-                      maintenanceTab === t.key
-                        ? "bg-[#013764] text-white"
-                        : "border border-[#DADADA] bg-white text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
+                <SegmentedControl
+                  value={maintenanceTab}
+                  onChange={(v) => setMaintenanceTab(v as MaintenanceSubTabKey)}
+                  options={MAINTENANCE_SUBTABS.map((t) => ({
+                    key: t.key,
+                    label: t.label,
+                    count:
+                      t.key === "tasks"
+                        ? summary.counts.tasks
+                        : t.key === "work-orders"
+                        ? summary.counts.work_orders
+                        : summary.counts.field_team_orders,
+                  }))}
+                />
               </div>
               {maintenanceTab === "tasks" && <TasksTab summary={summary} onRefresh={load} />}
               {maintenanceTab === "work-orders" && <WorkOrdersTab summary={summary} />}
