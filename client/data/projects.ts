@@ -1129,7 +1129,7 @@ export async function deleteVendorPayment(projectId: number, vpId: number): Prom
 
 /* ------------------------------ files (Part B / B2) ----------------------- */
 
-export type ProjectFileSource = "project" | "task" | "work_order" | "field_team" | "invoice";
+export type ProjectFileSource = "project" | "task" | "work_order" | "field_team" | "invoice" | "bill";
 
 export interface ProjectFileRow {
   id: number;
@@ -1142,7 +1142,9 @@ export interface ProjectFileRow {
   download: string; // "/files/<object_key>"
   created_at: string;
   deletable: boolean;
-  label: string; // "what it belongs to" — direct project uploads only (migration 140)
+  // Association (migration 141) is conveyed via `source` (project/task/work_order/
+  // invoice) + `parent` (associated task/WO name). description/uploaded_by are set
+  // for direct project uploads only.
   description: string;
   uploaded_by: string; // uploader display name ("" if unknown)
 }
@@ -1155,11 +1157,12 @@ export async function listProjectFiles(projectId: number): Promise<ProjectFileRo
 export async function uploadProjectFile(
   projectId: number,
   file: File,
-  meta?: { label?: string; description?: string },
+  meta?: { associated_type?: string; associated_id?: number; description?: string },
 ): Promise<ProjectFileRow> {
   const form = new FormData();
   form.append("file", file);
-  if (meta?.label) form.append("label", meta.label);
+  if (meta?.associated_type) form.append("associated_type", meta.associated_type);
+  if (meta?.associated_id != null) form.append("associated_id", String(meta.associated_id));
   if (meta?.description) form.append("description", meta.description);
   const res = await authFetch(`/projects/${projectId}/files`, { method: "POST", body: form });
   if (!res.ok) {

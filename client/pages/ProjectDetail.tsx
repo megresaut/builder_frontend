@@ -1072,6 +1072,8 @@ function RecordPaymentModal({
   const [receivedOn, setReceivedOn] = useState("");
   const [reference, setReference] = useState("");
   const [receipt, setReceipt] = useState<File | null>(null);
+  const [receiptDrag, setReceiptDrag] = useState(false);
+  const receiptInput = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const uid = useId();
 
@@ -1146,14 +1148,43 @@ function RecordPaymentModal({
           </div>
         </div>
         <div>
-          <label htmlFor={`${uid}-receipt`} className={labelCls}>Receipt / proof (optional)</label>
-          <input
-            id={`${uid}-receipt`}
-            type="file"
-            className="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border file:border-[#DADADA] file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-50"
-            onChange={(e) => setReceipt(e.target.files?.[0] ?? null)}
-          />
-          {receipt && <div className="mt-1 truncate text-xs text-gray-500">{receipt.name}</div>}
+          <span className={labelCls}>Receipt / proof (optional)</span>
+          <div
+            onDragOver={(e) => { e.preventDefault(); setReceiptDrag(true); }}
+            onDragLeave={() => setReceiptDrag(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setReceiptDrag(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) setReceipt(f);
+            }}
+            onClick={() => receiptInput.current?.click()}
+            className={`mt-1 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed px-4 py-5 text-center transition-colors ${
+              receiptDrag ? "border-[#013764] bg-[#013764]/5" : "border-[#DADADA] hover:bg-gray-50"
+            }`}
+          >
+            <div className="text-xl text-gray-400" aria-hidden="true">⬆</div>
+            {receipt ? (
+              <p className="text-sm font-medium text-gray-900">{receipt.name}</p>
+            ) : (
+              <p className="text-xs text-gray-600">Drag and drop a file here, or click to browse</p>
+            )}
+            <input
+              ref={receiptInput}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                if (f) setReceipt(f);
+              }}
+            />
+          </div>
+          {receipt && (
+            <button type="button" onClick={() => setReceipt(null)} className="mt-1 text-xs text-gray-400 hover:text-gray-700">
+              Choose a different file
+            </button>
+          )}
         </div>
         {payments.length > 0 && (
           <div className="border-t border-gray-100 pt-3">
@@ -1368,6 +1399,23 @@ function FinancialsTab({
   const [billables, setBillables] = useState<Billables | null>(null);
   const [detail, setDetail] = useState<ProjectInvoice | null>(null);
   const [busy, setBusy] = useState(false);
+  // Over/under-billing banner dismissal, persisted per-project so it doesn't nag.
+  const bannerKey = `pfv2:billing-banner-dismissed:${projectId}`;
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(bannerKey) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    try {
+      localStorage.setItem(bannerKey, "1");
+    } catch {
+      /* ignore */
+    }
+  };
 
   const load = useCallback(async () => {
     try {
@@ -1488,6 +1536,29 @@ function FinancialsTab({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Over/under-billing banner — first thing shown; dismissible per project. */}
+      {!bannerDismissed && (fin.billed_to_date_cents > 0 || fin.committed_cents > 0) && (
+        <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${overUnder >= 0 ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
+          <span className={`mt-0.5 ${overUnder >= 0 ? "text-emerald-600" : "text-amber-600"}`}>{overUnder >= 0 ? "▲" : "▼"}</span>
+          <div className="flex-1 text-sm">
+            <span className={`font-semibold ${overUnder >= 0 ? "text-emerald-800" : "text-amber-800"}`}>
+              {overUnder >= 0 ? "Over-billing" : "Under-billing"} {formatUSD(Math.abs(overUnder))}
+            </span>
+            <span className="ml-1 text-gray-600">
+              — billed {formatUSD(fin.billed_to_date_cents)} vs committed cost {formatUSD(fin.committed_cents)}.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={dismissBanner}
+            aria-label="Dismiss over/under-billing banner"
+            className="ml-2 text-gray-400 hover:text-gray-600"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Compact summary header */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {fin.contract_amount_cents != null && (
@@ -1497,13 +1568,6 @@ function FinancialsTab({
         <KpiCard label="Paid to vendors" value={formatUSD(fin.paid_cents)} subtitle="Cash out" accent="violet" valueColor="#7C3AED" />
         <KpiCard label="Remaining" value={formatUSD(fin.remaining_budget_cents)} subtitle="Budget − committed" accent="navy" />
         <KpiCard label="Collected" value={formatUSD(fin.collected_cents)} subtitle="From client" accent="green" valueColor="#15803D" />
-        <KpiCard
-          label={overUnder >= 0 ? "Over-billed" : "Under-billed"}
-          value={formatUSD(Math.abs(overUnder))}
-          subtitle={overUnder >= 0 ? "Billed ahead of cost" : "Cost ahead of billing"}
-          accent={overUnder >= 0 ? "green" : "amber"}
-          valueColor={overUnder >= 0 ? "#15803D" : "#B45309"}
-        />
       </div>
 
       {/* Net strip */}
@@ -2443,6 +2507,7 @@ const FILE_SOURCE_META: Record<ProjectFileSource, { label: string; text: string;
   work_order: { label: "Work Order", text: "#B45309", bg: "#FCF2E1" },
   field_team: { label: "Field Team", text: "#15803D", bg: "#E7F6EC" },
   invoice: { label: "Invoice", text: "#7C3AED", bg: "#F1EBFD" },
+  bill: { label: "Bill", text: "#B91C1C", bg: "#FEECEC" },
 };
 
 const FILE_FILTERS: { key: "all" | ProjectFileSource; label: string }[] = [
@@ -2452,6 +2517,7 @@ const FILE_FILTERS: { key: "all" | ProjectFileSource; label: string }[] = [
   { key: "work_order", label: "Work Order" },
   { key: "field_team", label: "Field Team" },
   { key: "invoice", label: "Invoice" },
+  { key: "bill", label: "Bills" },
 ];
 
 function formatBytes(n: number): string {
@@ -2464,7 +2530,7 @@ function formatBytes(n: number): string {
 // Real Files tab (Part B / B2): aggregates every attachment on the project —
 // direct uploads plus attachments living on its tasks / work orders / FTOs /
 // project invoices — and supports direct upload + delete of project files.
-function FilesTab({ projectId }: { projectId: number }) {
+function FilesTab({ projectId, summary }: { projectId: number; summary: ProjectSummary }) {
   const [files, setFiles] = useState<ProjectFileRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | ProjectFileSource>("all");
@@ -2472,7 +2538,8 @@ function FilesTab({ projectId }: { projectId: number }) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [picked, setPicked] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [uploadLabel, setUploadLabel] = useState("");
+  // Association: encoded as "project" | "invoice" | "task:<id>" | "work_order:<id>".
+  const [assoc, setAssoc] = useState<string>("project");
   const [uploadDescription, setUploadDescription] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -2494,7 +2561,7 @@ function FilesTab({ projectId }: { projectId: number }) {
   const openUpload = () => {
     setPicked(null);
     setDragOver(false);
-    setUploadLabel("");
+    setAssoc("project");
     setUploadDescription("");
     setUploadOpen(true);
   };
@@ -2503,8 +2570,10 @@ function FilesTab({ projectId }: { projectId: number }) {
     if (!picked) return;
     setUploading(true);
     try {
+      const [aType, aId] = assoc.split(":");
       await uploadProjectFile(projectId, picked, {
-        label: uploadLabel.trim(),
+        associated_type: aType,
+        associated_id: aId ? Number(aId) : undefined,
         description: uploadDescription.trim(),
       });
       await load();
@@ -2586,7 +2655,6 @@ function FilesTab({ projectId }: { projectId: number }) {
                       <td className="py-3 pr-4">
                         <div className="flex flex-wrap items-center gap-1">
                           <Pill label={meta.label} text={meta.text} bg={meta.bg} />
-                          {f.label && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">{f.label}</span>}
                         </div>
                       </td>
                       <td className="py-3 pr-4 text-gray-700">{f.parent || "—"}</td>
@@ -2677,23 +2745,18 @@ function FilesTab({ projectId }: { projectId: number }) {
 
           <div className="mt-4 grid gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-500">Label</label>
-              <input
-                type="text"
-                list="project-file-labels"
-                value={uploadLabel}
-                onChange={(e) => setUploadLabel(e.target.value)}
-                placeholder="What it belongs to — e.g. Contract, Permit, Estimate, Photo"
-                className="h-9 w-full rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#013764] focus:outline-none"
+              <label className="mb-1 block text-xs font-medium text-gray-500">Associate with</label>
+              <SearchableSelect
+                value={assoc}
+                onChange={(v) => setAssoc(v)}
+                allLabel="Project (overall)"
+                options={[
+                  { value: "project", label: "Project (overall)" },
+                  { value: "invoice", label: "Invoice" },
+                  ...summary.tasks.map((t) => ({ value: `task:${t.id}`, label: `Task: ${t.name}` })),
+                  ...summary.work_orders.map((w) => ({ value: `work_order:${w.id}`, label: `Work Order: ${w.name}` })),
+                ]}
               />
-              <datalist id="project-file-labels">
-                <option value="Contract" />
-                <option value="Permit" />
-                <option value="Estimate" />
-                <option value="Invoice" />
-                <option value="Photo" />
-                <option value="Other" />
-              </datalist>
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-500">Description</label>
@@ -3046,7 +3109,7 @@ export default function ProjectDetail() {
           )}
           {tab === "quotes" && <QuotesTab projectId={project.id} budget={summary.budget} />}
           {tab === "financials" && <FinancialsTab summary={summary} projectId={project.id} onRefreshSummary={load} />}
-          {tab === "files" && <FilesTab projectId={project.id} />}
+          {tab === "files" && <FilesTab projectId={project.id} summary={summary} />}
         </div>
       </div>
 
