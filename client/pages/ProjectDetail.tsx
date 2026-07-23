@@ -448,6 +448,13 @@ const thIcon = {
  */
 function useDialogFocus(onClose: () => void) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  // Read the latest onClose via a ref so the focus/keydown effect can run ONCE
+  // on mount. Callers pass a fresh onClose arrow each render; if it were an
+  // effect dep, every keystroke inside the dialog would tear down + re-run this
+  // effect, re-focusing the dialog's first focusable element and yanking the
+  // cursor out of whatever field is being typed in.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     const prevFocused = document.activeElement as HTMLElement | null;
     const dialog = dialogRef.current;
@@ -458,7 +465,7 @@ function useDialogFocus(onClose: () => void) {
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !dialog) return;
@@ -486,7 +493,8 @@ function useDialogFocus(onClose: () => void) {
       document.removeEventListener("keydown", onKey);
       if (prevFocused && document.contains(prevFocused)) prevFocused.focus();
     };
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount-once: focus trap set up on open, torn down on close
   return dialogRef;
 }
 
