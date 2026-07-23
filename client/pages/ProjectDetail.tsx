@@ -92,6 +92,9 @@ import {
 } from "@/components/projects/ProjectEditors";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import PersonAvatars from "@/components/PersonAvatars";
+import CreateTaskModal from "@/components/CreateTaskModal";
+import CreateWorkOrderModalV2, { type TaskOption } from "@/components/CreateWorkOrderModalV2";
+import CreateFTOModal from "@/components/CreateFTOModal";
 
 type TabKey = "dashboard" | "maintenance" | "quotes" | "financials" | "files";
 type MaintenanceSubTabKey = "tasks" | "work-orders" | "field-team";
@@ -1075,8 +1078,26 @@ function AttachTasksModal({
 
 function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
   const [attachOpen, setAttachOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const milestones = summary.milestones;
   const tasks = summary.tasks;
+
+  // New task: create via the shared CreateTaskModal (scoped to this project's
+  // property), then attach the fresh task to the project via the same fetcher
+  // "+ Attach task" uses, and reload so it appears in the list + counts.
+  const handleTaskCreated = async (task: any) => {
+    const taskId = task?.id ?? task?.task?.id;
+    setCreateOpen(false);
+    if (taskId != null) {
+      try {
+        await attachTasks(summary.project.id, [{ task_id: taskId }]);
+        toast.success("Task created and added to project");
+      } catch (e) {
+        toast.error(errMessage(e, "Task created, but could not attach it to the project"));
+      }
+    }
+    onRefresh();
+  };
 
   const assignMilestone = async (taskId: number, milestoneId: number | null) => {
     try {
@@ -1100,7 +1121,12 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
   return (
     <Card
       title={`Tasks in this project (${tasks.length})`}
-      action={<button onClick={() => setAttachOpen(true)} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">+ Attach task</button>}
+      action={
+        <div className="flex items-center gap-2">
+          <button onClick={() => setCreateOpen(true)} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">+ New task</button>
+          <button onClick={() => setAttachOpen(true)} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">+ Attach task</button>
+        </div>
+      }
     >
       {tasks.length === 0 ? (
         <p className="text-sm text-gray-500">No tasks attached yet. Use “+ Attach task” to pull existing tasks into this project.</p>
@@ -1152,12 +1178,41 @@ function TasksTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: 
           onClose={() => setAttachOpen(false)}
         />
       )}
+      <CreateTaskModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        defaultPropertyId={summary.project.property_id}
+        onCreated={handleTaskCreated}
+      />
     </Card>
   );
 }
 
-function WorkOrdersTab({ summary }: { summary: ProjectSummary }) {
+function WorkOrdersTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
+  const [createOpen, setCreateOpen] = useState(false);
   const wos = summary.work_orders;
+  const tasks = summary.tasks;
+  const hasTasks = tasks.length > 0;
+
+  // A work order belongs to a task, so the WO modal's own task dropdown is fed
+  // this project's tasks (property-scoped). No tasks → prompt to add one first.
+  const taskOptions: TaskOption[] = tasks.map((t) => ({
+    id: t.id,
+    label: t.name,
+    name: t.name,
+    propertyId: summary.project.property_id,
+    priority: t.priority,
+    status: t.status,
+  }));
+
+  const openCreate = () => {
+    if (!hasTasks) {
+      toast.error("Add a task to this project first — work orders belong to a task.");
+      return;
+    }
+    setCreateOpen(true);
+  };
+
   const totalBilled = wos.reduce((s, w) => s + w.billed_cents, 0);
   return (
     <div className="flex flex-col gap-6">
@@ -1166,7 +1221,7 @@ function WorkOrdersTab({ summary }: { summary: ProjectSummary }) {
         <KpiCard label="Completed" value={String(wos.filter((w) => w.status === "completed").length)} subtitle="Finished & billed" accent="green" valueColor="#15803D" />
         <KpiCard label="Billed to Date" value={formatUSD(totalBilled)} subtitle="Vendor work performed" accent="violet" />
       </div>
-      <Card title={`Work Orders (${wos.length})`} action={<button disabled title="Create work orders from the Maintenance module" className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white opacity-50 cursor-not-allowed">+ New work order</button>}>
+      <Card title={`Work Orders (${wos.length})`} action={<button onClick={openCreate} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">+ New work order</button>}>
         {wos.length === 0 ? (
           <p className="text-sm text-gray-500">No work orders on this project’s tasks yet.</p>
         ) : (
@@ -1195,12 +1250,43 @@ function WorkOrdersTab({ summary }: { summary: ProjectSummary }) {
           </div>
         )}
       </Card>
+      <CreateWorkOrderModalV2
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        mode="create"
+        propertyId={summary.project.property_id}
+        taskOptions={taskOptions}
+        onWorkOrderCreated={() => {
+          setCreateOpen(false);
+          onRefresh();
+        }}
+      />
     </div>
   );
 }
 
-function FieldTeamTab({ summary }: { summary: ProjectSummary }) {
+function FieldTeamTab({ summary, onRefresh }: { summary: ProjectSummary; onRefresh: () => void }) {
+  const [createOpen, setCreateOpen] = useState(false);
   const ftos = summary.field_team_orders;
+  const tasks = summary.tasks;
+  const hasTasks = tasks.length > 0;
+  // FTOs hang off a task; the FTO modal takes a single locked task, so pick one
+  // of the project's tasks here before opening.
+  const [taskId, setTaskId] = useState<number | null>(tasks[0]?.id ?? null);
+  const selectedTask = tasks.find((t) => t.id === taskId) ?? null;
+
+  const openCreate = () => {
+    if (!hasTasks) {
+      toast.error("Add a task to this project first — field team orders belong to a task.");
+      return;
+    }
+    if (taskId == null) {
+      toast.error("Pick a task for this field team order.");
+      return;
+    }
+    setCreateOpen(true);
+  };
+
   const totalHours = ftos.reduce((s, f) => s + f.hours_decimal, 0);
   const totalAmount = ftos.reduce((s, f) => s + (f.amount_cents ?? 0), 0);
   return (
@@ -1210,7 +1296,23 @@ function FieldTeamTab({ summary }: { summary: ProjectSummary }) {
         <KpiCard label="Total Hours" value={String(totalHours)} subtitle="Logged by field team" accent="blue" />
         <KpiCard label="Labor Cost" value={formatUSD(totalAmount)} subtitle="At standard rate" accent="violet" />
       </div>
-      <Card title={`Field Team Orders (${ftos.length})`} action={<button disabled title="Create field team orders from the Maintenance module" className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white opacity-50 cursor-not-allowed">+ New field team order</button>}>
+      <Card
+        title={`Field Team Orders (${ftos.length})`}
+        action={
+          <div className="flex items-center gap-2">
+            {hasTasks && (
+              <SearchableSelect
+                className="w-44 rounded-md border-[#DADADA] text-xs"
+                value={taskId != null ? String(taskId) : ""}
+                onChange={(v) => setTaskId(v === "" ? null : Number(v))}
+                options={tasks.map((t) => ({ value: String(t.id), label: t.name }))}
+                allLabel="Select task"
+              />
+            )}
+            <button onClick={openCreate} className="h-7 rounded-lg bg-[#013764] px-2.5 text-xs font-medium text-white hover:bg-[#003a73]">+ New field team order</button>
+          </div>
+        }
+      >
         {ftos.length === 0 ? (
           <p className="text-sm text-gray-500">No field team orders on this project.</p>
         ) : (
@@ -1238,6 +1340,18 @@ function FieldTeamTab({ summary }: { summary: ProjectSummary }) {
           </div>
         )}
       </Card>
+      <CreateFTOModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        lockedPropertyId={summary.project.property_id}
+        lockedPropertyLabel={summary.project.property_name}
+        lockedTaskId={taskId ?? undefined}
+        lockedTaskLabel={selectedTask?.name}
+        onSuccess={() => {
+          setCreateOpen(false);
+          onRefresh();
+        }}
+      />
     </div>
   );
 }
@@ -3336,8 +3450,8 @@ export default function ProjectDetail() {
                 />
               </div>
               {maintenanceTab === "tasks" && <TasksTab summary={summary} onRefresh={load} />}
-              {maintenanceTab === "work-orders" && <WorkOrdersTab summary={summary} />}
-              {maintenanceTab === "field-team" && <FieldTeamTab summary={summary} />}
+              {maintenanceTab === "work-orders" && <WorkOrdersTab summary={summary} onRefresh={load} />}
+              {maintenanceTab === "field-team" && <FieldTeamTab summary={summary} onRefresh={load} />}
             </div>
           )}
           {tab === "quotes" && <QuotesTab projectId={project.id} budget={summary.budget} />}
