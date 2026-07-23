@@ -91,6 +91,7 @@ import {
   type MilestoneDraft,
 } from "@/components/projects/ProjectEditors";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import PersonAvatars from "@/components/PersonAvatars";
 
 type TabKey = "dashboard" | "maintenance" | "quotes" | "financials" | "files";
 type MaintenanceSubTabKey = "tasks" | "work-orders" | "field-team";
@@ -745,6 +746,35 @@ function DashboardTab({ summary, onEdit }: { summary: ProjectSummary; onEdit: ()
               <dd className="flex items-center gap-2">
                 {project.manager_initials && <Avatar initials={project.manager_initials} />}
                 <span className="text-gray-800">{project.manager_name || "Unassigned"}</span>
+              </dd>
+            </div>
+            <div className="border-t border-gray-100 pt-3">
+              <dt className="text-gray-500">Field team managers</dt>
+              <dd className="mt-1">
+                <PersonAvatars
+                  people={(project.field_team_managers ?? []).map((m) => ({
+                    id: m.id,
+                    name: m.name,
+                    initials: m.initials,
+                  }))}
+                  fallback="—"
+                  size="sm"
+                />
+              </dd>
+            </div>
+            <div className="border-t border-gray-100 pt-3">
+              <dt className="text-gray-500">Collaborators</dt>
+              <dd className="mt-1">
+                <PersonAvatars
+                  people={(project.collaborators ?? []).map((m) => ({
+                    id: m.id,
+                    name: m.name,
+                    initials: m.initials,
+                  }))}
+                  type="collaborator"
+                  fallback="—"
+                  size="sm"
+                />
               </dd>
             </div>
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">
@@ -2794,6 +2824,17 @@ function UpdateProjectModal({
   const [targetEndDate, setTargetEndDate] = useState(project.target_end_date ?? "");
   const [managerUserId, setManagerUserId] = useState<number | "">(project.manager_user_id ?? "");
   const [managers, setManagers] = useState<{ id: number; name: string }[]>([]);
+  // Field team managers + collaborators (migration 142) — display-only multi-
+  // selects. SearchableSelect multi mode uses string[]; converted to number[]
+  // for the PATCH body.
+  const [fieldTeamManagerIds, setFieldTeamManagerIds] = useState<string[]>(
+    (project.field_team_manager_ids ?? []).map(String),
+  );
+  const [collaboratorIds, setCollaboratorIds] = useState<string[]>(
+    (project.collaborator_ids ?? []).map(String),
+  );
+  const [fieldTeam, setFieldTeam] = useState<{ id: number; name: string }[]>([]);
+  const [allUsers, setAllUsers] = useState<{ id: number; name: string }[]>([]);
   const [description, setDescription] = useState(project.description);
   const [contractAmount, setContractAmount] = useState(
     project.contract_amount_cents != null ? centsToInput(project.contract_amount_cents) : "",
@@ -2805,18 +2846,25 @@ function UpdateProjectModal({
   const titleId = useId();
   const dialogRef = useDialogFocus(onClose);
 
-  // Manager picker reuses the existing users data source (spec §7).
+  // Manager / field-team / collaborator pickers reuse the existing users data
+  // sources (spec §7). Field team candidates come from /users/field-team,
+  // collaborators from /users (all users).
   useEffect(() => {
     let cancelled = false;
-    fetchJSON("/users/property-managers")
-      .then((rows) => {
+    const toRow = (u: { id: number; name?: string; email?: string }) => ({
+      id: u.id,
+      name: u.name || u.email || `User ${u.id}`,
+    });
+    Promise.all([
+      fetchJSON("/users/property-managers").catch(() => []),
+      fetchJSON("/users/field-team").catch(() => []),
+      fetchJSON("/users").catch(() => []),
+    ])
+      .then(([managersRes, fieldTeamRes, allUsersRes]) => {
         if (cancelled) return;
-        setManagers(
-          ((rows ?? []) as { id: number; name?: string; email?: string }[]).map((u) => ({
-            id: u.id,
-            name: u.name || u.email || `User ${u.id}`,
-          })),
-        );
+        setManagers(((managersRes ?? []) as any[]).map(toRow));
+        setFieldTeam(((fieldTeamRes ?? []) as any[]).map(toRow));
+        setAllUsers(((allUsersRes ?? []) as any[]).map(toRow));
       })
       .catch(() => {});
     return () => {
@@ -2844,6 +2892,8 @@ function UpdateProjectModal({
         ...(startDate ? { start_date: startDate } : {}),
         ...(targetEndDate ? { target_end_date: targetEndDate } : {}),
         manager_user_id: managerUserId === "" ? null : managerUserId,
+        field_team_manager_ids: fieldTeamManagerIds.map(Number),
+        collaborator_ids: collaboratorIds.map(Number),
         description,
         ...(contractAmount.trim() !== "" ? { contract_amount_cents: dollarsToCents(contractAmount) } : {}),
       });
@@ -2923,6 +2973,30 @@ function UpdateProjectModal({
                   options={managerOptions.map((m) => ({ value: String(m.id), label: m.name }))}
                   allLabel="Unassigned"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Field team managers</label>
+                  <SearchableSelect
+                    multiSelect
+                    className={`${fieldCls} mt-1`}
+                    value={fieldTeamManagerIds}
+                    onChange={setFieldTeamManagerIds}
+                    options={fieldTeam.map((m) => ({ value: String(m.id), label: m.name }))}
+                    allLabel="None"
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Collaborators</label>
+                  <SearchableSelect
+                    multiSelect
+                    className={`${fieldCls} mt-1`}
+                    value={collaboratorIds}
+                    onChange={setCollaboratorIds}
+                    options={allUsers.map((m) => ({ value: String(m.id), label: m.name }))}
+                    allLabel="None"
+                  />
+                </div>
               </div>
               <div>
                 <label htmlFor={`${uid}-desc`} className={labelCls}>Description</label>

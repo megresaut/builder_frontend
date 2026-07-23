@@ -96,6 +96,11 @@ export default function CreateProject() {
   const [propertyId, setPropertyId] = useState<number | "">("");
   const [status, setStatus] = useState<ProjectStatus>("planning");
   const [managerUserId, setManagerUserId] = useState<number | "">("");
+  // Field team managers + collaborators (migration 142) — multi-selects, display
+  // only. SearchableSelect multi mode works in string[]; converted to number[]
+  // for the payload.
+  const [fieldTeamManagerIds, setFieldTeamManagerIds] = useState<string[]>([]);
+  const [collaboratorIds, setCollaboratorIds] = useState<string[]>([]);
   const [startDate, setStartDate] = useState("");
   const [targetEndDate, setTargetEndDate] = useState("");
   const [description, setDescription] = useState("");
@@ -108,6 +113,8 @@ export default function CreateProject() {
 
   const [properties, setProperties] = useState<SimpleProperty[]>([]);
   const [managers, setManagers] = useState<SimpleManager[]>([]);
+  const [fieldTeam, setFieldTeam] = useState<SimpleManager[]>([]);
+  const [allUsers, setAllUsers] = useState<SimpleManager[]>([]);
   const [unassignedTasks, setUnassignedTasks] = useState<UnassignedTask[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -115,20 +122,23 @@ export default function CreateProject() {
   useEffect(() => {
     let cancelled = false;
     setOptionsLoading(true);
+    const toManager = (u: any): SimpleManager => {
+      const uname = u.name || u.email || `User #${u.id}`;
+      return { id: Number(u.id), name: uname, initials: initialsFromName(uname) };
+    };
     Promise.all([
       fetchJSON("/properties").catch(() => []),
       fetchJSON("/users/property-managers").catch(() => []),
       listUnassignedTasks().catch(() => []),
+      fetchJSON("/users/field-team").catch(() => []),
+      fetchJSON("/users").catch(() => []),
     ])
-      .then(([propsRes, managersRes, tasksRes]) => {
+      .then(([propsRes, managersRes, tasksRes, fieldTeamRes, allUsersRes]) => {
         if (cancelled) return;
         setProperties(propsRes || []);
-        setManagers(
-          (managersRes || []).map((u: any) => {
-            const uname = u.name || u.email || `User #${u.id}`;
-            return { id: Number(u.id), name: uname, initials: initialsFromName(uname) };
-          }),
-        );
+        setManagers((managersRes || []).map(toManager));
+        setFieldTeam((fieldTeamRes || []).map(toManager));
+        setAllUsers((allUsersRes || []).map(toManager));
         setUnassignedTasks(tasksRes || []);
       })
       .catch((err) => {
@@ -214,6 +224,8 @@ export default function CreateProject() {
       property_id: propertyId,
       status,
       ...(managerUserId !== "" ? { manager_user_id: managerUserId } : {}),
+      ...(fieldTeamManagerIds.length ? { field_team_manager_ids: fieldTeamManagerIds.map(Number) } : {}),
+      ...(collaboratorIds.length ? { collaborator_ids: collaboratorIds.map(Number) } : {}),
       ...(startDate ? { start_date: startDate } : {}),
       ...(targetEndDate ? { target_end_date: targetEndDate } : {}),
       ...(description.trim() ? { description: description.trim() } : {}),
@@ -318,6 +330,30 @@ export default function CreateProject() {
                       onChange={(v) => setManagerUserId(v === "" ? "" : Number(v))}
                       options={managers.map((m) => ({ value: String(m.id), label: m.name }))}
                       allLabel={optionsLoading && managers.length === 0 ? "Loading…" : "Unassigned"}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={label}>Field team managers</label>
+                    <SearchableSelect
+                      multiSelect
+                      className={`${field} mt-1`}
+                      value={fieldTeamManagerIds}
+                      onChange={setFieldTeamManagerIds}
+                      options={fieldTeam.map((m) => ({ value: String(m.id), label: m.name }))}
+                      allLabel={optionsLoading && fieldTeam.length === 0 ? "Loading…" : "None"}
+                    />
+                  </div>
+                  <div>
+                    <label className={label}>Collaborators</label>
+                    <SearchableSelect
+                      multiSelect
+                      className={`${field} mt-1`}
+                      value={collaboratorIds}
+                      onChange={setCollaboratorIds}
+                      options={allUsers.map((m) => ({ value: String(m.id), label: m.name }))}
+                      allLabel={optionsLoading && allUsers.length === 0 ? "Loading…" : "None"}
                     />
                   </div>
                 </div>

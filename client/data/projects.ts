@@ -34,6 +34,13 @@ export interface Project {
   manager_user_id: number | null;
   manager_name: string;
   manager_initials: string;
+  // Field team managers + collaborators (migration 142) — display-only lists.
+  // The *_ids arrays are the stored ids; the resolved arrays carry name +
+  // initials for display. All four are always present ([], never null).
+  field_team_manager_ids: number[];
+  collaborator_ids: number[];
+  field_team_managers: { id: number; name: string; initials: string }[];
+  collaborators: { id: number; name: string; initials: string }[];
   is_visible_to_client: boolean;
   created_by_user_id: number | null;
   last_edited_by_user_id: number | null;
@@ -288,6 +295,8 @@ export interface CreateProjectPayload {
   property_id: number;
   status?: ProjectStatus;
   manager_user_id?: number | null;
+  field_team_manager_ids?: number[];
+  collaborator_ids?: number[];
   start_date?: string;
   target_end_date?: string;
   description?: string;
@@ -316,6 +325,8 @@ export interface UpdateProjectPayload {
   target_end_date?: string;
   actual_end_date?: string;
   manager_user_id?: number | null;
+  field_team_manager_ids?: number[];
+  collaborator_ids?: number[];
   description?: string;
   is_visible_to_client?: boolean;
   contract_amount_cents?: number; // agreed client price (Package A); integer cents
