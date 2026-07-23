@@ -485,6 +485,10 @@ export interface ProjectQuote {
   // Bidding (Part B / B3)
   budget_item_id: number | null;
   supersedes_quote_id: number | null;
+  // Per-sub-budget breakdown (migration 144): null for leaf-linked quotes; an
+  // array of {budget_item_id, amount_cents} (Σ = amount_cents) when the quote is
+  // tied to a category that has sub-budgets. Accept → budget overwrites each child.
+  budget_breakdown: { budget_item_id: number; amount_cents: number }[] | null;
   // Quote document (uploaded via the attachment endpoint) — all null until a file
   // is attached. Served at /files/<attachment_object_key>.
   attachment_object_key: string | null;
@@ -505,6 +509,10 @@ export interface CreateQuotePayload {
   source?: QuoteSource;
   budget_item_id?: number | null;
   supersedes_quote_id?: number | null; // create as a revision of an earlier quote
+  // Optional per-sub-budget split. When set, budget_item_id must be a category
+  // and each entry a sub-budget of it; amount_cents should equal the Σ (backend
+  // recomputes it authoritatively).
+  budget_breakdown?: { budget_item_id: number; amount_cents: number }[];
 }
 
 export interface UpdateQuotePayload {

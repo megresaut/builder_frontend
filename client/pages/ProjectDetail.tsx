@@ -2928,6 +2928,9 @@ function NewQuoteModal({
   const [amount, setAmount] = useState("");
   const [scope, setScope] = useState("");
   const [budgetItemId, setBudgetItemId] = useState<number | "">("");
+  // Per-sub-budget amounts (keyed by sub-budget id) — used only when the selected
+  // budget line is a CATEGORY that has sub-budgets (migration 144 breakdown).
+  const [subAmounts, setSubAmounts] = useState<Record<number, string>>({});
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -2949,6 +2952,20 @@ function NewQuoteModal({
     };
   }, []);
 
+  // The selected budget line, when it's a CATEGORY that has sub-budgets. In that
+  // case we capture a per-sub-line breakdown instead of a single amount, and the
+  // Quoted amount is the (read-only) Σ of the sub-line amounts.
+  const selectedCategoryWithSubs =
+    budgetItemId === ""
+      ? undefined
+      : budget.find((c) => c.id === budgetItemId && (c.sub_budgets?.length ?? 0) > 0);
+  const subTotalCents = selectedCategoryWithSubs
+    ? selectedCategoryWithSubs.sub_budgets.reduce(
+        (acc, s) => acc + Math.round((Number(subAmounts[s.id]) || 0) * 100),
+        0,
+      )
+    : 0;
+
   const submit = async () => {
     if (vendorId === "") {
       toast.error("Select a vendor");
@@ -2957,13 +2974,21 @@ function NewQuoteModal({
     setSaving(true);
     try {
       const vendorName = vendors.find((v) => v.id === vendorId)?.name ?? "";
+      const breakdown = selectedCategoryWithSubs
+        ? selectedCategoryWithSubs.sub_budgets.map((s) => ({
+            budget_item_id: s.id,
+            amount_cents: Math.round((Number(subAmounts[s.id]) || 0) * 100),
+          }))
+        : undefined;
+      const amountCents = selectedCategoryWithSubs ? subTotalCents : Math.round((Number(amount) || 0) * 100);
       const newQuote = await createQuote(projectId, {
         vendor_id: vendorId,
         vendor_name: vendorName,
         trade: trade.trim(),
         scope_description: scope.trim(),
-        amount_cents: Math.round((Number(amount) || 0) * 100),
+        amount_cents: amountCents,
         budget_item_id: budgetItemId === "" ? null : budgetItemId,
+        ...(breakdown ? { budget_breakdown: breakdown } : {}),
       });
       if (file) {
         await uploadQuoteAttachment(projectId, newQuote.id, file);
@@ -3011,7 +3036,20 @@ function NewQuoteModal({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor={`${uid}-amount`} className={labelCls}>Quoted amount ($)</label>
-            <input id={`${uid}-amount`} type="number" className={`${fieldCls} mt-1 text-right tabular-nums`} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+            {selectedCategoryWithSubs ? (
+              // Category with sub-budgets: the amount is the read-only Σ of the
+              // per-sub-line inputs below.
+              <input
+                id={`${uid}-amount`}
+                type="text"
+                readOnly
+                aria-label="Quoted amount (auto-summed from sub-budgets)"
+                className={`${fieldCls} mt-1 text-right tabular-nums bg-gray-50 text-gray-700`}
+                value={formatUSD(subTotalCents)}
+              />
+            ) : (
+              <input id={`${uid}-amount`} type="number" className={`${fieldCls} mt-1 text-right tabular-nums`} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+            )}
           </div>
           <div>
             <label htmlFor={`${uid}-cat`} className={labelCls}>Budget line</label>
@@ -3030,6 +3068,33 @@ function NewQuoteModal({
             />
           </div>
         </div>
+        {selectedCategoryWithSubs && (
+          <div className="rounded-xl border border-[#DADADA] bg-gray-50/50 p-3">
+            <p className="mb-2 text-xs font-medium text-gray-600">
+              Break the quote down by sub-budget — the total above is the sum, and Accept → budget updates each line.
+            </p>
+            <div className="flex flex-col gap-2">
+              {selectedCategoryWithSubs.sub_budgets.map((s) => (
+                <div key={s.id} className="grid grid-cols-2 items-center gap-3">
+                  <label htmlFor={`${uid}-sub-${s.id}`} className="truncate text-sm text-gray-700" title={s.name || "Untitled"}>
+                    {s.name || "Untitled"}
+                  </label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+                    <input
+                      id={`${uid}-sub-${s.id}`}
+                      type="number"
+                      className={`${fieldCls} pl-6 text-right tabular-nums`}
+                      value={subAmounts[s.id] ?? ""}
+                      onChange={(e) => setSubAmounts((prev) => ({ ...prev, [s.id]: e.target.value }))}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div>
           <label htmlFor={`${uid}-scope`} className={labelCls}>Scope</label>
           <textarea id={`${uid}-scope`} className={`${fieldCls} mt-1`} rows={3} value={scope} onChange={(e) => setScope(e.target.value)} placeholder="What the quote covers — the more detail, the better the fairness analysis." />
