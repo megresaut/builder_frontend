@@ -1747,27 +1747,28 @@ function FinancialsTab({
         </div>
       )}
 
-      {/* Compact summary header */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {fin.contract_amount_cents != null && (
-          <KpiCard label="Contract" value={formatUSD(fin.contract_amount_cents)} accent="navy" />
-        )}
-        <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle="Booked bills" accent="amber" valueColor="#B45309" />
-        <KpiCard label="Paid to vendors" value={formatUSD(fin.paid_cents)} subtitle="Cash out" accent="violet" valueColor="#7C3AED" />
-        <KpiCard label="Remaining" value={formatUSD(fin.remaining_budget_cents)} subtitle="Budget − committed" accent="navy" />
-        <KpiCard label="Collected" value={formatUSD(fin.collected_cents)} subtitle="From client" accent="green" valueColor="#15803D" />
-      </div>
-
-      {/* Net strip */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
-        <span className="text-gray-600">
-          Paid to vendors <span className="font-semibold text-red-700">−{formatUSD(paidOut)}</span>
-          <span className="mx-2 text-gray-300">·</span>
-          Received from client <span className="font-semibold text-green-700">+{formatUSD(receivedIn)}</span>
-        </span>
-        <span className={`font-semibold ${net < 0 ? "text-amber-700" : "text-green-700"}`}>
-          {net < 0 ? `AVM fronting ${formatUSD(-net)}` : net > 0 ? `Collected ahead ${formatUSD(net)}` : "Fully settled"}
-        </span>
+      {/* Financial summary — four money metrics + net position as one cohesive
+          block. Cards reuse the Dashboard KpiCard styling; the net-position row
+          is attached directly beneath (same border treatment) so it reads as a
+          single unit rather than a floating strip. */}
+      <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle="Booked bills" accent="amber" valueColor="#B45309" />
+          <KpiCard label="Paid to vendors" value={formatUSD(fin.paid_cents)} subtitle="Cash out" accent="violet" valueColor="#7C3AED" />
+          <KpiCard label="Collected from client" value={formatUSD(fin.collected_cents)} subtitle="Cash in" accent="green" valueColor="#15803D" />
+          <KpiCard label="Remaining" value={formatUSD(fin.remaining_budget_cents)} subtitle="Budget − committed" accent="navy" valueColor={fin.remaining_budget_cents < 0 ? "#B91C1C" : undefined} />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+          <span className="text-gray-600">
+            <span className="mr-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Net position</span>
+            Paid to vendors <span className="font-semibold text-red-700">−{formatUSD(paidOut)}</span>
+            <span className="mx-2 text-gray-300">·</span>
+            Received from client <span className="font-semibold text-green-700">+{formatUSD(receivedIn)}</span>
+          </span>
+          <span className={`font-semibold ${net < 0 ? "text-amber-700" : "text-green-700"}`}>
+            {net < 0 ? `AVM fronting ${formatUSD(-net)}` : net > 0 ? `Collected ahead ${formatUSD(net)}` : "Fully settled"}
+          </span>
+        </div>
       </div>
 
       {/* Two lanes: bills → vendors (out), payments ← client (in) */}
