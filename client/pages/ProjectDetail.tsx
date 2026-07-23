@@ -24,6 +24,7 @@ import {
   updateQuote,
   deleteQuote,
   analyzeQuote,
+  uploadQuoteAttachment,
   listProjectInvoices,
   getProjectInvoice,
   createProjectInvoice,
@@ -2840,40 +2841,64 @@ function QuoteAnalysisPanel({ a }: { a: NonNullable<ProjectQuote["ai_analysis"]>
 function NewQuoteModal({
   projectId,
   budget,
-  reviseOf,
   onSaved,
   onClose,
 }: {
   projectId: number;
   budget: BudgetCategory[];
-  reviseOf?: ProjectQuote | null;
   onSaved: () => void;
   onClose: () => void;
 }) {
-  const [vendorName, setVendorName] = useState(reviseOf?.vendor_name ?? "");
-  const [trade, setTrade] = useState(reviseOf?.trade ?? "");
-  const [amount, setAmount] = useState(reviseOf ? String(reviseOf.amount_cents / 100) : "");
-  const [scope, setScope] = useState(reviseOf?.scope_description ?? "");
-  const [budgetItemId, setBudgetItemId] = useState<number | "">(reviseOf?.budget_item_id ?? "");
+  // Vendor is now picked by id from a real dropdown (GET /vendors via the shared
+  // searchVendors fetcher). We keep both the id (for the payload) and the name
+  // (for display); the label comes from the loaded vendor list.
+  const [vendors, setVendors] = useState<VendorLite[]>([]);
+  const [vendorId, setVendorId] = useState<number | "">("");
+  const [trade, setTrade] = useState("");
+  const [amount, setAmount] = useState("");
+  const [scope, setScope] = useState("");
+  const [budgetItemId, setBudgetItemId] = useState<number | "">("");
+  const [file, setFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [saving, setSaving] = useState(false);
   const uid = useId();
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  // Preload active vendors once; SearchableSelect filters the list client-side.
+  useEffect(() => {
+    let cancelled = false;
+    searchVendors("", 1000)
+      .then((rows) => {
+        if (!cancelled) setVendors(rows);
+      })
+      .catch(() => {
+        /* dropdown stays empty; validation blocks submit */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const submit = async () => {
-    if (!vendorName.trim() && !trade.trim()) {
-      toast.error("Add a vendor or trade");
+    if (vendorId === "") {
+      toast.error("Select a vendor");
       return;
     }
     setSaving(true);
     try {
-      await createQuote(projectId, {
-        vendor_name: vendorName.trim(),
+      const vendorName = vendors.find((v) => v.id === vendorId)?.name ?? "";
+      const newQuote = await createQuote(projectId, {
+        vendor_id: vendorId,
+        vendor_name: vendorName,
         trade: trade.trim(),
         scope_description: scope.trim(),
         amount_cents: Math.round((Number(amount) || 0) * 100),
         budget_item_id: budgetItemId === "" ? null : budgetItemId,
-        supersedes_quote_id: reviseOf ? reviseOf.id : null,
       });
-      toast.success(reviseOf ? "Revision added & analyzed" : "Quote added & analyzed");
+      if (file) {
+        await uploadQuoteAttachment(projectId, newQuote.id, file);
+      }
+      toast.success("Quote added & analyzed");
       onSaved();
       onClose();
     } catch (e) {
@@ -2885,7 +2910,7 @@ function NewQuoteModal({
 
   return (
     <ModalShell
-      title={reviseOf ? "Revise quote" : "Add quote"}
+      title="Add quote"
       onClose={onClose}
       footer={
         <>
@@ -2897,16 +2922,16 @@ function NewQuoteModal({
       }
     >
       <div className="flex flex-col gap-4">
-        {reviseOf && (
-          <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
-            Revising <span className="font-medium text-gray-700">{reviseOf.vendor_name || "quote"}</span> ({formatUSD(reviseOf.amount_cents)}). The
-            original is kept for history; this becomes the current quote.
-          </p>
-        )}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor={`${uid}-vendor`} className={labelCls}>Vendor</label>
-            <input id={`${uid}-vendor`} className={`${fieldCls} mt-1`} value={vendorName} onChange={(e) => setVendorName(e.target.value)} placeholder="e.g. Frank Clark" />
+            <SearchableSelect
+              className={`${fieldCls} mt-1`}
+              value={vendorId === "" ? "" : String(vendorId)}
+              onChange={(v) => setVendorId(v ? Number(v) : "")}
+              options={vendors.map((v) => ({ value: String(v.id), label: v.name }))}
+              allLabel="Select a vendor…"
+            />
           </div>
           <div>
             <label htmlFor={`${uid}-trade`} className={labelCls}>Trade</label>
@@ -2933,12 +2958,50 @@ function NewQuoteModal({
               })}
               allLabel="Unassigned"
             />
-            <p className="mt-1 text-[11px] text-gray-400">Tip: link to a sub-budget (indented) or a category with no sub-lines — accepting a quote copies its amount onto that exact line. A category that has sub-lines won’t receive the copy.</p>
           </div>
         </div>
         <div>
           <label htmlFor={`${uid}-scope`} className={labelCls}>Scope</label>
           <textarea id={`${uid}-scope`} className={`${fieldCls} mt-1`} rows={3} value={scope} onChange={(e) => setScope(e.target.value)} placeholder="What the quote covers — the more detail, the better the fairness analysis." />
+        </div>
+        <div>
+          <label className={labelCls}>Quote document (optional)</label>
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) setFile(f);
+            }}
+            onClick={() => fileInput.current?.click()}
+            className={`mt-1 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-6 py-6 text-center transition-colors ${
+              dragOver ? "border-[#013764] bg-[#013764]/5" : "border-[#DADADA] hover:bg-gray-50"
+            }`}
+          >
+            <div className="text-xl text-gray-400" aria-hidden="true">⬆</div>
+            {file ? (
+              <p className="text-sm font-medium text-gray-900">{file.name}</p>
+            ) : (
+              <p className="text-sm text-gray-600">Drag and drop the quote PDF here, or click to browse</p>
+            )}
+            <input
+              ref={fileInput}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                if (f) setFile(f);
+              }}
+            />
+          </div>
+          {file && (
+            <button type="button" onClick={() => setFile(null)} className="mt-1.5 text-xs text-gray-400 hover:text-gray-700">
+              Remove file
+            </button>
+          )}
         </div>
       </div>
     </ModalShell>
@@ -2954,7 +3017,6 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [reviseOf, setReviseOf] = useState<ProjectQuote | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
@@ -2993,8 +3055,16 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
   };
   const accept = async (q: ProjectQuote, copyToBudget: boolean) => {
     try {
-      await acceptQuote(projectId, q.id, { copy_to_budget: copyToBudget });
-      toast.success(copyToBudget ? "Accepted — amount copied into the budget" : "Quote accepted");
+      const res = await acceptQuote(projectId, q.id, { copy_to_budget: copyToBudget });
+      if (res.warnings && res.warnings.length > 0) {
+        res.warnings.forEach((w) => toast.warning(w));
+      } else {
+        toast.success(
+          copyToBudget
+            ? "Accepted — task & work order created; amount copied into the budget"
+            : "Accepted — task & work order created",
+        );
+      }
       load();
     } catch (e) {
       toast.error(errMessage(e, "Failed to accept quote"));
@@ -3044,6 +3114,20 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
               {superseded && <span className="text-[11px] text-gray-400">superseded</span>}
               {q.supersedes_quote_id != null && <span className="text-[11px] text-gray-400">revision</span>}
               {q.source === "verbal_intake" && <span className="text-[11px] text-gray-400">from intake</span>}
+              {q.created_work_order_id != null && (
+                <span className="text-[11px] font-medium text-green-700">→ WO created</span>
+              )}
+              {q.attachment_object_key && (
+                <a
+                  href={`${API_BASE}/files/${q.attachment_object_key}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={q.attachment_file_name ?? "Quote document"}
+                  className="text-[11px] text-blue-600 hover:underline"
+                >
+                  📎 {q.attachment_file_name || "Document"}
+                </a>
+              )}
             </div>
             {q.scope_description && <div className="mt-1 text-[13px] text-gray-500">{q.scope_description}</div>}
           </div>
@@ -3071,7 +3155,6 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
           {q.status !== "shortlisted" && q.status !== "accepted" && (
             <button onClick={() => changeStatus(q, "shortlisted")} className="text-xs font-medium text-blue-600 hover:underline">Shortlist</button>
           )}
-          <button onClick={() => setReviseOf(q)} className="text-xs font-medium text-gray-600 hover:underline">Revise</button>
           {q.status !== "rejected" && (
             <button onClick={() => changeStatus(q, "rejected")} className="text-xs font-medium text-gray-500 hover:underline">Reject</button>
           )}
@@ -3112,15 +3195,6 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
         </div>
       )}
       {createOpen && <NewQuoteModal projectId={projectId} budget={budget} onSaved={load} onClose={() => setCreateOpen(false)} />}
-      {reviseOf && (
-        <NewQuoteModal
-          projectId={projectId}
-          budget={budget}
-          reviseOf={reviseOf}
-          onSaved={load}
-          onClose={() => setReviseOf(null)}
-        />
-      )}
     </Card>
   );
 }
@@ -3134,6 +3208,7 @@ const FILE_SOURCE_META: Record<ProjectFileSource, { label: string; text: string;
   field_team: { label: "Field Team", text: "#15803D", bg: "#E7F6EC" },
   invoice: { label: "Invoice", text: "#7C3AED", bg: "#F1EBFD" },
   bill: { label: "Bill", text: "#B91C1C", bg: "#FEECEC" },
+  quote: { label: "Quote", text: "#0E7490", bg: "#E0F2FE" },
 };
 
 const FILE_FILTERS: { key: "all" | ProjectFileSource; label: string }[] = [
@@ -3144,6 +3219,7 @@ const FILE_FILTERS: { key: "all" | ProjectFileSource; label: string }[] = [
   { key: "field_team", label: "Field Team" },
   { key: "invoice", label: "Invoice" },
   { key: "bill", label: "Bills" },
+  { key: "quote", label: "Quote" },
 ];
 
 function formatBytes(n: number): string {

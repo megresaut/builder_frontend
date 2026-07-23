@@ -485,6 +485,15 @@ export interface ProjectQuote {
   // Bidding (Part B / B3)
   budget_item_id: number | null;
   supersedes_quote_id: number | null;
+  // Quote document (uploaded via the attachment endpoint) — all null until a file
+  // is attached. Served at /files/<attachment_object_key>.
+  attachment_object_key: string | null;
+  attachment_file_name: string | null;
+  attachment_mime: string | null;
+  attachment_size_bytes: number | null;
+  // Set on accept: accepting a quote auto-creates a Task + Work Order (backend).
+  created_task_id: number | null;
+  created_work_order_id: number | null;
 }
 
 export interface CreateQuotePayload {
@@ -526,6 +535,36 @@ export async function deleteQuote(projectId: number, quoteId: number): Promise<v
 
 export async function analyzeQuote(projectId: number, quoteId: number): Promise<ProjectQuote> {
   return fetchJSON(`/projects/${projectId}/quotes/${quoteId}/analyze`, { method: "POST" });
+}
+
+export interface UploadQuoteAttachmentResult {
+  object_key: string;
+  download: string; // "/files/<object_key>"
+}
+
+// Attach a quote document (PDF/image) to a quote (multipart, field `file`).
+export async function uploadQuoteAttachment(
+  projectId: number,
+  quoteId: number,
+  file: File,
+): Promise<UploadQuoteAttachmentResult> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await authFetch(`/projects/${projectId}/quotes/${quoteId}/attachment`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    let msg = "Failed to upload quote document";
+    try {
+      const b = await res.json();
+      if (b?.error) msg = b.error;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(msg);
+  }
+  return res.json();
 }
 
 export async function updateProject(id: number, payload: UpdateProjectPayload): Promise<Project> {
@@ -1059,11 +1098,16 @@ export interface AcceptQuotePayload {
   copy_to_budget?: boolean; // also copy the accepted amount into the budget category
 }
 
+// Accept returns the updated quote (with created_task_id/created_work_order_id
+// populated) PLUS a warnings array — e.g. when the auto Work Order couldn't be
+// created. Surface non-empty warnings to the user.
+export type AcceptQuoteResult = ProjectQuote & { warnings: string[] };
+
 export async function acceptQuote(
   projectId: number,
   quoteId: number,
   payload: AcceptQuotePayload = {},
-): Promise<ProjectQuote> {
+): Promise<AcceptQuoteResult> {
   return fetchJSON(`/projects/${projectId}/quotes/${quoteId}/accept`, {
     method: "POST",
     body: JSON.stringify(payload),
@@ -1140,7 +1184,7 @@ export async function deleteVendorPayment(projectId: number, vpId: number): Prom
 
 /* ------------------------------ files (Part B / B2) ----------------------- */
 
-export type ProjectFileSource = "project" | "task" | "work_order" | "field_team" | "invoice" | "bill";
+export type ProjectFileSource = "project" | "task" | "work_order" | "field_team" | "invoice" | "bill" | "quote";
 
 export interface ProjectFileRow {
   id: number;
