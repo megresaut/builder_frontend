@@ -38,6 +38,8 @@ import {
   deleteProjectFile,
   listProjectBills,
   uploadPaymentReceipt,
+  getPaymentAllocations,
+  putPaymentAllocations,
   searchVendors,
   formatUSD,
   formatUSDPrecise,
@@ -73,6 +75,7 @@ import {
   type ProjectFileRow,
   type ProjectFileSource,
   type ProjectBillRow,
+  type PaymentAllocation,
   type VendorLite,
 } from "@/data/projects";
 import {
@@ -1185,6 +1188,148 @@ function RecordPaymentModal({
 }
 
 
+// AllocatePaymentModal — manually split ONE collected payment across the
+// project's bills (pure tracking). Σ inputs is capped at the payment amount; the
+// remainder stays unallocated. Full-amount allocation allowed (a bill may be
+// covered past its cost), so we don't cap per bill.
+function AllocatePaymentModal({
+  projectId,
+  payment,
+  bills,
+  onSaved,
+  onClose,
+}: {
+  projectId: number;
+  payment: ProjectPayment;
+  bills: ProjectBillRow[];
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  // billId -> dollar string
+  const [amounts, setAmounts] = useState<Record<number, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const existing = await getPaymentAllocations(projectId, payment.id);
+        if (!alive) return;
+        const seed: Record<number, string> = {};
+        existing.forEach((a: PaymentAllocation) => {
+          seed[a.bill_id] = centsToInput(a.amount_cents);
+        });
+        setAmounts(seed);
+      } catch (e) {
+        toast.error(errMessage(e, "Failed to load allocations"));
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [projectId, payment.id]);
+
+  const allocatedCents = Object.values(amounts).reduce((s, v) => s + dollarsToCents(v), 0);
+  const remainingCents = payment.amount_cents - allocatedCents;
+  const over = remainingCents < 0;
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const allocations = bills
+        .map((b) => ({ bill_id: b.id, amount_cents: dollarsToCents(amounts[b.id] ?? "") }))
+        .filter((a) => a.amount_cents > 0);
+      await putPaymentAllocations(projectId, payment.id, allocations);
+      toast.success("Allocation saved");
+      onSaved();
+      onClose();
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to save allocation"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <ModalShell
+      title="Allocate payment to bills"
+      maxWidth="max-w-2xl"
+      onClose={onClose}
+      footer={
+        <>
+          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button onClick={save} disabled={saving || over || loading} className="h-9 rounded-lg bg-[#013764] px-4 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
+            {saving ? "Saving…" : "Save allocation"}
+          </button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        {/* Running header */}
+        <div className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${over ? "border-red-200 bg-red-50" : "border-gray-200 bg-gray-50"}`}>
+          <span className="text-gray-600">
+            {payment.reference || (payment.kind === "deposit" ? "Deposit" : "Progress payment")} · {formatUSD(payment.amount_cents)}
+          </span>
+          <span className={`font-semibold ${over ? "text-red-700" : "text-gray-900"}`}>
+            {over
+              ? `Over by ${formatUSD(-remainingCents)}`
+              : `${formatUSD(remainingCents)} of ${formatUSD(payment.amount_cents)} left to allocate`}
+          </span>
+        </div>
+
+        {loading ? (
+          <div className="py-8 text-center text-sm text-gray-500">Loading…</div>
+        ) : bills.length === 0 ? (
+          <div className="py-8 text-center text-sm text-gray-500">No vendor bills on this project to allocate against yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500">
+                  <th className="pb-2 font-semibold">Vendor</th>
+                  <th className="pb-2 font-semibold">Bill</th>
+                  <th className="pb-2 text-right font-semibold">Booked</th>
+                  <th className="pb-2 text-right font-semibold">Covered</th>
+                  <th className="pb-2 text-right font-semibold">Allocate ($)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {bills.map((b) => (
+                  <tr key={b.id}>
+                    <td className="py-2 pr-2 text-gray-900">{b.vendor_name || (b.vendor_id ? `Vendor #${b.vendor_id}` : "—")}</td>
+                    <td className="py-2 pr-2 text-gray-600">
+                      <span className="block truncate max-w-[14rem]">{b.description || b.work_order_name || `Bill #${b.id}`}</span>
+                    </td>
+                    <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(b.booked_cents)}</td>
+                    <td className="py-2 text-right tabular-nums text-gray-500">{formatUSD(b.covered_cents)}</td>
+                    <td className="py-2 pl-2 text-right">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        className="h-8 w-28 rounded-lg border border-[#DADADA] bg-white px-2 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
+                        value={amounts[b.id] ?? ""}
+                        onChange={(e) => setAmounts((m) => ({ ...m, [b.id]: e.target.value }))}
+                        placeholder="0"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="mt-2 text-xs text-gray-400">
+              Allocation is platform tracking only — it records which bills this client payment covers and doesn't post to QuickBooks or change the budget.
+            </div>
+          </div>
+        )}
+      </div>
+    </ModalShell>
+  );
+}
+
 /* ------------------- EXPLORATORY: consolidated Financials tab ---------------- */
 /* One tab that answers: what have we paid OUT to vendors, and what have we taken
    IN from the client, and where do we net. Composes the already-loaded
@@ -1217,6 +1362,7 @@ function FinancialsTab({
   const [bills, setBills] = useState<ProjectBillRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [recordOpen, setRecordOpen] = useState(false);
+  const [allocatePayment, setAllocatePayment] = useState<ProjectPayment | null>(null);
   // Invoice management (folded in from the retired Receivables tab).
   const [builderOpen, setBuilderOpen] = useState(false);
   const [billables, setBillables] = useState<Billables | null>(null);
@@ -1338,7 +1484,6 @@ function FinancialsTab({
   const paidOut = cashflow.filter((c) => c.direction === "outbound").reduce((s, c) => s + c.amount_cents, 0);
   const receivedIn = cashflow.filter((c) => c.direction === "inbound").reduce((s, c) => s + c.amount_cents, 0);
   const net = receivedIn - paidOut;
-  const clientPayments = cashflow.filter((c) => c.direction === "inbound");
   const overUnder = fin.billed_vs_cost_cents; // billed_to_date − committed
 
   return (
@@ -1390,10 +1535,13 @@ function FinancialsTab({
                     <th className="pb-2 font-semibold">Bill / work order</th>
                     <th className="pb-2 text-right font-semibold">Booked</th>
                     <th className="pb-2 text-right font-semibold">Paid</th>
+                    <th className="pb-2 text-right font-semibold">Covered</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {bills.map((b) => (
+                  {bills.map((b) => {
+                    const fullyCovered = b.covered_cents >= b.booked_cents && b.booked_cents > 0;
+                    return (
                     <tr key={b.id}>
                       <td className="py-2 pr-2 text-gray-900">{b.vendor_name || (b.vendor_id ? `Vendor #${b.vendor_id}` : "—")}</td>
                       <td className="py-2 pr-2 text-gray-600">
@@ -1402,18 +1550,29 @@ function FinancialsTab({
                       </td>
                       <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(b.booked_cents)}</td>
                       <td className="py-2 text-right tabular-nums text-violet-700">{formatUSD(b.paid_cents)}</td>
+                      <td className="py-2 text-right tabular-nums">
+                        {b.covered_cents > 0 ? (
+                          <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ${fullyCovered ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`} title={fullyCovered ? "Fully covered by client payments" : "Partially covered by client payments"}>
+                            {formatUSD(b.covered_cents)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-gray-200 font-semibold text-gray-900">
                     <td className="pt-2" colSpan={2}>Total</td>
                     <td className="pt-2 text-right tabular-nums">{formatUSD(fin.committed_cents)}</td>
                     <td className="pt-2 text-right tabular-nums text-violet-700">{formatUSD(fin.paid_cents)}</td>
+                    <td className="pt-2 text-right tabular-nums">{formatUSD(bills.reduce((s, b) => s + b.covered_cents, 0))}</td>
                   </tr>
                 </tfoot>
               </table>
-              <div className="mt-2 text-xs text-gray-400">Booked = bill total (committed) · Paid = settled with the vendor.</div>
+              <div className="mt-2 text-xs text-gray-400">Booked = bill total (committed) · Paid = settled with the vendor · Covered = client payments allocated to this bill.</div>
             </div>
           )}
         </Card>
@@ -1430,7 +1589,7 @@ function FinancialsTab({
             </button>
           }
         >
-          {clientPayments.length === 0 ? (
+          {payments.length === 0 ? (
             <div className="py-8 text-center text-sm text-gray-500">
               No client payments yet — record one, or they arrive automatically when a project invoice is paid.
             </div>
@@ -1442,21 +1601,46 @@ function FinancialsTab({
                     <th className="pb-2 font-semibold">Date</th>
                     <th className="pb-2 font-semibold">Reference</th>
                     <th className="pb-2 text-right font-semibold">Amount</th>
+                    <th className="pb-2" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {clientPayments.map((c, i) => (
-                    <tr key={i}>
-                      <td className="py-2 pr-2 text-gray-700">{fmtProjDate(c.date)}</td>
-                      <td className="py-2 pr-2 text-gray-900">{c.description || c.kind}</td>
-                      <td className="py-2 text-right tabular-nums text-green-700">+{formatUSD(c.amount_cents)}</td>
+                  {payments.map((p) => {
+                    const unallocated = p.amount_cents - p.allocated_cents;
+                    return (
+                    <tr key={p.id}>
+                      <td className="py-2 pr-2 text-gray-700">{fmtProjDate(p.received_on)}</td>
+                      <td className="py-2 pr-2">
+                        <span className="flex items-center gap-1.5 text-gray-900">
+                          {p.reference || (p.kind === "deposit" ? "Deposit" : "Progress payment")}
+                          {p.receipt_object_key && (
+                            <a href={`/files/${p.receipt_object_key}`} target="_blank" rel="noreferrer" title={p.receipt_filename ?? "View receipt"} className="text-blue-600 hover:underline">📎</a>
+                          )}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-gray-400">
+                          {p.allocated_cents > 0
+                            ? <>{formatUSD(p.allocated_cents)} allocated{unallocated > 0 ? ` · ${formatUSD(unallocated)} unallocated` : " · fully allocated"}</>
+                            : <>{formatUSD(p.amount_cents)} unallocated</>}
+                        </span>
+                      </td>
+                      <td className="py-2 text-right align-top tabular-nums text-green-700">+{formatUSD(p.amount_cents)}</td>
+                      <td className="py-2 pl-2 text-right align-top">
+                        <button
+                          onClick={() => setAllocatePayment(p)}
+                          className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                          Allocate
+                        </button>
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-gray-200 font-semibold text-gray-900">
                     <td className="pt-2" colSpan={2}>Total received</td>
-                    <td className="pt-2 text-right tabular-nums text-green-700">+{formatUSD(receivedIn)}</td>
+                    <td className="pt-2 text-right tabular-nums text-green-700">+{formatUSD(fin.collected_cents)}</td>
+                    <td className="pt-2" />
                   </tr>
                 </tfoot>
               </table>
@@ -1513,6 +1697,19 @@ function FinancialsTab({
             onRefreshSummary();
           }}
           onClose={() => setRecordOpen(false)}
+        />
+      )}
+
+      {allocatePayment && (
+        <AllocatePaymentModal
+          projectId={projectId}
+          payment={allocatePayment}
+          bills={bills}
+          onSaved={() => {
+            load();
+            onRefreshSummary();
+          }}
+          onClose={() => setAllocatePayment(null)}
         />
       )}
 

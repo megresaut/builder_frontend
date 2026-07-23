@@ -142,6 +142,7 @@ export interface ProjectPayment {
   receipt_object_key: string | null; // proof attachment (served at /files/<key>)
   receipt_mime: string | null;
   receipt_filename: string | null;
+  allocated_cents: number; // Σ of this payment's allocations to bills (≤ amount_cents)
   created_by_user_id: number | null;
   created_at: string;
 }
@@ -702,6 +703,7 @@ export interface ProjectBillRow {
   statement_date: string | null; // "YYYY-MM-DD"
   booked_cents: number; // bills.amount_cents (committed)
   paid_cents: number; // Σ bill_payments
+  covered_cents: number; // Σ client payment allocations to this bill (migration 139)
   description: string; // memo, else invoice #
   work_order_name: string;
   qbo_bill_id: string | null;
@@ -710,6 +712,39 @@ export interface ProjectBillRow {
 
 export async function listProjectBills(projectId: number): Promise<ProjectBillRow[]> {
   const data = await fetchJSON(`/projects/${projectId}/bills`);
+  return data ?? [];
+}
+
+/* ------------------- payment → bill allocations (tracking) ----------------- */
+// Manually split a collected client payment across the project's bills. Pure
+// platform tracking (no GL impact): drives the derived covered_cents on bills
+// and allocated_cents on payments.
+
+export interface PaymentAllocation {
+  id: number;
+  bill_id: number;
+  amount_cents: number;
+  vendor_name: string; // joined for display
+  description: string; // bill memo/invoice # for display
+}
+
+export async function getPaymentAllocations(
+  projectId: number,
+  paymentId: number,
+): Promise<PaymentAllocation[]> {
+  const data = await fetchJSON(`/projects/${projectId}/payments/${paymentId}/allocations`);
+  return data ?? [];
+}
+
+export async function putPaymentAllocations(
+  projectId: number,
+  paymentId: number,
+  allocations: { bill_id: number; amount_cents: number }[],
+): Promise<PaymentAllocation[]> {
+  const data = await fetchJSON(`/projects/${projectId}/payments/${paymentId}/allocations`, {
+    method: "PUT",
+    body: JSON.stringify({ allocations }),
+  });
   return data ?? [];
 }
 

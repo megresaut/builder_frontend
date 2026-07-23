@@ -297,6 +297,7 @@ const PAYMENT_FIXTURE = {
   receipt_object_key: null,
   receipt_mime: null,
   receipt_filename: null,
+  allocated_cents: 0,
   created_by_user_id: 3,
   created_at: "2026-03-03T15:00:00Z",
 } satisfies ProjectPayment;
@@ -378,6 +379,7 @@ const EXPECTED_KEYS = {
     "id", "project_id", "kind", "amount_cents", "received_on", "reference",
     "deposit_account_qbo_id", "qbo_payment_id",
     "receipt_object_key", "receipt_mime", "receipt_filename",
+    "allocated_cents",
     "created_by_user_id", "created_at",
   ],
 } as const;
