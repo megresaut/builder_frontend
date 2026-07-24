@@ -539,7 +539,7 @@ export default function AIDrafts() {
   useEffect(() => {
     Promise.all([
       fetchJSON("/properties").catch(() => []),
-      fetchJSON("/vendors?limit=500&offset=0").catch(() => []),
+      fetchJSON("/vendors?limit=5000&offset=0").catch(() => []),
       fetchJSON("/users/all").catch(() => []),
     ]).then(([props, vendors, users]) => {
       const pm: Record<number, string> = {};

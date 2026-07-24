@@ -8,6 +8,7 @@
 
 import { fetchJSON, authFetch } from "@/api/fetchJSON";
 import { openAuthPdf } from "@/api/openAuthPdf";
+import { downloadAuthFile } from "@/api/downloadAuthFile";
 
 /* --------------------------------- enums --------------------------------- */
 
@@ -52,12 +53,16 @@ export interface Project {
 export interface BudgetSubItem {
   id: number;
   name: string;
+  vendor_id: number | null;
+  vendor_name: string; // "" = inherit the category's vendor, else "AVM" on export
   amount_cents: number;
   sort_order: number;
 }
 export interface BudgetCategory {
   id: number;
   name: string;
+  vendor_id: number | null;
+  vendor_name: string; // "" = unassigned, rendered as "AVM" on the client export
   amount_cents: number;
   spent_cents: number; // paid (Σ bill_payments) via milestone rollup
   committed_cents: number; // booked (Σ bills) via the same rollup (Package A)
@@ -303,8 +308,10 @@ export interface CreateProjectPayload {
   description?: string;
   budget?: {
     name: string;
+    vendor_id?: number | null;
+    vendor_name?: string;
     amount_cents: number;
-    sub_budgets?: { name: string; amount_cents: number }[];
+    sub_budgets?: { name: string; vendor_id?: number | null; vendor_name?: string; amount_cents: number }[];
   }[];
   milestones?: {
     name: string;
@@ -337,8 +344,17 @@ export interface PutBudgetPayload {
   categories: {
     id?: number;
     name: string;
+    // Omit to preserve the stored vendor (quote-accept stamps it); "" clears it.
+    vendor_id?: number | null;
+    vendor_name?: string;
     amount_cents: number;
-    sub_budgets?: { id?: number; name: string; amount_cents: number }[];
+    sub_budgets?: {
+      id?: number;
+      name: string;
+      vendor_id?: number | null;
+      vendor_name?: string;
+      amount_cents: number;
+    }[];
   }[];
 }
 
@@ -1055,6 +1071,15 @@ export async function voidProjectInvoice(projectId: number, invoiceId: number): 
 // lines, and persists it (also surfaced in the Files tab). Not concierge-gated.
 export async function openProjectInvoicePdf(projectId: number, invoiceId: number): Promise<void> {
   return openAuthPdf(`/projects/${projectId}/invoices/${invoiceId}/pdf`);
+}
+
+// Downloads the project budget as a client-ready ESTIMATE PDF (same AVMRE
+// template as the invoice, with a Category column). Saved to disk rather than
+// opened, since the point is to attach it to an email to the client. Derived from
+// the live budget on every call, so it is never persisted server-side.
+export async function downloadProjectBudgetPdf(projectId: number, projectName: string): Promise<void> {
+  const slug = projectName.trim().split(/\s+/).join("-") || "project";
+  return downloadAuthFile(`/projects/${projectId}/budget/pdf`, `${slug}-budget.pdf`);
 }
 
 export interface PushInvoiceToQboResult {

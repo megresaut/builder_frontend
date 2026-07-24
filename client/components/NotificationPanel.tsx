@@ -347,7 +347,7 @@ export default function NotificationPanel({ open, onClose }: NotificationPanelPr
       const [data, props, vendors, users] = await Promise.all([
         listDrafts("pending"),
         fetchJSON("/properties").catch(() => []),
-        fetchJSON("/vendors?limit=2000&offset=0").catch(() => []),
+        fetchJSON("/vendors?limit=5000&offset=0").catch(() => []),
         fetchJSON("/users/all").catch(() => []),
       ]);
       const pm: Record<number, string> = {};

@@ -129,7 +129,7 @@ export default function OperationsCalendar() {
   useEffect(() => {
     Promise.all([
       fetchJSON("/properties").catch(() => []),
-      fetchJSON("/vendors").catch(() => []),
+      fetchJSON("/vendors?limit=5000").catch(() => []),
     ]).then(([props, vends]) => {
       const p = Array.isArray(props) ? props : [];
       const v = Array.isArray(vends) ? vends : [];

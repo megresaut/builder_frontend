@@ -8,6 +8,7 @@ import {
   getProjectSummary,
   updateProject,
   putBudget,
+  downloadProjectBudgetPdf,
   putMilestones,
   setTaskMilestone,
   attachTasks,
@@ -46,7 +47,6 @@ import {
   uploadPaymentReceipt,
   getPaymentAllocations,
   putPaymentAllocations,
-  searchVendors,
   formatUSD,
   formatUSDPrecise,
   PROJECT_STATUS_META,
@@ -84,7 +84,6 @@ import {
   type ProjectFileSource,
   type ProjectBillRow,
   type PaymentAllocation,
-  type VendorLite,
 } from "@/data/projects";
 import {
   BudgetEditor,
@@ -99,6 +98,7 @@ import {
   type MilestoneDraft,
 } from "@/components/projects/ProjectEditors";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import { VendorPicker } from "@/components/VendorPicker";
 import PersonAvatars from "@/components/PersonAvatars";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateWorkOrderModalV2, { type TaskOption } from "@/components/CreateWorkOrderModalV2";
@@ -846,17 +846,32 @@ function CategoryProgress({ amount, committed, spent }: { amount: number; commit
 // modal uses; Save calls putBudget then refreshes the summary.
 function BudgetCard({
   projectId,
+  projectName,
   budget,
   onRefresh,
 }: {
   projectId: number;
+  projectName: string;
   budget: BudgetCategory[];
   onRefresh: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [categories, setCategories] = useState<CategoryDraft[]>(() => categoriesToDrafts(budget));
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const seq = useRef(1);
+
+  // Downloads the budget as a client-ready ESTIMATE PDF to attach to an email.
+  const exportPdf = async () => {
+    setExporting(true);
+    try {
+      await downloadProjectBudgetPdf(projectId, projectName);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to export budget"));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const nextId = () => seq.current++;
 
@@ -901,7 +916,17 @@ function BudgetCard({
     <Card
       title="Budget"
       action={
-        <button onClick={beginEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit</button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportPdf}
+            disabled={exporting || budget.length === 0}
+            title={budget.length === 0 ? "Set a budget first" : "Download a client-ready PDF"}
+            className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {exporting ? "Exporting…" : "Export PDF"}
+          </button>
+          <button onClick={beginEdit} className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Edit</button>
+        </div>
       }
     >
       {budget.length === 0 ? (
@@ -914,12 +939,20 @@ function BudgetCard({
                 <span className="text-sm font-medium text-gray-900">{cat.name}</span>
                 <span className="text-sm font-semibold text-gray-900 tabular-nums">{formatUSD(cat.amount_cents)}</span>
               </div>
+              {/* Vendor this line is budgeted against — "AVM" when unassigned,
+                  matching what the client-facing export prints. */}
+              <div className="text-xs text-gray-500">{cat.vendor_name?.trim() || "AVM"}</div>
               <CategoryProgress amount={cat.amount_cents} committed={cat.committed_cents} spent={cat.spent_cents} />
               {cat.sub_budgets.length > 0 && (
                 <div className="mt-2 flex flex-col gap-1 border-l border-gray-100 pl-3">
                   {cat.sub_budgets.map((sub) => (
                     <div key={sub.id} className="flex items-baseline justify-between gap-3">
-                      <span className="text-sm text-gray-600">{sub.name}</span>
+                      <span className="text-sm text-gray-600">
+                        {sub.name}
+                        {(sub.vendor_name?.trim() || "") !== "" && (
+                          <span className="ml-1.5 text-xs text-gray-400">{sub.vendor_name.trim()}</span>
+                        )}
+                      </span>
                       <span className="text-sm text-gray-700 tabular-nums">{formatUSD(sub.amount_cents)}</span>
                     </div>
                   ))}
@@ -1013,7 +1046,7 @@ function DashboardTab({ summary, onRefresh }: { summary: ProjectSummary; onRefre
           </div>
         )}
 
-        <BudgetCard projectId={project.id} budget={summary.budget} onRefresh={onRefresh} />
+        <BudgetCard projectId={project.id} projectName={project.name} budget={summary.budget} onRefresh={onRefresh} />
 
         <MilestonesCard summary={summary} onRefresh={onRefresh} />
       </div>
@@ -2608,17 +2641,6 @@ function ProjectInvoiceBuilderModal({
   const manualSeq = useRef(-1);
   const feeSeq = useRef(-100000);
 
-  // Vendor options for the optional manual-line dropdown (reuses the shared
-  // typeahead source; loaded once when the builder opens).
-  const [vendors, setVendors] = useState<VendorLite[]>([]);
-  useEffect(() => {
-    let cancelled = false;
-    searchVendors("", 1000)
-      .then((vs) => { if (!cancelled) setVendors(vs); })
-      .catch(() => { /* dropdown just stays empty */ });
-    return () => { cancelled = true; };
-  }, []);
-
   // Pre-check all due installments once billables arrive — they're what the
   // builder exists to bill.
   useEffect(() => {
@@ -2824,17 +2846,17 @@ function ProjectInvoiceBuilderModal({
                       onChange={(e) => setManual((v) => v.map((x) => (x.key === m.key ? { ...x, description: e.target.value } : x)))}
                       className="flex-1 rounded-md border border-[#DADADA] px-2 py-1.5 text-sm focus:border-[#013764] focus:outline-none"
                     />
-                    <select
-                      value={m.vendorId}
-                      title="Vendor (optional)"
-                      onChange={(e) => setManual((v) => v.map((x) => (x.key === m.key ? { ...x, vendorId: e.target.value } : x)))}
-                      className="w-36 rounded-md border border-[#DADADA] bg-white px-2 py-1.5 text-sm text-gray-700 focus:border-[#013764] focus:outline-none"
-                    >
-                      <option value="">No vendor</option>
-                      {vendors.map((v) => (
-                        <option key={v.id} value={String(v.id)}>{v.name}</option>
-                      ))}
-                    </select>
+                    <div className="w-36 shrink-0">
+                      <VendorPicker
+                        value={m.vendorId ? Number(m.vendorId) : ""}
+                        onChange={(id) =>
+                          setManual((v) => v.map((x) => (x.key === m.key ? { ...x, vendorId: id === "" ? "" : String(id) } : x)))
+                        }
+                        placeholder="No vendor"
+                        className="border-[#DADADA] px-2 py-1.5 text-gray-700 focus:border-[#013764]"
+                        contentWidth={288}
+                      />
+                    </div>
                     <div className="flex items-center gap-1">
                       <span className="text-gray-400">$</span>
                       <input
@@ -3200,11 +3222,11 @@ function NewQuoteModal({
   onClose: () => void;
 }) {
   const isEdit = quote != null;
-  // Vendor is now picked by id from a real dropdown (GET /vendors via the shared
-  // searchVendors fetcher). We keep both the id (for the payload) and the name
-  // (for display); the label comes from the loaded vendor list.
-  const [vendors, setVendors] = useState<VendorLite[]>([]);
+  // Vendor is picked by id from VendorPicker, which searches/pages the whole
+  // vendors table server-side. We keep both the id and the name because the
+  // quote row stores a denormalised vendor_name.
   const [vendorId, setVendorId] = useState<number | "">(quote?.vendor_id ?? "");
+  const [vendorName, setVendorName] = useState(quote?.vendor_name ?? "");
   const [trade, setTrade] = useState(quote?.trade ?? "");
   const [amount, setAmount] = useState(
     isEdit && !(quote!.budget_breakdown && quote!.budget_breakdown.length > 0)
@@ -3230,21 +3252,6 @@ function NewQuoteModal({
   const uid = useId();
   const fileInput = useRef<HTMLInputElement>(null);
 
-  // Preload active vendors once; SearchableSelect filters the list client-side.
-  useEffect(() => {
-    let cancelled = false;
-    searchVendors("", 1000)
-      .then((rows) => {
-        if (!cancelled) setVendors(rows);
-      })
-      .catch(() => {
-        /* dropdown stays empty; validation blocks submit */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   // The selected budget line, when it's a CATEGORY that has sub-budgets. In that
   // case we capture a per-sub-line breakdown instead of a single amount, and the
   // Quoted amount is the (read-only) Σ of the sub-line amounts.
@@ -3266,7 +3273,6 @@ function NewQuoteModal({
     }
     setSaving(true);
     try {
-      const vendorName = vendors.find((v) => v.id === vendorId)?.name ?? quote?.vendor_name ?? "";
       const breakdown = selectedCategoryWithSubs
         ? selectedCategoryWithSubs.sub_budgets.map((s) => ({
             budget_item_id: s.id,
@@ -3332,12 +3338,15 @@ function NewQuoteModal({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor={`${uid}-vendor`} className={labelCls}>Vendor</label>
-            <SearchableSelect
+            <VendorPicker
+              id={`${uid}-vendor`}
               className={`${fieldCls} mt-1`}
-              value={vendorId === "" ? "" : String(vendorId)}
-              onChange={(v) => setVendorId(v ? Number(v) : "")}
-              options={vendors.map((v) => ({ value: String(v.id), label: v.name }))}
-              allLabel="Select a vendor…"
+              value={vendorId}
+              onChange={(id, name) => {
+                setVendorId(id);
+                setVendorName(name);
+              }}
+              valueLabel={quote?.vendor_name}
             />
           </div>
           <div>

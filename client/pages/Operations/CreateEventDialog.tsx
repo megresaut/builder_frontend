@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ComboboxField } from "@/components/forms/ComboboxField";
+import { VendorPicker } from "@/components/VendorPicker";
 import { DateField } from "@/components/forms/DateField";
 import {
   Popover,
@@ -56,11 +57,6 @@ interface User {
 }
 
 interface SimpleTask {
-  id: number;
-  name: string;
-}
-
-interface Vendor {
   id: number;
   name: string;
 }
@@ -951,7 +947,6 @@ function WorkOrderForm({
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tasks, setTasks] = useState<SimpleTask[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
 
   // Fetch tasks when property changes
   useEffect(() => {
@@ -960,13 +955,6 @@ function WorkOrderForm({
       .then((data) => setTasks(data ?? []))
       .catch(() => setTasks([]));
   }, [selectedPropertyId]);
-
-  // Fetch vendors once
-  useEffect(() => {
-    fetchJSON("/vendors")
-      .then((data) => setVendors(data ?? []))
-      .catch(() => setVendors([]));
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -1040,12 +1028,12 @@ function WorkOrderForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
-          <Select value={selectedVendorId} onValueChange={setSelectedVendorId}>
-            <SelectTrigger><SelectValue placeholder="Select a vendor (optional)" /></SelectTrigger>
-            <SelectContent>
-              {vendors.map((v) => <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <VendorPicker
+            value={selectedVendorId ? Number(selectedVendorId) : ""}
+            onChange={(id) => setSelectedVendorId(id === "" ? "" : String(id))}
+            placeholder="Select a vendor (optional)"
+            className="min-h-[38px]"
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">

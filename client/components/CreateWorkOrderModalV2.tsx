@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import {
@@ -6,13 +6,6 @@ import {
   FormSection,
   FormFieldRow,
 } from "@/components/ui/form-layout";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { SelectField } from "@/components/forms/SelectField";
 import { StatusSelectField } from "@/components/forms/StatusSelectField";
 import { PrioritySelectField } from "@/components/forms/PrioritySelectField";
@@ -28,6 +21,7 @@ import { fetchJSON, authFetch } from "@/api/fetchJSON";
 import AIGeneratedBanner from "@/components/AIGeneratedBanner";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { useAuth } from "@/auth/useAuth";
+import { VendorPicker } from "@/components/VendorPicker";
 
 /** When provided (e.g. property-level create), task dropdown shows only these tasks and selection supplies taskId for create. */
 export interface TaskOption {
@@ -100,15 +94,6 @@ type WOStatus =
   | "closed"
   | "cancelled";
 
-// Vendor interface
-interface Vendor {
-  id: number;
-  name: string;
-  primary_email?: string;
-  phone?: string;
-  notes?: string;
-}
-
 // Helper function to build options, ensuring initialData values are included
 const buildTaskOptions = (initialTask?: string) => {
   const options = new Set(BASE_TASKS);
@@ -121,13 +106,6 @@ const buildTaskOptions = (initialTask?: string) => {
       value: task,
       label: task,
     }));
-};
-
-const buildVendorOptions = (vendors: Vendor[], initialVendorId?: number) => {
-  return vendors.map((vendor) => ({
-    value: vendor.id.toString(),
-    label: vendor.name,
-  }));
 };
 
 // Fields that must be validated on submit
@@ -261,129 +239,11 @@ export default function CreateWorkOrderModalV2({
   });
 
   const { userId } = useAuth();
-  const vendorPageSize = 50;
-  const vendorRequestIdRef = useRef(0);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [vendorSearch, setVendorSearch] = useState("");
-  const [vendorOffset, setVendorOffset] = useState(0);
-  const [vendorHasMore, setVendorHasMore] = useState(true);
-  const [vendorLoading, setVendorLoading] = useState(false);
-  const [isVendorDropdownOpen, setIsVendorDropdownOpen] = useState(false);
-  const vendorSearchInputRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const pdfViewer = usePdfViewer();
-
-  // Server-filtered vendor results
-  const filteredVendors = vendors;
-
-  const fetchVendorsPage = useCallback(
-    async (search: string, offset: number, append: boolean) => {
-      const requestId = ++vendorRequestIdRef.current;
-      setVendorLoading(true);
-
-      try {
-        const params = new URLSearchParams();
-        params.set("limit", vendorPageSize.toString());
-        if (offset > 0) params.set("offset", offset.toString());
-
-        const trimmed = search.trim();
-        if (trimmed) params.set("search", trimmed);
-
-        const vendorList = await fetchJSON(`/vendors?${params.toString()}`);
-
-        if (requestId !== vendorRequestIdRef.current) return;
-
-        setVendors((prev) => (append ? [...prev, ...vendorList] : vendorList));
-        setVendorHasMore(vendorList.length === vendorPageSize);
-        setVendorOffset(offset + vendorList.length);
-      } catch (err) {
-        if (requestId !== vendorRequestIdRef.current) return;
-        console.error("Failed to load vendors:", err);
-        if (!append) {
-          setVendors([]);
-        }
-        setVendorHasMore(false);
-      } finally {
-        if (requestId === vendorRequestIdRef.current) {
-          setVendorLoading(false);
-        }
-      }
-    },
-    [vendorPageSize],
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    fetchVendorsPage("", 0, false);
-  }, [open, fetchVendorsPage]);
-
-  useEffect(() => {
-    if (!isVendorDropdownOpen) return;
-
-    const timeoutId = window.setTimeout(() => {
-      fetchVendorsPage(vendorSearch, 0, false);
-    }, 250);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [vendorSearch, isVendorDropdownOpen, fetchVendorsPage]);
-
-  useEffect(() => {
-    if (!isVendorDropdownOpen) return;
-    const timeoutId = window.setTimeout(() => {
-      vendorSearchInputRef.current?.focus();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [isVendorDropdownOpen]);
-
-  useEffect(() => {
-    if (!initialData?.vendor || vendorSearch.trim()) return;
-    setVendors((prev) => {
-      if (prev.some((vendor) => vendor.name === initialData.vendor)) {
-        return prev;
-      }
-      return [
-        {
-          id: Number(formData.vendorId) || -1,
-          name: initialData.vendor,
-          phone: "",
-          email: "",
-          notes: "",
-        },
-        ...prev,
-      ];
-    });
-  }, [initialData?.vendor, formData.vendorId, vendorSearch]);
-
-  // When vendorId is set (e.g. from AI draft) but vendor isn't in the loaded list, fetch it
-  useEffect(() => {
-    if (!formData.vendorId || vendorSearch.trim()) return;
-    const vid = Number(formData.vendorId);
-    if (isNaN(vid) || vid <= 0) return;
-    if (vendors.some((v) => v.id === vid)) return; // already loaded
-    fetchJSON(`/vendors/${vid}`).then((v: any) => {
-      if (v && v.id) {
-        setVendors((prev) => {
-          if (prev.some((existing) => existing.id === v.id)) return prev;
-          return [{ id: v.id, name: v.name, phone: v.phone || "", email: v.email || "", notes: v.notes || "" }, ...prev];
-        });
-      }
-    }).catch(() => {}); // vendor may not exist
-  }, [formData.vendorId, vendors, vendorSearch]);
-
-  const handleVendorScroll = useCallback(
-    (event: React.UIEvent<HTMLDivElement>) => {
-      if (!vendorHasMore || vendorLoading) return;
-
-      const target = event.currentTarget;
-      if (target.scrollTop + target.clientHeight >= target.scrollHeight - 24) {
-        fetchVendorsPage(vendorSearch, vendorOffset, true);
-      }
-    },
-    [vendorHasMore, vendorLoading, vendorSearch, vendorOffset, fetchVendorsPage],
-  );
 
   // Initialize formData only when modal opens/closes or mode changes - NOT when vendors change
   useEffect(() => {
@@ -442,18 +302,33 @@ export default function CreateWorkOrderModalV2({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, mode]);
 
-  // Separate useEffect for matching vendor by name in edit mode (only when vendors are loaded)
+  // Edit mode can arrive with only a vendor NAME (older work orders). Resolve it
+  // to an id with a targeted server search — matching against a locally loaded
+  // slice of vendors would silently fail for any name past the first page.
   useEffect(() => {
-    if (!open || mode !== "edit" || !initialData?.vendor || vendors.length === 0) return;
+    if (!open || mode !== "edit" || !initialData?.vendor) return;
     if (initialData.vendorId !== undefined && initialData.vendorId !== null) return; // Already has vendorId
 
-    // Try to find matching vendor by name
-    const matchingVendor = vendors.find((v) => v.name === initialData.vendor);
-    if (matchingVendor && formData.vendorId !== matchingVendor.id.toString()) {
-      setFormData((prev) => ({ ...prev, vendorId: matchingVendor.id.toString() }));
-    }
+    const name = initialData.vendor;
+    let cancelled = false;
+    fetchJSON(`/vendors?search=${encodeURIComponent(name)}&limit=10`)
+      .then((rows: any[]) => {
+        if (cancelled) return;
+        const match = (rows ?? []).find((v) => v.name === name);
+        if (match) {
+          setFormData((prev) =>
+            prev.vendorId === String(match.id) ? prev : { ...prev, vendorId: String(match.id) },
+          );
+        }
+      })
+      .catch(() => {
+        /* leave the field empty; the user can pick a vendor manually */
+      });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vendors, open, mode, initialData?.vendor]);
+  }, [open, mode, initialData?.vendor, initialData?.vendorId]);
 
   // When the modal opens in create mode with a pre-selected task (e.g. from a task detail page)
   // and taskOptions has loaded, autofill workOrderName/notes/priority/status/dueDate.
@@ -908,92 +783,14 @@ export default function CreateWorkOrderModalV2({
               />
               <div className="flex flex-col">
                 <FieldShell label="Vendor" htmlFor="vendor-select">
-                  <Select
-                    value={formData.vendorId}
-                    onValueChange={(vendorId) => {
-                      handleVendorChange(vendorId);
-                      setVendorSearch(""); // Reset search on select
-                    }}
-                    onOpenChange={(open) => {
-                      setIsVendorDropdownOpen(open);
-                      if (!open) setVendorSearch(""); // Reset search on close
-                    }}
-                  >
-                    <SelectTrigger
-                      id="vendor-select"
-                      className="w-full rounded-lg border bg-white px-3 py-2 text-sm font-normal transition-colors flex items-center justify-between cursor-pointer border-[var(--color-border-light)]"
-                      style={{
-                        fontFamily:
-                          "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                        lineHeight: 1.43,
-                        minHeight: "44px",
-                      }}
-                    >
-                      <SelectValue placeholder="Select a Vendor" />
-                    </SelectTrigger>
-                    <SelectContent 
-                      className="bg-white border border-[#E5E7EB] shadow-md p-0 !z-[9999]"
-                      style={{
-                        zIndex: 9999,
-                        width: "var(--radix-select-trigger-width)",
-                        minHeight: "320px",
-                      }}
-                      position="popper"
-                      side="bottom"
-                      align="start"
-                      avoidCollisions={false}
-                    >
-                      {/* Search input - outside Viewport */}
-                      <div className="p-2 border-b border-[#E5E7EB] sticky top-0 bg-white z-10">
-                        <input
-                          ref={vendorSearchInputRef}
-                          autoFocus
-                          placeholder="Type to search…"
-                          value={vendorSearch}
-                          onChange={(e) => setVendorSearch(e.target.value)}
-                          onKeyDown={(e) => e.stopPropagation()} // Prevent Select keyboard hijack
-                          className="w-full rounded-md border px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
-                          style={{
-                            fontFamily:
-                              "Geist, -apple-system, Roboto, Helvetica, sans-serif",
-                          }}
-                        />
-                      </div>
-
-                      {/* Scrollable list - inside Viewport */}
-                      <div
-                        className="h-[240px] overflow-y-auto"
-                        onScroll={handleVendorScroll}
-                      >
-                        {vendorLoading && filteredVendors.length === 0 && (
-                          <div className="px-3 py-2 text-sm text-gray-400">
-                            Loading vendors…
-                          </div>
-                        )}
-                        {!vendorLoading && filteredVendors.length === 0 && (
-                          <div className="px-3 py-2 text-sm text-gray-400">
-                            No vendors found
-                          </div>
-                        )}
-
-                        {filteredVendors.map((v) => (
-                          <SelectItem key={v.id} value={v.id.toString()}>
-                            {v.name}
-                          </SelectItem>
-                        ))}
-                        {vendorLoading && filteredVendors.length > 0 && (
-                          <div className="px-3 py-2 text-xs text-gray-400">
-                            Loading more…
-                          </div>
-                        )}
-                        {!vendorLoading && vendorHasMore && filteredVendors.length > 0 && (
-                          <div className="px-3 py-2 text-xs text-gray-400">
-                            Scroll to load more
-                          </div>
-                        )}
-                      </div>
-                    </SelectContent>
-                  </Select>
+                  <VendorPicker
+                    id="vendor-select"
+                    value={formData.vendorId ? Number(formData.vendorId) : ""}
+                    onChange={(vendorId) => handleVendorChange(vendorId === "" ? "" : String(vendorId))}
+                    valueLabel={initialData?.vendor}
+                    placeholder="Select a Vendor"
+                    className="rounded-lg border-[var(--color-border-light)] px-3 py-2 min-h-[44px]"
+                  />
                 </FieldShell>
               </div>
             </FormFieldRow>

@@ -23,12 +23,14 @@ export interface SubDraft {
   id: number;
   serverId?: number;
   name: string;
+  vendorName: string; // blank = inherit the category's vendor, else "AVM" on export
   amount: string;
 }
 export interface CategoryDraft {
   id: number;
   serverId?: number;
   name: string;
+  vendorName: string; // blank = "AVM" on the client-facing export
   amount: string; // used only when there are no sub-budgets
   spentCents: number; // server-derived, display-only
   subBudgets: SubDraft[];
@@ -76,12 +78,14 @@ export function categoriesToDrafts(cats: BudgetCategory[]): CategoryDraft[] {
     id: c.id,
     serverId: c.id,
     name: c.name,
+    vendorName: c.vendor_name ?? "",
     amount: c.sub_budgets.length ? "" : centsToInput(c.amount_cents),
     spentCents: c.spent_cents,
     subBudgets: c.sub_budgets.map((s) => ({
       id: s.id,
       serverId: s.id,
       name: s.name,
+      vendorName: s.vendor_name ?? "",
       amount: centsToInput(s.amount_cents),
     })),
   }));
@@ -105,10 +109,12 @@ export function draftsToBudgetPayload(drafts: CategoryDraft[]): PutBudgetPayload
     categories: drafts.map((c) => ({
       ...(c.serverId != null ? { id: c.serverId } : {}),
       name: c.name.trim() || "Untitled category",
+      vendor_name: c.vendorName.trim(),
       amount_cents: c.subBudgets.length ? 0 : dollarsToCents(c.amount),
       sub_budgets: c.subBudgets.map((s) => ({
         ...(s.serverId != null ? { id: s.serverId } : {}),
         name: s.name.trim() || "Untitled",
+        vendor_name: s.vendorName.trim(),
         amount_cents: dollarsToCents(s.amount),
       })),
     })),
@@ -149,9 +155,11 @@ export function draftsToCreateBudget(
 ): NonNullable<CreateProjectPayload["budget"]> {
   return drafts.map((c) => ({
     name: c.name.trim() || "Untitled category",
+    vendor_name: c.vendorName.trim(),
     amount_cents: c.subBudgets.length ? 0 : dollarsToCents(c.amount),
     sub_budgets: c.subBudgets.map((s) => ({
       name: s.name.trim() || "Untitled",
+      vendor_name: s.vendorName.trim(),
       amount_cents: dollarsToCents(s.amount),
     })),
   }));
@@ -192,7 +200,7 @@ export function BudgetEditor({
 }) {
   const total = budgetTotalCents(categories);
   const addCategory = () =>
-    onChange([...categories, { id: newId(), name: "", amount: "", spentCents: 0, subBudgets: [] }]);
+    onChange([...categories, { id: newId(), name: "", vendorName: "", amount: "", spentCents: 0, subBudgets: [] }]);
   const removeCategory = (id: number) => onChange(categories.filter((c) => c.id !== id));
   const patchCategory = (id: number, p: Partial<CategoryDraft>) =>
     onChange(categories.map((c) => (c.id === id ? { ...c, ...p } : c)));
@@ -200,7 +208,7 @@ export function BudgetEditor({
     onChange(
       categories.map((c) =>
         c.id === catId
-          ? { ...c, subBudgets: [...c.subBudgets, { id: newId(), name: "", amount: "" }] }
+          ? { ...c, subBudgets: [...c.subBudgets, { id: newId(), name: "", vendorName: "", amount: "" }] }
           : c,
       ),
     );
@@ -229,7 +237,8 @@ export function BudgetEditor({
         return (
           <div key={c.id} className="rounded-lg border border-gray-200">
             <div className="flex items-center gap-2 px-3 py-2.5">
-              <input aria-label="Category name" className={`${smallField} flex-1`} placeholder="Category name (e.g. Electrical)" value={c.name} onChange={(e) => patchCategory(c.id, { name: e.target.value })} />
+              <input aria-label="Category name" className={`${smallField} flex-1`} placeholder="Description (e.g. Electrical)" value={c.name} onChange={(e) => patchCategory(c.id, { name: e.target.value })} />
+              <input aria-label="Category vendor" className={`${smallField} w-40`} placeholder="Vendor (AVM)" value={c.vendorName} onChange={(e) => patchCategory(c.id, { vendorName: e.target.value })} />
               <div className="flex items-center gap-1">
                 <span className="text-gray-400" aria-hidden="true">$</span>
                 <input
@@ -252,7 +261,8 @@ export function BudgetEditor({
                   {c.subBudgets.map((s) => (
                     <div key={s.id} className="flex items-center gap-2 pl-4">
                       <span className="text-gray-300" aria-hidden="true">└</span>
-                      <input aria-label="Sub-budget name" className={`${smallField} flex-1 bg-white`} placeholder="Sub-budget name" value={s.name} onChange={(e) => patchSub(c.id, s.id, { name: e.target.value })} />
+                      <input aria-label="Sub-budget name" className={`${smallField} flex-1 bg-white`} placeholder="Sub-budget description" value={s.name} onChange={(e) => patchSub(c.id, s.id, { name: e.target.value })} />
+                      <input aria-label="Sub-budget vendor" className={`${smallField} w-36 bg-white`} placeholder={c.vendorName.trim() || "AVM"} value={s.vendorName} onChange={(e) => patchSub(c.id, s.id, { vendorName: e.target.value })} />
                       <div className="flex items-center gap-1">
                         <span className="text-gray-400" aria-hidden="true">$</span>
                         <input type="text" inputMode="decimal" aria-label="Sub-budget amount in dollars" className={`${smallField} w-24 bg-white text-right tabular-nums`} placeholder="0" value={s.amount} onChange={(e) => patchSub(c.id, s.id, { amount: sanitizeAmountInput(e.target.value) })} onBlur={() => patchSub(c.id, s.id, { amount: formatAmountInput(s.amount) })} />
