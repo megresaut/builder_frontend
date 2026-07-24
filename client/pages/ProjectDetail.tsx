@@ -33,7 +33,11 @@ import {
   recordInvoicePayment,
   voidProjectInvoice,
   pushInvoiceToQbo,
+  listQboItems,
+  type QboItem,
+  pushInvoicePaymentToQbo,
   getBillables,
+  openProjectInvoicePdf,
   acceptQuote,
   listProjectFiles,
   uploadProjectFile,
@@ -937,8 +941,52 @@ function DashboardTab({ summary, onRefresh }: { summary: ProjectSummary; onRefre
   const fin = summary.financials;
   const budget = fin.current_budget_cents;
 
+  // Over/under-billing banner dismissal, persisted per-project (shares the key
+  // with the Financials tab so dismissing it once silences both).
+  const bannerKey = `pfv2:billing-banner-dismissed:${project.id}`;
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(bannerKey) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    try {
+      localStorage.setItem(bannerKey, "1");
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+      {/* Over/under-billing banner — full-width row above the KPIs and detail
+          columns; dismissible per project. */}
+      {!bannerDismissed && (fin.billed_to_date_cents > 0 || fin.committed_cents > 0) && (
+        <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 lg:col-span-2 ${fin.billed_vs_cost_cents >= 0 ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
+          <span className={`mt-0.5 ${fin.billed_vs_cost_cents >= 0 ? "text-emerald-600" : "text-amber-600"}`}>
+            {fin.billed_vs_cost_cents >= 0 ? "▲" : "▼"}
+          </span>
+          <div className="flex-1 text-sm">
+            <span className={`font-semibold ${fin.billed_vs_cost_cents >= 0 ? "text-emerald-800" : "text-amber-800"}`}>
+              {fin.billed_vs_cost_cents >= 0 ? "Over-billing" : "Under-billing"} {formatUSD(Math.abs(fin.billed_vs_cost_cents))}
+            </span>
+            <span className="ml-1 text-gray-600">
+              — billed {formatUSD(fin.billed_to_date_cents)} vs committed cost {formatUSD(fin.committed_cents)}.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={dismissBanner}
+            aria-label="Dismiss over/under-billing banner"
+            className="ml-2 text-gray-400 hover:text-gray-600"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       {/* main column */}
       <div className="flex flex-col gap-6 min-w-0">
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
@@ -949,23 +997,6 @@ function DashboardTab({ summary, onRefresh }: { summary: ProjectSummary; onRefre
           <KpiCard label="Collected from Client" value={formatUSD(fin.collected_cents)} subtitle="Deposits + progress" accent="green" valueColor="#15803D" />
           <KpiCard label="Net Cash Position" value={formatUSD(fin.net_cash_cents)} subtitle="collected − paid" accent={fin.net_cash_cents >= 0 ? "green" : "red"} valueColor={fin.net_cash_cents >= 0 ? "#15803D" : "#B91C1C"} />
         </div>
-
-        {/* Over/under-billing indicator: billed-to-client vs cost incurred (committed). */}
-        {(fin.billed_to_date_cents > 0 || fin.committed_cents > 0) && (
-          <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${fin.billed_vs_cost_cents >= 0 ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
-            <span className={`mt-0.5 ${fin.billed_vs_cost_cents >= 0 ? "text-emerald-600" : "text-amber-600"}`}>
-              {fin.billed_vs_cost_cents >= 0 ? "▲" : "▼"}
-            </span>
-            <div className="text-sm">
-              <span className={`font-semibold ${fin.billed_vs_cost_cents >= 0 ? "text-emerald-800" : "text-amber-800"}`}>
-                {fin.billed_vs_cost_cents >= 0 ? "Over-billing" : "Under-billing"} {formatUSD(Math.abs(fin.billed_vs_cost_cents))}
-              </span>
-              <span className="ml-1 text-gray-600">
-                — billed {formatUSD(fin.billed_to_date_cents)} vs committed cost {formatUSD(fin.committed_cents)}.
-              </span>
-            </div>
-          </div>
-        )}
 
         {fin.pending_change_orders_count > 0 && (
           <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
@@ -2163,11 +2194,11 @@ function FinancialsTab({
       toast.error(errMessage(e, "Failed to load invoice"));
     }
   };
-  const doCreate = async (title: string, lines: CreateInvoiceLineInput[]) => {
+  const doCreate = async (title: string, lines: CreateInvoiceLineInput[], ftoSubmissionIds: number[]) => {
     if (busy) return;
     setBusy(true);
     try {
-      const created = await createProjectInvoice(projectId, { title, lines });
+      const created = await createProjectInvoice(projectId, { title, lines, fto_submission_ids: ftoSubmissionIds });
       setBuilderOpen(false);
       setBillables(null);
       await load();
@@ -2215,15 +2246,26 @@ function FinancialsTab({
       toast.error(errMessage(e, "Failed to void invoice"));
     }
   };
-  const doPushQbo = async (id: number) => {
+  const doPushQbo = async (id: number, qboItemId?: string) => {
     try {
-      const res = await pushInvoiceToQbo(projectId, id);
+      const res = await pushInvoiceToQbo(projectId, id, qboItemId);
       await load();
       if (detail?.id === id) await openDetail(id);
       toast.success(res.already_pushed ? "Already in QuickBooks" : `Pushed to QuickBooks (invoice ${res.qbo_invoice_id})`);
     } catch (e) {
       // Non-concierge → 409, missing customer → 400, QBO failure → 502.
       toast.error(errMessage(e, "Failed to push invoice to QuickBooks"));
+    }
+  };
+  const doPushPaymentQbo = async (invoiceId: number, paymentId: number) => {
+    try {
+      const res = await pushInvoicePaymentToQbo(projectId, invoiceId, paymentId);
+      await load();
+      if (detail?.id === invoiceId) await openDetail(invoiceId);
+      toast.success(res.already_pushed ? "Payment already in QuickBooks" : `Payment pushed to QuickBooks (${res.qbo_payment_id})`);
+    } catch (e) {
+      // Non-concierge → 409, missing customer → 400, void invoice → 409, QBO failure → 502.
+      toast.error(errMessage(e, "Failed to push payment to QuickBooks"));
     }
   };
 
@@ -2505,7 +2547,8 @@ function FinancialsTab({
           onSend={() => doSend(detail.id)}
           onRecordPayment={(cents) => doRecordInvoicePayment(detail.id, cents)}
           onVoid={() => doVoid(detail.id)}
-          onPushQbo={() => doPushQbo(detail.id)}
+          onPushQbo={(qboItemId?: string) => doPushQbo(detail.id, qboItemId)}
+          onPushPaymentQbo={(paymentId) => doPushPaymentQbo(detail.id, paymentId)}
           onClose={() => setDetail(null)}
         />
       )}
@@ -2531,6 +2574,13 @@ function installmentTrigger(inst: PaymentInstallment): string {
   return "On signing";
 }
 
+// ftoItemTotalCents = labor + expense-at-cost + Σ material upcharges (the full
+// amount an FTO submission bills once expanded to lines).
+function ftoItemTotalCents(fi: Billables["fto_items"][number]): number {
+  const markups = fi.expense_lines.reduce((s, e) => s + (e.upcharge_cents || 0), 0);
+  return fi.labor_total_cents + fi.expense_total_cents + markups;
+}
+
 function ProjectInvoiceBuilderModal({
   billables,
   busy,
@@ -2539,20 +2589,35 @@ function ProjectInvoiceBuilderModal({
 }: {
   billables: Billables | null;
   busy: boolean;
-  onCreate: (title: string, lines: CreateInvoiceLineInput[]) => void;
+  onCreate: (title: string, lines: CreateInvoiceLineInput[], ftoSubmissionIds: number[]) => void;
   onClose: () => void;
 }) {
   const installments = billables?.installments_due ?? [];
   const changeOrders = billables?.change_orders_unbilled ?? [];
-  const unreimbursedCents = billables?.unreimbursed_spend_cents ?? 0;
+  const vendorBills = billables?.vendor_bills ?? [];
+  const ftoItems = billables?.fto_items ?? [];
 
   const [selectedInst, setSelectedInst] = useState<number[]>([]);
   const [selectedCo, setSelectedCo] = useState<number[]>([]);
-  const [includeCosts, setIncludeCosts] = useState(false);
-  const [manual, setManual] = useState<{ key: number; description: string; amount: string }[]>([]);
+  const [selectedBills, setSelectedBills] = useState<number[]>([]);
+  const [selectedFto, setSelectedFto] = useState<number[]>([]);
+  const [manual, setManual] = useState<{ key: number; description: string; amount: string; vendorId: string }[]>([]);
+  const [fees, setFees] = useState<{ key: number; description: string; amount: string }[]>([]);
   const [title, setTitle] = useState("");
   const [primed, setPrimed] = useState(false);
   const manualSeq = useRef(-1);
+  const feeSeq = useRef(-100000);
+
+  // Vendor options for the optional manual-line dropdown (reuses the shared
+  // typeahead source; loaded once when the builder opens).
+  const [vendors, setVendors] = useState<VendorLite[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    searchVendors("", 1000)
+      .then((vs) => { if (!cancelled) setVendors(vs); })
+      .catch(() => { /* dropdown just stays empty */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // Pre-check all due installments once billables arrive — they're what the
   // builder exists to bill.
@@ -2567,11 +2632,14 @@ function ProjectInvoiceBuilderModal({
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
   const manualCents = manual.reduce((s, m) => s + Math.round((Number(m.amount) || 0) * 100), 0);
+  const feeCents = fees.reduce((s, m) => s + Math.round((Number(m.amount) || 0) * 100), 0);
   const total =
     installments.filter((i) => selectedInst.includes(i.id)).reduce((s, i) => s + i.resolved_amount_cents, 0) +
     changeOrders.filter((c) => selectedCo.includes(c.id)).reduce((s, c) => s + c.amount_cents, 0) +
-    (includeCosts ? unreimbursedCents : 0) +
-    manualCents;
+    vendorBills.filter((b) => selectedBills.includes(b.bill_id)).reduce((s, b) => s + b.amount_cents, 0) +
+    ftoItems.filter((f) => selectedFto.includes(f.submission_id)).reduce((s, f) => s + ftoItemTotalCents(f), 0) +
+    manualCents +
+    feeCents;
 
   const create = () => {
     const lines: CreateInvoiceLineInput[] = [
@@ -2591,18 +2659,35 @@ function ProjectInvoiceBuilderModal({
           source_type: "change_order",
           source_id: c.id,
         })),
-      ...(includeCosts && unreimbursedCents > 0
-        ? [{ description: "Unreimbursed project costs to date", amount_cents: unreimbursedCents, source_type: "cost_reimbursement" as const }]
-        : []),
+      // Vendor bills → one cost_reimbursement line each, carrying the bill's vendor.
+      ...vendorBills
+        .filter((b) => selectedBills.includes(b.bill_id))
+        .map((b): CreateInvoiceLineInput => ({
+          description: b.description,
+          amount_cents: b.amount_cents,
+          source_type: "cost_reimbursement",
+          source_id: b.bill_id,
+          vendor_id: b.vendor_id,
+        })),
       ...manual
         .filter((m) => m.description.trim() && Number(m.amount))
-        .map((m): CreateInvoiceLineInput => ({ description: m.description.trim(), amount_cents: Math.round(Number(m.amount) * 100), source_type: "manual" })),
+        .map((m): CreateInvoiceLineInput => ({
+          description: m.description.trim(),
+          amount_cents: Math.round(Number(m.amount) * 100),
+          source_type: "manual",
+          vendor_id: m.vendorId ? Number(m.vendorId) : null,
+        })),
+      ...fees
+        .filter((m) => m.description.trim() && Number(m.amount))
+        .map((m): CreateInvoiceLineInput => ({ description: m.description.trim(), amount_cents: Math.round(Number(m.amount) * 100), source_type: "project_fee" })),
     ];
-    if (lines.length === 0) {
-      toast.error("Add at least one line");
+    // FTO submissions are expanded server-side into per-entry lines.
+    const ftoSubmissionIds = ftoItems.filter((f) => selectedFto.includes(f.submission_id)).map((f) => f.submission_id);
+    if (lines.length === 0 && ftoSubmissionIds.length === 0) {
+      toast.error("Add at least one line or field-team order");
       return;
     }
-    onCreate(title.trim() || "Project invoice", lines);
+    onCreate(title.trim() || "Project invoice", lines, ftoSubmissionIds);
   };
 
   const rowCls = "flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5";
@@ -2653,47 +2738,82 @@ function ProjectInvoiceBuilderModal({
             </div>
           </div>
 
-          <div>
-            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Other billable items</div>
-            <div className="flex flex-col gap-2">
-              {changeOrders.map((c) => (
-                <label key={c.id} className={`${rowCls} cursor-pointer ${selectedCo.includes(c.id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
-                  <span className="flex items-center gap-2.5 text-sm text-gray-900">
-                    <input type="checkbox" className={checkCls} checked={selectedCo.includes(c.id)} onChange={() => toggle(c.id, selectedCo, setSelectedCo)} />
-                    {c.co_number} · {c.description}
-                  </span>
-                  <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(c.amount_cents)}</span>
-                </label>
-              ))}
-              <label className={`${rowCls} ${unreimbursedCents > 0 ? "cursor-pointer" : "opacity-60"}`}>
-                <span className="flex items-center gap-2.5 text-sm text-gray-900">
-                  <input
-                    type="checkbox"
-                    className={checkCls}
-                    disabled={unreimbursedCents === 0}
-                    checked={includeCosts}
-                    onChange={() => setIncludeCosts((v) => !v)}
-                  />
-                  Unreimbursed costs to date
-                  {unreimbursedCents === 0 && <span className="text-xs text-gray-400">(all fronted costs already billed)</span>}
-                </span>
-                <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(unreimbursedCents)}</span>
-              </label>
+          {changeOrders.length > 0 && (
+            <div>
+              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Change orders</div>
+              <div className="flex flex-col gap-2">
+                {changeOrders.map((c) => (
+                  <label key={c.id} className={`${rowCls} cursor-pointer ${selectedCo.includes(c.id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
+                    <span className="flex items-center gap-2.5 text-sm text-gray-900">
+                      <input type="checkbox" className={checkCls} checked={selectedCo.includes(c.id)} onChange={() => toggle(c.id, selectedCo, setSelectedCo)} />
+                      {c.co_number} · {c.description}
+                    </span>
+                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(c.amount_cents)}</span>
+                  </label>
+                ))}
+              </div>
             </div>
+          )}
+
+          <div>
+            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Vendor bills</div>
+            {vendorBills.length === 0 ? (
+              <p className="text-sm text-gray-500">No un-billed vendor bills on this project.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {vendorBills.map((b) => (
+                  <label key={b.bill_id} className={`${rowCls} cursor-pointer ${selectedBills.includes(b.bill_id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
+                    <span className="flex items-center gap-2.5 text-sm text-gray-900">
+                      <input type="checkbox" className={checkCls} checked={selectedBills.includes(b.bill_id)} onChange={() => toggle(b.bill_id, selectedBills, setSelectedBills)} />
+                      <span>
+                        {b.description}
+                        {b.vendor_name && <span className="ml-1.5 text-xs text-gray-500">· {b.vendor_name}</span>}
+                      </span>
+                    </span>
+                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(b.amount_cents)}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Field team orders</div>
+            {ftoItems.length === 0 ? (
+              <p className="text-sm text-gray-500">No un-billed field-team labor or expenses.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {ftoItems.map((f) => (
+                  <label key={f.submission_id} className={`${rowCls} cursor-pointer ${selectedFto.includes(f.submission_id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
+                    <span className="flex items-center gap-2.5 text-sm text-gray-900">
+                      <input type="checkbox" className={checkCls} checked={selectedFto.includes(f.submission_id)} onChange={() => toggle(f.submission_id, selectedFto, setSelectedFto)} />
+                      <span>
+                        {f.work_description?.trim() || `Field work ${fmtProjDate(f.date_of_work)}`}
+                        <span className="ml-1.5 text-xs text-gray-500">
+                          {fmtProjDate(f.date_of_work)} · labor {formatUSD(f.labor_total_cents)}
+                          {f.expense_total_cents > 0 && ` · materials ${formatUSD(f.expense_total_cents)}`}
+                        </span>
+                      </span>
+                    </span>
+                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(ftoItemTotalCents(f))}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Manual lines</span>
               <button
-                onClick={() => setManual((m) => [...m, { key: manualSeq.current--, description: "", amount: "" }])}
+                onClick={() => setManual((m) => [...m, { key: manualSeq.current--, description: "", amount: "", vendorId: "" }])}
                 className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
               >
                 + Add line
               </button>
             </div>
             {manual.length === 0 ? (
-              <p className="text-xs text-gray-400">Freeform charges or credits (negative amounts allowed).</p>
+              <p className="text-xs text-gray-400">Freeform charges or credits (negative amounts allowed). Vendor optional.</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {manual.map((m) => (
@@ -2704,6 +2824,17 @@ function ProjectInvoiceBuilderModal({
                       onChange={(e) => setManual((v) => v.map((x) => (x.key === m.key ? { ...x, description: e.target.value } : x)))}
                       className="flex-1 rounded-md border border-[#DADADA] px-2 py-1.5 text-sm focus:border-[#013764] focus:outline-none"
                     />
+                    <select
+                      value={m.vendorId}
+                      title="Vendor (optional)"
+                      onChange={(e) => setManual((v) => v.map((x) => (x.key === m.key ? { ...x, vendorId: e.target.value } : x)))}
+                      className="w-36 rounded-md border border-[#DADADA] bg-white px-2 py-1.5 text-sm text-gray-700 focus:border-[#013764] focus:outline-none"
+                    >
+                      <option value="">No vendor</option>
+                      {vendors.map((v) => (
+                        <option key={v.id} value={String(v.id)}>{v.name}</option>
+                      ))}
+                    </select>
                     <div className="flex items-center gap-1">
                       <span className="text-gray-400">$</span>
                       <input
@@ -2715,6 +2846,45 @@ function ProjectInvoiceBuilderModal({
                       />
                     </div>
                     <button onClick={() => setManual((v) => v.filter((x) => x.key !== m.key))} aria-label="Remove line" className="px-1 text-gray-400 hover:text-red-600">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Project fee (income)</span>
+              <button
+                onClick={() => setFees((m) => [...m, { key: feeSeq.current--, description: "", amount: "" }])}
+                className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              >
+                + Add fee
+              </button>
+            </div>
+            {fees.length === 0 ? (
+              <p className="text-xs text-gray-400">Real-income management fee / margin. On concierge properties this books to income in QuickBooks (not cost-recovery).</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {fees.map((m) => (
+                  <div key={m.key} className="flex items-center gap-2">
+                    <input
+                      value={m.description}
+                      placeholder="e.g. Management fee (10%)"
+                      onChange={(e) => setFees((v) => v.map((x) => (x.key === m.key ? { ...x, description: e.target.value } : x)))}
+                      className="flex-1 rounded-md border border-[#DADADA] px-2 py-1.5 text-sm focus:border-[#013764] focus:outline-none"
+                    />
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-400">$</span>
+                      <input
+                        type="number"
+                        value={m.amount}
+                        placeholder="0.00"
+                        onChange={(e) => setFees((v) => v.map((x) => (x.key === m.key ? { ...x, amount: e.target.value } : x)))}
+                        className="w-28 rounded-md border border-[#DADADA] px-2 py-1.5 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
+                      />
+                    </div>
+                    <button onClick={() => setFees((v) => v.filter((x) => x.key !== m.key))} aria-label="Remove fee line" className="px-1 text-gray-400 hover:text-red-600">✕</button>
                   </div>
                 ))}
               </div>
@@ -2732,15 +2902,19 @@ function ProjectInvoiceDetailModal({
   onRecordPayment,
   onVoid,
   onPushQbo,
+  onPushPaymentQbo,
   onClose,
 }: {
   invoice: ProjectInvoice;
   onSend: () => void;
   onRecordPayment: (cents: number) => void;
   onVoid: () => void;
-  onPushQbo: () => void | Promise<void>;
+  onPushQbo: (qboItemId?: string) => void | Promise<void>;
+  onPushPaymentQbo: (paymentId: number) => void | Promise<void>;
   onClose: () => void;
 }) {
+  const [pushingPaymentId, setPushingPaymentId] = useState<number | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const totalCents = invoice.total_amount_cents;
   const paid = invoice.paid_cents;
   const remaining = Math.max(0, totalCents - paid);
@@ -2754,6 +2928,26 @@ function ProjectInvoiceDetailModal({
   // the source of truth; the button stays optimistic.
   const canPushQbo = invoice.status !== "void" && invoice.status !== "draft";
 
+  // Live QBO item picker: what the invoice lines book against. Loaded from the
+  // shared /accounting/qbo-items endpoint only when a push is actually available
+  // and not already done. The selection is passed to the push; empty = let the
+  // backend fall back to PROJECT_DFO_ITEM_ID.
+  const [qboItems, setQboItems] = useState<QboItem[]>([]);
+  const [qboItemsLoading, setQboItemsLoading] = useState(false);
+  const [qboItemsError, setQboItemsError] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState("");
+  useEffect(() => {
+    if (!canPushQbo || pushed) return;
+    let cancelled = false;
+    setQboItemsLoading(true);
+    setQboItemsError(false);
+    listQboItems()
+      .then((items) => { if (!cancelled) setQboItems(items); })
+      .catch(() => { if (!cancelled) setQboItemsError(true); })
+      .finally(() => { if (!cancelled) setQboItemsLoading(false); });
+    return () => { cancelled = true; };
+  }, [canPushQbo, pushed]);
+
   return (
     <ModalShell
       title={`${invoice.invoice_number} · ${invoice.title}`}
@@ -2766,46 +2960,27 @@ function ProjectInvoiceDetailModal({
               Void
             </button>
           )}
+          <button
+            onClick={async () => {
+              setDownloadingPdf(true);
+              try {
+                await openProjectInvoicePdf(invoice.project_id, invoice.id);
+              } catch (e) {
+                toast.error(errMessage(e, "Failed to download PDF"));
+              } finally {
+                setDownloadingPdf(false);
+              }
+            }}
+            disabled={downloadingPdf}
+            className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {downloadingPdf ? "Preparing…" : "Download PDF"}
+          </button>
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Close</button>
-          {canPushQbo && (
-            <button
-              onClick={async () => { setPushing(true); try { await onPushQbo(); } finally { setPushing(false); } }}
-              disabled={pushing || pushed}
-              title={pushed ? "Already pushed to QuickBooks" : "Post this invoice to QuickBooks (concierge only)"}
-              className={`h-9 rounded-lg px-3.5 text-sm font-medium ${pushed ? "cursor-default border border-emerald-200 bg-emerald-50 text-emerald-700" : "border border-[#013764] bg-white text-[#013764] hover:bg-[#013764]/5 disabled:opacity-50"}`}
-            >
-              {pushed ? "In QuickBooks ✓" : pushing ? "Pushing…" : "Push to QuickBooks"}
-            </button>
-          )}
           {invoice.status === "draft" && (
             <button onClick={onSend} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]">
               Send to client
             </button>
-          )}
-          {canPay && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-gray-400">$</span>
-              <input
-                type="number"
-                value={payAmount}
-                onChange={(e) => setPayAmount(e.target.value)}
-                aria-label="Payment amount in dollars"
-                className="w-28 rounded-md border border-[#DADADA] px-2 py-1.5 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
-              />
-              <button
-                onClick={() => {
-                  const cents = Math.round((Number(payAmount) || 0) * 100);
-                  if (cents <= 0) {
-                    toast.error("Enter a payment amount");
-                    return;
-                  }
-                  onRecordPayment(cents);
-                }}
-                className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
-              >
-                Record payment
-              </button>
-            </div>
           )}
         </>
       }
@@ -2823,7 +2998,10 @@ function ProjectInvoiceDetailModal({
           <div className="flex flex-col divide-y divide-gray-100 rounded-lg border border-gray-200">
             {invoice.lines.map((l: ProjectInvoiceLine) => (
               <div key={l.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
-                <span className="text-gray-900">{l.description}</span>
+                <span className="text-gray-900">
+                  {l.vendor_name && <span className="mr-1.5 text-xs font-medium text-gray-500">{l.vendor_name} ·</span>}
+                  {l.description}
+                </span>
                 <span className="flex shrink-0 items-center gap-2">
                   <span className="text-[11px] uppercase tracking-wide text-gray-400">{l.source_type.replace(/_/g, " ")}</span>
                   <span className="font-medium tabular-nums text-gray-900">{formatUSD(l.amount_cents)}</span>
@@ -2832,6 +3010,44 @@ function ProjectInvoiceDetailModal({
             ))}
           </div>
         </div>
+
+        {canPushQbo && (
+          <div>
+            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">QuickBooks</div>
+            {pushed ? (
+              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
+                In QuickBooks ✓
+              </span>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={selectedItemId}
+                  onChange={(e) => setSelectedItemId(e.target.value)}
+                  disabled={pushing || qboItemsLoading || qboItemsError}
+                  title="QuickBooks item to book this invoice against"
+                  className="h-9 min-w-0 flex-1 rounded-lg border border-[#DADADA] bg-white px-2 text-sm text-gray-700 disabled:opacity-50"
+                >
+                  <option value="">
+                    {qboItemsLoading ? "Loading items…" : qboItemsError ? "Items unavailable" : "Item (default)"}
+                  </option>
+                  {qboItems.map((it) => (
+                    <option key={it.qbo_item_id} value={it.qbo_item_id}>
+                      {it.fully_qualified_name || it.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={async () => { setPushing(true); try { await onPushQbo(selectedItemId || undefined); } finally { setPushing(false); } }}
+                  disabled={pushing}
+                  title="Post this invoice to QuickBooks (concierge only)"
+                  className="h-9 shrink-0 rounded-lg border border-[#013764] bg-white px-3.5 text-sm font-medium text-[#013764] hover:bg-[#013764]/5 disabled:opacity-50"
+                >
+                  {pushing ? "Pushing…" : "Push to QuickBooks"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         <div>
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Payments</div>
@@ -2844,15 +3060,61 @@ function ProjectInvoiceDetailModal({
                   <span className="text-gray-700">
                     {fmtProjDate(p.received_on)}
                     {p.reference ? ` · ${p.reference}` : ""}
-                    {p.via_qbo && <span className="ml-2 rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700">auto-reconciled via QBO</span>}
+                    {p.via_qbo && <span className="ml-2 rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700">In QuickBooks ✓</span>}
                   </span>
-                  <span className="font-medium tabular-nums text-green-700">{formatUSD(p.amount_cents)}</span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    {/* Push to QBO: hidden once the payment is in QBO (via_qbo). Optimistic;
+                        the backend gate (409 non-concierge / 400 no customer / 502) decides. */}
+                    {!p.via_qbo && invoice.status !== "void" && (
+                      <button
+                        onClick={async () => {
+                          setPushingPaymentId(p.id);
+                          try {
+                            await onPushPaymentQbo(p.id);
+                          } finally {
+                            setPushingPaymentId(null);
+                          }
+                        }}
+                        disabled={pushingPaymentId === p.id}
+                        title="Post this payment to QuickBooks (concierge only)"
+                        className="rounded-md border border-[#013764] bg-white px-2 py-0.5 text-[11px] font-medium text-[#013764] hover:bg-[#013764]/5 disabled:opacity-50"
+                      >
+                        {pushingPaymentId === p.id ? "Pushing…" : "Push to QuickBooks"}
+                      </button>
+                    )}
+                    <span className="font-medium tabular-nums text-green-700">{formatUSD(p.amount_cents)}</span>
+                  </span>
                 </div>
               ))}
             </div>
           )}
           {remaining > 0 && paid > 0 && (
             <p className="mt-2 text-xs text-amber-700">{formatUSD(remaining)} remaining on this invoice.</p>
+          )}
+          {canPay && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-sm text-gray-400">$</span>
+              <input
+                type="number"
+                value={payAmount}
+                onChange={(e) => setPayAmount(e.target.value)}
+                aria-label="Payment amount in dollars"
+                className="w-32 rounded-md border border-[#DADADA] px-2 py-1.5 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
+              />
+              <button
+                onClick={() => {
+                  const cents = Math.round((Number(payAmount) || 0) * 100);
+                  if (cents <= 0) {
+                    toast.error("Enter a payment amount");
+                    return;
+                  }
+                  onRecordPayment(cents);
+                }}
+                className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
+              >
+                Record payment
+              </button>
+            </div>
           )}
         </div>
 

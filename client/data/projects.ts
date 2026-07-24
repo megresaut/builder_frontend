@@ -7,6 +7,7 @@
  */
 
 import { fetchJSON, authFetch } from "@/api/fetchJSON";
+import { openAuthPdf } from "@/api/openAuthPdf";
 
 /* --------------------------------- enums --------------------------------- */
 
@@ -845,7 +846,11 @@ export type ProjectInvoiceLineSource =
   | "budget_category"
   | "change_order"
   | "installment"
-  | "cost_reimbursement";
+  | "cost_reimbursement"
+  | "project_fee" // real-income fee/margin line (concierge: routes to Project Fee Income item)
+  | "fto_labor" // FTO hour-entry labor line (server-expanded); vendor displays "AVM"
+  | "fto_expense" // FTO material passthrough at cost (server-expanded); vendor "AVM"
+  | "materials_markup"; // FTO material upcharge (server-expanded)
 export type InstallmentBasis = "percent" | "fixed";
 export type InstallmentStatus = "upcoming" | "due" | "invoiced" | "paid";
 
@@ -856,6 +861,8 @@ export interface ProjectInvoiceLine {
   sort_order: number;
   source_type: ProjectInvoiceLineSource;
   source_id: number | null;
+  vendor_id: number | null; // FK to vendors (manual/bill lines); null for FTO lines
+  vendor_name: string; // display: vendor name, or "AVM" for FTO lines
 }
 
 export interface ProjectInvoicePayment {
@@ -922,10 +929,43 @@ export interface BillableChangeOrder {
   description: string;
   amount_cents: number;
 }
+// One project work-order vendor bill (spec §3.1) — a selectable itemized billable.
+export interface BillableVendorBill {
+  bill_id: number;
+  vendor_id: number | null;
+  vendor_name: string;
+  description: string;
+  amount_cents: number;
+}
+// One computed labor entry inside an FTO submission (hours × property rate).
+export interface FtoLaborLine {
+  note: string;
+  hours_decimal: number;
+  emergency: boolean;
+  amount_cents: number;
+}
+// One computed material entry (billed at cost, with optional markup).
+export interface FtoExpenseLine {
+  note: string;
+  vendor_name: string;
+  amount_cents: number; // at cost
+  upcharge_cents: number; // separate materials_markup line when > 0
+}
+// One selectable FTO submission (spec §3.2) with its computed breakdown.
+export interface FtoItem {
+  submission_id: number;
+  date_of_work: string;
+  work_description: string;
+  labor_lines: FtoLaborLine[];
+  expense_lines: FtoExpenseLine[];
+  labor_total_cents: number;
+  expense_total_cents: number;
+}
 export interface Billables {
   installments_due: BillableInstallment[];
   change_orders_unbilled: BillableChangeOrder[];
-  unreimbursed_spend_cents: number;
+  vendor_bills: BillableVendorBill[];
+  fto_items: FtoItem[];
 }
 
 export interface CreateInvoiceLineInput {
@@ -933,6 +973,7 @@ export interface CreateInvoiceLineInput {
   amount_cents: number;
   source_type: ProjectInvoiceLineSource;
   source_id?: number | null;
+  vendor_id?: number | null; // optional vendor on manual/bill lines
 }
 export interface CreateInvoicePayload {
   title: string;
@@ -941,6 +982,9 @@ export interface CreateInvoicePayload {
   due_date?: string;
   client_email?: string;
   lines: CreateInvoiceLineInput[];
+  // Selected FTO submissions the server expands into per-entry labor/expense
+  // (+markup) lines. Kept separate from `lines` so the rate math is authoritative.
+  fto_submission_ids?: number[];
 }
 export interface UpdateInvoicePayload {
   title?: string;
@@ -949,6 +993,7 @@ export interface UpdateInvoicePayload {
   due_date?: string;
   client_email?: string;
   lines?: CreateInvoiceLineInput[]; // full-replace (draft only)
+  fto_submission_ids?: number[]; // FTO selections to (re)expand on replace
 }
 export interface RecordInvoicePaymentPayload {
   amount_cents: number;
@@ -1005,6 +1050,13 @@ export async function voidProjectInvoice(projectId: number, invoiceId: number): 
   return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/void`, { method: "POST" });
 }
 
+// Opens the invoice's Pergola-layout PDF in a new tab (auth-attached blob fetch).
+// The endpoint regenerates the PDF on each call → always reflects the latest
+// lines, and persists it (also surfaced in the Files tab). Not concierge-gated.
+export async function openProjectInvoicePdf(projectId: number, invoiceId: number): Promise<void> {
+  return openAuthPdf(`/projects/${projectId}/invoices/${invoiceId}/pdf`);
+}
+
 export interface PushInvoiceToQboResult {
   invoice_id: number;
   qbo_invoice_id: string;
@@ -1015,8 +1067,51 @@ export interface PushInvoiceToQboResult {
 
 // Package C: push a project's client invoice to QuickBooks (concierge only).
 // Non-concierge → 409, concierge missing QBO customer → 400, QBO failure → 502.
-export async function pushInvoiceToQbo(projectId: number, invoiceId: number): Promise<PushInvoiceToQboResult> {
-  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/push-qbo`, { method: "POST" });
+// pushInvoiceToQbo posts the project invoice to QuickBooks. qboItemId is the item
+// the lines book against, chosen from the live QBO item picker; when omitted the
+// backend falls back to the configured PROJECT_DFO_ITEM_ID (400 if neither exists).
+export async function pushInvoiceToQbo(projectId: number, invoiceId: number, qboItemId?: string): Promise<PushInvoiceToQboResult> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/push-qbo`, {
+    method: "POST",
+    body: JSON.stringify(qboItemId ? { qbo_item_id: qboItemId } : {}),
+  });
+}
+
+// A QuickBooks item, from GET /accounting/qbo-items (active items, cached server-side).
+export interface QboItem {
+  qbo_item_id: string;
+  name: string;
+  fully_qualified_name: string;
+  type: string;
+  parent_name: string | null;
+}
+
+// listQboItems fetches the live QBO item list used to populate the invoice-push
+// item picker. Shared, read-only accounting endpoint (not project-specific).
+export async function listQboItems(): Promise<QboItem[]> {
+  const data = (await fetchJSON(`/accounting/qbo-items`)) as { items?: QboItem[] };
+  return data.items ?? [];
+}
+
+export interface PushInvoicePaymentToQboResult {
+  payment_id: number;
+  invoice_id: number;
+  qbo_payment_id: string;
+  qbo_invoice_id: string;
+  already_pushed: boolean;
+}
+
+// Push a recorded client payment to QuickBooks as a customer Payment that settles
+// the invoice, depositing to Due From Owners (concierge only). Auto-pushes the
+// invoice first if it isn't in QBO yet. Non-concierge → 409, concierge missing
+// QBO customer → 400, void invoice → 409, QBO failure → 502; idempotent (no-op
+// once the payment already has a qbo_payment_id).
+export async function pushInvoicePaymentToQbo(
+  projectId: number,
+  invoiceId: number,
+  paymentId: number,
+): Promise<PushInvoicePaymentToQboResult> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/payments/${paymentId}/push-qbo`, { method: "POST" });
 }
 
 export async function getBillables(projectId: number): Promise<Billables> {

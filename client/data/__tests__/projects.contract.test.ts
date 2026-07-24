@@ -36,7 +36,13 @@ import {
   putSchedule,
   createPayment,
   pushInvoiceToQbo,
+  listQboItems,
+  pushInvoicePaymentToQbo,
   getCashFlow,
+  getBillables,
+  createProjectInvoice,
+  type Billables,
+  type CreateInvoicePayload,
   PROJECT_STATUS_META,
   MILESTONE_STATUS_META,
   CHANGE_ORDER_STATUS_META,
@@ -730,19 +736,113 @@ describe("§6 request wire format", () => {
     });
   });
 
-  it("POST /projects/{id}/invoices/{iid}/push-qbo (Package C) — path + method, no body", async () => {
-    mockFetch.mockResolvedValueOnce({
+  it("POST /projects/{id}/invoices/{iid}/push-qbo (Package C) — item-id body variants", async () => {
+    const pushed = {
       invoice_id: 9,
       qbo_invoice_id: "145",
       qbo_push_status: "pushed",
       qbo_pushed_at: "2026-07-22T13:00:00Z",
       already_pushed: false,
-    });
+    };
+    // No item chosen → empty body (backend falls back to PROJECT_DFO_ITEM_ID).
+    mockFetch.mockResolvedValueOnce(pushed);
     const res = await pushInvoiceToQbo(1, 9);
     expect(lastCall().path).toBe("/projects/1/invoices/9/push-qbo");
     expect(lastCall().method).toBe("POST");
+    expect(lastCall().body).toEqual({});
     expect(res.qbo_invoice_id).toBe("145");
-    expect(res.qbo_push_status).toBe("pushed");
+
+    // Item chosen from the picker → forwarded as qbo_item_id.
+    mockFetch.mockResolvedValueOnce(pushed);
+    await pushInvoiceToQbo(1, 9, "42");
+    expect(lastCall().body).toEqual({ qbo_item_id: "42" });
+  });
+
+  it("GET /accounting/qbo-items — item picker source, unwraps {items}", async () => {
+    mockFetch.mockResolvedValueOnce({
+      items: [{ qbo_item_id: "42", name: "DFO", fully_qualified_name: "DFO", type: "Service", parent_name: null }],
+    });
+    const items = await listQboItems();
+    expect(lastCall().path).toBe("/accounting/qbo-items");
+    expect(items).toHaveLength(1);
+    expect(items[0].qbo_item_id).toBe("42");
+    // Tolerates a missing items array.
+    mockFetch.mockResolvedValueOnce({});
+    expect(await listQboItems()).toEqual([]);
+  });
+
+  it("POST /projects/{id}/invoices/{iid}/payments/{pid}/push-qbo — path + method, no body", async () => {
+    mockFetch.mockResolvedValueOnce({
+      payment_id: 7,
+      invoice_id: 9,
+      qbo_payment_id: "220",
+      qbo_invoice_id: "145",
+      already_pushed: false,
+    });
+    const res = await pushInvoicePaymentToQbo(1, 9, 7);
+    expect(lastCall().path).toBe("/projects/1/invoices/9/payments/7/push-qbo");
+    expect(lastCall().method).toBe("POST");
+    expect(res.qbo_payment_id).toBe("220");
+    expect(res.already_pushed).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------------- *
+ * Itemized billables (bills + FTO) + vendor field — PROJECT_INVOICE_PDF_SPEC
+ * ------------------------------------------------------------------------- */
+
+describe("itemized project-invoice billables + FTO expansion contract", () => {
+  // Response shape mirrors the Go billablesResponse (invoicing.go §3.1/§3.2).
+  const BILLABLES_FIXTURE = {
+    installments_due: [],
+    change_orders_unbilled: [],
+    vendor_bills: [
+      { bill_id: 91, vendor_id: 12, vendor_name: "Acme Roofing", description: "Shingle replacement", amount_cents: 30000 },
+    ],
+    fto_items: [
+      {
+        submission_id: 55,
+        date_of_work: "2026-07-10",
+        work_description: "Pergola labor",
+        labor_lines: [{ note: "Framing", hours_decimal: 2, emergency: false, amount_cents: 20000 }],
+        expense_lines: [{ note: "Lumber", vendor_name: "HomeDepot", amount_cents: 5000, upcharge_cents: 0 }],
+        labor_total_cents: 20000,
+        expense_total_cents: 5000,
+      },
+    ],
+  } satisfies Billables;
+
+  it("GET /projects/{id}/billables returns the itemized shape (no lump field)", async () => {
+    mockFetch.mockResolvedValueOnce(BILLABLES_FIXTURE);
+    const b = await getBillables(9);
+    expect(mockFetch).toHaveBeenCalledWith("/projects/9/billables");
+    // Exactly the four itemized groups; the retired lump field is gone.
+    expect(Object.keys(b).sort()).toEqual(
+      ["change_orders_unbilled", "fto_items", "installments_due", "vendor_bills"].sort(),
+    );
+    expect(b).not.toHaveProperty("unreimbursed_spend_cents");
+    expect(b.vendor_bills[0].vendor_name).toBe("Acme Roofing");
+    expect(b.fto_items[0].labor_total_cents).toBe(20000);
+  });
+
+  it("POST create sends vendor_id on bill/manual lines + fto_submission_ids", async () => {
+    const payload = {
+      title: "Pergola Progress 1",
+      lines: [
+        { description: "Shingle replacement", amount_cents: 30000, source_type: "cost_reimbursement", source_id: 91, vendor_id: 12 },
+        { description: "Site cleanup", amount_cents: 5000, source_type: "manual", vendor_id: null },
+      ],
+      fto_submission_ids: [55],
+    } satisfies CreateInvoicePayload;
+    mockFetch.mockResolvedValueOnce({ id: 1 });
+    await createProjectInvoice(9, payload);
+    const [path, opts] = mockFetch.mock.calls[0];
+    expect(path).toBe("/projects/9/invoices");
+    expect(opts.method).toBe("POST");
+    const body = JSON.parse(opts.body);
+    expect(body.fto_submission_ids).toEqual([55]);
+    expect(body.lines[0].vendor_id).toBe(12);
+    expect(body.lines[0].source_type).toBe("cost_reimbursement");
   });
 });
 
