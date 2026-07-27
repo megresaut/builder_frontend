@@ -1975,33 +1975,40 @@ function RecordPaymentModal({
             </button>
           )}
         </div>
-        {payments.length > 0 && (
-          <div className="border-t border-gray-100 pt-3">
-            <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Previously recorded</div>
-            <div className="flex flex-col gap-1">
-              {payments.slice(0, 5).map((p) => (
-                <div key={p.id} className="flex items-center justify-between text-xs text-gray-500">
-                  <span className="flex items-center gap-1.5 truncate">
-                    {formatMaybeDate(p.received_on)} · {p.kind === "deposit" ? "Deposit" : "Progress payment"}{p.reference ? ` · ${p.reference}` : ""}
-                    {p.receipt_object_key && (
-                      <a
-                        href={`/files/${p.receipt_object_key}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        title={p.receipt_filename ?? "View receipt"}
-                        className="text-blue-600 hover:underline"
-                      >
-                        📎
-                      </a>
-                    )}
-                  </span>
-                  <span className="tabular-nums text-gray-700">{formatUSD(p.amount_cents)}</span>
-                </div>
-              ))}
-              {payments.length > 5 && <div className="text-xs text-gray-400">+ {payments.length - 5} more</div>}
+        {(() => {
+          // ListPayments now returns voided rows too (a list isn't an
+          // aggregate — they render struck-through in the main card); this
+          // "recent context" preview isn't that rendering, so it stays
+          // limited to live payments the way it always effectively was.
+          const livePayments = payments.filter((p) => !p.voided_at);
+          return livePayments.length > 0 && (
+            <div className="border-t border-gray-100 pt-3">
+              <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Previously recorded</div>
+              <div className="flex flex-col gap-1">
+                {livePayments.slice(0, 5).map((p) => (
+                  <div key={p.id} className="flex items-center justify-between text-xs text-gray-500">
+                    <span className="flex items-center gap-1.5 truncate">
+                      {formatMaybeDate(p.received_on)} · {p.kind === "deposit" ? "Deposit" : "Progress payment"}{p.reference ? ` · ${p.reference}` : ""}
+                      {p.receipt_object_key && (
+                        <a
+                          href={`/files/${p.receipt_object_key}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={p.receipt_filename ?? "View receipt"}
+                          className="text-blue-600 hover:underline"
+                        >
+                          📎
+                        </a>
+                      )}
+                    </span>
+                    <span className="tabular-nums text-gray-700">{formatUSD(p.amount_cents)}</span>
+                  </div>
+                ))}
+                {livePayments.length > 5 && <div className="text-xs text-gray-400">+ {livePayments.length - 5} more</div>}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </ModalShell>
   );
@@ -2260,6 +2267,9 @@ function FinancialsTab({
     }
   };
   const doSend = async (id: number) => {
+    if (!window.confirm(
+      "Send this invoice to the client? This posts it for real — the only way to undo it afterward is voiding it, which also voids every payment already recorded against it, including in the connected accounting system, if any.",
+    )) return;
     try {
       const updated = await sendProjectInvoice(projectId, id);
       setDetail(updated);
@@ -2283,7 +2293,7 @@ function FinancialsTab({
   };
   const doVoid = async (id: number) => {
     if (detail && detail.paid_cents > 0 && !window.confirm(
-      `This invoice has ${formatUSD(detail.paid_cents)} in recorded payments. Voiding drops it from receivables totals but keeps those payments. Void anyway?`,
+      `This invoice has ${formatUSD(detail.paid_cents)} in recorded payments. Voiding it will also void those payments — including in the connected accounting system, if any. Void anyway?`,
     )) return;
     try {
       const updated = await voidProjectInvoice(projectId, id);
