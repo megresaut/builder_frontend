@@ -6,6 +6,10 @@ import { toast } from "sonner";
 
 import { fetchJSON, authFetch } from "@/api/fetchJSON";
 import { fetchChartOfAccounts } from "@/data/chartOfAccounts";
+import {
+  syncBuildiumPayments,
+  describeBuildiumSync,
+} from "@/data/buildiumPaymentSync";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import { PageTemplate } from "@/layout/PageTemplate";
 import {
@@ -104,18 +108,38 @@ interface ApiPayment {
   created_at?: string;
 }
 
+interface VendorCreditApplication {
+  id: number;
+  bill_id: number;
+  bill_payment_id: number | null;
+  amount_cents: number;
+  created_at: string;
+}
+
 interface VendorCredit {
   id: number;
   vendor_id: number;
   vendor_name: string;
   qbo_vendor_credit_id: string | null;
+  /** Immutable face value. What is left to spend is remaining_cents. */
   amount_cents: number;
+  applied_cents: number;
+  remaining_cents: number;
   date: string;
   memo: string;
   coa_id: number;
   coa_name: string;
   status: string;
   applied_to_bill_id: number | null;
+  applications: VendorCreditApplication[];
+}
+
+// A credit's contribution to *this* bill. Since migration 148 a credit can be
+// split across bills, so the amount shown has to come from the application row
+// rather than from the credit's face value.
+interface CreditOnThisBill {
+  credit: VendorCredit;
+  amountCents: number;
 }
 
 // One file on a bill, from GET /vendors/bills/{id}/attachments. id is "primary"
@@ -345,6 +369,9 @@ export function ViewBillV2() {
   const headerMenuRef = useRef<HTMLDivElement>(null);
   const [refreshingQBO, setRefreshingQBO] = useState(false);
 
+  // "Mark as paid" — non-Concierge only; pulls Buildium's payment records.
+  const [markingPaid, setMarkingPaid] = useState(false);
+
   useEffect(() => {
     if (!headerMenuOpen) return;
     const onDown = (e: MouseEvent) => {
@@ -363,7 +390,7 @@ export function ViewBillV2() {
 
   // Vendor credits (loaded after bill loads)
   const [vendorCredits, setVendorCredits] = useState<VendorCredit[]>([]);
-  const [appliedCredits, setAppliedCredits] = useState<VendorCredit[]>([]);
+  const [appliedCredits, setAppliedCredits] = useState<CreditOnThisBill[]>([]);
   const [loadingCredits, setLoadingCredits] = useState(false);
   const [showCreateCreditModal, setShowCreateCreditModal] = useState(false);
 
@@ -456,6 +483,32 @@ export function ViewBillV2() {
     }
   };
 
+  // ── Mark as paid (non-Concierge) ──────────────────────────────────────────
+  // The PM already paid this bill inside Buildium. Pull Buildium's payment
+  // records in (read-only) rather than booking a second payment. If Buildium
+  // turns out to have nothing — or only a partial payment — fall through to
+  // the normal Pay Bill modal, which by then is prefilled with what's left.
+  const handleMarkAsPaid = async () => {
+    if (!billId || markingPaid) return;
+    setMarkingPaid(true);
+    try {
+      const res = await syncBuildiumPayments(billId);
+      await loadBill();
+      if (res.status === "paid") {
+        toast.success(describeBuildiumSync(res));
+      } else {
+        toast.info(describeBuildiumSync(res));
+        setShowPayBillModal(true);
+      }
+    } catch (err: any) {
+      // Never open the pay modal on a failed lookup — a Buildium outage must
+      // not nudge the user toward paying a bill that may already be settled.
+      toast.error(`Couldn't check Buildium: ${err?.message ?? String(err)}`);
+    } finally {
+      setMarkingPaid(false);
+    }
+  };
+
   useEffect(() => {
     if (!billId) {
       setError("No billId provided. Use /bills/view?billId=123");
@@ -493,13 +546,23 @@ export function ViewBillV2() {
   const loadVendorCredits = useCallback(async (vendorId: number, billId: string) => {
     setLoadingCredits(true);
     try {
-      const [openRes, appliedRes] = await Promise.all([
-        fetchJSON(`/vendor-credits?vendor_id=${vendorId}&status=open`),
-        fetchJSON(`/vendor-credits?vendor_id=${vendorId}&status=applied`),
-      ]);
-      setVendorCredits(openRes?.credits ?? []);
-      const applied: VendorCredit[] = appliedRes?.credits ?? [];
-      setAppliedCredits(applied.filter((c) => String(c.applied_to_bill_id) === billId));
+      // One unfiltered fetch, then derive both lists. Filtering server-side by
+      // status can't answer "what did this bill consume" — a credit partly applied
+      // here may be fully applied elsewhere, and its applied_to_bill_id points at
+      // whichever application came last.
+      const res = await fetchJSON(`/vendor-credits?vendor_id=${vendorId}`);
+      const all: VendorCredit[] = Array.isArray(res?.credits) ? res.credits : [];
+
+      setVendorCredits(
+        all.filter((c) => c.status !== "voided" && c.remaining_cents > 0),
+      );
+      setAppliedCredits(
+        all.flatMap((c) =>
+          (c.applications ?? [])
+            .filter((a) => String(a.bill_id) === billId)
+            .map((a) => ({ credit: c, amountCents: a.amount_cents })),
+        ),
+      );
     } catch {
       setVendorCredits([]);
       setAppliedCredits([]);
@@ -1147,6 +1210,14 @@ export function ViewBillV2() {
                 >
                   Pay bill
                 </HeaderButton>
+                {bill.property_type !== "C" && remainingCents > 0 && (
+                  <HeaderButton
+                    onClick={handleMarkAsPaid}
+                    disabled={markingPaid}
+                  >
+                    {markingPaid ? "Checking Buildium…" : "Mark as paid"}
+                  </HeaderButton>
+                )}
                 <HeaderButton>Enter charges</HeaderButton>
                 <HeaderButton>Request owner contribution</HeaderButton>
                 <HeaderButton onClick={() => window.print()}>Print</HeaderButton>
@@ -1978,7 +2049,7 @@ export function ViewBillV2() {
                               </td>
                             </tr>
                           ))}
-                          {appliedCredits.map((vc) => (
+                          {appliedCredits.map(({ credit: vc, amountCents }) => (
                             <tr
                               key={`vc-${vc.id}`}
                               className="border-b border-[#F0F0F0] hover:bg-[#F8F8F8]"
@@ -1994,8 +2065,14 @@ export function ViewBillV2() {
                                 </a>
                               </td>
                               <td className="py-3 pr-4">{fmtDate(vc.date)}</td>
-                              <td className="py-3 pr-4 text-[#525252]">Credit applied</td>
-                              <td className="py-3 text-right">{money(vc.amount_cents)}</td>
+                              <td className="py-3 pr-4 text-[#525252]">
+                                Credit applied
+                                {/* Say so when only part of the credit landed here. */}
+                                {amountCents !== vc.amount_cents
+                                  ? ` (of ${money(vc.amount_cents)})`
+                                  : ""}
+                              </td>
+                              <td className="py-3 text-right">{money(amountCents)}</td>
                               <td className="py-3 pl-4" />
                             </tr>
                           ))}
@@ -2143,22 +2220,39 @@ export function ViewBillV2() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {vendorCredits.map((vc) => (
-                    <div key={vc.id} className="flex justify-between items-start text-sm">
-                      <div className="flex flex-col gap-0.5">
-                        <span style={{ color: TEXT_DARK }} className="font-medium">
-                          {money(vc.amount_cents)}
-                        </span>
-                        <span style={{ color: TEXT_MUTED }} className="text-xs">
-                          {vc.date}
-                          {vc.memo ? ` · ${vc.memo}` : ""}
+                  {vendorCredits.map((vc) => {
+                    const partly = vc.applied_cents > 0;
+                    return (
+                      <div key={vc.id} className="flex justify-between items-start text-sm">
+                        <div className="flex flex-col gap-0.5">
+                          <span style={{ color: TEXT_DARK }} className="font-medium">
+                            {/* Spendable balance leads — face value is only
+                                interesting once part of it is spent. */}
+                            {money(vc.remaining_cents)}
+                            {partly && (
+                              <span style={{ color: TEXT_MUTED }} className="font-normal">
+                                {" "}
+                                of {money(vc.amount_cents)}
+                              </span>
+                            )}
+                          </span>
+                          <span style={{ color: TEXT_MUTED }} className="text-xs">
+                            {vc.date}
+                            {vc.memo ? ` · ${vc.memo}` : ""}
+                          </span>
+                        </div>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                            partly
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          }`}
+                        >
+                          {partly ? "partial" : "open"}
                         </span>
                       </div>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        open
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <div className="pt-1 border-t border-[#E5E5E5]">
                     <button
                       onClick={() => navigate("/accounting/vendor-credits")}

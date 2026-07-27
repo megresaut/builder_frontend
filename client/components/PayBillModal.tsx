@@ -6,6 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { fetchJSON } from "@/api/fetchJSON";
 import { authFetch } from "@/api/fetchJSON";
 import { toast } from "sonner";
+import {
+  maxApplicableCents,
+  setCreditAmount,
+  toggleCredit,
+  type CreditAllocation,
+} from "./batchPayCreditAllocation";
 
 // Returned by GET /payment-accounts (live from concierge_buildium_mapping).
 interface PaymentAccount {
@@ -22,10 +28,14 @@ interface BuildiumPaymentAccount {
   type: string; // always "Current Asset (cash)" from the filter
 }
 
+// Spendable vendor credit from GET /vendor-credits?status=available — open plus
+// partially applied, since a partly spent credit still has balance to give.
 interface OpenCredit {
   id: number;
   vendor_id: number;
+  // Face value. What is actually spendable is remaining_cents.
   amount_cents: number;
+  remaining_cents: number;
   date: string;
   memo: string;
   coa_name: string;
@@ -122,12 +132,18 @@ export default function PayBillModal({
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [receiptError, setReceiptError] = useState<string | null>(null);
 
-  // Vendor credits (concierge-only)
+  // Vendor credits (concierge-only). Credits can be applied partially, so each
+  // selection carries an amount rather than being a plain on/off. The allocation
+  // helpers are shared with the batch modal — this is just a one-bill batch.
   const [openCredits, setOpenCredits] = useState<OpenCredit[]>([]);
-  const [selectedCreditIds, setSelectedCreditIds] = useState<Set<number>>(new Set());
+  const [allocations, setAllocations] = useState<CreditAllocation[]>([]);
 
   const outstanding = bill.qboBalanceCents;
   const outstandingDollars = (outstanding / 100).toFixed(2);
+  const allocBills = useMemo(
+    () => [{ id: bill.id, vendorId: bill.vendorId, amountDueCents: outstanding }],
+    [bill.id, bill.vendorId, outstanding],
+  );
 
   // Reset state on open. Load the appropriate payment-accounts endpoint
   // based on property type (Concierge → COA, others → CSV).
@@ -150,7 +166,7 @@ export default function PayBillModal({
       setUploadingReceipt(false);
       setReceiptError(null);
       setOpenCredits([]);
-      setSelectedCreditIds(new Set());
+      setAllocations([]);
       return;
     }
     setAmount(outstandingDollars);
@@ -181,12 +197,17 @@ export default function PayBillModal({
         if (cancelled) return;
         setLoadingAccounts(false);
       });
-    // Load open vendor credits for concierge bills with a known vendor.
+    // Load spendable vendor credits for concierge bills with a known vendor.
+    // "available" rather than "open" so partially applied credits still show.
     if (isConcierge && bill.vendorId) {
-      fetchJSON(`/vendor-credits?vendor_id=${bill.vendorId}&status=open`)
+      fetchJSON(`/vendor-credits?vendor_id=${bill.vendorId}&status=available`)
         .then((res) => {
           if (cancelled) return;
-          setOpenCredits(res?.credits ?? []);
+          const list: OpenCredit[] = Array.isArray(res?.credits) ? res.credits : [];
+          // Nothing is pre-selected: applying a credit stays a deliberate act
+          // here, as it always has been. Ticking one prefills its amount to the
+          // most that can be applied.
+          setOpenCredits(list.filter((c) => c.remaining_cents > 0));
         })
         .catch(() => {});
     }
@@ -196,13 +217,10 @@ export default function PayBillModal({
     };
   }, [open, outstandingDollars, isConcierge, bill.vendorId]);
 
-  const totalSelectedCreditsCents = useMemo(() => {
-    let sum = 0;
-    for (const c of openCredits) {
-      if (selectedCreditIds.has(c.id)) sum += c.amount_cents;
-    }
-    return sum;
-  }, [openCredits, selectedCreditIds]);
+  const totalSelectedCreditsCents = useMemo(
+    () => allocations.reduce((sum, a) => sum + a.amountCents, 0),
+    [allocations],
+  );
 
   // Suggested net cash amount = outstanding minus credits
   const suggestedNetCents = Math.max(0, outstanding - totalSelectedCreditsCents);
@@ -347,14 +365,12 @@ export default function PayBillModal({
                 receipt_size_bytes: receiptSizeBytes,
               }
             : {}),
-          ...(selectedCreditIds.size > 0
+          ...(allocations.length > 0
             ? {
-                applied_credits: openCredits
-                  .filter((c) => selectedCreditIds.has(c.id))
-                  .map((c) => ({
-                    vendor_credit_id: c.id,
-                    amount_cents: c.amount_cents,
-                  })),
+                applied_credits: allocations.map((a) => ({
+                  vendor_credit_id: a.creditId,
+                  amount_cents: a.amountCents,
+                })),
               }
             : {}),
         }),
@@ -449,20 +465,30 @@ export default function PayBillModal({
     }
   };
 
-  // Re-pull QBO/Buildium state for this bill via the existing refresh endpoint,
-  // then close the modal so the parent table can reload. Shown when the API
-  // tells us the bill is already paid in Buildium and the platform is stale.
+  // Re-pull payment state for this bill, then close the modal so the parent
+  // table can reload. Shown when the API tells us the bill is already paid and
+  // the platform is stale.
+  //
+  // The endpoint differs by book: Concierge bills carry a QBO bill and refresh
+  // from there, while non-Concierge bills have no QBO counterpart at all —
+  // refresh-qbo would fail them with "bill has no qbo_bill_id", so they pull
+  // their payments straight from Buildium instead.
   const handleRefreshFromBuildium = async () => {
     setRefreshing(true);
+    const endpoint = isConcierge
+      ? `/vendors/bills/${bill.id}/refresh-qbo`
+      : `/vendors/bills/${bill.id}/sync-buildium-payments`;
     try {
-      const res = await authFetch(`/vendors/bills/${bill.id}/refresh-qbo`, {
-        method: "POST",
-      });
+      const res = await authFetch(endpoint, { method: "POST" });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         throw new Error(text || `Refresh failed (status ${res.status})`);
       }
-      toast.success("Refreshed bill status from QBO and Buildium.");
+      toast.success(
+        isConcierge
+          ? "Refreshed bill status from QBO and Buildium."
+          : "Refreshed bill status from Buildium.",
+      );
       onOpenChange(false);
     } catch (err: any) {
       setError(`Refresh failed: ${err?.message ?? String(err)}`);
@@ -634,38 +660,77 @@ export default function PayBillModal({
         <div style={{ marginBottom: 12 }}>
           <FieldShell label="Apply Vendor Credits" htmlFor="pay-credits">
             <div className="rounded-md border border-[#DADADA] divide-y divide-[#DADADA]">
-              {openCredits.map((c) => (
-                <label
-                  key={c.id}
-                  className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedCreditIds.has(c.id)}
-                    onChange={(e) => {
-                      setSelectedCreditIds((prev) => {
-                        const next = new Set(prev);
-                        if (e.target.checked) {
-                          next.add(c.id);
-                        } else {
-                          next.delete(c.id);
-                        }
-                        return next;
-                      });
-                    }}
-                    disabled={submitting}
-                    className="rounded"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-[#303030]">
-                      ${(c.amount_cents / 100).toFixed(2)}
+              {openCredits.map((c) => {
+                const applied = allocations.find((a) => a.creditId === c.id);
+                const max = maxApplicableCents(allocations, openCredits, allocBills[0], c.id);
+                const selectable = max > 0 || applied != null;
+                // A credit worth more than this bill owes is now usable — it just
+                // applies what fits and keeps the rest for another bill.
+                const partial = applied != null && applied.amountCents < c.remaining_cents;
+                return (
+                  <div
+                    key={c.id}
+                    className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={applied != null}
+                      onChange={() =>
+                        setAllocations((prev) =>
+                          toggleCredit(prev, openCredits, allocBills, c.id, allocBills[0].id),
+                        )
+                      }
+                      disabled={submitting || !selectable}
+                      className="rounded"
+                      aria-label={`Apply vendor credit from ${c.date}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-[#303030]">
+                        ${(c.remaining_cents / 100).toFixed(2)}
+                        {c.remaining_cents !== c.amount_cents && (
+                          <span className="font-normal text-[#717179]">
+                            {" "}
+                            left of ${(c.amount_cents / 100).toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-[#717179] truncate">
+                        {c.date}{c.memo ? ` · ${c.memo}` : ""}
+                        {partial ? " · partially applied" : ""}
+                      </div>
                     </div>
-                    <div className="text-xs text-[#717179] truncate">
-                      {c.date}{c.memo ? ` · ${c.memo}` : ""}
-                    </div>
+                    {applied != null && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs text-[#717179]">apply</span>
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          aria-label={`Amount of the ${c.date} credit to apply`}
+                          className="h-7 w-24 px-2 py-0 text-sm"
+                          value={(applied.amountCents / 100).toFixed(2)}
+                          disabled={submitting}
+                          onChange={(e) => {
+                            const parsed = Number(e.target.value.replace(/[^0-9.]/g, ""));
+                            const cents = Number.isFinite(parsed)
+                              ? Math.round(parsed * 100)
+                              : 0;
+                            setAllocations((prev) =>
+                              setCreditAmount(
+                                prev,
+                                openCredits,
+                                allocBills,
+                                c.id,
+                                allocBills[0].id,
+                                cents,
+                              ),
+                            );
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
-                </label>
-              ))}
+                );
+              })}
             </div>
             {totalSelectedCreditsCents > 0 && (
               <div className="text-xs text-[#717179] mt-1">

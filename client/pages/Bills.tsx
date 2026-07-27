@@ -18,6 +18,10 @@ import {
   type PageHeaderAction,
 } from "@/components/BillsPageHeader";
 import { fetchJSON } from "@/api/fetchJSON";
+import {
+  syncBuildiumPayments,
+  describeBuildiumSync,
+} from "@/data/buildiumPaymentSync";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
@@ -1392,6 +1396,38 @@ export default function Bills() {
     }
   }, []);
 
+  // ── Mark as paid (non-Concierge) ──────────────────────────────────────────
+  // The bill was already paid inside Buildium. Pull Buildium's payment records
+  // in (read-only) instead of booking a second payment. Anything short of a
+  // full match hands off to the normal Pay Bill modal, prefilled with the
+  // balance Buildium says is still open.
+  const markingPaidRef = useRef(false);
+  const handleMarkAsPaid = useCallback(
+    async (bill: Bill) => {
+      if (markingPaidRef.current) return;
+      markingPaidRef.current = true;
+      try {
+        const res = await syncBuildiumPayments(bill.id);
+        if (res.status === "paid") {
+          toast.success(describeBuildiumSync(res));
+        } else {
+          toast.info(describeBuildiumSync(res));
+          setPayBillTarget({ ...bill, amountDueCents: res.outstanding_cents });
+        }
+        loadApprovedBills();
+      } catch (err) {
+        // Don't open the pay modal on a failed lookup — a Buildium outage must
+        // not nudge the user toward paying a bill that may already be settled.
+        toast.error(
+          `Couldn't check Buildium: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      } finally {
+        markingPaidRef.current = false;
+      }
+    },
+    [loadApprovedBills],
+  );
+
   // Delete an approved bill from QBO (where the API allows) + the platform.
   // Buildium has no bill-delete API, so the backend returns warnings naming the
   // Buildium bill/payment for manual cleanup — surface those to the user.
@@ -1955,6 +1991,22 @@ export default function Bills() {
                         </svg>
                       ),
                       onClick: (bill: Bill) => setPayBillTarget(bill),
+                    },
+                    {
+                      label: "Mark as Paid",
+                      // Non-Concierge only — Concierge bills settle through QBO
+                      // and reconcile via "Refresh from QBO" instead. Hidden
+                      // once nothing is outstanding, same rule as Pay Bill.
+                      hidden: (bill: Bill) =>
+                        bill.propertyType === "C" ||
+                        (bill.amountDueCents ?? 0) <= 0,
+                      icon: (
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M3.75 9.375L7.125 12.75L14.25 5.25"
+                                stroke="var(--color-text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      ),
+                      onClick: handleMarkAsPaid,
                     },
                     {
                       label: "View Payment",

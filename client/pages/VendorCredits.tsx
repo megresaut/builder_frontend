@@ -25,19 +25,34 @@ const TEXT_DARK = "#303030";
 const TEXT_MUTED = "#717179";
 
 // ── types ──────────────────────────────────────────────────────────────────
+// One consumption of (part of) a credit by one bill. Migration 148 — a credit can
+// have several, which is what makes partial application possible.
+interface VendorCreditApplication {
+  id: number;
+  bill_id: number;
+  bill_payment_id: number | null;
+  amount_cents: number;
+  created_at: string;
+}
+
 interface VendorCredit {
   id: number;
   vendor_id: number;
   vendor_name: string;
   qbo_vendor_credit_id: string | null;
+  /** Immutable face value. What is left to spend is remaining_cents. */
   amount_cents: number;
+  applied_cents: number;
+  remaining_cents: number;
   date: string;
   memo: string;
   coa_id: number;
   coa_name: string;
   qbo_class_name: string;
-  status: "open" | "applied" | "voided";
+  status: "open" | "partially_applied" | "applied" | "voided";
+  /** Most recent application's bill; superseded by `applications`. */
   applied_to_bill_id: number | null;
+  applications: VendorCreditApplication[];
   created_at: string;
 }
 
@@ -52,11 +67,14 @@ interface QBOClass {
   Active: boolean;
 }
 
-type TabKey = "open" | "applied" | "voided";
+// "available" is open plus partially applied — everything with balance left. It
+// leads because a partly spent credit is still spendable and would otherwise fall
+// between the Open and Applied tabs.
+type TabKey = "available" | "applied" | "voided";
 
 const REAL_TABS: { id: TabKey; label: string }[] = [
-  { id: "open", label: "Open" },
-  { id: "applied", label: "Applied" },
+  { id: "available", label: "Available" },
+  { id: "applied", label: "Fully applied" },
   { id: "voided", label: "Voided" },
 ];
 
@@ -196,12 +214,18 @@ function StatusBadge({ status }: { status: string }) {
   const cls =
     status === "open"
       ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-      : status === "applied"
-        ? "bg-blue-50 text-blue-700 border border-blue-200"
-        : "bg-gray-50 text-gray-500 border border-gray-200";
+      : status === "partially_applied"
+        ? "bg-amber-50 text-amber-700 border border-amber-200"
+        : status === "applied"
+          ? "bg-blue-50 text-blue-700 border border-blue-200"
+          : "bg-gray-50 text-gray-500 border border-gray-200";
+  const label =
+    status === "partially_applied"
+      ? "Partially applied"
+      : status.charAt(0).toUpperCase() + status.slice(1);
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cls}`}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {label}
     </span>
   );
 }
@@ -682,7 +706,7 @@ function CreateVendorCreditModal({
 
 // ── main page ─────────────────────────────────────────────────────────────
 export default function VendorCredits() {
-  const [tab, setTab] = useState<TabKey>("open");
+  const [tab, setTab] = useState<TabKey>("available");
   const [credits, setCredits] = useState<VendorCredit[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -845,6 +869,12 @@ export default function VendorCredits() {
                         style={{ color: TEXT_DARK, fontVariantNumeric: "tabular-nums" }}
                       >
                         {money(c.amount_cents)}
+                        {/* Only worth showing once some of it is spent. */}
+                        {c.applied_cents > 0 && c.status !== "voided" && (
+                          <div className="text-xs font-normal" style={{ color: TEXT_MUTED }}>
+                            {money(c.remaining_cents)} left
+                          </div>
+                        )}
                       </td>
                       <td
                         className="px-4 py-3 max-w-[180px] truncate"
@@ -868,6 +898,8 @@ export default function VendorCredits() {
                         <StatusBadge status={c.status} />
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
+                        {/* Voiding requires an untouched credit — QBO refuses to
+                            delete a VendorCredit with linked transactions. */}
                         {c.status === "open" && (
                           <button
                             onClick={() => handleVoid(c.id)}
@@ -877,10 +909,14 @@ export default function VendorCredits() {
                             {voidingId === c.id ? "Voiding…" : "Void"}
                           </button>
                         )}
-                        {c.status === "applied" && c.applied_to_bill_id && (
-                          <span className="text-xs" style={{ color: TEXT_MUTED }}>
-                            Bill #{c.applied_to_bill_id}
-                          </span>
+                        {c.applications.length > 0 && (
+                          <div className="text-xs" style={{ color: TEXT_MUTED }}>
+                            {c.applications.map((a) => (
+                              <div key={a.id} className="whitespace-nowrap">
+                                Bill #{a.bill_id} · {money(a.amount_cents)}
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </td>
                     </tr>

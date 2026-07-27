@@ -1074,15 +1074,18 @@ export async function voidProjectInvoice(projectId: number, invoiceId: number): 
   return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/void`, { method: "POST" });
 }
 
-// Opens the invoice's Pergola-layout PDF in a new tab (auth-attached blob fetch).
+// Opens the invoice's PDF — the AVMRE invoice template (logo letterhead,
+// Services Provided To / INVOICE blocks, Service Provider · Date · Service
+// Provided · Reference# · Amount table) — in a new tab (auth-attached blob fetch).
 // The endpoint regenerates the PDF on each call → always reflects the latest
 // lines, and persists it (also surfaced in the Files tab). Not concierge-gated.
 export async function openProjectInvoicePdf(projectId: number, invoiceId: number): Promise<void> {
   return openAuthPdf(`/projects/${projectId}/invoices/${invoiceId}/pdf`);
 }
 
-// Downloads the project budget as a client-ready ESTIMATE PDF (same AVMRE
-// template as the invoice, with a Category column). Saved to disk rather than
+// Downloads the project budget as a client-ready ESTIMATE PDF (the older
+// bordered-grid AVMRE layout, with a Category column — the invoice now uses the
+// letterhead invoice template instead). Saved to disk rather than
 // opened, since the point is to attach it to an email to the client. Derived from
 // the live budget on every call, so it is never persisted server-side.
 export async function downloadProjectBudgetPdf(projectId: number, projectName: string): Promise<void> {
