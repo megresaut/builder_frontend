@@ -33,10 +33,7 @@ import {
   sendProjectInvoice,
   recordInvoicePayment,
   voidProjectInvoice,
-  pushInvoiceToQbo,
-  listQboItems,
-  type QboItem,
-  pushInvoicePaymentToQbo,
+  voidPayment,
   getBillables,
   openProjectInvoicePdf,
   acceptQuote,
@@ -1832,11 +1829,13 @@ function FieldTeamTab({
 function RecordPaymentModal({
   projectId,
   payments,
+  invoices,
   onSaved,
   onClose,
 }: {
   projectId: number;
   payments: ProjectPayment[];
+  invoices: ProjectInvoice[];
   onSaved: () => void;
   onClose: () => void;
 }) {
@@ -1848,7 +1847,10 @@ function RecordPaymentModal({
   const [receiptDrag, setReceiptDrag] = useState(false);
   const receiptInput = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
+  const [applyToInvoiceId, setApplyToInvoiceId] = useState<string>("");
   const uid = useId();
+
+  const payable = invoices.filter((i) => ["sent", "partially_paid", "paid"].includes(i.status));
 
   const submit = async () => {
     setSaving(true);
@@ -1858,6 +1860,7 @@ function RecordPaymentModal({
         amount_cents: Math.max(0, Math.round((Number(amount) || 0) * 100)),
         received_on: receivedOn,
         reference: reference.trim(),
+        project_invoice_id: applyToInvoiceId ? Number(applyToInvoiceId) : null,
       });
       // Attach the receipt (optional) to the freshly-created payment.
       if (receipt) {
@@ -1909,6 +1912,19 @@ function RecordPaymentModal({
             <label htmlFor={`${uid}-amount`} className={labelCls}>Amount ($)</label>
             <input id={`${uid}-amount`} type="number" min={0} className={`${fieldCls} mt-1 text-right tabular-nums`} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
           </div>
+        </div>
+        <div>
+          <label htmlFor={`${uid}-invoice`} className={labelCls}>Apply to invoice</label>
+          <SearchableSelect
+            className={`${fieldCls} mt-1`}
+            value={applyToInvoiceId}
+            onChange={(v) => setApplyToInvoiceId(v || "")}
+            options={payable.map((i) => ({
+              value: String(i.id),
+              label: `${i.invoice_number} · ${formatUSD(i.total_amount_cents)}`,
+            }))}
+            allLabel="Unallocated"
+          />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -2279,26 +2295,21 @@ function FinancialsTab({
       toast.error(errMessage(e, "Failed to void invoice"));
     }
   };
-  const doPushQbo = async (id: number, qboItemId?: string) => {
+  // Voids a received client payment. QuickBooks push/void is now automatic and
+  // fully server-side (concierge only); the confirm copy stays generic so it
+  // reads correctly for non-concierge projects too.
+  const doVoidPayment = async (paymentId: number) => {
+    if (!window.confirm(
+      "Void this payment? It will be removed from project totals and reversed in the connected accounting system, if any.",
+    )) return;
     try {
-      const res = await pushInvoiceToQbo(projectId, id, qboItemId);
+      await voidPayment(projectId, paymentId);
+      toast.success("Payment voided");
       await load();
-      if (detail?.id === id) await openDetail(id);
-      toast.success(res.already_pushed ? "Already in QuickBooks" : `Pushed to QuickBooks (invoice ${res.qbo_invoice_id})`);
+      onRefreshSummary();
+      if (detail) await openDetail(detail.id);
     } catch (e) {
-      // Non-concierge → 409, missing customer → 400, QBO failure → 502.
-      toast.error(errMessage(e, "Failed to push invoice to QuickBooks"));
-    }
-  };
-  const doPushPaymentQbo = async (invoiceId: number, paymentId: number) => {
-    try {
-      const res = await pushInvoicePaymentToQbo(projectId, invoiceId, paymentId);
-      await load();
-      if (detail?.id === invoiceId) await openDetail(invoiceId);
-      toast.success(res.already_pushed ? "Payment already in QuickBooks" : `Payment pushed to QuickBooks (${res.qbo_payment_id})`);
-    } catch (e) {
-      // Non-concierge → 409, missing customer → 400, void invoice → 409, QBO failure → 502.
-      toast.error(errMessage(e, "Failed to push payment to QuickBooks"));
+      toast.error(errMessage(e, "Failed to void payment"));
     }
   };
 
@@ -2456,30 +2467,47 @@ function FinancialsTab({
                 <tbody className="divide-y divide-gray-100">
                   {payments.map((p) => {
                     const unallocated = p.amount_cents - p.allocated_cents;
+                    const voided = Boolean(p.voided_at);
                     return (
-                    <tr key={p.id}>
-                      <td className="py-2 pr-2 text-gray-700">{fmtProjDate(p.received_on)}</td>
+                    <tr key={p.id} className={voided ? "opacity-60" : undefined}>
+                      <td className={`py-2 pr-2 ${voided ? "text-gray-400" : "text-gray-700"}`}>{fmtProjDate(p.received_on)}</td>
                       <td className="py-2 pr-2">
-                        <span className="flex items-center gap-1.5 text-gray-900">
+                        <span className={`flex items-center gap-1.5 ${voided ? "text-gray-400 line-through" : "text-gray-900"}`}>
                           {p.reference || (p.kind === "deposit" ? "Deposit" : "Progress payment")}
                           {p.receipt_object_key && (
                             <a href={`/files/${p.receipt_object_key}`} target="_blank" rel="noreferrer" title={p.receipt_filename ?? "View receipt"} className="text-blue-600 hover:underline">📎</a>
                           )}
                         </span>
-                        <span className="mt-0.5 block text-xs text-gray-400">
-                          {p.allocated_cents > 0
-                            ? <>{formatUSD(p.allocated_cents)} allocated{unallocated > 0 ? ` · ${formatUSD(unallocated)} unallocated` : " · fully allocated"}</>
-                            : <>{formatUSD(p.amount_cents)} unallocated</>}
-                        </span>
+                        {voided ? (
+                          <span className="mt-0.5 block text-xs text-gray-400">Voided{p.void_reason ? ` · ${p.void_reason}` : ""}</span>
+                        ) : (
+                          <span className="mt-0.5 block text-xs text-gray-400">
+                            {p.allocated_cents > 0
+                              ? <>{formatUSD(p.allocated_cents)} allocated{unallocated > 0 ? ` · ${formatUSD(unallocated)} unallocated` : " · fully allocated"}</>
+                              : <>{formatUSD(p.amount_cents)} unallocated</>}
+                          </span>
+                        )}
                       </td>
-                      <td className="py-2 text-right align-top tabular-nums text-green-700">+{formatUSD(p.amount_cents)}</td>
+                      <td className={`py-2 text-right align-top tabular-nums ${voided ? "text-gray-400 line-through" : "text-green-700"}`}>+{formatUSD(p.amount_cents)}</td>
                       <td className="py-2 pl-2 text-right align-top">
-                        <button
-                          onClick={() => setAllocatePayment(p)}
-                          className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                          Allocate
-                        </button>
+                        {voided ? (
+                          <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-500">Voided</span>
+                        ) : (
+                          <span className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setAllocatePayment(p)}
+                              className="h-7 rounded-lg border border-[#DADADA] bg-white px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                              Allocate
+                            </button>
+                            <button
+                              onClick={() => doVoidPayment(p.id)}
+                              className="text-xs text-gray-400 hover:text-red-600"
+                            >
+                              Void
+                            </button>
+                          </span>
+                        )}
                       </td>
                     </tr>
                     );
@@ -2541,6 +2569,7 @@ function FinancialsTab({
         <RecordPaymentModal
           projectId={projectId}
           payments={payments}
+          invoices={invoices}
           onSaved={() => {
             load();
             onRefreshSummary();
@@ -2580,8 +2609,7 @@ function FinancialsTab({
           onSend={() => doSend(detail.id)}
           onRecordPayment={(cents) => doRecordInvoicePayment(detail.id, cents)}
           onVoid={() => doVoid(detail.id)}
-          onPushQbo={(qboItemId?: string) => doPushQbo(detail.id, qboItemId)}
-          onPushPaymentQbo={(paymentId) => doPushPaymentQbo(detail.id, paymentId)}
+          onVoidPayment={(paymentId) => doVoidPayment(paymentId)}
           onClose={() => setDetail(null)}
         />
       )}
@@ -2923,52 +2951,27 @@ function ProjectInvoiceDetailModal({
   onSend,
   onRecordPayment,
   onVoid,
-  onPushQbo,
-  onPushPaymentQbo,
+  onVoidPayment,
   onClose,
 }: {
   invoice: ProjectInvoice;
   onSend: () => void;
   onRecordPayment: (cents: number) => void;
   onVoid: () => void;
-  onPushQbo: (qboItemId?: string) => void | Promise<void>;
-  onPushPaymentQbo: (paymentId: number) => void | Promise<void>;
+  onVoidPayment: (paymentId: number) => void | Promise<void>;
   onClose: () => void;
 }) {
-  const [pushingPaymentId, setPushingPaymentId] = useState<number | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const totalCents = invoice.total_amount_cents;
   const paid = invoice.paid_cents;
   const remaining = Math.max(0, totalCents - paid);
   const [payAmount, setPayAmount] = useState(String(remaining / 100));
-  const [pushing, setPushing] = useState(false);
   const meta = P_INVOICE_STATUS_META[invoice.status];
   const canPay = invoice.status === "sent" || invoice.status === "partially_paid";
+  // QuickBooks push is now automatic (server-side, concierge only); this is a
+  // passive status indicator only — never shown for non-concierge projects
+  // since qbo_push_status stays null there.
   const pushed = invoice.qbo_push_status === "pushed";
-  // Push to QBO once the invoice has left draft (so it's a real receivable), while
-  // not void. The backend fail-loud gate (409 non-concierge / 400 no customer) is
-  // the source of truth; the button stays optimistic.
-  const canPushQbo = invoice.status !== "void" && invoice.status !== "draft";
-
-  // Live QBO item picker: what the invoice lines book against. Loaded from the
-  // shared /accounting/qbo-items endpoint only when a push is actually available
-  // and not already done. The selection is passed to the push; empty = let the
-  // backend fall back to PROJECT_DFO_ITEM_ID.
-  const [qboItems, setQboItems] = useState<QboItem[]>([]);
-  const [qboItemsLoading, setQboItemsLoading] = useState(false);
-  const [qboItemsError, setQboItemsError] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState("");
-  useEffect(() => {
-    if (!canPushQbo || pushed) return;
-    let cancelled = false;
-    setQboItemsLoading(true);
-    setQboItemsError(false);
-    listQboItems()
-      .then((items) => { if (!cancelled) setQboItems(items); })
-      .catch(() => { if (!cancelled) setQboItemsError(true); })
-      .finally(() => { if (!cancelled) setQboItemsLoading(false); });
-    return () => { cancelled = true; };
-  }, [canPushQbo, pushed]);
 
   return (
     <ModalShell
@@ -3033,41 +3036,12 @@ function ProjectInvoiceDetailModal({
           </div>
         </div>
 
-        {canPushQbo && (
+        {pushed && (
           <div>
             <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">QuickBooks</div>
-            {pushed ? (
-              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
-                In QuickBooks ✓
-              </span>
-            ) : (
-              <div className="flex flex-wrap items-center gap-2">
-                <select
-                  value={selectedItemId}
-                  onChange={(e) => setSelectedItemId(e.target.value)}
-                  disabled={pushing || qboItemsLoading || qboItemsError}
-                  title="QuickBooks item to book this invoice against"
-                  className="h-9 min-w-0 flex-1 rounded-lg border border-[#DADADA] bg-white px-2 text-sm text-gray-700 disabled:opacity-50"
-                >
-                  <option value="">
-                    {qboItemsLoading ? "Loading items…" : qboItemsError ? "Items unavailable" : "Item (default)"}
-                  </option>
-                  {qboItems.map((it) => (
-                    <option key={it.qbo_item_id} value={it.qbo_item_id}>
-                      {it.fully_qualified_name || it.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={async () => { setPushing(true); try { await onPushQbo(selectedItemId || undefined); } finally { setPushing(false); } }}
-                  disabled={pushing}
-                  title="Post this invoice to QuickBooks (concierge only)"
-                  className="h-9 shrink-0 rounded-lg border border-[#013764] bg-white px-3.5 text-sm font-medium text-[#013764] hover:bg-[#013764]/5 disabled:opacity-50"
-                >
-                  {pushing ? "Pushing…" : "Push to QuickBooks"}
-                </button>
-              </div>
-            )}
+            <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
+              In QuickBooks ✓
+            </span>
           </div>
         )}
 
@@ -3079,32 +3053,27 @@ function ProjectInvoiceDetailModal({
             <div className="flex flex-col divide-y divide-gray-100 rounded-lg border border-gray-200">
               {invoice.payments.map((p) => (
                 <div key={p.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
-                  <span className="text-gray-700">
+                  <span className={p.voided_at ? "text-gray-400 line-through" : "text-gray-700"}>
                     {fmtProjDate(p.received_on)}
                     {p.reference ? ` · ${p.reference}` : ""}
                     {p.via_qbo && <span className="ml-2 rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700">In QuickBooks ✓</span>}
                   </span>
                   <span className="flex shrink-0 items-center gap-2">
-                    {/* Push to QBO: hidden once the payment is in QBO (via_qbo). Optimistic;
-                        the backend gate (409 non-concierge / 400 no customer / 502) decides. */}
-                    {!p.via_qbo && invoice.status !== "void" && (
-                      <button
-                        onClick={async () => {
-                          setPushingPaymentId(p.id);
-                          try {
-                            await onPushPaymentQbo(p.id);
-                          } finally {
-                            setPushingPaymentId(null);
-                          }
-                        }}
-                        disabled={pushingPaymentId === p.id}
-                        title="Post this payment to QuickBooks (concierge only)"
-                        className="rounded-md border border-[#013764] bg-white px-2 py-0.5 text-[11px] font-medium text-[#013764] hover:bg-[#013764]/5 disabled:opacity-50"
-                      >
-                        {pushingPaymentId === p.id ? "Pushing…" : "Push to QuickBooks"}
-                      </button>
+                    {p.voided_at ? (
+                      <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-500">Voided</span>
+                    ) : (
+                      invoice.status !== "void" && (
+                        <button
+                          onClick={() => onVoidPayment(p.id)}
+                          className="text-xs text-gray-400 hover:text-red-600"
+                        >
+                          Void
+                        </button>
+                      )
                     )}
-                    <span className="font-medium tabular-nums text-green-700">{formatUSD(p.amount_cents)}</span>
+                    <span className={`font-medium tabular-nums ${p.voided_at ? "text-gray-400 line-through" : "text-green-700"}`}>
+                      {formatUSD(p.amount_cents)}
+                    </span>
                   </span>
                 </div>
               ))}

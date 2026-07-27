@@ -158,6 +158,11 @@ export interface ProjectPayment {
   allocated_cents: number; // Σ of this payment's allocations to bills (≤ amount_cents)
   created_by_user_id: number | null;
   created_at: string;
+  // voided_at is a Postgres text-cast timestamp (e.g. "2026-07-26 14:23:01.123456-04"),
+  // NOT RFC3339 — do not feed it to `new Date()`. Use only as a truthy void flag.
+  voided_at: string | null;
+  voided_by_user_id: number | null;
+  void_reason: string | null;
 }
 
 export interface ProjectTaskRow {
@@ -391,6 +396,7 @@ export interface CreatePaymentPayload {
   received_on: string;
   reference?: string;
   deposit_account_qbo_id?: string;
+  project_invoice_id?: number | null;
 }
 
 /* -------------------------------- projects -------------------------------- */
@@ -888,6 +894,8 @@ export interface ProjectInvoicePayment {
   received_on: string; // "YYYY-MM-DD"
   reference: string;
   via_qbo: boolean;
+  // Text-cast timestamp, not RFC3339 — truthy void flag only, never parse as a date.
+  voided_at: string | null;
 }
 
 export interface ProjectInvoice {
@@ -1082,26 +1090,6 @@ export async function downloadProjectBudgetPdf(projectId: number, projectName: s
   return downloadAuthFile(`/projects/${projectId}/budget/pdf`, `${slug}-budget.pdf`);
 }
 
-export interface PushInvoiceToQboResult {
-  invoice_id: number;
-  qbo_invoice_id: string;
-  qbo_push_status: string;
-  qbo_pushed_at: string | null;
-  already_pushed: boolean;
-}
-
-// Package C: push a project's client invoice to QuickBooks (concierge only).
-// Non-concierge → 409, concierge missing QBO customer → 400, QBO failure → 502.
-// pushInvoiceToQbo posts the project invoice to QuickBooks. qboItemId is the item
-// the lines book against, chosen from the live QBO item picker; when omitted the
-// backend falls back to the configured PROJECT_DFO_ITEM_ID (400 if neither exists).
-export async function pushInvoiceToQbo(projectId: number, invoiceId: number, qboItemId?: string): Promise<PushInvoiceToQboResult> {
-  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/push-qbo`, {
-    method: "POST",
-    body: JSON.stringify(qboItemId ? { qbo_item_id: qboItemId } : {}),
-  });
-}
-
 // A QuickBooks item, from GET /accounting/qbo-items (active items, cached server-side).
 export interface QboItem {
   qbo_item_id: string;
@@ -1118,25 +1106,17 @@ export async function listQboItems(): Promise<QboItem[]> {
   return data.items ?? [];
 }
 
-export interface PushInvoicePaymentToQboResult {
-  payment_id: number;
-  invoice_id: number;
-  qbo_payment_id: string;
-  qbo_invoice_id: string;
-  already_pushed: boolean;
-}
-
-// Push a recorded client payment to QuickBooks as a customer Payment that settles
-// the invoice, depositing to Due From Owners (concierge only). Auto-pushes the
-// invoice first if it isn't in QBO yet. Non-concierge → 409, concierge missing
-// QBO customer → 400, void invoice → 409, QBO failure → 502; idempotent (no-op
-// once the payment already has a qbo_payment_id).
-export async function pushInvoicePaymentToQbo(
+// voidPayment voids a received client payment. For concierge properties the
+// matching QuickBooks Payment is voided too; the whole call fails if QBO refuses.
+export async function voidPayment(
   projectId: number,
-  invoiceId: number,
   paymentId: number,
-): Promise<PushInvoicePaymentToQboResult> {
-  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/payments/${paymentId}/push-qbo`, { method: "POST" });
+  reason?: string,
+): Promise<{ payment_id: number; voided: boolean }> {
+  return fetchJSON(`/projects/${projectId}/payments/${paymentId}/void`, {
+    method: "POST",
+    body: JSON.stringify({ reason: reason ?? "" }),
+  });
 }
 
 export async function getBillables(projectId: number): Promise<Billables> {

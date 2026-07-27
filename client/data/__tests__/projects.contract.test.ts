@@ -35,9 +35,8 @@ import {
   updateChangeOrder,
   putSchedule,
   createPayment,
-  pushInvoiceToQbo,
+  voidPayment,
   listQboItems,
-  pushInvoicePaymentToQbo,
   getCashFlow,
   getBillables,
   createProjectInvoice,
@@ -313,6 +312,9 @@ const PAYMENT_FIXTURE = {
   allocated_cents: 0,
   created_by_user_id: 3,
   created_at: "2026-03-03T15:00:00Z",
+  voided_at: null,
+  voided_by_user_id: null,
+  void_reason: null,
 } satisfies ProjectPayment;
 
 /* ------------------------------------------------------------------------- *
@@ -396,6 +398,7 @@ const EXPECTED_KEYS = {
     "receipt_object_key", "receipt_mime", "receipt_filename",
     "allocated_cents",
     "created_by_user_id", "created_at",
+    "voided_at", "voided_by_user_id", "void_reason",
   ],
 } as const;
 
@@ -736,28 +739,6 @@ describe("§6 request wire format", () => {
     });
   });
 
-  it("POST /projects/{id}/invoices/{iid}/push-qbo (Package C) — item-id body variants", async () => {
-    const pushed = {
-      invoice_id: 9,
-      qbo_invoice_id: "145",
-      qbo_push_status: "pushed",
-      qbo_pushed_at: "2026-07-22T13:00:00Z",
-      already_pushed: false,
-    };
-    // No item chosen → empty body (backend falls back to PROJECT_DFO_ITEM_ID).
-    mockFetch.mockResolvedValueOnce(pushed);
-    const res = await pushInvoiceToQbo(1, 9);
-    expect(lastCall().path).toBe("/projects/1/invoices/9/push-qbo");
-    expect(lastCall().method).toBe("POST");
-    expect(lastCall().body).toEqual({});
-    expect(res.qbo_invoice_id).toBe("145");
-
-    // Item chosen from the picker → forwarded as qbo_item_id.
-    mockFetch.mockResolvedValueOnce(pushed);
-    await pushInvoiceToQbo(1, 9, "42");
-    expect(lastCall().body).toEqual({ qbo_item_id: "42" });
-  });
-
   it("GET /accounting/qbo-items — item picker source, unwraps {items}", async () => {
     mockFetch.mockResolvedValueOnce({
       items: [{ qbo_item_id: "42", name: "DFO", fully_qualified_name: "DFO", type: "Service", parent_name: null }],
@@ -771,19 +752,13 @@ describe("§6 request wire format", () => {
     expect(await listQboItems()).toEqual([]);
   });
 
-  it("POST /projects/{id}/invoices/{iid}/payments/{pid}/push-qbo — path + method, no body", async () => {
-    mockFetch.mockResolvedValueOnce({
-      payment_id: 7,
-      invoice_id: 9,
-      qbo_payment_id: "220",
-      qbo_invoice_id: "145",
-      already_pushed: false,
+  it("voidPayment posts to the void endpoint", async () => {
+    mockFetch.mockResolvedValueOnce({ payment_id: 7, voided: true });
+    await voidPayment(3, 7, "duplicate");
+    expect(mockFetch).toHaveBeenCalledWith("/projects/3/payments/7/void", {
+      method: "POST",
+      body: JSON.stringify({ reason: "duplicate" }),
     });
-    const res = await pushInvoicePaymentToQbo(1, 9, 7);
-    expect(lastCall().path).toBe("/projects/1/invoices/9/payments/7/push-qbo");
-    expect(lastCall().method).toBe("POST");
-    expect(res.qbo_payment_id).toBe("220");
-    expect(res.already_pushed).toBe(false);
   });
 });
 
