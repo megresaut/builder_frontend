@@ -2660,11 +2660,15 @@ function ftoItemTotalCents(fi: Billables["fto_items"][number]): number {
 
 /** Exported for keyboard-interaction tests (ProjectInvoiceBuilder.keyboard.test.tsx). */
 export function ProjectInvoiceBuilderModal({
+  invoice,
   billables,
   busy,
   onCreate,
   onClose,
 }: {
+  // Present = EDIT mode: prefill from this invoice's lines, retitle, and label
+  // the CTA "Save". Absent = create mode (unchanged).
+  invoice?: ProjectInvoice;
   billables: Billables | null;
   busy: boolean;
   onCreate: (title: string, lines: CreateInvoiceLineInput[], ftoSubmissionIds: number[]) => void;
@@ -2674,14 +2678,67 @@ export function ProjectInvoiceBuilderModal({
   const vendorBills = billables?.vendor_bills ?? [];
   const ftoItems = billables?.fto_items ?? [];
 
-  const [selectedCo, setSelectedCo] = useState<number[]>([]);
-  const [selectedBills, setSelectedBills] = useState<number[]>([]);
-  const [selectedFto, setSelectedFto] = useState<number[]>([]);
-  const [manual, setManual] = useState<{ key: number; description: string; amount: string; vendorId: string }[]>([]);
-  const [fees, setFees] = useState<{ key: number; description: string; amount: string }[]>([]);
-  const [title, setTitle] = useState("");
-  const manualSeq = useRef(-1);
-  const feeSeq = useRef(-100000);
+  // ── Edit-mode prefill ────────────────────────────────────────────────
+  // The builder models five line kinds. Anything else on the invoice
+  // (installment, budget_category) has no picker, so it is carried through
+  // VERBATIM on save rather than silently dropped.
+  const MODELLED_SOURCES = [
+    "change_order",
+    "cost_reimbursement",
+    "manual",
+    "project_fee",
+    "fto_labor",
+    "fto_expense",
+    "materials_markup",
+  ] as const;
+  const editLines = invoice?.lines ?? [];
+  const linesOf = (t: string) => editLines.filter((l) => l.source_type === t);
+  const centsToInput = (cents: number) => String(cents / 100);
+  const preservedLines: CreateInvoiceLineInput[] = editLines
+    .filter((l) => !MODELLED_SOURCES.includes(l.source_type as (typeof MODELLED_SOURCES)[number]))
+    .map((l) => ({
+      description: l.description,
+      amount_cents: l.amount_cents,
+      source_type: l.source_type,
+      source_id: l.source_id ?? null,
+      vendor_id: l.vendor_id ?? null,
+    }));
+
+  const [selectedCo, setSelectedCo] = useState<number[]>(
+    () => linesOf("change_order").map((l) => l.source_id!).filter((id) => id != null),
+  );
+  const [selectedBills, setSelectedBills] = useState<number[]>(
+    () => linesOf("cost_reimbursement").map((l) => l.source_id!).filter((id) => id != null),
+  );
+  // FTO lines all carry their SUBMISSION id as source_id (backend:
+  // expandFTOItem), so a distinct set round-trips exactly and the server
+  // re-expands them with authoritative rates.
+  const [selectedFto, setSelectedFto] = useState<number[]>(() => [
+    ...new Set(
+      editLines
+        .filter((l) => l.source_type === "fto_labor" || l.source_type === "fto_expense" || l.source_type === "materials_markup")
+        .map((l) => l.source_id)
+        .filter((id): id is number => id != null),
+    ),
+  ]);
+  const [manual, setManual] = useState<{ key: number; description: string; amount: string; vendorId: string }[]>(
+    () => linesOf("manual").map((l, i) => ({
+      key: -(i + 1),
+      description: l.description,
+      amount: centsToInput(l.amount_cents),
+      vendorId: l.vendor_id != null ? String(l.vendor_id) : "",
+    })),
+  );
+  const [fees, setFees] = useState<{ key: number; description: string; amount: string }[]>(
+    () => linesOf("project_fee").map((l, i) => ({
+      key: -100000 - i,
+      description: l.description,
+      amount: centsToInput(l.amount_cents),
+    })),
+  );
+  const [title, setTitle] = useState(() => invoice?.title ?? "");
+  const manualSeq = useRef(-1 - linesOf("manual").length);
+  const feeSeq = useRef(-100000 - linesOf("project_fee").length);
   // Key of the row whose description input should grab focus on its next mount —
   // set when Shift+Enter opens a row so entry continues without reaching for Tab.
   const focusRowKey = useRef<number | null>(null);
@@ -2728,12 +2785,14 @@ export function ProjectInvoiceBuilderModal({
 
   const manualCents = manual.reduce((s, m) => s + Math.round((Number(m.amount) || 0) * 100), 0);
   const feeCents = fees.reduce((s, m) => s + Math.round((Number(m.amount) || 0) * 100), 0);
+  const preservedCents = preservedLines.reduce((s, l) => s + l.amount_cents, 0);
   const total =
     changeOrders.filter((c) => selectedCo.includes(c.id)).reduce((s, c) => s + c.amount_cents, 0) +
     vendorBills.filter((b) => selectedBills.includes(b.bill_id)).reduce((s, b) => s + b.amount_cents, 0) +
     ftoItems.filter((f) => selectedFto.includes(f.submission_id)).reduce((s, f) => s + ftoItemTotalCents(f), 0) +
     manualCents +
-    feeCents;
+    feeCents +
+    preservedCents;
 
   const create = () => {
     const lines: CreateInvoiceLineInput[] = [
@@ -2766,6 +2825,7 @@ export function ProjectInvoiceBuilderModal({
       ...fees
         .filter((m) => m.description.trim() && Number(m.amount))
         .map((m): CreateInvoiceLineInput => ({ description: m.description.trim(), amount_cents: Math.round(Number(m.amount) * 100), source_type: "project_fee" })),
+      ...preservedLines,
     ];
     // FTO submissions are expanded server-side into per-entry lines.
     const ftoSubmissionIds = ftoItems.filter((f) => selectedFto.includes(f.submission_id)).map((f) => f.submission_id);
@@ -2781,14 +2841,14 @@ export function ProjectInvoiceBuilderModal({
 
   return (
     <ModalShell
-      title="New project invoice"
+      title={invoice ? `Edit ${invoice.invoice_number}` : "New project invoice"}
       onClose={onClose}
       maxWidth="max-w-2xl"
       footer={
         <>
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
           <button onClick={create} disabled={busy} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
-            Create draft{total !== 0 ? ` — ${formatUSD(total)}` : ""}
+            {invoice ? "Save" : "Create draft"}{total !== 0 ? ` — ${formatUSD(total)}` : ""}
           </button>
         </>
       }
