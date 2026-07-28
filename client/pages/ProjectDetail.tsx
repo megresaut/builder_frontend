@@ -2931,6 +2931,20 @@ export function ProjectInvoiceBuilderModal({
             )}
           </div>
 
+          {preservedLines.length > 0 && (
+            <div>
+              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Carried over from this invoice (not editable here)</div>
+              <div className="flex flex-col gap-2">
+                {preservedLines.map((l, i) => (
+                  <div key={i} className={rowCls}>
+                    <span className="text-sm text-gray-900">{l.description}</span>
+                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(l.amount_cents)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Manual lines</span>

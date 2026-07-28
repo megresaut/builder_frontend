@@ -125,4 +125,91 @@ describe("ProjectInvoiceBuilderModal edit mode", () => {
     const total = lines.reduce((s: number, l: { amount_cents: number }) => s + l.amount_cents, 0);
     expect(total).toBe(invoice.total_amount_cents);
   });
+
+  it("renders the carried-over installment line in a read-only block, not just in the save payload", () => {
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={invoice}
+        billables={billables}
+        busy={false}
+        onCreate={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Carried over from this invoice (not editable here)")).toBeInTheDocument();
+    expect(screen.getByText("Deposit")).toBeInTheDocument();
+    // $250.00 (25000 cents) — formatUSD drops whole-dollar cents.
+    expect(screen.getByText("$250")).toBeInTheDocument();
+  });
+});
+
+describe("ProjectInvoiceBuilderModal edit mode — FTO submission dedup", () => {
+  // The backend stamps the SUBMISSION id as source_id on all three of
+  // fto_labor, fto_expense and materials_markup, so an invoice with all
+  // three from one submission must collapse to a single selected item —
+  // otherwise saving would re-bill the submission three times over.
+  const ftoBillables: Billables = {
+    installments_due: [],
+    change_orders_unbilled: [],
+    vendor_bills: [],
+    fto_items: [
+      {
+        submission_id: 77,
+        date_of_work: "2026-07-01",
+        work_description: "Punch list touch-ups",
+        labor_lines: [],
+        expense_lines: [],
+        labor_total_cents: 30000,
+        expense_total_cents: 6000,
+      },
+    ],
+  } as unknown as Billables;
+
+  const ftoInvoice = {
+    id: 9,
+    project_id: 1,
+    invoice_number: "PI-1-009",
+    status: "sent",
+    title: "FTO billing",
+    paid_cents: 0,
+    total_amount_cents: 36000,
+    lines: [
+      { id: 1, description: "Labor · 2026-07-01", amount_cents: 30000, sort_order: 0, source_type: "fto_labor", source_id: 77, vendor_id: null, vendor_name: "AVM" },
+      { id: 2, description: "Materials at cost", amount_cents: 4000, sort_order: 1, source_type: "fto_expense", source_id: 77, vendor_id: null, vendor_name: "AVM" },
+      { id: 3, description: "Materials markup", amount_cents: 2000, sort_order: 2, source_type: "materials_markup", source_id: 77, vendor_id: null, vendor_name: "AVM" },
+    ],
+    payments: [],
+  } as unknown as ProjectInvoice;
+
+  it("checks the one matching FTO item exactly once", () => {
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={ftoInvoice}
+        billables={ftoBillables}
+        busy={false}
+        onCreate={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes).toHaveLength(1);
+    expect(checkboxes[0]).toBeChecked();
+  });
+
+  it("passes the submission id once in ftoSubmissionIds on save, not three times", () => {
+    const onCreate = vi.fn();
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={ftoInvoice}
+        billables={ftoBillables}
+        busy={false}
+        onCreate={onCreate}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^Save/ }));
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    const ftoSubmissionIds = onCreate.mock.calls[0][2];
+    expect(ftoSubmissionIds).toEqual([77]);
+  });
 });
