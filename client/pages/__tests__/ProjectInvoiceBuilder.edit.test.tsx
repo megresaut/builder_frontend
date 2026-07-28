@@ -143,6 +143,131 @@ describe("ProjectInvoiceBuilderModal edit mode", () => {
   });
 });
 
+describe("ProjectInvoiceBuilderModal edit mode — a modelled line whose source left the billables set", () => {
+  // Reachable with no error at all: the vendor-bill billables query joins
+  // `tasks t ... WHERE t.project_id = $1`, and DetachTask sets
+  // tasks.project_id = NULL. So invoice a vendor bill, detach its task, then
+  // edit — the bill is gone from the picker. Rebuilding the line set from the
+  // pickers alone would silently delete the cost_reimbursement line and drop
+  // the invoice total. It must be carried over verbatim instead. (Same shape
+  // for a change order that leaves status='approved'.)
+  const billablesMissingBill: Billables = {
+    installments_due: [],
+    change_orders_unbilled: [
+      { id: 11, co_number: "CO-002", description: "Added footings", amount_cents: 1200000 },
+    ],
+    vendor_bills: [], // bill 21's task was detached from the project
+    fto_items: [],
+  } as unknown as Billables;
+
+  it("renders the orphaned cost_reimbursement line in the carried-over block", () => {
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={invoice}
+        billables={billablesMissingBill}
+        busy={false}
+        onCreate={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    const block = screen.getByText("Carried over from this invoice (not editable here)").parentElement!;
+    // The bill's line is discoverable, not silently vanished.
+    expect(block).toHaveTextContent("INV-8871");
+    expect(block).toHaveTextContent("$24,000");
+    // The unmodelled installment is still carried too.
+    expect(block).toHaveTextContent("Deposit");
+  });
+
+  it("sends the orphaned line verbatim in the save payload and keeps the total whole", () => {
+    const onCreate = vi.fn();
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={invoice}
+        billables={billablesMissingBill}
+        busy={false}
+        onCreate={onCreate}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^Save/ }));
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    const lines = onCreate.mock.calls[0][1];
+    expect(lines.filter((l: { source_type: string }) => l.source_type === "cost_reimbursement")).toEqual([
+      {
+        description: "INV-8871",
+        amount_cents: 2400000,
+        source_type: "cost_reimbursement",
+        source_id: 21,
+        vendor_id: 5,
+      },
+    ]);
+    // Exactly once — carried over, not also rebuilt from the picker.
+    expect(lines).toHaveLength(invoice.lines.length);
+    const total = lines.reduce((s: number, l: { amount_cents: number }) => s + l.amount_cents, 0);
+    expect(total).toBe(invoice.total_amount_cents);
+  });
+
+  it("does not treat anything as orphaned while billables is still loading", () => {
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={invoice}
+        billables={null}
+        busy={false}
+        onCreate={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Loading billable items…")).toBeInTheDocument();
+    expect(screen.queryByText("Carried over from this invoice (not editable here)")).not.toBeInTheDocument();
+  });
+});
+
+describe("ProjectInvoiceBuilderModal edit mode — Save gate while billables is absent", () => {
+  // In edit mode every modelled line is rebuilt by intersecting the prefilled
+  // selections against the billables arrays. With billables === null those are
+  // all empty, so a Save would gut a sent invoice (and push the gutted line set
+  // to QuickBooks for a concierge property). Save must be inert until it loads.
+  it("disables Save when billables has not loaded", () => {
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={invoice}
+        billables={null}
+        busy={false}
+        onCreate={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("button", { name: /^Save/ })).toBeDisabled();
+  });
+
+  it("does not call onCreate even if Save is somehow clicked with no billables", () => {
+    const onCreate = vi.fn();
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={invoice}
+        billables={null}
+        busy={false}
+        onCreate={onCreate}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^Save/ }));
+    expect(onCreate).not.toHaveBeenCalled();
+  });
+
+  it("still enables the create-mode CTA with no invoice (billables null is only a Save hazard)", () => {
+    render(
+      <ProjectInvoiceBuilderModal
+        billables={null}
+        busy={false}
+        onCreate={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("button", { name: /Create draft/ })).not.toBeDisabled();
+  });
+});
+
 describe("ProjectInvoiceBuilderModal edit mode — FTO submission dedup", () => {
   // The backend stamps the SUBMISSION id as source_id on all three of
   // fto_labor, fto_expense and materials_markup, so an invoice with all

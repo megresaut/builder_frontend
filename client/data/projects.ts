@@ -1016,7 +1016,7 @@ export interface UpdateInvoicePayload {
   issue_date?: string;
   due_date?: string;
   client_email?: string;
-  lines?: CreateInvoiceLineInput[]; // full-replace (draft only)
+  lines?: CreateInvoiceLineInput[]; // full-replace; allowed on any invoice with no live (non-voided) payment
   fto_submission_ids?: number[]; // FTO selections to (re)expand on replace
 }
 export interface RecordInvoicePaymentPayload {

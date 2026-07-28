@@ -2335,6 +2335,12 @@ function FinancialsTab({
     try {
       setBillables(await getBillables(projectId, inv.id));
     } catch (e) {
+      // A failed fetch must CLOSE the editor, not leave it open over an empty
+      // picker: Save rebuilds every modelled line from the billables arrays, so
+      // saving there would silently delete the invoice's change-order, vendor-bill
+      // and FTO lines (and push the gutted set to QuickBooks).
+      setEditingInvoice(null);
+      setBillables(null);
       toast.error(errMessage(e, "Failed to load billable items"));
     }
   };
@@ -2751,8 +2757,41 @@ export function ProjectInvoiceBuilderModal({
   const editLines = invoice?.lines ?? [];
   const linesOf = (t: string) => editLines.filter((l) => l.source_type === t);
   const centsToInput = (cents: number) => String(cents / 100);
+  // Being a modelled kind is not enough: `create()` rebuilds those lines by
+  // intersecting the prefilled selections against the billables arrays, so a
+  // line whose SOURCE has left the billables set would be silently deleted on
+  // Save. That is reachable without any error — DetachTask NULLs
+  // tasks.project_id and the vendor-bill query joins tasks on project_id, and a
+  // change order can drop out of status='approved'. Such orphans are carried
+  // over verbatim instead, exactly like the unmodelled kinds, which also makes
+  // them visible in the read-only block below.
+  //
+  // Only meaningful once billables has loaded; while it is null the builder
+  // renders its loading state and Save is disabled, and treating everything as
+  // orphaned there would flash a bogus carried-over list.
+  const sourceMissing = (l: ProjectInvoiceLine): boolean => {
+    if (!billables) return false;
+    switch (l.source_type) {
+      case "change_order":
+        return !changeOrders.some((c) => c.id === l.source_id);
+      case "cost_reimbursement":
+        return !vendorBills.some((b) => b.bill_id === l.source_id);
+      case "fto_labor":
+      case "fto_expense":
+      case "materials_markup":
+        return !ftoItems.some((f) => f.submission_id === l.source_id);
+      default:
+        // manual / project_fee prefill straight from invoice.lines and have no
+        // billables dependency, so they can never be orphaned this way.
+        return false;
+    }
+  };
   const preservedLines: CreateInvoiceLineInput[] = editLines
-    .filter((l) => !MODELLED_SOURCES.includes(l.source_type as (typeof MODELLED_SOURCES)[number]))
+    .filter(
+      (l) =>
+        !MODELLED_SOURCES.includes(l.source_type as (typeof MODELLED_SOURCES)[number]) ||
+        sourceMissing(l),
+    )
     .map((l) => ({
       description: l.description,
       amount_cents: l.amount_cents,
@@ -2904,7 +2943,12 @@ export function ProjectInvoiceBuilderModal({
       footer={
         <>
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-          <button onClick={create} disabled={busy} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
+          {/* In EDIT mode Save must never fire while billables is absent: every
+              modelled line is rebuilt from the pickers, so an empty billables
+              response would gut the invoice (and push the gutted line set to
+              QuickBooks for a concierge property). openEdit also closes the
+              modal on a failed fetch — this is the second, independent guard. */}
+          <button onClick={create} disabled={busy || (!!invoice && !billables)} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
             {invoice ? "Save" : "Create draft"}{total !== 0 ? ` — ${formatUSD(total)}` : ""}
           </button>
         </>
@@ -3223,9 +3267,13 @@ export function ProjectInvoiceDetailModal({
           <Pill label={meta.label} text={meta.text} bg={meta.bg} />
           <span>Issued {fmtProjDate(invoice.issue_date)}</span>
           {invoice.due_date && <span>Due {fmtProjDate(invoice.due_date)}</span>}
-          {invoice.sent_at && invoice.updated_at > invoice.sent_at && (
-            <span className="text-xs text-gray-400">Edited {fmtProjDate(invoice.updated_at.slice(0, 10))}</span>
-          )}
+          {/* No "Edited <date>" badge here. updated_at cannot serve as an edit
+              signal: trg_project_invoices_updated (migration 130) fires on EVERY
+              UPDATE of project_invoices, so refreshPaymentStatus (any payment
+              recorded or voided) and InvoicePDF's pdf_object_key write both bump
+              it. Merely downloading a sent invoice's PDF would make this claim
+              someone edited it. No column distinguishes a real edit, and adding
+              one is out of scope (no migrations) — so do not re-add this. */}
           <span className="ml-auto font-semibold tabular-nums text-gray-900">{formatUSD(totalCents)}</span>
         </div>
 
