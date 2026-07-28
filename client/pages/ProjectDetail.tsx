@@ -3124,7 +3124,8 @@ export function ProjectInvoiceBuilderModal({
   );
 }
 
-function ProjectInvoiceDetailModal({
+/** Exported for render tests (ProjectInvoiceDetailModal.editDelete.test.tsx). */
+export function ProjectInvoiceDetailModal({
   invoice,
   onSend,
   onRecordPayment,
@@ -3167,29 +3168,31 @@ function ProjectInvoiceDetailModal({
       maxWidth="max-w-2xl"
       footer={
         <>
-          {invoice.status !== "void" && (
+          <div className="mr-auto flex items-center gap-2">
+            {invoice.status !== "void" && (
+              <button
+                onClick={onEdit}
+                disabled={!canMutate}
+                title={canMutate ? undefined : blockedReason}
+                className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Edit
+              </button>
+            )}
             <button
-              onClick={onEdit}
+              onClick={onDelete}
               disabled={!canMutate}
               title={canMutate ? undefined : blockedReason}
-              className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-9 rounded-lg border border-red-200 bg-white px-3 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Edit
+              Delete
             </button>
-          )}
-          <button
-            onClick={onDelete}
-            disabled={!canMutate}
-            title={canMutate ? undefined : blockedReason}
-            className="mr-auto h-9 rounded-lg border border-red-200 bg-white px-3 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Delete
-          </button>
-          {invoice.status !== "void" && (
-            <button onClick={onVoid} className="h-9 rounded-lg border border-red-200 bg-white px-3 text-sm font-medium text-red-600 hover:bg-red-50">
-              Void
-            </button>
-          )}
+            {invoice.status !== "void" && (
+              <button onClick={onVoid} className="h-9 rounded-lg border border-red-200 bg-white px-3 text-sm font-medium text-red-600 hover:bg-red-50">
+                Void
+              </button>
+            )}
+          </div>
           <button
             onClick={async () => {
               setDownloadingPdf(true);
