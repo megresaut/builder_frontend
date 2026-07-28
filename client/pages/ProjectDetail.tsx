@@ -70,11 +70,8 @@ import {
   type ProjectInvoice,
   type ProjectInvoiceStatus,
   type ProjectInvoiceLine,
-  type PaymentInstallment,
   type Billables,
   type CreateInvoiceLineInput,
-  type InstallmentInput,
-  type InstallmentBasis,
   type BudgetCategory,
   type VendorFinancialSummary,
   type ProjectFileRow,
@@ -94,6 +91,7 @@ import {
   type CategoryDraft,
   type MilestoneDraft,
 } from "@/components/projects/ProjectEditors";
+import { deriveProjectProgress, progressSubtitle } from "@/lib/projectProgress";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { VendorPicker } from "@/components/VendorPicker";
 import PersonAvatars from "@/components/PersonAvatars";
@@ -114,7 +112,7 @@ const TABS: { key: TabKey; label: string }[] = [
   // Meeting 2026-07: tasks/WOs/FTOs collapsed under one "Work" tab (filter pills inside).
   { key: "maintenance", label: "Work" },
   // Two-lane money model: "Payables" = vendor lane (budget plan, quotes, vendor payment
-  // schedules, spend); "Receivables" = client lane (payment schedule, project invoices,
+  // schedules, spend); "Receivables" = client lane (project invoices,
   // receipts); Cash Flow = where the lanes meet. Siloed from monthly invoicing per
   // PROJECT_INVOICING_SPEC.md. The old SOV/draws BillingTab was retired in the project-financials build.
   // Quotes = pre-commitment (bidding); accepting one feeds Payables (budget + vendor schedule).
@@ -132,6 +130,12 @@ const MAINTENANCE_SUBTABS: { key: MaintenanceSubTabKey; label: string }[] = [
   { key: "work-orders", label: "Work Orders" },
   { key: "field-team", label: "Field Team Orders" },
 ];
+
+// Whitelists for the persisted sub-tab state (see usePageState's `allowed`) so a
+// stale value in sessionStorage — e.g. a tab key retired in a later build —
+// falls back to the default tab instead of rendering an empty page body.
+const TAB_KEYS = TABS.map((t) => t.key);
+const MAINTENANCE_SUBTAB_KEYS = MAINTENANCE_SUBTABS.map((t) => t.key);
 
 /* ------------------------------- primitives ------------------------------- */
 
@@ -971,6 +975,15 @@ function DashboardTab({ summary, onRefresh }: { summary: ProjectSummary; onRefre
   const fin = summary.financials;
   const budget = fin.current_budget_cents;
 
+  // Progress is DERIVED (milestone rollup, falling back to billed/budget), not
+  // read from the stored project.percent_complete column — that column is
+  // hand-typed, never computed, and sat at 0 on every project. See
+  // lib/projectProgress.ts; the same formula is mirrored in SQL for the list.
+  const progress = useMemo(
+    () => deriveProjectProgress(summary.milestones, summary.budget, fin),
+    [summary.milestones, summary.budget, fin],
+  );
+
   // Over/under-billing banner dismissal, persisted per-project (shares the key
   // with the Financials tab so dismissing it once silences both).
   const bannerKey = `pfv2:billing-banner-dismissed:${project.id}`;
@@ -1023,7 +1036,7 @@ function DashboardTab({ summary, onRefresh }: { summary: ProjectSummary; onRefre
           <KpiCard label="Total Budget" value={formatUSD(fin.current_budget_cents)} subtitle={fin.approved_change_orders_cents > 0 ? `${formatUSD(fin.original_budget_cents)} + ${formatUSD(fin.approved_change_orders_cents)} COs` : "No change orders"} accent="navy" />
           <KpiCard label="Committed" value={formatUSD(fin.committed_cents)} subtitle="booked bills" accent="amber" valueColor={fin.unpaid_committed_cents > 0 ? "#B45309" : undefined} />
           <KpiCard label="Remaining" value={formatUSD(fin.remaining_budget_cents)} subtitle="net of committed" accent="violet" valueColor={fin.remaining_budget_cents < 0 ? "#B91C1C" : undefined} />
-          <KpiCard label="% Complete" value={`${project.percent_complete}%`} subtitle="Weighted across work" accent="blue" />
+          <KpiCard label="% Complete" value={`${progress.percent}%`} subtitle={progressSubtitle(progress.basis)} accent="blue" />
           <KpiCard label="Collected from Client" value={formatUSD(fin.collected_cents)} subtitle="Deposits + progress" accent="green" valueColor="#15803D" />
           <KpiCard label="Net Cash Position" value={formatUSD(fin.net_cash_cents)} subtitle="collected − paid" accent={fin.net_cash_cents >= 0 ? "green" : "red"} valueColor={fin.net_cash_cents >= 0 ? "#15803D" : "#B91C1C"} />
         </div>
@@ -1134,11 +1147,14 @@ function DashboardTab({ summary, onRefresh }: { summary: ProjectSummary; onRefre
         <Card title="Progress">
           <div className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between">
-              <span className="text-3xl font-semibold text-gray-900">{project.percent_complete}%</span>
+              <span className="text-3xl font-semibold text-gray-900">{progress.percent}%</span>
               <span className="text-xs text-gray-500">complete</span>
             </div>
-            <Bar percent={project.percent_complete} />
+            <Bar percent={progress.percent} />
             <div className="mt-1 text-xs text-gray-500">
+              {progressSubtitle(progress.basis)}
+            </div>
+            <div className="text-xs text-gray-500">
               {formatUSD(fin.billed_to_date_cents)} billed of {formatUSD(budget)} budget
             </div>
           </div>
@@ -2635,16 +2651,6 @@ function fmtProjDate(d: string | null | undefined): string {
 }
 const isoToday = () => new Date().toISOString().slice(0, 10);
 
-function installmentBasisLabel(inst: PaymentInstallment): string {
-  if (inst.basis === "percent") return `${((inst.percent_bps ?? 0) / 100).toLocaleString("en-US")}% of budget`;
-  return "Fixed";
-}
-function installmentTrigger(inst: PaymentInstallment): string {
-  if (inst.milestone_name) return `Milestone: ${inst.milestone_name}`;
-  if (inst.due_date) return `Due ${fmtProjDate(inst.due_date)}`;
-  return "On signing";
-}
-
 // ftoItemTotalCents = labor + expense-at-cost + Σ material upcharges (the full
 // amount an FTO submission bills once expanded to lines).
 function ftoItemTotalCents(fi: Billables["fto_items"][number]): number {
@@ -2652,7 +2658,8 @@ function ftoItemTotalCents(fi: Billables["fto_items"][number]): number {
   return fi.labor_total_cents + fi.expense_total_cents + markups;
 }
 
-function ProjectInvoiceBuilderModal({
+/** Exported for keyboard-interaction tests (ProjectInvoiceBuilder.keyboard.test.tsx). */
+export function ProjectInvoiceBuilderModal({
   billables,
   busy,
   onCreate,
@@ -2663,38 +2670,65 @@ function ProjectInvoiceBuilderModal({
   onCreate: (title: string, lines: CreateInvoiceLineInput[], ftoSubmissionIds: number[]) => void;
   onClose: () => void;
 }) {
-  const installments = billables?.installments_due ?? [];
   const changeOrders = billables?.change_orders_unbilled ?? [];
   const vendorBills = billables?.vendor_bills ?? [];
   const ftoItems = billables?.fto_items ?? [];
 
-  const [selectedInst, setSelectedInst] = useState<number[]>([]);
   const [selectedCo, setSelectedCo] = useState<number[]>([]);
   const [selectedBills, setSelectedBills] = useState<number[]>([]);
   const [selectedFto, setSelectedFto] = useState<number[]>([]);
   const [manual, setManual] = useState<{ key: number; description: string; amount: string; vendorId: string }[]>([]);
   const [fees, setFees] = useState<{ key: number; description: string; amount: string }[]>([]);
   const [title, setTitle] = useState("");
-  const [primed, setPrimed] = useState(false);
   const manualSeq = useRef(-1);
   const feeSeq = useRef(-100000);
-
-  // Pre-check all due installments once billables arrive — they're what the
-  // builder exists to bill.
-  useEffect(() => {
-    if (billables && !primed) {
-      setSelectedInst(billables.installments_due.map((i) => i.id));
-      setPrimed(true);
-    }
-  }, [billables, primed]);
+  // Key of the row whose description input should grab focus on its next mount —
+  // set when Shift+Enter opens a row so entry continues without reaching for Tab.
+  const focusRowKey = useRef<number | null>(null);
 
   const toggle = (id: number, list: number[], set: (v: number[]) => void) =>
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
+  // This modal is a keyboard-first billing worksheet, so Enter acts on whatever
+  // is focused. Native checkboxes only answer to Space, hence this shim.
+  const enterActivates = (run: () => void) => (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      run();
+    }
+  };
+
+  // Shift+Enter on a row's ✕ opens a fresh row directly beneath it (plain Enter
+  // there still removes the row, matching the button's own affordance).
+  const insertAfter = <T extends { key: number }>(
+    rows: T[],
+    afterKey: number,
+    row: T,
+  ): T[] => {
+    const i = rows.findIndex((x) => x.key === afterKey);
+    return i < 0 ? [...rows, row] : [...rows.slice(0, i + 1), row, ...rows.slice(i + 1)];
+  };
+  const addManualAfter = (afterKey: number) => {
+    const row = { key: manualSeq.current--, description: "", amount: "", vendorId: "" };
+    focusRowKey.current = row.key;
+    setManual((v) => insertAfter(v, afterKey, row));
+  };
+  const addFeeAfter = (afterKey: number) => {
+    const row = { key: feeSeq.current--, description: "", amount: "" };
+    focusRowKey.current = row.key;
+    setFees((v) => insertAfter(v, afterKey, row));
+  };
+  // Ref callback: focus this row's description iff Shift+Enter just created it.
+  const claimFocus = (key: number) => (el: HTMLInputElement | null) => {
+    if (el && focusRowKey.current === key) {
+      focusRowKey.current = null;
+      el.focus();
+    }
+  };
+
   const manualCents = manual.reduce((s, m) => s + Math.round((Number(m.amount) || 0) * 100), 0);
   const feeCents = fees.reduce((s, m) => s + Math.round((Number(m.amount) || 0) * 100), 0);
   const total =
-    installments.filter((i) => selectedInst.includes(i.id)).reduce((s, i) => s + i.resolved_amount_cents, 0) +
     changeOrders.filter((c) => selectedCo.includes(c.id)).reduce((s, c) => s + c.amount_cents, 0) +
     vendorBills.filter((b) => selectedBills.includes(b.bill_id)).reduce((s, b) => s + b.amount_cents, 0) +
     ftoItems.filter((f) => selectedFto.includes(f.submission_id)).reduce((s, f) => s + ftoItemTotalCents(f), 0) +
@@ -2703,14 +2737,6 @@ function ProjectInvoiceBuilderModal({
 
   const create = () => {
     const lines: CreateInvoiceLineInput[] = [
-      ...installments
-        .filter((i) => selectedInst.includes(i.id))
-        .map((i): CreateInvoiceLineInput => ({
-          description: `${i.label} — per payment schedule`,
-          amount_cents: i.resolved_amount_cents,
-          source_type: "installment",
-          source_id: i.id,
-        })),
       ...changeOrders
         .filter((c) => selectedCo.includes(c.id))
         .map((c): CreateInvoiceLineInput => ({
@@ -2781,23 +2807,6 @@ function ProjectInvoiceBuilderModal({
             />
           </div>
 
-          <div>
-            <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">From the payment schedule</div>
-            <div className="flex flex-col gap-2">
-              {installments.length === 0 && <p className="text-sm text-gray-500">No installments are due.</p>}
-              {installments.map((i) => (
-                <label key={i.id} className={`${rowCls} cursor-pointer ${selectedInst.includes(i.id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
-                  <span className="flex items-center gap-2.5 text-sm text-gray-900">
-                    <input type="checkbox" className={checkCls} checked={selectedInst.includes(i.id)} onChange={() => toggle(i.id, selectedInst, setSelectedInst)} />
-                    {i.label}
-                    <Pill label="Due now" text="#B45309" bg="#FCF2E1" />
-                  </span>
-                  <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(i.resolved_amount_cents)}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
           {changeOrders.length > 0 && (
             <div>
               <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Change orders</div>
@@ -2805,7 +2814,7 @@ function ProjectInvoiceBuilderModal({
                 {changeOrders.map((c) => (
                   <label key={c.id} className={`${rowCls} cursor-pointer ${selectedCo.includes(c.id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
                     <span className="flex items-center gap-2.5 text-sm text-gray-900">
-                      <input type="checkbox" className={checkCls} checked={selectedCo.includes(c.id)} onChange={() => toggle(c.id, selectedCo, setSelectedCo)} />
+                      <input type="checkbox" className={checkCls} checked={selectedCo.includes(c.id)} onChange={() => toggle(c.id, selectedCo, setSelectedCo)} onKeyDown={enterActivates(() => toggle(c.id, selectedCo, setSelectedCo))} />
                       {c.co_number} · {c.description}
                     </span>
                     <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(c.amount_cents)}</span>
@@ -2824,7 +2833,7 @@ function ProjectInvoiceBuilderModal({
                 {vendorBills.map((b) => (
                   <label key={b.bill_id} className={`${rowCls} cursor-pointer ${selectedBills.includes(b.bill_id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
                     <span className="flex items-center gap-2.5 text-sm text-gray-900">
-                      <input type="checkbox" className={checkCls} checked={selectedBills.includes(b.bill_id)} onChange={() => toggle(b.bill_id, selectedBills, setSelectedBills)} />
+                      <input type="checkbox" className={checkCls} checked={selectedBills.includes(b.bill_id)} onChange={() => toggle(b.bill_id, selectedBills, setSelectedBills)} onKeyDown={enterActivates(() => toggle(b.bill_id, selectedBills, setSelectedBills))} />
                       <span>
                         {b.description}
                         {b.vendor_name && <span className="ml-1.5 text-xs text-gray-500">· {b.vendor_name}</span>}
@@ -2846,7 +2855,7 @@ function ProjectInvoiceBuilderModal({
                 {ftoItems.map((f) => (
                   <label key={f.submission_id} className={`${rowCls} cursor-pointer ${selectedFto.includes(f.submission_id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
                     <span className="flex items-center gap-2.5 text-sm text-gray-900">
-                      <input type="checkbox" className={checkCls} checked={selectedFto.includes(f.submission_id)} onChange={() => toggle(f.submission_id, selectedFto, setSelectedFto)} />
+                      <input type="checkbox" className={checkCls} checked={selectedFto.includes(f.submission_id)} onChange={() => toggle(f.submission_id, selectedFto, setSelectedFto)} onKeyDown={enterActivates(() => toggle(f.submission_id, selectedFto, setSelectedFto))} />
                       <span>
                         {f.work_description?.trim() || `Field work ${fmtProjDate(f.date_of_work)}`}
                         <span className="ml-1.5 text-xs text-gray-500">
@@ -2879,6 +2888,7 @@ function ProjectInvoiceBuilderModal({
                 {manual.map((m) => (
                   <div key={m.key} className="flex items-center gap-2">
                     <input
+                      ref={claimFocus(m.key)}
                       value={m.description}
                       placeholder="Description"
                       onChange={(e) => setManual((v) => v.map((x) => (x.key === m.key ? { ...x, description: e.target.value } : x)))}
@@ -2905,7 +2915,20 @@ function ProjectInvoiceBuilderModal({
                         className="w-28 rounded-md border border-[#DADADA] px-2 py-1.5 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
                       />
                     </div>
-                    <button onClick={() => setManual((v) => v.filter((x) => x.key !== m.key))} aria-label="Remove line" className="px-1 text-gray-400 hover:text-red-600">✕</button>
+                    <button
+                      onClick={() => setManual((v) => v.filter((x) => x.key !== m.key))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && e.shiftKey) {
+                          e.preventDefault(); // suppress the synthetic click that would delete the row
+                          addManualAfter(m.key);
+                        }
+                      }}
+                      aria-label="Remove line (Shift+Enter to add another below)"
+                      title="Remove line · Shift+Enter adds another below"
+                      className="px-1 text-gray-400 hover:text-red-600"
+                    >
+                      ✕
+                    </button>
                   </div>
                 ))}
               </div>
@@ -2929,6 +2952,7 @@ function ProjectInvoiceBuilderModal({
                 {fees.map((m) => (
                   <div key={m.key} className="flex items-center gap-2">
                     <input
+                      ref={claimFocus(m.key)}
                       value={m.description}
                       placeholder="e.g. Management fee (10%)"
                       onChange={(e) => setFees((v) => v.map((x) => (x.key === m.key ? { ...x, description: e.target.value } : x)))}
@@ -2944,7 +2968,20 @@ function ProjectInvoiceBuilderModal({
                         className="w-28 rounded-md border border-[#DADADA] px-2 py-1.5 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
                       />
                     </div>
-                    <button onClick={() => setFees((v) => v.filter((x) => x.key !== m.key))} aria-label="Remove fee line" className="px-1 text-gray-400 hover:text-red-600">✕</button>
+                    <button
+                      onClick={() => setFees((v) => v.filter((x) => x.key !== m.key))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && e.shiftKey) {
+                          e.preventDefault(); // suppress the synthetic click that would delete the row
+                          addFeeAfter(m.key);
+                        }
+                      }}
+                      aria-label="Remove fee line (Shift+Enter to add another below)"
+                      title="Remove fee line · Shift+Enter adds another below"
+                      className="px-1 text-gray-400 hover:text-red-600"
+                    >
+                      ✕
+                    </button>
                   </div>
                 ))}
               </div>
@@ -3830,6 +3867,8 @@ const FILE_FILTERS: { key: "all" | ProjectFileSource; label: string }[] = [
   { key: "quote", label: "Quote" },
 ];
 
+const FILE_FILTER_KEYS = FILE_FILTERS.map((f) => f.key);
+
 function formatBytes(n: number): string {
   if (!n) return "—";
   if (n < 1024) return `${n} B`;
@@ -3843,7 +3882,10 @@ function formatBytes(n: number): string {
 function FilesTab({ projectId, summary }: { projectId: number; summary: ProjectSummary }) {
   const [files, setFiles] = useState<ProjectFileRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | ProjectFileSource>("all");
+  // Per-tab so returning from another in-app tab keeps the chosen source filter.
+  const [filter, setFilter] = usePageState<"all" | ProjectFileSource>("projectFilesFilter", "all", {
+    allowed: FILE_FILTER_KEYS,
+  });
   const [uploading, setUploading] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [picked, setPicked] = useState<File | null>(null);
@@ -4099,7 +4141,8 @@ function UpdateProjectModal({
   const project = summary.project;
   const [name, setName] = useState(project.name);
   const [status, setStatus] = useState<ProjectStatus>(project.status);
-  const [percent, setPercent] = useState(project.percent_complete);
+  // No % Complete input: progress is derived from the milestone rollup
+  // (lib/projectProgress.ts), so a typed value would be silently ignored.
   const [startDate, setStartDate] = useState(project.start_date ?? "");
   const [targetEndDate, setTargetEndDate] = useState(project.target_end_date ?? "");
   const [managerUserId, setManagerUserId] = useState<number | "">(project.manager_user_id ?? "");
@@ -4168,7 +4211,6 @@ function UpdateProjectModal({
       await updateProject(project.id, {
         name,
         status,
-        percent_complete: Math.min(100, Math.max(0, percent)),
         ...(startDate ? { start_date: startDate } : {}),
         ...(targetEndDate ? { target_end_date: targetEndDate } : {}),
         manager_user_id: managerUserId === "" ? null : managerUserId,
@@ -4212,7 +4254,7 @@ function UpdateProjectModal({
                 <label htmlFor={`${uid}-name`} className={labelCls}>Project name</label>
                 <input id={`${uid}-name`} className={`${fieldCls} mt-1`} value={name} onChange={(e) => setName(e.target.value)} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div>
                 <div>
                   <label htmlFor={`${uid}-status`} className={labelCls}>Status</label>
                   <SearchableSelect
@@ -4228,10 +4270,6 @@ function UpdateProjectModal({
                     ]}
                     allLabel="Select status"
                   />
-                </div>
-                <div>
-                  <label htmlFor={`${uid}-percent`} className={labelCls}>% Complete</label>
-                  <input id={`${uid}-percent`} type="number" min={0} max={100} className={`${fieldCls} mt-1`} value={percent} onChange={(e) => setPercent(Number(e.target.value) || 0)} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -4328,8 +4366,15 @@ export default function ProjectDetail() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const id = Number(projectId);
-  const [tab, setTab] = useState<TabKey>("dashboard");
-  const [maintenanceTab, setMaintenanceTab] = useState<MaintenanceSubTabKey>("tasks");
+  // Sub-tab selection is per-tab page state, not component state: switching
+  // in-app tabs unmounts this route, so plain useState would snap the page back
+  // to Dashboard/Tasks on return. usePageState parks it in the tab's metadata.
+  const [tab, setTab] = usePageState<TabKey>("projectTab", "dashboard", { allowed: TAB_KEYS });
+  const [maintenanceTab, setMaintenanceTab] = usePageState<MaintenanceSubTabKey>(
+    "projectMaintenanceTab",
+    "tasks",
+    { allowed: MAINTENANCE_SUBTAB_KEYS },
+  );
   const [editOpen, setEditOpen] = useState(false);
   const [summary, setSummary] = useState<ProjectSummary | null>(null);
   const [loading, setLoading] = useState(true);

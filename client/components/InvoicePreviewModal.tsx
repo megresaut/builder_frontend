@@ -161,6 +161,10 @@ export default function InvoicePreviewModal({
     return Number.isInteger(value) ? String(value) : value.toFixed(2);
   };
 
+  // Placeholder for cells with no value (e.g. the management-fee line has no
+  // bill date or reference number) — an em dash reads cleaner than a blank.
+  const EMPTY_CELL = "—";
+
   // Parses the date-only portion as local calendar components — `new
   // Date("2026-06-01")` parses as UTC midnight, which renders as the prior
   // day in any timezone behind UTC.
@@ -364,7 +368,6 @@ export default function InvoicePreviewModal({
         {
           key: "invoice",
           title: null,
-          showMeta: true,
           rows: [...avmreNonLaborRows, ...passthroughRows],
           laborSummary,
           laborSummaryAfterCount: avmreNonLaborRows.length,
@@ -374,33 +377,74 @@ export default function InvoicePreviewModal({
         {
           key: "all",
           title: null,
-          showMeta: true,
           rows: indexedLineItems,
           laborSummary: null as { hours: number; amount: number } | null,
           laborSummaryAfterCount: 0,
         },
       ];
 
-  const headerColumns = (
-    showMeta: boolean,
-  ): Array<[string, string | undefined]> => {
-    const cols: Array<[string, string | undefined]> = [
-      ["Service Provider", "110px"],
-      ["Date", "52px"],
-      ["Service Provided", undefined],
-      ["Reference#", "65px"],
-    ];
-    if (showMeta) {
-      cols.push(
-        ["Rate", "38px"],
-        ["Qty", "44px"],
-        ["Manager", "48px"],
-        ["Travel Charge", "60px"],
-      );
-    }
-    cols.push(["Amount", "75px"]);
-    return cols;
+  // Page 1's Service Provided column absorbs all the table's slack width, so its
+  // text would otherwise hug the Date column and leave a wide gap before
+  // Reference#. Indenting header + cells together sits the block in that space.
+  const SERVICE_PROVIDED_PAD_LEFT = "60px";
+
+  // Column headers carry the same alignment + edge padding as the cells below
+  // them, so each label sits directly over its own data (left-aligned text
+  // columns would otherwise read as centered over the wrong column).
+  type InvoiceColumn = {
+    label: string;
+    width?: string;
+    align?: CSSProperties["textAlign"];
+    padLeft?: string;
+    padRight?: string;
   };
+
+  // Page 1 (the invoice itself) stays deliberately slim: the FTO-hours metadata
+  // (Rate / Qty / Manager / Travel Charge) only belongs on the page-2 Field Team
+  // breakdown, so it isn't repeated here.
+  const invoiceColumns: InvoiceColumn[] = [
+    { label: "Service Provider", width: "130px", align: "left", padLeft: "6px" },
+    { label: "Date", width: "52px" },
+    {
+      label: "Service Provided",
+      align: "left",
+      padLeft: SERVICE_PROVIDED_PAD_LEFT,
+    },
+    { label: "Reference#", width: "80px" },
+    { label: "Amount", width: "85px", align: "right", padRight: "6px" },
+  ];
+
+  // Page 2 — Field Team labor detail. Carries the metadata columns, drops
+  // Reference# (man-hour lines have no vendor invoice behind them).
+  const laborColumns: InvoiceColumn[] = [
+    { label: "Service Provider", width: "110px", align: "left", padLeft: "6px" },
+    { label: "Date", width: "52px" },
+    { label: "Service Provided", align: "left", padLeft: "10px" },
+    { label: "Rate", width: "38px" },
+    { label: "Qty", width: "44px" },
+    { label: "Manager", width: "48px" },
+    { label: "Travel Charge", width: "60px" },
+    { label: "Amount", width: "75px", align: "right", padRight: "6px" },
+  ];
+
+  const renderColumnHeader = (col: InvoiceColumn) => (
+    <th
+      key={col.label}
+      style={{
+        textAlign: col.align ?? "center",
+        paddingTop: "6px",
+        paddingBottom: "6px",
+        paddingLeft: col.padLeft ?? "4px",
+        paddingRight: col.padRight ?? "4px",
+        borderTop: "1px solid #002060",
+        borderBottom: "3px double #002060",
+        font: "italic 700 9px/16.5px Arial, sans-serif",
+        ...(col.width ? { width: col.width, minWidth: col.width } : {}),
+      }}
+    >
+      {col.label}
+    </th>
+  );
 
   // Month label for the collapsed labor line, e.g. "May Hours". Derived from
   // the invoice date (mirrors the "May Management Fee" wording); falls back to
@@ -437,12 +481,24 @@ export default function InvoicePreviewModal({
       >
         AVMRE LLC
       </td>
-      <td />
       <td
         style={{
           paddingTop: "5px",
           paddingBottom: "5px",
-          paddingLeft: "10px",
+          textAlign: "center",
+          verticalAlign: "middle",
+          color: "#002060",
+          font: "400 9px Arial, sans-serif",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {EMPTY_CELL}
+      </td>
+      <td
+        style={{
+          paddingTop: "5px",
+          paddingBottom: "5px",
+          paddingLeft: SERVICE_PROVIDED_PAD_LEFT,
           paddingRight: "10px",
           textAlign: "left",
           verticalAlign: "middle",
@@ -452,24 +508,18 @@ export default function InvoicePreviewModal({
       >
         {`${invoiceMonthLabel} Hours`}
       </td>
-      <td />
-      <td />
       <td
         style={{
           paddingTop: "5px",
           paddingBottom: "5px",
-          paddingRight: "6px",
           textAlign: "center",
           verticalAlign: "middle",
           color: "#002060",
-          font: "400 9px Arial, sans-serif",
-          whiteSpace: "nowrap",
+          font: "400 8px/14px Arial, sans-serif",
         }}
       >
-        {formatPlainNumber(summary.hours)}
+        {EMPTY_CELL}
       </td>
-      <td />
-      <td />
       <td
         style={{
           paddingTop: "5px",
@@ -1404,24 +1454,7 @@ export default function InvoicePreviewModal({
               >
                 <thead>
                   <tr>
-                    {headerColumns(group.showMeta).map(([label, width]) => (
-                      <th
-                        key={label}
-                        style={{
-                          textAlign: "center",
-                          paddingTop: "6px",
-                          paddingBottom: "6px",
-                          paddingLeft: "4px",
-                          paddingRight: "4px",
-                          borderTop: "1px solid #002060",
-                          borderBottom: "3px double #002060",
-                          font: "italic 700 9px/16.5px Arial, sans-serif",
-                          ...(width ? { width, minWidth: width } : {}),
-                        }}
-                      >
-                        {label}
-                      </th>
-                    ))}
+                    {invoiceColumns.map(renderColumnHeader)}
                   </tr>
                 </thead>
                 <tbody>
@@ -1463,9 +1496,9 @@ export default function InvoicePreviewModal({
                           paddingLeft: "6px",
                           verticalAlign: "middle",
                           position: "relative",
-                          width: "110px",
-                          minWidth: "110px",
-                          maxWidth: "110px",
+                          width: "130px",
+                          minWidth: "130px",
+                          maxWidth: "130px",
                         }}
                       >
                         <div
@@ -1568,14 +1601,14 @@ export default function InvoicePreviewModal({
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {formatShortDate(item.billDate)}
+                        {formatShortDate(item.billDate) || EMPTY_CELL}
                       </td>
                       <td
                         style={{
                           fontSize: "11px",
                           paddingTop: "5px",
                           paddingBottom: "5px",
-                          paddingLeft: "10px",
+                          paddingLeft: SERVICE_PROVIDED_PAD_LEFT,
                           paddingRight: "10px",
                           verticalAlign: "middle",
                         }}
@@ -1632,78 +1665,11 @@ export default function InvoicePreviewModal({
                           color: "#002060",
                           font: "400 8px/14px Arial, sans-serif",
                           overflowWrap: "anywhere",
+                          textAlign: "center",
                         }}
                       >
-                        {item.billInvoiceNumber ?? ""}
+                        {item.billInvoiceNumber || EMPTY_CELL}
                       </td>
-                      {group.showMeta && (
-                        <>
-                          <td
-                            style={{
-                              fontSize: "11px",
-                              paddingTop: "5px",
-                              paddingBottom: "5px",
-                              paddingRight: "6px",
-                              verticalAlign: "middle",
-                              textAlign: "center",
-                              color: "#002060",
-                              font: "400 9px Arial, sans-serif",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {formatPlainNumber(item.rate)}
-                          </td>
-                          <td
-                            style={{
-                              fontSize: "11px",
-                              paddingTop: "5px",
-                              paddingBottom: "5px",
-                              paddingRight: "6px",
-                              verticalAlign: "middle",
-                              textAlign: "center",
-                              color: "#002060",
-                              font: "400 9px Arial, sans-serif",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {formatPlainNumber(item.qty)}
-                          </td>
-                          <td
-                            style={{
-                              fontSize: "11px",
-                              paddingTop: "5px",
-                              paddingBottom: "5px",
-                              paddingRight: "6px",
-                              verticalAlign: "middle",
-                              textAlign: "center",
-                              color: "#002060",
-                              font: "400 9px Arial, sans-serif",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {formatPlainNumber(item.managerCount)}
-                          </td>
-                          <td
-                            style={{
-                              fontSize: "11px",
-                              paddingTop: "5px",
-                              paddingBottom: "5px",
-                              paddingRight: "6px",
-                              verticalAlign: "middle",
-                              textAlign: "center",
-                              color: "#002060",
-                              font: "400 9px Arial, sans-serif",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {formatPlainNumber(
-                              item.travelChargeCents != null
-                                ? item.travelChargeCents / 100
-                                : undefined,
-                            )}
-                          </td>
-                        </>
-                      )}
                       <td
                         style={{
                           fontSize: "11px",
@@ -1831,7 +1797,7 @@ export default function InvoicePreviewModal({
                   })}
                   <tr>
                     <td
-                      colSpan={group.showMeta ? 9 : 5}
+                      colSpan={invoiceColumns.length}
                       style={{
                         padding: 0,
                         height: "4px",
@@ -1944,26 +1910,7 @@ export default function InvoicePreviewModal({
                   >
                     <thead>
                       <tr>
-                        {headerColumns(true)
-                          .filter(([label]) => label !== "Reference#")
-                          .map(([label, width]) => (
-                            <th
-                              key={label}
-                              style={{
-                                textAlign: "center",
-                                paddingTop: "6px",
-                                paddingBottom: "6px",
-                                paddingLeft: "4px",
-                                paddingRight: "4px",
-                                borderTop: "1px solid #002060",
-                                borderBottom: "3px double #002060",
-                                font: "italic 700 9px/16.5px Arial, sans-serif",
-                                ...(width ? { width, minWidth: width } : {}),
-                              }}
-                            >
-                              {label}
-                            </th>
-                          ))}
+                        {laborColumns.map(renderColumnHeader)}
                       </tr>
                     </thead>
                     <tbody>
@@ -1999,7 +1946,7 @@ export default function InvoicePreviewModal({
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {formatShortDate(item.billDate)}
+                            {formatShortDate(item.billDate) || EMPTY_CELL}
                           </td>
                           <td
                             style={{
@@ -2028,7 +1975,7 @@ export default function InvoicePreviewModal({
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {formatPlainNumber(item.rate)}
+                            {formatPlainNumber(item.rate) || EMPTY_CELL}
                           </td>
                           <td
                             style={{
@@ -2042,7 +1989,7 @@ export default function InvoicePreviewModal({
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {formatPlainNumber(item.qty)}
+                            {formatPlainNumber(item.qty) || EMPTY_CELL}
                           </td>
                           <td
                             style={{
@@ -2056,7 +2003,7 @@ export default function InvoicePreviewModal({
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {formatPlainNumber(item.managerCount)}
+                            {formatPlainNumber(item.managerCount) || EMPTY_CELL}
                           </td>
                           <td
                             style={{
@@ -2074,7 +2021,7 @@ export default function InvoicePreviewModal({
                               item.travelChargeCents != null
                                 ? item.travelChargeCents / 100
                                 : undefined,
-                            )}
+                            ) || EMPTY_CELL}
                           </td>
                           <td
                             style={{

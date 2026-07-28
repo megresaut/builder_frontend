@@ -637,6 +637,10 @@ export default function MaintenanceWorkOrders() {
   const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] =
     usePageState("isCreateWorkOrderModalOpen", false);
 
+  const [searchValue, setSearchValue] = usePageState(
+    "maintenanceWorkOrdersSearch",
+    "",
+  );
   const [showFilterBar, setShowFilterBar] = usePageState(
     "maintenanceWorkOrdersShowFilterBar",
     false,
@@ -692,7 +696,28 @@ export default function MaintenanceWorkOrders() {
   );
 
   const filteredWorkOrders = useMemo(() => {
+    const searchLower = searchValue.trim().toLowerCase();
+    // Most of these fields are optional on the API payload — guard each one so
+    // a partially-filled work order can't blow up the whole filter.
+    const lc = (v: unknown) => (typeof v === "string" ? v.toLowerCase() : "");
     return workOrders.filter((wo) => {
+      if (
+        searchLower &&
+        !(
+          lc(wo.task).includes(searchLower) ||
+          lc(wo.vendorName).includes(searchLower) ||
+          lc(wo.property).includes(searchLower) ||
+          lc(wo.locationAddress).includes(searchLower) ||
+          lc(wo.unit).includes(searchLower) ||
+          lc(wo.status).includes(searchLower) ||
+          lc(wo.priority).includes(searchLower) ||
+          lc(wo.dueDate).includes(searchLower) ||
+          lc(wo.billTotal).includes(searchLower) ||
+          String(wo.id).includes(searchLower)
+        )
+      ) {
+        return false;
+      }
       if (filterVendor.length > 0 && !filterVendor.includes(wo.vendorName || "")) return false;
       if (filterProperty.length > 0 && !filterProperty.includes(wo.property)) return false;
       if (filterStatus.length > 0 && !filterStatus.includes(wo.status)) return false;
@@ -713,6 +738,7 @@ export default function MaintenanceWorkOrders() {
     });
   }, [
     workOrders,
+    searchValue,
     filterVendor,
     filterProperty,
     filterStatus,
@@ -1013,6 +1039,7 @@ export default function MaintenanceWorkOrders() {
   useEffect(() => {
     setCurrentPage(1);
   }, [
+    searchValue,
     filterDateFrom,
     filterDateTo,
     filterVendor,
@@ -1262,6 +1289,8 @@ export default function MaintenanceWorkOrders() {
             openMenuId={openMenuId}
             onOpenMenuIdChange={setOpenMenuId}
             title="Work Orders"
+            searchValue={searchValue}
+            onSearchChange={setSearchValue}
             onFilterClick={() => {
               setShowPageSizeDropdown(false);
               setOpenMenuId(null);

@@ -299,7 +299,9 @@ export default function GlobalTable({
             )}
           </div>
           <div className="flex items-center gap-2.5">
-            {showSearchBar && (
+            {/* The input is fully controlled, so without an onSearchChange handler
+                it can never accept text. Hide the box instead of showing a dead one. */}
+            {showSearchBar && onSearchChange && (
               <div className="flex h-9 items-center gap-2 px-3 rounded-lg bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.03)]" style={{ borderColor: "var(--color-border-default)", borderWidth: "1px" }}>
                 <Search className="w-5 h-5 text-gray-600 shrink-0" />
                 <input

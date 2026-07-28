@@ -2,7 +2,7 @@ import * as React from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { useVendorSearch } from "@/hooks/useVendorSearch";
+import { useVendorSearch, type VendorOption } from "@/hooks/useVendorSearch";
 
 /**
  * VendorPicker — the single vendor <select> replacement for forms.
@@ -54,6 +54,13 @@ export function VendorPicker({
   // Don't hit the API until the field is actually used once.
   const [activated, setActivated] = React.useState(false);
   const listRef = React.useRef<HTMLDivElement>(null);
+  // Keyboard-highlighted row. Focus stays in the search box (so typing keeps
+  // working), so the highlight is tracked here and announced via
+  // aria-activedescendant rather than by moving DOM focus. -1 = nothing armed,
+  // which keeps a stray Enter right after opening from picking a vendor.
+  const [activeIndex, setActiveIndex] = React.useState(-1);
+  const listboxId = React.useId();
+  const optionId = (i: number) => `${listboxId}-opt-${i}`;
 
   const { vendors, search, setSearch, loading, hasMore, loadMore, nameById, ensureVendor } =
     useVendorSearch(activated);
@@ -72,6 +79,7 @@ export function VendorPicker({
   const handleOpenChange = (next: boolean) => {
     if (disabled) return;
     setOpen(next);
+    setActiveIndex(-1);
     if (next) setActivated(true);
     else setSearch("");
   };
@@ -81,10 +89,68 @@ export function VendorPicker({
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) loadMore();
   };
 
-  // A fresh search resets the list, so put the user back at the top.
+  const select = (v: VendorOption) => {
+    onChange(v.id, v.name);
+    setOpen(false);
+    setActiveIndex(-1);
+    setSearch("");
+  };
+
+  // A fresh search resets the list, so put the user back at the top. Typing is a
+  // statement of intent, so arm the top hit — Enter then takes it, no arrowing.
   React.useEffect(() => {
     if (listRef.current) listRef.current.scrollTop = 0;
+    setActiveIndex(search ? 0 : -1);
   }, [search]);
+
+  // Keep the highlighted row visible. Scrolling the container also re-triggers
+  // handleScroll, so arrowing to the bottom pages the next 50 in on its own.
+  React.useEffect(() => {
+    if (activeIndex < 0) return;
+    listRef.current
+      ?.querySelector<HTMLElement>(`[data-index="${activeIndex}"]`)
+      ?.scrollIntoView?.({ block: "nearest" });
+  }, [activeIndex]);
+
+  // Clamped so a shrinking result set (or a stale index) can't strand the
+  // highlight past the end of the list.
+  const moveActive = (delta: number) => {
+    if (vendors.length === 0) return;
+    setActiveIndex((i) => {
+      const next = i < 0 ? (delta > 0 ? 0 : vendors.length - 1) : i + delta;
+      return Math.max(0, Math.min(vendors.length - 1, next));
+    });
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault(); // don't let the caret jump to the end of the term
+        moveActive(1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        moveActive(-1);
+        break;
+      case "Home":
+        if (vendors.length === 0) return;
+        e.preventDefault();
+        setActiveIndex(0);
+        break;
+      case "End":
+        if (vendors.length === 0) return;
+        e.preventDefault();
+        setActiveIndex(vendors.length - 1);
+        break;
+      case "Enter": {
+        const v = vendors[activeIndex];
+        if (!v) return;
+        e.preventDefault();
+        select(v);
+        break;
+      }
+    }
+  };
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -141,14 +207,26 @@ export function VendorPicker({
         <div className="p-2 border-b border-[#F0F0F0]">
           <input
             autoFocus
+            role="combobox"
+            aria-expanded
+            aria-controls={listboxId}
+            aria-autocomplete="list"
+            aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Type to search all vendors…"
             className="w-full rounded-md border border-[#E5E5E5] px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-[#013764]"
           />
         </div>
 
-        <div ref={listRef} className="max-h-[240px] overflow-y-auto py-1" onScroll={handleScroll}>
+        <div
+          ref={listRef}
+          id={listboxId}
+          role="listbox"
+          className="max-h-[240px] overflow-y-auto py-1"
+          onScroll={handleScroll}
+        >
           {vendors.length === 0 && loading && (
             <div className="px-3 py-2 text-sm text-[#A1A1A1]">Loading vendors…</div>
           )}
@@ -156,18 +234,23 @@ export function VendorPicker({
             <div className="px-3 py-2 text-sm text-[#A1A1A1]">No vendors found.</div>
           )}
 
-          {vendors.map((v) => (
+          {vendors.map((v, i) => (
             <button
               key={v.id}
+              id={optionId(i)}
+              data-index={i}
+              role="option"
+              aria-selected={value === v.id}
+              // Focus never leaves the search box, so options stay out of the tab
+              // order; arrows move the highlight instead.
+              tabIndex={-1}
               type="button"
-              onClick={() => {
-                onChange(v.id, v.name);
-                setOpen(false);
-                setSearch("");
-              }}
+              onClick={() => select(v)}
+              onMouseEnter={() => setActiveIndex(i)}
               className={cn(
                 "flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-sm text-[#303030] hover:bg-[#F5F7FA]",
                 value === v.id && "bg-[#F0F4F8]",
+                i === activeIndex && "bg-[#E9F0F7]",
               )}
             >
               <Check

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ArrowLeft, Bell, Share2, Mail, ChevronDown, Plus, History } from "lucide-react";
 import { EditIcon } from "@/components/icons";
@@ -454,8 +454,39 @@ export default function WorkOrderDetailsV2({
   const [propertyImageUrl, setPropertyImageUrl] = useState<string | null>(null);
   const [propertyImageLoadFailed, setPropertyImageLoadFailed] = useState(false);
 
+  // Long vendor descriptions get clamped behind a "Show more" toggle so they
+  // can't stretch the overview card (and the property photo) down the page.
+  const descriptionRef = useRef<HTMLDivElement | null>(null);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [descriptionOverflows, setDescriptionOverflows] = useState(false);
+
   // Determine the work order ID to use - prefer route param, fall back to workOrder prop id
   const workOrderId = routeWorkOrderId || (workOrder?.id ? String(workOrder.id) : null);
+
+  const rawDescription = apiWorkOrder?.description || workOrder?.description || "";
+
+  // Collapse again whenever we're looking at a different description.
+  useEffect(() => {
+    setDescriptionExpanded(false);
+  }, [rawDescription]);
+
+  // Measure rather than guess at a character count: descriptions are hard-wrapped
+  // by vendors and the column width changes with the viewport.
+  useLayoutEffect(() => {
+    const el = descriptionRef.current;
+    if (!el) return;
+    const measure = () => {
+      // While expanded the clamp is off, so there's nothing to measure —
+      // keep the last known result so the toggle stays put.
+      if (descriptionExpanded) return;
+      setDescriptionOverflows(el.scrollHeight > el.clientHeight + 1);
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [rawDescription, descriptionExpanded, loading, error]);
 
   // Fetch work order from API - extracted to useCallback so it can be reused
   const fetchWorkOrder = useCallback(async (silent = false) => {
@@ -1683,7 +1714,7 @@ export default function WorkOrderDetailsV2({
         <div className="flex flex-col flex-1 gap-6 min-w-0">
           {/* Main Overview Card */}
           <SectionCard variant="white" padding="none">
-            <div className="flex flex-col md:flex-row items-stretch gap-4 w-full p-5">
+            <div className="flex flex-col md:flex-row items-start gap-4 w-full p-5">
               <img
                 src={
                   propertyImageUrl && !propertyImageLoadFailed
@@ -1692,7 +1723,7 @@ export default function WorkOrderDetailsV2({
                 }
                 alt="Property"
                 onError={() => setPropertyImageLoadFailed(true)}
-                className="w-full md:w-[251px] h-auto rounded-lg object-cover flex-shrink-0 bg-[#f0f0f0]"
+                className="w-full md:w-[251px] h-[200px] md:h-[168px] rounded-lg object-cover flex-shrink-0 self-start bg-[#f0f0f0]"
               />
 
               <div className="flex flex-col items-start gap-6 flex-1 min-w-0">
@@ -1735,13 +1766,30 @@ export default function WorkOrderDetailsV2({
                   </div>
 
                   {/* Description Section */}
-                  <div className="w-full">
+                  <div className="w-full min-w-0">
                     <div className="text-[#717179] text-sm font-semibold leading-4 mb-2">
                       Description:
                     </div>
-                    <div className="text-[#303030] text-sm font-normal leading-5 whitespace-pre-wrap">
+                    <div
+                      ref={descriptionRef}
+                      className={`text-[#303030] text-sm font-normal leading-5 whitespace-pre-wrap break-words ${
+                        descriptionExpanded
+                          ? "max-h-[420px] overflow-y-auto"
+                          : "line-clamp-6"
+                      }`}
+                    >
                       {displayDescription}
                     </div>
+                    {(descriptionOverflows || descriptionExpanded) && (
+                      <button
+                        type="button"
+                        onClick={() => setDescriptionExpanded((v) => !v)}
+                        className="mt-2 text-[#2463eb] text-sm font-medium hover:underline"
+                        aria-expanded={descriptionExpanded}
+                      >
+                        {descriptionExpanded ? "Show less" : "Show more"}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

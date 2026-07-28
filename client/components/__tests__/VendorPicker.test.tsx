@@ -94,6 +94,20 @@ describe("VendorPicker", () => {
     expect(onChange).toHaveBeenCalledWith(3, "Vendor 0003");
   });
 
+  it("keeps options out of the tab order — arrows drive the list, not Tab", async () => {
+    render(<VendorPicker value="" onChange={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: /select a vendor/i }));
+    await waitFor(() => expect(screen.getByText("Vendor 0001")).toBeInTheDocument());
+
+    // Queried by attribute, not getAllByRole: Radix's popper keeps its content
+    // `visibility: hidden` until it has measured a position, which jsdom (no
+    // layout engine) never provides — so the whole popover is invisible to
+    // role-based queries here, though not in a real browser.
+    const options = document.querySelectorAll('[role="option"]');
+    expect(options.length).toBe(50);
+    for (const opt of options) expect(opt).toHaveAttribute("tabindex", "-1");
+  });
+
   it("resolves the label of a preselected vendor outside the first page", async () => {
     mockFetch.mockImplementation((url: string) =>
       url === "/vendors/2400"
