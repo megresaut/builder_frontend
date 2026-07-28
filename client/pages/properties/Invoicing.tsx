@@ -19,6 +19,7 @@ import FTOApprovalModal from "@/components/FTOApprovalModal";
 import InvoicePreviewModal, {
   type InvoiceLineItem,
   type InvoiceLifecycleStatus,
+  type UnpaidPassthroughLine,
 } from "@/components/InvoicePreviewModal";
 import { disputeInvoiceLine } from "@/data/invoices";
 import {
@@ -462,7 +463,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     status: InvoiceItemStatus;
     statusColor: string;
     statusBg: string;
-    paymentStatus: string; // backend payment_status: paid | unpaid | billed_by_invoice | unknown
+    // backend payment_status: paid | unpaid | billed_by_invoice | unknown | not_booked
+    paymentStatus: string;
     billDate?: string | null;
     billInvoiceNumber?: string | null;
     // FTO-hours metadata — populated only for source_type="fto_hours" lines.
@@ -545,7 +547,19 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [currentInvoiceId, setCurrentInvoiceId] = useState<number | null>(null);
   const [currentInvoiceStatus, setCurrentInvoiceStatus] =
     useState<InvoiceLifecycleStatus>(undefined);
-  const [unpaidPassthroughCount, setUnpaidPassthroughCount] = useState(0);
+  // Two distinct passthrough signals, deliberately not one count — they drive
+  // opposite behaviours and mirror the backend's deriveStatusFor:
+  //   unbookedPassthroughCount — no vendor bill recorded at all
+  //     (payment_status unknown / not_booked). Hard send blocker; the backend
+  //     derives `draft` from exactly this set.
+  //   unpaidPassthroughLines   — the bill exists, AVMRE just hasn't paid it.
+  //     Never blocks sending; surfaced as a note + pre-send review dialog.
+  // Both are restricted to passthrough source types (vendor / utility /
+  // fto_expense); revenue lines are always billed_by_invoice and never gate.
+  const [unbookedPassthroughCount, setUnbookedPassthroughCount] = useState(0);
+  const [unpaidPassthroughLines, setUnpaidPassthroughLines] = useState<
+    UnpaidPassthroughLine[]
+  >([]);
   const [currentInvoiceTotalCents, setCurrentInvoiceTotalCents] = useState(0);
   const [currentInvoicePaymentCents, setCurrentInvoicePaymentCents] = useState(0);
   // Overpayment / dispute credit rolled over from a PREVIOUS invoice and
@@ -610,6 +624,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       setLoadingInvoice(true);
       setLocationGroups(null);
       setSelectedLocation("");
+      // Reset stale passthrough data before the fetch so a failed load below
+      // (generate 4xx/5xx, or the line-items throw further down) can't leave
+      // another invoice's vendors/amounts on screen in the send confirmation
+      // dialog.
+      setUnbookedPassthroughCount(0);
+      setUnpaidPassthroughLines([]);
   
       // 1️⃣ Generate (or regenerate) invoice
       const generateRes = await authFetch(
@@ -673,19 +693,33 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   
       const apiItems = await itemsRes.json();
 
-      // Count passthrough lines that are still unpaid — drives the DRAFT banner.
-      const passthroughUnpaid = (apiItems as any[]).filter((li) => {
-        const isPassthrough =
+      // Split the passthrough lines the same way the backend does: no bill at
+      // all (blocks sending) vs. bill recorded but unpaid (does not).
+      const passthroughItems = (apiItems as any[]).filter(
+        (li) =>
           li.source_type === "vendor" ||
           li.source_type === "utility" ||
-          li.source_type === "fto_expense";
-        const isUnpaid =
-          li.payment_status === "unpaid" ||
-          li.payment_status === "unknown" ||
-          li.payment_status === "not_booked";
-        return isPassthrough && isUnpaid;
-      }).length;
-      setUnpaidPassthroughCount(passthroughUnpaid);
+          li.source_type === "fto_expense",
+      );
+      setUnbookedPassthroughCount(
+        passthroughItems.filter(
+          (li) =>
+            li.payment_status === "unknown" ||
+            li.payment_status === "not_booked",
+        ).length,
+      );
+      setUnpaidPassthroughLines(
+        passthroughItems
+          .filter((li) => li.payment_status === "unpaid")
+          .map((li) => ({
+            vendor: li.vendor_name || "—",
+            description: li.description || "",
+            // The API already returns dollars, not cents.
+            amount: Number(li.amount || 0),
+            billInvoiceNumber: li.bill_invoice_number ?? null,
+            payeeName: li.payee_name ?? null,
+          })),
+      );
 
       const SOURCE_PRESETS = {
         vendor: {
@@ -1543,10 +1577,17 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         : "bg-rose-50 text-rose-800 border-rose-200")
                     }
                     title={
-                      currentInvoiceStatus === "draft" && unpaidPassthroughCount > 0
-                        ? `${unpaidPassthroughCount} passthrough line item${
-                            unpaidPassthroughCount === 1 ? "" : "s"
-                          } not yet paid`
+                      currentInvoiceStatus === "draft"
+                        ? unbookedPassthroughCount > 0
+                          ? `${unbookedPassthroughCount} passthrough line item${
+                              unbookedPassthroughCount === 1 ? "" : "s"
+                            } with no vendor bill recorded. Record the bills to unblock sending.`
+                          : "A line item has no vendor bill recorded. Record the bill to unblock sending."
+                        : currentInvoiceStatus === "ready" &&
+                          unpaidPassthroughLines.length > 0
+                        ? `${unpaidPassthroughLines.length} passthrough bill${
+                            unpaidPassthroughLines.length === 1 ? "" : "s"
+                          } not yet paid by AVMRE. This does not block sending.`
                         : currentInvoiceStatus === "sent"
                         ? "Exported to QuickBooks — this does not mean it was emailed to the client"
                         : undefined
@@ -1555,11 +1596,22 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     {currentInvoiceStatus === "sent"
                       ? "IN QUICKBOOKS"
                       : currentInvoiceStatus.toUpperCase()}
-                    {currentInvoiceStatus === "draft" && unpaidPassthroughCount > 0 && (
-                      <span className="ml-1 opacity-75">
-                        · {unpaidPassthroughCount} unpaid
-                      </span>
-                    )}
+                    {/* DRAFT = a line has no vendor bill at all: a blocker to
+                        fix. READY surfaces unpaid-but-booked bills as a
+                        secondary ops note — it never blocks the send. */}
+                    {currentInvoiceStatus === "draft" &&
+                      unbookedPassthroughCount > 0 && (
+                        <span className="ml-1 opacity-75">
+                          · {unbookedPassthroughCount} missing bill
+                          {unbookedPassthroughCount === 1 ? "" : "s"}
+                        </span>
+                      )}
+                    {currentInvoiceStatus === "ready" &&
+                      unpaidPassthroughLines.length > 0 && (
+                        <span className="ml-1 opacity-75">
+                          · {unpaidPassthroughLines.length} unpaid
+                        </span>
+                      )}
                   </span>
                 )}
 
@@ -1933,11 +1985,16 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       disabled={
                         currentInvoiceStatus === "draft" || !currentInvoiceId
                       }
+                      // `draft` now means only one thing: a passthrough line has
+                      // no vendor bill recorded. Unpaid bills never block, so
+                      // they must not be named as the reason here.
                       title={
                         currentInvoiceStatus === "draft"
-                          ? `Cannot send — ${unpaidPassthroughCount} passthrough line item${
-                              unpaidPassthroughCount === 1 ? "" : "s"
-                            } unpaid. Resolve underlying bills first.`
+                          ? unbookedPassthroughCount > 0
+                            ? `Cannot send — ${unbookedPassthroughCount} passthrough line item${
+                                unbookedPassthroughCount === 1 ? "" : "s"
+                              } with no vendor bill recorded. Resolve the underlying bills first.`
+                            : "Cannot send — a line item has no vendor bill recorded. Resolve the underlying bills first."
                           : "Generate PDF + push to QuickBooks"
                       }
                       onClick={async () => {
@@ -2285,7 +2342,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               }
             : undefined
         }
-        unpaidPassthroughCount={unpaidPassthroughCount}
+        unpaidPassthroughLines={unpaidPassthroughLines}
         qboPushStatus={currentQBOPushStatus}
         qboLastError={currentQBOLastError}
         onRecordPayment={

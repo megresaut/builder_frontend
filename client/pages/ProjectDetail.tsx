@@ -31,6 +31,7 @@ import {
   getProjectInvoice,
   createProjectInvoice,
   sendProjectInvoice,
+  emailProjectInvoice,
   updateProjectInvoice,
   deleteProjectInvoice,
   recordInvoicePayment,
@@ -2286,19 +2287,31 @@ function FinancialsTab({
       setBusy(false);
     }
   };
-  const doSend = async (id: number) => {
-    if (!window.confirm(
-      "Send this invoice to the client? This posts it for real — the only way to undo it afterward is voiding it, which also voids every payment already recorded against it, including in the connected accounting system, if any.",
+  // Posts the invoice (draft → sent) and books A/R for concierge properties.
+  // Does NOT email anyone. skipConfirm is used by the manual-delivery dialog,
+  // which is itself the confirmation step.
+  const doSend = async (id: number, opts?: { skipConfirm?: boolean }) => {
+    if (!opts?.skipConfirm && !window.confirm(
+      "Post this invoice? This does not email it — it finalises the invoice and books it for real. The only way to undo it afterward is voiding it, which also voids every payment already recorded against it, including in the connected accounting system, if any.",
     )) return;
     try {
       const updated = await sendProjectInvoice(projectId, id);
       setDetail(updated);
       await load();
       onRefreshSummary();
-      toast.success("Invoice sent to client");
+      toast.success(opts?.skipConfirm ? "Invoice marked as sent" : "Invoice posted");
     } catch (e) {
       toast.error(errMessage(e, "Failed to send invoice"));
     }
+  };
+  // Concierge only: QuickBooks emails the invoice, with our PDF attached, to the
+  // client. Throws on failure so the dialog can stay open for a retry.
+  const doEmail = async (id: number, sendTo: string) => {
+    const updated = await emailProjectInvoice(projectId, id, sendTo);
+    setDetail(updated);
+    await load();
+    onRefreshSummary();
+    toast.success(`Invoice emailed to ${updated.client_email ?? sendTo}`);
   };
   const doRecordInvoicePayment = async (id: number, amountCents: number) => {
     try {
@@ -2694,6 +2707,8 @@ function FinancialsTab({
         <ProjectInvoiceDetailModal
           invoice={detail}
           onSend={() => doSend(detail.id)}
+          onMarkSent={() => doSend(detail.id, { skipConfirm: true })}
+          onEmail={(sendTo) => doEmail(detail.id, sendTo)}
           onRecordPayment={(cents) => doRecordInvoicePayment(detail.id, cents)}
           onVoid={() => doVoid(detail.id)}
           onVoidPayment={(paymentId) => doVoidPayment(paymentId)}
@@ -3172,6 +3187,8 @@ export function ProjectInvoiceBuilderModal({
 export function ProjectInvoiceDetailModal({
   invoice,
   onSend,
+  onMarkSent,
+  onEmail,
   onRecordPayment,
   onVoid,
   onVoidPayment,
@@ -3181,6 +3198,8 @@ export function ProjectInvoiceDetailModal({
 }: {
   invoice: ProjectInvoice;
   onSend: () => void;
+  onMarkSent: () => void | Promise<void>;
+  onEmail: (sendTo: string) => Promise<void>;
   onRecordPayment: (cents: number) => void;
   onVoid: () => void;
   onVoidPayment: (paymentId: number) => void | Promise<void>;
@@ -3204,6 +3223,48 @@ export function ProjectInvoiceDetailModal({
   // clutter gets cleared) but not editable.
   const canMutate = invoice.paid_cents === 0;
   const blockedReason = "Void the recorded payment first";
+
+  // Delivery. 'qbo_email' = concierge: the invoice lives in QuickBooks, so QBO
+  // can email it (with our PDF attached) on our behalf. 'manual' = the platform
+  // has no email rail at all and the invoice isn't in QBO either, so the user
+  // downloads the PDF, sends it themselves, and confirms.
+  const isManualDelivery = invoice.delivery_mode === "manual";
+  const canEmail = !isManualDelivery && invoice.status !== "draft" && invoice.status !== "void";
+  const emailedAt = invoice.client_emailed_at;
+
+  // Which inline panel is open in the modal body. Only one at a time.
+  const [panel, setPanel] = useState<"none" | "manualSend" | "email">("none");
+  const [emailTo, setEmailTo] = useState(invoice.client_email ?? "");
+  const [emailBusy, setEmailBusy] = useState(false);
+
+  const submitEmail = async () => {
+    const to = emailTo.trim();
+    if (!to) {
+      toast.error("Enter a recipient email address");
+      return;
+    }
+    setEmailBusy(true);
+    try {
+      await onEmail(to);
+      setPanel("none");
+    } catch (e) {
+      // Stay open so the user can correct the address and retry.
+      toast.error(errMessage(e, "Failed to email invoice"));
+    } finally {
+      setEmailBusy(false);
+    }
+  };
+
+  const downloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      await openProjectInvoicePdf(invoice.project_id, invoice.id);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to download PDF"));
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   return (
     <ModalShell
@@ -3238,16 +3299,7 @@ export function ProjectInvoiceDetailModal({
             )}
           </div>
           <button
-            onClick={async () => {
-              setDownloadingPdf(true);
-              try {
-                await openProjectInvoicePdf(invoice.project_id, invoice.id);
-              } catch (e) {
-                toast.error(errMessage(e, "Failed to download PDF"));
-              } finally {
-                setDownloadingPdf(false);
-              }
-            }}
+            onClick={downloadPdf}
             disabled={downloadingPdf}
             className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
@@ -3255,8 +3307,22 @@ export function ProjectInvoiceDetailModal({
           </button>
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Close</button>
           {invoice.status === "draft" && (
-            <button onClick={onSend} className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]">
-              Send to client
+            <button
+              onClick={isManualDelivery ? () => setPanel("manualSend") : onSend}
+              className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
+            >
+              {isManualDelivery ? "Send to client" : "Post invoice"}
+            </button>
+          )}
+          {canEmail && (
+            <button
+              onClick={() => {
+                setEmailTo(invoice.client_email ?? "");
+                setPanel("email");
+              }}
+              className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
+            >
+              {emailedAt ? "Resend email" : "Email to client"}
             </button>
           )}
         </>
@@ -3276,6 +3342,107 @@ export function ProjectInvoiceDetailModal({
               one is out of scope (no migrations) — so do not re-add this. */}
           <span className="ml-auto font-semibold tabular-nums text-gray-900">{formatUSD(totalCents)}</span>
         </div>
+
+        {/* Manual-delivery send flow: the platform cannot email this invoice, so
+            the user downloads the PDF, sends it themselves, and confirms. Status
+            only moves once a human asserts it actually went out. */}
+        {panel === "manualSend" && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <div className="text-sm font-semibold text-amber-900">Send {invoice.invoice_number} manually</div>
+            <p className="mt-1.5 text-sm text-amber-800">
+              This property isn’t on concierge accounting, so the platform can’t email the invoice for you.
+              Download the PDF, email it to the client from your own mail, then confirm below to mark it sent.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                onClick={downloadPdf}
+                disabled={downloadingPdf}
+                className="h-9 rounded-lg border border-amber-300 bg-white px-3 text-sm font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+              >
+                {downloadingPdf ? "Preparing…" : "↓ Download PDF"}
+              </button>
+              <span className="ml-auto flex items-center gap-2">
+                <button
+                  onClick={() => setPanel("none")}
+                  className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    await onMarkSent();
+                    setPanel("none");
+                  }}
+                  className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
+                >
+                  I’ve sent it — mark sent
+                </button>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Concierge delivery: QuickBooks sends the email, with our rendered PDF
+            attached. sendTo is required — the QBO invoice carries no BillEmail. */}
+        {panel === "email" && (
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div className="text-sm font-semibold text-gray-900">
+              {emailedAt ? "Resend" : "Email"} {invoice.invoice_number} to the client
+            </div>
+            <p className="mt-1.5 text-sm text-gray-600">
+              QuickBooks sends the email, with this invoice’s PDF attached.
+            </p>
+            <div className="mt-3 flex flex-wrap items-end gap-2">
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Recipient</span>
+                <input
+                  type="email"
+                  value={emailTo}
+                  onChange={(e) => setEmailTo(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !emailBusy) void submitEmail();
+                  }}
+                  placeholder="client@example.com"
+                  className="h-9 w-full min-w-[16rem] rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900"
+                />
+              </label>
+              <span className="flex items-center gap-2">
+                <button
+                  onClick={() => setPanel("none")}
+                  disabled={emailBusy}
+                  className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitEmail}
+                  disabled={emailBusy || !emailTo.trim()}
+                  className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
+                >
+                  {emailBusy ? "Sending…" : "Send via QuickBooks"}
+                </button>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Delivery record. Distinguishes "QuickBooks emailed it" from "a human
+            said they sent it", so nobody mistakes one for the other. */}
+        {invoice.status !== "draft" && invoice.status !== "void" && (
+          <div className="text-sm text-gray-600">
+            <span className="mr-2 text-xs font-medium uppercase tracking-wide text-gray-500">Delivery</span>
+            {emailedAt ? (
+              <>
+                Emailed to {invoice.client_email} on {fmtProjDate(emailedAt.slice(0, 10))}
+                {invoice.client_email_count > 1 && ` · sent ${invoice.client_email_count}×`}
+              </>
+            ) : isManualDelivery ? (
+              <>Marked sent {invoice.sent_at ? `on ${fmtProjDate(invoice.sent_at.slice(0, 10))}` : ""} · delivered outside the platform</>
+            ) : (
+              <>Not emailed yet — use “Email to client”</>
+            )}
+          </div>
+        )}
 
         <div>
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Lines</div>

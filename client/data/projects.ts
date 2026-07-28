@@ -863,6 +863,7 @@ export async function putPaymentAllocations(
 // Go DTOs in modules/projects/http/invoicing.go exactly (snake_case, cents).
 
 export type ProjectInvoiceStatus = "draft" | "sent" | "partially_paid" | "paid" | "void";
+export type ProjectInvoiceDeliveryMode = "qbo_email" | "manual";
 export type ProjectInvoiceLineSource =
   | "manual"
   | "budget_category"
@@ -912,11 +913,18 @@ export interface ProjectInvoice {
   paid_cents: number; // Σ linked payments
   sent_at: string | null;
   client_email: string | null;
+  client_emailed_at: string | null; // last successful QBO email
+  client_email_count: number;
   qbo_invoice_id: string | null; // Package C: set once pushed to QBO
   qbo_push_status: string | null; // 'pushed' | 'error' | null (not pushed)
   created_by_user_id: number | null;
   created_at: string;
   updated_at: string;
+  // Derived server-side from the property type — branch on THIS, never on
+  // property_type. 'qbo_email': concierge, QuickBooks emails the client for us.
+  // 'manual': the platform has no way to email it (no SMTP, Graph Mail.Send not
+  // granted), and the invoice isn't in QBO either — download the PDF and send it.
+  delivery_mode: ProjectInvoiceDeliveryMode;
   lines: ProjectInvoiceLine[]; // [] on the list endpoint, populated on detail
   payments: ProjectInvoicePayment[]; // [] on the list endpoint, populated on detail
 }
@@ -1055,8 +1063,26 @@ export async function updateProjectInvoice(
   return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}`, { method: "PATCH", body: JSON.stringify(payload) });
 }
 
+// Marks the invoice sent (draft → sent) and books A/R for concierge properties.
+// Does NOT email anyone — delivery is a separate step that differs by
+// delivery_mode. For 'manual' invoices this is the "I've sent it" confirmation.
 export async function sendProjectInvoice(projectId: number, invoiceId: number): Promise<ProjectInvoice> {
   return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/send`, { method: "POST" });
+}
+
+// Asks QuickBooks to email the invoice (with our rendered PDF attached) to the
+// client. Concierge only — 400s for delivery_mode 'manual', which has no QBO
+// invoice to email. Re-sendable; each success bumps client_email_count.
+// sendTo overrides the invoice's stored client_email when provided.
+export async function emailProjectInvoice(
+  projectId: number,
+  invoiceId: number,
+  sendTo?: string,
+): Promise<ProjectInvoice> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/email`, {
+    method: "POST",
+    body: JSON.stringify({ send_to: sendTo ?? "" }),
+  });
 }
 
 export async function recordInvoicePayment(

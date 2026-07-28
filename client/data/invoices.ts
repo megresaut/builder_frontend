@@ -1,7 +1,9 @@
 import { fetchJSON } from "@/api/fetchJSON";
 
 // Mirrors backend invoicing.PortfolioInvoiceRow. Status is the *derived*
-// status — drafts whose passthrough lines are fully paid arrive as 'ready'.
+// status — a draft arrives as 'ready' unless a passthrough line has no
+// vendor bill recorded at all; a merely-unpaid passthrough bill never blocks
+// 'ready'.
 export type InvoiceStatus = "draft" | "ready" | "sent" | "paid" | "void";
 export type QBOPushStatus = "pushed" | "failed" | "not_pushed";
 

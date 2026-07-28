@@ -34,9 +34,12 @@ export interface InvoiceLineItem {
 }
 
 // LifecycleStatus drives the lifecycle banner + Commit gating in the preview
-// modal. 'draft' = at least one passthrough bill unpaid (cannot export);
-// 'ready' = export unlocked; 'sent' = already exported (record payment now);
-// 'paid' = fully closed; 'void' = cancelled. Values mirror the backend.
+// modal. 'draft' = at least one passthrough line has NO vendor bill recorded
+// at all (payment_status unknown / not_booked) — the only hard send blocker;
+// 'ready' = export unlocked, which may still include passthrough bills AVMRE
+// hasn't paid yet (unpaid never blocks); 'sent' = already exported (record
+// payment now); 'paid' = fully closed; 'void' = cancelled. Values mirror the
+// backend's deriveStatusFor.
 export type InvoiceLifecycleStatus =
   | "draft"
   | "ready"
@@ -44,6 +47,28 @@ export type InvoiceLifecycleStatus =
   | "paid"
   | "void"
   | undefined;
+
+// One `payment_status="unpaid"` passthrough line (source_type vendor /
+// utility / fto_expense): the vendor bill exists, AVMRE just hasn't paid it
+// yet. Unpaid no longer blocks sending — these lines are itemized in the
+// pre-send "Review before sending" confirmation instead. Shaped by the
+// Invoicing page from GET /invoicing/line-items-expanded.
+export interface UnpaidPassthroughLine {
+  vendor: string;
+  description: string;
+  // Dollars, not cents — the API already converts, and this is the
+  // merged/billed amount (base + any folded markup), not the vendor payable
+  // — see the amount cell in the "Review before sending" dialog below.
+  amount: number;
+  // Populated for source_type="vendor" lines from the bill, and often for
+  // "utility" (falls back to the utility account number) and "fto_expense"
+  // (once linked to a bill) too — see GetLineItemsExpanded. Can still be
+  // absent for any of these, in which case the table falls back to
+  // `description`.
+  billInvoiceNumber?: string | null;
+  // Non-empty when someone paid out of pocket and is owed a reimbursement.
+  payeeName?: string | null;
+}
 
 interface InvoicePreviewModalProps {
   open: boolean;
@@ -59,7 +84,10 @@ interface InvoicePreviewModalProps {
   rentalOwner?: string;
   // Lifecycle additions (Phase 3).
   derivedStatus?: InvoiceLifecycleStatus;
-  unpaidPassthroughCount?: number;
+  // Unpaid-but-booked passthrough lines — the single source of truth for every
+  // "unpaid" surface in this modal (status banner + pre-send review dialog).
+  // Non-empty ⇒ the review dialog itemizes them; it never blocks the send.
+  unpaidPassthroughLines?: UnpaidPassthroughLine[];
   onRecordPayment?: () => void;
   qboPushStatus?: string | null;
   qboLastError?: string | null;
@@ -99,7 +127,7 @@ export default function InvoicePreviewModal({
   pendingUnapprovedCount = 0,
   rentalOwner,
   derivedStatus,
-  unpaidPassthroughCount = 0,
+  unpaidPassthroughLines = [],
   onRecordPayment,
   qboPushStatus,
   qboLastError,
@@ -120,6 +148,10 @@ export default function InvoicePreviewModal({
     Record<number, string>
   >({});
   const [showCommitConfirm, setShowCommitConfirm] = useState(false);
+  // Guards both commit paths (direct + reviewed) against a second click while
+  // generatePdfBlob()/onCommit are in flight — see handleCommit and the
+  // "Review before sending" confirm handler.
+  const [committing, setCommitting] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   // Layout exploration: true renders AVMRE LLC lines in a full-column table
@@ -1174,18 +1206,47 @@ export default function InvoicePreviewModal({
   }, [open, autoReExport]);
 
 
+  // Pre-send review. Two soft warnings share one dialog (never two sequential
+  // confirms): passthrough lines whose bill AVMRE hasn't paid yet, and lines
+  // still awaiting bill approval. Neither blocks sending — the only hard
+  // blocker is a line with no vendor bill recorded at all, which the backend
+  // reports as derivedStatus === "draft" and which disables the button.
+  const hasUnpaidPassthrough = unpaidPassthroughLines.length > 0;
+  const hasUnapprovedLines = pendingUnapprovedCount > 0;
+  const needsPreSendReview = hasUnpaidPassthrough || hasUnapprovedLines;
+
+  const unpaidPassthroughTotal = unpaidPassthroughLines.reduce(
+    (sum, line) => sum + (Number(line.amount) || 0),
+    0,
+  );
+
+  // Unreimbursed out-of-pocket expenses, summed per payee.
+  const unpaidPayeeTotals = unpaidPassthroughLines.reduce<
+    Record<string, number>
+  >((acc, line) => {
+    const payee = (line.payeeName ?? "").trim();
+    if (!payee) return acc;
+    acc[payee] = (acc[payee] ?? 0) + (Number(line.amount) || 0);
+    return acc;
+  }, {});
+  const unpaidPayeeEntries = Object.entries(unpaidPayeeTotals);
+
   const handleCommit = async () => {
-    if (pendingUnapprovedCount > 0) {
+    if (needsPreSendReview) {
       setShowCommitConfirm(true);
       return;
     }
-  
+    if (committing) return;
+
+    setCommitting(true);
     try {
       const pdfBlob = await generatePdfBlob();
       onCommit?.(pdfBlob);
       onOpenChange(false);
     } catch (err) {
       console.error("Failed to generate PDF:", err);
+    } finally {
+      setCommitting(false);
     }
   };
   
@@ -1228,20 +1289,25 @@ export default function InvoicePreviewModal({
                   : "bg-rose-50 border-rose-200 text-rose-900")
               }
             >
+              {/* DRAFT means a passthrough line has no vendor bill recorded at
+                  all — the one hard blocker. Unpaid-but-booked bills are NOT a
+                  blocker, so they only ever appear as a secondary note on the
+                  READY banner. Copy mirrors the Invoicing page's status badge. */}
               {derivedStatus === "draft" && (
                 <>
-                  <span className="font-semibold">DRAFT</span> ·{" "}
-                  {unpaidPassthroughCount > 0
-                    ? `${unpaidPassthroughCount} passthrough line item${
-                        unpaidPassthroughCount === 1 ? "" : "s"
-                      } not yet paid. Cannot export until resolved.`
-                    : "Pending. Cannot export yet."}
+                  <span className="font-semibold">DRAFT</span> · A line item has
+                  no vendor bill recorded. Cannot send until the bill is
+                  recorded.
                 </>
               )}
               {derivedStatus === "ready" && (
                 <>
-                  <span className="font-semibold">READY</span> · All
-                  passthroughs paid. Ready to send.
+                  <span className="font-semibold">READY</span> · Ready to send.
+                  {hasUnpaidPassthrough
+                    ? ` ${unpaidPassthroughLines.length} passthrough bill${
+                        unpaidPassthroughLines.length === 1 ? "" : "s"
+                      } not yet paid by AVMRE — review before sending.`
+                    : " All passthrough bills paid."}
                 </>
               )}
               {derivedStatus === "sent" && (
@@ -2135,10 +2201,10 @@ export default function InvoicePreviewModal({
               <button
                 type="button"
                 onClick={handleCommit}
-                disabled={derivedStatus === "draft"}
+                disabled={derivedStatus === "draft" || committing}
                 title={
                   derivedStatus === "draft"
-                    ? "Cannot export — at least one passthrough line item is unpaid. Resolve the underlying bills first."
+                    ? "Cannot send — a line item has no vendor bill recorded. Resolve the underlying bills first."
                     : undefined
                 }
                 className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
@@ -2175,22 +2241,106 @@ export default function InvoicePreviewModal({
       <AlertDialog open={showCommitConfirm} onOpenChange={setShowCommitConfirm}>
         <AlertDialogContentRoot>
           <AlertDialogHeader>
-            <AlertDialogTitle>Send invoice to QBO?</AlertDialogTitle>
+            <AlertDialogTitle>Review before sending</AlertDialogTitle>
             <AlertDialogDescription>
               This will finalize the invoice, attach the PDF, and push it to
-              QuickBooks. There are unapproved bills outstanding — sending
-              now will lock those amounts in.
+              QuickBooks.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          <div className="max-h-[50vh] overflow-y-auto space-y-4 text-sm text-[#303030]">
+            {hasUnpaidPassthrough && (
+              <div>
+                <p className="font-semibold">
+                  Passthrough lines with unpaid bills
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  AVMRE hasn't paid these vendor bills yet. Sending now bills
+                  the owner ahead of payment. The amounts below are what's
+                  invoiced to the owner for these lines — not necessarily what
+                  AVMRE owes the vendor — and they lock in once sent; later
+                  changes need a credit memo.
+                </p>
+                <table className="mt-2 w-full border-collapse text-left">
+                  <thead>
+                    <tr className="border-b text-xs uppercase text-muted-foreground">
+                      <th className="py-1 pr-2 font-medium">Vendor</th>
+                      <th className="py-1 pr-2 font-medium">Invoice #</th>
+                      <th className="py-1 text-right font-medium">
+                        Amount invoiced
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {unpaidPassthroughLines.map((line, idx) => (
+                      <tr
+                        key={`${idx}-${line.vendor}`}
+                        className="border-b"
+                      >
+                        <td className="py-1 pr-2 align-top">
+                          {line.vendor || "—"}
+                        </td>
+                        <td className="py-1 pr-2 align-top">
+                          {line.billInvoiceNumber?.trim() ||
+                            line.description ||
+                            "—"}
+                        </td>
+                        {/* This is the merged/billed amount (base passthrough
+                            line + any folded vendor_credit/materials_markup —
+                            see mergeMarkupIntoBase), i.e. what the owner is
+                            invoiced. It is NOT what AVMRE owes the vendor.
+                            Don't relabel this back to a vendor-payable figure. */}
+                        <td className="py-1 text-right align-top tabular-nums">
+                          {formatCurrency(line.amount)}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="font-semibold">
+                      <td className="py-1 pr-2">Total invoiced</td>
+                      <td className="py-1 pr-2" />
+                      <td className="py-1 text-right tabular-nums">
+                        {formatCurrency(unpaidPassthroughTotal)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                {unpaidPayeeEntries.map(([payee]) => (
+                  <p key={payee} className="mt-2 italic text-muted-foreground">
+                    {/* No dollar figure here on purpose: unpaidPayeeTotals sums
+                        the merged/billed amount, which can include markup the
+                        payee is not owed. State the actionable fact (who)
+                        without asserting a reimbursement amount. */}
+                    {`${payee} has an unreimbursed expense on this invoice.`}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {hasUnapprovedLines && (
+              <div>
+                <p className="font-semibold">Unapproved lines</p>
+                <p className="mt-1 text-muted-foreground">
+                  There are unapproved bills outstanding — sending now will
+                  lock those amounts in.
+                </p>
+              </div>
+            )}
+          </div>
+
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              disabled={committing}
               onClick={() => {
+                if (committing) return;
+                setCommitting(true);
                 setShowCommitConfirm(false);
                 generatePdfBlob()
-                .then((blob) => onCommit?.(blob))
-                .finally(() => onOpenChange(false));
-                onOpenChange(false);
+                  .then((blob) => onCommit?.(blob))
+                  .finally(() => {
+                    setCommitting(false);
+                    onOpenChange(false);
+                  });
               }}
             >
               Send to QBO
