@@ -1074,6 +1074,13 @@ export async function voidProjectInvoice(projectId: number, invoiceId: number): 
   return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/void`, { method: "POST" });
 }
 
+// Hard-deletes a project invoice. Allowed only while no live (non-voided)
+// payment is attached — the API 409s otherwise, with the amount in the message.
+// NOTE: the invoice number is reused by the next invoice created on the project.
+export async function deleteProjectInvoice(projectId: number, invoiceId: number): Promise<void> {
+  await fetchJSON(`/projects/${projectId}/invoices/${invoiceId}`, { method: "DELETE" });
+}
+
 // Opens the invoice's PDF — the AVMRE invoice template (logo letterhead,
 // Services Provided To / INVOICE blocks, Service Provider · Date · Service
 // Provided · Reference# · Amount table) — in a new tab (auth-attached blob fetch).
@@ -1122,8 +1129,12 @@ export async function voidPayment(
   });
 }
 
-export async function getBillables(projectId: number): Promise<Billables> {
-  return fetchJSON(`/projects/${projectId}/billables`);
+// Billable items for the invoice builder. excludeInvoiceId is edit mode: the
+// items already on THAT invoice come back into the picker instead of being
+// filtered out as already-billed.
+export async function getBillables(projectId: number, excludeInvoiceId?: number): Promise<Billables> {
+  const qs = excludeInvoiceId ? `?exclude_invoice_id=${excludeInvoiceId}` : "";
+  return fetchJSON(`/projects/${projectId}/billables${qs}`);
 }
 
 export async function getPaymentSchedule(projectId: number): Promise<PaymentInstallment[]> {

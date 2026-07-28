@@ -36,6 +36,7 @@ import {
   putSchedule,
   createPayment,
   voidPayment,
+  deleteProjectInvoice,
   listQboItems,
   getCashFlow,
   getBillables,
@@ -759,6 +760,24 @@ describe("§6 request wire format", () => {
       method: "POST",
       body: JSON.stringify({ reason: "duplicate" }),
     });
+  });
+
+  it("deleteProjectInvoice DELETEs the invoice path", async () => {
+    mockFetch.mockResolvedValueOnce(undefined);
+    await deleteProjectInvoice(3, 4);
+    expect(mockFetch).toHaveBeenCalledWith("/projects/3/invoices/4", { method: "DELETE" });
+  });
+
+  it("getBillables omits exclude_invoice_id by default", async () => {
+    mockFetch.mockResolvedValueOnce({});
+    await getBillables(3);
+    expect(mockFetch).toHaveBeenCalledWith("/projects/3/billables");
+  });
+
+  it("getBillables passes exclude_invoice_id in edit mode", async () => {
+    mockFetch.mockResolvedValueOnce({});
+    await getBillables(3, 4);
+    expect(mockFetch).toHaveBeenCalledWith("/projects/3/billables?exclude_invoice_id=4");
   });
 });
 
