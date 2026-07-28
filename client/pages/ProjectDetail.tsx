@@ -31,6 +31,8 @@ import {
   getProjectInvoice,
   createProjectInvoice,
   sendProjectInvoice,
+  updateProjectInvoice,
+  deleteProjectInvoice,
   recordInvoicePayment,
   voidProjectInvoice,
   voidPayment,
@@ -2211,6 +2213,8 @@ function FinancialsTab({
   const [billables, setBillables] = useState<Billables | null>(null);
   const [detail, setDetail] = useState<ProjectInvoice | null>(null);
   const [busy, setBusy] = useState(false);
+  // Non-null = the builder is open in EDIT mode for this invoice.
+  const [editingInvoice, setEditingInvoice] = useState<ProjectInvoice | null>(null);
   // Over/under-billing banner dismissal, persisted per-project so it doesn't nag.
   const bannerKey = `pfv2:billing-banner-dismissed:${projectId}`;
   const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
@@ -2319,6 +2323,54 @@ function FinancialsTab({
       toast.success("Invoice voided");
     } catch (e) {
       toast.error(errMessage(e, "Failed to void invoice"));
+    }
+  };
+  // Opens the builder in edit mode. Billables are fetched with this invoice
+  // excluded so its own change orders / bills / FTO orders come back into the
+  // picker pre-checked instead of reading as already-billed.
+  const openEdit = async (inv: ProjectInvoice) => {
+    setEditingInvoice(inv);
+    setDetail(null);
+    setBillables(null);
+    try {
+      setBillables(await getBillables(projectId, inv.id));
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to load billable items"));
+    }
+  };
+  const doUpdate = async (title: string, lines: CreateInvoiceLineInput[], ftoSubmissionIds: number[]) => {
+    if (!editingInvoice || busy) return;
+    setBusy(true);
+    try {
+      const updated = await updateProjectInvoice(projectId, editingInvoice.id, {
+        title,
+        lines,
+        fto_submission_ids: ftoSubmissionIds,
+      });
+      setEditingInvoice(null);
+      setBillables(null);
+      await load();
+      onRefreshSummary();
+      setDetail(updated);
+      toast.success(`${updated.invoice_number} updated`);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to update invoice"));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const doDelete = async (inv: ProjectInvoice) => {
+    if (!window.confirm(
+      `Delete ${inv.invoice_number} permanently? This cannot be undone, and ${inv.invoice_number} will be reissued to the next invoice you create on this project.`,
+    )) return;
+    try {
+      await deleteProjectInvoice(projectId, inv.id);
+      setDetail(null);
+      await load();
+      onRefreshSummary();
+      toast.success(`${inv.invoice_number} deleted`);
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to delete invoice"));
     }
   };
   // Voids a received client payment. QuickBooks push/void is now automatic and
@@ -2617,13 +2669,16 @@ function FinancialsTab({
         />
       )}
 
-      {builderOpen && (
+      {(builderOpen || editingInvoice) && (
         <ProjectInvoiceBuilderModal
+          key={editingInvoice?.id ?? "new"}
+          invoice={editingInvoice ?? undefined}
           billables={billables}
           busy={busy}
-          onCreate={doCreate}
+          onCreate={editingInvoice ? doUpdate : doCreate}
           onClose={() => {
             setBuilderOpen(false);
+            setEditingInvoice(null);
             setBillables(null);
           }}
         />
@@ -2636,6 +2691,8 @@ function FinancialsTab({
           onRecordPayment={(cents) => doRecordInvoicePayment(detail.id, cents)}
           onVoid={() => doVoid(detail.id)}
           onVoidPayment={(paymentId) => doVoidPayment(paymentId)}
+          onEdit={() => openEdit(detail)}
+          onDelete={() => doDelete(detail)}
           onClose={() => setDetail(null)}
         />
       )}
@@ -3073,6 +3130,8 @@ function ProjectInvoiceDetailModal({
   onRecordPayment,
   onVoid,
   onVoidPayment,
+  onEdit,
+  onDelete,
   onClose,
 }: {
   invoice: ProjectInvoice;
@@ -3080,6 +3139,8 @@ function ProjectInvoiceDetailModal({
   onRecordPayment: (cents: number) => void;
   onVoid: () => void;
   onVoidPayment: (paymentId: number) => void | Promise<void>;
+  onEdit: () => void;
+  onDelete: () => void;
   onClose: () => void;
 }) {
   const [downloadingPdf, setDownloadingPdf] = useState(false);
@@ -3093,6 +3154,11 @@ function ProjectInvoiceDetailModal({
   // passive status indicator only — never shown for non-concierge projects
   // since qbo_push_status stays null there.
   const pushed = invoice.qbo_push_status === "pushed";
+  // paid_cents is Σ NON-VOIDED payments, so 0 means no live money is attached —
+  // exactly the server-side gate. Void invoices are deletable (that is how void
+  // clutter gets cleared) but not editable.
+  const canMutate = invoice.paid_cents === 0;
+  const blockedReason = "Void the recorded payment first";
 
   return (
     <ModalShell
@@ -3102,7 +3168,25 @@ function ProjectInvoiceDetailModal({
       footer={
         <>
           {invoice.status !== "void" && (
-            <button onClick={onVoid} className="mr-auto h-9 rounded-lg border border-red-200 bg-white px-3 text-sm font-medium text-red-600 hover:bg-red-50">
+            <button
+              onClick={onEdit}
+              disabled={!canMutate}
+              title={canMutate ? undefined : blockedReason}
+              className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Edit
+            </button>
+          )}
+          <button
+            onClick={onDelete}
+            disabled={!canMutate}
+            title={canMutate ? undefined : blockedReason}
+            className="mr-auto h-9 rounded-lg border border-red-200 bg-white px-3 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Delete
+          </button>
+          {invoice.status !== "void" && (
+            <button onClick={onVoid} className="h-9 rounded-lg border border-red-200 bg-white px-3 text-sm font-medium text-red-600 hover:bg-red-50">
               Void
             </button>
           )}
@@ -3136,6 +3220,9 @@ function ProjectInvoiceDetailModal({
           <Pill label={meta.label} text={meta.text} bg={meta.bg} />
           <span>Issued {fmtProjDate(invoice.issue_date)}</span>
           {invoice.due_date && <span>Due {fmtProjDate(invoice.due_date)}</span>}
+          {invoice.sent_at && invoice.updated_at > invoice.sent_at && (
+            <span className="text-xs text-gray-400">Edited {fmtProjDate(invoice.updated_at.slice(0, 10))}</span>
+          )}
           <span className="ml-auto font-semibold tabular-nums text-gray-900">{formatUSD(totalCents)}</span>
         </div>
 
