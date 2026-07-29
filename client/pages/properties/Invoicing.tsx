@@ -1,4 +1,4 @@
-import { useState, useMemo, ReactNode } from "react";
+import { useState, useMemo, useRef, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect } from "react";
@@ -601,6 +601,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [emailAttachment, setEmailAttachment] = useState<string | null>(null);
   const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
   const [emailPreviewError, setEmailPreviewError] = useState<string | null>(null);
+  // Tracks which invoice the most recently issued preview fetch was for, so a
+  // slow response for an invoice the user has since navigated away from can't
+  // silently overwrite the subject/body/attachment of the invoice now on screen.
+  const emailPreviewRequestIdRef = useRef<number | null>(null);
   const [currentQBOPushStatus, setCurrentQBOPushStatus] = useState<string | null>(null);
   const [currentQBOLastError, setCurrentQBOLastError] = useState<string | null>(null);
   // When the invoice was last emailed to the client (null = never). Distinct
@@ -1254,6 +1258,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   // Fetch the prefilled subject/body (and the QBO pay link, already embedded in
   // the body) when the compose modal opens.
   const loadEmailPreview = async (invoiceId: number) => {
+    emailPreviewRequestIdRef.current = invoiceId;
     setEmailPreviewLoading(true);
     setEmailPreviewError(null);
     try {
@@ -1269,6 +1274,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         throw new Error(msg || "Couldn't build the email preview");
       }
       const data = JSON.parse(body);
+      // Stale response guard: if the modal has since been reopened for a
+      // different invoice, this response is no longer wanted — drop it rather
+      // than overwrite the subject/body/attachment now on screen.
+      if (emailPreviewRequestIdRef.current !== invoiceId) return;
       setEmailSubject(data.subject ?? "");
       setEmailBody(data.body_html ?? "");
       setEmailAttachment(data.attachment_name ?? null);
@@ -2752,6 +2761,17 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   autoFocus
                   value={sendToEmail}
                   onChange={(e) => setSendToEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !sendingInvoice &&
+                      !emailPreviewLoading &&
+                      !emailPreviewError
+                    ) {
+                      e.preventDefault();
+                      void handleSendToClient();
+                    }
+                  }}
                   placeholder="client@example.com"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764]"
                 />
