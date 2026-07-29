@@ -41,6 +41,7 @@ import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
 import { toast } from "sonner";
 import { openAuthPdf } from "@/api/openAuthPdf";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
+import { plainTextToHtml } from "@/lib/plainTextToHtml";
 
 import glAccounts from "@/data/gl_accounts.json";  
 
@@ -1279,7 +1280,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       // than overwrite the subject/body/attachment now on screen.
       if (emailPreviewRequestIdRef.current !== invoiceId) return;
       setEmailSubject(data.subject ?? "");
-      setEmailBody(data.body_html ?? "");
+      setEmailBody(data.body_text ?? "");
       setEmailAttachment(data.attachment_name ?? null);
     } catch (err: any) {
       if (emailPreviewRequestIdRef.current !== invoiceId) return;
@@ -1352,7 +1353,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         to: sendToEmail.trim(),
         cc: sendToCc.trim(),
         subject: emailSubject,
-        body_html: emailBody,
+        body_html: plainTextToHtml(emailBody),
       },
       {
         loading: "Sending invoice…",
@@ -2814,10 +2815,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 onChange={(e) => setEmailBody(e.target.value)}
                 disabled={emailPreviewLoading}
                 rows={12}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-xs outline-none focus:border-[#013764] disabled:bg-gray-50"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764] disabled:bg-gray-50"
               />
               <p className="text-xs text-gray-500">
-                HTML. Sent exactly as written.
+                Plain text. Blank lines start a new paragraph; the payment
+                link will be clickable.
               </p>
             </div>
 
