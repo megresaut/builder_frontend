@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ChevronLeft, ChevronRight, Menu, FileText, Loader2 } from "lucide-react";
@@ -28,6 +28,9 @@ import { DateField } from "@/components/forms/DateField";
 import { TextAreaField } from "@/components/forms/TextAreaField";
 import PayBillModal from "@/components/PayBillModal";
 import EditPaymentModal from "@/components/EditPaymentModal";
+import RecordCardRefundModal, {
+  type BillPaymentRefund,
+} from "@/components/RecordCardRefundModal";
 import MsgViewerModal from "@/components/MsgViewerModal";
 import { parseMsgFile } from "@/utils/parseMsgFile";
 import { parseEmlFile } from "@/utils/parseEmlFile";
@@ -106,6 +109,11 @@ interface ApiPayment {
   paid_doc_number?: string | null;
   paid_memo?: string | null;
   created_at?: string;
+  // "Credit Card", "Bank", etc. — only a Credit Card payment can be refunded
+  // to the card, so the refund action is keyed off this (matches the same
+  // chart_of_accounts join the backend uses to gate the POST).
+  paid_from_account_type?: string | null;
+  refunds?: BillPaymentRefund[];
 }
 
 interface VendorCreditApplication {
@@ -388,6 +396,16 @@ export function ViewBillV2() {
   const [editPaymentOpen, setEditPaymentOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState<ApiPayment | null>(null);
 
+  // Card refund flow — attaches to a specific payment (the card it reverses
+  // comes from that payment, not the bill). Totals come straight off the
+  // payments response so they always agree with the nested refund rows.
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundTargetPayment, setRefundTargetPayment] =
+    useState<ApiPayment | null>(null);
+  const [deletingRefundId, setDeletingRefundId] = useState<number | null>(null);
+  const [totalRefundedCents, setTotalRefundedCents] = useState(0);
+  const [netCostCents, setNetCostCents] = useState<number | null>(null);
+
   // Vendor credits (loaded after bill loads)
   const [vendorCredits, setVendorCredits] = useState<VendorCredit[]>([]);
   const [appliedCredits, setAppliedCredits] = useState<CreditOnThisBill[]>([]);
@@ -450,9 +468,13 @@ export function ViewBillV2() {
     const b: ApiBill = await fetchJSON(`/utilities/bills/${billId}`);
     setBill(b);
     const pay = await fetchJSON(`/vendors/bills/${billId}/payments`).catch(
-      () => ({ payments: [] }),
+      () => ({ payments: [], total_refunded_cents: 0, net_cost_cents: null }),
     );
     setPayments(pay?.payments ?? []);
+    setTotalRefundedCents(pay?.total_refunded_cents ?? 0);
+    setNetCostCents(
+      typeof pay?.net_cost_cents === "number" ? pay.net_cost_cents : null,
+    );
     await fetchAttachments();
     return b;
   }, [billId, fetchAttachments]);
@@ -524,9 +546,15 @@ export function ViewBillV2() {
         setBill(b);
 
         const pay = await fetchJSON(`/vendors/bills/${billId}/payments`).catch(
-          () => ({ payments: [] }),
+          () => ({ payments: [], total_refunded_cents: 0, net_cost_cents: null }),
         );
-        if (!cancelled) setPayments(pay?.payments ?? []);
+        if (!cancelled) {
+          setPayments(pay?.payments ?? []);
+          setTotalRefundedCents(pay?.total_refunded_cents ?? 0);
+          setNetCostCents(
+            typeof pay?.net_cost_cents === "number" ? pay.net_cost_cents : null,
+          );
+        }
 
         const att = await fetchJSON(
           `/vendors/bills/${billId}/attachments`,
@@ -1001,6 +1029,48 @@ export function ViewBillV2() {
       toast.error(err?.message ?? String(err), { duration: 8000 });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  // Delete a card refund: QBO first (server-side), then the local row. If QBO
+  // rejects the delete the server returns 502 and leaves the refund intact —
+  // surface that message as-is rather than assuming the refund is gone.
+  const handleDeleteRefund = async (paymentId: number, refundId: number) => {
+    if (
+      !window.confirm(
+        "Delete this card refund? It will also be removed from QuickBooks.",
+      )
+    ) {
+      return;
+    }
+    setDeletingRefundId(refundId);
+    try {
+      const res = await authFetch(
+        `/vendors/bill-payments/${paymentId}/refunds/${refundId}`,
+        { method: "DELETE" },
+      );
+      const text = await res.text().catch(() => "");
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        // non-JSON body — fall through to the raw text below
+      }
+      if (!res.ok) {
+        throw new Error(data?.error || text || `Delete failed (status ${res.status})`);
+      }
+      toast.success("Card refund deleted.");
+      if (data?.requires_manual_buildium_update) {
+        toast.info(
+          "Remember to remove the matching entry in Buildium — there's no API for it.",
+          { duration: 8000 },
+        );
+      }
+      await loadBill();
+    } catch (err: any) {
+      toast.error(err?.message ?? String(err), { duration: 8000 });
+    } finally {
+      setDeletingRefundId(null);
     }
   };
 
@@ -2017,38 +2087,117 @@ export function ViewBillV2() {
                           </tr>
                         </thead>
                         <tbody>
-                          {payments.map((p) => (
-                            <tr
-                              key={p.id}
-                              className="border-b border-[#F0F0F0] hover:bg-[#F8F8F8]"
-                              style={{ color: TEXT_DARK }}
-                            >
-                              <td className="py-3 pr-4">
-                                <span style={{ color: NAVY }}>
-                                  {p.paid_from_name || "--"}
-                                </span>
-                              </td>
-                              <td className="py-3 pr-4">{fmtDate(p.paid_on)}</td>
-                              <td className="py-3 pr-4">
-                                {p.paid_doc_number ? "Check" : "Payment"}
-                              </td>
-                              <td className="py-3 text-right">
-                                {money(p.amount_cents)}
-                              </td>
-                              <td className="py-3 pl-4 text-right">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingPayment(p);
-                                    setEditPaymentOpen(true);
-                                  }}
-                                  className="text-xs font-medium px-2 py-1 rounded border border-[#E5E5E5] text-[#525252] hover:border-[#013764] hover:text-[#013764] transition-colors"
+                          {payments.map((p) => {
+                            // Only a payment that actually came off a credit
+                            // card can be refunded back to it — a bank/check
+                            // payment refunded by the vendor is a deposit, a
+                            // different entry entirely. Keep the control
+                            // visible-but-disabled instead of hiding it: this
+                            // is the exact spot people reach for "vendor
+                            // credit" by mistake.
+                            const isCardPayment =
+                              p.paid_from_account_type === "Credit Card";
+                            const refunds = p.refunds ?? [];
+                            return (
+                              <Fragment key={p.id}>
+                                <tr
+                                  className="border-b border-[#F0F0F0] hover:bg-[#F8F8F8]"
+                                  style={{ color: TEXT_DARK }}
                                 >
-                                  Edit
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
+                                  <td className="py-3 pr-4">
+                                    <span style={{ color: NAVY }}>
+                                      {p.paid_from_name || "--"}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 pr-4">{fmtDate(p.paid_on)}</td>
+                                  <td className="py-3 pr-4">
+                                    {p.paid_doc_number ? "Check" : "Payment"}
+                                  </td>
+                                  <td className="py-3 text-right">
+                                    {money(p.amount_cents)}
+                                  </td>
+                                  <td className="py-3 pl-4 text-right">
+                                    <div className="flex flex-col items-end gap-1">
+                                      <div className="flex gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setEditingPayment(p);
+                                            setEditPaymentOpen(true);
+                                          }}
+                                          className="text-xs font-medium px-2 py-1 rounded border border-[#E5E5E5] text-[#525252] hover:border-[#013764] hover:text-[#013764] transition-colors"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={!isCardPayment}
+                                          title={
+                                            isCardPayment
+                                              ? undefined
+                                              : "Refunds to card are only available for credit-card payments"
+                                          }
+                                          onClick={() => {
+                                            setRefundTargetPayment(p);
+                                            setShowRefundModal(true);
+                                          }}
+                                          className="text-xs font-medium px-2 py-1 rounded border border-[#E5E5E5] text-[#525252] hover:border-[#013764] hover:text-[#013764] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#E5E5E5] disabled:hover:text-[#525252]"
+                                        >
+                                          Refund to card
+                                        </button>
+                                      </div>
+                                      {!isCardPayment && (
+                                        <div
+                                          className="text-[10px]"
+                                          style={{ color: TEXT_MUTED }}
+                                        >
+                                          Card payments only
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                                {/* Refunds render nested under the payment they
+                                    reverse, never as free-floating rows — the
+                                    card they return to comes from this specific
+                                    payment. */}
+                                {refunds.map((rf) => (
+                                  <tr
+                                    key={`refund-${rf.id}`}
+                                    className="border-b border-[#F0F0F0] bg-[#FAFAFA]"
+                                  >
+                                    <td
+                                      className="py-2 pr-4 pl-6 text-xs"
+                                      style={{ color: TEXT_MUTED }}
+                                    >
+                                      ↳ Card refund
+                                    </td>
+                                    <td className="py-2 pr-4 text-xs" style={{ color: TEXT_MUTED }}>
+                                      {fmtDate(rf.refund_date)}
+                                    </td>
+                                    <td className="py-2 pr-4 text-xs truncate max-w-[160px]" style={{ color: TEXT_MUTED }}>
+                                      {rf.memo || "--"}
+                                    </td>
+                                    <td className="py-2 text-right text-xs font-medium" style={{ color: "var(--color-status-error)" }}>
+                                      -{money(rf.amount_cents)}
+                                    </td>
+                                    <td className="py-2 pl-4 text-right">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteRefund(p.id, rf.id)}
+                                        disabled={deletingRefundId === rf.id}
+                                        className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50"
+                                      >
+                                        {deletingRefundId === rf.id
+                                          ? "Deleting…"
+                                          : "Delete"}
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </Fragment>
+                            );
+                          })}
                           {appliedCredits.map(({ credit: vc, amountCents }) => (
                             <tr
                               key={`vc-${vc.id}`}
@@ -2156,6 +2305,35 @@ export function ViewBillV2() {
                     {money(remainingCents)}
                   </span>
                 </div>
+                {/* Only shown once a refund exists — a bill with none of these
+                    stays exactly as it was before this feature. Refunding never
+                    reopens the bill: Paid/Remaining above are unchanged. */}
+                {totalRefundedCents > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span
+                        className="text-[11px] font-semibold uppercase tracking-wide"
+                        style={{ color: TEXT_MUTED }}
+                      >
+                        Refunded
+                      </span>
+                      <span style={{ color: "var(--color-status-error)" }}>
+                        -{money(totalRefundedCents)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-t border-[#E5E5E5] pt-3">
+                      <span
+                        className="text-[11px] font-semibold uppercase tracking-wide"
+                        style={{ color: TEXT_MUTED }}
+                      >
+                        Net cost
+                      </span>
+                      <span className="text-base font-semibold" style={{ color: TEXT_DARK }}>
+                        {money(netCostCents ?? initialCents - totalRefundedCents)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </Panel>
 
@@ -2312,6 +2490,27 @@ export function ViewBillV2() {
           }}
           onSaved={() => loadBill().catch(() => {})}
           onVoided={() => loadBill().catch(() => {})}
+        />
+      )}
+
+      {refundTargetPayment && (
+        <RecordCardRefundModal
+          open={showRefundModal}
+          onOpenChange={(o) => {
+            setShowRefundModal(o);
+            if (!o) setRefundTargetPayment(null);
+          }}
+          payment={{
+            id: refundTargetPayment.id,
+            amount_cents: refundTargetPayment.amount_cents,
+            paid_from_name: refundTargetPayment.paid_from_name,
+          }}
+          vendorName={vendorName}
+          alreadyRefundedCents={(refundTargetPayment.refunds ?? []).reduce(
+            (sum, r) => sum + r.amount_cents,
+            0,
+          )}
+          onRecorded={() => loadBill().catch(() => {})}
         />
       )}
 
