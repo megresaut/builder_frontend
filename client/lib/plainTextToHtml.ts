@@ -13,11 +13,20 @@ const URL_PATTERN = /(https?:\/\/[^\s<]*[^\s<.,;:!?)\]])/g;
 
 function escapeHtml(text: string): string {
   // "&" must be replaced first, or the entities inserted by the later
-  // replacements would themselves get re-escaped.
+  // replacements would themselves get re-escaped. Quotes matter here even
+  // though only "<" / ">" would break the surrounding <p> markup: linkify
+  // below interpolates the (already-escaped) text into a double-quoted
+  // href="..." attribute, so an unescaped '"' in the message would let typed
+  // text terminate the attribute early and inject new attributes (e.g.
+  // onmouseover=). Escaping both quote characters here makes this function
+  // correct for attribute contexts in general, not merely correct because no
+  // caller happens to use single quotes today.
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function linkify(escaped: string): string {

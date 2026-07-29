@@ -57,4 +57,27 @@ describe("plainTextToHtml", () => {
     const out = plainTextToHtml("First\r\n\r\nSecond");
     expect(out).toBe("<p>First</p>\n<p>Second</p>");
   });
+
+  it("escapes a double quote to &quot;", () => {
+    const out = plainTextToHtml('Say "hello"');
+    expect(out).toBe("<p>Say &quot;hello&quot;</p>");
+  });
+
+  it("escapes a single quote to &#39;", () => {
+    const out = plainTextToHtml("It's ready");
+    expect(out).toBe("<p>It&#39;s ready</p>");
+  });
+
+  it("neutralizes an href-injection attempt via an unescaped quote in a URL", () => {
+    // A quote character in typed text must not be able to close the
+    // double-quoted href="..." attribute that linkify() generates and open a
+    // new attribute (e.g. onmouseover=) on the anchor.
+    const input = `https://x.com/y"onmouseover="alert(1)z`;
+    const out = plainTextToHtml(input);
+    expect(out).toContain("&quot;");
+    expect(out).not.toContain('"onmouseover=');
+    expect(out).toBe(
+      '<p><a href="https://x.com/y&quot;onmouseover=&quot;alert(1)z">https://x.com/y&quot;onmouseover=&quot;alert(1)z</a></p>',
+    );
+  });
 });
