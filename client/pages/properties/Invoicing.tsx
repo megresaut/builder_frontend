@@ -1,4 +1,4 @@
-import { useState, useMemo, ReactNode } from "react";
+import { useState, useMemo, useRef, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect } from "react";
@@ -41,6 +41,7 @@ import { API_BASE, fetchJSON, authFetch } from "@/api/fetchJSON";
 import { toast } from "sonner";
 import { openAuthPdf } from "@/api/openAuthPdf";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
+import { plainTextToHtml } from "@/lib/plainTextToHtml";
 
 import glAccounts from "@/data/gl_accounts.json";  
 
@@ -594,6 +595,17 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [sendToOpen, setSendToOpen] = useState(false);
   const [sendToEmail, setSendToEmail] = useState("");
   const [sendingInvoice, setSendingInvoice] = useState(false);
+  // Compose fields for the platform email rail (sent from billing@avmre.com).
+  const [sendToCc, setSendToCc] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [emailAttachment, setEmailAttachment] = useState<string | null>(null);
+  const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
+  const [emailPreviewError, setEmailPreviewError] = useState<string | null>(null);
+  // Tracks which invoice the most recently issued preview fetch was for, so a
+  // slow response for an invoice the user has since navigated away from can't
+  // silently overwrite the subject/body/attachment of the invoice now on screen.
+  const emailPreviewRequestIdRef = useRef<number | null>(null);
   const [currentQBOPushStatus, setCurrentQBOPushStatus] = useState<string | null>(null);
   const [currentQBOLastError, setCurrentQBOLastError] = useState<string | null>(null);
   // When the invoice was last emailed to the client (null = never). Distinct
@@ -1244,39 +1256,84 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   };
   
 
-  // Email the QBO invoice to the client. QBO sends its hosted email with the
-  // online "View invoice" / "Review and pay" link; the customer doesn't need a
-  // separate attachment from us.
-  const handleSendToClient = async () => {
+  // Fetch the prefilled subject/body (and the QBO pay link, already embedded in
+  // the body) when the compose modal opens.
+  const loadEmailPreview = async (invoiceId: number) => {
+    emailPreviewRequestIdRef.current = invoiceId;
+    setEmailPreviewLoading(true);
+    setEmailPreviewError(null);
+    try {
+      const res = await authFetch(
+        `/invoicing/email/preview?invoice_id=${invoiceId}`,
+      );
+      const body = await res.text();
+      if (!res.ok) {
+        let msg = body;
+        try {
+          msg = JSON.parse(body)?.error ?? body;
+        } catch {}
+        throw new Error(msg || "Couldn't build the email preview");
+      }
+      const data = JSON.parse(body);
+      // Stale response guard: if the modal has since been reopened for a
+      // different invoice, this response is no longer wanted — drop it rather
+      // than overwrite the subject/body/attachment now on screen.
+      if (emailPreviewRequestIdRef.current !== invoiceId) return;
+      setEmailSubject(data.subject ?? "");
+      setEmailBody(data.body_text ?? "");
+      setEmailAttachment(data.attachment_name ?? null);
+    } catch (err: any) {
+      if (emailPreviewRequestIdRef.current !== invoiceId) return;
+      setEmailPreviewError(err?.message ?? "Unexpected error");
+    } finally {
+      if (emailPreviewRequestIdRef.current !== invoiceId) return;
+      setEmailPreviewLoading(false);
+    }
+  };
+
+  // Shared submit path for both email rails. Only the endpoint, payload, and
+  // copy differ; validation, toast lifecycle, error parsing, and state reset
+  // are identical, so they live here once.
+  const submitInvoiceEmail = async (
+    endpoint: string,
+    payload: Record<string, unknown>,
+    opts: { loading: string; description: string; requireComposed: boolean },
+  ) => {
     if (!currentInvoiceId) return;
     const email = sendToEmail.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast.error("Enter a valid email address.");
       return;
     }
+    if (opts.requireComposed && (!emailSubject.trim() || !emailBody.trim())) {
+      toast.error("Subject and message are both required.");
+      return;
+    }
     setSendingInvoice(true);
-    const toastId = toast.loading("Sending invoice to client…");
+    const toastId = toast.loading(opts.loading);
     try {
-      const res = await authFetch(`/invoicing/send`, {
+      const res = await authFetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invoice_id: currentInvoiceId, send_to: email }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const body = await res.text();
         let msg = body;
-        try { msg = JSON.parse(body)?.error ?? body; } catch {}
+        try {
+          msg = JSON.parse(body)?.error ?? body;
+        } catch {}
         throw new Error(msg || "Send failed");
       }
       const data = await res.json().catch(() => ({}));
       toast.success(`Invoice emailed to ${data?.delivered_to || email}`, {
         id: toastId,
-        description: "QuickBooks sent the client a link to view and pay the invoice.",
+        description: opts.description,
       });
-      // Reflect "emailed to client" immediately (badge updates without reload).
       setCurrentClientEmailedAt(new Date().toISOString());
       setSendToOpen(false);
       setSendToEmail("");
+      setSendToCc("");
     } catch (err: any) {
       toast.error("Couldn't send the invoice", {
         id: toastId,
@@ -1286,6 +1343,38 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       setSendingInvoice(false);
     }
   };
+
+  // Platform rail: composed here, sent from billing@avmre.com, our PDF attached.
+  const handleSendToClient = () =>
+    submitInvoiceEmail(
+      `/invoicing/email`,
+      {
+        invoice_id: currentInvoiceId,
+        to: sendToEmail.trim(),
+        cc: sendToCc.trim(),
+        subject: emailSubject,
+        body_html: plainTextToHtml(emailBody),
+      },
+      {
+        loading: "Sending invoice…",
+        description: "Sent from billing@avmre.com with the invoice PDF attached.",
+        requireComposed: true,
+      },
+    );
+
+  // Fallback rail: let QuickBooks send its own email. Kept for the case where
+  // our mailbox can't send (e.g. the Mail.Send grant is missing).
+  const handleSendViaQuickBooks = () =>
+    submitInvoiceEmail(
+      `/invoicing/send`,
+      { invoice_id: currentInvoiceId, send_to: sendToEmail.trim() },
+      {
+        loading: "Asking QuickBooks to send…",
+        description:
+          "QuickBooks sent the client a link to view and pay the invoice.",
+        requireComposed: false,
+      },
+    );
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -2042,9 +2131,16 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       type="button"
                       onClick={() => {
                         setSendToEmail("");
+                        setSendToCc("");
+                        setEmailSubject("");
+                        setEmailBody("");
+                        setEmailAttachment(null);
                         setSendToOpen(true);
+                        if (currentInvoiceId) {
+                          void loadEmailPreview(currentInvoiceId);
+                        }
                       }}
-                      title="Email this invoice to the client via QuickBooks (includes a view/pay link)"
+                      title="Compose and email this invoice to the client from billing@avmre.com (PDF attached, pay link included)"
                       className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2637,48 +2733,130 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           );
         })()}
 
-      {/* Send-to-client: capture the email, then email the QBO invoice. */}
+      {/* Send-to-client: compose the email (subject/body prefilled from the
+          server preview, PDF + pay link attached server-side), or fall back
+          to QuickBooks's own hosted email. */}
       <AlertDialog open={sendToOpen} onOpenChange={(o) => { if (!o) setSendToOpen(false); }}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Send invoice to client</AlertDialogTitle>
+            <AlertDialogTitle>Email invoice to client</AlertDialogTitle>
             <AlertDialogDescription>
-              QuickBooks emails the client this invoice with a link to view and
-              (if QuickBooks Payments is enabled) pay it online.
+              Sent from billing@avmre.com with the invoice PDF attached. The
+              QuickBooks pay link is included in the message — delete that line
+              to leave it out.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <div className="space-y-2 text-sm">
-            <label className="block text-xs font-medium text-gray-600">
-              Client email
-            </label>
-            <input
-              type="email"
-              autoFocus
-              value={sendToEmail}
-              onChange={(e) => setSendToEmail(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !sendingInvoice) {
-                  e.preventDefault();
-                  handleSendToClient();
-                }
-              }}
-              placeholder="client@example.com"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764]"
-            />
+          {emailPreviewError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {emailPreviewError}
+            </div>
+          )}
+
+          <div className="space-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-gray-600">
+                  To
+                </label>
+                <input
+                  type="email"
+                  autoFocus
+                  value={sendToEmail}
+                  onChange={(e) => setSendToEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !sendingInvoice &&
+                      !emailPreviewLoading &&
+                      !emailPreviewError
+                    ) {
+                      e.preventDefault();
+                      void handleSendToClient();
+                    }
+                  }}
+                  placeholder="client@example.com"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764]"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-gray-600">
+                  Cc <span className="text-gray-400">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={sendToCc}
+                  onChange={(e) => setSendToCc(e.target.value)}
+                  placeholder="comma-separated"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764]"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-gray-600">
+                Subject
+              </label>
+              <input
+                type="text"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                disabled={emailPreviewLoading}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764] disabled:bg-gray-50"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-gray-600">
+                Message
+              </label>
+              <textarea
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+                disabled={emailPreviewLoading}
+                rows={12}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764] disabled:bg-gray-50"
+              />
+              <p className="text-xs text-gray-500">
+                Plain text. Blank lines start a new paragraph; the payment
+                link will be clickable.
+              </p>
+            </div>
+
+            {emailAttachment && (
+              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {emailAttachment} will be attached
+              </div>
+            )}
           </div>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={sendingInvoice}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+          <AlertDialogFooter className="items-center sm:justify-between">
+            <button
+              type="button"
               disabled={sendingInvoice}
               onClick={(e) => {
                 e.preventDefault();
-                handleSendToClient();
+                void handleSendViaQuickBooks();
               }}
+              className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
             >
-              {sendingInvoice ? "Sending…" : "Send invoice"}
-            </AlertDialogAction>
+              Send via QuickBooks instead
+            </button>
+            <div className="flex items-center gap-2">
+              <AlertDialogCancel disabled={sendingInvoice}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={sendingInvoice || emailPreviewLoading || !!emailPreviewError}
+                onClick={(e) => {
+                  e.preventDefault();
+                  void handleSendToClient();
+                }}
+              >
+                {sendingInvoice ? "Sending…" : "Send invoice"}
+              </AlertDialogAction>
+            </div>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
