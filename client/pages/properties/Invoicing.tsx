@@ -1282,8 +1282,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       setEmailBody(data.body_html ?? "");
       setEmailAttachment(data.attachment_name ?? null);
     } catch (err: any) {
+      if (emailPreviewRequestIdRef.current !== invoiceId) return;
       setEmailPreviewError(err?.message ?? "Unexpected error");
     } finally {
+      if (emailPreviewRequestIdRef.current !== invoiceId) return;
       setEmailPreviewLoading(false);
     }
   };
