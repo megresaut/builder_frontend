@@ -1231,6 +1231,12 @@ export function ViewBillV2() {
       ? bill.qbo_balance_cents ?? remainingCents
       : remainingCents;
 
+  // Card refunds are concierge-only: a refund posts a QBO Credit Card Credit,
+  // and non-concierge properties have no QBO counterpart at all. The server
+  // enforces this with a 400 not_concierge, so gating here keeps the UI from
+  // offering an action that could only ever fail.
+  const isConciergeBill = bill.property_type === "C";
+
   return (
     <div className="bg-[#F2F3F5] min-h-screen">
       <PageTemplate className="!bg-transparent">
@@ -2129,24 +2135,36 @@ export function ViewBillV2() {
                                         >
                                           Edit
                                         </button>
-                                        <button
-                                          type="button"
-                                          disabled={!isCardPayment}
-                                          title={
-                                            isCardPayment
-                                              ? undefined
-                                              : "Refunds to card are only available for credit-card payments"
-                                          }
-                                          onClick={() => {
-                                            setRefundTargetPayment(p);
-                                            setShowRefundModal(true);
-                                          }}
-                                          className="text-xs font-medium px-2 py-1 rounded border border-[#E5E5E5] text-[#525252] hover:border-[#013764] hover:text-[#013764] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#E5E5E5] disabled:hover:text-[#525252]"
-                                        >
-                                          Refund to card
-                                        </button>
+                                        {/* Non-concierge bills are hidden rather
+                                            than disabled: the feature does not
+                                            apply to those books at all (the
+                                            server rejects them with
+                                            not_concierge) and there is nothing
+                                            the user could do to enable it, so a
+                                            permanently dead button would be
+                                            pure noise. A card-type mismatch on a
+                                            concierge bill IS worth showing
+                                            disabled — see below. */}
+                                        {isConciergeBill && (
+                                          <button
+                                            type="button"
+                                            disabled={!isCardPayment}
+                                            title={
+                                              isCardPayment
+                                                ? undefined
+                                                : "Refunds to card are only available for credit-card payments"
+                                            }
+                                            onClick={() => {
+                                              setRefundTargetPayment(p);
+                                              setShowRefundModal(true);
+                                            }}
+                                            className="text-xs font-medium px-2 py-1 rounded border border-[#E5E5E5] text-[#525252] hover:border-[#013764] hover:text-[#013764] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#E5E5E5] disabled:hover:text-[#525252]"
+                                          >
+                                            Refund to card
+                                          </button>
+                                        )}
                                       </div>
-                                      {!isCardPayment && (
+                                      {isConciergeBill && !isCardPayment && (
                                         <div
                                           className="text-[10px]"
                                           style={{ color: TEXT_MUTED }}
