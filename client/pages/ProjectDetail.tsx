@@ -3431,7 +3431,16 @@ export function ProjectInvoiceDetailModal({
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Close</button>
           {invoice.status === "draft" && (
             <button
-              onClick={isManualDelivery ? openEmailPanel : onSend}
+              // The compose panel is only meaningful for an invoice the
+              // backend will actually send (409s "not sendable" for
+              // draft/void) — gate on canEmail, not just isManualDelivery, so
+              // this never opens a panel that's guaranteed to error. This
+              // block only renders while status is literally "draft", so
+              // canEmail is always false here today and this always resolves
+              // to the manual panel; the explicit check (rather than
+              // hardcoding that) keeps the two buttons' destinations in sync
+              // if that render guard ever changes.
+              onClick={isManualDelivery ? (canEmail ? openEmailPanel : () => setPanel("manualSend")) : onSend}
               className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
             >
               {isManualDelivery ? "Send to client" : "Post invoice"}
