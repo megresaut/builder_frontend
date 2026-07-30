@@ -3246,9 +3246,13 @@ export function ProjectInvoiceDetailModal({
   // downloads the PDF, sends it themselves, and confirms.
   const isManualDelivery = invoice.delivery_mode === "manual";
   // Both delivery modes can now be emailed by the platform from
-  // billing@avmre.com — the old QBO-only restriction is gone. draft/void
-  // still can't be emailed (matches the server's 409 "not sendable").
-  const canEmail = invoice.status !== "draft" && invoice.status !== "void";
+  // billing@avmre.com — the old QBO-only restriction is gone. void still
+  // can't be emailed (matches the server's 409 "not sendable"). draft is
+  // sendable ONLY for manual delivery (Task 13): a manual invoice has no
+  // other route to "sent" — the platform IS the issuing step for it — while
+  // a concierge draft still needs its QuickBooks counterpart (and pay link)
+  // to exist first, so it stays blocked until "Post invoice".
+  const canEmail = invoice.status !== "void" && (isManualDelivery || invoice.status !== "draft");
   const emailedAt = invoice.client_emailed_at;
 
   // Which inline panel is open in the modal body. Only one at a time.
@@ -3449,21 +3453,30 @@ export function ProjectInvoiceDetailModal({
           {invoice.status === "draft" && (
             <button
               // The compose panel is only meaningful for an invoice the
-              // backend will actually send (409s "not sendable" for
-              // draft/void) — gate on canEmail, not just isManualDelivery, so
-              // this never opens a panel that's guaranteed to error. This
-              // block only renders while status is literally "draft", so
-              // canEmail is always false here today and this always resolves
-              // to the manual panel; the explicit check (rather than
-              // hardcoding that) keeps the two buttons' destinations in sync
-              // if that render guard ever changes.
+              // backend will actually send (409s "not sendable" for a
+              // concierge draft or a void invoice) — gate on canEmail, not
+              // just isManualDelivery, so this never opens a panel that's
+              // guaranteed to error. Since Task 13, canEmail IS true for a
+              // manual draft (emailing is how a manual invoice gets issued),
+              // so this resolves to openEmailPanel for manual and to the
+              // manual-send confirmation panel only for a concierge draft
+              // (where canEmail is still false) — though a concierge draft
+              // never reaches this branch of the ternary in practice, since
+              // isManualDelivery is false for it and onSend fires instead.
+              // The explicit canEmail check (rather than assuming) keeps this
+              // in sync if the render guard above ever changes.
               onClick={isManualDelivery ? (canEmail ? openEmailPanel : () => setPanel("manualSend")) : onSend}
               className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
             >
               {isManualDelivery ? "Send to client" : "Post invoice"}
             </button>
           )}
-          {canEmail && (
+          {/* Exactly one email-opening control per row: a draft is already
+              fully handled by the button above (concierge → "Post invoice"
+              via onSend; manual → "Send to client" via openEmailPanel, now
+              that canEmail is true for a manual draft too), so this button
+              explicitly excludes "draft" to avoid rendering both. */}
+          {canEmail && invoice.status !== "draft" && (
             <button
               onClick={openEmailPanel}
               className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
@@ -3489,9 +3502,12 @@ export function ProjectInvoiceDetailModal({
           <span className="ml-auto font-semibold tabular-nums text-gray-900">{formatUSD(totalCents)}</span>
         </div>
 
-        {/* Manual send-it-yourself fallback, reachable from the compose panel's
-            footer (or directly for a draft manual-delivery invoice). Status
-            only moves once a human asserts it actually went out. */}
+        {/* Manual send-it-yourself fallback, reachable only from the compose
+            panel's "I'll send it myself" link now — a draft manual-delivery
+            invoice's own button opens the compose panel directly (Task 13:
+            canEmail is true for it), so this is no longer a direct entry
+            point for that case. Status only moves once a human asserts it
+            actually went out. */}
         {panel === "manualSend" && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
             <div className="text-sm font-semibold text-amber-900">Send {invoice.invoice_number} manually</div>
