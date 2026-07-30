@@ -3268,6 +3268,23 @@ export function ProjectInvoiceDetailModal({
   // so a response for a stale invoice (modal reopened for a different
   // invoice before the first fetch resolved) is dropped instead of
   // overwriting the subject/body/attachment now on screen.
+  //
+  // NOTE: this guard is deliberately inert today. loadEmailPreview is only
+  // ever called with this component's own `invoice.id`, and `invoice` is a
+  // stable prop for the lifetime of the mount — ProjectInvoiceDetailModal
+  // sits behind a full-screen blocking backdrop, and nothing switches the
+  // parent's `detail` to a *different* invoice without first passing through
+  // `null`, which unmounts and remounts this component. So the comparison
+  // below is always `invoice.id !== invoice.id`, never true, and the early
+  // return can never fire in the app as it exists today. It mirrors the
+  // load-bearing version of this same guard in Invoicing.tsx, where the page
+  // is one long-lived component whose viewed invoice genuinely changes
+  // without remounting (that's precisely why it was added there, after a
+  // real cross-invoice overwrite bug). Keep it here anyway — it costs
+  // nothing, and it becomes live the moment this modal is reused across
+  // invoice ids without remounting (e.g. a future next/prev navigation
+  // control). Do not remove it as "dead code" and do not treat it as
+  // currently-tested protection — right now it protects nothing.
   const emailPreviewRequestIdRef = useRef<number | null>(null);
   const [sendingInvoiceEmail, setSendingInvoiceEmail] = useState(false);
 
