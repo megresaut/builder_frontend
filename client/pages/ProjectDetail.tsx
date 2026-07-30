@@ -32,6 +32,8 @@ import {
   createProjectInvoice,
   sendProjectInvoice,
   emailProjectInvoice,
+  getProjectInvoiceEmailPreview,
+  sendProjectInvoiceEmail,
   updateProjectInvoice,
   deleteProjectInvoice,
   recordInvoicePayment,
@@ -95,6 +97,7 @@ import {
   type MilestoneDraft,
 } from "@/components/projects/ProjectEditors";
 import { deriveProjectProgress, progressSubtitle } from "@/lib/projectProgress";
+import { plainTextToHtml } from "@/lib/plainTextToHtml";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { VendorPicker } from "@/components/VendorPicker";
 import PersonAvatars from "@/components/PersonAvatars";
@@ -2304,14 +2307,24 @@ function FinancialsTab({
       toast.error(errMessage(e, "Failed to send invoice"));
     }
   };
-  // Concierge only: QuickBooks emails the invoice, with our PDF attached, to the
-  // client. Throws on failure so the dialog can stay open for a retry.
+  // Concierge only: QuickBooks emails the invoice, with our PDF attached, to
+  // the client. Throws on failure so the compose panel's shared submit helper
+  // can catch it and stay open for a retry. The success toast is owned by
+  // that shared helper (submitInvoiceEmail in ProjectInvoiceDetailModal), not
+  // here, so both email rails toast exactly once.
   const doEmail = async (id: number, sendTo: string) => {
     const updated = await emailProjectInvoice(projectId, id, sendTo);
     setDetail(updated);
     await load();
     onRefreshSummary();
-    toast.success(`Invoice emailed to ${updated.client_email ?? sendTo}`);
+  };
+  // Platform rail (billing@avmre.com): the send itself already happened by
+  // the time this is called — it only refreshes local state (client_emailed_at
+  // / client_email_count come back from the server) after a successful send.
+  const doPlatformEmailSent = async (id: number) => {
+    await openDetail(id);
+    await load();
+    onRefreshSummary();
   };
   const doRecordInvoicePayment = async (id: number, amountCents: number) => {
     try {
@@ -2709,6 +2722,7 @@ function FinancialsTab({
           onSend={() => doSend(detail.id)}
           onMarkSent={() => doSend(detail.id, { skipConfirm: true })}
           onEmail={(sendTo) => doEmail(detail.id, sendTo)}
+          onPlatformEmailSent={() => doPlatformEmailSent(detail.id)}
           onRecordPayment={(cents) => doRecordInvoicePayment(detail.id, cents)}
           onVoid={() => doVoid(detail.id)}
           onVoidPayment={(paymentId) => doVoidPayment(paymentId)}
@@ -3189,6 +3203,7 @@ export function ProjectInvoiceDetailModal({
   onSend,
   onMarkSent,
   onEmail,
+  onPlatformEmailSent,
   onRecordPayment,
   onVoid,
   onVoidPayment,
@@ -3200,6 +3215,7 @@ export function ProjectInvoiceDetailModal({
   onSend: () => void;
   onMarkSent: () => void | Promise<void>;
   onEmail: (sendTo: string) => Promise<void>;
+  onPlatformEmailSent: () => void | Promise<void>;
   onRecordPayment: (cents: number) => void;
   onVoid: () => void;
   onVoidPayment: (paymentId: number) => void | Promise<void>;
@@ -3229,31 +3245,138 @@ export function ProjectInvoiceDetailModal({
   // has no email rail at all and the invoice isn't in QBO either, so the user
   // downloads the PDF, sends it themselves, and confirms.
   const isManualDelivery = invoice.delivery_mode === "manual";
-  const canEmail = !isManualDelivery && invoice.status !== "draft" && invoice.status !== "void";
+  // Both delivery modes can now be emailed by the platform from
+  // billing@avmre.com — the old QBO-only restriction is gone. draft/void
+  // still can't be emailed (matches the server's 409 "not sendable").
+  const canEmail = invoice.status !== "draft" && invoice.status !== "void";
   const emailedAt = invoice.client_emailed_at;
 
   // Which inline panel is open in the modal body. Only one at a time.
   const [panel, setPanel] = useState<"none" | "manualSend" | "email">("none");
-  const [emailTo, setEmailTo] = useState(invoice.client_email ?? "");
-  const [emailBusy, setEmailBusy] = useState(false);
+  // Compose box for the platform email rail (sent from billing@avmre.com).
+  // "To" starts blank on every open — there is no reliable recipient
+  // source of truth (mirrors the monthly-invoice compose box's decision, see
+  // client/pages/properties/Invoicing.tsx).
+  const [emailTo, setEmailTo] = useState("");
+  const [emailCc, setEmailCc] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [emailAttachment, setEmailAttachment] = useState<string | null>(null);
+  const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
+  const [emailPreviewError, setEmailPreviewError] = useState<string | null>(null);
+  // Tracks which invoice id the most recently issued preview fetch was for,
+  // so a response for a stale invoice (modal reopened for a different
+  // invoice before the first fetch resolved) is dropped instead of
+  // overwriting the subject/body/attachment now on screen.
+  const emailPreviewRequestIdRef = useRef<number | null>(null);
+  const [sendingInvoiceEmail, setSendingInvoiceEmail] = useState(false);
 
-  const submitEmail = async () => {
-    const to = emailTo.trim();
-    if (!to) {
-      toast.error("Enter a recipient email address");
-      return;
-    }
-    setEmailBusy(true);
+  // Fetch the prefilled subject/body (and, for concierge, the pay link
+  // already embedded in the body — "" for non-concierge, which is normal,
+  // not an error) when the compose panel opens.
+  const loadEmailPreview = async (invoiceId: number) => {
+    emailPreviewRequestIdRef.current = invoiceId;
+    setEmailPreviewLoading(true);
+    setEmailPreviewError(null);
     try {
-      await onEmail(to);
-      setPanel("none");
+      const data = await getProjectInvoiceEmailPreview(invoice.project_id, invoiceId);
+      if (emailPreviewRequestIdRef.current !== invoiceId) return;
+      setEmailSubject(data.subject ?? "");
+      setEmailBody(data.body_text ?? "");
+      setEmailAttachment(data.attachment_name ?? null);
     } catch (e) {
-      // Stay open so the user can correct the address and retry.
-      toast.error(errMessage(e, "Failed to email invoice"));
+      if (emailPreviewRequestIdRef.current !== invoiceId) return;
+      setEmailPreviewError(errMessage(e, "Couldn't build the email preview"));
     } finally {
-      setEmailBusy(false);
+      if (emailPreviewRequestIdRef.current !== invoiceId) return;
+      setEmailPreviewLoading(false);
     }
   };
+
+  const openEmailPanel = () => {
+    setEmailTo("");
+    setEmailCc("");
+    setEmailSubject("");
+    setEmailBody("");
+    setEmailAttachment(null);
+    setEmailPreviewError(null);
+    setPanel("email");
+    void loadEmailPreview(invoice.id);
+  };
+
+  // Shared submit path for both email rails (platform compose + QuickBooks
+  // fallback). Only the action itself differs; validation, the sending/toast
+  // lifecycle, error parsing, and the panel reset are identical, so they live
+  // here once.
+  const submitInvoiceEmail = async (
+    action: () => Promise<{ delivered_to?: string }>,
+    opts: { loading: string; description: string; requireComposed: boolean },
+  ) => {
+    const to = emailTo.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    if (opts.requireComposed && (!emailSubject.trim() || !emailBody.trim())) {
+      toast.error("Subject and message are both required");
+      return;
+    }
+    setSendingInvoiceEmail(true);
+    const toastId = toast.loading(opts.loading);
+    try {
+      const result = await action();
+      toast.success(`Invoice emailed to ${result?.delivered_to || to}`, {
+        id: toastId,
+        description: opts.description,
+      });
+      setPanel("none");
+    } catch (e) {
+      toast.error("Couldn't send the invoice", {
+        id: toastId,
+        description: errMessage(e, "Unexpected error"),
+      });
+    } finally {
+      setSendingInvoiceEmail(false);
+    }
+  };
+
+  // Platform rail: composed here, sent from billing@avmre.com, our PDF
+  // attached. Available for both concierge and non-concierge invoices.
+  const handleSendPlatformEmail = () =>
+    submitInvoiceEmail(
+      async () => {
+        const result = await sendProjectInvoiceEmail(invoice.project_id, invoice.id, {
+          to: emailTo.trim(),
+          cc: emailCc.trim() || undefined,
+          subject: emailSubject,
+          body_html: plainTextToHtml(emailBody),
+        });
+        await onPlatformEmailSent();
+        return result;
+      },
+      {
+        loading: "Sending invoice…",
+        description: "Sent from billing@avmre.com with the invoice PDF attached.",
+        requireComposed: true,
+      },
+    );
+
+  // Fallback rail: let QuickBooks send its own hosted email. Concierge
+  // only — kept for the case where our mailbox can't send (e.g. the
+  // Mail.Send grant is missing).
+  const handleSendViaQuickBooks = () =>
+    submitInvoiceEmail(
+      async () => {
+        const to = emailTo.trim();
+        await onEmail(to);
+        return { delivered_to: to };
+      },
+      {
+        loading: "Asking QuickBooks to send…",
+        description: "QuickBooks sent the client a link to view and pay the invoice.",
+        requireComposed: false,
+      },
+    );
 
   const downloadPdf = async () => {
     setDownloadingPdf(true);
@@ -3308,7 +3431,7 @@ export function ProjectInvoiceDetailModal({
           <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">Close</button>
           {invoice.status === "draft" && (
             <button
-              onClick={isManualDelivery ? () => setPanel("manualSend") : onSend}
+              onClick={isManualDelivery ? openEmailPanel : onSend}
               className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
             >
               {isManualDelivery ? "Send to client" : "Post invoice"}
@@ -3316,10 +3439,7 @@ export function ProjectInvoiceDetailModal({
           )}
           {canEmail && (
             <button
-              onClick={() => {
-                setEmailTo(invoice.client_email ?? "");
-                setPanel("email");
-              }}
+              onClick={openEmailPanel}
               className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
             >
               {emailedAt ? "Resend email" : "Email to client"}
@@ -3343,15 +3463,14 @@ export function ProjectInvoiceDetailModal({
           <span className="ml-auto font-semibold tabular-nums text-gray-900">{formatUSD(totalCents)}</span>
         </div>
 
-        {/* Manual-delivery send flow: the platform cannot email this invoice, so
-            the user downloads the PDF, sends it themselves, and confirms. Status
+        {/* Manual send-it-yourself fallback, reachable from the compose panel's
+            footer (or directly for a draft manual-delivery invoice). Status
             only moves once a human asserts it actually went out. */}
         {panel === "manualSend" && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
             <div className="text-sm font-semibold text-amber-900">Send {invoice.invoice_number} manually</div>
             <p className="mt-1.5 text-sm text-amber-800">
-              This property isn’t on concierge accounting, so the platform can’t email the invoice for you.
-              Download the PDF, email it to the client from your own mail, then confirm below to mark it sent.
+              Prefer to send it yourself? Download the PDF, email it to the client from your own mail, then confirm below to mark it sent.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
@@ -3382,44 +3501,130 @@ export function ProjectInvoiceDetailModal({
           </div>
         )}
 
-        {/* Concierge delivery: QuickBooks sends the email, with our rendered PDF
-            attached. sendTo is required — the QBO invoice carries no BillEmail. */}
+        {/* Compose box: platform email, sent from billing@avmre.com with our
+            PDF attached. Available for concierge and non-concierge invoices
+            alike. Subject/body are prefilled from the server preview; "To"
+            starts blank. Manual (download + mark sent) and, for concierge,
+            QuickBooks-hosted email stay reachable as secondary links below. */}
         {panel === "email" && (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="text-sm font-semibold text-gray-900">
               {emailedAt ? "Resend" : "Email"} {invoice.invoice_number} to the client
             </div>
             <p className="mt-1.5 text-sm text-gray-600">
-              QuickBooks sends the email, with this invoice’s PDF attached.
+              Sent from billing@avmre.com with the invoice PDF attached.
             </p>
-            <div className="mt-3 flex flex-wrap items-end gap-2">
-              <label className="flex flex-1 flex-col gap-1">
-                <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Recipient</span>
+
+            {emailPreviewError && (
+              <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {emailPreviewError}
+              </div>
+            )}
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium uppercase tracking-wide text-gray-500">To</span>
                 <input
                   type="email"
+                  autoFocus
                   value={emailTo}
                   onChange={(e) => setEmailTo(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !emailBusy) void submitEmail();
+                    if (
+                      e.key === "Enter" &&
+                      !sendingInvoiceEmail &&
+                      !emailPreviewLoading &&
+                      !emailPreviewError
+                    ) {
+                      e.preventDefault();
+                      void handleSendPlatformEmail();
+                    }
                   }}
                   placeholder="client@example.com"
-                  className="h-9 w-full min-w-[16rem] rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900"
+                  className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900"
                 />
               </label>
-              <span className="flex items-center gap-2">
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  Cc <span className="normal-case text-gray-400">(optional)</span>
+                </span>
+                <input
+                  type="text"
+                  value={emailCc}
+                  onChange={(e) => setEmailCc(e.target.value)}
+                  placeholder="comma-separated"
+                  className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900"
+                />
+              </label>
+            </div>
+
+            <label className="mt-3 flex flex-col gap-1">
+              <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Subject</span>
+              <input
+                type="text"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                disabled={emailPreviewLoading}
+                className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900 disabled:bg-gray-100"
+              />
+            </label>
+
+            <label className="mt-3 flex flex-col gap-1">
+              <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Message</span>
+              <textarea
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+                disabled={emailPreviewLoading}
+                rows={10}
+                className="w-full rounded-lg border border-[#DADADA] bg-white px-3 py-2 text-sm text-gray-900 disabled:bg-gray-100"
+              />
+              <span className="text-xs text-gray-500">
+                Plain text. Blank lines start a new paragraph; any payment link will be clickable.
+              </span>
+            </label>
+
+            {emailAttachment && (
+              <div className="mt-3 flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {emailAttachment} will be attached
+              </div>
+            )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={sendingInvoiceEmail}
+                onClick={() => setPanel("manualSend")}
+                className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
+              >
+                I’ll send it myself
+              </button>
+              {!isManualDelivery && (
+                <button
+                  type="button"
+                  disabled={sendingInvoiceEmail}
+                  onClick={() => void handleSendViaQuickBooks()}
+                  className="text-xs text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
+                >
+                  Send via QuickBooks instead
+                </button>
+              )}
+              <span className="ml-auto flex items-center gap-2">
                 <button
                   onClick={() => setPanel("none")}
-                  disabled={emailBusy}
+                  disabled={sendingInvoiceEmail}
                   className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={submitEmail}
-                  disabled={emailBusy || !emailTo.trim()}
+                  onClick={() => void handleSendPlatformEmail()}
+                  disabled={sendingInvoiceEmail || emailPreviewLoading || !!emailPreviewError}
                   className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50"
                 >
-                  {emailBusy ? "Sending…" : "Send via QuickBooks"}
+                  {sendingInvoiceEmail ? "Sending…" : "Send invoice"}
                 </button>
               </span>
             </div>

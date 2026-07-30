@@ -1085,6 +1085,49 @@ export async function emailProjectInvoice(
   });
 }
 
+// Prefilled subject/body for the platform compose box (sent from
+// billing@avmre.com, our PDF attached) — both concierge and non-concierge.
+// pay_link is "" for non-concierge invoices (there is no QBO invoice to link
+// to) — that is normal, not an error; body_text simply contains no payment
+// line. Does not send anything. 409s if the invoice isn't sendable
+// (draft/void).
+export interface ProjectInvoiceEmailPreview {
+  subject: string;
+  body_text: string;
+  pay_link: string;
+  attachment_name: string;
+  attachment_size: number;
+}
+
+export async function getProjectInvoiceEmailPreview(
+  projectId: number,
+  invoiceId: number,
+): Promise<ProjectInvoiceEmailPreview> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/email/preview`);
+}
+
+export interface SendProjectInvoiceEmailPayload {
+  to: string;
+  cc?: string;
+  subject: string;
+  body_html: string;
+}
+
+// Sends the invoice from billing@avmre.com with the PDF attached — both
+// concierge and non-concierge. Distinct from emailProjectInvoice above (the
+// QuickBooks rail), which stays as a concierge-only fallback for when this
+// mailbox can't send (e.g. missing Mail.Send grant).
+export async function sendProjectInvoiceEmail(
+  projectId: number,
+  invoiceId: number,
+  payload: SendProjectInvoiceEmailPayload,
+): Promise<{ delivered_to: string }> {
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/email/send`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function recordInvoicePayment(
   projectId: number,
   invoiceId: number,
