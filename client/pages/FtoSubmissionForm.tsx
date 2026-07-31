@@ -252,12 +252,35 @@ export function buildTaskOptions(
 }
 
 /**
+ * The task pick in effect for an entry, or undefined when the user never
+ * touched the field (so nothing should be written).
+ *
+ * The Task field is usable as soon as a property is chosen, which means a pick
+ * can be made before the field team order exists to hang it on. Those land in
+ * stagedTaskByEntry, keyed by entry id, and are promoted into taskByFtoKey once
+ * an FTO is selected. An explicit per-FTO pick therefore always wins over a
+ * staged one — by the time both exist, the staged value has been promoted.
+ *
+ * Exported for tests.
+ */
+export function resolveTaskPick(
+  entryId: string,
+  linkKey: string | null,
+  taskByFtoKey: Record<string, number | null>,
+  stagedTaskByEntry: Record<string, number | null>
+): number | null | undefined {
+  if (linkKey && linkKey in taskByFtoKey) return taskByFtoKey[linkKey];
+  if (entryId in stagedTaskByEntry) return stagedTaskByEntry[entryId];
+  return undefined;
+}
+
+/**
  * Decide which FTOs need field_team_orders.task_id rewritten, as
  * ftoId -> tasks.id (0 meaning unlink).
  *
  * Two guards keep this from touching FTOs it shouldn't: an FTO whose Task field
- * was never opened has no key in taskByFtoKey and is skipped, and a selection
- * equal to what the FTO already stores is a no-op (no churn on updated_at, no
+ * was never touched resolves to undefined and is skipped, and a selection equal
+ * to what the FTO already stores is a no-op (no churn on updated_at, no
  * pointless Outlook re-sync). Inline FTOs ("custom:" keys) are excluded — they
  * carry their task in the create payload instead.
  *
@@ -265,22 +288,26 @@ export function buildTaskOptions(
  */
 export function planFtoTaskLinkWrites(
   entries: Array<{
+    id: string;
     taskId: string | null;
     propertyId: string | null;
     customTaskName?: string;
   }>,
   taskByFtoKey: Record<string, number | null>,
-  ftosByProperty: Record<string, { id: number; task_id?: number | null }[]>
+  ftosByProperty: Record<string, { id: number; task_id?: number | null }[]>,
+  stagedTaskByEntry: Record<string, number | null> = {}
 ): Map<number, number> {
   const wanted = new Map<number, number>();
 
   for (const entry of entries) {
     const key = ftoLinkKey(entry);
     if (!key || !key.startsWith("fto:")) continue;
-    if (!(key in taskByFtoKey)) continue; // never touched -> leave the FTO alone
+
+    const pick = resolveTaskPick(entry.id, key, taskByFtoKey, stagedTaskByEntry);
+    if (pick === undefined) continue; // never touched -> leave the FTO alone
 
     const ftoId = Number(key.slice("fto:".length));
-    const desired = taskByFtoKey[key] ?? 0;
+    const desired = pick ?? 0;
     const current =
       (ftosByProperty[entry.propertyId ?? ""] ?? []).find((f) => f.id === ftoId)
         ?.task_id ?? 0;
@@ -452,6 +479,14 @@ export default function FtoSubmissionForm() {
    * can never disagree. Written to the API at submit time by syncFtoTaskLinks().
    */
   const [taskByFtoKey, setTaskByFtoKey] = useState<Record<string, number | null>>({});
+  /**
+   * Task picks made before a field team order was selected, keyed by entry id.
+   * Promoted into taskByFtoKey as soon as the entry gets an FTO. See
+   * resolveTaskPick.
+   */
+  const [stagedTaskByEntry, setStagedTaskByEntry] = useState<
+    Record<string, number | null>
+  >({});
 
   const [apiSubmission, setApiSubmission] = useState<GetSubmissionResponse | null>(null);
   const [submissionLoading, setSubmissionLoading] = useState(false);
@@ -1441,6 +1476,38 @@ export default function FtoSubmissionForm() {
     selectedTaskId: number | null
   ) => buildTaskOptions(tasksByProperty[propertyId ?? ""] ?? [], selectedTaskId);
 
+  /** Record a Task pick: onto the FTO when there is one, else staged on the entry. */
+  const setTaskPick = (
+    entryId: string,
+    linkKey: string | null,
+    taskId: number | null
+  ) => {
+    if (linkKey) {
+      setTaskByFtoKey((prev) => ({ ...prev, [linkKey]: taskId }));
+    } else {
+      setStagedTaskByEntry((prev) => ({ ...prev, [entryId]: taskId }));
+    }
+  };
+
+  /**
+   * Promote a task picked before the field team order was chosen onto the FTO
+   * just selected. Runs in the same handler as the FTO update, so the seeding
+   * effect sees the key already populated and won't overwrite it with whatever
+   * task the FTO previously had.
+   */
+  const promoteStagedTask = (entryId: string, newFtoValue: string) => {
+    if (!(entryId in stagedTaskByEntry)) return;
+    const ftoId = Number(newFtoValue);
+    if (!Number.isFinite(ftoId) || ftoId <= 0) return; // custom/misc: stays staged
+    const staged = stagedTaskByEntry[entryId];
+    setTaskByFtoKey((prev) => ({ ...prev, [`fto:${ftoId}`]: staged }));
+    setStagedTaskByEntry((prev) => {
+      const next = { ...prev };
+      delete next[entryId];
+      return next;
+    });
+  };
+
   const toggleExpenseEntry = (id: string) => {
     setExpenseEntries((prev) =>
       prev.map((entry) =>
@@ -1703,7 +1770,8 @@ export default function FtoSubmissionForm() {
     const wanted = planFtoTaskLinkWrites(
       [...hours, ...expenses],
       taskByFtoKey,
-      ftosByProperty
+      ftosByProperty,
+      stagedTaskByEntry
     );
 
     for (const [ftoId, taskId] of wanted) {
@@ -1772,10 +1840,15 @@ export default function FtoSubmissionForm() {
             ? []
             : sourceEntry.collaboratorIds;
 
-        // Task picked for this inline FTO, keyed the same way ftoLinkKey() does.
+        // Task picked for this inline FTO — either against its custom key, or
+        // staged on the entry if it was chosen before the "+ Add" was named.
         const linkedTaskId =
-          taskByFtoKey[`custom:${info.propertyId}::${info.customTaskName}`] ??
-          null;
+          resolveTaskPick(
+            sourceEntry.id,
+            `custom:${info.propertyId}::${info.customTaskName}`,
+            taskByFtoKey,
+            stagedTaskByEntry
+          ) ?? null;
 
         const payload = {
           property_id: propertyIdNum,
@@ -2354,6 +2427,7 @@ export default function FtoSubmissionForm() {
                             onChange={(value) => {
                                 if (isApproved) return;
                                 updateHourEntry(entry.id, "taskId", value);
+                                promoteStagedTask(entry.id, String(value));
                                 if (value === CUSTOM_FTO_TASK_VALUE) {
                                   // Enter custom mode
                                   if (!entry.customTaskName) {
@@ -2375,38 +2449,43 @@ export default function FtoSubmissionForm() {
                             disabled={!entry.propertyId || ftosLoading || isApproved}
                         />
 
-                        {/* Optional task this field team order belongs to. Stored on
-                            the FTO, so it is shared by every entry using that FTO. */}
+                        {/* Optional task the field team order belongs to. Usable as
+                            soon as a property is picked; the pick is applied to
+                            whichever FTO is chosen (see promoteStagedTask). */}
                         {(() => {
                           const linkKey = ftoLinkKey(entry);
-                          const selectedTaskId = linkKey
-                            ? taskByFtoKey[linkKey] ?? null
-                            : null;
+                          const selectedTaskId =
+                            resolveTaskPick(
+                              entry.id,
+                              linkKey,
+                              taskByFtoKey,
+                              stagedTaskByEntry
+                            ) ?? null;
+                          const noTasks =
+                            (tasksByProperty[entry.propertyId ?? ""] ?? []).length === 0;
                           return (
                             <SelectField
                               label="Task"
                               options={getTaskOptions(entry.propertyId, selectedTaskId)}
                               value={selectedTaskId ? String(selectedTaskId) : ""}
                               onChange={(value) => {
-                                if (isApproved || !linkKey) return;
+                                if (isApproved) return;
                                 const v = Array.isArray(value) ? value[0] : value;
-                                setTaskByFtoKey((prev) => ({
-                                  ...prev,
-                                  [linkKey]: v ? Number(v) : null,
-                                }));
+                                setTaskPick(entry.id, linkKey, v ? Number(v) : null);
                               }}
                               placeholder={
                                 !entry.propertyId
                                   ? "Select Property First"
-                                  : !linkKey
-                                    ? "Select Field Team Order First"
-                                    : tasksLoading[entry.propertyId ?? ""]
-                                      ? "Loading tasks…"
+                                  : tasksLoading[entry.propertyId ?? ""]
+                                    ? "Loading tasks…"
+                                    : noTasks
+                                      ? "No open tasks for this property"
                                       : "Select Task"
                               }
                               disabled={
-                                !linkKey ||
+                                !entry.propertyId ||
                                 tasksLoading[entry.propertyId ?? ""] ||
+                                noTasks ||
                                 isApproved
                               }
                             />
@@ -2870,6 +2949,7 @@ export default function FtoSubmissionForm() {
                             onChange={(value) => {
                                 if (isApproved) return;
                                 updateExpenseEntry(entry.id, "taskId", value);
+                                promoteStagedTask(entry.id, String(value));
                                 if (value === MISC_EXPENSE_TASK_VALUE) {
                                   updateExpenseEntry(entry.id, "chargeType", "avm-expense");
                                 }
@@ -2884,41 +2964,47 @@ export default function FtoSubmissionForm() {
                             disabled={!entry.propertyId || ftosLoading || isApproved}
                         />
 
-                        {/* Optional task this field team order belongs to. Disabled for
-                            "Misc (No FTO)" lines — there is no FTO to attach it to. */}
+                        {/* Optional task the field team order belongs to. Usable as soon
+                            as a property is picked, except on "Misc (No FTO)" lines —
+                            those never get an FTO, so there is nothing to attach to. */}
                         {(() => {
                           const linkKey = ftoLinkKey(entry);
-                          const selectedTaskId = linkKey
-                            ? taskByFtoKey[linkKey] ?? null
-                            : null;
+                          const selectedTaskId =
+                            resolveTaskPick(
+                              entry.id,
+                              linkKey,
+                              taskByFtoKey,
+                              stagedTaskByEntry
+                            ) ?? null;
                           const isMisc = entry.taskId === MISC_EXPENSE_TASK_VALUE;
+                          const noTasks =
+                            (tasksByProperty[entry.propertyId ?? ""] ?? []).length === 0;
                           return (
                             <SelectField
                               label="Task"
                               options={getTaskOptions(entry.propertyId, selectedTaskId)}
                               value={selectedTaskId ? String(selectedTaskId) : ""}
                               onChange={(value) => {
-                                if (isApproved || !linkKey) return;
+                                if (isApproved || isMisc) return;
                                 const v = Array.isArray(value) ? value[0] : value;
-                                setTaskByFtoKey((prev) => ({
-                                  ...prev,
-                                  [linkKey]: v ? Number(v) : null,
-                                }));
+                                setTaskPick(entry.id, linkKey, v ? Number(v) : null);
                               }}
                               placeholder={
                                 !entry.propertyId
                                   ? "Select Property First"
                                   : isMisc
                                     ? "Not available for misc expenses"
-                                    : !linkKey
-                                      ? "Select Field Team Order First"
-                                      : tasksLoading[entry.propertyId ?? ""]
-                                        ? "Loading tasks…"
+                                    : tasksLoading[entry.propertyId ?? ""]
+                                      ? "Loading tasks…"
+                                      : noTasks
+                                        ? "No open tasks for this property"
                                         : "Select Task"
                               }
                               disabled={
-                                !linkKey ||
+                                !entry.propertyId ||
+                                isMisc ||
                                 tasksLoading[entry.propertyId ?? ""] ||
+                                noTasks ||
                                 isApproved
                               }
                             />

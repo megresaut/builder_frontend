@@ -8,6 +8,7 @@ vi.mock("@/utils/parseMsgFile", () => ({ parseMsgFile: vi.fn() }));
 import {
   buildTaskOptions,
   planFtoTaskLinkWrites,
+  resolveTaskPick,
 } from "../FtoSubmissionForm";
 
 /**
@@ -71,6 +72,26 @@ describe("buildTaskOptions", () => {
   });
 });
 
+describe("resolveTaskPick", () => {
+  it("returns undefined when the field was never touched", () => {
+    expect(resolveTaskPick("hour-1", "fto:734", {}, {})).toBeUndefined();
+  });
+
+  it("reads the per-FTO pick when there is one", () => {
+    expect(resolveTaskPick("hour-1", "fto:734", { "fto:734": 137 }, {})).toBe(137);
+  });
+
+  it("falls back to a pick staged before the FTO existed", () => {
+    expect(resolveTaskPick("hour-1", null, {}, { "hour-1": 137 })).toBe(137);
+  });
+
+  it("distinguishes an explicit clear (null) from untouched (undefined)", () => {
+    // null must survive as "unlink", not collapse into "leave it alone".
+    expect(resolveTaskPick("hour-1", "fto:734", { "fto:734": null }, {})).toBeNull();
+    expect(resolveTaskPick("hour-1", null, {}, { "hour-1": null })).toBeNull();
+  });
+});
+
 describe("planFtoTaskLinkWrites", () => {
   // FTO 734 is linked to task 142; FTO 735 has no task.
   const ftosByProperty = {
@@ -80,6 +101,7 @@ describe("planFtoTaskLinkWrites", () => {
     ],
   };
   const hourEntry = (over: Record<string, any> = {}) => ({
+    id: "hour-1",
     taskId: "734",
     propertyId: "496",
     customTaskName: "",
@@ -134,13 +156,49 @@ describe("planFtoTaskLinkWrites", () => {
   it("collapses entries sharing an FTO into one write", () => {
     // The link lives on the FTO, so two hour lines on one FTO are one write.
     const plan = planFtoTaskLinkWrites(
-      [hourEntry(), hourEntry(), hourEntry({ taskId: "735" })],
+      [
+        hourEntry(),
+        hourEntry({ id: "hour-2" }),
+        hourEntry({ id: "hour-3", taskId: "735" }),
+      ],
       { "fto:734": 137, "fto:735": 137 },
       ftosByProperty
     );
     expect(plan.size).toBe(2);
     expect(plan.get(734)).toBe(137);
     expect(plan.get(735)).toBe(137);
+  });
+
+  it("honours a task staged before the FTO was chosen", () => {
+    // The Task field is usable once a property is picked, so the pick can land
+    // before the FTO does. It must still be written on submit.
+    const plan = planFtoTaskLinkWrites(
+      [hourEntry()],
+      {}, // no per-FTO pick was ever recorded
+      ftosByProperty,
+      { "hour-1": 137 }
+    );
+    expect([...plan]).toEqual([[734, 137]]);
+  });
+
+  it("prefers an explicit per-FTO pick over a stale staged one", () => {
+    const plan = planFtoTaskLinkWrites(
+      [hourEntry()],
+      { "fto:734": 141 },
+      ftosByProperty,
+      { "hour-1": 137 }
+    );
+    expect([...plan]).toEqual([[734, 141]]);
+  });
+
+  it("does not confuse one entry's staged pick with another's", () => {
+    const plan = planFtoTaskLinkWrites(
+      [hourEntry(), hourEntry({ id: "hour-2", taskId: "735" })],
+      {},
+      ftosByProperty,
+      { "hour-2": 137 } // only the second entry staged anything
+    );
+    expect([...plan]).toEqual([[735, 137]]);
   });
 
   it("skips misc expense lines, which have no FTO to attach to", () => {

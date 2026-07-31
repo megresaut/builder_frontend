@@ -173,6 +173,24 @@ describe("FtoSubmissionForm — Field Team Order rename + new Task field", () =>
     expect(screen.getAllByText("Task").length).toBeGreaterThan(0);
   });
 
+  it("enables the Task field on property alone, with no field team order picked", async () => {
+    renderForm();
+    await waitFor(() => expect(screen.getAllByText("Property").length).toBeGreaterThan(0));
+
+    // Before a property: nothing to list yet.
+    expect(fieldTrigger("Task")).toBeDisabled();
+
+    await selectProperty();
+
+    // After a property: usable immediately, even though Field Team Order is
+    // still empty. The pick is applied to whichever FTO is chosen afterward.
+    await waitFor(() => expect(fieldTrigger("Task")).not.toBeDisabled());
+    expect(fieldTrigger("Field Team Order").textContent).toContain(
+      "Select Field Team Order",
+    );
+    expect(fieldTrigger("Task").textContent).toContain("Select Task");
+  });
+
   it("prefills the Task field from the task the selected FTO already links to", async () => {
     renderForm();
     await waitFor(() => expect(screen.getAllByText("Property").length).toBeGreaterThan(0));

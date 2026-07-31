@@ -425,3 +425,62 @@ describe("ProjectInvoiceBuilderModal — vendor-bill upcharge folded into the bi
     expect(onCreate.mock.calls[0][1][0].amount_cents).toBe(100000);
   });
 });
+
+describe("ProjectInvoiceBuilderModal — long descriptions must not wrap the amount", () => {
+  // A flex item defaults to min-width:auto, so a long description refuses to
+  // shrink and squeezes the amount until "$6,250" breaks across two lines. The
+  // label side needs min-w-0 and the amount needs shrink-0 + whitespace-nowrap.
+  // jsdom computes no layout, so assert the rules that make the layout impossible
+  // to break rather than pixel positions.
+  const longLabels: Billables = {
+    installments_due: [],
+    change_orders_unbilled: [
+      { id: 11, co_number: "CO-002", description: "Added footings along the entire north elevation including drainage", amount_cents: 1200000 },
+    ],
+    vendor_bills: [
+      {
+        bill_id: 21,
+        vendor_id: 5,
+        vendor_name: "RG White Painting LLC",
+        description: "50% Deposit: Smoke/CO Detectors, Wiring and Outlets across the property.",
+        amount_cents: 562500,
+        upcharge_cents: 62500,
+      },
+    ],
+    fto_items: [
+      {
+        submission_id: 77,
+        date_of_work: "2026-07-16",
+        work_description: "Supply & deliver misc. demo materials & dump run for the upstairs bath",
+        labor_lines: [{ note: "Labor", hours_decimal: 1, emergency: false, amount_cents: 12500 }],
+        expense_lines: [],
+        labor_total_cents: 12500,
+        expense_total_cents: 0,
+      },
+    ],
+  } as unknown as Billables;
+
+  const amountFor = (text: string) => screen.getByText(text);
+
+  it.each([
+    ["vendor bill", "$6,250"],
+    ["change order", "$12,000"],
+    ["field team order", "$125"],
+  ])("keeps the %s amount unshrinkable and on one line", (_label, amount) => {
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={null}
+        billables={longLabels}
+        busy={false}
+        onCreate={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    const el = amountFor(amount);
+    expect(el.className).toContain("shrink-0");
+    expect(el.className).toContain("whitespace-nowrap");
+    // Its sibling label side must be permitted to shrink instead.
+    const label = el.previousElementSibling!;
+    expect(label.className).toContain("min-w-0");
+  });
+});

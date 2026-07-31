@@ -2973,8 +2973,17 @@ export function ProjectInvoiceBuilderModal({
     onCreate(title.trim() || "Project invoice", lines, ftoSubmissionIds);
   };
 
-  const rowCls = "flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5";
-  const checkCls = "h-4 w-4 rounded border-gray-300 accent-[#013764]";
+  // Picker row layout. The amount must NEVER wrap or shrink: a long description
+  // otherwise wins the flex fight and breaks "$6,250" across two lines. Two rules
+  // make that impossible — the label side gets min-w-0 so it may shrink below its
+  // content width (a flex item's default min-width:auto refuses to), and the amount
+  // gets shrink-0 + whitespace-nowrap so it always claims its intrinsic width.
+  // items-start (not center) so on a wrapped row the amount sits level with the
+  // first line of the description rather than floating beside the middle.
+  const rowCls = "flex items-start justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5";
+  const checkCls = "mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-[#013764]";
+  const rowLabelCls = "flex min-w-0 items-start gap-2.5 text-sm text-gray-900";
+  const rowAmountCls = "shrink-0 whitespace-nowrap text-sm font-medium tabular-nums text-gray-900";
 
   return (
     <ModalShell
@@ -3015,11 +3024,11 @@ export function ProjectInvoiceBuilderModal({
               <div className="flex flex-col gap-2">
                 {changeOrders.map((c) => (
                   <label key={c.id} className={`${rowCls} cursor-pointer ${selectedCo.includes(c.id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
-                    <span className="flex items-center gap-2.5 text-sm text-gray-900">
+                    <span className={rowLabelCls}>
                       <input type="checkbox" className={checkCls} checked={selectedCo.includes(c.id)} onChange={() => toggle(c.id, selectedCo, setSelectedCo)} onKeyDown={enterActivates(() => toggle(c.id, selectedCo, setSelectedCo))} />
-                      {c.co_number} · {c.description}
+                      <span className="min-w-0">{c.co_number} · {c.description}</span>
                     </span>
-                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(c.amount_cents)}</span>
+                    <span className={rowAmountCls}>{formatUSD(c.amount_cents)}</span>
                   </label>
                 ))}
               </div>
@@ -3034,9 +3043,9 @@ export function ProjectInvoiceBuilderModal({
               <div className="flex flex-col gap-2">
                 {vendorBills.map((b) => (
                   <label key={b.bill_id} className={`${rowCls} cursor-pointer ${selectedBills.includes(b.bill_id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
-                    <span className="flex items-center gap-2.5 text-sm text-gray-900">
+                    <span className={rowLabelCls}>
                       <input type="checkbox" className={checkCls} checked={selectedBills.includes(b.bill_id)} onChange={() => toggle(b.bill_id, selectedBills, setSelectedBills)} onKeyDown={enterActivates(() => toggle(b.bill_id, selectedBills, setSelectedBills))} />
-                      <span>
+                      <span className="min-w-0">
                         {b.description}
                         {(b.vendor_name || b.upcharge_cents > 0) && (
                           <span className="ml-1.5 text-xs text-gray-500">
@@ -3048,7 +3057,7 @@ export function ProjectInvoiceBuilderModal({
                         )}
                       </span>
                     </span>
-                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(vendorBillTotalCents(b))}</span>
+                    <span className={rowAmountCls}>{formatUSD(vendorBillTotalCents(b))}</span>
                   </label>
                 ))}
               </div>
@@ -3063,9 +3072,9 @@ export function ProjectInvoiceBuilderModal({
               <div className="flex flex-col gap-2">
                 {ftoItems.map((f) => (
                   <label key={f.submission_id} className={`${rowCls} cursor-pointer ${selectedFto.includes(f.submission_id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
-                    <span className="flex items-center gap-2.5 text-sm text-gray-900">
+                    <span className={rowLabelCls}>
                       <input type="checkbox" className={checkCls} checked={selectedFto.includes(f.submission_id)} onChange={() => toggle(f.submission_id, selectedFto, setSelectedFto)} onKeyDown={enterActivates(() => toggle(f.submission_id, selectedFto, setSelectedFto))} />
-                      <span>
+                      <span className="min-w-0">
                         {f.work_description?.trim() || `Field work ${fmtProjDate(f.date_of_work)}`}
                         <span className="ml-1.5 text-xs text-gray-500">
                           {fmtProjDate(f.date_of_work)} · labor {formatUSD(f.labor_total_cents)}
@@ -3073,7 +3082,7 @@ export function ProjectInvoiceBuilderModal({
                         </span>
                       </span>
                     </span>
-                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(ftoItemTotalCents(f))}</span>
+                    <span className={rowAmountCls}>{formatUSD(ftoItemTotalCents(f))}</span>
                   </label>
                 ))}
               </div>
@@ -3086,8 +3095,8 @@ export function ProjectInvoiceBuilderModal({
               <div className="flex flex-col gap-2">
                 {preservedLines.map((l, i) => (
                   <div key={i} className={rowCls}>
-                    <span className="text-sm text-gray-900">{l.description}</span>
-                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(l.amount_cents)}</span>
+                    <span className="min-w-0 text-sm text-gray-900">{l.description}</span>
+                    <span className={rowAmountCls}>{formatUSD(l.amount_cents)}</span>
                   </div>
                 ))}
               </div>
@@ -3128,7 +3137,7 @@ export function ProjectInvoiceBuilderModal({
                         contentWidth={288}
                       />
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex shrink-0 items-center gap-1">
                       <span className="text-gray-400">$</span>
                       <input
                         type="number"
@@ -3181,7 +3190,7 @@ export function ProjectInvoiceBuilderModal({
                       onChange={(e) => setFees((v) => v.map((x) => (x.key === m.key ? { ...x, description: e.target.value } : x)))}
                       className="flex-1 rounded-md border border-[#DADADA] px-2 py-1.5 text-sm focus:border-[#013764] focus:outline-none"
                     />
-                    <div className="flex items-center gap-1">
+                    <div className="flex shrink-0 items-center gap-1">
                       <span className="text-gray-400">$</span>
                       <input
                         type="number"
