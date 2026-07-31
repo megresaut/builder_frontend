@@ -98,6 +98,7 @@ import {
 } from "@/components/projects/ProjectEditors";
 import { deriveProjectProgress, progressSubtitle } from "@/lib/projectProgress";
 import { plainTextToHtml } from "@/lib/plainTextToHtml";
+import { parseRecipients } from "@/lib/emailRecipients";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { VendorPicker } from "@/components/VendorPicker";
 import PersonAvatars from "@/components/PersonAvatars";
@@ -2750,6 +2751,16 @@ function ftoItemTotalCents(fi: Billables["fto_items"][number]): number {
   return fi.labor_total_cents + fi.expense_total_cents + markups;
 }
 
+// vendorBillTotalCents = vendor cost + AVMRE markup (the full amount a vendor bill
+// bills the owner). bills.amount_cents deliberately excludes the upcharge — it is
+// what gets pushed to QBO/Buildium as the payable — so the markup is added back
+// here, on the invoice side only. Folded into ONE cost_reimbursement line rather
+// than split base/markup, so it posts to the DFO passthrough item like every other
+// project line (i.e. markup is not recognized as separate income in QBO).
+function vendorBillTotalCents(b: Billables["vendor_bills"][number]): number {
+  return b.amount_cents + (b.upcharge_cents || 0);
+}
+
 /** Exported for keyboard-interaction tests (ProjectInvoiceBuilder.keyboard.test.tsx). */
 export function ProjectInvoiceBuilderModal({
   invoice,
@@ -2913,7 +2924,7 @@ export function ProjectInvoiceBuilderModal({
   const preservedCents = preservedLines.reduce((s, l) => s + l.amount_cents, 0);
   const total =
     changeOrders.filter((c) => selectedCo.includes(c.id)).reduce((s, c) => s + c.amount_cents, 0) +
-    vendorBills.filter((b) => selectedBills.includes(b.bill_id)).reduce((s, b) => s + b.amount_cents, 0) +
+    vendorBills.filter((b) => selectedBills.includes(b.bill_id)).reduce((s, b) => s + vendorBillTotalCents(b), 0) +
     ftoItems.filter((f) => selectedFto.includes(f.submission_id)).reduce((s, f) => s + ftoItemTotalCents(f), 0) +
     manualCents +
     feeCents +
@@ -2930,11 +2941,12 @@ export function ProjectInvoiceBuilderModal({
           source_id: c.id,
         })),
       // Vendor bills → one cost_reimbursement line each, carrying the bill's vendor.
+      // Amount is cost + markup folded together (vendorBillTotalCents).
       ...vendorBills
         .filter((b) => selectedBills.includes(b.bill_id))
         .map((b): CreateInvoiceLineInput => ({
           description: b.description,
-          amount_cents: b.amount_cents,
+          amount_cents: vendorBillTotalCents(b),
           source_type: "cost_reimbursement",
           source_id: b.bill_id,
           vendor_id: b.vendor_id,
@@ -3026,10 +3038,17 @@ export function ProjectInvoiceBuilderModal({
                       <input type="checkbox" className={checkCls} checked={selectedBills.includes(b.bill_id)} onChange={() => toggle(b.bill_id, selectedBills, setSelectedBills)} onKeyDown={enterActivates(() => toggle(b.bill_id, selectedBills, setSelectedBills))} />
                       <span>
                         {b.description}
-                        {b.vendor_name && <span className="ml-1.5 text-xs text-gray-500">· {b.vendor_name}</span>}
+                        {(b.vendor_name || b.upcharge_cents > 0) && (
+                          <span className="ml-1.5 text-xs text-gray-500">
+                            {b.vendor_name && `· ${b.vendor_name}`}
+                            {/* Break out the markup so the blended figure on the right
+                                is never opaque (mirrors the FTO rows' breakdown). */}
+                            {b.upcharge_cents > 0 && ` · cost ${formatUSD(b.amount_cents)} + markup ${formatUSD(b.upcharge_cents)}`}
+                          </span>
+                        )}
                       </span>
                     </span>
-                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(b.amount_cents)}</span>
+                    <span className="text-sm font-medium tabular-nums text-gray-900">{formatUSD(vendorBillTotalCents(b))}</span>
                   </label>
                 ))}
               </div>
@@ -3330,14 +3349,38 @@ export function ProjectInvoiceDetailModal({
   // lifecycle, error parsing, and the panel reset are identical, so they live
   // here once.
   const submitInvoiceEmail = async (
-    action: () => Promise<{ delivered_to?: string }>,
-    opts: { loading: string; description: string; requireComposed: boolean },
+    // Receives the normalized recipient list so the send uses exactly the
+    // addresses validated here.
+    action: (to: string) => Promise<{ delivered_to?: string }>,
+    opts: {
+      loading: string;
+      description: string;
+      requireComposed: boolean;
+      // The QuickBooks rail forwards the address to Intuit's sendTo parameter,
+      // which takes one address; the platform rail can address several.
+      singleRecipientOnly?: boolean;
+    },
   ) => {
-    const to = emailTo.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
-      toast.error("Enter a valid email address");
+    const parsed = parseRecipients(emailTo);
+    if (parsed.error) {
+      toast.error(parsed.error);
       return;
     }
+    if (opts.singleRecipientOnly && parsed.addresses.length > 1) {
+      toast.error("QuickBooks can only send to one address", {
+        description:
+          "Remove the extra recipients, or use Send invoice to reach several at once.",
+      });
+      return;
+    }
+    if (emailCc.trim()) {
+      const parsedCc = parseRecipients(emailCc);
+      if (parsedCc.error) {
+        toast.error(parsedCc.error);
+        return;
+      }
+    }
+    const to = parsed.addresses.join(", ");
     if (opts.requireComposed && (!emailSubject.trim() || !emailBody.trim())) {
       toast.error("Subject and message are both required");
       return;
@@ -3345,7 +3388,7 @@ export function ProjectInvoiceDetailModal({
     setSendingInvoiceEmail(true);
     const toastId = toast.loading(opts.loading);
     try {
-      const result = await action();
+      const result = await action(to);
       toast.success(`Invoice emailed to ${result?.delivered_to || to}`, {
         id: toastId,
         description: opts.description,
@@ -3365,9 +3408,9 @@ export function ProjectInvoiceDetailModal({
   // attached. Available for both concierge and non-concierge invoices.
   const handleSendPlatformEmail = () =>
     submitInvoiceEmail(
-      async () => {
+      async (to) => {
         const result = await sendProjectInvoiceEmail(invoice.project_id, invoice.id, {
-          to: emailTo.trim(),
+          to,
           cc: emailCc.trim() || undefined,
           subject: emailSubject,
           body_html: plainTextToHtml(emailBody),
@@ -3387,8 +3430,7 @@ export function ProjectInvoiceDetailModal({
   // Mail.Send grant is missing).
   const handleSendViaQuickBooks = () =>
     submitInvoiceEmail(
-      async () => {
-        const to = emailTo.trim();
+      async (to) => {
         await onEmail(to);
         return { delivered_to: to };
       },
@@ -3396,6 +3438,7 @@ export function ProjectInvoiceDetailModal({
         loading: "Asking QuickBooks to send…",
         description: "QuickBooks sent the client a link to view and pay the invoice.",
         requireComposed: false,
+        singleRecipientOnly: true,
       },
     );
 
@@ -3565,9 +3608,14 @@ export function ProjectInvoiceDetailModal({
 
             <div className="mt-3 grid grid-cols-2 gap-3">
               <label className="flex flex-col gap-1">
-                <span className="text-xs font-medium uppercase tracking-wide text-gray-500">To</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  To <span className="normal-case text-gray-400">(comma-separated)</span>
+                </span>
+                {/* type="text", not "email": the browser's own email validation
+                    rejects a comma-separated list, which this field accepts.
+                    parseRecipients does the validating. */}
                 <input
-                  type="email"
+                  type="text"
                   autoFocus
                   value={emailTo}
                   onChange={(e) => setEmailTo(e.target.value)}
@@ -3582,7 +3630,7 @@ export function ProjectInvoiceDetailModal({
                       void handleSendPlatformEmail();
                     }
                   }}
-                  placeholder="client@example.com"
+                  placeholder="client@example.com, second@example.com"
                   className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900"
                 />
               </label>

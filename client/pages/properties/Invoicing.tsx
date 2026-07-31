@@ -42,6 +42,7 @@ import { toast } from "sonner";
 import { openAuthPdf } from "@/api/openAuthPdf";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import { plainTextToHtml } from "@/lib/plainTextToHtml";
+import { parseRecipients } from "@/lib/emailRecipients";
 
 import glAccounts from "@/data/gl_accounts.json";  
 
@@ -1296,14 +1297,38 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   // are identical, so they live here once.
   const submitInvoiceEmail = async (
     endpoint: string,
-    payload: Record<string, unknown>,
-    opts: { loading: string; description: string; requireComposed: boolean },
+    // Built from the normalized recipient list so both rails send exactly the
+    // addresses that were validated here.
+    payload: (to: string) => Record<string, unknown>,
+    opts: {
+      loading: string;
+      description: string;
+      requireComposed: boolean;
+      // The QuickBooks rail forwards the address to Intuit's sendTo parameter,
+      // which takes one address; the platform rail can address several.
+      singleRecipientOnly?: boolean;
+    },
   ) => {
     if (!currentInvoiceId) return;
-    const email = sendToEmail.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Enter a valid email address.");
+    const parsed = parseRecipients(sendToEmail);
+    if (parsed.error) {
+      toast.error(parsed.error);
       return;
+    }
+    if (opts.singleRecipientOnly && parsed.addresses.length > 1) {
+      toast.error("QuickBooks can only send to one address.", {
+        description:
+          "Remove the extra recipients, or use Send invoice to reach several at once.",
+      });
+      return;
+    }
+    const email = parsed.addresses.join(", ");
+    if (sendToCc.trim()) {
+      const parsedCc = parseRecipients(sendToCc);
+      if (parsedCc.error) {
+        toast.error(parsedCc.error);
+        return;
+      }
     }
     if (opts.requireComposed && (!emailSubject.trim() || !emailBody.trim())) {
       toast.error("Subject and message are both required.");
@@ -1315,7 +1340,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       const res = await authFetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload(email)),
       });
       if (!res.ok) {
         const body = await res.text();
@@ -1348,13 +1373,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const handleSendToClient = () =>
     submitInvoiceEmail(
       `/invoicing/email`,
-      {
+      (to) => ({
         invoice_id: currentInvoiceId,
-        to: sendToEmail.trim(),
+        to,
         cc: sendToCc.trim(),
         subject: emailSubject,
         body_html: plainTextToHtml(emailBody),
-      },
+      }),
       {
         loading: "Sending invoice…",
         description: "Sent from billing@avmre.com with the invoice PDF attached.",
@@ -1367,12 +1392,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const handleSendViaQuickBooks = () =>
     submitInvoiceEmail(
       `/invoicing/send`,
-      { invoice_id: currentInvoiceId, send_to: sendToEmail.trim() },
+      (to) => ({ invoice_id: currentInvoiceId, send_to: to }),
       {
         loading: "Asking QuickBooks to send…",
         description:
           "QuickBooks sent the client a link to view and pay the invoice.",
         requireComposed: false,
+        singleRecipientOnly: true,
       },
     );
 
@@ -2757,10 +2783,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="block text-xs font-medium text-gray-600">
-                  To
+                  To <span className="text-gray-400">(comma-separated)</span>
                 </label>
+                {/* type="text", not "email": the browser's own email
+                    validation rejects a comma-separated list, which this field
+                    accepts. parseRecipients does the validating. */}
                 <input
-                  type="email"
+                  type="text"
                   autoFocus
                   value={sendToEmail}
                   onChange={(e) => setSendToEmail(e.target.value)}
@@ -2775,7 +2804,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       void handleSendToClient();
                     }
                   }}
-                  placeholder="client@example.com"
+                  placeholder="client@example.com, second@example.com"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764]"
                 />
               </div>

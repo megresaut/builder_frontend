@@ -57,6 +57,35 @@ const isPendingFtoValue = (v: string | null): boolean =>
 const extractPendingFtoName = (v: string): string =>
   v.slice(PENDING_FTO_PREFIX.length);
 
+/**
+ * Identity of the field team order an entry points at, used to key task
+ * selections in taskByFtoKey. Inline ("+ Add") FTOs have no id until submit
+ * time, so they are keyed by property + custom name — the same key
+ * createPendingFtosAndSubmit uses to dedupe them.
+ *
+ * Returns null when there is no FTO to attach a task to: nothing selected yet,
+ * or "Misc (No FTO)" on an expense line.
+ */
+const ftoLinkKey = (entry: {
+  taskId: string | null;
+  propertyId: string | null;
+  customTaskName?: string;
+}): string | null => {
+  const { taskId, propertyId } = entry;
+  if (!taskId || !propertyId) return null;
+  if (taskId === MISC_EXPENSE_TASK_VALUE) return null;
+  if (taskId === CUSTOM_FTO_TASK_VALUE) {
+    const name = entry.customTaskName?.trim();
+    return name ? `custom:${propertyId}::${name}` : null;
+  }
+  if (isPendingFtoValue(taskId)) {
+    const name = extractPendingFtoName(taskId).trim();
+    return name ? `custom:${propertyId}::${name}` : null;
+  }
+  const id = Number(taskId);
+  return Number.isFinite(id) && id > 0 ? `fto:${id}` : null;
+};
+
 /** Property name that should not be selectable for FTO/misc submissions (Buildium sentinel). */
 const NO_PROPERTY_SENTINEL_NAME = "Billing For No Property";
 
@@ -74,6 +103,11 @@ interface HourEntry {
   propertyId: string | null;
   locationId: string | null;
   unitId: string | null;
+  /**
+   * Field team order id — NOT a tasks.id, despite the name (legacy). Labelled
+   * "Field Team Order" in the UI. The real task association lives on the FTO
+   * (field_team_orders.task_id) and is tracked separately in taskByFtoKey.
+   */
   taskId: string | null;
   customTaskName: string;
   collaboratorIds: CollaboratorSelection;
@@ -92,6 +126,7 @@ interface ExpenseEntry {
   propertyId: string | null;
   locationId: string | null;
   unitId: string | null;
+  /** Field team order id (see HourEntry.taskId) — "0" means misc / no FTO. */
   taskId: string | null;
   amount: number | string;
   chargeType: string | null;
@@ -177,6 +212,84 @@ status: string;
 priority: string;
 approval_status: string;
 form_submission_status: "none" | "partial" | "complete";
+/** Task this FTO is linked to (field_team_orders.task_id); null when unlinked. */
+task_id?: number | null;
+}
+
+/** Minimal task shape from GET /maintenance/tasks, for the Task association field. */
+interface SimpleTask {
+  id: number;
+  name: string;
+  status: string;
+}
+
+/** Task statuses that are finished — excluded from the Task dropdown. */
+const TERMINAL_TASK_STATUSES = new Set(["closed", "cancelled"]);
+
+/**
+ * Options for the Task field: open tasks only, i.e. anything not closed or
+ * cancelled (so in_progress / scheduled / pending_vendor all qualify). A task
+ * the FTO is already linked to is kept even when finished, so opening an old
+ * submission never silently drops its existing link. Leading "— None —" clears.
+ *
+ * Exported for tests.
+ */
+export function buildTaskOptions(
+  tasks: SimpleTask[],
+  selectedTaskId: number | null
+): { value: string; label: string }[] {
+  const visible = tasks.filter(
+    (t) =>
+      !TERMINAL_TASK_STATUSES.has(String(t.status)) || t.id === selectedTaskId
+  );
+  return [
+    { value: "", label: "— None —" },
+    ...visible.map((t) => ({
+      value: String(t.id),
+      label: t.name || `Task #${t.id}`,
+    })),
+  ];
+}
+
+/**
+ * Decide which FTOs need field_team_orders.task_id rewritten, as
+ * ftoId -> tasks.id (0 meaning unlink).
+ *
+ * Two guards keep this from touching FTOs it shouldn't: an FTO whose Task field
+ * was never opened has no key in taskByFtoKey and is skipped, and a selection
+ * equal to what the FTO already stores is a no-op (no churn on updated_at, no
+ * pointless Outlook re-sync). Inline FTOs ("custom:" keys) are excluded — they
+ * carry their task in the create payload instead.
+ *
+ * Exported for tests.
+ */
+export function planFtoTaskLinkWrites(
+  entries: Array<{
+    taskId: string | null;
+    propertyId: string | null;
+    customTaskName?: string;
+  }>,
+  taskByFtoKey: Record<string, number | null>,
+  ftosByProperty: Record<string, { id: number; task_id?: number | null }[]>
+): Map<number, number> {
+  const wanted = new Map<number, number>();
+
+  for (const entry of entries) {
+    const key = ftoLinkKey(entry);
+    if (!key || !key.startsWith("fto:")) continue;
+    if (!(key in taskByFtoKey)) continue; // never touched -> leave the FTO alone
+
+    const ftoId = Number(key.slice("fto:".length));
+    const desired = taskByFtoKey[key] ?? 0;
+    const current =
+      (ftosByProperty[entry.propertyId ?? ""] ?? []).find((f) => f.id === ftoId)
+        ?.task_id ?? 0;
+
+    if (desired === current) continue;
+    wanted.set(ftoId, desired);
+  }
+
+  return wanted;
 }
 
 interface ApiHourLine {
@@ -328,6 +441,17 @@ export default function FtoSubmissionForm() {
   const [ftosLoading, setFtosLoading] = useState(false);
   const [unitsByProperty, setUnitsByProperty] = useState<Record<string, Unit[]>>({});
   const [unitsLoading, setUnitsLoading] = useState<Record<string, boolean>>({});
+  const [tasksByProperty, setTasksByProperty] = useState<Record<string, SimpleTask[]>>({});
+  const [tasksLoading, setTasksLoading] = useState<Record<string, boolean>>({});
+  /**
+   * Task chosen for each field team order, keyed by ftoLinkKey().
+   *
+   * The association lives on the FTO (field_team_orders.task_id), not on the
+   * hour/expense line, so it is stored per-FTO rather than per-entry — two
+   * entries pointing at the same FTO then share one value by construction and
+   * can never disagree. Written to the API at submit time by syncFtoTaskLinks().
+   */
+  const [taskByFtoKey, setTaskByFtoKey] = useState<Record<string, number | null>>({});
 
   const [apiSubmission, setApiSubmission] = useState<GetSubmissionResponse | null>(null);
   const [submissionLoading, setSubmissionLoading] = useState(false);
@@ -652,6 +776,7 @@ export default function FtoSubmissionForm() {
     if (propertyId) {
       loadUnitsForProperty(propertyId);
       loadFtosForProperty(propertyId);
+      loadTasksForProperty(propertyId);
     }
 
     // Set initial values immediately
@@ -892,6 +1017,7 @@ export default function FtoSubmissionForm() {
     if (submissionPropertyId) {
       loadUnitsForProperty(String(submissionPropertyId));
       loadFtosForProperty(String(submissionPropertyId));
+      loadTasksForProperty(String(submissionPropertyId));
     }
   }, [apiSubmission]);
 
@@ -1030,8 +1156,51 @@ export default function FtoSubmissionForm() {
     propertyIds.forEach((pid) => {
       loadFtosForProperty(pid);
       loadUnitsForProperty(pid);
+      loadTasksForProperty(pid);
     });
   }, [apiSubmission]);
+
+  /**
+   * Seed the Task field from the task each selected FTO is already linked to.
+   * Only fills keys that are absent, so a re-render never clobbers a pick the
+   * user has made (including an explicit "— None —").
+   */
+  useEffect(() => {
+    const seeds: Record<string, number | null> = {};
+
+    const consider = (entry: {
+      taskId: string | null;
+      propertyId: string | null;
+      customTaskName?: string;
+    }) => {
+      const key = ftoLinkKey(entry);
+      // Inline ("custom:") FTOs don't exist yet, so they have nothing to seed from.
+      if (!key || !key.startsWith("fto:")) return;
+      const ftoId = Number(key.slice("fto:".length));
+      const fto = (ftosByProperty[entry.propertyId ?? ""] ?? []).find(
+        (f) => f.id === ftoId
+      );
+      if (!fto) return;
+      seeds[key] = fto.task_id ?? null;
+    };
+
+    hourEntries.forEach(consider);
+    expenseEntries.forEach(consider);
+
+    if (Object.keys(seeds).length === 0) return;
+
+    setTaskByFtoKey((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const [key, taskId] of Object.entries(seeds)) {
+        if (!(key in next)) {
+          next[key] = taskId;
+          changed = true;
+        }
+      }
+      return changed ? next : prev; // identity-stable: avoids a re-render loop
+    });
+  }, [hourEntries, expenseEntries, ftosByProperty]);
   
   
   // Match FTO ID from location state to loaded FTOs and set taskId for NEW submissions
@@ -1240,9 +1409,37 @@ export default function FtoSubmissionForm() {
       setUnitsLoading((prev) => ({ ...prev, [propertyId]: false }));
     }
   };
-  
-  
-  
+
+  /** Load this property's tasks (all statuses) for the optional Task field. */
+  const loadTasksForProperty = async (propertyId: string) => {
+    if (tasksByProperty[propertyId]) return; // cached
+
+    try {
+      setTasksLoading((prev) => ({ ...prev, [propertyId]: true }));
+
+      const data: SimpleTask[] = await fetchJSON(
+        `/maintenance/tasks?property_id=${Number(propertyId)}&limit=200`
+      );
+
+      setTasksByProperty((prev) => ({
+        ...prev,
+        [propertyId]: data || [],
+      }));
+    } catch (err) {
+      console.error("Failed to load tasks", err);
+      setTasksByProperty((prev) => ({
+        ...prev,
+        [propertyId]: [],
+      }));
+    } finally {
+      setTasksLoading((prev) => ({ ...prev, [propertyId]: false }));
+    }
+  };
+
+  const getTaskOptions = (
+    propertyId: string | null,
+    selectedTaskId: number | null
+  ) => buildTaskOptions(tasksByProperty[propertyId ?? ""] ?? [], selectedTaskId);
 
   const toggleExpenseEntry = (id: string) => {
     setExpenseEntries((prev) =>
@@ -1397,19 +1594,19 @@ export default function FtoSubmissionForm() {
         isValid = false;
       }
       if (!entry.taskId) {
-        errors.taskId = "Task is required";
+        errors.taskId = "Field team order is required";
         isValid = false;
       } else if (entry.taskId === CUSTOM_FTO_TASK_VALUE) {
         if (!entry.customTaskName?.trim()) {
-          errors.taskId = "Task name is required for custom tasks.";
+          errors.taskId = "Name is required for a custom field team order.";
           isValid = false;
         }
         if (!isCollaboratorSelectionValid(entry.collaboratorIds)) {
-          errors.collaboratorIds = "Collaborators selection is required for custom tasks.";
+          errors.collaboratorIds = "Collaborators selection is required for a custom field team order.";
           isValid = false;
         }
         if (!entry.note?.trim()) {
-          errors.note = "Notes are required for custom tasks (used as FTO description).";
+          errors.note = "Notes are required for a custom field team order (used as FTO description).";
           isValid = false;
         }
       }
@@ -1447,7 +1644,7 @@ export default function FtoSubmissionForm() {
         isValid = false;
       }
       if (!entry.taskId) {
-        errors.taskId = "Task is required";
+        errors.taskId = "Field team order is required";
         isValid = false;
       } else if (isPendingFtoValue(entry.taskId)) {
         const name = extractPendingFtoName(entry.taskId);
@@ -1455,7 +1652,7 @@ export default function FtoSubmissionForm() {
           (p) => p.propertyId === entry.propertyId && p.customTaskName === name
         );
         if (!stillExists) {
-          errors.taskId = "The referenced custom task no longer exists. Please select a different task.";
+          errors.taskId = "The referenced custom field team order no longer exists. Please select a different one.";
           isValid = false;
         }
       }
@@ -1490,6 +1687,47 @@ export default function FtoSubmissionForm() {
   const hasPendingAttachmentUploads = expenseEntries.some((e) =>
     e.files.some((f) => f.uploading === true || !f.storage_path)
   );
+
+  /**
+   * Persist each Task selection onto its field team order
+   * (field_team_orders.task_id) via PATCH /maintenance/ftos/{id}, where a
+   * task_id of 0 unlinks. See planFtoTaskLinkWrites for what gets written.
+   *
+   * Throws on failure so the caller aborts the submission rather than silently
+   * dropping the association.
+   */
+  const syncFtoTaskLinks = async (
+    hours: HourEntry[],
+    expenses: ExpenseEntry[]
+  ) => {
+    const wanted = planFtoTaskLinkWrites(
+      [...hours, ...expenses],
+      taskByFtoKey,
+      ftosByProperty
+    );
+
+    for (const [ftoId, taskId] of wanted) {
+      await fetchJSON(`/maintenance/ftos/${ftoId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ task_id: taskId }),
+      });
+    }
+
+    if (wanted.size > 0) {
+      // Keep the FTO cache honest so a second submit doesn't re-PATCH.
+      setFtosByProperty((prev) => {
+        const next: Record<string, FTO[]> = {};
+        for (const [propId, list] of Object.entries(prev)) {
+          next[propId] = list.map((f) =>
+            wanted.has(f.id)
+              ? { ...f, task_id: wanted.get(f.id) || null }
+              : f
+          );
+        }
+        return next;
+      });
+    }
+  };
 
   const createPendingFtosAndSubmit = async () => {
     setIsSubmitting(true);
@@ -1534,6 +1772,11 @@ export default function FtoSubmissionForm() {
             ? []
             : sourceEntry.collaboratorIds;
 
+        // Task picked for this inline FTO, keyed the same way ftoLinkKey() does.
+        const linkedTaskId =
+          taskByFtoKey[`custom:${info.propertyId}::${info.customTaskName}`] ??
+          null;
+
         const payload = {
           property_id: propertyIdNum,
           unit_id:
@@ -1546,6 +1789,7 @@ export default function FtoSubmissionForm() {
           field_team_member_ids: [techIdNum, ...collaboratorIds],
           pm_assignee_ids: [] as number[],
           source: "submission_form",
+          ...(linkedTaskId ? { task_id: linkedTaskId } : {}),
         };
 
         const created: any = await fetchJSON("/maintenance/ftos", {
@@ -1589,10 +1833,19 @@ export default function FtoSubmissionForm() {
                 priority: payload.priority,
                 approval_status: "",
                 form_submission_status: "none",
+                task_id: linkedTaskId,
               } as FTO,
             ],
           };
         });
+
+        // Carry the task selection from the pre-create key onto the real FTO id,
+        // so the field still shows it after submit. It matches what the create
+        // payload already sent, so syncFtoTaskLinks sees no diff and skips it.
+        setTaskByFtoKey((prev) => ({
+          ...prev,
+          [`fto:${createdId}`]: linkedTaskId,
+        }));
 
         // Incrementally update state so partial progress is saved on failure
         setHourEntries((prev) =>
@@ -1676,11 +1929,16 @@ export default function FtoSubmissionForm() {
       return;
     }
 
+    // Write the Task links onto their FTOs BEFORE the submission itself: the
+    // server derives fto_submissions.task_id from field_team_orders.task_id at
+    // create time, so a link written afterwards would land stale.
+    await syncFtoTaskLinks(hourEntries_, expenseEntries_);
+
     const techId =
       isSubmitAsAdmin && submitAsTechId != null
         ? submitAsTechId
         : userId;
-  
+
     // Helper to convert unitId string to number or null
     const getUnitIdAsNumber = (unitId: string | null): number | null => {
       if (!unitId) return null;
@@ -2002,6 +2260,7 @@ export default function FtoSubmissionForm() {
                                         if (propertyId) {
                                           loadFtosForProperty(String(propertyId));
                                           loadUnitsForProperty(String(propertyId));
+                                          loadTasksForProperty(String(propertyId));
                                         }
                                     }}
                                     placeholder={
@@ -2041,7 +2300,7 @@ export default function FtoSubmissionForm() {
                         </div>
 
                         <SelectField
-                            label="Task"
+                            label="Field Team Order"
                             required
                             error={hourErrors[entry.id]?.taskId}
                             options={[
@@ -2108,17 +2367,55 @@ export default function FtoSubmissionForm() {
                             }}
                             placeholder={
                                 ftosLoading
-                                ? "Loading tasks..."
+                                ? "Loading field team orders..."
                                 : !entry.propertyId
                                     ? "Select Property First"
-                                    : "Select Task"
+                                    : "Select Field Team Order"
                             }
                             disabled={!entry.propertyId || ftosLoading || isApproved}
                         />
 
+                        {/* Optional task this field team order belongs to. Stored on
+                            the FTO, so it is shared by every entry using that FTO. */}
+                        {(() => {
+                          const linkKey = ftoLinkKey(entry);
+                          const selectedTaskId = linkKey
+                            ? taskByFtoKey[linkKey] ?? null
+                            : null;
+                          return (
+                            <SelectField
+                              label="Task"
+                              options={getTaskOptions(entry.propertyId, selectedTaskId)}
+                              value={selectedTaskId ? String(selectedTaskId) : ""}
+                              onChange={(value) => {
+                                if (isApproved || !linkKey) return;
+                                const v = Array.isArray(value) ? value[0] : value;
+                                setTaskByFtoKey((prev) => ({
+                                  ...prev,
+                                  [linkKey]: v ? Number(v) : null,
+                                }));
+                              }}
+                              placeholder={
+                                !entry.propertyId
+                                  ? "Select Property First"
+                                  : !linkKey
+                                    ? "Select Field Team Order First"
+                                    : tasksLoading[entry.propertyId ?? ""]
+                                      ? "Loading tasks…"
+                                      : "Select Task"
+                              }
+                              disabled={
+                                !linkKey ||
+                                tasksLoading[entry.propertyId ?? ""] ||
+                                isApproved
+                              }
+                            />
+                          );
+                        })()}
+
                         {entry.taskId === CUSTOM_FTO_TASK_VALUE && (
                           <TextField
-                            label="Task name"
+                            label="Field Team Order name"
                             required
                             value={entry.customTaskName}
                             onChange={(e) => {
@@ -2126,7 +2423,7 @@ export default function FtoSubmissionForm() {
                               updateHourEntry(entry.id, "customTaskName", e.target.value);
                               updateHourEntry(entry.id, "note", e.target.value);
                             }}
-                            placeholder="Type a custom task name"
+                            placeholder="Type a custom field team order name"
                             disabled={isApproved}
                           />
                         )}
@@ -2456,6 +2753,7 @@ export default function FtoSubmissionForm() {
                                     if (propertyId) {
                                       loadFtosForProperty(String(propertyId));
                                       loadUnitsForProperty(String(propertyId));
+                                      loadTasksForProperty(String(propertyId));
                                     }
                                 }}
                                 placeholder={
@@ -2495,7 +2793,7 @@ export default function FtoSubmissionForm() {
                         </div>
 
                         <SelectField
-                            label="Task"
+                            label="Field Team Order"
                             required
                             error={expenseErrors[entry.id]?.taskId}
                             options={[
@@ -2578,13 +2876,54 @@ export default function FtoSubmissionForm() {
                             }}
                             placeholder={
                                 ftosLoading
-                                ? "Loading tasks..."
+                                ? "Loading field team orders..."
                                 : !entry.propertyId
                                     ? "Select Property First"
-                                    : "Select Task"
+                                    : "Select Field Team Order"
                             }
                             disabled={!entry.propertyId || ftosLoading || isApproved}
                         />
+
+                        {/* Optional task this field team order belongs to. Disabled for
+                            "Misc (No FTO)" lines — there is no FTO to attach it to. */}
+                        {(() => {
+                          const linkKey = ftoLinkKey(entry);
+                          const selectedTaskId = linkKey
+                            ? taskByFtoKey[linkKey] ?? null
+                            : null;
+                          const isMisc = entry.taskId === MISC_EXPENSE_TASK_VALUE;
+                          return (
+                            <SelectField
+                              label="Task"
+                              options={getTaskOptions(entry.propertyId, selectedTaskId)}
+                              value={selectedTaskId ? String(selectedTaskId) : ""}
+                              onChange={(value) => {
+                                if (isApproved || !linkKey) return;
+                                const v = Array.isArray(value) ? value[0] : value;
+                                setTaskByFtoKey((prev) => ({
+                                  ...prev,
+                                  [linkKey]: v ? Number(v) : null,
+                                }));
+                              }}
+                              placeholder={
+                                !entry.propertyId
+                                  ? "Select Property First"
+                                  : isMisc
+                                    ? "Not available for misc expenses"
+                                    : !linkKey
+                                      ? "Select Field Team Order First"
+                                      : tasksLoading[entry.propertyId ?? ""]
+                                        ? "Loading tasks…"
+                                        : "Select Task"
+                              }
+                              disabled={
+                                !linkKey ||
+                                tasksLoading[entry.propertyId ?? ""] ||
+                                isApproved
+                              }
+                            />
+                          );
+                        })()}
 
                         <CurrencyField
                           label="Amount"

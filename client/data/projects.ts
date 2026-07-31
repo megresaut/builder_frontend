@@ -967,7 +967,8 @@ export interface BillableVendorBill {
   vendor_id: number | null;
   vendor_name: string;
   description: string;
-  amount_cents: number;
+  amount_cents: number; // vendor cost, pre-upcharge
+  upcharge_cents: number; // AVMRE markup, folded into the billed line by vendorBillTotalCents
 }
 // One computed labor entry inside an FTO submission (hours × property rate).
 export interface FtoLaborLine {

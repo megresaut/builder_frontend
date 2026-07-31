@@ -338,3 +338,90 @@ describe("ProjectInvoiceBuilderModal edit mode — FTO submission dedup", () => 
     expect(ftoSubmissionIds).toEqual([77]);
   });
 });
+
+describe("ProjectInvoiceBuilderModal — vendor-bill upcharge folded into the billed amount", () => {
+  // bills.amount_cents is the vendor-owed figure and EXCLUDES the per-line
+  // upcharge (it is what gets pushed to QBO/Buildium as the payable). The owner is
+  // billed cost + markup, folded into the single cost_reimbursement line.
+  const markedUp: Billables = {
+    installments_due: [],
+    change_orders_unbilled: [],
+    vendor_bills: [
+      // $24,000 cost + $2,400 markup = $26,400 billed.
+      { bill_id: 21, vendor_id: 5, vendor_name: "Acme Concrete", description: "INV-8871", amount_cents: 2400000, upcharge_cents: 240000 },
+      // No markup → row must look exactly as it did before this feature.
+      { bill_id: 22, vendor_id: 6, vendor_name: "Bell Electric", description: "INV-9002", amount_cents: 500000, upcharge_cents: 0 },
+    ],
+    fto_items: [],
+  } as unknown as Billables;
+
+  const renderNew = (onCreate = vi.fn()) => {
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={null}
+        billables={markedUp}
+        busy={false}
+        onCreate={onCreate}
+        onClose={vi.fn()}
+      />,
+    );
+    return onCreate;
+  };
+
+  it("shows the blended total on the row and breaks the markup out in the caption", () => {
+    renderNew();
+    // Blended, not the $24,000 cost.
+    expect(screen.getByText("$26,400")).toBeInTheDocument();
+    expect(screen.queryByText("$24,000")).not.toBeInTheDocument();
+    // The caption makes the blend legible rather than opaque.
+    expect(screen.getByText(/cost \$24,000 \+ markup \$2,400/)).toBeInTheDocument();
+  });
+
+  it("leaves an unmarked-up bill's row showing just its cost and vendor", () => {
+    renderNew();
+    expect(screen.getByText("$5,000")).toBeInTheDocument();
+    expect(screen.getByText(/Bell Electric/)).toBeInTheDocument();
+    expect(screen.queryByText(/INV-9002.*markup/)).not.toBeInTheDocument();
+  });
+
+  it("sends cost + markup as the cost_reimbursement amount and totals the CTA on it", () => {
+    const onCreate = renderNew();
+    fireEvent.click(screen.getByRole("checkbox", { name: /Acme Concrete/ }));
+    // CTA total reflects the blended figure.
+    expect(screen.getByRole("button", { name: /Create draft — \$26,400/ })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^Create draft/ }));
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    expect(onCreate.mock.calls[0][1]).toEqual([
+      {
+        description: "INV-8871",
+        amount_cents: 2640000, // 2400000 cost + 240000 markup
+        source_type: "cost_reimbursement",
+        source_id: 21,
+        vendor_id: 5,
+      },
+    ]);
+  });
+
+  it("treats a missing upcharge_cents as zero rather than producing NaN", () => {
+    const onCreate = vi.fn();
+    render(
+      <ProjectInvoiceBuilderModal
+        invoice={null}
+        billables={{
+          installments_due: [],
+          change_orders_unbilled: [],
+          // Field absent entirely — a stale API response must not poison the math.
+          vendor_bills: [{ bill_id: 31, vendor_id: 7, vendor_name: "Cole Paving", description: "INV-1", amount_cents: 100000 }],
+          fto_items: [],
+        } as unknown as Billables}
+        busy={false}
+        onCreate={onCreate}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /Cole Paving/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Create draft/ }));
+    expect(onCreate.mock.calls[0][1][0].amount_cents).toBe(100000);
+  });
+});
