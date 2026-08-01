@@ -823,17 +823,64 @@ export async function listProjectBills(projectId: number): Promise<ProjectBillRo
   return data ?? [];
 }
 
-/* ------------------- payment → bill allocations (tracking) ----------------- */
-// Manually split a collected client payment across the project's bills. Pure
-// platform tracking (no GL impact): drives the derived covered_cents on bills
-// and allocated_cents on payments.
+/* --------------------------- project cost lines ---------------------------- */
+// The unified Financials cost feed: vendor bills + FTO labor + FTO expenses that
+// have NOT yet been converted into a bill. Mirrors ProjectCostLine in
+// modules/projects/http/cost_lines.go.
+//
+// Conversion is tracked per MATERIAL (fto_submissions.materials[i].bill_id), so a
+// converted expense arrives as a `vendor_bill` row and never also as `fto_expense`.
+// Only `vendor_bill` and `fto_labor` rows are allocatable — an unbilled expense
+// becomes a bill later, and allowing both would double-count the same dollar.
+
+export type ProjectCostLineKind = "vendor_bill" | "fto_labor" | "fto_expense";
+
+export interface ProjectCostLine {
+  kind: ProjectCostLineKind;
+  bill_id: number; // vendor_bill only (0 otherwise)
+  submission_id: number; // fto_labor / fto_expense (0 otherwise)
+  vendor_id: number | null;
+  party: string; // vendor name, or "AVM field team"
+  description: string;
+  date: string; // "YYYY-MM-DD" ("" when unknown)
+  booked_cents: number;
+  paid_cents: number; // vendor_bill only — labor/expense have no vendor payment
+  covered_cents: number; // client payment allocated to this row
+  allocatable: boolean;
+  is_avm_expense: boolean; // AVM absorbed it; not client-billable
+  work_order_name: string;
+  qbo_bill_id: string | null;
+  buildium_bill_id: string | null;
+}
+
+export async function listProjectCostLines(projectId: number): Promise<ProjectCostLine[]> {
+  const data = await fetchJSON(`/projects/${projectId}/cost-lines`);
+  return data ?? [];
+}
+
+/* ------------------- payment → cost allocations (tracking) ----------------- */
+// Manually split a collected client payment across the project's vendor bills and
+// FTO labor. Pure platform tracking (no GL impact): drives the derived
+// covered_cents on cost lines and allocated_cents on payments.
 
 export interface PaymentAllocation {
   id: number;
-  bill_id: number;
+  bill_id: number; // 0 for an fto_labor allocation
   amount_cents: number;
   vendor_name: string; // joined for display
-  description: string; // bill memo/invoice # for display
+  description: string; // bill memo/invoice # or labor label for display
+  // Migration 152: exactly one of bill_id / fto_submission_id is set.
+  target_kind: "bill" | "fto_labor";
+  fto_submission_id: number;
+}
+
+// AllocationInput mirrors allocationInput in modules/projects/http/allocations.go.
+// Omitting target_kind is treated as "bill" server-side for back-compat.
+export interface AllocationInput {
+  target_kind?: "bill" | "fto_labor";
+  bill_id?: number;
+  fto_submission_id?: number;
+  amount_cents: number;
 }
 
 export async function getPaymentAllocations(
@@ -847,7 +894,7 @@ export async function getPaymentAllocations(
 export async function putPaymentAllocations(
   projectId: number,
   paymentId: number,
-  allocations: { bill_id: number; amount_cents: number }[],
+  allocations: AllocationInput[],
 ): Promise<PaymentAllocation[]> {
   const data = await fetchJSON(`/projects/${projectId}/payments/${paymentId}/allocations`, {
     method: "PUT",

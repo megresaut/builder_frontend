@@ -249,6 +249,7 @@ const fetchSubmissionById = async (
   property_name?: string;
   property_id?: number;
   date_of_work?: string;
+  task_id?: number | null;
 }> => {
   const res = await authFetch(`/maintenance/submissions/${submissionId}`, {
     headers: { Accept: "application/json" },
@@ -284,6 +285,7 @@ const fetchSubmissionById = async (
     property_name: sub.PropertyName || sub.property_name,
     property_id: sub.PropertyID || sub.property_id,
     date_of_work: sub.DateOfWork || sub.date_of_work,
+    task_id: sub.TaskID ?? sub.task_id ?? null,
   };
 };
 
@@ -401,6 +403,8 @@ const patchSubmission = async (
     materials_json?: any[];
     field_team_member_id?: number;
     property_id?: number;
+    /** Misc expenses only: 0 unlinks, >0 links to that task. */
+    task_id?: number;
   },
 ) => {
   // Debugging logs removed
@@ -726,7 +730,54 @@ export default function ApproveFTOPage() {
   const [editMiscPropertyId, setEditMiscPropertyId] = useState<number | null>(
     null,
   );
+  // Misc expenses have no FTO, so their task link lives on the submission
+  // itself (fto_submissions.task_id). Setting it is what puts the expense on a
+  // project's cost + billables chain.
+  const [editMiscTasks, setEditMiscTasks] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
+  const [editMiscTaskId, setEditMiscTaskId] = useState<number | null>(null);
   const [ftoDetailsVersion, setFtoDetailsVersion] = useState(0);
+
+  // The property whose tasks are selectable: the one being edited in the modal
+  // if it's open, otherwise the submission's own property (so the read-only
+  // Task field can resolve its name).
+  const miscTaskPropertyId = showEditMiscModal ? editMiscPropertyId : propertyId;
+
+  // Misc-mode task options. Tasks are property-scoped and the backend rejects a
+  // task from another property, so this reloads whenever the property changes.
+  useEffect(() => {
+    if (!isMiscMode || miscTaskPropertyId == null) {
+      setEditMiscTasks([]);
+      return;
+    }
+    let cancelled = false;
+    fetchJSON(`/maintenance/tasks?property_id=${miscTaskPropertyId}&limit=200`)
+      .then((res: any) => {
+        if (cancelled) return;
+        const list = Array.isArray(res) ? res : (res?.data ?? []);
+        setEditMiscTasks(
+          list
+            .map((t: any) => ({
+              id: Number(t.id),
+              name: String(t.name ?? "").trim() || `Task #${t.id}`,
+            }))
+            .filter((t: { id: number }) => t.id > 0),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setEditMiscTasks([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isMiscMode, miscTaskPropertyId]);
+
+  const miscTaskName =
+    editMiscTaskId == null
+      ? ""
+      : (editMiscTasks.find((t) => t.id === editMiscTaskId)?.name ??
+        `Task #${editMiscTaskId}`);
 
   // Load property Buildium details when propertyId is set (for Buildium expense export)
   useEffect(() => {
@@ -1197,9 +1248,16 @@ export default function ApproveFTOPage() {
 
         if (isMiscMode && submissionIdNum) {
           // Misc mode: load single submission by ID
-          const { submission, property_name, property_id, date_of_work } =
-            await fetchSubmissionById(submissionIdNum);
+          const {
+            submission,
+            property_name,
+            property_id,
+            date_of_work,
+            task_id,
+          } = await fetchSubmissionById(submissionIdNum);
           submissions = [submission];
+
+          setEditMiscTaskId(task_id ?? null);
 
           // Property: prefer the API value (always fresh) over any nav-state
           // value (might be stale on refresh).
@@ -2340,11 +2398,12 @@ export default function ApproveFTOPage() {
                   </div>
                 </div>
 
-                {/* Task - from API (task_name) or N/A */}
+                {/* Task — FTO mode reads the FTO's task; misc mode reads the
+                    submission's own task_id (editable via the Edit button). */}
                 <div>
                   <TextField
                     label="Task"
-                    value={task || "N/A"}
+                    value={(isMiscMode ? miscTaskName : task) || "N/A"}
                     onChange={() => {}}
                     disabled={true}
                   />
@@ -3691,15 +3750,16 @@ export default function ApproveFTOPage() {
               Edit misc expense details
             </DialogTitle>
           </DialogHeader>
-          <div className="px-6 py-5">
+          <div className="px-6 py-5 flex flex-col gap-4">
             <ComboboxField
               label="Property"
               value={
                 editMiscPropertyId != null ? String(editMiscPropertyId) : ""
               }
-              onChange={(val) =>
-                setEditMiscPropertyId(val ? Number(val) : null)
-              }
+              onChange={(val) => {
+                setEditMiscPropertyId(val ? Number(val) : null);
+                setEditMiscTaskId(null); // tasks are property-scoped
+              }}
               placeholder="Select property..."
               searchPlaceholder="Search properties..."
               options={editMiscProperties.map((p) => ({
@@ -3708,6 +3768,31 @@ export default function ApproveFTOPage() {
               }))}
               emptyMessage="No properties found"
             />
+            <div>
+              <ComboboxField
+                label="Task (optional)"
+                value={editMiscTaskId != null ? String(editMiscTaskId) : ""}
+                onChange={(val) => setEditMiscTaskId(val ? Number(val) : null)}
+                placeholder={
+                  editMiscPropertyId == null
+                    ? "Select a property first"
+                    : editMiscTasks.length === 0
+                      ? "No tasks for this property"
+                      : "No task"
+                }
+                searchPlaceholder="Search tasks..."
+                options={editMiscTasks.map((t) => ({
+                  value: String(t.id),
+                  label: t.name,
+                }))}
+                emptyMessage="No tasks found"
+              />
+              <div className="mt-1 text-xs text-[#717179]">
+                Linking a task puts this expense on that task's project —
+                counted as project cost and billable to the owner on project
+                invoices. Clear it to unlink.
+              </div>
+            </div>
           </div>
           <DialogFooter className="px-6 py-4 bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-row justify-end gap-2">
             <button
@@ -3729,14 +3814,24 @@ export default function ApproveFTOPage() {
                   (r) => r.submissionId === submissionIdNum,
                 );
                 const assigneeId = loadedSubmissionToAssignee[submissionIdNum];
-                await patchSubmission(submissionIdNum, {
-                  hours_json: buildHoursJSON(subHourRows),
-                  materials_json: buildMaterialsJSON(subExpenseRows, {
-                    includeAvmreFields: true,
-                  }),
-                  field_team_member_id: assigneeId,
-                  property_id: editMiscPropertyId,
-                });
+                try {
+                  await patchSubmission(submissionIdNum, {
+                    hours_json: buildHoursJSON(subHourRows),
+                    materials_json: buildMaterialsJSON(subExpenseRows, {
+                      includeAvmreFields: true,
+                    }),
+                    field_team_member_id: assigneeId,
+                    property_id: editMiscPropertyId,
+                    // 0 = unlink, matching the FTO task convention.
+                    task_id: editMiscTaskId ?? 0,
+                  });
+                } catch (err: any) {
+                  // e.g. 400 when the task doesn't belong to the property.
+                  toast.error(
+                    err?.message ?? "Failed to save misc expense details",
+                  );
+                  return;
+                }
                 setPropertyId(editMiscPropertyId);
                 setProperty(
                   editMiscProperties.find((p) => p.id === editMiscPropertyId)

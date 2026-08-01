@@ -9,6 +9,11 @@ interface PropertyOption {
   name: string;
 }
 
+interface TaskOption {
+  id: number;
+  name: string;
+}
+
 interface CreateMiscExpenseModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,15 +40,20 @@ export default function CreateMiscExpenseModal({
   onCreated,
 }: CreateMiscExpenseModalProps) {
   const [propertyId, setPropertyId] = useState<number | null>(null);
+  const [taskId, setTaskId] = useState<number | null>(null);
   const [dateOfWork, setDateOfWork] = useState<string>("");
   const [properties, setProperties] = useState<PropertyOption[]>([]);
+  const [tasks, setTasks] = useState<TaskOption[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(false);
+  const [loadingTasks, setLoadingTasks] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
       setPropertyId(null);
+      setTaskId(null);
+      setTasks([]);
       setDateOfWork("");
       setError(null);
       return;
@@ -74,6 +84,39 @@ export default function CreateMiscExpenseModal({
     };
   }, [open]);
 
+  // Tasks are property-scoped, so they load only after a property is picked and
+  // reset whenever it changes — the backend rejects a task from another property.
+  useEffect(() => {
+    if (!open || propertyId == null) {
+      setTasks([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingTasks(true);
+    fetchJSON(`/maintenance/tasks?property_id=${propertyId}&limit=200`)
+      .then((res) => {
+        if (cancelled) return;
+        const list = Array.isArray(res) ? res : (res?.data ?? []);
+        setTasks(
+          list
+            .map((t: any) => ({
+              id: Number(t.id),
+              name: String(t.name ?? "").trim() || `Task #${t.id}`,
+            }))
+            .filter((t: TaskOption) => t.id > 0),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setTasks([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingTasks(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, propertyId]);
+
   const handleSubmit = async () => {
     setError(null);
     if (!propertyId) {
@@ -92,6 +135,9 @@ export default function CreateMiscExpenseModal({
         body: JSON.stringify({
           property_id: propertyId,
           date_of_work: dateOfWork,
+          // Optional: links the expense to a task so it lands on that task's
+          // project cost and billables. Omitted when no task is chosen.
+          ...(taskId != null && { task_id: taskId }),
         }),
       });
       if (!res.ok) {
@@ -138,7 +184,10 @@ export default function CreateMiscExpenseModal({
           <select
             id="cme-property"
             value={propertyId == null ? "" : String(propertyId)}
-            onChange={(e) => setPropertyId(e.target.value ? Number(e.target.value) : null)}
+            onChange={(e) => {
+              setPropertyId(e.target.value ? Number(e.target.value) : null);
+              setTaskId(null); // tasks are property-scoped
+            }}
             disabled={loadingProperties || submitting}
             className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764]"
           >
@@ -150,6 +199,37 @@ export default function CreateMiscExpenseModal({
             ))}
           </select>
         </FieldShell>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell label="Task (optional)" htmlFor="cme-task">
+          <select
+            id="cme-task"
+            value={taskId == null ? "" : String(taskId)}
+            onChange={(e) => setTaskId(e.target.value ? Number(e.target.value) : null)}
+            disabled={propertyId == null || loadingTasks || submitting}
+            className="w-full rounded-md border border-[#DADADA] bg-white px-3 py-2 text-sm outline-none focus:border-[#013764] disabled:bg-gray-50 disabled:text-[#9CA3AF]"
+          >
+            <option value="">
+              {propertyId == null
+                ? "Select a property first"
+                : loadingTasks
+                  ? "Loading…"
+                  : tasks.length === 0
+                    ? "No tasks for this property"
+                    : "No task"}
+            </option>
+            {tasks.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        </FieldShell>
+        <div className="mt-1 text-xs text-[#717179]">
+          Linking a task puts this expense on that task's project — counted as
+          project cost and billable to the owner on project invoices.
+        </div>
       </div>
 
       <div style={{ marginBottom: 12 }}>

@@ -119,6 +119,8 @@ interface MiscSubmission {
   techName: string;
   amount: number;
   description: string;
+  /** Linked task name, "" when the expense isn't attached to a task. */
+  taskName: string;
 }
 
 interface APIMiscSubmissionResponse {
@@ -134,6 +136,7 @@ interface APIMiscSubmissionResponse {
   property_id?: number | null;
   property_name?: string;
   fto_name?: string; // Repurposed for tech name in misc submissions
+  task_name?: string;
 }
 const normalizeFTOStatus = (status: string) => {
   if (status === "completed") return "Completed";
@@ -536,6 +539,7 @@ const transformAPIMiscSubmission = (apiData: APIMiscSubmissionResponse[]): MiscS
       techName: sub.fto_name || "Unknown Tech", // fto_name is repurposed for tech name
       amount: calculateMiscAmount(sub.MaterialsJSON),
       description: sub.Description || "Miscellaneous expense",
+      taskName: sub.task_name || "",
     };
   });
 };
@@ -1024,6 +1028,11 @@ export default function FieldTeamOrders() {
     {
       key: "description",
       label: "Description",
+      icon: <NoteIcon width={16} height={16} />,
+    },
+    {
+      key: "taskName",
+      label: "Task",
       icon: <NoteIcon width={16} height={16} />,
     },
     {
@@ -1699,6 +1708,15 @@ export default function FieldTeamOrders() {
                         <span className="text-gray-900 font-normal text-sm truncate">
                           {sub.description}
                         </span>
+                      );
+                    }
+                    if (columnKey === "taskName") {
+                      return sub.taskName ? (
+                        <span className="text-gray-900 font-normal text-sm truncate">
+                          {sub.taskName}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 font-normal text-sm">—</span>
                       );
                     }
                     if (columnKey === "techName") {

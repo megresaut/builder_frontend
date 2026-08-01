@@ -6,10 +6,7 @@ import { toast } from "sonner";
 
 import { fetchJSON, authFetch } from "@/api/fetchJSON";
 import { fetchChartOfAccounts } from "@/data/chartOfAccounts";
-import {
-  syncBuildiumPayments,
-  describeBuildiumSync,
-} from "@/data/buildiumPaymentSync";
+import { syncBill, describeBillSync, billSyncProblems } from "@/data/billSync";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import { PageTemplate } from "@/layout/PageTemplate";
 import {
@@ -98,6 +95,9 @@ interface ApiBill {
   qbo_paid_at?: string | null;
   created_at?: string;
   provider_gl_account_name?: string | null;
+  // Scraped utility bills publish through the scraper pipeline rather than the
+  // dual-push, so Sync isn't offered for them.
+  is_utility?: boolean;
 }
 
 interface ApiPayment {
@@ -371,14 +371,13 @@ export function ViewBillV2() {
   // Delete flow
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Header ≡ dropdown (Duplicate / Refresh from QBO / Delete) + manual QBO
-  // balance re-sync for concierge bills whose cache went stale.
+  // Header ≡ dropdown (Duplicate / Delete).
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const headerMenuRef = useRef<HTMLDivElement>(null);
-  const [refreshingQBO, setRefreshingQBO] = useState(false);
 
-  // "Mark as paid" — non-Concierge only; pulls Buildium's payment records.
-  const [markingPaid, setMarkingPaid] = useState(false);
+  // "Sync" — reconciles the bill against QBO + Buildium. Replaces the old
+  // "Mark as paid" button and "Refresh from QBO" dropdown item.
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     if (!headerMenuOpen) return;
@@ -479,55 +478,38 @@ export function ViewBillV2() {
     return b;
   }, [billId, fetchAttachments]);
 
-  // ── manual QBO re-sync ────────────────────────────────────────────────────
-  // Pulls the bill's live Balance/TotalAmt from QBO into the local cache, then
-  // reloads the page data. For concierge bills whose cached QBO state went
-  // stale (failed post-edit refresh, webhook gap, or a bill edited in QBO).
-  const handleRefreshFromQBO = async () => {
-    if (!billId || refreshingQBO) return;
-    setRefreshingQBO(true);
+  // ── Sync ──────────────────────────────────────────────────────────────────
+  // One action covering what "Mark as paid" and "Refresh from QBO" used to do
+  // separately: create the bill in whichever system is missing it (concierge
+  // bills in QBO + Buildium, everything else Buildium-only), then pull payments
+  // and balances back from wherever the bill actually lives.
+  //
+  // Anything short of a full settlement hands off to the Pay Bill modal,
+  // prefilled with the balance that's still open — the same handoff the old
+  // "Mark as paid" did. A failed sync never opens it: an outage must not nudge
+  // the user toward paying a bill that may already be settled.
+  const handleSync = async () => {
+    if (!billId || syncing) return;
+    setSyncing(true);
     try {
-      const res = await fetchJSON(`/vendors/bills/${billId}/refresh-qbo`, {
-        method: "POST",
-      });
+      const res = await syncBill(billId);
       await loadBill();
-      const bal = res?.qbo_balance_cents;
-      toast.success(
-        bal != null
-          ? `Synced from QBO — outstanding balance $${(bal / 100).toFixed(2)}`
-          : "Synced from QBO",
-      );
-    } catch (err: any) {
-      toast.error(`QBO refresh failed: ${err?.message ?? String(err)}`);
-    } finally {
-      setRefreshingQBO(false);
-      setHeaderMenuOpen(false);
-    }
-  };
 
-  // ── Mark as paid (non-Concierge) ──────────────────────────────────────────
-  // The PM already paid this bill inside Buildium. Pull Buildium's payment
-  // records in (read-only) rather than booking a second payment. If Buildium
-  // turns out to have nothing — or only a partial payment — fall through to
-  // the normal Pay Bill modal, which by then is prefilled with what's left.
-  const handleMarkAsPaid = async () => {
-    if (!billId || markingPaid) return;
-    setMarkingPaid(true);
-    try {
-      const res = await syncBuildiumPayments(billId);
-      await loadBill();
+      const problems = billSyncProblems(res);
       if (res.status === "paid") {
-        toast.success(describeBuildiumSync(res));
+        toast.success(describeBillSync(res));
       } else {
-        toast.info(describeBuildiumSync(res));
+        toast.info(describeBillSync(res));
         setShowPayBillModal(true);
       }
+      // Per-system failures and book disagreements are non-fatal — the rest of
+      // the sync still ran — so they ride alongside rather than replacing the
+      // result.
+      problems.forEach((p) => toast.warning(p));
     } catch (err: any) {
-      // Never open the pay modal on a failed lookup — a Buildium outage must
-      // not nudge the user toward paying a bill that may already be settled.
-      toast.error(`Couldn't check Buildium: ${err?.message ?? String(err)}`);
+      toast.error(`Sync failed: ${err?.message ?? String(err)}`);
     } finally {
-      setMarkingPaid(false);
+      setSyncing(false);
     }
   };
 
@@ -1286,12 +1268,11 @@ export function ViewBillV2() {
                 >
                   Pay bill
                 </HeaderButton>
-                {bill.property_type !== "C" && remainingCents > 0 && (
-                  <HeaderButton
-                    onClick={handleMarkAsPaid}
-                    disabled={markingPaid}
-                  >
-                    {markingPaid ? "Checking Buildium…" : "Mark as paid"}
+                {/* Utility bills publish through the scraper pipeline, not the
+                    dual-push, so Sync has nothing to offer them. */}
+                {!bill.is_utility && (
+                  <HeaderButton onClick={handleSync} disabled={syncing}>
+                    {syncing ? "Syncing…" : "Sync"}
                   </HeaderButton>
                 )}
                 <HeaderButton>Enter charges</HeaderButton>
@@ -1321,15 +1302,6 @@ export function ViewBillV2() {
                       >
                         Duplicate bill
                       </button>
-                      {bill.property_type === "C" && (
-                        <button
-                          className="block w-full px-3 py-2 text-left text-sm text-[#303030] hover:bg-gray-50 disabled:opacity-50"
-                          disabled={refreshingQBO}
-                          onClick={handleRefreshFromQBO}
-                        >
-                          {refreshingQBO ? "Refreshing from QBO…" : "Refresh from QBO"}
-                        </button>
-                      )}
                       <button
                         className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
                         onClick={() => {

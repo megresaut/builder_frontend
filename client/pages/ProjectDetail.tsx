@@ -46,6 +46,7 @@ import {
   uploadProjectFile,
   deleteProjectFile,
   listProjectBills,
+  listProjectCostLines,
   uploadPaymentReceipt,
   getPaymentAllocations,
   putPaymentAllocations,
@@ -82,7 +83,10 @@ import {
   type ProjectFileRow,
   type ProjectFileSource,
   type ProjectBillRow,
+  type ProjectCostLine,
+  type ProjectCostLineKind,
   type PaymentAllocation,
+  type AllocationInput,
 } from "@/data/projects";
 import {
   BudgetEditor,
@@ -2038,25 +2042,78 @@ function RecordPaymentModal({
 }
 
 
+// Project-invoice status pill colours. Values recovered verbatim from the shipped
+// bundle — keep in sync with ProjectInvoiceStatus in data/projects.ts.
+const P_INVOICE_STATUS_META: Record<
+  ProjectInvoiceStatus,
+  { label: string; text: string; bg: string }
+> = {
+  draft: { label: "Draft", text: "#374151", bg: "#F3F4F6" },
+  sent: { label: "Sent", text: "#1D4ED8", bg: "#E7EEFE" },
+  partially_paid: { label: "Partially Paid", text: "#B45309", bg: "#FCF2E1" },
+  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
+  void: { label: "Void", text: "#6B7280", bg: "#F3F4F6" },
+};
+
+// Cost-row presentation for the Financials cost table. `fto_expense` rows are
+// materials from an approved-but-not-yet-converted submission; once approval turns
+// one into a bill it arrives as `vendor_bill` instead, so a material is never
+// counted twice.
+const COST_KIND_META: Record<ProjectCostLineKind, { label: string; cls: string; hint: string }> = {
+  vendor_bill: {
+    label: "Vendor bill",
+    cls: "bg-blue-50 text-blue-700",
+    hint: "A real bill booked on this project (work order, or an approved field-team/misc expense)",
+  },
+  fto_labor: {
+    label: "FTO labor",
+    cls: "bg-purple-50 text-purple-700",
+    hint: "Field-team time on this project, valued at the property's billable rate. Internal work — no vendor is paid.",
+  },
+  fto_expense: {
+    label: "FTO expense",
+    cls: "bg-amber-50 text-amber-700",
+    hint: "A field-team material not yet approved into a vendor bill. Becomes a Vendor bill row on approval.",
+  },
+};
+
+const COST_FILTERS: { key: "all" | ProjectCostLineKind; label: string; hint: string }[] = [
+  { key: "all", label: "All", hint: "Every cost row on the project" },
+  { key: "vendor_bill", label: "Bills", hint: COST_KIND_META.vendor_bill.hint },
+  { key: "fto_labor", label: "Labor", hint: COST_KIND_META.fto_labor.hint },
+  { key: "fto_expense", label: "Expenses", hint: COST_KIND_META.fto_expense.hint },
+];
+
 // AllocatePaymentModal — manually split ONE collected payment across the
-// project's bills (pure tracking). Σ inputs is capped at the payment amount; the
-// remainder stays unallocated. Full-amount allocation allowed (a bill may be
-// covered past its cost), so we don't cap per bill.
+// project's ALLOCATABLE cost rows: vendor bills and FTO labor (migration 152).
+// Pure tracking. Σ inputs is capped at the payment amount; the remainder stays
+// unallocated. Full-amount allocation is allowed (a row may be covered past its
+// cost, since the client is billed with markup), so we don't cap per row.
+//
+// Unbilled FTO expenses are intentionally absent: each becomes a real bill on
+// approval, and allowing allocation in both states would let the same dollar be
+// allocated twice. The backend rejects them too.
 function AllocatePaymentModal({
   projectId,
   payment,
-  bills,
+  costLines,
   onSaved,
   onClose,
 }: {
   projectId: number;
   payment: ProjectPayment;
-  bills: ProjectBillRow[];
+  costLines: ProjectCostLine[];
   onSaved: () => void;
   onClose: () => void;
 }) {
-  // billId -> dollar string
-  const [amounts, setAmounts] = useState<Record<number, string>>({});
+  // Stable per-row key, since bill ids and submission ids live in different spaces.
+  const rowKey = (l: ProjectCostLine) =>
+    l.kind === "fto_labor" ? `fto_labor:${l.submission_id}` : `bill:${l.bill_id}`;
+
+  const targets = useMemo(() => costLines.filter((l) => l.allocatable), [costLines]);
+
+  // rowKey -> dollar string
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -2066,9 +2123,11 @@ function AllocatePaymentModal({
       try {
         const existing = await getPaymentAllocations(projectId, payment.id);
         if (!alive) return;
-        const seed: Record<number, string> = {};
+        const seed: Record<string, string> = {};
         existing.forEach((a: PaymentAllocation) => {
-          seed[a.bill_id] = centsToInput(a.amount_cents);
+          const key =
+            a.target_kind === "fto_labor" ? `fto_labor:${a.fto_submission_id}` : `bill:${a.bill_id}`;
+          seed[key] = centsToInput(a.amount_cents);
         });
         setAmounts(seed);
       } catch (e) {
@@ -2089,9 +2148,16 @@ function AllocatePaymentModal({
   const save = async () => {
     setSaving(true);
     try {
-      const allocations = bills
-        .map((b) => ({ bill_id: b.id, amount_cents: dollarsToCents(amounts[b.id] ?? "") }))
-        .filter((a) => a.amount_cents > 0);
+      const allocations: AllocationInput[] = [];
+      for (const l of targets) {
+        const cents = dollarsToCents(amounts[rowKey(l)] ?? "");
+        if (cents <= 0) continue;
+        allocations.push(
+          l.kind === "fto_labor"
+            ? { target_kind: "fto_labor", fto_submission_id: l.submission_id, amount_cents: cents }
+            : { target_kind: "bill", bill_id: l.bill_id, amount_cents: cents },
+        );
+      }
       await putPaymentAllocations(projectId, payment.id, allocations);
       toast.success("Allocation saved");
       onSaved();
@@ -2105,7 +2171,7 @@ function AllocatePaymentModal({
 
   return (
     <ModalShell
-      title="Allocate payment to bills"
+      title="Allocate payment to project costs"
       maxWidth="max-w-2xl"
       onClose={onClose}
       footer={
@@ -2132,46 +2198,56 @@ function AllocatePaymentModal({
 
         {loading ? (
           <div className="py-8 text-center text-sm text-gray-500">Loading…</div>
-        ) : bills.length === 0 ? (
-          <div className="py-8 text-center text-sm text-gray-500">No vendor bills on this project to allocate against yet.</div>
+        ) : targets.length === 0 ? (
+          <div className="py-8 text-center text-sm text-gray-500">
+            Nothing to allocate against yet — this project has no vendor bills or field-team labor.
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500">
-                  <th className="pb-2 font-semibold">Vendor</th>
-                  <th className="pb-2 font-semibold">Bill</th>
+                  <th className="pb-2 font-semibold">Type</th>
+                  <th className="pb-2 font-semibold">Party</th>
+                  <th className="pb-2 font-semibold">Description</th>
                   <th className="pb-2 text-right font-semibold">Booked</th>
                   <th className="pb-2 text-right font-semibold">Covered</th>
                   <th className="pb-2 text-right font-semibold">Allocate ($)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {bills.map((b) => (
-                  <tr key={b.id}>
-                    <td className="py-2 pr-2 text-gray-900">{b.vendor_name || (b.vendor_id ? `Vendor #${b.vendor_id}` : "—")}</td>
-                    <td className="py-2 pr-2 text-gray-600">
-                      <span className="block truncate max-w-[14rem]">{b.description || b.work_order_name || `Bill #${b.id}`}</span>
-                    </td>
-                    <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(b.booked_cents)}</td>
-                    <td className="py-2 text-right tabular-nums text-gray-500">{formatUSD(b.covered_cents)}</td>
-                    <td className="py-2 pl-2 text-right">
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        className="h-8 w-28 rounded-lg border border-[#DADADA] bg-white px-2 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
-                        value={amounts[b.id] ?? ""}
-                        onChange={(e) => setAmounts((m) => ({ ...m, [b.id]: e.target.value }))}
-                        placeholder="0"
-                      />
-                    </td>
-                  </tr>
-                ))}
+                {targets.map((l) => {
+                  const k = rowKey(l);
+                  const meta = COST_KIND_META[l.kind];
+                  return (
+                    <tr key={k}>
+                      <td className="py-2 pr-2">
+                        <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium ${meta.cls}`}>{meta.label}</span>
+                      </td>
+                      <td className="py-2 pr-2 text-gray-900">{l.party || "—"}</td>
+                      <td className="py-2 pr-2 text-gray-600">
+                        <span className="block truncate max-w-[14rem]">{l.description}</span>
+                      </td>
+                      <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(l.booked_cents)}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-500">{formatUSD(l.covered_cents)}</td>
+                      <td className="py-2 pl-2 text-right">
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          className="h-8 w-28 rounded-lg border border-[#DADADA] bg-white px-2 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
+                          value={amounts[k] ?? ""}
+                          onChange={(e) => setAmounts((m) => ({ ...m, [k]: e.target.value }))}
+                          placeholder="0"
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <div className="mt-2 text-xs text-gray-400">
-              Allocation is platform tracking only — it records which bills this client payment covers and doesn't post to QuickBooks or change the budget.
+              Allocation is platform tracking only — it records which project costs this client payment covers and doesn't post to QuickBooks or change the budget.
             </div>
           </div>
         )}
@@ -2179,21 +2255,6 @@ function AllocatePaymentModal({
     </ModalShell>
   );
 }
-
-/* ------------------- EXPLORATORY: consolidated Financials tab ---------------- */
-/* One tab that answers: what have we paid OUT to vendors, and what have we taken
-   IN from the client, and where do we net. Composes the already-loaded
-   ProjectSummary + getCashFlow + listProjectInvoices + listPayments. No new
-   backend endpoints. Intentionally lean vs. Payables/Receivables/Cash Flow. */
-type PInvoiceStatus = ProjectInvoiceStatus;
-
-const P_INVOICE_STATUS_META: Record<PInvoiceStatus, { label: string; text: string; bg: string }> = {
-  draft: { label: "Draft", text: "#374151", bg: "#F3F4F6" },
-  sent: { label: "Sent", text: "#1D4ED8", bg: "#E7EEFE" },
-  partially_paid: { label: "Partially Paid", text: "#B45309", bg: "#FCF2E1" },
-  paid: { label: "Paid", text: "#15803D", bg: "#E7F6EC" },
-  void: { label: "Void", text: "#6B7280", bg: "#F3F4F6" },
-};
 
 function FinancialsTab({
   summary,
@@ -2210,6 +2271,11 @@ function FinancialsTab({
   const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
   const [payments, setPayments] = useState<ProjectPayment[]>([]);
   const [bills, setBills] = useState<ProjectBillRow[]>([]);
+  const [costLines, setCostLines] = useState<ProjectCostLine[]>([]);
+  // Which cost rows the table shows. "all" also drives the footer totals, which
+  // are summed from the VISIBLE rows — the KPI tiles above keep using
+  // financials.committed_cents/paid_cents, which are bill-only by definition.
+  const [costFilter, setCostFilter] = useState<"all" | ProjectCostLineKind>("all");
   const [error, setError] = useState<string | null>(null);
   const [recordOpen, setRecordOpen] = useState(false);
   const [allocatePayment, setAllocatePayment] = useState<ProjectPayment | null>(null);
@@ -2241,16 +2307,18 @@ function FinancialsTab({
   const load = useCallback(async () => {
     try {
       setError(null);
-      const [cf, inv, pays, bl] = await Promise.all([
+      const [cf, inv, pays, bl, cl] = await Promise.all([
         getCashFlow(projectId),
         listProjectInvoices(projectId),
         listPayments(projectId),
         listProjectBills(projectId),
+        listProjectCostLines(projectId),
       ]);
       setCashflow(cf);
       setInvoices(inv);
       setPayments(pays);
       setBills(bl);
+      setCostLines(cl);
     } catch (e) {
       setError(errMessage(e, "Failed to load financials"));
     }
@@ -2258,6 +2326,26 @@ function FinancialsTab({
   useEffect(() => {
     load();
   }, [load]);
+
+  const visibleCostLines = useMemo(
+    () => (costFilter === "all" ? costLines : costLines.filter((l) => l.kind === costFilter)),
+    [costLines, costFilter],
+  );
+  // Footer totals come from the VISIBLE rows, not from financials.committed_cents:
+  // that KPI is bill-only (labor has no bill), so reusing it here would stop the
+  // footer from summing the table.
+  const costTotals = useMemo(
+    () =>
+      visibleCostLines.reduce(
+        (acc, l) => ({
+          booked: acc.booked + l.booked_cents,
+          paid: acc.paid + (l.kind === "vendor_bill" ? l.paid_cents : 0),
+          covered: acc.covered + l.covered_cents,
+        }),
+        { booked: 0, paid: 0, covered: 0 },
+      ),
+    [visibleCostLines],
+  );
 
   const openBuilder = async () => {
     setBuilderOpen(true);
@@ -2492,58 +2580,102 @@ function FinancialsTab({
       {/* Two lanes: bills → vendors (out), payments ← client (in) */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         {/* Bills booked on the project (money out) — per-bill via WO/FTO. */}
-        <Card title="Vendor bills">
-          {bills.length === 0 ? (
+        <Card
+          title="Project costs"
+          action={
+            <div className="flex items-center gap-1 rounded-lg border border-[#DADADA] bg-gray-50 p-0.5">
+              {COST_FILTERS.map((f) => {
+                const n = f.key === "all" ? costLines.length : costLines.filter((l) => l.kind === f.key).length;
+                const active = costFilter === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setCostFilter(f.key)}
+                    className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+                      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                    }`}
+                    title={f.hint}
+                  >
+                    {f.label}
+                    <span className={`ml-1 tabular-nums ${active ? "text-gray-400" : "text-gray-400"}`}>{n}</span>
+                  </button>
+                );
+              })}
+            </div>
+          }
+        >
+          {visibleCostLines.length === 0 ? (
             <div className="py-8 text-center text-sm text-gray-500">
-              No vendor bills booked on this project yet. Bills flow in from the project's work orders.
+              {costLines.length === 0
+                ? "No costs booked on this project yet. Vendor bills flow in from work orders and approved field-team expenses; field-team labor appears once a submission is logged."
+                : "No rows for this filter."}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500">
-                    <th className="pb-2 font-semibold">Vendor</th>
-                    <th className="pb-2 font-semibold">Bill / work order</th>
+                    <th className="pb-2 font-semibold">Type</th>
+                    <th className="pb-2 font-semibold">Party</th>
+                    <th className="pb-2 font-semibold">Description</th>
                     <th className="pb-2 text-right font-semibold">Booked</th>
                     <th className="pb-2 text-right font-semibold">Paid</th>
                     <th className="pb-2 text-right font-semibold">Covered</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {bills.map((b) => {
-                    const fullyCovered = b.covered_cents >= b.booked_cents && b.booked_cents > 0;
+                  {visibleCostLines.map((l) => {
+                    const meta = COST_KIND_META[l.kind];
+                    const fullyCovered = l.covered_cents >= l.booked_cents && l.booked_cents > 0;
                     return (
-                    <tr key={b.id}>
-                      <td className="py-2 pr-2 text-gray-900">{b.vendor_name || (b.vendor_id ? `Vendor #${b.vendor_id}` : "—")}</td>
-                      <td className="py-2 pr-2 text-gray-600">
-                        <span className="block truncate max-w-[16rem]">{b.description || b.work_order_name || `Bill #${b.id}`}</span>
-                        {b.statement_date && <span className="text-xs text-gray-400">{fmtProjDate(b.statement_date)}</span>}
-                      </td>
-                      <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(b.booked_cents)}</td>
-                      <td className="py-2 text-right tabular-nums text-violet-700">{formatUSD(b.paid_cents)}</td>
-                      <td className="py-2 text-right tabular-nums">
-                        {b.covered_cents > 0 ? (
-                          <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ${fullyCovered ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`} title={fullyCovered ? "Fully covered by client payments" : "Partially covered by client payments"}>
-                            {formatUSD(b.covered_cents)}
+                      <tr key={`${l.kind}:${l.bill_id || l.submission_id}:${l.description}`}>
+                        <td className="py-2 pr-2">
+                          <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium ${meta.cls}`} title={meta.hint}>
+                            {meta.label}
                           </span>
-                        ) : (
-                          <span className="text-gray-300">—</span>
-                        )}
-                      </td>
-                    </tr>
+                          {l.is_avm_expense && (
+                            <span className="ml-1 inline-flex items-center rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-600" title="AVM absorbed this cost — not billed to the client">
+                              absorbed
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2 pr-2 text-gray-900">{l.party || "—"}</td>
+                        <td className="py-2 pr-2 text-gray-600">
+                          <span className="block truncate max-w-[16rem]">{l.description}</span>
+                          {l.date && <span className="text-xs text-gray-400">{fmtProjDate(l.date)}</span>}
+                        </td>
+                        <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(l.booked_cents)}</td>
+                        <td className="py-2 text-right tabular-nums text-violet-700">
+                          {l.kind === "vendor_bill" ? formatUSD(l.paid_cents) : <span className="text-gray-300" title="Field-team work is internal — there is no vendor payment">—</span>}
+                        </td>
+                        <td className="py-2 text-right tabular-nums">
+                          {l.covered_cents > 0 ? (
+                            <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ${fullyCovered ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`} title={fullyCovered ? "Fully covered by client payments" : "Partially covered by client payments"}>
+                              {formatUSD(l.covered_cents)}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                      </tr>
                     );
                   })}
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-gray-200 font-semibold text-gray-900">
-                    <td className="pt-2" colSpan={2}>Total</td>
-                    <td className="pt-2 text-right tabular-nums">{formatUSD(fin.committed_cents)}</td>
-                    <td className="pt-2 text-right tabular-nums text-violet-700">{formatUSD(fin.paid_cents)}</td>
-                    <td className="pt-2 text-right tabular-nums">{formatUSD(bills.reduce((s, b) => s + b.covered_cents, 0))}</td>
+                    <td className="pt-2" colSpan={3}>
+                      Total{costFilter !== "all" && <span className="ml-1 font-normal text-gray-400">({COST_KIND_META[costFilter as ProjectCostLineKind]?.label ?? "filtered"})</span>}
+                    </td>
+                    <td className="pt-2 text-right tabular-nums">{formatUSD(costTotals.booked)}</td>
+                    <td className="pt-2 text-right tabular-nums text-violet-700">{formatUSD(costTotals.paid)}</td>
+                    <td className="pt-2 text-right tabular-nums">{formatUSD(costTotals.covered)}</td>
                   </tr>
                 </tfoot>
               </table>
-              <div className="mt-2 text-xs text-gray-400">Booked = bill total (committed) · Paid = settled with the vendor · Covered = client payments allocated to this bill.</div>
+              <div className="mt-2 text-xs text-gray-400">
+                Booked = amount committed · Paid = settled with the vendor · Covered = client payments allocated to this row.
+                Totals sum the rows shown; the KPI tiles above count vendor bills only, since field-team labor is internal cost.
+              </div>
             </div>
           )}
         </Card>
@@ -2693,7 +2825,7 @@ function FinancialsTab({
         <AllocatePaymentModal
           projectId={projectId}
           payment={allocatePayment}
-          bills={bills}
+          costLines={costLines}
           onSaved={() => {
             load();
             onRefreshSummary();
