@@ -2987,7 +2987,12 @@ export function ProjectInvoiceBuilderModal({
       case "change_order":
         return !changeOrders.some((c) => c.id === l.source_id);
       case "cost_reimbursement":
-        return !vendorBills.some((b) => b.bill_id === l.source_id);
+        // Missing when this exact (bill, line) is not a selectable row: the bill
+        // left the project, the line was renumbered or deleted by a bill edit, or
+        // the line predates 155 and bills a bill that is now itemized. Any of
+        // those must be carried over verbatim — Save full-replaces the line set
+        // and pushes it to QuickBooks, so a silent drop would lose real money.
+        return l.source_id == null || !billRowByKey.has(billLineKey(l.source_id, l.source_line_id ?? null));
       case "fto_labor":
       case "fto_expense":
       case "materials_markup":
@@ -3009,6 +3014,11 @@ export function ProjectInvoiceBuilderModal({
       amount_cents: l.amount_cents,
       source_type: l.source_type,
       source_id: l.source_id ?? null,
+      // Only set when the carried-over line actually had one (an itemized-bill
+      // line whose bill_id row vanished); other preserved kinds (installment,
+      // a whole-bill line) never carry this field, and toEqual/JSON callers
+      // treat an explicit undefined the same as an absent key.
+      source_line_id: l.source_line_id ?? undefined,
       vendor_id: l.vendor_id ?? null,
     }));
 
@@ -3016,12 +3026,13 @@ export function ProjectInvoiceBuilderModal({
     () => linesOf("change_order").map((l) => l.source_id!).filter((id) => id != null),
   );
   // Keys, not bill ids: one bill can contribute several rows (its line items).
-  // Edit-mode prefill of LINE-level selections lands in Task 5; a whole-bill line
-  // (source_line_id null) already round-trips through billLineKey here.
+  // A pre-155 line carries source_line_id null and keys as the whole bill; a
+  // line-level line keys as that line. Keys with no matching selectable row fall
+  // through to preservedLines below and are carried over verbatim.
   const [selectedBills, setSelectedBills] = useState<string[]>(
     () => linesOf("cost_reimbursement")
       .filter((l) => l.source_id != null)
-      .map((l) => billLineKey(l.source_id!, null)),
+      .map((l) => billLineKey(l.source_id!, l.source_line_id ?? null)),
   );
   // FTO lines all carry their SUBMISSION id as source_id (backend:
   // expandFTOItem), so a distinct set round-trips exactly and the server
