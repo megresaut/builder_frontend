@@ -3014,11 +3014,9 @@ export function ProjectInvoiceBuilderModal({
       amount_cents: l.amount_cents,
       source_type: l.source_type,
       source_id: l.source_id ?? null,
-      // Only set when the carried-over line actually had one (an itemized-bill
-      // line whose bill_id row vanished); other preserved kinds (installment,
-      // a whole-bill line) never carry this field, and toEqual/JSON callers
-      // treat an explicit undefined the same as an absent key.
-      source_line_id: l.source_line_id ?? undefined,
+      // null = this line bills the whole bill (no single line item to point at),
+      // same convention as source_id/vendor_id above.
+      source_line_id: l.source_line_id ?? null,
       vendor_id: l.vendor_id ?? null,
     }));
 

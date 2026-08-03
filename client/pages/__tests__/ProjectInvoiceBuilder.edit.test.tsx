@@ -119,7 +119,7 @@ describe("ProjectInvoiceBuilderModal edit mode", () => {
     expect(byType("project_fee")).toHaveLength(1);
     // The installment line the builder has no picker for must survive verbatim.
     expect(byType("installment")).toEqual([
-      { description: "Deposit", amount_cents: 25000, source_type: "installment", source_id: 99, vendor_id: null },
+      { description: "Deposit", amount_cents: 25000, source_type: "installment", source_id: 99, source_line_id: null, vendor_id: null },
     ]);
     // Total must equal the original invoice.
     const total = lines.reduce((s: number, l: { amount_cents: number }) => s + l.amount_cents, 0);
@@ -198,6 +198,7 @@ describe("ProjectInvoiceBuilderModal edit mode — a modelled line whose source 
         amount_cents: 2400000,
         source_type: "cost_reimbursement",
         source_id: 21,
+        source_line_id: null,
         vendor_id: 5,
       },
     ]);
