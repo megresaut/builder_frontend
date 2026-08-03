@@ -53,10 +53,30 @@ type GLAccount = {
 
 interface LocationGroupsResponse {
   has_locations: boolean;
+  // True only when the property has designated an admin location. Gates the
+  // per-location email split, NOT the on-screen view filter.
+  split_enabled: boolean;
   groups: Array<{
     location_name: string;
+    location_id: number | null;
+    is_admin: boolean;
     line_item_ids: number[];
   }>;
+}
+
+// Location labels contain commas and spaces; a mail client shows the raw
+// filename, so flatten to something readable and safe on every OS. Mirrors the
+// backend's LocationAttachmentName so the stored upload name and the emailed name
+// agree.
+function sanitizeLocationFilename(label: string): string {
+  const cleaned = label
+    .replace(/[^\w\s,-]/g, "")
+    .replace(/[\s,]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60)
+    .replace(/^-|-$/g, "");
+  return cleaned || "location";
 }
 
 const GL_ACCOUNT_MAP: Record<string, string> = Object.fromEntries(
@@ -600,7 +620,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [sendToCc, setSendToCc] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
-  const [emailAttachment, setEmailAttachment] = useState<string | null>(null);
+  // Every file that will ride along on the send, in attachment order. A list
+  // rather than one name because a property with an admin location gets one PDF
+  // per location — the operator has to see the whole set before pressing send,
+  // since that is the last checkpoint before a document reaches an owner.
+  const [emailAttachments, setEmailAttachments] = useState<string[]>([]);
   const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
   const [emailPreviewError, setEmailPreviewError] = useState<string | null>(null);
   // Tracks which invoice the most recently issued preview fetch was for, so a
@@ -953,14 +977,30 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   // top — management fee first, other AVMRE LLC lines next, everyone else
   // after (Array.sort is stable, so the sorted order is preserved within each
   // group).
+  const avmreFirstRank = (item: InvoiceItem) =>
+    item.source === "Management Fee"
+      ? 0
+      : (item.vendor || "").trim().toUpperCase() === "AVMRE LLC"
+        ? 1
+        : 2;
+
   const getDisplayedInvoiceItems = () => {
-    const rank = (item: InvoiceItem) =>
-      item.source === "Management Fee"
-        ? 0
-        : (item.vendor || "").trim().toUpperCase() === "AVMRE LLC"
-          ? 1
-          : 2;
-    return [...getSortedInvoiceItems()].sort((a, b) => rank(a) - rank(b));
+    return [...getSortedInvoiceItems()].sort(
+      (a, b) => avmreFirstRank(a) - avmreFirstRank(b),
+    );
+  };
+
+  // The line set for any COMMITTED document: the full invoice, ignoring the
+  // on-screen location filter.
+  //
+  // This distinction is the whole point. The committed PDF is attached to the QBO
+  // invoice and its total must reconcile against it, so it can never be a filtered
+  // view. Send-to-QBO previously used getDisplayedInvoiceItems(), which meant
+  // filtering to one location produced a partial PDF against a full-total invoice.
+  const getFullInvoiceItems = () => {
+    return [...invoiceItemsWithManagementFeeFirst].sort(
+      (a, b) => avmreFirstRank(a) - avmreFirstRank(b),
+    );
   };
 
   const toIsoDateTime = (date: Date) => date.toISOString();
@@ -1108,6 +1148,37 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     ];
   };
 
+  const toPreviewLineItem = (item: InvoiceItem): InvoiceLineItem => ({
+    id: item.id,
+    vendor: item.vendor,
+    description: item.description,
+    amount: item.amount,
+    billDate: item.billDate ?? undefined,
+    billInvoiceNumber: item.billInvoiceNumber ?? undefined,
+    rate: item.unitPrice ?? undefined,
+    qty: item.quantity ?? undefined,
+    managerCount: item.managerCount ?? undefined,
+    travelChargeCents: item.travelChargeCents ?? undefined,
+    sourceType: item.sourceType ?? undefined,
+  });
+
+  // The per-location documents to render at commit, admin location first. Empty
+  // unless the property opted in by designating an admin location — without one
+  // the management fee has no document to live on, so splitting would silently
+  // drop it from every attachment.
+  const commitLocationSplits = useMemo(() => {
+    if (!locationGroups?.split_enabled) return [];
+    return locationGroups.groups.map((g) => ({
+      key:
+        g.location_id != null
+          ? `id:${g.location_id}`
+          : `name:${g.location_name}`,
+      label: g.location_name,
+      locationId: g.location_id,
+      lineItemIds: g.line_item_ids,
+    }));
+  }, [locationGroups]);
+
   const openInvoicePreview = (options: {
     lineItems: InvoiceLineItem[];
     invoiceDate: string;
@@ -1166,6 +1237,103 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     }
   };
 
+  // Uploads one rendered PDF and returns its storage coordinates. Shared by the
+  // combined document and every per-location one.
+  const uploadPdf = async (
+    blob: Blob,
+    filename: string,
+  ): Promise<{ pdf_object_key: string; sha256_pdf: string }> => {
+    const formData = new FormData();
+    formData.append("file", blob, filename);
+
+    const uploadRes = await authFetch(`/vendors/bills/upload-pdf`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const uploadText = await uploadRes.text();
+    let uploadJson: any;
+    try {
+      uploadJson = JSON.parse(uploadText);
+    } catch (e) {
+      throw new Error("PDF upload response was not valid JSON");
+    }
+
+    const { pdf_object_key, sha256_pdf } = uploadJson;
+    if (!pdf_object_key || !sha256_pdf) {
+      throw new Error(`PDF upload did not return a storage key (${filename})`);
+    }
+    return { pdf_object_key, sha256_pdf };
+  };
+
+  // Finalizes with the combined PDF and, when the property opted in, the
+  // per-location documents that will be emailed in its place. An empty
+  // locationPdfs clears any splits stored by a previous send.
+  const finalizeInvoiceWithPdfs = async (
+    combined: { pdf_object_key: string; sha256_pdf: string },
+    locationPdfs: Array<{
+      location_id: number | null;
+      label: string;
+      pdf_object_key: string;
+      sha256_pdf: string;
+    }>,
+  ) => {
+    const finalizeRes = await authFetch(
+      `/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pdf_object_key: combined.pdf_object_key,
+          sha256_pdf: combined.sha256_pdf,
+          location_pdfs: locationPdfs,
+        }),
+      },
+    );
+
+    if (!finalizeRes.ok) {
+      const errBody = await finalizeRes.text();
+      let parsedErr = errBody;
+      try {
+        parsedErr = JSON.parse(errBody)?.error ?? errBody;
+      } catch {}
+      throw new Error(parsedErr || "Finalize failed");
+    }
+    return finalizeRes.json();
+  };
+
+  // The response is the updated invoice; qbo_push_status says whether the QBO leg
+  // succeeded. Lifecycle is committed either way — a QBO failure is recoverable
+  // via the Retry QBO Sync button, so it must not read as a total failure.
+  const reportCommitResult = (
+    finalizedInvoice: any,
+    toastId: string | number,
+    extraDetail?: string,
+  ) => {
+    const suffix = extraDetail ? ` ${extraDetail}` : "";
+    if (
+      finalizedInvoice?.qbo_push_status === "pushed" &&
+      finalizedInvoice?.qbo_invoice_id
+    ) {
+      toast.success("Invoice sent to QBO", {
+        id: toastId,
+        description: `QBO Invoice #${finalizedInvoice.qbo_invoice_id} created and PDF attached.${suffix}`,
+      });
+    } else if (finalizedInvoice?.qbo_push_status === "failed") {
+      toast.error("Invoice marked Sent, but QBO sync failed", {
+        id: toastId,
+        description:
+          finalizedInvoice?.qbo_last_error ??
+          "Use Retry QBO Sync once the underlying issue is fixed.",
+      });
+    } else {
+      toast.success("Invoice marked Sent", {
+        id: toastId,
+        description: `QBO push not configured — only platform state was updated.${suffix}`,
+      });
+    }
+  };
+
   const handleCommitInvoice = async (pdfBlob: Blob) => {
     if (!currentInvoiceId) return;
 
@@ -1174,81 +1342,74 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     });
 
     try {
-      // 1️⃣ Upload PDF
-      const formData = new FormData();
-      formData.append("file", pdfBlob, "invoice.pdf");
+      const combined = await uploadPdf(pdfBlob, "invoice.pdf");
+      const finalizedInvoice = await finalizeInvoiceWithPdfs(combined, []);
+      reportCommitResult(finalizedInvoice, toastId);
 
-      const uploadRes = await authFetch(
-        `/vendors/bills/upload-pdf`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      const uploadText = await uploadRes.text();
-      let uploadJson;
-      try {
-        uploadJson = JSON.parse(uploadText);
-      } catch (e) {
-        throw new Error("PDF upload response was not valid JSON");
-      }
-
-      const { pdf_object_key, sha256_pdf } = uploadJson;
-      if (!pdf_object_key || !sha256_pdf) {
-        throw new Error("PDF upload did not return a storage key");
-      }
-
-      // 2️⃣ Finalize invoice WITH PDF (and trigger QBO push server-side)
-      const finalizeRes = await authFetch(
-        `/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            pdf_object_key,
-            sha256_pdf,
-          }),
-        }
-      );
-
-      if (!finalizeRes.ok) {
-        const errBody = await finalizeRes.text();
-        let parsedErr = errBody;
-        try {
-          parsedErr = JSON.parse(errBody)?.error ?? errBody;
-        } catch {}
-        throw new Error(parsedErr || "Finalize failed");
-      }
-
-      // The response is the updated invoice; inspect qbo_push_status to see
-      // whether the QBO leg succeeded. Lifecycle is committed either way —
-      // QBO failure is recoverable via the Retry QBO Sync button.
-      const finalizedInvoice = await finalizeRes.json();
-      if (finalizedInvoice?.qbo_push_status === "pushed" && finalizedInvoice?.qbo_invoice_id) {
-        toast.success("Invoice sent to QBO", {
-          id: toastId,
-          description: `QBO Invoice #${finalizedInvoice.qbo_invoice_id} created and PDF attached.`,
-        });
-      } else if (finalizedInvoice?.qbo_push_status === "failed") {
-        toast.error("Invoice marked Sent, but QBO sync failed", {
-          id: toastId,
-          description:
-            finalizedInvoice?.qbo_last_error ??
-            "Use Retry QBO Sync once the underlying issue is fixed.",
-        });
-      } else {
-        toast.success("Invoice marked Sent", {
-          id: toastId,
-          description: "QBO push not configured — only platform state was updated.",
-        });
-      }
-
-      // 3️⃣ Refresh UI
       await loadInvoiceForProperty();
       await loadInvoiceHistory();
     } catch (err: any) {
       console.error("Commit failed:", err);
+      toast.error("Send to QBO failed", {
+        id: toastId,
+        description: err?.message ?? "Unexpected error",
+      });
+    }
+  };
+
+  // Split path: the combined document plus one PDF per location. The combined PDF
+  // is still what QBO gets and what must reconcile against the invoice total; the
+  // splits are what the owner receives by email.
+  const handleCommitInvoiceWithSplits = async (
+    combinedBlob: Blob,
+    splits: Array<{
+      key: string;
+      label: string;
+      locationId: number | null;
+      blob: Blob;
+    }>,
+  ) => {
+    if (!currentInvoiceId) return;
+
+    const toastId = toast.loading("Sending invoice to QBO…", {
+      description: `Uploading ${splits.length + 1} PDFs and creating the QuickBooks invoice`,
+    });
+
+    try {
+      const combined = await uploadPdf(combinedBlob, "invoice.pdf");
+      const uploaded: Array<{
+        location_id: number | null;
+        label: string;
+        pdf_object_key: string;
+        sha256_pdf: string;
+      }> = [];
+      for (const split of splits) {
+        // Sequential, not Promise.all: N concurrent multipart uploads of
+        // multi-megabyte PDFs is a needless burst, and a sequential loop names
+        // exactly which location failed.
+        const up = await uploadPdf(
+          split.blob,
+          `${sanitizeLocationFilename(split.label)}.pdf`,
+        );
+        uploaded.push({
+          location_id: split.locationId,
+          label: split.label,
+          pdf_object_key: up.pdf_object_key,
+          sha256_pdf: up.sha256_pdf,
+        });
+      }
+
+      const finalizedInvoice = await finalizeInvoiceWithPdfs(combined, uploaded);
+      reportCommitResult(
+        finalizedInvoice,
+        toastId,
+        `${uploaded.length} per-location PDFs stored for the client email.`,
+      );
+
+      await loadInvoiceForProperty();
+      await loadInvoiceHistory();
+    } catch (err: any) {
+      console.error("Commit with splits failed:", err);
       toast.error("Send to QBO failed", {
         id: toastId,
         description: err?.message ?? "Unexpected error",
@@ -1282,7 +1443,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       if (emailPreviewRequestIdRef.current !== invoiceId) return;
       setEmailSubject(data.subject ?? "");
       setEmailBody(data.body_text ?? "");
-      setEmailAttachment(data.attachment_name ?? null);
+      // attachment_names is the authoritative set; attachment_name is only its
+      // first entry and is kept on the API for older callers.
+      setEmailAttachments(
+        Array.isArray(data.attachment_names) && data.attachment_names.length > 0
+          ? data.attachment_names
+          : data.attachment_name
+            ? [data.attachment_name]
+            : [],
+      );
     } catch (err: any) {
       if (emailPreviewRequestIdRef.current !== invoiceId) return;
       setEmailPreviewError(err?.message ?? "Unexpected error");
@@ -2070,19 +2239,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   type="button"
                   onClick={() =>
                     openInvoicePreview({
-                      lineItems: getDisplayedInvoiceItems().map((item) => ({
-                        id: item.id,
-                        vendor: item.vendor,
-                        description: item.description,
-                        amount: item.amount,
-                        billDate: item.billDate ?? undefined,
-                        billInvoiceNumber: item.billInvoiceNumber ?? undefined,
-                        rate: item.unitPrice ?? undefined,
-                        qty: item.quantity ?? undefined,
-                        managerCount: item.managerCount ?? undefined,
-                        travelChargeCents: item.travelChargeCents ?? undefined,
-                        sourceType: item.sourceType ?? undefined,
-                      })),
+                      // Preview deliberately honors the location filter — showing
+                      // one location's document is the point of the dropdown.
+                      lineItems:
+                        getDisplayedInvoiceItems().map(toPreviewLineItem),
                       invoiceDate: currentInvoiceMonth,
                       showCommitButton: false,
                     })
@@ -2119,21 +2279,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                           // the modal in commit mode — keeps PDF rendering in
                           // one place. The modal will auto-close after commit.
                           openInvoicePreview({
-                            lineItems: getDisplayedInvoiceItems().map(
-                              (item) => ({
-                                id: item.id,
-                                vendor: item.vendor,
-                                description: item.description,
-                                amount: item.amount,
-                                billDate: item.billDate ?? undefined,
-                                billInvoiceNumber: item.billInvoiceNumber ?? undefined,
-                                rate: item.unitPrice ?? undefined,
-                                qty: item.quantity ?? undefined,
-                                managerCount: item.managerCount ?? undefined,
-                                travelChargeCents: item.travelChargeCents ?? undefined,
-                                sourceType: item.sourceType ?? undefined,
-                              }),
-                            ),
+                            // FULL set, never the filtered view: this document is
+                            // attached to the QBO invoice and has to reconcile
+                            // against its total. The modal narrows it per location
+                            // internally to produce the split PDFs.
+                            lineItems:
+                              getFullInvoiceItems().map(toPreviewLineItem),
                             invoiceDate: currentInvoiceMonth,
                             showCommitButton: true,
                           });
@@ -2160,7 +2311,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         setSendToCc("");
                         setEmailSubject("");
                         setEmailBody("");
-                        setEmailAttachment(null);
+                        setEmailAttachments([]);
                         setSendToOpen(true);
                         if (currentInvoiceId) {
                           void loadEmailPreview(currentInvoiceId);
@@ -2424,22 +2575,12 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         lineItems={
           invoicePreviewLineItems.length > 0
             ? invoicePreviewLineItems
-            : getDisplayedInvoiceItems().map((item) => ({
-                id: item.id,
-                vendor: item.vendor,
-                description: item.description,
-                amount: item.amount,
-                billDate: item.billDate ?? undefined,
-                billInvoiceNumber: item.billInvoiceNumber ?? undefined,
-                rate: item.unitPrice ?? undefined,
-                qty: item.quantity ?? undefined,
-                managerCount: item.managerCount ?? undefined,
-                travelChargeCents: item.travelChargeCents ?? undefined,
-                sourceType: item.sourceType ?? undefined,
-              }))
+            : getDisplayedInvoiceItems().map(toPreviewLineItem)
         }
         showCommitButton={invoicePreviewShowCommitButton}
         onCommit={handleCommitInvoice}
+        locationSplits={commitLocationSplits}
+        onCommitSplits={handleCommitInvoiceWithSplits}
         autoReExport={reExportMode}
         onReExport={handleReExportPdf}
         pendingUnapprovedCount={pendingApprovalBills.length}
@@ -2852,12 +2993,23 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </p>
             </div>
 
-            {emailAttachment && (
-              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                {emailAttachment} will be attached
+            {emailAttachments.length > 0 && (
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+                <div className="flex items-center gap-2 font-medium text-gray-700">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {emailAttachments.length === 1
+                    ? "1 attachment"
+                    : `${emailAttachments.length} attachments — one per location`}
+                </div>
+                <ul className="mt-1.5 space-y-0.5 pl-5">
+                  {emailAttachments.map((name) => (
+                    <li key={name} className="list-disc text-gray-600">
+                      {name}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>

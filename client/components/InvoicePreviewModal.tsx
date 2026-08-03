@@ -1,4 +1,5 @@
 import { Fragment, useRef, useState, useEffect, type CSSProperties } from "react";
+import { flushSync } from "react-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,6 +81,31 @@ interface InvoicePreviewModalProps {
   lineItems: InvoiceLineItem[];
   showCommitButton?: boolean;
   onCommit?: (pdfBlob: Blob) => void;
+  /**
+   * One entry per per-location document to render at commit time, in attachment
+   * order (the admin location first). Empty or absent = a single combined PDF.
+   */
+  locationSplits?: Array<{
+    key: string;
+    label: string;
+    locationId: number | null;
+    lineItemIds: number[];
+  }>;
+  /**
+   * Called instead of onCommit when locationSplits is non-empty. `combined` is
+   * the full unfiltered invoice (the QBO/audit copy, which must reconcile against
+   * the QBO invoice total); `splits` are the per-location documents, in the order
+   * given, that get emailed to the owner.
+   */
+  onCommitSplits?: (
+    combined: Blob,
+    splits: Array<{
+      key: string;
+      label: string;
+      locationId: number | null;
+      blob: Blob;
+    }>,
+  ) => void;
   pendingUnapprovedCount?: number;
   rentalOwner?: string;
   // Lifecycle additions (Phase 3).
@@ -124,6 +150,8 @@ export default function InvoicePreviewModal({
   lineItems: initialLineItems,
   showCommitButton = false,
   onCommit,
+  locationSplits,
+  onCommitSplits,
   pendingUnapprovedCount = 0,
   rentalOwner,
   derivedStatus,
@@ -154,6 +182,10 @@ export default function InvoicePreviewModal({
   const [committing, setCommitting] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  // Non-null only for the few milliseconds while the commit loop captures one
+  // location's document: the rendered table is narrowed to that subset, then
+  // restored. See paintSubset / runCommitSplits.
+  const [renderSubsetIds, setRenderSubsetIds] = useState<number[] | null>(null);
   // Layout exploration: true renders AVMRE LLC lines in a full-column table
   // and all other vendors in a slim table (no Rate/Qty/Manager/Travel Charge).
   const [splitLayout, setSplitLayout] = useState(true);
@@ -367,7 +399,17 @@ export default function InvoicePreviewModal({
 
   // Rows keep their index into the underlying lineItems array so editing /
   // drag-reorder / removal keep working when the display is split in two.
-  const indexedLineItems = lineItems.map((item, index) => ({ item, index }));
+  //
+  // The subset filter is applied AFTER the map so each surviving row keeps its
+  // original index — every downstream grouping and total derives from this one
+  // array, so narrowing it here is what makes a per-location PDF a faithful view
+  // of the same document rather than a separately-built one.
+  const indexedLineItems = lineItems
+    .map((item, index) => ({ item, index }))
+    .filter(
+      ({ item }) =>
+        renderSubsetIds === null || renderSubsetIds.includes(item.id),
+    );
 
   // Individual man-hour lines — rolled up on page 1, itemized on page 2.
   const laborRows = indexedLineItems.filter(({ item }) => isLaborItem(item));
@@ -1231,6 +1273,53 @@ export default function InvoicePreviewModal({
   }, {});
   const unpaidPayeeEntries = Object.entries(unpaidPayeeTotals);
 
+  // Force the subset into the DOM and wait for the browser to actually paint it.
+  //
+  // flushSync is load-bearing, not defensive: React 18 batches state updates
+  // inside async functions, so without it html2canvas photographs the PREVIOUS
+  // subset and every location's PDF silently contains the wrong lines. The
+  // double requestAnimationFrame then waits for the paint that follows the commit.
+  const paintSubset = async (ids: number[] | null) => {
+    flushSync(() => setRenderSubsetIds(ids));
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+  };
+
+  // Renders the combined document plus one per location. The combined PDF is
+  // captured with the subset cleared, so it is always the FULL invoice regardless
+  // of any on-screen location filter — that PDF is attached to the QBO invoice and
+  // has to reconcile against its total.
+  const runCommitSplits = async () => {
+    const splits = locationSplits ?? [];
+    try {
+      await paintSubset(null);
+      const combined = await generatePdfBlob();
+
+      const rendered: Array<{
+        key: string;
+        label: string;
+        locationId: number | null;
+        blob: Blob;
+      }> = [];
+      for (const split of splits) {
+        await paintSubset(split.lineItemIds);
+        rendered.push({
+          key: split.key,
+          label: split.label,
+          locationId: split.locationId,
+          blob: await generatePdfBlob(),
+        });
+      }
+      return { combined, rendered };
+    } finally {
+      // Always restore the full view, even on a mid-loop failure, so the operator
+      // is never left looking at a partial invoice they might mistake for the real
+      // one.
+      await paintSubset(null);
+    }
+  };
+
   const handleCommit = async () => {
     if (needsPreSendReview) {
       setShowCommitConfirm(true);
@@ -1240,8 +1329,14 @@ export default function InvoicePreviewModal({
 
     setCommitting(true);
     try {
-      const pdfBlob = await generatePdfBlob();
-      onCommit?.(pdfBlob);
+      const splits = locationSplits ?? [];
+      if (splits.length > 0 && onCommitSplits) {
+        const { combined, rendered } = await runCommitSplits();
+        onCommitSplits(combined, rendered);
+      } else {
+        const pdfBlob = await generatePdfBlob();
+        onCommit?.(pdfBlob);
+      }
       onOpenChange(false);
     } catch (err) {
       console.error("Failed to generate PDF:", err);
@@ -2335,8 +2430,20 @@ export default function InvoicePreviewModal({
                 if (committing) return;
                 setCommitting(true);
                 setShowCommitConfirm(false);
-                generatePdfBlob()
-                  .then((blob) => onCommit?.(blob))
+                // Same split/no-split branch as handleCommit — the reviewed path
+                // must produce the identical document set, or which button the
+                // operator pressed would change what the owner receives.
+                const splits = locationSplits ?? [];
+                const work =
+                  splits.length > 0 && onCommitSplits
+                    ? runCommitSplits().then(({ combined, rendered }) =>
+                        onCommitSplits(combined, rendered),
+                      )
+                    : generatePdfBlob().then((blob) => onCommit?.(blob));
+                work
+                  .catch((err) =>
+                    console.error("Failed to generate PDF:", err),
+                  )
                   .finally(() => {
                     setCommitting(false);
                     onOpenChange(false);
