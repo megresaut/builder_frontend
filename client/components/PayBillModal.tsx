@@ -5,6 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchJSON } from "@/api/fetchJSON";
 import { authFetch } from "@/api/fetchJSON";
+import {
+  syncBill,
+  describeBillSync,
+  billSyncProblems,
+  type BillSyncResult,
+} from "@/data/billSync";
 import { toast } from "sonner";
 import {
   maxApplicableCents,
@@ -469,26 +475,52 @@ export default function PayBillModal({
   // table can reload. Shown when the API tells us the bill is already paid and
   // the platform is stale.
   //
-  // The endpoint differs by book: Concierge bills carry a QBO bill and refresh
-  // from there, while non-Concierge bills have no QBO counterpart at all —
-  // refresh-qbo would fail them with "bill has no qbo_bill_id", so they pull
-  // their payments straight from Buildium instead.
+  // Concierge bills go through the full sync rather than refresh-qbo. When
+  // Buildium already holds the payment, refreshing QBO's balance changes
+  // nothing — QBO never heard about that payment and never will on its own, so
+  // the user was left clicking a button that couldn't help. Sync imports the
+  // Buildium payment and books it into QuickBooks, which is the only thing that
+  // actually resolves this error.
+  //
+  // Non-Concierge bills have no QBO counterpart at all, so they pull their
+  // payments straight from Buildium.
   const handleRefreshFromBuildium = async () => {
     setRefreshing(true);
-    const endpoint = isConcierge
-      ? `/vendors/bills/${bill.id}/refresh-qbo`
-      : `/vendors/bills/${bill.id}/sync-buildium-payments`;
     try {
-      const res = await authFetch(endpoint, { method: "POST" });
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || `Refresh failed (status ${res.status})`);
+      if (isConcierge) {
+        // Scraped utility bills publish through the scraper pipeline and Sync
+        // refuses them; fall back to the balance refresh so they aren't worse
+        // off than before.
+        let result: BillSyncResult | null = null;
+        try {
+          result = await syncBill(bill.id);
+        } catch (err: any) {
+          if (!String(err?.message ?? err).includes("utility")) throw err;
+          const res = await authFetch(`/vendors/bills/${bill.id}/refresh-qbo`, {
+            method: "POST",
+          });
+          if (!res.ok) {
+            const text = await res.text().catch(() => "");
+            throw new Error(text || `Refresh failed (status ${res.status})`);
+          }
+        }
+        toast.success(
+          result
+            ? describeBillSync(result)
+            : "Refreshed bill status from QBO and Buildium.",
+        );
+        if (result) billSyncProblems(result).forEach((p) => toast.warning(p));
+      } else {
+        const res = await authFetch(
+          `/vendors/bills/${bill.id}/sync-buildium-payments`,
+          { method: "POST" },
+        );
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          throw new Error(text || `Refresh failed (status ${res.status})`);
+        }
+        toast.success("Refreshed bill status from Buildium.");
       }
-      toast.success(
-        isConcierge
-          ? "Refreshed bill status from QBO and Buildium."
-          : "Refreshed bill status from Buildium.",
-      );
       onOpenChange(false);
     } catch (err: any) {
       setError(`Refresh failed: ${err?.message ?? String(err)}`);

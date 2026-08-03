@@ -3,15 +3,29 @@ import {
   describeBillSync,
   billSyncProblems,
   type BillSyncResult,
+  type BillSyncSystemResult,
 } from "@/data/billSync";
+
+// Spelling out every counter in each fixture makes adding one a 12-file edit,
+// so default them here and override only what a test is about.
+const sys = (
+  over: Partial<BillSyncSystemResult> = {},
+): BillSyncSystemResult => ({
+  present: true,
+  created: false,
+  payments_imported: 0,
+  payments_updated: 0,
+  payments_pushed: 0,
+  ...over,
+});
 
 const result = (over: Partial<BillSyncResult>): BillSyncResult => ({
   ok: true,
   bill_id: 549,
   property_type: "HOA",
   is_concierge: false,
-  qbo: { present: false, created: false, payments_imported: 0, payments_updated: 0 },
-  buildium: { present: true, created: false, payments_imported: 0, payments_updated: 0 },
+  qbo: sys({ present: false }),
+  buildium: sys(),
   status: "none",
   amount_cents: 64800,
   paid_cents: 0,
@@ -35,12 +49,7 @@ describe("describeBillSync", () => {
           paid_cents: 64800,
           outstanding_cents: 0,
           paid_on: "2026-07-30",
-          buildium: {
-            present: true,
-            created: false,
-            payments_imported: 1,
-            payments_updated: 0,
-          },
+          buildium: sys({ payments_imported: 1 }),
         }),
       ),
     ).toBe("Imported 1 payment. Bill is fully paid — $648.00 (7/30/2026).");
@@ -53,12 +62,7 @@ describe("describeBillSync", () => {
           status: "partial",
           paid_cents: 30000,
           outstanding_cents: 34800,
-          buildium: {
-            present: true,
-            created: false,
-            payments_imported: 1,
-            payments_updated: 0,
-          },
+          buildium: sys({ payments_imported: 1 }),
         }),
       ),
     ).toBe("Imported 1 payment. $300.00 paid; $348.00 still outstanding.");
@@ -70,12 +74,7 @@ describe("describeBillSync", () => {
         result({
           is_concierge: true,
           property_type: "C",
-          qbo: {
-            present: true,
-            created: true,
-            payments_imported: 0,
-            payments_updated: 0,
-          },
+          qbo: sys({ created: true }),
         }),
       ),
     ).toBe("Created in QuickBooks. No payments found.");
@@ -87,8 +86,8 @@ describe("describeBillSync", () => {
         result({
           is_concierge: true,
           property_type: "C",
-          qbo: { present: true, created: true, payments_imported: 0, payments_updated: 0 },
-          buildium: { present: true, created: true, payments_imported: 0, payments_updated: 0 },
+          qbo: sys({ created: true }),
+          buildium: sys({ created: true }),
         }),
       ),
     ).toBe("Created in QuickBooks and Buildium. No payments found.");
@@ -101,8 +100,8 @@ describe("describeBillSync", () => {
           status: "paid",
           paid_cents: 64800,
           outstanding_cents: 0,
-          qbo: { present: true, created: false, payments_imported: 1, payments_updated: 0 },
-          buildium: { present: true, created: false, payments_imported: 1, payments_updated: 0 },
+          qbo: sys({ payments_imported: 1 }),
+          buildium: sys({ payments_imported: 1 }),
         }),
       ),
     ).toContain("Imported 2 payments.");
@@ -118,15 +117,54 @@ describe("describeBillSync", () => {
           paid_cents: 64800,
           outstanding_cents: 0,
           paid_on: "2026-07-30",
-          buildium: {
-            present: true,
-            created: false,
-            payments_imported: 0,
-            payments_updated: 1,
-          },
+          buildium: sys({ payments_updated: 1 }),
         }),
       ),
     ).toBe("Bill is fully paid — $648.00 (7/30/2026).");
+  });
+
+  // Booking a payment into QuickBooks changes QBO itself, not just the
+  // platform's copy of it, so it gets its own sentence rather than being
+  // folded into the import count.
+  it("reports payments booked into QuickBooks separately from imports", () => {
+    const msg = describeBillSync(
+      result({
+        is_concierge: true,
+        property_type: "C",
+        status: "paid",
+        paid_cents: 64800,
+        outstanding_cents: 0,
+        paid_on: "2026-07-30",
+        qbo: sys({ payments_pushed: 1 }),
+        buildium: sys({ payments_imported: 1 }),
+      }),
+    );
+    expect(msg).toContain("Imported 1 payment.");
+    expect(msg).toContain("Booked 1 Buildium payment into QuickBooks.");
+  });
+
+  it("pluralises the pushed payment count", () => {
+    expect(
+      describeBillSync(
+        result({
+          is_concierge: true,
+          property_type: "C",
+          qbo: sys({ payments_pushed: 2 }),
+        }),
+      ),
+    ).toContain("Booked 2 Buildium payments into QuickBooks.");
+  });
+
+  it("says nothing about pushing when nothing was pushed", () => {
+    expect(describeBillSync(result({}))).not.toContain("QuickBooks");
+  });
+
+  // The field is new; a cached or older API response won't carry it.
+  it("survives a response with no payments_pushed field", () => {
+    const stale = result({ status: "paid", paid_cents: 64800, outstanding_cents: 0 });
+    delete (stale.qbo as Partial<BillSyncSystemResult>).payments_pushed;
+    expect(() => describeBillSync(stale)).not.toThrow();
+    expect(describeBillSync(stale)).not.toContain("Booked");
   });
 
   // paid_on is a bare calendar day; parsing it with new Date() would render the
@@ -154,13 +192,7 @@ describe("billSyncProblems", () => {
     expect(
       billSyncProblems(
         result({
-          qbo: {
-            present: true,
-            created: false,
-            payments_imported: 0,
-            payments_updated: 0,
-            error: "qbo push failed: 401",
-          },
+          qbo: sys({ error: "qbo push failed: 401" }),
         }),
       ),
     ).toEqual(["QuickBooks: qbo push failed: 401"]);
@@ -169,13 +201,7 @@ describe("billSyncProblems", () => {
   it("collects drift and warnings alongside system errors", () => {
     const problems = billSyncProblems(
       result({
-        buildium: {
-          present: true,
-          created: false,
-          payments_imported: 0,
-          payments_updated: 0,
-          error: "buildium sync: timeout",
-        },
+        buildium: sys({ error: "buildium sync: timeout" }),
         drift: ["QBO shows $0.00 still outstanding but the platform shows $648.00"],
         warnings: ["buildium PDF attach failed"],
       }),

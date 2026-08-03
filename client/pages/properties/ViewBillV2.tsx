@@ -599,6 +599,19 @@ export function ViewBillV2() {
   const remainingCents =
     bill?.qbo_balance_cents ?? Math.max(initialCents - paidCents, 0);
 
+  // Paid and Remaining come from different books: Paid sums bill_payments
+  // (what Buildium and the platform hold), Remaining prefers
+  // qbo_balance_cents (what QuickBooks holds). A bill paid in Buildium but
+  // never booked into QBO makes both numbers correct and contradictory — bill
+  // 1375 showed Paid $16,965 beside Remaining $16,965. Detect the divergence
+  // so the card can say which book is which instead of leaving the reader to
+  // assume one of them is broken.
+  const qboOutstandingCents =
+    typeof bill?.qbo_balance_cents === "number" ? bill.qbo_balance_cents : null;
+  const localOutstandingCents = Math.max(initialCents - paidCents, 0);
+  const booksDisagree =
+    qboOutstandingCents !== null && qboOutstandingCents !== localOutstandingCents;
+
   const openPdf = async (att: AttachmentItem) => {
     const name = att.filename.toLowerCase();
     const isMsg = name.endsWith(".msg") || att.mime === "application/vnd.ms-outlook";
@@ -2295,6 +2308,17 @@ export function ViewBillV2() {
                     {money(remainingCents)}
                   </span>
                 </div>
+                {/* Paid and Remaining are sourced from different systems, so
+                    they can each be right and still not subtract. Naming the
+                    books beats showing a contradiction with no explanation. */}
+                {booksDisagree && (
+                  <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    QuickBooks shows {money(qboOutstandingCents!)} outstanding,
+                    but the payments recorded here leave{" "}
+                    {money(localOutstandingCents)}. Sync this bill to reconcile
+                    the two.
+                  </div>
+                )}
                 {/* Only shown once a refund exists — a bill with none of these
                     stays exactly as it was before this feature. Refunding never
                     reopens the bill: Paid/Remaining above are unchanged. */}
