@@ -8,9 +8,15 @@ import { fetchJSON } from "@/api/fetchJSON";
  * bills in QuickBooks + Buildium, everything else Buildium-only) and pulls
  * payments back into local bill_payments.
  *
- * Everything except that create is read-only — Sync never books a payment into
- * QuickBooks or Buildium, and never deletes a local payment row. Where the two
- * books disagree it reports the discrepancy in `drift` rather than guessing.
+ * Sync also books Buildium-only payments into QuickBooks on concierge bills
+ * (`qbo.payments_pushed`). Without that a bill paid in Buildium stays open in
+ * QuickBooks forever, and the page shows it as both paid and outstanding. Only
+ * exact mirrors go automatically — anything needing judgement comes back in
+ * `warnings`.
+ *
+ * Otherwise Sync is read-only: it never books a payment into Buildium and never
+ * deletes a local payment row. Where the two books disagree it reports the
+ * discrepancy in `drift` rather than guessing.
  *
  * Replaces the page's "Mark as paid" and "Refresh from QBO" actions. The Bills
  * list page keeps its own row-level "Mark as paid" (see buildiumPaymentSync).
@@ -27,6 +33,11 @@ export interface BillSyncSystemResult {
   payments_imported: number;
   /** Payments already known locally that were refreshed in place. */
   payments_updated: number;
+  /**
+   * Payments Sync booked INTO this system rather than read out of it. Only
+   * QuickBooks is ever non-zero: payments Buildium held that QBO was missing.
+   */
+  payments_pushed: number;
   /** Non-fatal: the other system's half of the sync still ran. */
   error?: string;
 }
@@ -83,6 +94,15 @@ export function describeBillSync(r: BillSyncResult): string {
   const imported = r.qbo.payments_imported + r.buildium.payments_imported;
   if (imported > 0) {
     parts.push(`Imported ${imported} payment${imported === 1 ? "" : "s"}.`);
+  }
+
+  // Called out separately from imports: this one changed QuickBooks, not just
+  // the platform's copy of it.
+  const pushed = r.qbo.payments_pushed ?? 0;
+  if (pushed > 0) {
+    parts.push(
+      `Booked ${pushed} Buildium payment${pushed === 1 ? "" : "s"} into QuickBooks.`,
+    );
   }
 
   switch (r.status) {
