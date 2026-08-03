@@ -3286,7 +3286,7 @@ export function ProjectInvoiceBuilderModal({
                             {b.vendor_name && <span className="ml-1.5 text-xs font-normal text-gray-500">· {b.vendor_name}</span>}
                           </span>
                         </span>
-                        <span className={rowAmountCls}>{formatUSD(b.amount_cents + b.upcharge_cents)}</span>
+                        <span className={rowAmountCls}>{formatUSD(vendorBillTotalCents(b))}</span>
                       </div>
                       <div className="flex flex-col">
                         {b.lines.map((l) => {
@@ -3325,7 +3325,7 @@ export function ProjectInvoiceBuilderModal({
                       </div>
                       {b.billed_cents > 0 && (
                         <div className="border-t border-gray-100 px-3 py-1.5 pl-9 text-xs text-gray-500">
-                          Billed {formatUSD(b.billed_cents)} of {formatUSD(b.amount_cents + b.upcharge_cents)} · remaining {formatUSD(b.remaining_cents)}
+                          Billed {formatUSD(b.billed_cents)} of {formatUSD(vendorBillTotalCents(b))} · remaining {formatUSD(b.remaining_cents)}
                         </div>
                       )}
                     </div>

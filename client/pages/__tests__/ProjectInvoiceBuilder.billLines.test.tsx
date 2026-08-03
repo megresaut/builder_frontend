@@ -137,6 +137,20 @@ describe("ProjectInvoiceBuilderModal — vendor bill line items", () => {
     expect(all.checked).toBe(true);
   });
 
+  // The itemized group header and its Billed/remaining footer go through
+  // vendorBillTotalCents, whose `|| 0` fallback matters: upcharge_cents is absent on
+  // any payload shape that predates it, and `600000 + undefined` renders "$NaN" — on
+  // the figure the owner is being billed.
+  it("renders the bill total when upcharge_cents is missing", () => {
+    const noUpcharge = {
+      ...billables,
+      vendor_bills: [{ ...billables.vendor_bills[0], upcharge_cents: undefined }],
+    } as unknown as Billables;
+    renderModal(noUpcharge);
+    expect(screen.queryByText(/NaN/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Billed \$2,200 of \$6,000/)).toBeInTheDocument();
+  });
+
   it("a bill with no usable line items still bills whole, with no source_line_id", () => {
     const onCreate = renderModal(wholeBillOnly);
     expect(screen.queryByRole("checkbox", { name: /Select all remaining lines/ })).not.toBeInTheDocument();
