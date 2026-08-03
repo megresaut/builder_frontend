@@ -931,6 +931,7 @@ export interface ProjectInvoiceLine {
   sort_order: number;
   source_type: ProjectInvoiceLineSource;
   source_id: number | null;
+  source_line_id: number | null;
   vendor_id: number | null; // FK to vendors (manual/bill lines); null for FTO lines
   vendor_name: string; // display: vendor name, or "AVM" for FTO lines
 }
@@ -1009,6 +1010,17 @@ export interface BillableChangeOrder {
   amount_cents: number;
 }
 // One project work-order vendor bill (spec §3.1) — a selectable itemized billable.
+// One billable line item of a vendor bill — a vendor's own deposit / progress /
+// final breakdown. billed_on_* are set when this line already sits on a live
+// (non-void) project invoice, in which case the builder greys the row out.
+export interface BillableVendorBillLine {
+  line_id: number;
+  description: string;
+  amount_cents: number; // vendor cost, pre-upcharge
+  upcharge_cents: number; // AVMRE markup on THIS line
+  billed_on_invoice_id: number | null;
+  billed_on_invoice_number: string | null;
+}
 export interface BillableVendorBill {
   bill_id: number;
   vendor_id: number | null;
@@ -1016,6 +1028,12 @@ export interface BillableVendorBill {
   description: string;
   amount_cents: number; // vendor cost, pre-upcharge
   upcharge_cents: number; // AVMRE markup, folded into the billed line by vendorBillTotalCents
+  // lines is EMPTY when the bill's line items cannot be trusted as a breakdown of
+  // its total (backend: explodeBillLines) — 321 of 410 bills carry line_items='[]'.
+  // The builder then bills the bill whole, as it always did.
+  lines: BillableVendorBillLine[];
+  billed_cents: number; // Σ live invoice lines for this bill
+  remaining_cents: number; // amount + upcharge − billed
 }
 // One computed labor entry inside an FTO submission (hours × property rate).
 export interface FtoLaborLine {
@@ -1053,6 +1071,9 @@ export interface CreateInvoiceLineInput {
   amount_cents: number;
   source_type: ProjectInvoiceLineSource;
   source_id?: number | null;
+  // Which bills.line_items entry a cost_reimbursement line bills. null/absent =
+  // the whole bill (every line written before migration 155).
+  source_line_id?: number | null;
   vendor_id?: number | null; // optional vendor on manual/bill lines
 }
 export interface CreateInvoicePayload {
