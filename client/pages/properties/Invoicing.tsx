@@ -620,7 +620,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [sendToCc, setSendToCc] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
-  const [emailAttachment, setEmailAttachment] = useState<string | null>(null);
+  // Every file that will ride along on the send, in attachment order. A list
+  // rather than one name because a property with an admin location gets one PDF
+  // per location — the operator has to see the whole set before pressing send,
+  // since that is the last checkpoint before a document reaches an owner.
+  const [emailAttachments, setEmailAttachments] = useState<string[]>([]);
   const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
   const [emailPreviewError, setEmailPreviewError] = useState<string | null>(null);
   // Tracks which invoice the most recently issued preview fetch was for, so a
@@ -1439,7 +1443,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       if (emailPreviewRequestIdRef.current !== invoiceId) return;
       setEmailSubject(data.subject ?? "");
       setEmailBody(data.body_text ?? "");
-      setEmailAttachment(data.attachment_name ?? null);
+      // attachment_names is the authoritative set; attachment_name is only its
+      // first entry and is kept on the API for older callers.
+      setEmailAttachments(
+        Array.isArray(data.attachment_names) && data.attachment_names.length > 0
+          ? data.attachment_names
+          : data.attachment_name
+            ? [data.attachment_name]
+            : [],
+      );
     } catch (err: any) {
       if (emailPreviewRequestIdRef.current !== invoiceId) return;
       setEmailPreviewError(err?.message ?? "Unexpected error");
@@ -2299,7 +2311,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         setSendToCc("");
                         setEmailSubject("");
                         setEmailBody("");
-                        setEmailAttachment(null);
+                        setEmailAttachments([]);
                         setSendToOpen(true);
                         if (currentInvoiceId) {
                           void loadEmailPreview(currentInvoiceId);
@@ -2981,12 +2993,23 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               </p>
             </div>
 
-            {emailAttachment && (
-              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                {emailAttachment} will be attached
+            {emailAttachments.length > 0 && (
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+                <div className="flex items-center gap-2 font-medium text-gray-700">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {emailAttachments.length === 1
+                    ? "1 attachment"
+                    : `${emailAttachments.length} attachments — one per location`}
+                </div>
+                <ul className="mt-1.5 space-y-0.5 pl-5">
+                  {emailAttachments.map((name) => (
+                    <li key={name} className="list-disc text-gray-600">
+                      {name}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
