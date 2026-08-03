@@ -2893,6 +2893,13 @@ function vendorBillTotalCents(b: Billables["vendor_bills"][number]): number {
   return b.amount_cents + (b.upcharge_cents || 0);
 }
 
+/**
+ * Selection key for one vendor-bill row in the invoice builder. A bill can be
+ * billed whole (`"21:all"`) or line by line (`"21:0"`, `"21:1"`), and both shapes
+ * coexist — legacy bills carry no usable line items. Exported for tests.
+ */
+export const billLineKey = (billId: number, lineId: number | null) => `${billId}:${lineId ?? "all"}`;
+
 /** Exported for keyboard-interaction tests (ProjectInvoiceBuilder.keyboard.test.tsx). */
 export function ProjectInvoiceBuilderModal({
   invoice,
@@ -2912,6 +2919,39 @@ export function ProjectInvoiceBuilderModal({
   const changeOrders = billables?.change_orders_unbilled ?? [];
   const vendorBills = billables?.vendor_bills ?? [];
   const ftoItems = billables?.fto_items ?? [];
+
+  // Every selectable vendor-bill row, keyed by billLineKey: one entry per un-billed
+  // line item, or a single whole-bill entry for a bill with no usable breakdown.
+  // ONE source of truth for the checkboxes, the running total and the emitted
+  // lines, so those three can never disagree. Lines already on a live invoice are
+  // absent (they render greyed and are not selectable); in EDIT mode the backend
+  // is called with exclude_invoice_id, so this invoice's own lines come back as
+  // available and appear here.
+  const billRowByKey = new Map<string, CreateInvoiceLineInput>();
+  for (const b of vendorBills) {
+    if (b.lines?.length) {
+      for (const l of b.lines) {
+        if (l.billed_on_invoice_id != null) continue;
+        billRowByKey.set(billLineKey(b.bill_id, l.line_id), {
+          description: l.description,
+          amount_cents: l.amount_cents + (l.upcharge_cents || 0),
+          source_type: "cost_reimbursement",
+          source_id: b.bill_id,
+          source_line_id: l.line_id,
+          vendor_id: b.vendor_id,
+        });
+      }
+    } else {
+      billRowByKey.set(billLineKey(b.bill_id, null), {
+        description: b.description,
+        amount_cents: vendorBillTotalCents(b),
+        source_type: "cost_reimbursement",
+        source_id: b.bill_id,
+        source_line_id: null,
+        vendor_id: b.vendor_id,
+      });
+    }
+  }
 
   // ── Edit-mode prefill ────────────────────────────────────────────────
   // The builder models five line kinds. Anything else on the invoice
@@ -2975,8 +3015,13 @@ export function ProjectInvoiceBuilderModal({
   const [selectedCo, setSelectedCo] = useState<number[]>(
     () => linesOf("change_order").map((l) => l.source_id!).filter((id) => id != null),
   );
-  const [selectedBills, setSelectedBills] = useState<number[]>(
-    () => linesOf("cost_reimbursement").map((l) => l.source_id!).filter((id) => id != null),
+  // Keys, not bill ids: one bill can contribute several rows (its line items).
+  // Edit-mode prefill of LINE-level selections lands in Task 5; a whole-bill line
+  // (source_line_id null) already round-trips through billLineKey here.
+  const [selectedBills, setSelectedBills] = useState<string[]>(
+    () => linesOf("cost_reimbursement")
+      .filter((l) => l.source_id != null)
+      .map((l) => billLineKey(l.source_id!, null)),
   );
   // FTO lines all carry their SUBMISSION id as source_id (backend:
   // expandFTOItem), so a distinct set round-trips exactly and the server
@@ -3011,7 +3056,7 @@ export function ProjectInvoiceBuilderModal({
   // set when Shift+Enter opens a row so entry continues without reaching for Tab.
   const focusRowKey = useRef<number | null>(null);
 
-  const toggle = (id: number, list: number[], set: (v: number[]) => void) =>
+  const toggle = <T,>(id: T, list: T[], set: (v: T[]) => void) =>
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
   // This modal is a keyboard-first billing worksheet, so Enter acts on whatever
@@ -3054,9 +3099,10 @@ export function ProjectInvoiceBuilderModal({
   const manualCents = manual.reduce((s, m) => s + Math.round((Number(m.amount) || 0) * 100), 0);
   const feeCents = fees.reduce((s, m) => s + Math.round((Number(m.amount) || 0) * 100), 0);
   const preservedCents = preservedLines.reduce((s, l) => s + l.amount_cents, 0);
+  const selectedBillCents = selectedBills.reduce((s, k) => s + (billRowByKey.get(k)?.amount_cents ?? 0), 0);
   const total =
     changeOrders.filter((c) => selectedCo.includes(c.id)).reduce((s, c) => s + c.amount_cents, 0) +
-    vendorBills.filter((b) => selectedBills.includes(b.bill_id)).reduce((s, b) => s + vendorBillTotalCents(b), 0) +
+    selectedBillCents +
     ftoItems.filter((f) => selectedFto.includes(f.submission_id)).reduce((s, f) => s + ftoItemTotalCents(f), 0) +
     manualCents +
     feeCents +
@@ -3072,17 +3118,13 @@ export function ProjectInvoiceBuilderModal({
           source_type: "change_order",
           source_id: c.id,
         })),
-      // Vendor bills → one cost_reimbursement line each, carrying the bill's vendor.
-      // Amount is cost + markup folded together (vendorBillTotalCents).
-      ...vendorBills
-        .filter((b) => selectedBills.includes(b.bill_id))
-        .map((b): CreateInvoiceLineInput => ({
-          description: b.description,
-          amount_cents: vendorBillTotalCents(b),
-          source_type: "cost_reimbursement",
-          source_id: b.bill_id,
-          vendor_id: b.vendor_id,
-        })),
+      // Vendor bills → one cost_reimbursement line per selected row: a whole bill,
+      // or a single line item of it (deposit / progress / final). Amount is cost +
+      // that row's markup, folded together (the DFO passthrough item does not
+      // recognize markup as separate income).
+      ...selectedBills
+        .map((k) => billRowByKey.get(k))
+        .filter((l): l is CreateInvoiceLineInput => l != null),
       ...manual
         .filter((m) => m.description.trim() && Number(m.amount))
         .map((m): CreateInvoiceLineInput => ({
@@ -3173,25 +3215,113 @@ export function ProjectInvoiceBuilderModal({
               <p className="text-sm text-gray-500">No un-billed vendor bills on this project.</p>
             ) : (
               <div className="flex flex-col gap-2">
-                {vendorBills.map((b) => (
-                  <label key={b.bill_id} className={`${rowCls} cursor-pointer ${selectedBills.includes(b.bill_id) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
-                    <span className={rowLabelCls}>
-                      <input type="checkbox" className={checkCls} checked={selectedBills.includes(b.bill_id)} onChange={() => toggle(b.bill_id, selectedBills, setSelectedBills)} onKeyDown={enterActivates(() => toggle(b.bill_id, selectedBills, setSelectedBills))} />
-                      <span className="min-w-0">
-                        {b.description}
-                        {(b.vendor_name || b.upcharge_cents > 0) && (
-                          <span className="ml-1.5 text-xs text-gray-500">
-                            {b.vendor_name && `· ${b.vendor_name}`}
-                            {/* Break out the markup so the blended figure on the right
-                                is never opaque (mirrors the FTO rows' breakdown). */}
-                            {b.upcharge_cents > 0 && ` · cost ${formatUSD(b.amount_cents)} + markup ${formatUSD(b.upcharge_cents)}`}
+                {vendorBills.map((b) => {
+                  // A bill with no usable line breakdown keeps its original single
+                  // row: one checkbox for the whole bill.
+                  if (!b.lines?.length) {
+                    const key = billLineKey(b.bill_id, null);
+                    return (
+                      <label key={key} className={`${rowCls} cursor-pointer ${selectedBills.includes(key) ? "border-[#013764] bg-[#013764]/[0.03]" : ""}`}>
+                        <span className={rowLabelCls}>
+                          <input type="checkbox" className={checkCls} checked={selectedBills.includes(key)} onChange={() => toggle(key, selectedBills, setSelectedBills)} onKeyDown={enterActivates(() => toggle(key, selectedBills, setSelectedBills))} />
+                          <span className="min-w-0">
+                            {b.description}
+                            {(b.vendor_name || b.upcharge_cents > 0) && (
+                              <span className="ml-1.5 text-xs text-gray-500">
+                                {b.vendor_name && `· ${b.vendor_name}`}
+                                {/* Break out the markup so the blended figure on the right
+                                    is never opaque (mirrors the FTO rows' breakdown). */}
+                                {b.upcharge_cents > 0 && ` · cost ${formatUSD(b.amount_cents)} + markup ${formatUSD(b.upcharge_cents)}`}
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </span>
-                    </span>
-                    <span className={rowAmountCls}>{formatUSD(vendorBillTotalCents(b))}</span>
-                  </label>
-                ))}
+                        </span>
+                        <span className={rowAmountCls}>{formatUSD(vendorBillTotalCents(b))}</span>
+                      </label>
+                    );
+                  }
+
+                  // Itemized bill: the vendor's own deposit / progress / final
+                  // breakdown, each billable on its own invoice.
+                  const remainingKeys = b.lines
+                    .filter((l) => l.billed_on_invoice_id == null)
+                    .map((l) => billLineKey(b.bill_id, l.line_id));
+                  const pickedCount = remainingKeys.filter((k) => selectedBills.includes(k)).length;
+                  const allPicked = pickedCount > 0 && pickedCount === remainingKeys.length;
+                  const toggleAll = () =>
+                    setSelectedBills(
+                      allPicked
+                        ? selectedBills.filter((k) => !remainingKeys.includes(k))
+                        : [...selectedBills.filter((k) => !remainingKeys.includes(k)), ...remainingKeys],
+                    );
+                  return (
+                    <div key={b.bill_id} className="rounded-lg border border-gray-200">
+                      <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-3 py-2.5">
+                        <span className={rowLabelCls}>
+                          {/* Tri-state: indeterminate when only part of the remaining
+                              work is picked. `indeterminate` is not a React prop, so
+                              it is set on the node through a ref callback. */}
+                          <input
+                            type="checkbox"
+                            aria-label={`Select all remaining lines of ${b.description}`}
+                            className={checkCls}
+                            checked={allPicked}
+                            ref={(el) => {
+                              if (el) el.indeterminate = pickedCount > 0 && !allPicked;
+                            }}
+                            onChange={toggleAll}
+                            onKeyDown={enterActivates(toggleAll)}
+                          />
+                          <span className="min-w-0 font-medium">
+                            {b.description}
+                            {b.vendor_name && <span className="ml-1.5 text-xs font-normal text-gray-500">· {b.vendor_name}</span>}
+                          </span>
+                        </span>
+                        <span className={rowAmountCls}>{formatUSD(b.amount_cents + b.upcharge_cents)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        {b.lines.map((l) => {
+                          const key = billLineKey(b.bill_id, l.line_id);
+                          const billed = l.billed_on_invoice_id != null;
+                          const picked = selectedBills.includes(key);
+                          return (
+                            <label
+                              key={key}
+                              className={`flex items-start justify-between gap-3 px-3 py-2 pl-9 ${billed ? "text-gray-400" : "cursor-pointer text-gray-900"} ${picked ? "bg-[#013764]/[0.03]" : ""}`}
+                            >
+                              <span className="flex min-w-0 items-start gap-2.5 text-sm">
+                                <input
+                                  type="checkbox"
+                                  className={checkCls}
+                                  disabled={billed}
+                                  checked={picked}
+                                  onChange={() => toggle(key, selectedBills, setSelectedBills)}
+                                  onKeyDown={enterActivates(() => { if (!billed) toggle(key, selectedBills, setSelectedBills); })}
+                                />
+                                <span className="min-w-0">
+                                  {l.description}
+                                  <span className="ml-1.5 text-xs text-gray-500">
+                                    {billed
+                                      ? `· billed on ${l.billed_on_invoice_number ?? "another invoice"}`
+                                      : l.upcharge_cents > 0
+                                        ? `· cost ${formatUSD(l.amount_cents)} + markup ${formatUSD(l.upcharge_cents)}`
+                                        : ""}
+                                  </span>
+                                </span>
+                              </span>
+                              <span className={rowAmountCls}>{formatUSD(l.amount_cents + (l.upcharge_cents || 0))}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {b.billed_cents > 0 && (
+                        <div className="border-t border-gray-100 px-3 py-1.5 pl-9 text-xs text-gray-500">
+                          Billed {formatUSD(b.billed_cents)} of {formatUSD(b.amount_cents + b.upcharge_cents)} · remaining {formatUSD(b.remaining_cents)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

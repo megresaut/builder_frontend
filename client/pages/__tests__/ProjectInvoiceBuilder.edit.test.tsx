@@ -398,6 +398,7 @@ describe("ProjectInvoiceBuilderModal — vendor-bill upcharge folded into the bi
         amount_cents: 2640000, // 2400000 cost + 240000 markup
         source_type: "cost_reimbursement",
         source_id: 21,
+        source_line_id: null,
         vendor_id: 5,
       },
     ]);
