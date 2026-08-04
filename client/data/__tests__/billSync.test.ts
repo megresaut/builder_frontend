@@ -140,7 +140,7 @@ describe("describeBillSync", () => {
       }),
     );
     expect(msg).toContain("Imported 1 payment.");
-    expect(msg).toContain("Booked 1 Buildium payment into QuickBooks.");
+    expect(msg).toContain("Booked 1 payment into QuickBooks.");
   });
 
   it("pluralises the pushed payment count", () => {
@@ -152,7 +152,49 @@ describe("describeBillSync", () => {
           qbo: sys({ payments_pushed: 2 }),
         }),
       ),
-    ).toContain("Booked 2 Buildium payments into QuickBooks.");
+    ).toContain("Booked 2 payments into QuickBooks.");
+  });
+
+  // The other direction: a payment QuickBooks held that Buildium never got.
+  it("reports payments booked into Buildium", () => {
+    expect(
+      describeBillSync(
+        result({
+          is_concierge: true,
+          property_type: "C",
+          buildium: sys({ payments_pushed: 1 }),
+        }),
+      ),
+    ).toContain("Booked 1 payment into Buildium.");
+  });
+
+  // Both directions in one sync — each has to be named, or the user can't tell
+  // which book changed.
+  it("reports both directions separately", () => {
+    const msg = describeBillSync(
+      result({
+        is_concierge: true,
+        property_type: "C",
+        qbo: sys({ payments_pushed: 1 }),
+        buildium: sys({ payments_pushed: 2 }),
+      }),
+    );
+    expect(msg).toContain("Booked 1 payment into QuickBooks.");
+    expect(msg).toContain("Booked 2 payments into Buildium.");
+  });
+
+  // Sync relinked the bill because the QuickBooks bill on record was deleted.
+  // The user needs to know the bill now points somewhere else.
+  it("reports an adopted QuickBooks bill", () => {
+    expect(
+      describeBillSync(
+        result({
+          is_concierge: true,
+          property_type: "C",
+          qbo: sys({ adopted: "900" }),
+        }),
+      ),
+    ).toContain("Linked to existing QuickBooks bill 900");
   });
 
   it("says nothing about pushing when nothing was pushed", () => {
