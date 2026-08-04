@@ -43,6 +43,7 @@ import { openAuthPdf } from "@/api/openAuthPdf";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import { plainTextToHtml } from "@/lib/plainTextToHtml";
 import { parseRecipients } from "@/lib/emailRecipients";
+import { approveRouteForSubmission } from "@/lib/ftoRoute";
 
 import glAccounts from "@/data/gl_accounts.json";  
 
@@ -1095,20 +1096,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   const openViewFTO = async (submissionId: number) => {
     try {
-      // Fetch the submission to get the FTO ID
       const data = await fetchJSON(
         `/maintenance/submissions/${submissionId}`
       );
       // Handle both possible response structures: direct submission or wrapped in SubmissionWithAttachments
       const submission = data.submission || data;
-      const ftoId = submission.fto_id || submission.FTOID || submission.ftoId;
-
-      if (!ftoId) {
-        throw new Error("FTO ID not found in submission");
-      }
-
-      // Navigate to the approve page (same as the approve button in all field team orders)
-      navigate(`/field-team-orders/approve/${ftoId}`);
+      // A misc expense has fto_id NULL and routes by submission id instead —
+      // it is not an error, and the old code threw on it.
+      navigate(approveRouteForSubmission(submissionId, submission));
     } catch (err) {
       console.error("Failed to open FTO:", err);
       alert("Failed to load FTO details");
