@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import PageTemplate from "@/layout/PageTemplate";
 import SubPageHeaderV2 from "@/components/SubPageHeaderV2";
 import { fetchJSON, authFetch, API_BASE } from "@/api/fetchJSON";
+import { fileUrl } from "@/api/fileUrl";
 import { useAuthBlobUrl } from "@/hooks/useAuthBlobUrl";
 import { formatUnitLabel } from "@/utils/unitLabel";
 import { useAuth } from "@/auth/useAuth";
@@ -138,7 +139,7 @@ function transformApiAttachmentToUiFile(api: ApiWorkOrderAttachment): File {
 function attachmentToPhoto(a: ApiWorkOrderAttachment): Photo {
   return {
     id: a.id,
-    url: `${API_BASE}/files/${a.storage_path}`,
+    url: fileUrl(a.storage_path),
     fileName: a.file_name,
     uploadedAt: formatDateTime(a.created_at),
     uploadedBy: a.uploaded_by_name ?? a.uploaded_by_type,

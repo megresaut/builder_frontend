@@ -11,6 +11,7 @@ import {
   billSyncProblems,
   type BillSyncResult,
 } from "@/data/billSync";
+import { type BuildiumSyncResult } from "@/data/buildiumPaymentSync";
 import { toast } from "sonner";
 import {
   maxApplicableCents,
@@ -520,6 +521,12 @@ export default function PayBillModal({
           throw new Error(text || `Refresh failed (status ${res.status})`);
         }
         toast.success("Refreshed bill status from Buildium.");
+        // An over-paid bill is the sync telling us it found something only a
+        // person can settle. Non-fatal, so it rides alongside the success.
+        const synced: BuildiumSyncResult | null = await res
+          .json()
+          .catch(() => null);
+        synced?.warnings?.forEach((w) => toast.warning(w));
       }
       onOpenChange(false);
     } catch (err: any) {

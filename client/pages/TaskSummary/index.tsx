@@ -64,6 +64,7 @@ import { parseMsgFile } from "@/utils/parseMsgFile";
 import { parseEmlFile } from "@/utils/parseEmlFile";
 import type { ParsedMsg } from "@/utils/parseMsgFile";
 import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
+import { fileUrl, parseAttachmentId } from "@/api/fileUrl";
 import type { Photo, PhotoLabel } from "@/components/PhotoGallery";
 import type { PhotoUpload } from "@/components/task";
 import { openAuthPdf } from "@/api/openAuthPdf";
@@ -1417,7 +1418,7 @@ export default function TaskSummary() {
     return {
       id: apiAttachment.id,
       name: apiAttachment.file_name,
-      url: `${API_BASE}/files/${apiAttachment.storage_path}`,
+      url: fileUrl(apiAttachment.storage_path),
       uploadedAt: formatDate(apiAttachment.created_at),
       category: apiAttachment.label || "",
       description: apiAttachment.description || "",
@@ -1436,7 +1437,7 @@ export default function TaskSummary() {
 
   const attachmentToPhoto = (a: ApiTaskAttachment): Photo => ({
     id: a.id,
-    url: `${API_BASE}/files/${a.storage_path}`,
+    url: fileUrl(a.storage_path),
     fileName: a.file_name,
     uploadedAt: formatTaskDateTime(a.created_at),
     uploadedBy: a.uploaded_by_type,
@@ -1521,10 +1522,8 @@ export default function TaskSummary() {
       const fileName =
         file.name ?? (file as any).file_name ?? "";
       const fileType = (file as any).file_type ?? "";
-      const attachmentId =
-        typeof file.id === "number"
-          ? file.id
-          : parseInt(String(file.id), 10);
+      // Strict: a synthetic id like "28 Coleytown.pdf-0" must not parse as 28.
+      const attachmentId = parseAttachmentId(file.id);
       const isMsgFile =
         fileName.toLowerCase().endsWith(".msg") ||
         (file.storage_path ?? "").toLowerCase().endsWith(".msg") ||
@@ -1538,7 +1537,7 @@ export default function TaskSummary() {
 
       if (isMessageFile) {
         // Stored attachment with numeric id: fetch by attachment id
-        if (!isNaN(attachmentId)) {
+        if (attachmentId !== null) {
           setMsgViewer({
             isOpen: true,
             title: fileName || "Message",
@@ -1609,11 +1608,13 @@ export default function TaskSummary() {
         }
       }
 
+      // Prefer the id-addressed route over file.url: it keeps the filename out
+      // of the URL, so a key containing `#` can't be truncated at the fragment
+      // into a 404. Mirrors handleDownloadAttachment and WorkOrderDetailsV2.
       const url =
-        file.url ||
-        (file.id != null
+        attachmentId !== null
           ? `/api/maintenance/attachments/${attachmentId}`
-          : undefined);
+          : file.url;
       uiDispatch({
         type: "SET_VIEWING_ATTACHMENT",
         payload: {
@@ -1631,11 +1632,12 @@ export default function TaskSummary() {
   const handleDownloadAttachment = useCallback(
     async (file: { id: string | number; name?: string; url?: string; storage_path?: string }) => {
       const fileName = file.name ?? (file as any).file_name ?? "file";
-      const attachmentId =
-        typeof file.id === "number" ? file.id : parseInt(String(file.id), 10);
+      // Strict: a synthetic id like "28 Coleytown.pdf-0" must not parse as 28
+      // and download an unrelated document.
+      const attachmentId = parseAttachmentId(file.id);
 
       let fetchPath: string;
-      if (!isNaN(attachmentId)) {
+      if (attachmentId !== null) {
         fetchPath = `/maintenance/attachments/${attachmentId}`;
       } else if (file.storage_path) {
         fetchPath = `/files?key=${encodeURIComponent(file.storage_path)}`;

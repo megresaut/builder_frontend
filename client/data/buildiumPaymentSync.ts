@@ -26,6 +26,12 @@ export interface BuildiumSyncResult {
   paid_cents: number;
   outstanding_cents: number;
   paid_on: string | null;
+  /**
+   * Things the sync found but couldn't resolve on its own — an over-paid bill,
+   * for instance, where the excess sits in a payment row Buildium doesn't know
+   * about. Non-fatal: the sync still ran. Show them alongside the result.
+   */
+  warnings?: string[];
 }
 
 export function syncBuildiumPayments(

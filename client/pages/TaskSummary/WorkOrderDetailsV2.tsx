@@ -36,6 +36,7 @@ import type { UploadedFile } from "@/components/ui/attachment-uploader";
 import type { Note, File } from "@/components/templates";
 import { FormLayout, FormSection } from "@/components/ui/form-layout";
 import { fetchJSON, API_BASE, authFetch } from "@/api/fetchJSON";
+import { fileUrl } from "@/api/fileUrl";
 import { useAuth } from "@/auth/useAuth";
 import { convertFiletoPdf } from "@/utils/convertFiletoPdf";
 import { formatUnitDisplayForTable } from "@/utils/unitLabel";
@@ -722,7 +723,7 @@ export default function WorkOrderDetailsV2({
 
   const attachmentToPhotoWO = (a: ApiWorkOrderAttachment): Photo => ({
     id: a.id,
-    url: `${API_BASE}/files/${a.storage_path}`,
+    url: fileUrl(a.storage_path),
     fileName: a.file_name,
     uploadedAt: formatCreatedDate(a.created_at),
     uploadedBy: a.uploaded_by_name ?? a.uploaded_by_type,
