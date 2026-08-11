@@ -15,6 +15,7 @@ import {
   type DuplicateMatch,
 } from "@/api/aiDrafts";
 import { fetchJSON } from "@/api/fetchJSON";
+import { getInitials } from "@/utils/getInitials";
 import CreateFTOModal from "@/components/CreateFTOModal";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import CreateWorkOrderModalV2 from "@/components/CreateWorkOrderModalV2";
@@ -216,6 +217,55 @@ function ConfidenceBar({ value }: { value: number }) {
 // Expanded detail panel
 // ---------------------------------------------------------------------------
 
+/** Property label for an FTO snapshot inside an fto_merge draft. */
+function mergeFTOProperty(
+  f: Record<string, any> | undefined,
+  propertyMap: Record<number, string>
+): string {
+  if (!f) return "—";
+  if (f.property_name) return String(f.property_name);
+  if (typeof f.property_id === "number" && propertyMap[f.property_id]) {
+    return propertyMap[f.property_id];
+  }
+  if (f.property_address) return String(f.property_address);
+  return "—";
+}
+
+/** Field team avatars + names for an FTO snapshot inside an fto_merge draft. */
+function MergeFieldTeamCell({
+  fto,
+  userMap,
+}: {
+  fto: Record<string, any> | undefined;
+  userMap: Record<number, string>;
+}) {
+  const ids: number[] = Array.isArray(fto?.field_team_member_ids)
+    ? fto!.field_team_member_ids
+    : [];
+
+  if (ids.length === 0) return <span className="text-[#999]">—</span>;
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      {ids.map((id) => {
+        const known = userMap[id];
+        const name = known || `User #${id}`;
+        return (
+          <span key={id} className="inline-flex items-center gap-1.5">
+            <span
+              className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-[9px] font-semibold shrink-0"
+              title={name}
+            >
+              {(known && getInitials(known)) || "?"}
+            </span>
+            <span className="text-[#303030]">{name}</span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function DraftDetailPanel({
   draft,
   propertyMap,
@@ -311,6 +361,16 @@ function DraftDetailPanel({
                     <td className="py-1.5 text-[#303030]">{sourceFTO.name}</td>
                   </tr>
                   <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium">Property</td>
+                    <td className="py-1.5 text-[#303030]">{mergeFTOProperty(sourceFTO, propertyMap)}</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium align-top">Field Team</td>
+                    <td className="py-1.5 text-[#303030]">
+                      <MergeFieldTeamCell fto={sourceFTO} userMap={userMap} />
+                    </td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
                     <td className="py-1.5 text-[#717179] font-medium">Description</td>
                     <td className="py-1.5 text-[#303030]">{sourceFTO.description || "—"}</td>
                   </tr>
@@ -350,6 +410,16 @@ function DraftDetailPanel({
                   <tr className="border-b border-[#f5f5f5]">
                     <td className="py-1.5 text-[#717179] font-medium w-[100px]">Name</td>
                     <td className="py-1.5 text-[#303030]">{targetFTO.name}</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium">Property</td>
+                    <td className="py-1.5 text-[#303030]">{mergeFTOProperty(targetFTO, propertyMap)}</td>
+                  </tr>
+                  <tr className="border-b border-[#f5f5f5]">
+                    <td className="py-1.5 text-[#717179] font-medium align-top">Field Team</td>
+                    <td className="py-1.5 text-[#303030]">
+                      <MergeFieldTeamCell fto={targetFTO} userMap={userMap} />
+                    </td>
                   </tr>
                   <tr className="border-b border-[#f5f5f5]">
                     <td className="py-1.5 text-[#717179] font-medium">Description</td>

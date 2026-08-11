@@ -565,6 +565,70 @@ export async function fetchBillDetail(billID: number): Promise<BillDetail> {
   return (await fetchJSON(`/vendors/bills/${billID}`)) as BillDetail;
 }
 
+// ── Transaction detail (the "View" drawer on a matched activity row) ─────────
+//
+// A Confident / Needs-review row pairs a statement line with a *transaction*,
+// not a bill, so there is no bill id to fetch. The backend asks the source
+// system live and returns one of two shapes under TxnDetail:
+//
+//   kind="bill_payment" → bills[] (a QBO payment can settle several bills)
+//   kind="transaction"  → line_items[] (the transaction's own expense lines;
+//                         always this shape for Buildium, whose credit-card
+//                         register carries no bill link)
+//   kind="unresolved"   → neither; `note` explains why.
+
+export interface TxnDetailLine {
+  description?: string;
+  account?: string;
+  property?: string;
+  reference?: string;
+  amount_cents: number;
+}
+
+export interface TxnDetailBill {
+  source: string;
+  external_id: string;
+  /** platform bills.id — absent when the bill exists only in QBO/Buildium. */
+  platform_bill_id?: number;
+  doc_number?: string;
+  txn_date?: string;
+  due_date?: string;
+  vendor_name?: string;
+  property_name?: string;
+  memo?: string;
+  total_cents: number;
+  balance_cents: number;
+  /** How much of THIS payment landed on THIS bill — not the payment total. */
+  applied_cents: number;
+  line_items?: TxnDetailLine[];
+}
+
+export interface TxnDetail {
+  source: string;
+  txn_id: string;
+  txn_type: string;
+  kind: "bill_payment" | "transaction" | "unresolved";
+  txn_date?: string;
+  doc_number?: string;
+  payee?: string;
+  memo?: string;
+  amount_cents: number;
+  note?: string;
+  bills?: TxnDetailBill[];
+  line_items?: TxnDetailLine[];
+}
+
+// fetchTxnDetail hits QBO/Buildium live, so expect a second or two.
+export async function fetchTxnDetail(
+  recID: number,
+  args: { source?: string; txnID: string; txnType?: string },
+): Promise<TxnDetail> {
+  const q = new URLSearchParams({ txn_id: args.txnID });
+  if (args.source) q.set("source", args.source);
+  if (args.txnType) q.set("txn_type", args.txnType);
+  return (await fetchJSON(`/reconciliations/${recID}/txn-detail?${q}`)) as TxnDetail;
+}
+
 // SetStatementActionRequest is the body for POST /reconciliations/{id}/statement-action.
 // action="clear" rolls a previously-set action back to undecided. "dispute"
 // requires a non-empty note (the server rejects with 400 otherwise).

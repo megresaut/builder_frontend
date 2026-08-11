@@ -12,6 +12,7 @@ import {
   skipSuggestion,
   fetchAISuggestions,
   fetchBillDetail,
+  fetchTxnDetail,
   updateReconciliation,
   finalize as finalizeReconciliation,
   reopen as reopenReconciliation,
@@ -19,6 +20,8 @@ import {
   type MatchPair,
   type AISuggestion,
   type BillDetail,
+  type TxnDetail,
+  type TxnDetailLine,
   type StatementRow,
   type CreditCardActivityRow,
   type ReconciliationLine,
@@ -329,6 +332,238 @@ function BillDetailPanel({ billID, onClose }: { billID: number; onClose: () => v
   );
 }
 
+// ── transaction detail slide-out panel ─────────────────────────────────────
+//
+// Opened from the right-hand (transaction) side of a Confident / Needs-review
+// row. Unlike BillDetailPanel this starts from a *transaction*, so what comes
+// back depends on how the source books it:
+//
+//   QBO bill payment → one card per bill it settled, each with its own lines
+//                      and the portion of the payment applied to it.
+//   anything else    → the transaction's own expense lines. Buildium is always
+//                      this shape; its card register has no bill behind it.
+//
+// Every path hits the live API, so a spinner is expected on open.
+function TxnDetailPanel({ recID, row, onClose, onOpenPlatformBill }: {
+  recID: number;
+  row: CreditCardActivityRow;
+  onClose: () => void;
+  onOpenPlatformBill: (billID: number) => void;
+}) {
+  const [detail, setDetail] = useState<TxnDetail | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const source = row.source === "buildium" ? "buildium" : "qbo";
+  const txnID = source === "buildium" ? (row.buildium_txn_id ?? "") : (row.qbo_txn_id ?? "");
+
+  useEffect(() => {
+    let live = true;
+    setDetail(null); setErr(null);
+    if (!txnID) {
+      setErr("This row has no transaction id in " + (source === "qbo" ? "QuickBooks" : "Buildium") +
+        ", so there is nothing to look up.");
+      return;
+    }
+    fetchTxnDetail(recID, { source, txnID, txnType: row.txn_type })
+      .then(d => { if (live) setDetail(d); })
+      .catch(e => { if (live) setErr(cleanErr(e, "Failed to load transaction details")); });
+    return () => { live = false; };
+  }, [recID, source, txnID, row.txn_type]);
+
+  const fmtAmt = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+  const sourceLabel = source === "qbo" ? "QuickBooks Online" : "Buildium";
+
+  const Section = ({ title }: { title: string }) => (
+    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: ".08em", color: T.text3, marginBottom: 10, marginTop: 20, paddingBottom: 6, borderBottom: `1px solid ${T.border}` }}>
+      {title}
+    </div>
+  );
+  const Field = ({ label, value, mono }: { label: string; value?: string | null; mono?: boolean }) =>
+    value ? (
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: ".07em", color: T.text3, marginBottom: 2 }}>{label}</div>
+        <div style={{ fontSize: 13, color: T.text, fontFamily: mono ? T.mono : T.sans }}>{value}</div>
+      </div>
+    ) : null;
+
+  // Line table shared by the transaction-level lines and each bill's lines.
+  const LineTable = ({ lines, total }: { lines: TxnDetailLine[]; total?: number }) => (
+    <div style={{ border: `1px solid ${T.border}`, borderRadius: T.radius, overflow: "hidden" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+        <thead>
+          <tr style={{ background: T.border2 }}>
+            <th style={{ padding: "6px 10px", textAlign: "left", fontWeight: 600, color: T.text2, fontSize: 10, textTransform: "uppercase", letterSpacing: ".05em" }}>Description</th>
+            <th style={{ padding: "6px 10px", textAlign: "right", fontWeight: 600, color: T.text2, fontSize: 10, textTransform: "uppercase", letterSpacing: ".05em" }}>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lines.map((li, i) => (
+            <tr key={i} style={{ borderTop: `1px solid ${T.border}` }}>
+              <td style={{ padding: "7px 10px", color: T.text }}>
+                <div>{li.description || li.account || "—"}</div>
+                {(li.account && li.description) && (
+                  <div style={{ fontSize: 11, color: T.text3, marginTop: 1 }}>{li.account}</div>
+                )}
+                {(li.property || li.reference) && (
+                  <div style={{ fontSize: 11, color: T.text3, marginTop: 1 }}>
+                    {[li.property, li.reference && `ref ${li.reference}`].filter(Boolean).join(" · ")}
+                  </div>
+                )}
+              </td>
+              <td style={{ padding: "7px 10px", textAlign: "right", fontFamily: T.mono, color: T.text, verticalAlign: "top", whiteSpace: "nowrap" }}>
+                {fmtAmt(li.amount_cents)}
+              </td>
+            </tr>
+          ))}
+          {total !== undefined && (
+            <tr style={{ borderTop: `2px solid ${T.border}`, background: T.border2 }}>
+              <td style={{ padding: "7px 10px", fontWeight: 600, color: T.text }}>Total</td>
+              <td style={{ padding: "7px 10px", textAlign: "right", fontFamily: T.mono, fontWeight: 700, color: T.accent, whiteSpace: "nowrap" }}>
+                {fmtAmt(total)}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.22)", zIndex: 99 }} />
+      <div style={{
+        position: "fixed", top: 0, right: 0, bottom: 0, width: 480,
+        background: "#fff", boxShadow: "-4px 0 32px rgba(0,0,0,.13)",
+        zIndex: 100, display: "flex", flexDirection: "column", fontFamily: T.sans,
+      }}>
+        {/* header — from the row we already have, so it renders before the fetch lands */}
+        <div style={{ padding: "20px 24px 16px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexShrink: 0 }}>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: ".09em", color: T.text3, marginBottom: 5 }}>{sourceLabel}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: T.text }}>{row.vendor || row.txn_type}</div>
+            <div style={{ marginTop: 4, fontSize: 12, color: T.text3 }}>
+              {fmtDate(row.txn_date)} · {detail?.txn_type || row.txn_type}
+            </div>
+            <div style={{ marginTop: 6, fontSize: 20, fontFamily: T.mono, fontWeight: 700, color: T.accent }}>
+              {fmtAmt(detail?.amount_cents ?? row.amount_cents)}
+            </div>
+          </div>
+          <button onClick={onClose} style={{ border: "none", background: "none", fontSize: 20, color: T.text3, cursor: "pointer", padding: 4, marginTop: 2 }}>✕</button>
+        </div>
+
+        {/* body */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "4px 24px 32px" }}>
+          {!detail && !err && (
+            <div style={{ color: T.text3, fontSize: 13, textAlign: "center", paddingTop: 48 }}>
+              Loading from {sourceLabel}…
+            </div>
+          )}
+          {err && <div style={{ color: T.crit, fontSize: 13, padding: "20px 0" }}>{err}</div>}
+
+          {detail && (
+            <>
+              <Section title="Transaction" />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+                <Field label="Date" value={fmtDate(detail.txn_date || row.txn_date)} />
+                <Field label="Type" value={detail.txn_type} />
+                <Field label="Check / Doc #" value={detail.doc_number} />
+                <Field label={`${sourceLabel} ID`} value={detail.txn_id} mono />
+              </div>
+              <Field label="Payee" value={detail.payee || row.vendor} />
+              <Field label="Memo" value={detail.memo || row.memo} />
+
+              {/* bill_payment → one card per settled bill */}
+              {detail.kind === "bill_payment" && (detail.bills ?? []).length > 0 && (
+                <>
+                  <Section title={(detail.bills ?? []).length > 1 ? `Bills Paid (${detail.bills!.length})` : "Bill Paid"} />
+                  {(detail.bills ?? []).map((b, i) => (
+                    <div key={i} style={{ border: `1px solid ${T.border}`, borderRadius: T.radius, padding: "12px 14px", marginBottom: 12, background: T.bg }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: T.text }}>
+                            {b.vendor_name || `Bill ${b.external_id}`}
+                          </div>
+                          <div style={{ fontSize: 11, color: T.text3, marginTop: 2 }}>
+                            {[
+                              b.doc_number && `#${b.doc_number}`,
+                              fmtDate(b.txn_date),
+                              `${b.source === "qbo" ? "QBO" : "Buildium"} id ${b.external_id}`,
+                            ].filter(Boolean).join(" · ")}
+                          </div>
+                          {b.property_name && (
+                            <div style={{ fontSize: 12, color: T.text2, marginTop: 3 }}>{b.property_name}</div>
+                          )}
+                        </div>
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
+                          <div style={{ fontFamily: T.mono, fontSize: 14, fontWeight: 700, color: T.text }}>
+                            {fmtAmt(b.applied_cents)}
+                          </div>
+                          <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: ".05em" }}>applied</div>
+                          {b.total_cents > 0 && b.total_cents !== b.applied_cents && (
+                            <div style={{ fontSize: 11, color: T.text3, marginTop: 3 }}>
+                              of {fmtAmt(b.total_cents)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {b.memo && (
+                        <div style={{ fontSize: 12, color: T.text2, marginTop: 8, fontStyle: "italic" }}>{b.memo}</div>
+                      )}
+
+                      {(b.line_items ?? []).length > 0 && (
+                        <div style={{ marginTop: 10 }}>
+                          <LineTable lines={b.line_items!} total={b.total_cents || undefined} />
+                        </div>
+                      )}
+
+                      {b.balance_cents > 0 && (
+                        <div style={{ marginTop: 8, fontSize: 11, color: T.warn }}>
+                          Still open in {b.source === "qbo" ? "QuickBooks" : "Buildium"}: {fmtAmt(b.balance_cents)}
+                        </div>
+                      )}
+
+                      {b.platform_bill_id ? (
+                        <div style={{ marginTop: 10 }}>
+                          <Btn onClick={() => onOpenPlatformBill(b.platform_bill_id!)}>
+                            Open platform bill #{b.platform_bill_id} →
+                          </Btn>
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 10, fontSize: 11, color: T.text3 }}>
+                          Not linked to a platform bill — this one lives only in {b.source === "qbo" ? "QuickBooks" : "Buildium"}.
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* transaction → its own expense lines */}
+              {(detail.line_items ?? []).length > 0 && (
+                <>
+                  <Section title="Expense Lines" />
+                  <LineTable lines={detail.line_items!} total={detail.amount_cents} />
+                </>
+              )}
+
+              {detail.note && (
+                <div style={{ marginTop: 20, padding: 12, background: T.bg, borderRadius: T.radius, fontSize: 12, color: T.text2, lineHeight: 1.5 }}>
+                  {detail.note}
+                </div>
+              )}
+
+              <div style={{ marginTop: 20, fontSize: 11, color: T.text3 }}>
+                Read live from {sourceLabel} · ID {detail.txn_id}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ── AI bill slim panel (for bills with no platform row) ────────────────────
 function AISuggBillPanel({ sugg, onClose }: { sugg: AISuggestion; onClose: () => void }) {
   const fmtAmt = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -472,14 +707,21 @@ function AISuggRow({ sugg, onAccept, onBillClick, onSuggClick, loading }: {
   );
 }
 
-function SuggRow({ pair, onAccept, onSkip, loading }: {
+function SuggRow({ pair, onAccept, onSkip, onTxnClick, loading }: {
   pair: MatchPair;
   onAccept: () => void;
   onSkip: () => void;
+  /** Opens the live source-system detail drawer for the transaction side. */
+  onTxnClick?: (row: CreditCardActivityRow) => void;
   loading?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [txnHovered, setTxnHovered] = useState(false);
   const { statement: stmt, qbo, confidence } = pair;
+  // A row with no id in its source system has nothing to look up — don't offer
+  // an affordance that can only fail.
+  const txnViewable = !!onTxnClick &&
+    !!(qbo.source === "buildium" ? qbo.buildium_txn_id : qbo.qbo_txn_id);
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -508,9 +750,24 @@ function SuggRow({ pair, onAccept, onSkip, loading }: {
         <Chip conf={confidence} />
         <span style={{ color: T.text3, fontSize: 14 }}>↔</span>
       </div>
-      {/* qbo side */}
-      <div style={{ padding: "10px 14px", borderLeft: `1px solid ${T.border2}` }}>
-        <div style={{ fontSize: 13, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{qboDisplay(qbo)}</div>
+      {/* qbo side — clickable through to the live source-system detail */}
+      <div
+        onClick={txnViewable ? () => onTxnClick!(qbo) : undefined}
+        onMouseEnter={() => setTxnHovered(true)}
+        onMouseLeave={() => setTxnHovered(false)}
+        style={{
+          padding: "10px 14px", borderLeft: `1px solid ${T.border2}`,
+          cursor: txnViewable ? "pointer" : "default",
+          background: txnViewable && txnHovered ? T.accentBg : "transparent",
+          transition: "background .12s",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ fontSize: 13, color: txnViewable && txnHovered ? T.accent : T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: txnViewable && txnHovered ? 500 : 400 }}>{qboDisplay(qbo)}</div>
+          {txnViewable && txnHovered && (
+            <span style={{ fontSize: 10, color: T.accent, flexShrink: 0 }}>View ↗</span>
+          )}
+        </div>
         <div style={{ fontSize: 11, color: T.text3, marginTop: 1 }}>{fmtDate(qbo.txn_date)} · {qbo.txn_type}</div>
         <div style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 600, marginTop: 3 }}>{fmt(qbo.amount_cents)}</div>
       </div>
@@ -548,6 +805,8 @@ export default function ReconRedesign() {
   const [search, setSearch] = useState("");
   const [billPanelID, setBillPanelID] = useState<number | null>(null);
   const [aiSuggPanel, setAiSuggPanel] = useState<AISuggestion | null>(null);
+  // The activity row whose live source-system detail is open in the drawer.
+  const [txnPanelRow, setTxnPanelRow] = useState<CreditCardActivityRow | null>(null);
   const [showEditRec, setShowEditRec] = useState(false);
   const [editRecSaving, setEditRecSaving] = useState(false);
   const [quickBillRows, setQuickBillRows] = useState<StatementRow[]>([]);
@@ -945,6 +1204,16 @@ export default function ReconRedesign() {
       {aiSuggPanel !== null && (
         <AISuggBillPanel sugg={aiSuggPanel} onClose={() => setAiSuggPanel(null)} />
       )}
+      {/* Rendered only when the platform-bill drawer isn't already open, so
+          "Open platform bill" hands off cleanly instead of stacking drawers. */}
+      {txnPanelRow !== null && billPanelID === null && (
+        <TxnDetailPanel
+          recID={recID}
+          row={txnPanelRow}
+          onClose={() => setTxnPanelRow(null)}
+          onOpenPlatformBill={billID => { setTxnPanelRow(null); setBillPanelID(billID); }}
+        />
+      )}
       <QuickBillBatchModal
         open={quickBillRows.length > 0}
         onOpenChange={open => { if (!open) setQuickBillRows([]); }}
@@ -1167,7 +1436,8 @@ export default function ReconRedesign() {
                     ) : visAutoSugg.map((pair, i) => (
                       <SuggRow key={i} pair={pair} loading={actionLoading}
                         onAccept={() => acceptSugg(pair)}
-                        onSkip={() => skipSugg(pair)} />
+                        onSkip={() => skipSugg(pair)}
+                        onTxnClick={setTxnPanelRow} />
                     ))}
                   </div>
                 )}
@@ -1186,7 +1456,8 @@ export default function ReconRedesign() {
                     ) : visReviewSugg.map((pair, i) => (
                       <SuggRow key={i} pair={pair} loading={actionLoading}
                         onAccept={() => acceptSugg(pair)}
-                        onSkip={() => skipSugg(pair)} />
+                        onSkip={() => skipSugg(pair)}
+                        onTxnClick={setTxnPanelRow} />
                     ))}
                   </div>
                 )}
