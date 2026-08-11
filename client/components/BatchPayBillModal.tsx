@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   allocateCredits,
   allocatedCentsForBill,
+  buildBatchPaymentPlan,
   maxApplicableCents,
   setCreditAmount,
   toggleCredit,
@@ -46,7 +47,8 @@ export interface BatchPayBill {
   vendorName: string;
   propertyName: string;
   referenceNumber?: string;
-  // Outstanding balance to pay in full — no per-bill amount editing in batch mode.
+  // Outstanding balance. Prefills the row's amount and caps it — a row may be
+  // paid down to any amount at or below this.
   amountDueCents: number;
   // Platform total (bills.amount_cents) and cached QBO bill total. When they
   // disagree on a concierge bill, the systems have diverged — the backend
@@ -61,7 +63,7 @@ export interface BatchPayBill {
 }
 
 interface BatchPayResult {
-  status: "pending" | "success" | "error";
+  status: "pending" | "success" | "error" | "skipped";
   message?: string;
 }
 
@@ -81,6 +83,8 @@ const todayISO = () => {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 };
+
+const dollars = (cents: number) => (Math.max(0, cents) / 100).toFixed(2);
 
 export default function BatchPayBillModal({
   open,
@@ -125,6 +129,20 @@ export default function BatchPayBillModal({
   // so allocations are (credit, bill, amount) rows rather than a single mapping.
   const [openCredits, setOpenCredits] = useState<OpenCredit[]>([]);
   const [allocations, setAllocations] = useState<CreditAllocation[]>([]);
+  // Net cash per bill as typed, keyed by bill id. Held as strings so a
+  // half-typed "58." isn't rewritten under the user's cursor.
+  const [amounts, setAmounts] = useState<Map<number, string>>(new Map());
+
+  // What this run will actually send: per-bill cash, credits, skips and errors.
+  const plan = useMemo(
+    () => buildBatchPaymentPlan(bills, amounts, allocations),
+    [bills, amounts, allocations],
+  );
+  const rowsByBill = useMemo(
+    () => new Map(plan.rows.map((r) => [r.billId, r])),
+    [plan],
+  );
+  const payableCount = plan.payable.length;
 
   useEffect(() => {
     if (!open) {
@@ -139,9 +157,13 @@ export default function BatchPayBillModal({
       setResults(new Map());
       setOpenCredits([]);
       setAllocations([]);
+      setAmounts(new Map());
       return;
     }
     setTxnDate(todayISO());
+    // Prefill every row with its full balance — paying in full stays the
+    // one-click default, and any row can be typed down from there.
+    setAmounts(new Map(bills.map((b) => [b.id, dollars(b.amountDueCents)])));
 
     let cancelled = false;
     setLoadingAccounts(true);
@@ -184,7 +206,18 @@ export default function BatchPayBillModal({
             (c) => vendorIDs.has(c.vendor_id) && c.remaining_cents > 0,
           );
           setOpenCredits(mine);
-          setAllocations(allocateCredits(bills, mine));
+          // Seeding credits lowers what has to be paid in cash, so the amount
+          // fields have to follow — same reflex as the single-bill modal.
+          const seeded = allocateCredits(bills, mine);
+          setAllocations(seeded);
+          setAmounts(
+            new Map(
+              bills.map((b) => [
+                b.id,
+                dollars(b.amountDueCents - allocatedCentsForBill(seeded, b.id)),
+              ]),
+            ),
+          );
         })
         // Credits are an optimisation, not a prerequisite — a failure here must
         // not block the batch. Same posture as PayBillModal.
@@ -204,11 +237,8 @@ export default function BatchPayBillModal({
     ? accounts.filter((a) => a.qbo_account_type === "Bank")
     : accounts;
 
-  const creditsAppliedCents = useMemo(
-    () => allocations.reduce((sum, a) => sum + a.amountCents, 0),
-    [allocations],
-  );
-  const netCashCents = totalCents - creditsAppliedCents;
+  // What the run settles in total — cash plus credits, across payable rows only.
+  const payingCents = plan.totalCashCents + plan.totalCreditCents;
   // Credit this batch cannot absorb — the bills simply don't owe enough. Shown so
   // a leftover balance reads as expected rather than as a silent drop.
   const unallocatedCents = useMemo(
@@ -237,6 +267,33 @@ export default function BatchPayBillModal({
     () => Array.from(results.values()).filter((r) => r.status === "error").length,
     [results],
   );
+  const skippedCount = useMemo(
+    () => Array.from(results.values()).filter((r) => r.status === "skipped").length,
+    [results],
+  );
+  // Bills that were paid but not closed out — worth calling out, since "paid"
+  // on its own reads as settled.
+  const partialCount = useMemo(
+    () =>
+      plan.rows.filter(
+        (r) =>
+          results.get(r.billId)?.status === "success" &&
+          r.totalCents < r.amountDueCents,
+      ).length,
+    [plan, results],
+  );
+
+  // Applying a credit reduces what has to be paid in cash. Rewrite just that
+  // row's cash to the new net; the user can type it down further afterwards.
+  const applyAllocations = (billId: number, next: CreditAllocation[]) => {
+    setAllocations(next);
+    const bill = bills.find((b) => b.id === billId);
+    if (!bill) return;
+    const credited = allocatedCentsForBill(next, billId);
+    setAmounts((prev) =>
+      new Map(prev).set(billId, dollars(bill.amountDueCents - credited)),
+    );
+  };
 
   const handleSubmit = async () => {
     setError(null);
@@ -258,10 +315,21 @@ export default function BatchPayBillModal({
       setError("Payment date is required.");
       return;
     }
+    const invalid = plan.rows.find((r) => r.error !== null);
+    if (invalid) {
+      setError(invalid.error);
+      return;
+    }
+    if (plan.payable.length === 0) {
+      setError("Nothing to pay — every bill has been zeroed out.");
+      return;
+    }
 
     setSubmitting(true);
     const initial = new Map<number, BatchPayResult>();
-    bills.forEach((b) => initial.set(b.id, { status: "pending" }));
+    plan.rows.forEach((r) =>
+      initial.set(r.billId, r.skip ? { status: "skipped" } : { status: "pending" }),
+    );
     setResults(new Map(initial));
 
     // Set when any bill fails because our cached QBO balance was stale — the
@@ -275,13 +343,15 @@ export default function BatchPayBillModal({
     // user actually saw when they hit Pay.
     const frozen = allocations;
 
-    for (const bill of bills) {
+    for (const row of plan.payable) {
+      const bill = bills.find((b) => b.id === row.billId);
+      if (!bill) continue;
       const billCredits = frozen.filter((a) => a.billId === bill.id);
-      const creditCents = billCredits.reduce((sum, a) => sum + a.amountCents, 0);
-      // Net cash after credits. May legitimately be 0 when credits cover the
-      // bill outright — the pay endpoint permits amount_cents=0 whenever
-      // applied_credits is non-empty.
-      const cashCents = bill.amountDueCents - creditCents;
+      const creditCents = row.creditCents;
+      // Net cash as typed, already validated against the balance. May
+      // legitimately be 0 when credits cover the bill outright — the pay
+      // endpoint permits amount_cents=0 whenever applied_credits is non-empty.
+      const cashCents = row.cashCents;
       try {
         const res = await authFetch(`/vendors/bills/${bill.id}/pay`, {
           method: "POST",
@@ -330,13 +400,19 @@ export default function BatchPayBillModal({
           continue;
         }
         const paidLabel = usingCheck ? "Queued for printing" : "Paid";
+        // A partial settlement says so, so a row reading "Paid" is never
+        // mistaken for a bill that is now closed.
+        const partial = row.totalCents < row.amountDueCents;
+        const parts = [
+          partial
+            ? `${paidLabel} $${dollars(row.totalCents)} of $${dollars(row.amountDueCents)}`
+            : paidLabel,
+        ];
+        if (creditCents > 0) parts.push(`$${dollars(creditCents)} credit applied`);
         setResults((prev) =>
           new Map(prev).set(bill.id, {
             status: "success",
-            message:
-              creditCents > 0
-                ? `${paidLabel} · $${(creditCents / 100).toFixed(2)} credit applied`
-                : paidLabel,
+            message: parts.join(" · "),
           }),
         );
       } catch (err: any) {
@@ -393,9 +469,13 @@ export default function BatchPayBillModal({
             onCancel={() => onOpenChange(false)}
             onConfirm={handleSubmit}
             cancelLabel="Cancel"
-            confirmLabel={submitting ? "Paying…" : `Pay ${bills.length} Bill${bills.length === 1 ? "" : "s"}`}
+            confirmLabel={
+              submitting
+                ? "Paying…"
+                : `Pay ${payableCount} Bill${payableCount === 1 ? "" : "s"}`
+            }
             cancelDisabled={submitting}
-            confirmDisabled={submitting || mismatchedBills.length > 0}
+            confirmDisabled={submitting || mismatchedBills.length > 0 || plan.blocked}
           />
         )
       }
@@ -407,6 +487,7 @@ export default function BatchPayBillModal({
       <div className="rounded-md border border-[#DADADA] divide-y divide-[#DADADA] mb-4 max-h-72 overflow-y-auto">
         {bills.map((b) => {
           const result = results.get(b.id);
+          const row = rowsByBill.get(b.id);
           const mismatch =
             isConcierge &&
             b.amountCents != null &&
@@ -432,10 +513,40 @@ export default function BatchPayBillModal({
                       QBO total ${((b.qboTotalCents ?? 0) / 100).toFixed(2)} ≠ platform ${((b.amountCents ?? 0) / 100).toFixed(2)}
                     </div>
                   )}
+                  {row?.error && !done && (
+                    <div className="text-xs text-red-600">{row.error}</div>
+                  )}
+                  {row?.skip && !done && (
+                    <div className="text-xs text-[#717179]">
+                      Won't be paid — set an amount to include it.
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[#303030]">${(b.amountDueCents / 100).toFixed(2)}</span>
+                  {done ? (
+                    <span className="text-[#303030]">
+                      ${dollars(row?.totalCents ?? b.amountDueCents)}
+                    </span>
+                  ) : (
+                    <div className="text-right">
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        aria-label={`Amount to pay on bill ${b.id}`}
+                        className="h-7 w-24 px-2 py-0 text-sm text-right"
+                        value={amounts.get(b.id) ?? ""}
+                        disabled={submitting}
+                        onChange={(e) =>
+                          setAmounts((prev) => new Map(prev).set(b.id, e.target.value))
+                        }
+                      />
+                      <div className="text-xs text-[#717179] mt-0.5">
+                        of ${dollars(b.amountDueCents)}
+                      </div>
+                    </div>
+                  )}
                   {result?.status === "pending" && <span className="text-xs text-[#717179]">Paying…</span>}
+                  {result?.status === "skipped" && <span className="text-xs text-[#717179]">Skipped</span>}
                   {result?.status === "success" && <span className="text-xs text-green-600">{result.message ?? "Paid"}</span>}
                   {result?.status === "error" && (
                     <span className="text-xs text-red-600" title={result.message}>
@@ -466,8 +577,9 @@ export default function BatchPayBillModal({
                           checked={applied != null}
                           disabled={submitting || !selectable}
                           onChange={() =>
-                            setAllocations((prev) =>
-                              toggleCredit(prev, openCredits, bills, c.id, b.id),
+                            applyAllocations(
+                              b.id,
+                              toggleCredit(allocations, openCredits, bills, c.id, b.id),
                             )
                           }
                         />
@@ -489,8 +601,16 @@ export default function BatchPayBillModal({
                                 const cents = Number.isFinite(parsed)
                                   ? Math.round(parsed * 100)
                                   : 0;
-                                setAllocations((prev) =>
-                                  setCreditAmount(prev, openCredits, bills, c.id, b.id, cents),
+                                applyAllocations(
+                                  b.id,
+                                  setCreditAmount(
+                                    allocations,
+                                    openCredits,
+                                    bills,
+                                    c.id,
+                                    b.id,
+                                    cents,
+                                  ),
                                 );
                               }}
                             />
@@ -506,9 +626,10 @@ export default function BatchPayBillModal({
                       </div>
                     );
                   })}
-                  {billCreditCents > 0 && (
+                  {billCreditCents > 0 && row && (
                     <div className="text-xs text-[#717179]">
-                      → net cash ${((b.amountDueCents - billCreditCents) / 100).toFixed(2)}
+                      → ${dollars(row.cashCents)} cash + ${dollars(billCreditCents)} credit
+                      {" = "}${dollars(row.totalCents)} of ${dollars(b.amountDueCents)}
                     </div>
                   )}
                 </div>
@@ -520,21 +641,27 @@ export default function BatchPayBillModal({
       <div className="text-sm text-[#303030] mb-4 space-y-1">
         <div className="flex justify-between">
           <span>Total due</span>
-          <span className={creditsAppliedCents > 0 ? "" : "font-medium"}>
-            ${(totalCents / 100).toFixed(2)}
+          <span className={payingCents === totalCents ? "font-medium" : ""}>
+            ${dollars(totalCents)}
           </span>
         </div>
-        {creditsAppliedCents > 0 && (
+        {plan.totalCreditCents > 0 && (
           <>
             <div className="flex justify-between text-[#717179]">
               <span>Credits applied</span>
-              <span>−${(creditsAppliedCents / 100).toFixed(2)}</span>
+              <span>−${dollars(plan.totalCreditCents)}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between text-[#717179]">
               <span>Net cash</span>
-              <span className="font-medium">${(netCashCents / 100).toFixed(2)}</span>
+              <span>${dollars(plan.totalCashCents)}</span>
             </div>
           </>
+        )}
+        {payingCents !== totalCents && (
+          <div className="flex justify-between">
+            <span>Paying</span>
+            <span className="font-medium">${dollars(payingCents)}</span>
+          </div>
         )}
       </div>
 
@@ -555,7 +682,9 @@ export default function BatchPayBillModal({
 
       {done ? (
         <div className="rounded-md border border-[#DADADA] bg-gray-50 px-3 py-2 text-sm text-[#303030]">
-          {successCount} of {bills.length} paid.
+          {successCount} of {bills.length - skippedCount} paid
+          {partialCount > 0 && ` (${partialCount} partially)`}.
+          {skippedCount > 0 && ` ${skippedCount} skipped.`}
           {creditsPaidCents > 0 && (
             <span> ${(creditsPaidCents / 100).toFixed(2)} in credits applied.</span>
           )}

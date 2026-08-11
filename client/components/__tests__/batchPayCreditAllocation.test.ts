@@ -21,6 +21,8 @@ import {
   unallocatedCentsForCredit,
   type AllocatableBill,
   type AllocatableCredit,
+  buildBatchPaymentPlan,
+  parseCents,
 } from "../batchPayCreditAllocation";
 
 const bill = (
@@ -278,5 +280,162 @@ describe("toggleCredit", () => {
     const allocs = [{ creditId: 100, billId: 2, amountCents: 500_000 }];
 
     expect(toggleCredit(allocs, credits, bills, 100, 1)).toEqual(allocs);
+  });
+});
+
+describe("parseCents", () => {
+  it("parses plain, decimal, currency-marked and comma-grouped input", () => {
+    expect(parseCents("75")).toBe(7_500);
+    expect(parseCents("75.35")).toBe(7_535);
+    expect(parseCents("$75.35")).toBe(7_535);
+    expect(parseCents("1,234.56")).toBe(123_456);
+  });
+
+  it("returns NaN when there is no number in the input", () => {
+    expect(parseCents("abc")).toBeNaN();
+    expect(parseCents("")).toBeNaN();
+  });
+});
+
+describe("buildBatchPaymentPlan", () => {
+  // Two $585.00 bills from the same vendor.
+  const both = [bill(1, 7, 58_500), bill(2, 7, 58_500)];
+  const full = new Map([
+    [1, "585.00"],
+    [2, "585.00"],
+  ]);
+
+  it("pays every bill in full when nothing is edited", () => {
+    const plan = buildBatchPaymentPlan(both, full, []);
+
+    expect(plan.blocked).toBe(false);
+    expect(plan.payable).toHaveLength(2);
+    expect(plan.totalCashCents).toBe(117_000);
+    expect(plan.totalCreditCents).toBe(0);
+    expect(plan.totalDueCents).toBe(117_000);
+    expect(plan.rows.every((r) => r.error === null && !r.skip)).toBe(true);
+  });
+
+  it("carries a partial amount on one row without touching the other", () => {
+    const plan = buildBatchPaymentPlan(
+      both,
+      new Map([
+        [1, "585.00"],
+        [2, "200.00"],
+      ]),
+      [],
+    );
+
+    expect(plan.blocked).toBe(false);
+    expect(plan.rows[0].cashCents).toBe(58_500);
+    expect(plan.rows[1].cashCents).toBe(20_000);
+    expect(plan.totalCashCents).toBe(78_500);
+  });
+
+  it("counts credits toward the balance so cash + credits may not exceed it", () => {
+    // $500 cash + $100 credit = $600 against a $585 bill.
+    const plan = buildBatchPaymentPlan(
+      both,
+      new Map([
+        [1, "500.00"],
+        [2, "585.00"],
+      ]),
+      [{ creditId: 100, billId: 1, amountCents: 10_000 }],
+    );
+
+    expect(plan.blocked).toBe(true);
+    expect(plan.rows[0].error).toBe("Can't exceed the $585.00 balance.");
+    expect(plan.rows[1].error).toBeNull();
+  });
+
+  it("allows a partial payment that is part cash and part credit", () => {
+    const plan = buildBatchPaymentPlan(
+      both,
+      new Map([
+        [1, "200.00"],
+        [2, "585.00"],
+      ]),
+      [{ creditId: 100, billId: 1, amountCents: 10_000 }],
+    );
+
+    expect(plan.blocked).toBe(false);
+    expect(plan.rows[0].cashCents).toBe(20_000);
+    expect(plan.rows[0].creditCents).toBe(10_000);
+    expect(plan.rows[0].totalCents).toBe(30_000);
+    expect(plan.totalCreditCents).toBe(10_000);
+  });
+
+  it("skips a row zeroed out to nothing rather than sending a $0 payment", () => {
+    const plan = buildBatchPaymentPlan(
+      both,
+      new Map([
+        [1, "585.00"],
+        [2, "0"],
+      ]),
+      [],
+    );
+
+    expect(plan.rows[1].skip).toBe(true);
+    expect(plan.rows[1].error).toBeNull();
+    expect(plan.payable.map((r) => r.billId)).toEqual([1]);
+    expect(plan.totalCashCents).toBe(58_500);
+    expect(plan.blocked).toBe(false);
+  });
+
+  it("treats a cleared field as a skip, not an error", () => {
+    const plan = buildBatchPaymentPlan(
+      both,
+      new Map([
+        [1, "585.00"],
+        [2, "   "],
+      ]),
+      [],
+    );
+
+    expect(plan.rows[1].skip).toBe(true);
+    expect(plan.rows[1].error).toBeNull();
+  });
+
+  it("still pays a bill covered entirely by credit", () => {
+    const plan = buildBatchPaymentPlan(
+      both,
+      new Map([
+        [1, "0"],
+        [2, "585.00"],
+      ]),
+      [{ creditId: 100, billId: 1, amountCents: 58_500 }],
+    );
+
+    expect(plan.rows[0].skip).toBe(false);
+    expect(plan.rows[0].cashCents).toBe(0);
+    expect(plan.payable).toHaveLength(2);
+  });
+
+  it("blocks on unparseable input", () => {
+    const plan = buildBatchPaymentPlan(
+      both,
+      new Map([
+        [1, "abc"],
+        [2, "585.00"],
+      ]),
+      [],
+    );
+
+    expect(plan.blocked).toBe(true);
+    expect(plan.rows[0].error).toBe("Enter a valid amount.");
+  });
+
+  it("blocks when every row has been zeroed out", () => {
+    const plan = buildBatchPaymentPlan(
+      both,
+      new Map([
+        [1, "0"],
+        [2, "0"],
+      ]),
+      [],
+    );
+
+    expect(plan.blocked).toBe(true);
+    expect(plan.payable).toHaveLength(0);
   });
 });

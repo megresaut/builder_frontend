@@ -194,6 +194,112 @@ export function setCreditAmount(
 }
 
 /**
+ * Parse a user-typed dollar amount into cents. Tolerant of "$75.35", "75.35",
+ * "75", "1,234.56". Returns NaN when the input holds no number at all.
+ *
+ * Non-digits are stripped rather than rejected, so a leading "-" is dropped and
+ * "-5" reads as $5. That is what the single-bill modal has always done; the
+ * batch modal matches it rather than inventing a second rule.
+ */
+export function parseCents(input: string): number {
+  const cleaned = input.replace(/[^0-9.]/g, "");
+  const num = parseFloat(cleaned);
+  if (!Number.isFinite(num)) return NaN;
+  return Math.round(num * 100);
+}
+
+/** One bill's resolved contribution to a batch run. */
+export interface BatchPaymentRow {
+  billId: number;
+  /** Outstanding balance — the "of $X" hint and the ceiling for this row. */
+  amountDueCents: number;
+  /** Net cash to send as amount_cents. */
+  cashCents: number;
+  /** Vendor credit applied to this bill across all credits. */
+  creditCents: number;
+  /** cashCents + creditCents — what actually settles against the bill. */
+  totalCents: number;
+  /** Nothing is being paid: leave this bill out of the run entirely. */
+  skip: boolean;
+  /** Why this row cannot be submitted, or null when it is fine. */
+  error: string | null;
+}
+
+export interface BatchPaymentPlan {
+  rows: BatchPaymentRow[];
+  /** The rows that will actually be POSTed, in `bills` order. */
+  payable: BatchPaymentRow[];
+  totalDueCents: number;
+  totalCashCents: number;
+  totalCreditCents: number;
+  /** Any row is invalid, or there is nothing left to pay. */
+  blocked: boolean;
+}
+
+/**
+ * Resolve the typed amounts and the credit allocation into what a run will send.
+ *
+ * The typed amount is NET CASH, matching the single-bill modal: credits sit
+ * alongside it and the pair may not exceed the bill's balance, because the pay
+ * endpoint rejects credits + cash > outstanding with amount_exceeds_balance.
+ *
+ * A row settling nothing is skipped rather than rejected — a $0 payment would
+ * post to QBO as a real (empty) BillPayment, and zeroing a row is the natural
+ * way to drop one bill from a batch without reopening the modal.
+ */
+export function buildBatchPaymentPlan(
+  bills: AllocatableBill[],
+  amounts: Map<number, string>,
+  allocations: CreditAllocation[],
+): BatchPaymentPlan {
+  const rows: BatchPaymentRow[] = bills.map((bill) => {
+    const raw = amounts.get(bill.id) ?? "";
+    const creditCents = allocatedCentsForBill(allocations, bill.id);
+    // A cleared field reads as "don't pay this one", not as a typo.
+    const parsed = raw.trim() === "" ? 0 : parseCents(raw);
+
+    if (Number.isNaN(parsed)) {
+      return {
+        billId: bill.id,
+        amountDueCents: bill.amountDueCents,
+        cashCents: 0,
+        creditCents,
+        totalCents: creditCents,
+        skip: false,
+        error: "Enter a valid amount.",
+      };
+    }
+
+    const totalCents = parsed + creditCents;
+    const error =
+      totalCents > bill.amountDueCents
+        ? `Can't exceed the $${(bill.amountDueCents / 100).toFixed(2)} balance.`
+        : null;
+
+    return {
+      billId: bill.id,
+      amountDueCents: bill.amountDueCents,
+      cashCents: parsed,
+      creditCents,
+      totalCents,
+      skip: error === null && totalCents === 0,
+      error,
+    };
+  });
+
+  const payable = rows.filter((r) => r.error === null && !r.skip);
+
+  return {
+    rows,
+    payable,
+    totalDueCents: bills.reduce((sum, b) => sum + b.amountDueCents, 0),
+    totalCashCents: payable.reduce((sum, r) => sum + r.cashCents, 0),
+    totalCreditCents: payable.reduce((sum, r) => sum + r.creditCents, 0),
+    blocked: rows.some((r) => r.error !== null) || payable.length === 0,
+  };
+}
+
+/**
  * Tick or untick a credit on a bill. Ticking applies as much as the pair allows;
  * unticking removes only this bill's share, leaving the credit's other bills
  * intact.
