@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import RecordPaymentDialog from "@/components/RecordPaymentDialog";
+import RecordCreditDialog from "@/components/RecordCreditDialog";
 import RecordBillModal, {
   type RecordBillModalData,
   type RecordBillModalMode,
@@ -1329,10 +1330,49 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     }
   };
 
-  // Operator-entered PAYMENTS/CREDITS. For credit that is real but absent from
-  // QBO — a prior-month overpayment settled outside the platform, typically —
-  // where the automatic rollover has nothing to discover. QBO is not updated,
-  // so its copy of the invoice keeps the full open balance.
+  const [recordCreditOpen, setRecordCreditOpen] = useState(false);
+
+  // Books an owner payment received outside the platform, or a no-cash credit,
+  // in QBO and on the invoice. Unlike handleCreditChange below, this keeps QBO
+  // in step — so the pay link and QBO's billing email match the printed PDF.
+  const handleRecordCredit = async (input: {
+    kind: "payment" | "credit";
+    amountCents: number;
+    dateISO: string;
+    depositAccountQBOID: string | null;
+    paymentMethod: string;
+    reference: string;
+    memo: string;
+  }) => {
+    if (!currentInvoiceId) return;
+    await fetchJSON(`/invoicing/record-credit?id=${currentInvoiceId}`, {
+      method: "POST",
+      body: JSON.stringify({
+        kind: input.kind,
+        amount_cents: input.amountCents,
+        date: input.dateISO,
+        deposit_account_qbo_id: input.depositAccountQBOID ?? "",
+        payment_method: input.paymentMethod,
+        reference: input.reference,
+        memo: input.memo,
+      }),
+    });
+    setCurrentInvoiceRolloverPaymentCents(input.amountCents);
+    toast.success(
+      input.kind === "payment"
+        ? `Payment of $${(input.amountCents / 100).toFixed(2)} booked in QuickBooks`
+        : `Credit of $${(input.amountCents / 100).toFixed(2)} booked in QuickBooks`,
+      {
+        description:
+          "Applied to this invoice when it's sent to QBO, so the pay link matches the PDF.",
+      },
+    );
+    await loadInvoiceForProperty();
+  };
+
+  // Operator-entered PAYMENTS/CREDITS, PDF-only. Kept for adjusting the printed
+  // figure without touching QBO; prefer handleRecordCredit when the credit
+  // should reach QuickBooks.
   const handleCreditChange = async (cents: number) => {
     if (!currentInvoiceId) return;
 
@@ -2412,6 +2452,19 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     </button>
                   )}
 
+                {currentInvoiceId &&
+                  currentInvoiceStatus !== "paid" &&
+                  currentInvoiceStatus !== "void" && (
+                    <button
+                      type="button"
+                      onClick={() => setRecordCreditOpen(true)}
+                      title="Record an owner payment received outside the platform, or apply a credit. Books it in QuickBooks too."
+                      className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Add Payment / Credit
+                    </button>
+                  )}
+
                 {currentInvoiceStatus === "sent" &&
                   currentInvoiceId &&
                   currentQBOPushStatus !== "failed" && (
@@ -3075,6 +3128,16 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {currentInvoiceId && (
+        <RecordCreditDialog
+          open={recordCreditOpen}
+          onOpenChange={setRecordCreditOpen}
+          invoiceId={currentInvoiceId}
+          currentCreditCents={currentInvoiceRolloverPaymentCents}
+          onSubmit={handleRecordCredit}
+        />
+      )}
 
       {recordPaymentInvoiceId && (
         <RecordPaymentDialog
