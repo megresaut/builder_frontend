@@ -629,6 +629,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [emailAttachments, setEmailAttachments] = useState<string[]>([]);
   const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
   const [emailPreviewError, setEmailPreviewError] = useState<string | null>(null);
+  // Non-blocking caveat from the preview — currently only "QBO gave us no pay
+  // link". Distinct from emailPreviewError, which disables Send.
+  const [emailPreviewWarning, setEmailPreviewWarning] = useState<string | null>(
+    null,
+  );
   // Tracks which invoice the most recently issued preview fetch was for, so a
   // slow response for an invoice the user has since navigated away from can't
   // silently overwrite the subject/body/attachment of the invoice now on screen.
@@ -1533,6 +1538,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     emailPreviewRequestIdRef.current = invoiceId;
     setEmailPreviewLoading(true);
     setEmailPreviewError(null);
+    setEmailPreviewWarning(null);
     try {
       const res = await authFetch(
         `/invoicing/email/preview?invoice_id=${invoiceId}`,
@@ -1552,6 +1558,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       if (emailPreviewRequestIdRef.current !== invoiceId) return;
       setEmailSubject(data.subject ?? "");
       setEmailBody(data.body_text ?? "");
+      setEmailPreviewWarning(data.pay_link_warning ?? null);
       // attachment_names is the authoritative set; attachment_name is only its
       // first entry and is kept on the API for older callers.
       setEmailAttachments(
@@ -3074,6 +3081,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           {emailPreviewError && (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {emailPreviewError}
+            </div>
+          )}
+
+          {/* Amber, not red: the message is composed and sendable — it just
+              offers payment by check instead of carrying a QBO pay link. */}
+          {!emailPreviewError && emailPreviewWarning && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              {emailPreviewWarning}
             </div>
           )}
 
