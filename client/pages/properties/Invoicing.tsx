@@ -1329,6 +1329,40 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     }
   };
 
+  // Operator-entered PAYMENTS/CREDITS. For credit that is real but absent from
+  // QBO — a prior-month overpayment settled outside the platform, typically —
+  // where the automatic rollover has nothing to discover. QBO is not updated,
+  // so its copy of the invoice keeps the full open balance.
+  const handleCreditChange = async (cents: number) => {
+    if (!currentInvoiceId) return;
+
+    try {
+      await fetchJSON(
+        `/invoicing/set-manual-credit?id=${currentInvoiceId}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ amount_cents: cents }),
+        },
+      );
+      setCurrentInvoiceRolloverPaymentCents(cents);
+      toast.success(
+        cents > 0
+          ? `Credit of $${(cents / 100).toFixed(2)} applied`
+          : "Credit cleared",
+        { description: "Not sent to QuickBooks — its invoice keeps the full balance." },
+      );
+      await loadInvoiceForProperty();
+    } catch (err: any) {
+      console.error("Set credit failed:", err);
+      toast.error("Could not apply the credit", {
+        description: err?.message ?? "Unexpected error",
+      });
+      // Re-sync from the server so the row stops showing an amount that
+      // was never stored.
+      await loadInvoiceForProperty();
+    }
+  };
+
   const handleCommitInvoice = async (pdfBlob: Blob) => {
     if (!currentInvoiceId) return;
 
@@ -2566,6 +2600,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         invoiceId={currentInvoiceId}
         rolloverPaymentCents={currentInvoiceRolloverPaymentCents}
         disputeCreditCents={currentInvoiceDisputeCreditCents}
+        onCreditChange={
+          currentInvoiceStatus === "paid" || currentInvoiceStatus === "void"
+            ? undefined
+            : handleCreditChange
+        }
         invoiceDate={invoicePreviewInvoiceDate || currentInvoiceMonth}
         lineItems={
           invoicePreviewLineItems.length > 0

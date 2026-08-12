@@ -138,6 +138,14 @@ interface InvoicePreviewModalProps {
   // Dispute credit rolled over from a previous invoice and applied to this
   // one (cents). Renders a CREDITS row and reduces TOTAL.
   disputeCreditCents?: number | null;
+  // When provided, the PAYMENTS/CREDITS figure becomes editable and commits the
+  // typed amount (cents) on blur — for credit that is real but absent from QBO,
+  // e.g. a prior-month overpayment settled outside the platform. The parent
+  // persists it and feeds the new value back down via rolloverPaymentCents.
+  // Suppressed when disputeCreditCents is non-zero: the row renders the SUM of
+  // both halves, and only the rollover half is writable, so editing a combined
+  // figure would double-count the dispute portion.
+  onCreditChange?: (cents: number) => void;
 }
 
 export default function InvoicePreviewModal({
@@ -167,6 +175,7 @@ export default function InvoicePreviewModal({
   invoiceId,
   rolloverPaymentCents,
   disputeCreditCents,
+  onCreditChange,
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
   const [lineItems, setLineItems] =
@@ -175,6 +184,17 @@ export default function InvoicePreviewModal({
   const [amountDraftById, setAmountDraftById] = useState<
     Record<number, string>
   >({});
+  // Draft for the editable PAYMENTS/CREDITS figure. Non-null only while the
+  // field has focus, so the row shows formatted currency the rest of the time
+  // (and the PDF's print-only span picks that up verbatim).
+  const [creditDraft, setCreditDraft] = useState<string | null>(null);
+  // Optimistic credit, so a just-typed amount shows in the row (and in a PDF
+  // exported straight afterwards) without waiting for the parent's round-trip.
+  // Cleared whenever the persisted prop arrives.
+  const [creditOverride, setCreditOverride] = useState<number | null>(null);
+  useEffect(() => {
+    setCreditOverride(null);
+  }, [rolloverPaymentCents]);
   const [showCommitConfirm, setShowCommitConfirm] = useState(false);
   // Guards both commit paths (direct + reviewed) against a second click while
   // generatePdfBlob()/onCommit are in flight — see handleCommit and the
@@ -1050,8 +1070,40 @@ export default function InvoicePreviewModal({
     const emptyRow = separatorRow + 1;
     worksheet.getRow(emptyRow).height = 12;
 
+    // ========== SUBTOTAL / PAYMENTS-CREDITS ROWS ==========
+    // Only rendered when a credit actually applies, so an uncredited invoice
+    // exports exactly as it always has (a single TOTAL row). When one does
+    // apply, the sheet mirrors the PDF's three-row summary rather than
+    // silently reporting the un-credited figure as the total.
+    const subtotal = calculateTotal();
+    const creditCentsExport =
+      (creditOverride ?? rolloverPaymentCents ?? 0) + (disputeCreditCents ?? 0);
+    let summaryRow = emptyRow + 1;
+    if (creditCentsExport > 0) {
+      for (const [label, value] of [
+        ["SUBTOTAL:", subtotal],
+        ["PAYMENTS/CREDITS:", -creditCentsExport / 100],
+      ] as Array<[string, number]>) {
+        worksheet.getRow(summaryRow).height = 18;
+        worksheet.getCell(`C${summaryRow}`).value = label;
+        setCellStyle(worksheet.getCell(`C${summaryRow}`), {
+          fontSize: 10,
+          color: darkBlueHex,
+          alignment: { horizontal: "right" },
+        });
+        worksheet.getCell(`D${summaryRow}`).value = value;
+        setCellStyle(worksheet.getCell(`D${summaryRow}`), {
+          fontSize: 10,
+          color: darkBlueHex,
+          alignment: { horizontal: "right" },
+          numFmt: '"$"#,##0.00',
+        });
+        summaryRow++;
+      }
+    }
+
     // ========== TOTAL ROW ==========
-    const totalRow = emptyRow + 1;
+    const totalRow = summaryRow;
     worksheet.getRow(totalRow).height = 22;
 
     // C[totalRow]: TOTAL:
@@ -1064,7 +1116,7 @@ export default function InvoicePreviewModal({
     });
 
     // D[totalRow]: Total Amount (as number with gold border box)
-    const total = calculateTotal();
+    const total = subtotal - creditCentsExport / 100;
     worksheet.getCell(`D${totalRow}`).value = total;
     setCellStyle(worksheet.getCell(`D${totalRow}`), {
       bold: true,
@@ -1998,8 +2050,15 @@ export default function InvoicePreviewModal({
                     // Combined Payments/Credits line — always shown (even $0),
                     // matching the reference template. Sums the overpayment
                     // rollover and dispute credit into one figure.
+                    const disputeCents = disputeCreditCents ?? 0;
                     const creditCents =
-                      (rolloverPaymentCents ?? 0) + (disputeCreditCents ?? 0);
+                      (creditOverride ?? rolloverPaymentCents ?? 0) +
+                      disputeCents;
+                    const creditDisplay = `${creditCents > 0 ? "-" : ""}${formatCurrency(creditCents / 100)}`;
+                    // Only the rollover half is writable, so a non-zero dispute
+                    // credit locks the row rather than risk double-counting it.
+                    const creditEditable =
+                      !!onCreditChange && disputeCents === 0;
                     return (
                       <div
                         style={{
@@ -2011,10 +2070,74 @@ export default function InvoicePreviewModal({
                         }}
                       >
                         <span>PAYMENTS/CREDITS:</span>
-                        <span>
-                          {creditCents > 0 ? "-" : ""}
-                          {formatCurrency(creditCents / 100)}
-                        </span>
+                        {creditEditable ? (
+                          <span
+                            style={{
+                              display: "inline-block",
+                              width: "90px",
+                              textAlign: "right",
+                            }}
+                          >
+                            <input
+                              type="text"
+                              data-field="credit"
+                              value={creditDraft ?? creditDisplay}
+                              title="Credit applied to this invoice — e.g. a prior-month overpayment. Not sent to QuickBooks."
+                              onChange={(e) =>
+                                setCreditDraft(
+                                  normalizeAmountDraft(e.target.value),
+                                )
+                              }
+                              onFocus={(e) => {
+                                setCreditDraft(
+                                  creditCents > 0
+                                    ? (creditCents / 100).toFixed(2)
+                                    : "",
+                                );
+                                requestAnimationFrame(() => e.target.select());
+                              }}
+                              onMouseUp={(e) => e.preventDefault()}
+                              onBlur={(e) => {
+                                const next = Math.round(
+                                  parseFloat(
+                                    toCanonicalAmount(e.target.value),
+                                  ) * 100,
+                                );
+                                setCreditDraft(null);
+                                if (next !== creditCents) {
+                                  setCreditOverride(next);
+                                  onCreditChange?.(next);
+                                }
+                              }}
+                              placeholder="$0.00"
+                              className="edit-field"
+                              style={{
+                                width: "100%",
+                                border: "none",
+                                outline: "none",
+                                background: "transparent",
+                                color: "#002060",
+                                font: "400 9px Arial, sans-serif",
+                                textAlign: "right",
+                                padding: "0",
+                              }}
+                            />
+                            <span
+                              className="print-only"
+                              style={{
+                                display: "inline-block",
+                                width: "100%",
+                                color: "#002060",
+                                font: "400 9px/16.5px Arial, sans-serif",
+                                textAlign: "right",
+                              }}
+                            >
+                              {creditDisplay}
+                            </span>
+                          </span>
+                        ) : (
+                          <span>{creditDisplay}</span>
+                        )}
                       </div>
                     );
                   })()}
@@ -2031,7 +2154,7 @@ export default function InvoicePreviewModal({
                     <span>
                       {formatCurrency(
                         calculateTotal() -
-                          (rolloverPaymentCents ?? 0) / 100 -
+                          (creditOverride ?? rolloverPaymentCents ?? 0) / 100 -
                           (disputeCreditCents ?? 0) / 100,
                       )}
                     </span>
