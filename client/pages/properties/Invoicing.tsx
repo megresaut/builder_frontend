@@ -992,6 +992,46 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     );
   };
 
+  // Sentinel id for the display-only payments/credits row. Negative so it can
+  // never collide with a real invoice_line_items.id, and so any code that
+  // accidentally treats it as a line id fails loudly rather than hitting a row.
+  const CREDIT_ROW_ID = -1;
+
+  // Rows for the on-screen table only: the real line items plus a trailing
+  // summary row for any applied payment/credit, so an operator sees it without
+  // opening the PDF preview.
+  //
+  // Deliberately NOT folded into getDisplayedInvoiceItems, which feeds the PDF
+  // and the QBO push. The PDF renders credits in its own
+  // SUBTOTAL/PAYMENTS-CREDITS/TOTAL block, so adding a line there would deduct
+  // the credit twice; the QBO invoice is pushed lines-only and must stay at its
+  // gross total, since the credit reaches QBO as a separate Payment/CreditMemo.
+  const getInvoiceTableRows = () => {
+    const rows = getDisplayedInvoiceItems();
+    const creditCents =
+      currentInvoiceRolloverPaymentCents + currentInvoiceDisputeCreditCents;
+    if (creditCents <= 0) return rows;
+    return [
+      ...rows,
+      {
+        id: CREDIT_ROW_ID,
+        vendor: "Payment / Credit",
+        vendorIcon: VENDOR_PRESETS.manual.vendorIcon,
+        vendorBg: "#DCFCE7",
+        vendorBorder: "rgba(22, 163, 74, 0.22)",
+        glAccount: "—",
+        description:
+          "Applied to this invoice — booked in QuickBooks separately from the invoice lines",
+        amount: `-$${(creditCents / 100).toFixed(2)}`,
+        source: "Payment / Credit",
+        status: "Approved" as InvoiceItemStatus,
+        statusColor: "#059669",
+        statusBg: "#D1FAE5",
+        paymentStatus: "unknown",
+      },
+    ];
+  };
+
   // The line set for any COMMITTED document: the full invoice, ignoring the
   // on-screen location filter.
   //
@@ -2105,7 +2145,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   setRecordBillModalOpen(true);
                 },
                 // Hide action for Management Fee items
-                hidden: (item: any) => item?.source === "Management Fee",
+                hidden: (item: any) =>
+                  item?.source === "Management Fee" ||
+                  item?.id === CREDIT_ROW_ID,
               },
               {
                 label: () => "Dispute line item",
@@ -2142,8 +2184,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 // already void. The dialog derives before/after-payment mode
                 // automatically (before-payment removes the line; after-payment
                 // issues a credit memo applied to the next invoice).
-                hidden: () =>
-                  !currentInvoiceId || currentInvoiceStatus === "void",
+                hidden: (item: any) =>
+                  !currentInvoiceId ||
+                  currentInvoiceStatus === "void" ||
+                  item?.id === CREDIT_ROW_ID,
               },
             ]}
 
@@ -2235,12 +2279,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             sortingHook={{
               handleSortClick: handleInvoiceSortClick,
               getSortIndicator: getInvoiceSortIndicator,
-              getSortedData: getDisplayedInvoiceItems,
+              getSortedData: getInvoiceTableRows,
             }}
             columnManagementHook={invoiceColumnsManagement}
             currentPage={1}
             onPageChange={noopPageChange}
-            itemsPerPage={filteredInvoiceItems.length || 10}
+            // Sized to the rendered row count, not the line-item count — the
+            // trailing payments/credits row would otherwise be paginated off.
+            itemsPerPage={getInvoiceTableRows().length || 10}
             onItemsPerPageChange={noopItemsPerPageChange}
             showPageSizeDropdown={false}
             openMenuId={invoiceOpenMenuId}
@@ -2260,16 +2306,40 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           {/* Footer */}
           <div className="bg-white flex w-full px-4 py-4 items-center gap-4 justify-between flex-wrap">
             <div className="flex items-center gap-4">
-              <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
-                Subtotal: $
-                {filteredInvoiceItems
-                  .reduce((sum, item) => {
-                    const amount =
-                      parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
-                    return sum + amount;
-                  }, 0)
-                  .toFixed(2)}
-              </div>
+              {(() => {
+                const subtotal = filteredInvoiceItems.reduce((sum, item) => {
+                  const amount =
+                    parseFloat(item.amount.replace(/[$,]/g, "")) || 0;
+                  return sum + amount;
+                }, 0);
+                const creditCents =
+                  currentInvoiceRolloverPaymentCents +
+                  currentInvoiceDisputeCreditCents;
+                // Uncredited invoices keep the original single-line footer; the
+                // credit and net total only appear once there's something to
+                // show, so the operator can see an applied credit without
+                // opening the PDF preview.
+                if (creditCents <= 0) {
+                  return (
+                    <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
+                      Subtotal: ${subtotal.toFixed(2)}
+                    </div>
+                  );
+                }
+                // The credit already has its own row in the table above, so the
+                // footer states the charges subtotal and the net due rather than
+                // repeating the deduction a third time.
+                return (
+                  <div className="flex flex-col gap-0.5">
+                    <div className="text-[#717179] text-sm leading-tight">
+                      Subtotal: ${subtotal.toFixed(2)}
+                    </div>
+                    <div className="text-[#303030] font-medium text-[22px] leading-[1.09]">
+                      Total Due: ${(subtotal - creditCents / 100).toFixed(2)}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex flex-col items-end gap-2">
               {currentQBOPushStatus === "failed" && currentQBOLastError && (
