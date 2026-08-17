@@ -2110,7 +2110,12 @@ function AllocatePaymentModal({
   const rowKey = (l: ProjectCostLine) =>
     l.kind === "fto_labor" ? `fto_labor:${l.submission_id}` : `bill:${l.bill_id}`;
 
-  const targets = useMemo(() => costLines.filter((l) => l.allocatable), [costLines]);
+  // A line stops being offered once it's fully covered (by any payment) — there's
+  // nothing left to allocate to it.
+  const targets = useMemo(
+    () => costLines.filter((l) => l.allocatable && l.covered_cents < l.booked_cents),
+    [costLines],
+  );
 
   // rowKey -> dollar string
   const [amounts, setAmounts] = useState<Record<string, string>>({});
@@ -2123,12 +2128,30 @@ function AllocatePaymentModal({
       try {
         const existing = await getPaymentAllocations(projectId, payment.id);
         if (!alive) return;
-        const seed: Record<string, string> = {};
+        const existingByKey: Record<string, number> = {};
         existing.forEach((a: PaymentAllocation) => {
           const key =
             a.target_kind === "fto_labor" ? `fto_labor:${a.fto_submission_id}` : `bill:${a.bill_id}`;
-          seed[key] = centsToInput(a.amount_cents);
+          existingByKey[key] = a.amount_cents;
         });
+
+        // Auto-default top-to-bottom: walk the visible lines in display order and
+        // fill each one's outstanding balance (booked − covered, adding back this
+        // payment's own existing allocation so it isn't double-subtracted) until
+        // the payment runs out. The line where it runs out gets whatever's left —
+        // a partial allocation falls out naturally, no special-casing needed.
+        let remaining = payment.amount_cents;
+        const seed: Record<string, string> = {};
+        for (const l of targets) {
+          const key = rowKey(l);
+          const already = existingByKey[key] ?? 0;
+          const outstanding = l.booked_cents - l.covered_cents + already;
+          const take = Math.max(0, Math.min(outstanding, remaining));
+          if (take > 0) {
+            seed[key] = centsToInput(take);
+            remaining -= take;
+          }
+        }
         setAmounts(seed);
       } catch (e) {
         toast.error(errMessage(e, "Failed to load allocations"));
@@ -2139,7 +2162,8 @@ function AllocatePaymentModal({
     return () => {
       alive = false;
     };
-  }, [projectId, payment.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, payment.id, targets]);
 
   const allocatedCents = Object.values(amounts).reduce((s, v) => s + dollarsToCents(v), 0);
   const remainingCents = payment.amount_cents - allocatedCents;
@@ -2200,7 +2224,9 @@ function AllocatePaymentModal({
           <div className="py-8 text-center text-sm text-gray-500">Loading…</div>
         ) : targets.length === 0 ? (
           <div className="py-8 text-center text-sm text-gray-500">
-            Nothing to allocate against yet — this project has no vendor bills or field-team labor.
+            {costLines.some((l) => l.allocatable)
+              ? "Every project cost is already fully covered."
+              : "Nothing to allocate against yet — this project has no vendor bills or field-team labor."}
           </div>
         ) : (
           <div className="overflow-x-auto">
