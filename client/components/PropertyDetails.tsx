@@ -182,7 +182,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 
   // Modal states
   const [showMoreCustomFields, setShowMoreCustomFields] = useState(false);
-  const [showMoreRates, setShowMoreRates] = useState(false);
   const [showPhotoUploadModal, setShowPhotoUploadModal] = useState(false);
   const [photoUploadFile, setPhotoUploadFile] = useState<File | null>(null);
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
@@ -792,12 +791,28 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                       <div>{emergencyRate}</div>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setShowMoreRates(!showMoreRates)}
-                    className="text-[#2463EB] text-sm leading-[1.4] tracking-[-0.28px] mt-3 text-left"
-                  >
-                    {showMoreRates ? "Show less" : "Show more"}
-                  </button>
+                </div>
+
+                <div className="flex mt-5 w-full flex-col">
+                  <div className="text-[#303030] text-base leading-[1.38]">
+                    Late Fee
+                  </div>
+                  <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
+                    <div className="flex flex-col">
+                      <div>PERCENTAGE</div>
+                      <div>{lateFeePct ? `${lateFeePct}%` : "N/A"}</div>
+                    </div>
+                    <div className="flex flex-col">
+                      <div>FLAT</div>
+                      <div>{lateFeeFlat ? `$${lateFeeFlat}` : "N/A"}</div>
+                    </div>
+                    <div className="flex flex-col">
+                      <div>GRACE</div>
+                      <div>
+                        {lateFeeGraceDays ? `${lateFeeGraceDays} days` : "N/A"}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1424,9 +1439,9 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                         Late Fee
                       </div>
                       <p className="mt-1 text-xs text-[#737373]">
-                        Charged on the next monthly invoice for any invoice
-                        still unpaid past the grace period. Leave blank to
-                        disable.
+                        Added directly to any invoice still unpaid past the
+                        grace period, the next time this property's invoice is
+                        generated. Leave blank to disable.
                       </p>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
