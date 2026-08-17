@@ -44,6 +44,10 @@ type PropertyData = {
   management_fee_cents?: number;
   hourly_rate_cents?: number;
   emergency_hourly_rate_cents?: number;
+  // Per-customer late fee; null on every property until one is opted in.
+  late_fee_pct?: number | null;
+  late_fee_flat_cents?: number | null;
+  late_fee_grace_days?: number | null;
   active: boolean;
   created_at: string;
   manager_names: string[];
@@ -207,6 +211,13 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [monthlyRate, setMonthlyRate] = useState("$0.00 / month");
   const [defaultRate, setDefaultRate] = useState("$0 / hour");
   const [emergencyRate, setEmergencyRate] = useState("$0 / hour");
+
+  // Per-customer late fee. Kept as raw strings so an empty field stays empty
+  // (and clears the column) instead of being coerced to 0.
+  const [lateFeePct, setLateFeePct] = useState("");
+  const [lateFeeFlat, setLateFeeFlat] = useState("");
+  const [lateFeeGraceDays, setLateFeeGraceDays] = useState("");
+  const [lateFeeError, setLateFeeError] = useState<string | null>(null);
   const isValidPropertyId = Number.isFinite(propertyId) && propertyId > 0;
 
   // Fetch property data
@@ -222,6 +233,19 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         setMonthlyRate(formatCentsToMonthly(data.management_fee_cents));
         setDefaultRate(formatCentsToHourly(data.hourly_rate_cents));
         setEmergencyRate(formatCentsToHourly(data.emergency_hourly_rate_cents));
+        setLateFeePct(
+          data.late_fee_pct == null ? "" : String(data.late_fee_pct)
+        );
+        setLateFeeFlat(
+          data.late_fee_flat_cents == null
+            ? ""
+            : (data.late_fee_flat_cents / 100).toFixed(2)
+        );
+        setLateFeeGraceDays(
+          data.late_fee_grace_days == null
+            ? ""
+            : String(data.late_fee_grace_days)
+        );
       } catch (error) {
         console.error("Failed to fetch property data:", error);
       } finally {
@@ -277,12 +301,41 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const handleSaveRates = async () => {
     if (!isValidPropertyId) return;
   
+    // Blank clears the column; a value sets it. late_fee_set marks the group as
+    // present so the backend writes all three rather than COALESCE-ignoring the
+    // nulls — that is how the fee gets turned back off.
+    const num = (s: string): number | null => {
+      const t = s.trim();
+      if (t === "") return null;
+      const n = Number(t);
+      return Number.isFinite(n) ? n : null;
+    };
+    const pct = num(lateFeePct);
+    const flat = num(lateFeeFlat);
+    const grace = num(lateFeeGraceDays);
+
+    // Mirror the server rule so the operator gets the message inline rather
+    // than as a failed request.
+    const hasRate = (pct ?? 0) > 0 || (flat ?? 0) > 0;
+    const hasGrace = (grace ?? 0) > 0;
+    if (hasRate !== hasGrace) {
+      setLateFeeError(
+        "Late fees need both an amount (percentage and/or flat) and a grace period in days."
+      );
+      return;
+    }
+    setLateFeeError(null);
+
     const payload = {
       management_fee: parseMoneyString(monthlyRate),
       hourly_rate: parseMoneyString(defaultRate),
       emergency_hourly_rate: parseMoneyString(emergencyRate),
+      late_fee_set: true,
+      late_fee_pct: pct,
+      late_fee_flat: flat,
+      late_fee_grace_days: grace === null ? null : Math.round(grace),
     };
-  
+
     try {
       const updatedRates = await fetchJSON(
         `/properties/patch-rates/${propertyId}/rates`,
@@ -301,6 +354,9 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               hourly_rate_cents: updatedRates.hourly_rate_cents,
               emergency_hourly_rate_cents:
                 updatedRates.emergency_hourly_rate_cents,
+              late_fee_pct: updatedRates.late_fee_pct,
+              late_fee_flat_cents: updatedRates.late_fee_flat_cents,
+              late_fee_grace_days: updatedRates.late_fee_grace_days,
             }
           : prev
       );
@@ -311,10 +367,28 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
       setEmergencyRate(
         formatCentsToHourly(updatedRates.emergency_hourly_rate_cents)
       );
-  
+      setLateFeePct(
+        updatedRates.late_fee_pct == null
+          ? ""
+          : String(updatedRates.late_fee_pct)
+      );
+      setLateFeeFlat(
+        updatedRates.late_fee_flat_cents == null
+          ? ""
+          : (updatedRates.late_fee_flat_cents / 100).toFixed(2)
+      );
+      setLateFeeGraceDays(
+        updatedRates.late_fee_grace_days == null
+          ? ""
+          : String(updatedRates.late_fee_grace_days)
+      );
+
       setShowEditRatesModal(false);
     } catch (error) {
       console.error("Failed to update rates:", error);
+      setLateFeeError(
+        error instanceof Error ? error.message : "Failed to update rates."
+      );
     }
   };
   
@@ -1344,6 +1418,67 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                         className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
                       />
                     </div>
+
+                    <div className="pt-1 border-t border-[#E5E5E5]">
+                      <div className="pt-4 text-sm font-medium text-[#303030]">
+                        Late Fee
+                      </div>
+                      <p className="mt-1 text-xs text-[#737373]">
+                        Charged on the next monthly invoice for any invoice
+                        still unpaid past the grace period. Leave blank to
+                        disable.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="grid gap-2">
+                        <label className="text-sm font-medium text-[#303030]">
+                          Percentage
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={lateFeePct}
+                          onChange={(e) => setLateFeePct(e.target.value)}
+                          placeholder="1.50"
+                          className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <label className="text-sm font-medium text-[#303030]">
+                          Flat ($)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={lateFeeFlat}
+                          onChange={(e) => setLateFeeFlat(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <label className="text-sm font-medium text-[#303030]">
+                          Grace (days)
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={lateFeeGraceDays}
+                          onChange={(e) => setLateFeeGraceDays(e.target.value)}
+                          placeholder="15"
+                          className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                        />
+                      </div>
+                    </div>
+                    {lateFeeError && (
+                      <div className="text-sm text-[#B42318]">
+                        {lateFeeError}
+                      </div>
+                    )}
                   </div>
                   <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
                     <button
