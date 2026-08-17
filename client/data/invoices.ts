@@ -98,3 +98,124 @@ export async function disputeInvoiceLine(
     }),
   });
 }
+
+// ---------------------------------------------------------------------------
+// Payment detail — GET /invoicing/payment-detail?id=X
+//
+// Returns what the platform recorded next to a LIVE read of the QBO Payment and
+// the invoice's current QBO balance, because the two can legitimately disagree
+// (a payment deleted in QBO, a platform-side manual credit, a partial payment).
+// Paid invoices only — the server answers 409 otherwise.
+// ---------------------------------------------------------------------------
+
+// Wire shapes, snake_case as the API sends them.
+export interface InvoicePaymentDetailAPI {
+  local: {
+    status: string;
+    recorded_at: string | null;
+    amount_cents: number | null;
+    reference: string | null;
+    qbo_payment_id: string | null;
+    invoice_total_cents: number;
+    credit_cents: number;
+  };
+  qbo?: {
+    payment_id: string;
+    txn_date: string;
+    total_cents: number;
+    unapplied_cents: number;
+    customer_name: string;
+    payment_method: string;
+    ref_num: string;
+    deposit_account: string;
+    private_note: string;
+    invoice_balance_cents: number;
+    linked_invoices?: {
+      qbo_invoice_id: string;
+      doc_number: string;
+      applied_cents: number;
+    }[];
+  } | null;
+  qbo_unavailable_reason?: string;
+}
+
+// Props shape InvoicePaymentDetailModal consumes.
+export interface InvoicePaymentDetailProps {
+  local: {
+    status: string;
+    recordedAt: string | null;
+    amountCents: number | null;
+    reference: string | null;
+    qboPaymentId: string | null;
+    invoiceTotalCents: number;
+    creditCents: number;
+  };
+  qbo: {
+    paymentId: string;
+    txnDate: string;
+    totalCents: number;
+    unappliedCents: number;
+    customerName: string;
+    paymentMethod: string;
+    refNum: string;
+    depositAccount: string;
+    privateNote: string;
+    invoiceBalanceCents: number;
+    linkedInvoices: {
+      qboInvoiceId: string;
+      docNumber: string;
+      appliedCents: number;
+    }[];
+  } | null;
+  qboUnavailableReason: string | null;
+}
+
+// toInvoicePaymentDetailProps is the single snake_case → camelCase boundary.
+// `qbo` normalizes to null (never undefined) so the modal's "unavailable" branch
+// is reachable, and linked_invoices defaults to [] because Go omits an empty
+// slice and `.map` on undefined is a blank modal.
+export function toInvoicePaymentDetailProps(
+  api: InvoicePaymentDetailAPI,
+): InvoicePaymentDetailProps {
+  return {
+    local: {
+      status: api.local.status,
+      recordedAt: api.local.recorded_at,
+      amountCents: api.local.amount_cents,
+      reference: api.local.reference,
+      qboPaymentId: api.local.qbo_payment_id,
+      invoiceTotalCents: api.local.invoice_total_cents,
+      creditCents: api.local.credit_cents ?? 0,
+    },
+    qbo: api.qbo
+      ? {
+          paymentId: api.qbo.payment_id,
+          txnDate: api.qbo.txn_date,
+          totalCents: api.qbo.total_cents,
+          unappliedCents: api.qbo.unapplied_cents,
+          customerName: api.qbo.customer_name,
+          paymentMethod: api.qbo.payment_method,
+          refNum: api.qbo.ref_num,
+          depositAccount: api.qbo.deposit_account,
+          privateNote: api.qbo.private_note,
+          invoiceBalanceCents: api.qbo.invoice_balance_cents,
+          linkedInvoices: (api.qbo.linked_invoices ?? []).map((li) => ({
+            qboInvoiceId: li.qbo_invoice_id,
+            docNumber: li.doc_number,
+            appliedCents: li.applied_cents,
+          })),
+        }
+      : null,
+    qboUnavailableReason: api.qbo_unavailable_reason ?? null,
+  };
+}
+
+// fetchInvoicePaymentDetail reaches QuickBooks live, so expect a second or two.
+export async function fetchInvoicePaymentDetail(
+  invoiceID: number,
+): Promise<InvoicePaymentDetailProps> {
+  const api = (await fetchJSON(
+    `/invoicing/payment-detail?id=${invoiceID}`,
+  )) as InvoicePaymentDetailAPI;
+  return toInvoicePaymentDetailProps(api);
+}

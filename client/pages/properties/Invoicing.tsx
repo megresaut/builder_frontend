@@ -21,7 +21,11 @@ import InvoicePreviewModal, {
   type InvoiceLifecycleStatus,
   type UnpaidPassthroughLine,
 } from "@/components/InvoicePreviewModal";
-import { disputeInvoiceLine } from "@/data/invoices";
+import {
+  disputeInvoiceLine,
+  fetchInvoicePaymentDetail,
+  type InvoicePaymentDetailProps,
+} from "@/data/invoices";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import RecordPaymentDialog from "@/components/RecordPaymentDialog";
+import InvoicePaymentDetailModal from "@/components/InvoicePaymentDetailModal";
 import RecordCreditDialog from "@/components/RecordCreditDialog";
 import RecordBillModal, {
   type RecordBillModalData,
@@ -646,6 +651,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [recordPaymentInvoiceId, setRecordPaymentInvoiceId] = useState<number | null>(null);
   const [recordPaymentDefaultCents, setRecordPaymentDefaultCents] = useState(0);
+  // Payment detail modal. Fetched on open rather than with the invoice: the
+  // request reaches QuickBooks live, so it must not sit in the page's load path.
+  const [paymentDetailOpen, setPaymentDetailOpen] = useState(false);
+  const [paymentDetail, setPaymentDetail] =
+    useState<InvoicePaymentDetailProps | null>(null);
+  const [paymentDetailLoading, setPaymentDetailLoading] = useState(false);
+  const [paymentDetailError, setPaymentDetailError] = useState<string | null>(null);
   const [loadingInvoice, setLoadingInvoice] = useState(false);
   const [propertyOwnerName, setPropertyOwnerName] = useState<string>("");
   const [fetchedPropertyLocation, setFetchedPropertyLocation] = useState<string>("");
@@ -1534,6 +1546,24 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
   // Fetch the prefilled subject/body (and the QBO pay link, already embedded in
   // the body) when the compose modal opens.
+  // Opens the modal first, then fills it — the live QuickBooks read takes a
+  // second or two, and an empty click that eventually opens reads as a hang.
+  const openPaymentDetail = async (invoiceId: number) => {
+    setPaymentDetail(null);
+    setPaymentDetailError(null);
+    setPaymentDetailLoading(true);
+    setPaymentDetailOpen(true);
+    try {
+      setPaymentDetail(await fetchInvoicePaymentDetail(invoiceId));
+    } catch (e: any) {
+      setPaymentDetailError(
+        e?.message ?? "Could not load the payment for this invoice",
+      );
+    } finally {
+      setPaymentDetailLoading(false);
+    }
+  };
+
   const loadEmailPreview = async (invoiceId: number) => {
     emailPreviewRequestIdRef.current = invoiceId;
     setEmailPreviewLoading(true);
@@ -2542,6 +2572,23 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     </button>
                   )}
 
+                {/* Paid invoices only — the endpoint answers 409 on anything
+                    else, and there is no payment to show before then. */}
+                {currentInvoiceStatus === "paid" && currentInvoiceId && (
+                  <button
+                    type="button"
+                    onClick={() => void openPaymentDetail(currentInvoiceId)}
+                    title="View what the platform recorded next to what QuickBooks currently says"
+                    className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                      <circle cx="12" cy="12" r="2.75" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                    View Payment
+                  </button>
+                )}
+
                 {currentInvoiceStatus === "sent" &&
                   currentInvoiceId &&
                   currentQBOPushStatus !== "failed" && (
@@ -3223,6 +3270,17 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           onSubmit={handleRecordCredit}
         />
       )}
+
+      <InvoicePaymentDetailModal
+        open={paymentDetailOpen}
+        onOpenChange={setPaymentDetailOpen}
+        invoiceLabel={`${currentInvoiceMonthName} ${currentInvoiceYear} Invoice`}
+        local={paymentDetail?.local ?? null}
+        qbo={paymentDetail?.qbo ?? null}
+        qboUnavailableReason={paymentDetail?.qboUnavailableReason ?? null}
+        loading={paymentDetailLoading}
+        error={paymentDetailError}
+      />
 
       {recordPaymentInvoiceId && (
         <RecordPaymentDialog
