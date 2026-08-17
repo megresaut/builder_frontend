@@ -1330,6 +1330,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       pdf_object_key: string;
       sha256_pdf: string;
     }>,
+    // "ach" | "card" | "none" overrides the backend's history-based ACH/card
+    // processing-fee detection; omitted (undefined) lets it auto-detect.
+    paymentMethod?: "ach" | "card" | "none",
   ) => {
     const finalizeRes = await authFetch(
       `/invoicing/finalize-with-pdf?id=${currentInvoiceId}`,
@@ -1340,6 +1343,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           pdf_object_key: combined.pdf_object_key,
           sha256_pdf: combined.sha256_pdf,
           location_pdfs: locationPdfs,
+          ...(paymentMethod ? { payment_method: paymentMethod } : {}),
         }),
       },
     );
@@ -1460,7 +1464,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     }
   };
 
-  const handleCommitInvoice = async (pdfBlob: Blob) => {
+  const handleCommitInvoice = async (
+    pdfBlob: Blob,
+    paymentMethod?: "ach" | "card" | "none",
+  ) => {
     if (!currentInvoiceId) return;
 
     const toastId = toast.loading("Sending invoice to QBO…", {
@@ -1469,7 +1476,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
     try {
       const combined = await uploadPdf(pdfBlob, "invoice.pdf");
-      const finalizedInvoice = await finalizeInvoiceWithPdfs(combined, []);
+      const finalizedInvoice = await finalizeInvoiceWithPdfs(
+        combined,
+        [],
+        paymentMethod,
+      );
       reportCommitResult(finalizedInvoice, toastId);
 
       await loadInvoiceForProperty();
@@ -1494,6 +1505,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       locationId: number | null;
       blob: Blob;
     }>,
+    paymentMethod?: "ach" | "card" | "none",
   ) => {
     if (!currentInvoiceId) return;
 
@@ -1525,7 +1537,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         });
       }
 
-      const finalizedInvoice = await finalizeInvoiceWithPdfs(combined, uploaded);
+      const finalizedInvoice = await finalizeInvoiceWithPdfs(
+        combined,
+        uploaded,
+        paymentMethod,
+      );
       reportCommitResult(
         finalizedInvoice,
         toastId,

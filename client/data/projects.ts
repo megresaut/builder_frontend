@@ -1135,8 +1135,18 @@ export async function updateProjectInvoice(
 // Marks the invoice sent (draft → sent) and books A/R for concierge properties.
 // Does NOT email anyone — delivery is a separate step that differs by
 // delivery_mode. For 'manual' invoices this is the "I've sent it" confirmation.
-export async function sendProjectInvoice(projectId: number, invoiceId: number): Promise<ProjectInvoice> {
-  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/send`, { method: "POST" });
+//
+// paymentMethod ("ach" | "card") adds a one-time ACH/credit-card processing-fee
+// line for concierge properties before booking A/R — there's no local payment
+// history to auto-detect from (unlike monthly invoicing), so omitting it adds
+// no fee at all, it does not "guess".
+export async function sendProjectInvoice(
+  projectId: number,
+  invoiceId: number,
+  paymentMethod?: "ach" | "card",
+): Promise<ProjectInvoice> {
+  const qs = paymentMethod ? `?payment_method=${paymentMethod}` : "";
+  return fetchJSON(`/projects/${projectId}/invoices/${invoiceId}/send${qs}`, { method: "POST" });
 }
 
 // Asks QuickBooks to email the invoice (with our rendered PDF attached) to the
@@ -1383,6 +1393,11 @@ export const FTO_STATUS_META: Record<FTOStatus, { label: string; dot: string }> 
 
 export interface AcceptQuotePayload {
   copy_to_budget?: boolean; // also copy the accepted amount into the budget category
+  // Link to an existing task/work order instead of creating a new one.
+  // existing_work_order_id takes priority (its task comes along with it) —
+  // existing_task_id is ignored when both are set.
+  existing_task_id?: number;
+  existing_work_order_id?: number;
 }
 
 // Accept returns the updated quote (with created_task_id/created_work_order_id

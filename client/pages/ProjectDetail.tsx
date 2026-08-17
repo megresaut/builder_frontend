@@ -2380,14 +2380,19 @@ function FinancialsTab({
     }
   };
   // Posts the invoice (draft → sent) and books A/R for concierge properties.
-  // Does NOT email anyone. skipConfirm is used by the manual-delivery dialog,
-  // which is itself the confirmation step.
-  const doSend = async (id: number, opts?: { skipConfirm?: boolean }) => {
+  // Does NOT email anyone. skipConfirm is used by the manual-delivery dialog
+  // and by the concierge "Post invoice" confirm panel (ProjectInvoiceDetailModal)
+  // — both are themselves the confirmation step. paymentMethod ("ach"/"card")
+  // adds the one-time processing-fee line; only meaningful for concierge sends.
+  const doSend = async (
+    id: number,
+    opts?: { skipConfirm?: boolean; paymentMethod?: "ach" | "card" },
+  ) => {
     if (!opts?.skipConfirm && !window.confirm(
       "Post this invoice? This does not email it — it finalises the invoice and books it for real. The only way to undo it afterward is voiding it, which also voids every payment already recorded against it, including in the connected accounting system, if any.",
     )) return;
     try {
-      const updated = await sendProjectInvoice(projectId, id);
+      const updated = await sendProjectInvoice(projectId, id, opts?.paymentMethod);
       setDetail(updated);
       await load();
       onRefreshSummary();
@@ -2852,7 +2857,9 @@ function FinancialsTab({
       {detail && (
         <ProjectInvoiceDetailModal
           invoice={detail}
-          onSend={() => doSend(detail.id)}
+          onSend={(paymentMethod) =>
+            doSend(detail.id, { skipConfirm: true, paymentMethod })
+          }
           onMarkSent={() => doSend(detail.id, { skipConfirm: true })}
           onEmail={(sendTo) => doEmail(detail.id, sendTo)}
           onPlatformEmailSent={() => doPlatformEmailSent(detail.id)}
@@ -3511,7 +3518,11 @@ export function ProjectInvoiceDetailModal({
   onClose,
 }: {
   invoice: ProjectInvoice;
-  onSend: () => void;
+  // paymentMethod ("ach"/"card") adds a one-time ACH/credit-card processing-fee
+  // line before booking A/R; undefined (the "No fee" choice in the confirm
+  // panel) adds none. There's no local payment history to auto-detect from —
+  // unlike monthly invoicing — so this is opt-in only, never inferred.
+  onSend: (paymentMethod?: "ach" | "card") => void;
   onMarkSent: () => void | Promise<void>;
   onEmail: (sendTo: string) => Promise<void>;
   onPlatformEmailSent: () => void | Promise<void>;
@@ -3555,7 +3566,15 @@ export function ProjectInvoiceDetailModal({
   const emailedAt = invoice.client_emailed_at;
 
   // Which inline panel is open in the modal body. Only one at a time.
-  const [panel, setPanel] = useState<"none" | "manualSend" | "email">("none");
+  const [panel, setPanel] = useState<
+    "none" | "manualSend" | "email" | "postConfirm"
+  >("none");
+  // ACH/credit-card processing fee to pass through to the owner on this send
+  // — the "postConfirm" panel's only real decision, since concierge posting
+  // has no other confirmation left once this replaces window.confirm.
+  const [postFeeMethod, setPostFeeMethod] = useState<"none" | "ach" | "card">(
+    "none",
+  );
   // Compose box for the platform email rail (sent from billing@avmre.com).
   // "To" starts blank on every open — there is no reliable recipient
   // source of truth (mirrors the monthly-invoice compose box's decision, see
@@ -3788,7 +3807,16 @@ export function ProjectInvoiceDetailModal({
               // isManualDelivery is false for it and onSend fires instead.
               // The explicit canEmail check (rather than assuming) keeps this
               // in sync if the render guard above ever changes.
-              onClick={isManualDelivery ? (canEmail ? openEmailPanel : () => setPanel("manualSend")) : onSend}
+              onClick={
+                isManualDelivery
+                  ? canEmail
+                    ? openEmailPanel
+                    : () => setPanel("manualSend")
+                  : () => {
+                      setPostFeeMethod("none");
+                      setPanel("postConfirm");
+                    }
+              }
               className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
             >
               {isManualDelivery ? "Send to client" : "Post invoice"}
@@ -3824,6 +3852,65 @@ export function ProjectInvoiceDetailModal({
               one is out of scope (no migrations) — so do not re-add this. */}
           <span className="ml-auto font-semibold tabular-nums text-gray-900">{formatUSD(totalCents)}</span>
         </div>
+
+        {/* Concierge "Post invoice" confirmation — replaces window.confirm so
+            the same step can also collect the ACH/credit-card processing-fee
+            choice. There's no payment history to infer it from here (unlike
+            monthly invoicing), so it defaults to "No fee" and is opt-in only. */}
+        {panel === "postConfirm" && (
+          <div className="rounded-lg border border-[#DADADA] bg-gray-50 p-4">
+            <div className="text-sm font-semibold text-gray-900">
+              Post {invoice.invoice_number}?
+            </div>
+            <p className="mt-1.5 text-sm text-gray-600">
+              This does not email it — it finalises the invoice and books it
+              for real. The only way to undo it afterward is voiding it,
+              which also voids every payment already recorded against it,
+              including in the connected accounting system, if any.
+            </p>
+            <div className="mt-3 flex items-center gap-2">
+              <label
+                htmlFor="post-fee-method"
+                className="text-sm font-medium text-gray-700"
+              >
+                ACH/credit-card processing fee
+              </label>
+              <select
+                id="post-fee-method"
+                value={postFeeMethod}
+                onChange={(e) =>
+                  setPostFeeMethod(e.target.value as "none" | "ach" | "card")
+                }
+                className="h-8 rounded-md border border-[#DADADA] bg-white px-2 text-sm"
+              >
+                <option value="none">None</option>
+                <option value="ach">ACH (+1%)</option>
+                <option value="card">Credit card (+3%)</option>
+              </select>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="ml-auto flex items-center gap-2">
+                <button
+                  onClick={() => setPanel("none")}
+                  className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    onSend(
+                      postFeeMethod === "none" ? undefined : postFeeMethod,
+                    );
+                    setPanel("none");
+                  }}
+                  className="h-9 rounded-lg bg-[#013764] px-3.5 text-sm font-medium text-white hover:bg-[#003a73]"
+                >
+                  Post invoice
+                </button>
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Manual send-it-yourself fallback, reachable only from the compose
             panel's "I'll send it myself" link now — a draft manual-delivery
@@ -4589,6 +4676,184 @@ function QuoteHistoryModal({
   );
 }
 
+interface AcceptTaskOption {
+  id: number;
+  name: string;
+}
+interface AcceptWorkOrderOption {
+  id: number;
+  name: string;
+  status: string;
+}
+
+// AcceptQuoteModal: the "Accept" picker. By default accepting still creates a
+// brand new task (+ work order, when the quote has a vendor) exactly as
+// before. This lets the reviewer instead link the quote to an existing task,
+// optionally reusing one of that task's existing work orders rather than
+// creating a new one.
+function AcceptQuoteModal({
+  projectId,
+  quote,
+  onAccepted,
+  onClose,
+}: {
+  projectId: number;
+  quote: ProjectQuote;
+  onAccepted: () => void;
+  onClose: () => void;
+}) {
+  const [target, setTarget] = useState<"new_task" | "existing_task">("new_task");
+  const [taskOptions, setTaskOptions] = useState<AcceptTaskOption[]>([]);
+  const [loadingTasks, setLoadingTasks] = useState(false);
+  const [existingTaskId, setExistingTaskId] = useState<string>("");
+
+  const [woTarget, setWoTarget] = useState<"new_wo" | "existing_wo">("new_wo");
+  const [woOptions, setWoOptions] = useState<AcceptWorkOrderOption[]>([]);
+  const [loadingWOs, setLoadingWOs] = useState(false);
+  const [existingWoId, setExistingWoId] = useState<string>("");
+
+  const [copyToBudget, setCopyToBudget] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Load the project's tasks once "existing task" is chosen.
+  useEffect(() => {
+    if (target !== "existing_task") return;
+    setLoadingTasks(true);
+    fetchJSON(`/maintenance/tasks?project_id=${projectId}`)
+      .then((rows: AcceptTaskOption[]) => setTaskOptions(rows))
+      .catch(() => setTaskOptions([]))
+      .finally(() => setLoadingTasks(false));
+  }, [target, projectId]);
+
+  // Load that task's existing work orders whenever the picked task changes.
+  useEffect(() => {
+    setWoTarget("new_wo");
+    setExistingWoId("");
+    setWoOptions([]);
+    if (target !== "existing_task" || !existingTaskId) return;
+    setLoadingWOs(true);
+    fetchJSON(`/maintenance/work-orders?task_id=${existingTaskId}`)
+      .then((rows: AcceptWorkOrderOption[]) => setWoOptions(rows))
+      .catch(() => setWoOptions([]))
+      .finally(() => setLoadingWOs(false));
+  }, [target, existingTaskId]);
+
+  const submit = async () => {
+    if (target === "existing_task" && !existingTaskId) {
+      toast.error("Select a task");
+      return;
+    }
+    if (target === "existing_task" && woTarget === "existing_wo" && !existingWoId) {
+      toast.error("Select a work order");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload: Parameters<typeof acceptQuote>[2] = { copy_to_budget: copyToBudget };
+      if (target === "existing_task") {
+        payload.existing_task_id = Number(existingTaskId);
+        if (woTarget === "existing_wo") {
+          payload.existing_work_order_id = Number(existingWoId);
+        }
+      }
+      const res = await acceptQuote(projectId, quote.id, payload);
+      if (res.warnings && res.warnings.length > 0) {
+        res.warnings.forEach((w) => toast.warning(w));
+      } else {
+        toast.success("Quote accepted");
+      }
+      onAccepted();
+      onClose();
+    } catch (e) {
+      toast.error(errMessage(e, "Failed to accept quote"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <ModalShell
+      title="Accept quote"
+      onClose={onClose}
+      footer={
+        <>
+          <button onClick={onClose} className="h-9 rounded-lg border border-[#DADADA] bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button onClick={submit} disabled={saving} className="h-9 rounded-lg bg-[#013764] px-4 text-sm font-medium text-white hover:bg-[#003a73] disabled:opacity-50">
+            {saving ? "Accepting…" : "Accept"}
+          </button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <span className={labelCls}>Task</span>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="radio" name="accept-task-target" checked={target === "new_task"} onChange={() => setTarget("new_task")} />
+            Create a new task{quote.vendor_id != null ? " (and work order)" : ""}
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="radio" name="accept-task-target" checked={target === "existing_task"} onChange={() => setTarget("existing_task")} />
+            Link to an existing task
+          </label>
+        </div>
+
+        {target === "existing_task" && (
+          <>
+            <div>
+              <label className={labelCls}>Task</label>
+              <SearchableSelect
+                className={`${fieldCls} mt-1`}
+                value={existingTaskId}
+                onChange={setExistingTaskId}
+                options={taskOptions.map((t) => ({ value: String(t.id), label: t.name }))}
+                allLabel={loadingTasks ? "Loading tasks…" : "Select a task"}
+                disabled={loadingTasks}
+              />
+            </div>
+
+            {existingTaskId && quote.vendor_id != null && (
+              <div className="flex flex-col gap-2">
+                <span className={labelCls}>Work order</span>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="radio" name="accept-wo-target" checked={woTarget === "new_wo"} onChange={() => setWoTarget("new_wo")} />
+                  Create a new work order under this task
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="radio"
+                    name="accept-wo-target"
+                    checked={woTarget === "existing_wo"}
+                    onChange={() => setWoTarget("existing_wo")}
+                    disabled={!loadingWOs && woOptions.length === 0}
+                  />
+                  Use an existing work order on this task
+                </label>
+                {woTarget === "existing_wo" && (
+                  <SearchableSelect
+                    className={`${fieldCls} mt-1`}
+                    value={existingWoId}
+                    onChange={setExistingWoId}
+                    options={woOptions.map((w) => ({ value: String(w.id), label: `${w.name} (${w.status})` }))}
+                    allLabel={loadingWOs ? "Loading work orders…" : "Select a work order"}
+                    disabled={loadingWOs}
+                  />
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {quote.budget_item_id != null && (
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={copyToBudget} onChange={(e) => setCopyToBudget(e.target.checked)} />
+            Also copy the accepted amount into the budget category
+          </label>
+        )}
+      </div>
+    </ModalShell>
+  );
+}
+
 // Quotes tab: capture competing vendor quotes grouped by budget category, run an
 // AI fairness analysis (grounded in our historical costs + market knowledge),
 // shortlist, edit in place (auditable history), and accept one per category —
@@ -4600,6 +4865,7 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
   const [createOpen, setCreateOpen] = useState(false);
   const [editQuote, setEditQuote] = useState<ProjectQuote | null>(null);
   const [historyQuote, setHistoryQuote] = useState<ProjectQuote | null>(null);
+  const [acceptQuoteTarget, setAcceptQuoteTarget] = useState<ProjectQuote | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
@@ -4634,23 +4900,6 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
       load();
     } catch (e) {
       toast.error(errMessage(e, "Failed to update quote"));
-    }
-  };
-  const accept = async (q: ProjectQuote, copyToBudget: boolean) => {
-    try {
-      const res = await acceptQuote(projectId, q.id, { copy_to_budget: copyToBudget });
-      if (res.warnings && res.warnings.length > 0) {
-        res.warnings.forEach((w) => toast.warning(w));
-      } else {
-        toast.success(
-          copyToBudget
-            ? "Accepted — task & work order created; amount copied into the budget"
-            : "Accepted — task & work order created",
-        );
-      }
-      load();
-    } catch (e) {
-      toast.error(errMessage(e, "Failed to accept quote"));
     }
   };
   const remove = async (q: ProjectQuote) => {
@@ -4734,10 +4983,7 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
           <button onClick={() => setEditQuote(q)} className="text-xs font-medium text-gray-600 hover:underline">Edit</button>
           <button onClick={() => setHistoryQuote(q)} className="text-xs font-medium text-gray-600 hover:underline">View history</button>
           {q.status !== "accepted" && (
-            <button onClick={() => accept(q, false)} className="text-xs font-medium text-green-700 hover:underline">Accept</button>
-          )}
-          {q.status !== "accepted" && q.budget_item_id != null && (
-            <button onClick={() => accept(q, true)} className="text-xs font-medium text-green-700 hover:underline">Accept → budget</button>
+            <button onClick={() => setAcceptQuoteTarget(q)} className="text-xs font-medium text-green-700 hover:underline">Accept</button>
           )}
           {q.status !== "shortlisted" && q.status !== "accepted" && (
             <button onClick={() => changeStatus(q, "shortlisted")} className="text-xs font-medium text-blue-600 hover:underline">Shortlist</button>
@@ -4793,6 +5039,14 @@ function QuotesTab({ projectId, budget }: { projectId: number; budget: BudgetCat
       )}
       {historyQuote && (
         <QuoteHistoryModal projectId={projectId} quote={historyQuote} onClose={() => setHistoryQuote(null)} />
+      )}
+      {acceptQuoteTarget && (
+        <AcceptQuoteModal
+          projectId={projectId}
+          quote={acceptQuoteTarget}
+          onAccepted={load}
+          onClose={() => setAcceptQuoteTarget(null)}
+        />
       )}
     </Card>
   );

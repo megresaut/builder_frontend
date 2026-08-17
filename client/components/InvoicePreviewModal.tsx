@@ -15,6 +15,11 @@ import html2pdf from "html2pdf.js";
 import ExcelJS from "exceljs";
 import { AVMRE_LOGO_DATA_URI } from "./invoicing/avmreLogo";
 
+// "auto" means the backend infers ACH/card from payment history (silently
+// skipping the fee if there's none) — it is never itself sent to the API,
+// see finalizePaymentMethodParam.
+export type ProcessingFeeMethod = "auto" | "ach" | "card" | "none";
+
 export interface InvoiceLineItem {
   id: number;
   vendor: string;
@@ -80,7 +85,11 @@ interface InvoicePreviewModalProps {
   invoiceDate: string;
   lineItems: InvoiceLineItem[];
   showCommitButton?: boolean;
-  onCommit?: (pdfBlob: Blob) => void;
+  // "auto" (default) lets the backend infer ACH/card from this owner's payment
+  // history, silently skipping the fee when there's no history to go on.
+  // "ach"/"card" force that fee; "none" forces no fee even if history would
+  // have suggested one.
+  onCommit?: (pdfBlob: Blob, processingFeeMethod?: ProcessingFeeMethod) => void;
   /**
    * One entry per per-location document to render at commit time, in attachment
    * order (the admin location first). Empty or absent = a single combined PDF.
@@ -105,6 +114,7 @@ interface InvoicePreviewModalProps {
       locationId: number | null;
       blob: Blob;
     }>,
+    processingFeeMethod?: ProcessingFeeMethod,
   ) => void;
   pendingUnapprovedCount?: number;
   rentalOwner?: string;
@@ -196,6 +206,15 @@ export default function InvoicePreviewModal({
     setCreditOverride(null);
   }, [rolloverPaymentCents]);
   const [showCommitConfirm, setShowCommitConfirm] = useState(false);
+  // ACH/credit-card processing fee to pass through to the owner. "auto"
+  // (default) leaves it to the backend's history-based detection; both commit
+  // paths below (direct send + reviewed send) read this same selection, so
+  // it only needs one control regardless of which path fires.
+  const [processingFeeMethod, setProcessingFeeMethod] =
+    useState<ProcessingFeeMethod>("auto");
+  useEffect(() => {
+    if (open) setProcessingFeeMethod("auto");
+  }, [open]);
   // Guards both commit paths (direct + reviewed) against a second click while
   // generatePdfBlob()/onCommit are in flight — see handleCommit and the
   // "Review before sending" confirm handler.
@@ -1382,12 +1401,14 @@ export default function InvoicePreviewModal({
     setCommitting(true);
     try {
       const splits = locationSplits ?? [];
+      const feeMethod =
+        processingFeeMethod === "auto" ? undefined : processingFeeMethod;
       if (splits.length > 0 && onCommitSplits) {
         const { combined, rendered } = await runCommitSplits();
-        onCommitSplits(combined, rendered);
+        onCommitSplits(combined, rendered, feeMethod);
       } else {
         const pdfBlob = await generatePdfBlob();
-        onCommit?.(pdfBlob);
+        onCommit?.(pdfBlob, feeMethod);
       }
       onOpenChange(false);
     } catch (err) {
@@ -2416,21 +2437,41 @@ export default function InvoicePreviewModal({
             </button>
 
             {showCommitButton && (
-              <button
-                type="button"
-                onClick={handleCommit}
-                disabled={derivedStatus === "draft" || committing}
-                title={
-                  derivedStatus === "draft"
-                    ? "Cannot send — a line item has no vendor bill recorded. Resolve the underlying bills first."
-                    : undefined
-                }
-                className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
-              >
-                <span className="text-white font-medium text-base">
-                  Send to QBO
-                </span>
-              </button>
+              <>
+                <select
+                  value={processingFeeMethod}
+                  onChange={(e) =>
+                    setProcessingFeeMethod(
+                      e.target.value as ProcessingFeeMethod,
+                    )
+                  }
+                  disabled={committing}
+                  title="ACH/credit-card processing fee to pass through to the owner on this invoice"
+                  className="h-9 rounded-lg border border-white bg-[#002D5A] px-2.5 text-sm font-medium text-white shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                >
+                  <option value="auto">Processing fee: Auto-detect</option>
+                  <option value="ach">Processing fee: ACH (+1%)</option>
+                  <option value="card">
+                    Processing fee: Credit card (+3%)
+                  </option>
+                  <option value="none">Processing fee: None</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={handleCommit}
+                  disabled={derivedStatus === "draft" || committing}
+                  title={
+                    derivedStatus === "draft"
+                      ? "Cannot send — a line item has no vendor bill recorded. Resolve the underlying bills first."
+                      : undefined
+                  }
+                  className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  <span className="text-white font-medium text-base">
+                    Send to QBO
+                  </span>
+                </button>
+              </>
             )}
 
             <button
@@ -2465,6 +2506,28 @@ export default function InvoicePreviewModal({
               QuickBooks.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-[#DADADA] bg-gray-50 px-3 py-2">
+            <label
+              htmlFor="processing-fee-method"
+              className="text-sm font-medium text-[#303030]"
+            >
+              ACH/credit-card processing fee
+            </label>
+            <select
+              id="processing-fee-method"
+              value={processingFeeMethod}
+              onChange={(e) =>
+                setProcessingFeeMethod(e.target.value as ProcessingFeeMethod)
+              }
+              className="h-8 rounded-md border border-[#DADADA] bg-white px-2 text-sm"
+            >
+              <option value="auto">Auto-detect from payment history</option>
+              <option value="ach">ACH (+1%)</option>
+              <option value="card">Credit card (+3%)</option>
+              <option value="none">None</option>
+            </select>
+          </div>
 
           <div className="max-h-[50vh] overflow-y-auto space-y-4 text-sm text-[#303030]">
             {hasUnpaidPassthrough && (
@@ -2557,12 +2620,18 @@ export default function InvoicePreviewModal({
                 // must produce the identical document set, or which button the
                 // operator pressed would change what the owner receives.
                 const splits = locationSplits ?? [];
+                const feeMethod =
+                  processingFeeMethod === "auto"
+                    ? undefined
+                    : processingFeeMethod;
                 const work =
                   splits.length > 0 && onCommitSplits
                     ? runCommitSplits().then(({ combined, rendered }) =>
-                        onCommitSplits(combined, rendered),
+                        onCommitSplits(combined, rendered, feeMethod),
                       )
-                    : generatePdfBlob().then((blob) => onCommit?.(blob));
+                    : generatePdfBlob().then((blob) =>
+                        onCommit?.(blob, feeMethod),
+                      );
                 work
                   .catch((err) =>
                     console.error("Failed to generate PDF:", err),
