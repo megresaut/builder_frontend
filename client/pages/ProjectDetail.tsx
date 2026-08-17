@@ -2145,8 +2145,10 @@ function AllocatePaymentModal({
         for (const l of targets) {
           const key = rowKey(l);
           const already = existingByKey[key] ?? 0;
-          const outstanding = l.booked_cents - l.covered_cents + already;
-          const take = Math.max(0, Math.min(outstanding, remaining));
+          // Defensive against a null/undefined booked_cents or covered_cents from
+          // the API turning this into NaN and silently skipping the row.
+          const outstanding = (l.booked_cents ?? 0) - (l.covered_cents ?? 0) + already;
+          const take = Number.isFinite(outstanding) ? Math.max(0, Math.min(outstanding, remaining)) : 0;
           if (take > 0) {
             seed[key] = centsToInput(take);
             remaining -= take;

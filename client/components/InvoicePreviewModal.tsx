@@ -2401,14 +2401,18 @@ export default function InvoicePreviewModal({
             </div>
           </div>
 
-          {/* Modal Footer Actions */}
-          <div className="no-print flex-shrink-0 flex justify-end items-center gap-2.5 px-6 md:px-8 py-4 border-t border-[#E5E5E5] bg-white">
+          {/* Modal Footer Actions. flex-wrap + shrink-0/whitespace-nowrap on every
+              child: the row can run out of horizontal space (the processing-fee
+              select made that likelier), and the old no-wrap layout let flexbox
+              shrink buttons below their label width, wrapping text mid-word
+              instead. Wrapping to a second row reads far better than that. */}
+          <div className="no-print flex-shrink-0 flex flex-wrap justify-end items-center gap-2.5 gap-y-2 px-6 md:px-8 py-4 border-t border-[#E5E5E5] bg-white">
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="flex h-9 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex h-9 shrink-0 justify-center items-center gap-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <span className="text-[#303030] font-normal text-base capitalize">
+              <span className="whitespace-nowrap text-[#303030] font-normal text-base capitalize">
                 Cancel
               </span>
             </button>
@@ -2416,7 +2420,7 @@ export default function InvoicePreviewModal({
             <button
               type="button"
               onClick={handleAddLineItem}
-              className="flex h-9 items-center gap-2 px-4 rounded-lg border border-[#002D5A] bg-white text-[#002D5A] hover:bg-gray-50 transition-colors"
+              className="flex h-9 shrink-0 items-center gap-2 px-4 rounded-lg border border-[#002D5A] bg-white text-[#002D5A] hover:bg-gray-50 transition-colors"
             >
               <svg
                 width="18"
@@ -2433,7 +2437,9 @@ export default function InvoicePreviewModal({
                   strokeLinejoin="round"
                 />
               </svg>
-              <span className="font-medium text-base">Add Line Item</span>
+              <span className="whitespace-nowrap font-medium text-base">
+                Add Line Item
+              </span>
             </button>
 
             {showCommitButton && (
@@ -2447,14 +2453,12 @@ export default function InvoicePreviewModal({
                   }
                   disabled={committing}
                   title="ACH/credit-card processing fee to pass through to the owner on this invoice"
-                  className="h-9 rounded-lg border border-white bg-[#002D5A] px-2.5 text-sm font-medium text-white shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                  className="h-9 shrink-0 rounded-lg border border-white bg-[#002D5A] px-2.5 text-sm font-medium text-white shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] disabled:opacity-50"
                 >
-                  <option value="auto">Processing fee: Auto-detect</option>
-                  <option value="ach">Processing fee: ACH (+1%)</option>
-                  <option value="card">
-                    Processing fee: Credit card (+3%)
-                  </option>
-                  <option value="none">Processing fee: None</option>
+                  <option value="auto">Fee: Auto-detect</option>
+                  <option value="ach">Fee: ACH (+1%)</option>
+                  <option value="card">Fee: Credit card (+3%)</option>
+                  <option value="none">Fee: None</option>
                 </select>
                 <button
                   type="button"
@@ -2465,9 +2469,9 @@ export default function InvoicePreviewModal({
                       ? "Cannot send — a line item has no vendor bill recorded. Resolve the underlying bills first."
                       : undefined
                   }
-                  className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  className="flex h-9 shrink-0 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  <span className="text-white font-medium text-base">
+                  <span className="whitespace-nowrap text-white font-medium text-base">
                     Send to QBO
                   </span>
                 </button>
@@ -2477,9 +2481,9 @@ export default function InvoicePreviewModal({
             <button
               type="button"
               onClick={handleDownloadPDF}
-              className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
+              className="flex h-9 shrink-0 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
             >
-              <span className="text-white font-medium text-base">
+              <span className="whitespace-nowrap text-white font-medium text-base">
                 Download PDF
               </span>
             </button>
@@ -2487,9 +2491,9 @@ export default function InvoicePreviewModal({
             <button
               type="button"
               onClick={handleExportToExcel}
-              className="flex h-9 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
+              className="flex h-9 shrink-0 items-center gap-2 px-4 rounded-lg border border-white bg-[#002D5A] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003d7a] transition-colors"
             >
-              <span className="text-white font-medium text-base">
+              <span className="whitespace-nowrap text-white font-medium text-base">
                 Export to Excel
               </span>
             </button>
