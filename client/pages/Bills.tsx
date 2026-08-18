@@ -740,6 +740,19 @@ export default function Bills() {
   );
   const [filterDateFrom, setFilterDateFrom] = usePageState("billsFilterDateFrom", "");
   const [filterDateTo, setFilterDateTo] = usePageState("billsFilterDateTo", "");
+  const [filterReferenceNumber, setFilterReferenceNumber] = usePageState(
+    "billsFilterReferenceNumber",
+    "",
+  );
+  const [filterMemo, setFilterMemo] = usePageState("billsFilterMemo", "");
+  const [filterAmountFrom, setFilterAmountFrom] = usePageState(
+    "billsFilterAmountFrom",
+    "",
+  );
+  const [filterAmountTo, setFilterAmountTo] = usePageState(
+    "billsFilterAmountTo",
+    "",
+  );
 
   // Sort is applied server-side so a column-header click orders the ENTIRE
   // result set across all pages, not just the rows on the current page.
@@ -911,7 +924,16 @@ export default function Bills() {
   const filterPropertiesKey = filterProperties.join("");
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterVendorsKey, filterPropertiesKey, filterDateFrom, filterDateTo]);
+  }, [
+    filterVendorsKey,
+    filterPropertiesKey,
+    filterDateFrom,
+    filterDateTo,
+    filterReferenceNumber,
+    filterMemo,
+    filterAmountFrom,
+    filterAmountTo,
+  ]);
 
   // Load bills for the active tab (server-paginated; server applies the tab filter).
   const loadApprovedBills = useCallback(async () => {
@@ -927,6 +949,10 @@ export default function Bills() {
       filterProperties.forEach((p) => params.append("property", p));
       if (filterDateFrom) params.set("date_from", filterDateFrom);
       if (filterDateTo) params.set("date_to", filterDateTo);
+      if (filterReferenceNumber) params.set("reference_number", filterReferenceNumber);
+      if (filterMemo) params.set("memo", filterMemo);
+      if (filterAmountFrom) params.set("amount_from", filterAmountFrom);
+      if (filterAmountTo) params.set("amount_to", filterAmountTo);
       if (sortBy) {
         params.set("sort", sortBy.toLowerCase());
         params.set("direction", sortOrder);
@@ -942,7 +968,22 @@ export default function Bills() {
     } catch (err) {
       console.error("Error loading bills:", err);
     }
-  }, [currentPage, itemsPerPage, selectedTab, debouncedSearch, filterVendorsKey, filterPropertiesKey, filterDateFrom, filterDateTo, sortBy, sortOrder]);
+  }, [
+    currentPage,
+    itemsPerPage,
+    selectedTab,
+    debouncedSearch,
+    filterVendorsKey,
+    filterPropertiesKey,
+    filterDateFrom,
+    filterDateTo,
+    filterReferenceNumber,
+    filterMemo,
+    filterAmountFrom,
+    filterAmountTo,
+    sortBy,
+    sortOrder,
+  ]);
 
   // Drafts are no longer surfaced in this view — the All / Paid / Unpaid tabs
   // are sourced solely from the bills table. Draft bills live in bill_drafts
@@ -1668,6 +1709,56 @@ export default function Bills() {
                     className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
                   />
                 </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Reference #
+                  </label>
+                  <input
+                    type="text"
+                    value={filterReferenceNumber}
+                    onChange={(e) => setFilterReferenceNumber(e.target.value)}
+                    placeholder="Any"
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Memo
+                  </label>
+                  <input
+                    type="text"
+                    value={filterMemo}
+                    onChange={(e) => setFilterMemo(e.target.value)}
+                    placeholder="Any"
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] min-w-[130px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Amount from
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={filterAmountFrom}
+                    onChange={(e) => setFilterAmountFrom(e.target.value)}
+                    placeholder="$0.00"
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] w-[110px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-[#717179] whitespace-nowrap">
+                    Amount to
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={filterAmountTo}
+                    onChange={(e) => setFilterAmountTo(e.target.value)}
+                    placeholder="$0.00"
+                    className="h-9 px-2.5 rounded-lg border border-[#DADADA] bg-white text-sm text-[#303030] w-[110px]"
+                  />
+                </div>
               </div>
               <button
                 type="button"
@@ -1676,6 +1767,10 @@ export default function Bills() {
                   setFilterProperties([]);
                   setFilterDateFrom("");
                   setFilterDateTo("");
+                  setFilterReferenceNumber("");
+                  setFilterMemo("");
+                  setFilterAmountFrom("");
+                  setFilterAmountTo("");
                   setCurrentPage(1);
                 }}
                 className="h-9 px-3 rounded-lg border border-[#DADADA] bg-white text-sm font-medium text-[#303030] hover:bg-gray-100 shrink-0"

@@ -84,6 +84,12 @@ export default function EditPaymentModal({
   const [saving, setSaving] = useState(false);
   const [voidConfirmOpen, setVoidConfirmOpen] = useState(false);
   const [voiding, setVoiding] = useState(false);
+  // Non-null once the server has told us this payment is part of a batch —
+  // switches the void dialog from "void this payment" to "void the whole
+  // batch" (issue #3). Reset whenever the dialog is (re)opened.
+  const [batchSiblings, setBatchSiblings] = useState<
+    { id: number; bill_id: number; amount_cents: number }[] | null
+  >(null);
 
   useEffect(() => {
     if (!open) return;
@@ -153,29 +159,46 @@ export default function EditPaymentModal({
     return patch;
   };
 
-  const handleVoid = async () => {
+  const handleVoid = async (confirmBatch = false) => {
     setVoiding(true);
     try {
-      const res = await fetchJSON(`/vendors/bill-payments/${payment.id}`, {
+      const qs = confirmBatch ? "?confirm_batch=true" : "";
+      const res = await fetchJSON(`/vendors/bill-payments/${payment.id}${qs}`, {
         method: "DELETE",
       });
       const manual: string[] = Array.isArray(res?.requires_manual_buildium_update)
         ? res.requires_manual_buildium_update
         : [];
+      const voidedCount = Array.isArray(res?.voided_payment_ids)
+        ? res.voided_payment_ids.length
+        : 1;
+      const countNote = voidedCount > 1 ? ` (${voidedCount} payments in the batch)` : "";
       if (manual.length > 0) {
-        toast(`Payment voided. Please ${manual.join(", ")} in Buildium manually.`, {
+        toast(`Payment voided${countNote}. Please ${manual.join(", ")} in Buildium manually.`, {
           duration: 10000,
         });
       } else {
-        toast.success("Payment voided.");
+        toast.success(`Payment voided${countNote}.`);
       }
+      setVoiding(false);
+      setBatchSiblings(null);
+      setVoidConfirmOpen(false);
       onVoided?.();
       onOpenChange(false);
     } catch (err: unknown) {
+      const e = err as Error & { body?: any };
+      setVoiding(false);
+      if (e.body?.code === "requires_batch_confirmation" && Array.isArray(e.body.siblings)) {
+        // Not a failure — this payment is part of a batch, and voiding it
+        // alone would leave the rest standing (issue #3). Switch the dialog
+        // to ask about the whole batch instead of just erroring out; the
+        // dialog itself stays open.
+        setBatchSiblings(e.body.siblings);
+        return;
+      }
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(msg, { duration: 8000 });
-    } finally {
-      setVoiding(false);
+      setBatchSiblings(null);
       setVoidConfirmOpen(false);
     }
   };
@@ -217,25 +240,61 @@ export default function EditPaymentModal({
     <>
     <AlertDialog open={voidConfirmOpen} onOpenChange={setVoidConfirmOpen}>
       <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Void this payment?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will permanently delete the payment record
-            {bill.vendorName ? ` for ${bill.vendorName}` : ""}. The action
-            cannot be undone. If this bill was paid in Buildium, you will need
-            to void it there manually.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={voiding}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleVoid}
-            disabled={voiding}
-            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-          >
-            {voiding ? "Voiding…" : "Void payment"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
+        {batchSiblings === null ? (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Void this payment?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the payment record
+                {bill.vendorName ? ` for ${bill.vendorName}` : ""}. The action
+                cannot be undone. If this bill was paid in Buildium, you will need
+                to void it there manually.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={voiding}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleVoid(false)}
+                disabled={voiding}
+                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              >
+                {voiding ? "Voiding…" : "Void payment"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </>
+        ) : (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Void the whole batch?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This payment was part of a batch that also paid{" "}
+                {batchSiblings.length} other bill
+                {batchSiblings.length === 1 ? "" : "s"} (totaling $
+                {(
+                  batchSiblings.reduce((sum, s) => sum + s.amount_cents, 0) / 100
+                ).toFixed(2)}
+                ) in the same action. Voiding just this one would leave the
+                rest standing — this will void all {batchSiblings.length + 1}{" "}
+                payments in the batch, releasing any vendor credits applied to
+                any of them. The action cannot be undone. If any of these
+                bills were paid in Buildium, you will need to void them there
+                manually.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={voiding} onClick={() => setBatchSiblings(null)}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleVoid(true)}
+                disabled={voiding}
+                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              >
+                {voiding ? "Voiding…" : `Void all ${batchSiblings.length + 1} payments`}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </>
+        )}
       </AlertDialogContent>
     </AlertDialog>
 
@@ -248,7 +307,10 @@ export default function EditPaymentModal({
         <div className="flex items-center justify-between w-full">
           <button
             type="button"
-            onClick={() => setVoidConfirmOpen(true)}
+            onClick={() => {
+              setBatchSiblings(null);
+              setVoidConfirmOpen(true);
+            }}
             disabled={saving || voiding}
             className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
           >

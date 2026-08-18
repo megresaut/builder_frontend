@@ -64,6 +64,20 @@ interface PaymentEntry {
   receipt_mime: string | null;
   receipt_size_bytes: number | null;
   receipt_uploaded_at: string | null;
+  // Answers issue #4 ("no way to see if a payment is part of a batch") — a
+  // non-zero count means this payment was created in the same "Pay selected"
+  // action as other payments on other bills.
+  payment_batch_id: string | null;
+  batch_sibling_count: number;
+}
+
+interface BatchSibling {
+  id: number;
+  bill_id: number;
+  amount_cents: number;
+  paid_on: string;
+  property_name: string;
+  vendor_name: string;
 }
 
 const fmtUSD = (cents?: number | null) =>
@@ -312,6 +326,57 @@ function PaymentEntryBlock({
           </span>
         )}
       </div>
+      {payment.batch_sibling_count > 0 && (
+        <BatchSiblingsNote paymentId={payment.id} count={payment.batch_sibling_count} />
+      )}
+    </div>
+  );
+}
+
+// Lists the other payments this one's batch pay action created, on-demand —
+// the direct fix for issue #4: previously there was no way to see this at
+// all, from any payment.
+function BatchSiblingsNote({ paymentId, count }: { paymentId: number; count: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const [siblings, setSiblings] = useState<BatchSibling[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const toggle = () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && siblings === null) {
+      setLoading(true);
+      fetchJSON(`/vendors/bill-payments/${paymentId}/batch`)
+        .then((res) => setSiblings(Array.isArray(res?.siblings) ? res.siblings : []))
+        .catch(() => setSiblings([]))
+        .finally(() => setLoading(false));
+    }
+  };
+
+  return (
+    <div className="mt-1 text-xs">
+      <button
+        type="button"
+        onClick={toggle}
+        className="text-[#013764] hover:underline"
+      >
+        Part of a batch of {count + 1} payments{expanded ? " ▲" : " ▼"}
+      </button>
+      {expanded && (
+        <div className="mt-1 space-y-0.5 pl-2 border-l border-gray-200">
+          {loading && <div className="text-[#717179]">Loading…</div>}
+          {!loading &&
+            siblings?.map((s) => (
+              <div key={s.id} className="text-[#717179]">
+                {fmtUSD(s.amount_cents)} · {s.property_name || s.vendor_name || `Bill #${s.bill_id}`} ·{" "}
+                {fmtDate(s.paid_on)}
+              </div>
+            ))}
+          {!loading && siblings?.length === 0 && (
+            <div className="text-[#717179]">No other payments found.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

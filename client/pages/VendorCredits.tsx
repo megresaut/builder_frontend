@@ -409,6 +409,133 @@ function ManageCategoriesModal({
   );
 }
 
+// ── edit modal ────────────────────────────────────────────────────────────
+// Only reachable while a credit is 'open' — same rule the backend enforces
+// (repository.UpdateVendorCredit refuses once anything's been applied).
+// Vendor and category aren't editable here: changing who a credit belongs to
+// is a big enough change that it should be void-and-recreate, matching the
+// backend's own scope for PATCH /vendor-credits/{id}.
+interface EditModalProps {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSaved: () => void;
+  credit: VendorCredit | null;
+}
+
+function EditVendorCreditModal({ open, onOpenChange, onSaved, credit }: EditModalProps) {
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState("");
+  const [memo, setMemo] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !credit) return;
+    setAmount((credit.amount_cents / 100).toFixed(2));
+    setDate(credit.date.split("T")[0]);
+    setMemo(credit.memo || "");
+    setError(null);
+  }, [open, credit]);
+
+  const handleSubmit = async () => {
+    if (!credit) return;
+    setError(null);
+    const amountCents = parseCents(amount);
+    if (!Number.isFinite(amountCents) || amountCents <= 0) {
+      setError("Amount must be greater than $0.");
+      return;
+    }
+    if (!date) {
+      setError("Date is required.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await authFetch(`/vendor-credits/${credit.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount_cents: amountCents, date, memo: memo || undefined }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? `Update failed (${res.status})`);
+      }
+      toast.success("Vendor credit updated.");
+      onOpenChange(false);
+      onSaved();
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <ModalTemplate
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit Vendor Credit"
+      size="sm"
+      footer={
+        <ModalButtons
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleSubmit}
+          cancelLabel="Cancel"
+          confirmLabel={submitting ? "Saving…" : "Save"}
+          cancelDisabled={submitting}
+          confirmDisabled={submitting}
+        />
+      }
+    >
+      <div className="space-y-3">
+        {credit && (
+          <p className="text-xs" style={{ color: TEXT_MUTED }}>
+            {credit.vendor_name}
+          </p>
+        )}
+        <FieldShell label="Amount" htmlFor="vc-edit-amount">
+          <Input
+            id="vc-edit-amount"
+            type="text"
+            inputMode="decimal"
+            placeholder="0.00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            disabled={submitting}
+          />
+        </FieldShell>
+
+        <FieldShell label="Date" htmlFor="vc-edit-date">
+          <Input
+            id="vc-edit-date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            disabled={submitting}
+          />
+        </FieldShell>
+
+        <FieldShell label="Memo (optional)" htmlFor="vc-edit-memo">
+          <Textarea
+            id="vc-edit-memo"
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
+            disabled={submitting}
+            rows={2}
+            placeholder="Reason for credit"
+          />
+        </FieldShell>
+
+        {error && (
+          <p className="text-sm text-red-600" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    </ModalTemplate>
+  );
+}
+
 // ── create modal ──────────────────────────────────────────────────────────
 interface CreateModalProps {
   open: boolean;
@@ -713,6 +840,7 @@ export default function VendorCredits() {
   const [manageOpen, setManageOpen] = useState(false);
   const [voidingId, setVoidingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const [editingCredit, setEditingCredit] = useState<VendorCredit | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -898,16 +1026,27 @@ export default function VendorCredits() {
                         <StatusBadge status={c.status} />
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
-                        {/* Voiding requires an untouched credit — QBO refuses to
-                            delete a VendorCredit with linked transactions. */}
+                        {/* Editing and voiding both require an untouched credit
+                            — QBO refuses to delete/edit a VendorCredit with
+                            linked transactions. Once applied, the fix is
+                            void-and-recreate, not a patch. */}
                         {c.status === "open" && (
-                          <button
-                            onClick={() => handleVoid(c.id)}
-                            disabled={voidingId === c.id}
-                            className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
-                          >
-                            {voidingId === c.id ? "Voiding…" : "Void"}
-                          </button>
+                          <>
+                            <button
+                              onClick={() => setEditingCredit(c)}
+                              className="text-xs mr-3"
+                              style={{ color: TEXT_MUTED }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleVoid(c.id)}
+                              disabled={voidingId === c.id}
+                              className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+                            >
+                              {voidingId === c.id ? "Voiding…" : "Void"}
+                            </button>
+                          </>
                         )}
                         {c.applications.length > 0 && (
                           <div className="text-xs" style={{ color: TEXT_MUTED }}>
@@ -935,6 +1074,15 @@ export default function VendorCredits() {
       />
 
       <ManageCategoriesModal open={manageOpen} onOpenChange={setManageOpen} />
+
+      <EditVendorCreditModal
+        open={editingCredit !== null}
+        onOpenChange={(v) => {
+          if (!v) setEditingCredit(null);
+        }}
+        onSaved={load}
+        credit={editingCredit}
+      />
     </PageTemplate>
   );
 }

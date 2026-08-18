@@ -343,6 +343,13 @@ export default function BatchPayBillModal({
     // user actually saw when they hit Pay.
     const frozen = allocations;
 
+    // One id shared by every bill this "Pay selected" click pays, so the
+    // backend can group them: voiding one later offers/cascades to the whole
+    // batch (issue #3), and the payment summary can show what else was part
+    // of it (issue #4). A single payable bill isn't a batch.
+    const paymentBatchID =
+      plan.payable.length > 1 ? crypto.randomUUID() : undefined;
+
     for (const row of plan.payable) {
       const bill = bills.find((b) => b.id === row.billId);
       if (!bill) continue;
@@ -364,6 +371,7 @@ export default function BatchPayBillModal({
             txn_date: txnDate,
             memo: memo || undefined,
             payment_method: usingCheck ? "check" : "transfer",
+            ...(paymentBatchID ? { payment_batch_id: paymentBatchID } : {}),
             ...(billCredits.length > 0
               ? {
                   applied_credits: billCredits.map((a) => ({

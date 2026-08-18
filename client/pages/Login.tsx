@@ -1,9 +1,25 @@
 import { loginRequest } from "@/api/auth";
 import { isMobileDevice } from "@/lib/detectMobile";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import loginBg1 from "@/assets/login/544-oenoke-1.jpg";
+import loginBg2 from "@/assets/login/544-oenoke-2.jpg";
+import loginBg3 from "@/assets/login/544-oenoke-3.jpg";
+import loginBg4 from "@/assets/login/46-dublin-hill-1.jpg";
+import loginBg5 from "@/assets/login/46-dublin-hill-2.jpg";
+import loginBg6 from "@/assets/login/47-apple-tree-1.jpg";
+
+const LOGIN_BACKGROUND_IMAGES = [
+  loginBg1,
+  loginBg2,
+  loginBg3,
+  loginBg4,
+  loginBg5,
+  loginBg6,
+];
+const LOGIN_BACKGROUND_INTERVAL_MS = 14000;
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -21,6 +37,14 @@ export const Login = () => {
   const [forgotPasswordError, setForgotPasswordError] = useState("");
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [bgIndex, setBgIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setBgIndex((prev) => (prev + 1) % LOGIN_BACKGROUND_IMAGES.length);
+    }, LOGIN_BACKGROUND_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, []);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -143,56 +167,58 @@ export const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-white">
-      {/* Left Hero Section with Background Image */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between relative overflow-hidden">
-        {/* Background Image */}
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2F2b245f83eda342b5a4ad43495095989f?format=webp&width=800"
-          alt="AVM Branding"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 0 }}
-        />
+    <div className="relative min-h-screen bg-white lg:overflow-hidden">
+      {/* Desktop-only rotating full-bleed background */}
+      <div className="hidden lg:block absolute inset-0 z-0">
+        {LOGIN_BACKGROUND_IMAGES.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt=""
+            aria-hidden="true"
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity ease-in-out ${
+              i === bgIndex ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ transitionDuration: "3000ms" }}
+          />
+        ))}
+        {/* Overlay for content/legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/40" />
+      </div>
 
-        {/* Overlay for content visibility */}
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30"
-          style={{ zIndex: 1 }}
-        />
-
-        {/* Content - Relative to overlay the background */}
-        <div className="relative z-20 flex flex-col justify-between h-full p-8">
-          {/* Empty top section */}
-          <div />
-
-          {/* Center Branding with Icon - Off-centered */}
-          <div className="flex flex-col items-start justify-center gap-6 mb-12 ml-8">
-            {/* AVM Icon */}
+      {/* Desktop-only branding overlay on top of the photo */}
+      <div className="hidden lg:flex absolute inset-0 z-10 flex-col justify-between p-10 pointer-events-none">
+        {/* Branding, top-left */}
+        <div className="flex justify-start">
+          <div className="flex items-center gap-4">
             <img
               src="https://cdn.builder.io/api/v1/image/assets%2Fba2f0cd1a4c64ebda0865daf8dd0ff2a%2Fcfcebb746e114b489185ee38a951cabb?format=webp&width=800"
               alt="AVM Icon"
-              className="w-40 h-40"
+              className="w-16 h-16"
               style={{ filter: "brightness(0) invert(1)" }}
             />
-            {/* Text */}
-            <div>
-              <h1 className="text-8xl font-bold text-white mb-2 leading-tight">
-                AVM
+            <div className="text-left">
+              <h1 className="text-4xl font-bold text-white leading-tight whitespace-nowrap">
+                Absolute Value Management
               </h1>
-              <p className="text-3xl text-gray-100">Property Management</p>
+              <p className="text-base text-gray-200">Property Management</p>
             </div>
           </div>
+        </div>
 
-          {/* Footer with Credits */}
-          <div className="space-y-1 text-xs">
-            <p className="text-gray-200">© 2025 AVM. All rights reserved.</p>
-            <p className="text-gray-300">Developed by Reasonable Automations</p>
-          </div>
+        {/* Footer with Credits */}
+        <div className="space-y-1 text-xs">
+          <p className="text-gray-200">© 2025 AVM. All rights reserved.</p>
+          <p className="text-gray-300">Developed by Reasonable Automations</p>
         </div>
       </div>
 
-      {/* Right Form Section */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-8 lg:px-12 py-12 sm:py-0">
+      {/* Form Section: normal centered column on mobile, floating card over the photo on desktop */}
+      <div
+        className="relative z-20 w-full min-h-screen flex flex-col justify-center px-6 sm:px-8 py-12 sm:py-0
+                   lg:absolute lg:right-[6%] lg:top-1/2 lg:min-h-0 lg:w-[440px] lg:max-h-[85vh]
+                   lg:-translate-y-1/2 lg:bg-white lg:rounded-2xl lg:shadow-2xl lg:px-10 lg:py-10 lg:overflow-y-auto"
+      >
         <div className="w-full max-w-md mx-auto">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8">
@@ -377,7 +403,7 @@ export const Login = () => {
                   <span className="text-xs font-semibold">?</span>
                 </button>
                 {showSignUpTooltip && (
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap z-10">
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-gray-900 text-white text-sm text-center rounded-lg z-10">
                     Contact your administrator to create an account
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                   </div>
