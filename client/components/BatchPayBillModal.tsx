@@ -343,93 +343,142 @@ export default function BatchPayBillModal({
     // user actually saw when they hit Pay.
     const frozen = allocations;
 
-    // One id shared by every bill this "Pay selected" click pays, so the
-    // backend can group them: voiding one later offers/cascades to the whole
-    // batch (issue #3), and the payment summary can show what else was part
-    // of it (issue #4). A single payable bill isn't a batch.
-    const paymentBatchID =
-      plan.payable.length > 1 ? crypto.randomUUID() : undefined;
+    const rowFor = (billId: number) => plan.payable.find((r) => r.billId === billId);
+    const markResult = (billId: number, result: BatchPayResult) =>
+      setResults((prev) => new Map(prev).set(billId, result));
+    const successMessage = (billId: number, creditCents: number) => {
+      const row = rowFor(billId);
+      const paidLabel = usingCheck ? "Queued for printing" : "Paid";
+      const partial = row ? row.totalCents < row.amountDueCents : false;
+      const parts = [
+        partial && row
+          ? `${paidLabel} $${dollars(row.totalCents)} of $${dollars(row.amountDueCents)}`
+          : paidLabel,
+      ];
+      if (creditCents > 0) parts.push(`$${dollars(creditCents)} credit applied`);
+      return parts.join(" · ");
+    };
 
-    for (const row of plan.payable) {
-      const bill = bills.find((b) => b.id === row.billId);
-      if (!bill) continue;
-      const billCredits = frozen.filter((a) => a.billId === bill.id);
-      const creditCents = row.creditCents;
-      // Net cash as typed, already validated against the balance. May
-      // legitimately be 0 when credits cover the bill outright — the pay
-      // endpoint permits amount_cents=0 whenever applied_credits is non-empty.
-      const cashCents = row.cashCents;
+    // Queued/printed checks are a separate, more involved flow
+    // (handlePayBillByCheck) that the batch endpoint deliberately doesn't
+    // cover yet — those bills still go through the existing per-bill loop.
+    // Everything else (the common case) goes through one call to
+    // /vendors/bills/pay-batch, which groups same-vendor bills into one QBO
+    // payment and — for whichever of those are paid in full cash — one
+    // Buildium bulk payment, instead of N/N individual calls.
+    if (usingCheck) {
+      for (const row of plan.payable) {
+        const bill = bills.find((b) => b.id === row.billId);
+        if (!bill) continue;
+        const billCredits = frozen.filter((a) => a.billId === bill.id);
+        try {
+          const res = await authFetch(`/vendors/bills/${bill.id}/pay`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              payment_account_qbo_id: accountQBOID,
+              amount_cents: row.cashCents,
+              txn_date: txnDate,
+              memo: memo || undefined,
+              payment_method: "check",
+              ...(billCredits.length > 0
+                ? {
+                    applied_credits: billCredits.map((a) => ({
+                      vendor_credit_id: a.creditId,
+                      amount_cents: a.amountCents,
+                    })),
+                  }
+                : {}),
+            }),
+          });
+          if (!res.ok) {
+            let message = `Payment failed (status ${res.status}).`;
+            try {
+              const body = await res.json();
+              if (body?.error) message = String(body.error);
+            } catch {
+              const text = await res.text().catch(() => "");
+              if (text) message = text;
+            }
+            if (billCredits.length > 0) message += " Credits were not consumed.";
+            markResult(bill.id, { status: "error", message });
+            continue;
+          }
+          markResult(bill.id, { status: "success", message: successMessage(bill.id, row.creditCents) });
+        } catch (err: any) {
+          markResult(bill.id, { status: "error", message: err?.message ?? String(err) });
+        }
+      }
+    } else {
       try {
-        const res = await authFetch(`/vendors/bills/${bill.id}/pay`, {
+        const res = await authFetch(`/vendors/bills/pay-batch`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...(isConcierge
               ? { payment_account_qbo_id: accountQBOID }
               : { buildium_account_id: buildiumAccountID }),
-            amount_cents: cashCents,
             txn_date: txnDate,
             memo: memo || undefined,
-            payment_method: usingCheck ? "check" : "transfer",
-            ...(paymentBatchID ? { payment_batch_id: paymentBatchID } : {}),
-            ...(billCredits.length > 0
-              ? {
-                  applied_credits: billCredits.map((a) => ({
-                    vendor_credit_id: a.creditId,
-                    amount_cents: a.amountCents,
-                  })),
-                }
-              : {}),
+            bills: plan.payable.map((row) => {
+              const billCredits = frozen.filter((a) => a.billId === row.billId);
+              return {
+                bill_id: row.billId,
+                amount_cents: row.cashCents,
+                ...(billCredits.length > 0
+                  ? {
+                      applied_credits: billCredits.map((a) => ({
+                        vendor_credit_id: a.creditId,
+                        amount_cents: a.amountCents,
+                      })),
+                    }
+                  : {}),
+              };
+            }),
           }),
         });
         if (!res.ok) {
-          let message = `Payment failed (status ${res.status}).`;
-          let code: string | null = null;
+          const text = await res.text().catch(() => "");
+          let message = text || `Batch payment failed (status ${res.status}).`;
           try {
-            const body = await res.json();
+            const body = JSON.parse(text);
             if (body?.error) message = String(body.error);
-            if (body?.code) code = String(body.code);
           } catch {
-            const text = await res.text().catch(() => "");
-            if (text) message = text;
+            // not JSON — keep the raw text
           }
-          if (code === "amount_exceeds_balance" || code === "qbo_total_mismatch") {
-            staleBalanceFailure = true;
+          for (const row of plan.payable) markResult(row.billId, { status: "error", message });
+        } else {
+          const body = await res.json().catch(() => ({}));
+          const results: Array<{ bill_id: number; status: string; message?: string }> = Array.isArray(
+            body?.results,
+          )
+            ? body.results
+            : [];
+          const byBillId = new Map(results.map((r) => [r.bill_id, r]));
+          for (const row of plan.payable) {
+            const r = byBillId.get(row.billId);
+            if (!r) {
+              markResult(row.billId, { status: "error", message: "No result returned for this bill." });
+              continue;
+            }
+            if (r.status !== "success") {
+              const message = r.message ?? "Payment failed.";
+              if (message.includes("amount_exceeds_balance") || message.includes("qbo_total_mismatch")) {
+                staleBalanceFailure = true;
+              }
+              if (message.includes("credit_not_open")) {
+                staleCreditFailure = true;
+              }
+              markResult(row.billId, { status: "error", message });
+              continue;
+            }
+            markResult(row.billId, { status: "success", message: successMessage(row.billId, row.creditCents) });
           }
-          if (code === "credit_not_open") {
-            staleCreditFailure = true;
-          }
-          // The handler validates and consumes credits inside the same request,
-          // so a rejected bill leaves its credits open and re-appliable.
-          if (billCredits.length > 0) {
-            message += " Credits were not consumed.";
-          }
-          setResults((prev) => new Map(prev).set(bill.id, { status: "error", message }));
-          continue;
         }
-        const paidLabel = usingCheck ? "Queued for printing" : "Paid";
-        // A partial settlement says so, so a row reading "Paid" is never
-        // mistaken for a bill that is now closed.
-        const partial = row.totalCents < row.amountDueCents;
-        const parts = [
-          partial
-            ? `${paidLabel} $${dollars(row.totalCents)} of $${dollars(row.amountDueCents)}`
-            : paidLabel,
-        ];
-        if (creditCents > 0) parts.push(`$${dollars(creditCents)} credit applied`);
-        setResults((prev) =>
-          new Map(prev).set(bill.id, {
-            status: "success",
-            message: parts.join(" · "),
-          }),
-        );
       } catch (err: any) {
-        setResults((prev) =>
-          new Map(prev).set(bill.id, {
-            status: "error",
-            message: err?.message ?? String(err),
-          }),
-        );
+        for (const row of plan.payable) {
+          markResult(row.billId, { status: "error", message: err?.message ?? String(err) });
+        }
       }
     }
 
