@@ -472,7 +472,14 @@ export default function BatchPayBillModal({
               markResult(row.billId, { status: "error", message });
               continue;
             }
-            markResult(row.billId, { status: "success", message: successMessage(row.billId, row.creditCents) });
+            // r.message carries a warning even on success — e.g. paid in
+            // QuickBooks but Buildium wasn't updated and needs a manual
+            // push. Never drop that in favor of the generic "Paid" line.
+            const base = successMessage(row.billId, row.creditCents);
+            markResult(row.billId, {
+              status: "success",
+              message: r.message ? `${base} · ${r.message}` : base,
+            });
           }
         }
       } catch (err: any) {
