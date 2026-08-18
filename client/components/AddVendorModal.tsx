@@ -98,6 +98,11 @@ export default function AddVendorModal({
   const [errors, setErrors] = useState<{ vendorName?: string; buildiumCategoryID?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [emailConflict, setEmailConflict] = useState<{
+    buildium_vendor_id: number;
+    company_name: string;
+    email: string;
+  } | null>(null);
 
   const availableServices = [
     { value: "hvac", label: "HVAC" },
@@ -165,6 +170,7 @@ export default function AddVendorModal({
 
     setErrors({});
     setSubmitError(null);
+    setEmailConflict(null);
   }, [open, edit, initialVendor]);
 
   // Fetch Buildium categories when modal opens in create mode.
@@ -198,12 +204,13 @@ export default function AddVendorModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (linkedBuildiumVendorId?: number) => {
     if (!validateForm()) return;
     if (submitting) return;
 
     setSubmitting(true);
     setSubmitError(null);
+    setEmailConflict(null);
 
     try {
       if (edit && initialVendor) {
@@ -278,6 +285,9 @@ export default function AddVendorModal({
           requires_1099: requires1099,
           has_insurance: true,
           buildium_category_id: buildiumCategoryID,
+          ...(linkedBuildiumVendorId
+            ? { linked_buildium_vendor_id: linkedBuildiumVendorId }
+            : {}),
         }),
       });
 
@@ -295,7 +305,11 @@ export default function AddVendorModal({
 
       onOpenChange(false);
     } catch (err: any) {
-      setSubmitError(err?.message || "Failed to save vendor. Please try again.");
+      if (err?.status === 409 && err?.body?.matched_vendor) {
+        setEmailConflict(err.body.matched_vendor);
+      } else {
+        setSubmitError(err?.message || "Failed to save vendor. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -325,7 +339,7 @@ export default function AddVendorModal({
       footer={
         <ModalButtons
           onCancel={() => onOpenChange(false)}
-          onConfirm={handleSubmit}
+          onConfirm={() => handleSubmit()}
           cancelLabel="Cancel"
           confirmLabel={edit ? "Save Changes" : "Create Vendor"}
           confirmDisabled={submitting}
@@ -530,6 +544,34 @@ export default function AddVendorModal({
           />
         </FieldShell>
       </ModalField>
+
+      {emailConflict && (
+        <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-[#303030]">
+          <div>
+            A vendor with this email already exists in Buildium:{" "}
+            <span className="font-medium">{emailConflict.company_name}</span>
+            {emailConflict.email ? ` (${emailConflict.email})` : ""}.
+          </div>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => handleSubmit(emailConflict.buildium_vendor_id)}
+              className="rounded-md bg-[#013764] px-3 py-1.5 text-white disabled:opacity-50"
+            >
+              Link to this vendor
+            </button>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => setEmailConflict(null)}
+              className="rounded-md border border-[#DADADA] px-3 py-1.5 disabled:opacity-50"
+            >
+              Use a different email
+            </button>
+          </div>
+        </div>
+      )}
 
       {submitError && (
         <div className="text-sm text-red-600 mt-2">{submitError}</div>
