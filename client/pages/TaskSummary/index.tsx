@@ -3228,12 +3228,11 @@ export default function TaskSummary() {
     if (navigationState?.newWorkOrder && selectedWorkOrder) {
       const found = workOrders.find((wo) => wo.id === selectedWorkOrder.id);
       if (found) {
-        // The newly created work order is now in the list, we can clear the navigation state
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname,
-        );
+        // The newly created work order is now in the list, we can clear the navigation state.
+        // Must go through React Router's navigate() (not a raw window.history.replaceState call) —
+        // the raw DOM API wipes React Router's internal history index for this entry, which
+        // corrupts the browser back-button stack and can land Back on an unrelated earlier page.
+        navigate(location.pathname, { replace: true, state: null });
       }
     }
   }, [workOrders, selectedWorkOrder, navigationState?.newWorkOrder]);

@@ -957,8 +957,6 @@ export default function CreateTaskModal({
     }
   };
 
-  const showAttachments = variant === "withMessageAndAttachments";
-
   return (
     <>
       <ModalTemplate
@@ -1083,16 +1081,14 @@ export default function CreateTaskModal({
                   placeholder="Type Task Name"
                 />
 
-                {showAttachments && (
-                  <TextAreaField
-                    label="Description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    error={errors.description}
-                    placeholder="Insert Description Here"
-                    rows={6}
-                  />
-                )}
+                <TextAreaField
+                  label="Description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  error={errors.description}
+                  placeholder="Insert Description Here"
+                  rows={6}
+                />
 
                 <FieldRow columns={2}>
                   <FieldRowItem>

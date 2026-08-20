@@ -363,6 +363,15 @@ const buildMaterialsJSON = (
       payment_method: row.paymentMethod || "company_card",
     };
     if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
+    // bill_id / exported_to_buildium mark an expense as already billed and
+    // must survive every PATCH regardless of includeAvmreFields — that flag
+    // reflects whether the Buildium property lookup has resolved yet, not
+    // whether this row was already exported. Gating these on it previously
+    // let a merged-in, already-exported submission get its bill_id silently
+    // wiped by the next Approve PATCH (materials_json is a full-blob
+    // replace), causing the expense to be re-exported and double-billed.
+    if (row.billId) out.bill_id = row.billId;
+    out.exported_to_buildium = row.exportedToBuildium ?? false;
     if (includeAvmreFields) {
       // Persist whichever GL ref the property-type-aware picker populated.
       if (row.glAccountId) out.gl_account_id = row.glAccountId;
@@ -375,8 +384,6 @@ const buildMaterialsJSON = (
         if (row.buildiumAccountName)
           out.buildium_account_name = row.buildiumAccountName;
       }
-      out.exported_to_buildium = row.exportedToBuildium ?? false;
-      if (row.billId) out.bill_id = row.billId;
     }
     return out;
   });
