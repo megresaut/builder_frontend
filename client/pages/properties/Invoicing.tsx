@@ -25,8 +25,10 @@ import {
   disputeInvoiceLine,
   editInvoiceLineItems,
   fetchInvoicePaymentDetail,
+  getInvoiceRefunds,
   type InvoicePaymentDetailProps,
 } from "@/data/invoices";
+import RefundInvoiceModal from "@/components/RefundInvoiceModal";
 import EditInvoiceLineItemsModal from "@/components/EditInvoiceLineItemsModal";
 import {
   AlertDialog,
@@ -601,6 +603,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   // paid directly on this invoice, used for the void/dispute unpaid check).
   const [currentInvoiceRolloverPaymentCents, setCurrentInvoiceRolloverPaymentCents] = useState(0);
   const [currentInvoiceDisputeCreditCents, setCurrentInvoiceDisputeCreditCents] = useState(0);
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [refundAlreadyCents, setRefundAlreadyCents] = useState(0);
   // Dispute-confirm dialog: the InvoiceItem being disputed (null = closed).
   const [voidTargetLine, setVoidTargetLine] = useState<InvoiceItem | null>(null);
   // "Edit line items" picker: the InvoiceItem (bill row) being edited (null = closed).
@@ -2665,6 +2669,37 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   </button>
                 )}
 
+                {currentInvoiceStatus === "paid" && currentInvoiceId && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const { total_refunded_cents } =
+                          await getInvoiceRefunds(currentInvoiceId);
+                        setRefundAlreadyCents(total_refunded_cents);
+                        setRefundModalOpen(true);
+                      } catch (e: any) {
+                        toast.error(
+                          e?.message ?? "Failed to load refund status",
+                        );
+                      }
+                    }}
+                    title="Refund the client who paid this invoice"
+                    className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M4.5 8.25L2.25 6M2.25 6L4.5 3.75M2.25 6H11.25C13.3211 6 15 7.67893 15 9.75C15 11.8211 13.3211 13.5 11.25 13.5H6"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Refund
+                  </button>
+                )}
+
                 {currentInvoiceStatus === "sent" &&
                   currentInvoiceId &&
                   currentQBOPushStatus !== "failed" && (
@@ -3370,6 +3405,23 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         loading={paymentDetailLoading}
         error={paymentDetailError}
       />
+
+      {currentInvoiceId && (
+        <RefundInvoiceModal
+          open={refundModalOpen}
+          onOpenChange={setRefundModalOpen}
+          invoice={{
+            id: currentInvoiceId,
+            property_address: propertyAddress,
+            payment_amount_cents: currentInvoicePaymentCents,
+          }}
+          alreadyRefundedCents={refundAlreadyCents}
+          onRefunded={async () => {
+            await loadInvoiceForProperty();
+            await loadInvoiceHistory();
+          }}
+        />
+      )}
 
       {recordPaymentInvoiceId && (
         <RecordPaymentDialog
