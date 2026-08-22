@@ -23,9 +23,11 @@ import InvoicePreviewModal, {
 } from "@/components/InvoicePreviewModal";
 import {
   disputeInvoiceLine,
+  editInvoiceLineItems,
   fetchInvoicePaymentDetail,
   type InvoicePaymentDetailProps,
 } from "@/data/invoices";
+import EditInvoiceLineItemsModal from "@/components/EditInvoiceLineItemsModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -489,6 +491,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     source: string;
     sourceId?: number; // submission ID for FTO items
     sourceType?: string; // raw backend source_type — drives void base/markup pairing
+    // True only when the underlying bill's line_items reconcile to a real
+    // per-line breakdown — gates whether "Edit line items" is offered.
+    hasBillableLines?: boolean;
     status: InvoiceItemStatus;
     statusColor: string;
     statusBg: string;
@@ -598,6 +603,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [currentInvoiceDisputeCreditCents, setCurrentInvoiceDisputeCreditCents] = useState(0);
   // Dispute-confirm dialog: the InvoiceItem being disputed (null = closed).
   const [voidTargetLine, setVoidTargetLine] = useState<InvoiceItem | null>(null);
+  // "Edit line items" picker: the InvoiceItem (bill row) being edited (null = closed).
+  const [editLineItemsTarget, setEditLineItemsTarget] =
+    useState<InvoiceItem | null>(null);
   const [voidReason, setVoidReason] = useState("");
   const [voiding, setVoiding] = useState(false);
   // How much of the line is being credited to the client, and how much of
@@ -829,6 +837,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           source: normalizedSource,
           sourceId: li.source_id, // Store source_id (submission ID for FTO items)
           sourceType: li.source_type, // raw type for void base/markup pairing
+          hasBillableLines: !!li.has_billable_lines,
           billDate: li.bill_date ?? null,
           billInvoiceNumber: li.bill_invoice_number ?? null,
           unitPrice: li.unit_price ?? null,
@@ -1428,6 +1437,23 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           "Applied to this invoice when it's sent to QBO, so the pay link matches the PDF.",
       },
     );
+    await loadInvoiceForProperty();
+  };
+
+  // Saves the "Edit line items" picker's selection. Does not push to QBO —
+  // the existing Re-sync button (already visible for sent/paid invoices)
+  // covers that as a separate, explicit step.
+  const handleEditBillLineItems = async (lineIds: number[]) => {
+    if (!currentInvoiceId || !editLineItemsTarget?.sourceId) return;
+    await editInvoiceLineItems(
+      currentInvoiceId,
+      editLineItemsTarget.sourceId,
+      lineIds,
+    );
+    toast.success("Line items updated", {
+      description:
+        "Re-sync to QuickBooks to push this change to the QBO invoice.",
+    });
     await loadInvoiceForProperty();
   };
 
@@ -2240,6 +2266,40 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 hidden: (item: any) =>
                   !currentInvoiceId ||
                   currentInvoiceStatus === "void" ||
+                  item?.id === CREDIT_ROW_ID,
+              },
+              {
+                label: () => "Edit line items",
+                icon: (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                      stroke="#525252"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (item: any) => {
+                  setEditLineItemsTarget(item);
+                },
+                // Only offered for a bill-backed line whose own line_items
+                // reconcile to a real breakdown (hasBillableLines), while the
+                // invoice is still live — locked once paid or void, matching
+                // the backend's own gate.
+                hidden: (item: any) =>
+                  !currentInvoiceId ||
+                  currentInvoiceStatus === "void" ||
+                  currentInvoiceStatus === "paid" ||
+                  !(item?.sourceType === "vendor" || item?.sourceType === "utility") ||
+                  !item?.hasBillableLines ||
                   item?.id === CREDIT_ROW_ID,
               },
             ]}
@@ -3284,6 +3344,19 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           invoiceId={currentInvoiceId}
           currentCreditCents={currentInvoiceRolloverPaymentCents}
           onSubmit={handleRecordCredit}
+        />
+      )}
+
+      {currentInvoiceId && editLineItemsTarget?.sourceId && (
+        <EditInvoiceLineItemsModal
+          open={!!editLineItemsTarget}
+          onOpenChange={(open) => {
+            if (!open) setEditLineItemsTarget(null);
+          }}
+          invoiceId={currentInvoiceId}
+          billId={editLineItemsTarget.sourceId}
+          billDescription={editLineItemsTarget.description}
+          onSubmit={handleEditBillLineItems}
         />
       )}
 

@@ -52,6 +52,50 @@ export async function voidInvoice(invoiceID: number): Promise<void> {
   await fetchJSON(`/invoicing/void?id=${invoiceID}`, { method: "POST" });
 }
 
+// Mirrors backend repository.InvoiceRefund (invoicing/repository/invoice_payment_refunds.go).
+export interface InvoicePaymentRefund {
+  id: number;
+  invoice_id: number;
+  amount_cents: number;
+  refund_date: string;
+  refund_path: "accounting" | "payments";
+  deposit_account_name: string;
+  memo: string;
+  qbo_refund_receipt_id: string | null;
+  qbo_payments_refund_id: string | null;
+  qbo_payments_txn_id: string | null;
+  created_at: string;
+}
+
+export interface InvoiceRefundsResponse {
+  refunds: InvoicePaymentRefund[];
+  total_refunded_cents: number;
+}
+
+// getInvoiceRefunds lists every refund already recorded against an invoice
+// plus the running total — used to cap the amount before opening the refund
+// modal (mirrors the bill-side card refund's "remaining refundable" check).
+export async function getInvoiceRefunds(
+  invoiceID: number,
+): Promise<InvoiceRefundsResponse> {
+  return fetchJSON(`/invoicing/refunds?id=${invoiceID}`);
+}
+
+// refundInvoicePayment refunds the client who paid this invoice. No account
+// picker: the backend derives the QBO account debited from the invoice's own
+// recorded payment, and automatically detects whether this is a bookkeeping
+// entry (payment was recorded manually) or a real QBO Payments refund (the
+// original charge was processed by QBO itself).
+export async function refundInvoicePayment(
+  invoiceID: number,
+  body: { amount_cents: number; date: string; memo?: string },
+): Promise<InvoicePaymentRefund> {
+  return fetchJSON(`/invoicing/refund-payment?id=${invoiceID}`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 // voidInvoiceLine voids a single line on a sent / partially-paid invoice. The
 // backend soft-deletes the line, recomputes the total, and re-pushes the
 // reduced invoice to QBO (which reverses the line's Due From Owners posting and
@@ -95,6 +139,64 @@ export async function disputeInvoiceLine(
       client_credit_cents: clientCreditCents,
       vendor_credit_cents: vendorCreditCents,
       reason: reason ?? "",
+    }),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Per-line vendor/utility bill billing — "Edit line items" picker.
+//
+// A bill is billed to the owner whole by default (Generate() sums it into one
+// invoice_line_items row). When a bill's own line_items[] reconcile to a real
+// breakdown (Σ line amounts == bills.amount_cents), the picker lets the user
+// choose a subset to bill THIS month; anything left out just isn't inserted —
+// it stays available for a future month's invoice (no line trusted as a
+// stable id beyond display/dedup; see backend comments on source_line_id).
+// ---------------------------------------------------------------------------
+
+export interface BillableBillLineAPI {
+  line_id: number;
+  description: string;
+  amount_cents: number;
+  upcharge_cents: number;
+  selected_now: boolean;
+  billed_on_invoice_id: number | null;
+  billed_on_invoice_month: string | null;
+}
+
+export interface BillableBillLinesAPI {
+  bill_id: number;
+  itemizable: boolean;
+  lines: BillableBillLineAPI[];
+}
+
+export async function fetchBillableBillLines(
+  invoiceID: number,
+  billID: number,
+): Promise<BillableBillLinesAPI> {
+  return fetchJSON(
+    `/invoicing/bill-lines?invoice_id=${invoiceID}&bill_id=${billID}`,
+  );
+}
+
+// editInvoiceLineItems replaces which of billID's own lines are billed on
+// invoiceID this month. lineIDs is the FULL desired selection — an empty
+// array drops the bill off this invoice entirely (its lines remain eligible
+// for a future month). Works on draft/ready/sent invoices; the backend
+// rejects this once the invoice is paid or void. Does NOT push to QBO — the
+// caller re-syncs explicitly afterward via the existing retry endpoint.
+export async function editInvoiceLineItems(
+  invoiceID: number,
+  billID: number,
+  lineIDs: number[],
+): Promise<unknown> {
+  return fetchJSON(`/invoicing/edit-bill-lines`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      invoice_id: invoiceID,
+      bill_id: billID,
+      line_ids: lineIDs,
     }),
   });
 }

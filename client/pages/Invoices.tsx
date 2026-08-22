@@ -12,10 +12,12 @@ import { toast } from "sonner";
 import {
   fetchPortfolioInvoices,
   voidInvoice,
+  getInvoiceRefunds,
   type InvoiceStatus,
   type PortfolioInvoiceRow,
   type QBOPushStatus,
 } from "@/data/invoices";
+import RefundInvoiceModal from "@/components/RefundInvoiceModal";
 
 type TabKey = "all" | "outstanding" | "paid" | "draft" | "void";
 
@@ -311,6 +313,31 @@ export default function Invoices() {
     toggleColumnVisibility,
   } = columnManagementHook;
 
+  const [refundTarget, setRefundTarget] = useState<InvoiceTableRow | null>(
+    null,
+  );
+  const [refundAlreadyCents, setRefundAlreadyCents] = useState(0);
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+
+  const handleRefund = async (inv: InvoiceTableRow) => {
+    if (inv.status !== "paid") {
+      toast.error("Only paid invoices can be refunded.");
+      return;
+    }
+    try {
+      const { total_refunded_cents } = await getInvoiceRefunds(inv.id);
+      setRefundTarget(inv);
+      setRefundAlreadyCents(total_refunded_cents);
+      setRefundModalOpen(true);
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : `Failed to load refund status for invoice #${inv.id}`,
+      );
+    }
+  };
+
   const handleVoid = async (inv: InvoiceTableRow) => {
     if (inv.status === "paid") {
       toast.error("Paid invoices cannot be voided.");
@@ -581,6 +608,22 @@ export default function Invoices() {
               ),
               onClick: (inv: InvoiceTableRow) => handleVoid(inv),
             },
+            {
+              label: "Refund",
+              hidden: (inv: InvoiceTableRow) => inv.status !== "paid",
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M4.5 8.25L2.25 6M2.25 6L4.5 3.75M2.25 6H11.25C13.3211 6 15 7.67893 15 9.75C15 11.8211 13.3211 13.5 11.25 13.5H6"
+                    stroke="var(--color-text-primary)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ),
+              onClick: (inv: InvoiceTableRow) => handleRefund(inv),
+            },
           ]}
           showColumnModal={showColumnModal}
           onShowColumnModalChange={setShowColumnModal}
@@ -601,6 +644,16 @@ export default function Invoices() {
         onClose={() => setShowColumnModal(false)}
         buttonRef={columnButtonRef}
       />
+
+      {refundTarget && (
+        <RefundInvoiceModal
+          open={refundModalOpen}
+          onOpenChange={setRefundModalOpen}
+          invoice={refundTarget}
+          alreadyRefundedCents={refundAlreadyCents}
+          onRefunded={() => setRefreshTick((t) => t + 1)}
+        />
+      )}
     </PageTemplate>
   );
 }
