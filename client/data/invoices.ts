@@ -25,6 +25,10 @@ export interface PortfolioInvoiceRow {
   qbo_last_error: string | null;
   qbo_payment_id: string | null;
   qbo_payment_push_status: QBOPushStatus;
+  // Running total from invoice_payment_refunds (migration 164). Non-zero on a
+  // 'paid' invoice means it's been fully or partially refunded — status stays
+  // 'paid', this drives the "Refunded" badge instead.
+  refunded_cents: number;
 }
 
 export interface PortfolioFilter {

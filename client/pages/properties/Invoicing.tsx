@@ -747,6 +747,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         setCurrentQBOPushStatus(invoiceData.invoice.qbo_push_status ?? null);
         setCurrentQBOLastError(invoiceData.invoice.qbo_last_error ?? null);
         setCurrentClientEmailedAt(invoiceData.invoice.client_emailed_at ?? null);
+        setRefundAlreadyCents(invoiceData.refunded_cents ?? 0);
       }
 
   
@@ -2049,7 +2050,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         : currentInvoiceStatus === "sent"
                         ? "bg-blue-50 text-blue-800 border-blue-200"
                         : currentInvoiceStatus === "paid"
-                        ? "bg-gray-100 text-gray-700 border-gray-200"
+                        ? refundAlreadyCents > 0
+                          ? "bg-violet-50 text-violet-700 border-violet-200"
+                          : "bg-green-600 text-white border-green-600"
                         : "bg-rose-50 text-rose-800 border-rose-200")
                     }
                     title={
@@ -2071,6 +2074,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   >
                     {currentInvoiceStatus === "sent"
                       ? "IN QUICKBOOKS"
+                      : currentInvoiceStatus === "paid" && refundAlreadyCents > 0
+                      ? "REFUNDED"
                       : currentInvoiceStatus.toUpperCase()}
                     {/* DRAFT = a line has no vendor bill at all: a blocker to
                         fix. READY surfaces unpaid-but-booked bills as a

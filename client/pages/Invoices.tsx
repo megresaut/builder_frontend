@@ -388,7 +388,9 @@ export default function Invoices() {
           </span>
         );
       case "status":
-        return <StatusBadge status={inv.status} />;
+        return (
+          <StatusBadge status={inv.status} refundedCents={inv.refunded_cents} />
+        );
       case "qboSync":
         return <QBOStatusCell row={inv} />;
       case "total":
@@ -688,7 +690,23 @@ function SummaryTile({
   );
 }
 
-function StatusBadge({ status }: { status: InvoiceStatus }) {
+function StatusBadge({
+  status,
+  refundedCents,
+}: {
+  status: InvoiceStatus;
+  refundedCents?: number;
+}) {
+  // Refunded is derived, not a stored status — mirrors how 'ready' is derived
+  // for drafts. A refunded invoice stays 'paid' underneath; this only changes
+  // the badge shown.
+  if (status === "paid" && refundedCents && refundedCents > 0) {
+    return (
+      <span className="inline-block px-2 py-0.5 text-xs rounded-full border bg-violet-50 text-violet-700 border-violet-200">
+        Refunded
+      </span>
+    );
+  }
   return (
     <span
       className={cn(
