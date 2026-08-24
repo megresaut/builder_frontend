@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { Input } from "@/components/ui/input";
@@ -27,8 +27,11 @@ interface RecordPaymentDialogProps {
     paymentMethod: PaymentMethod | "";
     reference: string;
     memo: string;
+    receiptFile: File | null;
   }) => Promise<void> | void;
 }
+
+const ACCEPTED_RECEIPT_TYPES = ["application/pdf", "image/jpeg", "image/png"];
 
 const todayISO = () => {
   const d = new Date();
@@ -60,6 +63,9 @@ export default function RecordPaymentDialog({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [reference, setReference] = useState<string>("");
   const [memo, setMemo] = useState<string>("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptDrag, setReceiptDrag] = useState(false);
+  const receiptInputRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,6 +80,8 @@ export default function RecordPaymentDialog({
       setPaymentMethod("");
       setReference("");
       setMemo("");
+      setReceiptFile(null);
+      setReceiptDrag(false);
       setError(null);
       return;
     }
@@ -138,6 +146,10 @@ export default function RecordPaymentDialog({
       setError("Payment date is required.");
       return;
     }
+    if (receiptFile && !ACCEPTED_RECEIPT_TYPES.includes(receiptFile.type)) {
+      setError("Receipt must be a PDF, JPEG, or PNG file.");
+      return;
+    }
     setSubmitting(true);
     try {
       await onSubmit({
@@ -147,6 +159,7 @@ export default function RecordPaymentDialog({
         paymentMethod,
         reference,
         memo,
+        receiptFile,
       });
       onOpenChange(false);
     } catch (e: any) {
@@ -268,6 +281,59 @@ export default function RecordPaymentDialog({
             placeholder="Internal notes — included in the QBO Payment private note."
             autoGrow
           />
+        </FieldShell>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <FieldShell label="Check image / receipt (optional)" htmlFor="rec-receipt">
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setReceiptDrag(true);
+            }}
+            onDragLeave={() => setReceiptDrag(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setReceiptDrag(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) setReceiptFile(f);
+            }}
+            onClick={() => receiptInputRef.current?.click()}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed px-3 py-4 text-center transition-colors ${
+              receiptDrag ? "border-[#013764] bg-[#013764]/5" : "border-[#DADADA] hover:bg-gray-50"
+            }`}
+          >
+            {receiptFile ? (
+              <p className="text-sm font-medium text-[#303030]">{receiptFile.name}</p>
+            ) : (
+              <p className="text-xs text-[#717179]">
+                Drag and drop a PDF, JPEG, or PNG here, or click to browse
+              </p>
+            )}
+            <input
+              id="rec-receipt"
+              ref={receiptInputRef}
+              type="file"
+              accept={ACCEPTED_RECEIPT_TYPES.join(",")}
+              className="hidden"
+              disabled={submitting}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                if (f) setReceiptFile(f);
+              }}
+            />
+          </div>
+          {receiptFile && (
+            <button
+              type="button"
+              onClick={() => setReceiptFile(null)}
+              disabled={submitting}
+              className="mt-1 text-xs text-[#717179] hover:text-[#303030]"
+            >
+              Remove file
+            </button>
+          )}
         </FieldShell>
       </div>
 

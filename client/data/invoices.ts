@@ -1,4 +1,4 @@
-import { fetchJSON } from "@/api/fetchJSON";
+import { fetchJSON, authFetch } from "@/api/fetchJSON";
 
 // Mirrors backend invoicing.PortfolioInvoiceRow. Status is the *derived*
 // status — a draft arrives as 'ready' unless a passthrough line has no
@@ -54,6 +54,39 @@ export async function fetchPortfolioInvoices(
 // already pushed, the QBO copy stays in its prior state.
 export async function voidInvoice(invoiceID: number): Promise<void> {
   await fetchJSON(`/invoicing/void?id=${invoiceID}`, { method: "POST" });
+}
+
+export interface InvoicePaymentReceiptResult {
+  invoice_id: number;
+  payment_receipt_object_key: string;
+  payment_receipt_mime: string;
+  payment_receipt_filename: string;
+  download: string; // "/files/<object_key>"
+}
+
+// Attach a receipt/proof file (PDF/JPEG/PNG — e.g. a photo of the check) to a
+// manually recorded invoice payment. Call after record-payment succeeds.
+export async function uploadInvoicePaymentReceipt(
+  invoiceID: number,
+  file: File,
+): Promise<InvoicePaymentReceiptResult> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await authFetch(`/invoicing/payment-receipt?id=${invoiceID}`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    let msg = "Failed to upload receipt";
+    try {
+      const b = await res.json();
+      if (b?.error) msg = b.error;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(msg);
+  }
+  return res.json();
 }
 
 // Mirrors backend repository.InvoiceRefund (invoicing/repository/invoice_payment_refunds.go).
@@ -243,6 +276,8 @@ export interface InvoicePaymentDetailAPI {
     }[];
   } | null;
   qbo_unavailable_reason?: string;
+  refunds?: InvoicePaymentRefund[];
+  total_refunded_cents?: number;
 }
 
 // Props shape InvoicePaymentDetailModal consumes.
@@ -274,6 +309,8 @@ export interface InvoicePaymentDetailProps {
     }[];
   } | null;
   qboUnavailableReason: string | null;
+  refunds: InvoicePaymentRefund[];
+  totalRefundedCents: number;
 }
 
 // toInvoicePaymentDetailProps is the single snake_case → camelCase boundary.
@@ -313,6 +350,8 @@ export function toInvoicePaymentDetailProps(
         }
       : null,
     qboUnavailableReason: api.qbo_unavailable_reason ?? null,
+    refunds: api.refunds ?? [],
+    totalRefundedCents: api.total_refunded_cents ?? 0,
   };
 }
 

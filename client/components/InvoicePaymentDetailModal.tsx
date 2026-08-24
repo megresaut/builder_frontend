@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { ModalTemplate } from "@/components/ui/ModalTemplate";
-import type { InvoicePaymentDetailProps } from "@/data/invoices";
+import type {
+  InvoicePaymentDetailProps,
+  InvoicePaymentRefund,
+} from "@/data/invoices";
 
 // Shows what the PLATFORM recorded next to what QUICKBOOKS currently says,
 // because the two can legitimately disagree and the disagreement is the thing
@@ -29,6 +32,9 @@ interface InvoicePaymentDetailModalProps {
   loading?: boolean;
   /** Set when the whole request failed (404/409/network), not just the QBO leg. */
   error?: string | null;
+  /** Every refund recorded against this invoice's payment (migration 164). */
+  refunds?: InvoicePaymentRefund[];
+  totalRefundedCents?: number;
 }
 
 const money = (cents: number | null | undefined): string => {
@@ -103,6 +109,8 @@ export default function InvoicePaymentDetailModal({
   qboUnavailableReason,
   loading,
   error,
+  refunds = [],
+  totalRefundedCents = 0,
 }: InvoicePaymentDetailModalProps) {
   // Settled per QBO, which is not the same as "we marked it paid" — that gap is
   // exactly what the banner below calls out.
@@ -256,6 +264,64 @@ export default function InvoicePaymentDetailModal({
                       </td>
                       <td className="px-3 py-2 text-right text-[#303030] font-medium">
                         {money(li.appliedCents)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {refunds.length > 0 && (
+          <div>
+            <div className="text-[13px] font-semibold text-[#303030] mb-1.5 flex items-baseline gap-2">
+              Refunds
+              <span className="text-[12px] font-normal text-[#6B7280]">
+                {money(totalRefundedCents)} total
+              </span>
+            </div>
+            <div className="rounded-xl border border-[#E5E5E5] overflow-hidden">
+              <table className="w-full text-[13px]">
+                <thead className="bg-[#FAFAFA] text-[#6B7280]">
+                  <tr>
+                    <th className="text-left font-medium px-3 py-2">Date</th>
+                    <th className="text-left font-medium px-3 py-2">Type</th>
+                    <th className="text-left font-medium px-3 py-2">Account</th>
+                    <th className="text-right font-medium px-3 py-2">Amount</th>
+                    <th className="text-left font-medium px-3 py-2">Memo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {refunds.map((r) => (
+                    <tr key={r.id} className="border-t border-[#F3F4F6]">
+                      <td className="px-3 py-2 text-[#303030]">
+                        {dateOnly(r.refund_date)}
+                      </td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                            r.refund_path === "payments"
+                              ? "bg-violet-50 text-violet-700 border-violet-200"
+                              : "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}
+                          title={
+                            r.refund_path === "payments"
+                              ? "Real money refunded via QuickBooks Payments"
+                              : "Bookkeeping entry only — money was returned outside the platform"
+                          }
+                        >
+                          {r.refund_path === "payments" ? "Real refund" : "Books only"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-[#6B7280]">
+                        {r.deposit_account_name || "—"}
+                      </td>
+                      <td className="px-3 py-2 text-right text-[#303030] font-medium">
+                        {money(r.amount_cents)}
+                      </td>
+                      <td className="px-3 py-2 text-[#6B7280]">
+                        {r.memo || "—"}
                       </td>
                     </tr>
                   ))}

@@ -26,6 +26,7 @@ import {
   editInvoiceLineItems,
   fetchInvoicePaymentDetail,
   getInvoiceRefunds,
+  uploadInvoicePaymentReceipt,
   type InvoicePaymentDetailProps,
 } from "@/data/invoices";
 import RefundInvoiceModal from "@/components/RefundInvoiceModal";
@@ -3407,6 +3408,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         local={paymentDetail?.local ?? null}
         qbo={paymentDetail?.qbo ?? null}
         qboUnavailableReason={paymentDetail?.qboUnavailableReason ?? null}
+        refunds={paymentDetail?.refunds ?? []}
+        totalRefundedCents={paymentDetail?.totalRefundedCents ?? 0}
         loading={paymentDetailLoading}
         error={paymentDetailError}
       />
@@ -3441,6 +3444,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             paymentMethod,
             reference,
             memo,
+            receiptFile,
           }) => {
             const toastId = toast.loading("Recording payment…");
             try {
@@ -3466,6 +3470,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 throw new Error(parsed || "Failed to record payment");
               }
               const inv = await res.json();
+              if (receiptFile) {
+                try {
+                  await uploadInvoicePaymentReceipt(recordPaymentInvoiceId, receiptFile);
+                } catch (receiptErr: any) {
+                  toast.error("Payment recorded, but receipt upload failed", {
+                    description: receiptErr?.message ?? "You can retry the upload from the invoice.",
+                  });
+                }
+              }
               await loadInvoiceForProperty();
               await loadInvoiceHistory();
               if (inv?.qbo_payment_push_status === "pushed" && inv?.qbo_payment_id) {
