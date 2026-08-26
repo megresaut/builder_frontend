@@ -2119,6 +2119,10 @@ function AllocatePaymentModal({
 
   // rowKey -> dollar string
   const [amounts, setAmounts] = useState<Record<string, string>>({});
+  // Keys still holding their auto-seeded value (untouched by the user) — lets us
+  // flag them in the UI and offer a one-click way to clear them before manually
+  // allocating to a specific row.
+  const [autoFilled, setAutoFilled] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -2155,6 +2159,7 @@ function AllocatePaymentModal({
           }
         }
         setAmounts(seed);
+        setAutoFilled(new Set(Object.keys(seed)));
       } catch (e) {
         toast.error(errMessage(e, "Failed to load allocations"));
       } finally {
@@ -2170,6 +2175,11 @@ function AllocatePaymentModal({
   const allocatedCents = Object.values(amounts).reduce((s, v) => s + dollarsToCents(v), 0);
   const remainingCents = payment.amount_cents - allocatedCents;
   const over = remainingCents < 0;
+
+  const clearAll = () => {
+    setAmounts({});
+    setAutoFilled(new Set());
+  };
 
   const save = async () => {
     setSaving(true);
@@ -2215,12 +2225,28 @@ function AllocatePaymentModal({
           <span className="text-gray-600">
             {payment.reference || (payment.kind === "deposit" ? "Deposit" : "Progress payment")} · {formatUSD(payment.amount_cents)}
           </span>
-          <span className={`font-semibold ${over ? "text-red-700" : "text-gray-900"}`}>
-            {over
-              ? `Over by ${formatUSD(-remainingCents)}`
-              : `${formatUSD(remainingCents)} of ${formatUSD(payment.amount_cents)} left to allocate`}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className={`font-semibold ${over ? "text-red-700" : "text-gray-900"}`}>
+              {over
+                ? `Over by ${formatUSD(-remainingCents)}`
+                : `${formatUSD(remainingCents)} of ${formatUSD(payment.amount_cents)} left to allocate`}
+            </span>
+            {allocatedCents > 0 && (
+              <button
+                type="button"
+                onClick={clearAll}
+                className="text-xs font-medium text-[#013764] underline hover:no-underline"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
         </div>
+        {autoFilled.size > 0 && (
+          <div className="-mt-2 text-xs text-gray-400">
+            Rows marked <span className="font-medium text-blue-600">auto</span> were pre-filled top-to-bottom to use up the full payment — clear or edit them before allocating manually to a specific row.
+          </div>
+        )}
 
         {loading ? (
           <div className="py-8 text-center text-sm text-gray-500">Loading…</div>
@@ -2259,15 +2285,36 @@ function AllocatePaymentModal({
                       <td className="py-2 text-right tabular-nums text-gray-700">{formatUSD(l.booked_cents)}</td>
                       <td className="py-2 text-right tabular-nums text-gray-500">{formatUSD(l.covered_cents)}</td>
                       <td className="py-2 pl-2 text-right">
-                        <input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          className="h-8 w-28 rounded-lg border border-[#DADADA] bg-white px-2 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none"
-                          value={amounts[k] ?? ""}
-                          onChange={(e) => setAmounts((m) => ({ ...m, [k]: e.target.value }))}
-                          placeholder="0"
-                        />
+                        <div className="inline-flex items-center gap-1.5">
+                          {autoFilled.has(k) && (
+                            <span
+                              className="text-[10px] font-medium text-blue-600"
+                              title="Pre-filled automatically to use up the payment — edit or clear to change"
+                            >
+                              auto
+                            </span>
+                          )}
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            className={`h-8 w-28 rounded-lg border px-2 text-right text-sm tabular-nums focus:border-[#013764] focus:outline-none ${
+                              autoFilled.has(k) ? "border-blue-200 bg-blue-50/60" : "border-[#DADADA] bg-white"
+                            }`}
+                            value={amounts[k] ?? ""}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setAmounts((m) => ({ ...m, [k]: v }));
+                              setAutoFilled((s) => {
+                                if (!s.has(k)) return s;
+                                const next = new Set(s);
+                                next.delete(k);
+                                return next;
+                              });
+                            }}
+                            placeholder="0"
+                          />
+                        </div>
                       </td>
                     </tr>
                   );
