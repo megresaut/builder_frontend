@@ -30,6 +30,7 @@ interface EditUtilityAccountModalProps {
     username?: string;
     password?: string;
     active?: boolean;
+    owner_managed?: boolean;
     account_number?: string;
     service_address?: string;
   }) => Promise<void> | void;
@@ -38,7 +39,7 @@ interface EditUtilityAccountModalProps {
     provider: string;
     serviceAddress: string;
     accountNumber: string;
-    status: "active" | "inactive";
+    status: "active" | "inactive" | "owner_managed";
     username: string;
     password: string;
   } | null;
@@ -62,7 +63,7 @@ export default function EditUtilityAccountModal({
   const [accountNumber, setAccountNumber] = useState(
     editData?.accountNumber || "",
   );
-  const [status, setStatus] = useState<"active" | "inactive">(
+  const [status, setStatus] = useState<"active" | "inactive" | "owner_managed">(
     editData?.status || "active",
   );
 
@@ -103,10 +104,11 @@ export default function EditUtilityAccountModal({
       username?: string;
       password?: string;
       active?: boolean;
+      owner_managed?: boolean;
       account_number?: string;
       service_address?: string;
     } = {};
-    
+
     if (isAddMode) {
       payload.provider_id = providerId as number;
     }
@@ -114,6 +116,7 @@ export default function EditUtilityAccountModal({
     payload.username = username;
     payload.account_number = accountNumber;
     payload.service_address = serviceAddress;
+    payload.owner_managed = status === "owner_managed";
     payload.active = status === "active";
   
     // Only send password if user typed one
@@ -240,7 +243,9 @@ export default function EditUtilityAccountModal({
               </label>
               <Select
                 value={status}
-                onValueChange={(val) => setStatus(val as "active" | "inactive")}
+                onValueChange={(val) =>
+                  setStatus(val as "active" | "inactive" | "owner_managed")
+                }
               >
                 <SelectTrigger className="w-full rounded-lg bg-[#F7F7F7] border-[#E5E5E5] px-3 py-[5px] min-h-[38px] text-sm text-[#059669] font-normal tracking-[-0.28px] leading-[1.4]">
                   <SelectValue>
@@ -262,6 +267,27 @@ export default function EditUtilityAccountModal({
                           />
                         </svg>
                         <span className="text-[#059669] text-sm">Active</span>
+                      </div>
+                    ) : status === "owner_managed" ? (
+                      <div className="flex items-center gap-1.5 bg-[#E5E5E5] rounded-2xl px-3 py-1 w-fit">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M8 1.3335V4.00016M8 12.0002V14.6668M2.66663 8.00016H1.33329M4.66663 4.66683L3.33329 3.3335M11.3333 4.66683L12.6666 3.3335M4.66663 11.3335L3.33329 12.6668M11.3333 11.3335L12.6666 12.6668M14.6666 8.00016H13.3333"
+                            stroke="#525252"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="text-[#525252] text-sm">
+                          Owner Managed
+                        </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5 bg-red-100 rounded-2xl px-3 py-1 w-fit">
@@ -290,6 +316,7 @@ export default function EditUtilityAccountModal({
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="owner_managed">Owner Managed</SelectItem>
                 </SelectContent>
               </Select>
             </div>

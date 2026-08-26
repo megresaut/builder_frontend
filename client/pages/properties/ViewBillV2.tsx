@@ -95,9 +95,6 @@ interface ApiBill {
   qbo_paid_at?: string | null;
   created_at?: string;
   provider_gl_account_name?: string | null;
-  // Scraped utility bills publish through the scraper pipeline rather than the
-  // dual-push, so Sync isn't offered for them.
-  is_utility?: boolean;
 }
 
 interface ApiPayment {
@@ -1281,13 +1278,9 @@ export function ViewBillV2() {
                 >
                   Pay bill
                 </HeaderButton>
-                {/* Utility bills publish through the scraper pipeline, not the
-                    dual-push, so Sync has nothing to offer them. */}
-                {!bill.is_utility && (
-                  <HeaderButton onClick={handleSync} disabled={syncing}>
-                    {syncing ? "Syncing…" : "Sync"}
-                  </HeaderButton>
-                )}
+                <HeaderButton onClick={handleSync} disabled={syncing}>
+                  {syncing ? "Syncing…" : "Sync"}
+                </HeaderButton>
                 <HeaderButton>Enter charges</HeaderButton>
                 <HeaderButton>Request owner contribution</HeaderButton>
                 <HeaderButton onClick={() => window.print()}>Print</HeaderButton>

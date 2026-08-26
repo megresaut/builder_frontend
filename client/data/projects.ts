@@ -1011,15 +1011,22 @@ export interface BillableChangeOrder {
 }
 // One project work-order vendor bill (spec §3.1) — a selectable itemized billable.
 // One billable line item of a vendor bill — a vendor's own deposit / progress /
-// final breakdown. billed_on_* are set when this line already sits on a live
-// (non-void) project invoice, in which case the builder greys the row out.
+// final breakdown. billed_on_* are set whenever billed_cents > 0 (including a
+// partially-billed line), naming the most recent contributing invoice.
+// remaining_cents is what the builder should offer/submit as the new invoice
+// line's amount; amount_cents is the line's CURRENT full value (a vendor revision
+// — e.g. a deposit bumped from 50% to 60% — can raise it after prior billing),
+// shown for transparency even when the line is partially billed. The row is only
+// greyed out / disabled when remaining_cents <= 0.
 export interface BillableVendorBillLine {
   line_id: number;
   description: string;
-  amount_cents: number; // vendor cost, pre-upcharge
+  amount_cents: number; // vendor cost, pre-upcharge, CURRENT (see comment above)
   upcharge_cents: number; // AVMRE markup on THIS line
   billed_on_invoice_id: number | null;
   billed_on_invoice_number: string | null;
+  billed_cents: number; // Σ live invoice lines already billed against this line
+  remaining_cents: number; // (amount_cents + upcharge_cents) − billed_cents, unclamped
 }
 export interface BillableVendorBill {
   bill_id: number;

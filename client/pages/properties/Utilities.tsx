@@ -21,7 +21,7 @@ interface UtilityAccount {
   provider: string;
   account: string;
   serviceAddress: string;
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "owner_managed";
   lastBillDate: string;
   lastBillAmount: string;
   lastImport: string;
@@ -43,7 +43,7 @@ type MappedAccount = {
   id: number;
   provider: string;
   account: string;
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "owner_managed";
   lastBillDate: string;
   lastBillAmount: string;
   lastImport: string;
@@ -64,7 +64,25 @@ type MappedBill = {
   type: string | null | undefined;
 };
 
-const API_BASE = "/api";     
+// Local badge for the 3-way utility account status. Kept separate from the
+// shared StatusBadge in Utilities_wrong.tsx, which AllProperties.tsx also
+// uses for an unrelated (property-level) active/inactive status.
+const UtilityAccountStatusBadge = ({
+  status,
+}: {
+  status: "active" | "inactive" | "owner_managed";
+}) => {
+  if (status === "owner_managed") {
+    return (
+      <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+        Owner Managed
+      </span>
+    );
+  }
+  return <StatusBadge status={status} />;
+};
+
+const API_BASE = "/api";
 // const API_BASE = "http://localhost:8080";   
 
 // --- Utilities import types & helpers ---
@@ -737,7 +755,11 @@ const mappedAccounts = safeAccounts.map((ua: any) => ({
   provider: ua.provider_name,
   account: ua.account_number,
   serviceAddress: ua.service_address,
-  status: (ua.active ? "active" : "inactive") as "active" | "inactive",
+  status: (ua.owner_managed
+    ? "owner_managed"
+    : ua.active
+      ? "active"
+      : "inactive") as "active" | "inactive" | "owner_managed",
   lastBillDate: ua.last_bill_date
     ? new Date(ua.last_bill_date).toLocaleDateString()
     : "—",
@@ -756,8 +778,11 @@ const mappedAccounts = safeAccounts.map((ua: any) => ({
   nextScheduledScrapeAt: ua.next_scheduled_scrape_at ?? null,
 }));
 
+// Rows visible on the Utilities tab: actively-tracked accounts plus
+// owner-managed accounts kept on file for reference. True "inactive"
+// (deleted/deactivated) accounts stay hidden, only reflected in the count.
 const activeMappedAccounts = mappedAccounts.filter(
-  (a) => a.status === "active"
+  (a) => a.status === "active" || a.status === "owner_managed"
 );
 
 // ----------------------
@@ -1837,7 +1862,7 @@ useEffect(() => {
                     </span>
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
-                    <StatusBadge status={account.status} />
+                    <UtilityAccountStatusBadge status={account.status} />
                   </td>
                   <td className="px-3 py-3 border-r border-gray-200 whitespace-nowrap">
                     <span className="text-gray-900 font-normal text-base">
@@ -2578,6 +2603,7 @@ useEffect(() => {
                 username: payload.username,
                 password: payload.password ?? "",
                 active: payload.active,
+                owner_managed: payload.owner_managed,
               }),
             });
           } else {

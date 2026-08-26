@@ -481,7 +481,9 @@ export default function PayBillModal({
   // nothing — QBO never heard about that payment and never will on its own, so
   // the user was left clicking a button that couldn't help. Sync imports the
   // Buildium payment and books it into QuickBooks, which is the only thing that
-  // actually resolves this error.
+  // actually resolves this error. This now includes scraped utility bills too:
+  // Sync runs a pull-only plan for them (see sync_bill.go) that pulls the
+  // Buildium payment in without touching QBO's bill/vendor side.
   //
   // Non-Concierge bills have no QBO counterpart at all, so they pull their
   // payments straight from Buildium.
@@ -489,28 +491,9 @@ export default function PayBillModal({
     setRefreshing(true);
     try {
       if (isConcierge) {
-        // Scraped utility bills publish through the scraper pipeline and Sync
-        // refuses them; fall back to the balance refresh so they aren't worse
-        // off than before.
-        let result: BillSyncResult | null = null;
-        try {
-          result = await syncBill(bill.id);
-        } catch (err: any) {
-          if (!String(err?.message ?? err).includes("utility")) throw err;
-          const res = await authFetch(`/vendors/bills/${bill.id}/refresh-qbo`, {
-            method: "POST",
-          });
-          if (!res.ok) {
-            const text = await res.text().catch(() => "");
-            throw new Error(text || `Refresh failed (status ${res.status})`);
-          }
-        }
-        toast.success(
-          result
-            ? describeBillSync(result)
-            : "Refreshed bill status from QBO and Buildium.",
-        );
-        if (result) billSyncProblems(result).forEach((p) => toast.warning(p));
+        const result = await syncBill(bill.id);
+        toast.success(describeBillSync(result));
+        billSyncProblems(result).forEach((p) => toast.warning(p));
       } else {
         const res = await authFetch(
           `/vendors/bills/${bill.id}/sync-buildium-payments`,

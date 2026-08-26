@@ -46,9 +46,9 @@ const billables: Billables = {
       billed_cents: 220000,
       remaining_cents: 440000,
       lines: [
-        { line_id: 0, description: "50% Deposit", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: 9, billed_on_invoice_number: "PI-3-001" },
-        { line_id: 1, description: "Progress payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null },
-        { line_id: 2, description: "Final payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null },
+        { line_id: 0, description: "50% Deposit", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: 9, billed_on_invoice_number: "PI-3-001", billed_cents: 220000, remaining_cents: 0 },
+        { line_id: 1, description: "Progress payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null, billed_cents: 0, remaining_cents: 220000 },
+        { line_id: 2, description: "Final payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null, billed_cents: 0, remaining_cents: 220000 },
       ],
     },
   ],
@@ -172,6 +172,76 @@ describe("ProjectInvoiceBuilderModal — vendor bill line items", () => {
   });
 });
 
+// A vendor bill line revised upward AFTER it was already billed in full (e.g. a
+// deposit bumped from 50% to 60% of the job): the picker must offer just the new
+// headroom, not lock the line forever and not re-offer the full revised amount.
+const revisedBillables: Billables = {
+  installments_due: [],
+  change_orders_unbilled: [],
+  vendor_bills: [
+    {
+      bill_id: 21,
+      vendor_id: 5,
+      vendor_name: "RG White Painting LLC",
+      description: "Exterior painting contract",
+      amount_cents: 640000,
+      upcharge_cents: 60000,
+      billed_cents: 220000,
+      remaining_cents: 480000,
+      lines: [
+        { line_id: 0, description: "60% Deposit", amount_cents: 240000, upcharge_cents: 20000, billed_on_invoice_id: 9, billed_on_invoice_number: "PI-3-001", billed_cents: 220000, remaining_cents: 40000 },
+        { line_id: 1, description: "Progress payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null, billed_cents: 0, remaining_cents: 220000 },
+        { line_id: 2, description: "Final payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null, billed_cents: 0, remaining_cents: 220000 },
+      ],
+    },
+  ],
+  fto_items: [],
+} as unknown as Billables;
+
+describe("ProjectInvoiceBuilderModal — a bill line revised upward after partial billing", () => {
+  it("keeps the revised line's checkbox enabled and notes what remains", () => {
+    renderModal(revisedBillables);
+    expect(screen.getByRole("checkbox", { name: /60% Deposit/ })).toBeEnabled();
+    expect(screen.getByText(/\$2,200 of \$2,600 already billed on PI-3-001 — \$400 remaining/)).toBeInTheDocument();
+  });
+
+  it("shows and submits only the remaining headroom, not the full revised line", () => {
+    const onCreate = renderModal(revisedBillables);
+    fireEvent.click(screen.getByRole("checkbox", { name: /60% Deposit/ }));
+    expect(screen.getByRole("button", { name: /Create draft — \$400/ })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Create draft/ }));
+    const lines = onCreate.mock.calls[0][1];
+    expect(lines).toHaveLength(1);
+    expect(lines[0].source_line_id).toBe(0);
+    expect(lines[0].amount_cents).toBe(40000);
+    expect(lines[0].description).toMatch(/balance.*\$2,600.*\$2,200.*PI-3-001/);
+  });
+});
+
+// A bill line revised DOWNWARD after being billed (a vendor credit) must clamp to
+// zero headroom, not go negative — same locked/disabled behaviour as fully billed.
+const revisedDownBillables: Billables = {
+  ...revisedBillables,
+  vendor_bills: [
+    {
+      ...revisedBillables.vendor_bills[0],
+      lines: [
+        { line_id: 0, description: "Deposit (credited)", amount_cents: 80000, upcharge_cents: 20000, billed_on_invoice_id: 9, billed_on_invoice_number: "PI-3-001", billed_cents: 220000, remaining_cents: -120000 },
+        revisedBillables.vendor_bills[0].lines[1],
+        revisedBillables.vendor_bills[0].lines[2],
+      ],
+    },
+  ],
+} as unknown as Billables;
+
+describe("ProjectInvoiceBuilderModal — a bill line revised downward after partial billing", () => {
+  it("keeps the checkbox disabled, same as a fully billed line", () => {
+    renderModal(revisedDownBillables);
+    expect(screen.getByRole("checkbox", { name: /Deposit \(credited\)/ })).toBeDisabled();
+  });
+});
+
 // Edit mode is called with ?exclude_invoice_id=<this invoice>, so the lines this
 // invoice already carries come back from the backend as AVAILABLE (not annotated).
 const editBillables: Billables = {
@@ -183,9 +253,9 @@ const editBillables: Billables = {
       description: "Exterior painting contract",
       amount_cents: 600000, upcharge_cents: 60000, billed_cents: 0, remaining_cents: 660000,
       lines: [
-        { line_id: 0, description: "50% Deposit", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null },
-        { line_id: 1, description: "Progress payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null },
-        { line_id: 2, description: "Final payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null },
+        { line_id: 0, description: "50% Deposit", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null, billed_cents: 0, remaining_cents: 220000 },
+        { line_id: 1, description: "Progress payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null, billed_cents: 0, remaining_cents: 220000 },
+        { line_id: 2, description: "Final payment", amount_cents: 200000, upcharge_cents: 20000, billed_on_invoice_id: null, billed_on_invoice_number: null, billed_cents: 0, remaining_cents: 220000 },
       ],
     },
   ],

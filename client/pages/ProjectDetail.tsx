@@ -2928,6 +2928,18 @@ function vendorBillTotalCents(b: Billables["vendor_bills"][number]): number {
   return b.amount_cents + (b.upcharge_cents || 0);
 }
 
+// A bill line already partially billed (billed_cents > 0, remaining_cents > 0) is
+// one a vendor revised upward after a prior invoice already billed part of it —
+// e.g. a deposit bumped from 50% to 60% of the job. The submitted invoice-line
+// description carries that context onto the new invoice itself, not just the
+// picker UI, so PI-104's $2,100 and this invoice's $420 read as one story rather
+// than two unrelated line items.
+function partialBillLineDescription(l: Billables["vendor_bills"][number]["lines"][number]): string {
+  if (l.billed_cents <= 0) return l.description;
+  const currentTotal = l.amount_cents + (l.upcharge_cents || 0);
+  return `${l.description} — balance (bill revised: ${formatUSD(currentTotal)} total, ${formatUSD(l.billed_cents)} already billed on ${l.billed_on_invoice_number ?? "a prior invoice"})`;
+}
+
 /**
  * Selection key for one vendor-bill row in the invoice builder. A bill can be
  * billed whole (`"21:all"`) or line by line (`"21:0"`, `"21:1"`), and both shapes
@@ -2966,10 +2978,10 @@ export function ProjectInvoiceBuilderModal({
   for (const b of vendorBills) {
     if (b.lines?.length) {
       for (const l of b.lines) {
-        if (l.billed_on_invoice_id != null) continue;
+        if (l.remaining_cents <= 0) continue; // fully billed (or over-billed by a downward revision)
         billRowByKey.set(billLineKey(b.bill_id, l.line_id), {
-          description: l.description,
-          amount_cents: l.amount_cents + (l.upcharge_cents || 0),
+          description: partialBillLineDescription(l),
+          amount_cents: l.remaining_cents,
           source_type: "cost_reimbursement",
           source_id: b.bill_id,
           source_line_id: l.line_id,
@@ -3288,7 +3300,7 @@ export function ProjectInvoiceBuilderModal({
                   // Itemized bill: the vendor's own deposit / progress / final
                   // breakdown, each billable on its own invoice.
                   const remainingKeys = b.lines
-                    .filter((l) => l.billed_on_invoice_id == null)
+                    .filter((l) => l.remaining_cents > 0)
                     .map((l) => billLineKey(b.bill_id, l.line_id));
                   const pickedCount = remainingKeys.filter((k) => selectedBills.includes(k)).length;
                   const allPicked = pickedCount > 0 && pickedCount === remainingKeys.length;
@@ -3326,34 +3338,42 @@ export function ProjectInvoiceBuilderModal({
                       <div className="flex flex-col">
                         {b.lines.map((l) => {
                           const key = billLineKey(b.bill_id, l.line_id);
-                          const billed = l.billed_on_invoice_id != null;
+                          // Fully billed (remaining_cents <= 0) locks the row exactly as
+                          // before. Partial (billed_cents > 0 but headroom remains) is a
+                          // NEW state: a vendor revised this line upward after it was
+                          // already billed — the row stays selectable, offering just the
+                          // remainder.
+                          const fullyBilled = l.remaining_cents <= 0;
+                          const partial = l.billed_cents > 0 && l.remaining_cents > 0;
                           const picked = selectedBills.includes(key);
                           return (
                             <label
                               key={key}
-                              className={`flex items-start justify-between gap-3 px-3 py-2 pl-9 ${billed ? "text-gray-400" : "cursor-pointer text-gray-900"} ${picked ? "bg-[#013764]/[0.03]" : ""}`}
+                              className={`flex items-start justify-between gap-3 px-3 py-2 pl-9 ${fullyBilled ? "text-gray-400" : "cursor-pointer text-gray-900"} ${picked ? "bg-[#013764]/[0.03]" : ""}`}
                             >
                               <span className="flex min-w-0 items-start gap-2.5 text-sm">
                                 <input
                                   type="checkbox"
                                   className={checkCls}
-                                  disabled={billed}
+                                  disabled={fullyBilled}
                                   checked={picked}
                                   onChange={() => toggle(key, selectedBills, setSelectedBills)}
-                                  onKeyDown={enterActivates(() => { if (!billed) toggle(key, selectedBills, setSelectedBills); })}
+                                  onKeyDown={enterActivates(() => { if (!fullyBilled) toggle(key, selectedBills, setSelectedBills); })}
                                 />
                                 <span className="min-w-0">
                                   {l.description}
                                   <span className="ml-1.5 text-xs text-gray-500">
-                                    {billed
+                                    {fullyBilled
                                       ? `· billed on ${l.billed_on_invoice_number ?? "another invoice"}`
-                                      : l.upcharge_cents > 0
-                                        ? `· cost ${formatUSD(l.amount_cents)} + markup ${formatUSD(l.upcharge_cents)}`
-                                        : ""}
+                                      : partial
+                                        ? `· ${formatUSD(l.billed_cents)} of ${formatUSD(l.amount_cents + (l.upcharge_cents || 0))} already billed on ${l.billed_on_invoice_number ?? "another invoice"} — ${formatUSD(l.remaining_cents)} remaining`
+                                        : l.upcharge_cents > 0
+                                          ? `· cost ${formatUSD(l.amount_cents)} + markup ${formatUSD(l.upcharge_cents)}`
+                                          : ""}
                                   </span>
                                 </span>
                               </span>
-                              <span className={rowAmountCls}>{formatUSD(l.amount_cents + (l.upcharge_cents || 0))}</span>
+                              <span className={rowAmountCls}>{formatUSD(partial ? l.remaining_cents : l.amount_cents + (l.upcharge_cents || 0))}</span>
                             </label>
                           );
                         })}
