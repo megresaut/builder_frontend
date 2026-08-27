@@ -1374,6 +1374,148 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     return finalizeRes.json();
   };
 
+  // Resend path for a refunded invoice: appends a fresh ACH/credit-card
+  // processing-fee line and re-attaches the PDF, WITHOUT going through
+  // finalize (which only accepts draft invoices — see ReissueAfterRefund on
+  // the backend). Same request shape as finalizeInvoiceWithPdfs.
+  const reissueInvoiceWithPdfs = async (
+    combined: { pdf_object_key: string; sha256_pdf: string },
+    locationPdfs: Array<{
+      location_id: number | null;
+      label: string;
+      pdf_object_key: string;
+      sha256_pdf: string;
+    }>,
+    paymentMethod?: "ach" | "card" | "none",
+  ) => {
+    const res = await authFetch(
+      `/invoicing/reissue-after-refund?id=${currentInvoiceId}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pdf_object_key: combined.pdf_object_key,
+          sha256_pdf: combined.sha256_pdf,
+          location_pdfs: locationPdfs,
+          ...(paymentMethod ? { payment_method: paymentMethod } : {}),
+        }),
+      },
+    );
+    if (!res.ok) {
+      const errBody = await res.text();
+      let parsedErr = errBody;
+      try {
+        parsedErr = JSON.parse(errBody)?.error ?? errBody;
+      } catch {}
+      throw new Error(parsedErr || "Resend failed");
+    }
+    return res.json();
+  };
+
+  const handleReissueAfterRefund = async (
+    pdfBlob: Blob,
+    paymentMethod?: "ach" | "card" | "none",
+  ) => {
+    if (!currentInvoiceId) return;
+    const toastId = toast.loading("Resending invoice…", {
+      description: "Adding the processing fee and updating QuickBooks",
+    });
+    try {
+      const combined = await uploadPdf(pdfBlob, "invoice.pdf");
+      const updated = await reissueInvoiceWithPdfs(combined, [], paymentMethod);
+      if (updated?.qbo_push_status === "failed") {
+        toast.error("Resent, but QBO sync failed", {
+          id: toastId,
+          description:
+            updated?.qbo_last_error ??
+            "Use Retry QBO Sync once the underlying issue is fixed.",
+        });
+      } else {
+        toast.success("Invoice resent", {
+          id: toastId,
+          description:
+            updated?.status === "sent"
+              ? "The refunded charges were re-billed and the invoice is open for a new payment — use Record Payment once the client repays."
+              : "Processing fee added and QuickBooks updated.",
+        });
+      }
+      await loadInvoiceForProperty();
+      await loadInvoiceHistory();
+    } catch (err: any) {
+      console.error("Resend after refund failed:", err);
+      toast.error("Resend failed", {
+        id: toastId,
+        description: err?.message ?? "Unexpected error",
+      });
+    }
+  };
+
+  const handleReissueAfterRefundWithSplits = async (
+    combinedBlob: Blob,
+    splits: Array<{
+      key: string;
+      label: string;
+      locationId: number | null;
+      blob: Blob;
+    }>,
+    paymentMethod?: "ach" | "card" | "none",
+  ) => {
+    if (!currentInvoiceId) return;
+    const toastId = toast.loading("Resending invoice…", {
+      description: `Adding the processing fee and uploading ${splits.length + 1} PDFs`,
+    });
+    try {
+      const combined = await uploadPdf(combinedBlob, "invoice.pdf");
+      const uploaded: Array<{
+        location_id: number | null;
+        label: string;
+        pdf_object_key: string;
+        sha256_pdf: string;
+      }> = [];
+      for (const split of splits) {
+        const up = await uploadPdf(
+          split.blob,
+          `${sanitizeLocationFilename(split.label)}.pdf`,
+        );
+        uploaded.push({
+          location_id: split.locationId,
+          label: split.label,
+          pdf_object_key: up.pdf_object_key,
+          sha256_pdf: up.sha256_pdf,
+        });
+      }
+      const updated = await reissueInvoiceWithPdfs(
+        combined,
+        uploaded,
+        paymentMethod,
+      );
+      if (updated?.qbo_push_status === "failed") {
+        toast.error("Resent, but QBO sync failed", {
+          id: toastId,
+          description:
+            updated?.qbo_last_error ??
+            "Use Retry QBO Sync once the underlying issue is fixed.",
+        });
+      } else {
+        toast.success("Invoice resent", {
+          id: toastId,
+          description:
+            updated?.status === "sent"
+              ? `The refunded charges were re-billed and the invoice is open for a new payment; ${uploaded.length} per-location PDFs stored for the client email.`
+              : `Processing fee added; ${uploaded.length} per-location PDFs stored for the client email.`,
+        });
+      }
+      await loadInvoiceForProperty();
+      await loadInvoiceHistory();
+    } catch (err: any) {
+      console.error("Resend after refund with splits failed:", err);
+      toast.error("Resend failed", {
+        id: toastId,
+        description: err?.message ?? "Unexpected error",
+      });
+    }
+  };
+
   // The response is the updated invoice; qbo_push_status says whether the QBO leg
   // succeeded. Lifecycle is committed either way — a QBO failure is recoverable
   // via the Retry QBO Sync button, so it must not read as a total failure.
@@ -1776,6 +1918,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     const needsConfirm =
       currentInvoiceStatus === "sent" ||
       currentInvoiceStatus === "paid" ||
+      currentInvoiceStatus === "refunded" ||
       currentInvoiceStatus === "void";
     if (needsConfirm) {
       const ok = window.confirm(
@@ -2051,9 +2194,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         : currentInvoiceStatus === "sent"
                         ? "bg-blue-50 text-blue-800 border-blue-200"
                         : currentInvoiceStatus === "paid"
-                        ? refundAlreadyCents > 0
-                          ? "bg-violet-50 text-violet-700 border-violet-200"
-                          : "bg-green-600 text-white border-green-600"
+                        ? "bg-green-600 text-white border-green-600"
+                        : currentInvoiceStatus === "refunded"
+                        ? "bg-violet-50 text-violet-700 border-violet-200"
                         : "bg-rose-50 text-rose-800 border-rose-200")
                     }
                     title={
@@ -2070,13 +2213,13 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                           } not yet paid by AVMRE. This does not block sending.`
                         : currentInvoiceStatus === "sent"
                         ? "Exported to QuickBooks — this does not mean it was emailed to the client"
+                        : currentInvoiceStatus === "refunded"
+                        ? "This payment was refunded — resend to re-bill the client with a fresh processing fee"
                         : undefined
                     }
                   >
                     {currentInvoiceStatus === "sent"
                       ? "IN QUICKBOOKS"
-                      : currentInvoiceStatus === "paid" && refundAlreadyCents > 0
-                      ? "REFUNDED"
                       : currentInvoiceStatus.toUpperCase()}
                     {/* DRAFT = a line has no vendor bill at all: a blocker to
                         fix. READY surfaces unpaid-but-booked bills as a
@@ -2100,7 +2243,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 {/* Client-email state — distinct from the QBO 'sent'/in-QuickBooks
                     status above. Shown once the invoice is in QBO. */}
                 {(currentInvoiceStatus === "sent" ||
-                  currentInvoiceStatus === "paid") &&
+                  currentInvoiceStatus === "paid" ||
+                  currentInvoiceStatus === "refunded") &&
                   (currentClientEmailedAt ? (
                     <span
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-emerald-50 text-emerald-800 border-emerald-200"
@@ -2308,6 +2452,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   !currentInvoiceId ||
                   currentInvoiceStatus === "void" ||
                   currentInvoiceStatus === "paid" ||
+                  currentInvoiceStatus === "refunded" ||
                   !(item?.sourceType === "vendor" || item?.sourceType === "utility") ||
                   !item?.hasBillableLines ||
                   item?.id === CREDIT_ROW_ID,
@@ -2516,6 +2661,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 
                 {currentInvoiceStatus !== "sent" &&
                   currentInvoiceStatus !== "paid" &&
+                  currentInvoiceStatus !== "refunded" &&
                   currentInvoiceStatus !== "void" && (
                     <button
                       type="button"
@@ -2561,9 +2707,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   )}
 
                 {/* Email the QBO invoice to the client — available once it's
-                    been exported to QBO (sent or paid). */}
+                    been exported to QBO (sent, paid, or refunded-and-resent). */}
                 {(currentInvoiceStatus === "sent" ||
-                  currentInvoiceStatus === "paid") &&
+                  currentInvoiceStatus === "paid" ||
+                  currentInvoiceStatus === "refunded") &&
                   currentInvoiceId &&
                   currentQBOPushStatus !== "failed" && (
                     <button
@@ -2590,10 +2737,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     </button>
                   )}
 
-                {/* Re-push the current (platform) line set to the existing QBO
-                    invoice — use when the QBO copy has drifted (e.g. lines were
-                    voided/merged after the original send). Also re-runs the
-                    markup-income JE. */}
+                {/* Refunded invoices don't belong on the silent re-sync path
+                    below — resending after a refund needs the preview modal
+                    (see the "Resend with fee" button) so the operator can
+                    pick a fresh ACH/credit-card fee before it goes out. */}
                 {(currentInvoiceStatus === "sent" ||
                   currentInvoiceStatus === "paid") &&
                   currentInvoiceId &&
@@ -2645,22 +2792,54 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     </button>
                   )}
 
+                {/* Refunded: re-bill the client like a first-time send —
+                    opens the preview modal with the ACH/credit-card fee
+                    picker so the operator can associate a fresh fee before
+                    the invoice goes back out. Unlike Re-sync to QBO, this
+                    intentionally requires the modal rather than exporting
+                    silently. */}
+                {currentInvoiceStatus === "refunded" &&
+                  currentInvoiceId &&
+                  currentQBOPushStatus !== "failed" && (
+                    <button
+                      type="button"
+                      title="Add a processing fee, preview the PDF, and re-bill the client"
+                      onClick={() => {
+                        openInvoicePreview({
+                          lineItems: getFullInvoiceItems().map(toPreviewLineItem),
+                          invoiceDate: currentInvoiceMonth,
+                          showCommitButton: true,
+                        });
+                      }}
+                      className="h-10 inline-flex items-center px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors text-white font-medium"
+                    >
+                      Resend with fee
+                    </button>
+                  )}
+
                 {currentInvoiceId &&
                   currentInvoiceStatus !== "paid" &&
                   currentInvoiceStatus !== "void" && (
                     <button
                       type="button"
                       onClick={() => setRecordCreditOpen(true)}
-                      title="Record an owner payment received outside the platform, or apply a credit. Books it in QuickBooks too."
+                      title={
+                        currentInvoiceStatus === "refunded"
+                          ? "Record the client's repayment after the refund. Books an unapplied QuickBooks payment/credit — the invoice's own total was never reduced by the refund, so this is what settles it."
+                          : "Record an owner payment received outside the platform, or apply a credit. Books it in QuickBooks too."
+                      }
                       className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
                     >
                       Add Payment / Credit
                     </button>
                   )}
 
-                {/* Paid invoices only — the endpoint answers 409 on anything
-                    else, and there is no payment to show before then. */}
-                {currentInvoiceStatus === "paid" && currentInvoiceId && (
+                {/* Paid (or refunded, which is still stored as paid) invoices
+                    only — the endpoint answers 409 on anything else, and
+                    there is no payment to show before then. */}
+                {(currentInvoiceStatus === "paid" ||
+                  currentInvoiceStatus === "refunded") &&
+                  currentInvoiceId && (
                   <button
                     type="button"
                     onClick={() => void openPaymentDetail(currentInvoiceId)}
@@ -2675,7 +2854,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   </button>
                 )}
 
-                {currentInvoiceStatus === "paid" && currentInvoiceId && (
+                {(currentInvoiceStatus === "paid" ||
+                  currentInvoiceStatus === "refunded") &&
+                  currentInvoiceId && (
                   <button
                     type="button"
                     onClick={async () => {
@@ -2895,7 +3076,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         rolloverPaymentCents={currentInvoiceRolloverPaymentCents}
         disputeCreditCents={currentInvoiceDisputeCreditCents}
         onCreditChange={
-          currentInvoiceStatus === "paid" || currentInvoiceStatus === "void"
+          currentInvoiceStatus === "paid" ||
+          currentInvoiceStatus === "refunded" ||
+          currentInvoiceStatus === "void"
             ? undefined
             : handleCreditChange
         }
@@ -2906,16 +3089,26 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             : getDisplayedInvoiceItems().map(toPreviewLineItem)
         }
         showCommitButton={invoicePreviewShowCommitButton}
-        onCommit={handleCommitInvoice}
+        onCommit={
+          currentInvoiceStatus === "refunded"
+            ? handleReissueAfterRefund
+            : handleCommitInvoice
+        }
         locationSplits={commitLocationSplits}
-        onCommitSplits={handleCommitInvoiceWithSplits}
+        onCommitSplits={
+          currentInvoiceStatus === "refunded"
+            ? handleReissueAfterRefundWithSplits
+            : handleCommitInvoiceWithSplits
+        }
         autoReExport={reExportMode}
         onReExport={handleReExportPdf}
         pendingUnapprovedCount={pendingApprovalBills.length}
         derivedStatus={currentInvoiceStatus}
         invoiceStatus={currentInvoiceStatus}
         onVoidLine={
-          (currentInvoiceStatus === "sent" || currentInvoiceStatus === "paid") &&
+          (currentInvoiceStatus === "sent" ||
+            currentInvoiceStatus === "paid" ||
+            currentInvoiceStatus === "refunded") &&
           currentInvoiceId
             ? (lineId) => {
                 const line = invoiceItems.find((it) => it.id === lineId) ?? null;
@@ -3173,7 +3366,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       // would just fail trying to re-attach to nothing.
                       const wasIssued =
                         currentInvoiceStatus === "sent" ||
-                        currentInvoiceStatus === "paid";
+                        currentInvoiceStatus === "paid" ||
+                        currentInvoiceStatus === "refunded";
                       try {
                         await disputeInvoiceLine(
                           currentInvoiceId,

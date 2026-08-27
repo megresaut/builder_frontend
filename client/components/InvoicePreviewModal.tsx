@@ -44,13 +44,16 @@ export interface InvoiceLineItem {
 // at all (payment_status unknown / not_booked) — the only hard send blocker;
 // 'ready' = export unlocked, which may still include passthrough bills AVMRE
 // hasn't paid yet (unpaid never blocks); 'sent' = already exported (record
-// payment now); 'paid' = fully closed; 'void' = cancelled. Values mirror the
-// backend's deriveStatusFor.
+// payment now); 'paid' = fully closed; 'refunded' = was paid, then some or
+// all of that payment was refunded — NOT closed, needs a resend (with a fresh
+// processing fee) rather than the read-only "invoice closed" treatment 'paid'
+// gets; 'void' = cancelled. Values mirror the backend's deriveStatusFor.
 export type InvoiceLifecycleStatus =
   | "draft"
   | "ready"
   | "sent"
   | "paid"
+  | "refunded"
   | "void"
   | undefined;
 
@@ -345,11 +348,14 @@ export default function InvoicePreviewModal({
     setLineItems(lineItems.filter((item) => item.id !== id));
   };
 
-  // On an issued (sent/paid) invoice the per-line control voids server-side
-  // rather than just dropping the row from the local PDF. The void recomputes
-  // the total and re-syncs the reduced invoice to QBO; the parent reloads.
+  // On an issued (sent/paid/refunded) invoice the per-line control voids
+  // server-side rather than just dropping the row from the local PDF. The
+  // void recomputes the total and re-syncs the reduced invoice to QBO; the
+  // parent reloads.
   const isIssuedInvoice =
-    invoiceStatus === "sent" || invoiceStatus === "paid";
+    invoiceStatus === "sent" ||
+    invoiceStatus === "paid" ||
+    invoiceStatus === "refunded";
   const canVoidLines = isIssuedInvoice && typeof onVoidLine === "function";
 
   const handleLineRemoveOrVoid = (id: number) => {
@@ -1454,6 +1460,8 @@ export default function InvoicePreviewModal({
                   ? "bg-blue-50 border-blue-200 text-blue-900"
                   : derivedStatus === "paid"
                   ? "bg-gray-100 border-gray-200 text-gray-700"
+                  : derivedStatus === "refunded"
+                  ? "bg-violet-50 border-violet-200 text-violet-900"
                   : "bg-rose-50 border-rose-200 text-rose-900")
               }
             >
@@ -1498,6 +1506,14 @@ export default function InvoicePreviewModal({
               {derivedStatus === "paid" && (
                 <>
                   <span className="font-semibold">PAID</span> · Invoice closed.
+                </>
+              )}
+              {derivedStatus === "refunded" && (
+                <>
+                  <span className="font-semibold">REFUNDED</span> · This
+                  payment was refunded. Pick a processing fee below and send
+                  to re-bill the client — this re-attaches a fresh PDF and
+                  updates the QuickBooks invoice.
                 </>
               )}
               {derivedStatus === "void" && (
@@ -2472,7 +2488,9 @@ export default function InvoicePreviewModal({
                   className="flex h-9 shrink-0 items-center gap-2 px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <span className="whitespace-nowrap text-white font-medium text-base">
-                    Send to QBO
+                    {derivedStatus === "refunded"
+                      ? "Resend to client"
+                      : "Send to QBO"}
                   </span>
                 </button>
               </>
