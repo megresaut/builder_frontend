@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useEffect } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useSortingTable } from "@/hooks/useSortingTable";
@@ -15,6 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import FTOApprovalModal from "@/components/FTOApprovalModal";
 import InvoicePreviewModal, {
   type InvoiceLineItem,
@@ -2618,32 +2624,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
               <div className="flex items-start gap-2.5">
                 <button
                   type="button"
-                  onClick={handleRefreshInvoice}
-                  disabled={refreshing || !currentInvoiceId}
-                  title="Re-pull bills + FTO submissions for this month. On sent/paid invoices this also resets status to draft."
-                  className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#DADADA] bg-white text-[#303030] font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={refreshing ? "animate-spin" : undefined}
-                  >
-                    <path
-                      d="M14 8a6 6 0 1 1-1.76-4.24M14 2v3.5h-3.5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  {refreshing ? "Refreshing…" : "Refresh"}
-                </button>
-
-                <button
-                  type="button"
                   onClick={() =>
                     openInvoicePreview({
                       // Preview deliberately honors the location filter — showing
@@ -2817,76 +2797,6 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     </button>
                   )}
 
-                {currentInvoiceId &&
-                  currentInvoiceStatus !== "paid" &&
-                  currentInvoiceStatus !== "void" && (
-                    <button
-                      type="button"
-                      onClick={() => setRecordCreditOpen(true)}
-                      title={
-                        currentInvoiceStatus === "refunded"
-                          ? "Record the client's repayment after the refund. Books an unapplied QuickBooks payment/credit — the invoice's own total was never reduced by the refund, so this is what settles it."
-                          : "Record an owner payment received outside the platform, or apply a credit. Books it in QuickBooks too."
-                      }
-                      className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
-                    >
-                      Add Payment / Credit
-                    </button>
-                  )}
-
-                {/* Paid (or refunded, which is still stored as paid) invoices
-                    only — the endpoint answers 409 on anything else, and
-                    there is no payment to show before then. */}
-                {(currentInvoiceStatus === "paid" ||
-                  currentInvoiceStatus === "refunded") &&
-                  currentInvoiceId && (
-                  <button
-                    type="button"
-                    onClick={() => void openPaymentDetail(currentInvoiceId)}
-                    title="View what the platform recorded next to what QuickBooks currently says"
-                    className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                      <circle cx="12" cy="12" r="2.75" stroke="currentColor" strokeWidth="1.5" />
-                    </svg>
-                    View Payment
-                  </button>
-                )}
-
-                {(currentInvoiceStatus === "paid" ||
-                  currentInvoiceStatus === "refunded") &&
-                  currentInvoiceId && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        const { total_refunded_cents } =
-                          await getInvoiceRefunds(currentInvoiceId);
-                        setRefundAlreadyCents(total_refunded_cents);
-                        setRefundModalOpen(true);
-                      } catch (e: any) {
-                        toast.error(
-                          e?.message ?? "Failed to load refund status",
-                        );
-                      }
-                    }}
-                    title="Refund the client who paid this invoice"
-                    className="h-10 inline-flex items-center gap-2 px-4 rounded-lg border border-[#013764] bg-white text-[#013764] font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M4.5 8.25L2.25 6M2.25 6L4.5 3.75M2.25 6H11.25C13.3211 6 15 7.67893 15 9.75C15 11.8211 13.3211 13.5 11.25 13.5H6"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    Refund
-                  </button>
-                )}
-
                 {currentInvoiceStatus === "sent" &&
                   currentInvoiceId &&
                   currentQBOPushStatus !== "failed" && (
@@ -2945,6 +2855,79 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     Retry QBO Sync
                   </button>
                 )}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="More actions"
+                      title="More actions"
+                      className="h-10 inline-flex items-center justify-center w-10 rounded-lg border border-[#DADADA] bg-white text-[#303030] hover:bg-gray-50 transition-colors"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-white border border-[#E5E5E5] rounded-xl shadow-lg z-50 min-w-[220px]">
+                    <DropdownMenuItem
+                      disabled={refreshing || !currentInvoiceId}
+                      title="Re-pull bills + FTO submissions for this month. On sent/paid invoices this also resets status to draft."
+                      onSelect={handleRefreshInvoice}
+                    >
+                      {refreshing ? "Refreshing…" : "Refresh"}
+                    </DropdownMenuItem>
+
+                    {currentInvoiceId &&
+                      currentInvoiceStatus !== "paid" &&
+                      currentInvoiceStatus !== "void" && (
+                        <DropdownMenuItem
+                          title={
+                            currentInvoiceStatus === "refunded"
+                              ? "Record the client's repayment after the refund. Books an unapplied QuickBooks payment/credit — the invoice's own total was never reduced by the refund, so this is what settles it."
+                              : "Record an owner payment received outside the platform, or apply a credit. Books it in QuickBooks too."
+                          }
+                          onSelect={() => setRecordCreditOpen(true)}
+                        >
+                          Add Payment / Credit
+                        </DropdownMenuItem>
+                      )}
+
+                    {/* Paid (or refunded, which is still stored as paid) invoices
+                        only — the endpoint answers 409 on anything else, and
+                        there is no payment to show before then. */}
+                    {(currentInvoiceStatus === "paid" ||
+                      currentInvoiceStatus === "refunded") &&
+                      currentInvoiceId && (
+                        <DropdownMenuItem
+                          title="View what the platform recorded next to what QuickBooks currently says"
+                          onSelect={() => void openPaymentDetail(currentInvoiceId)}
+                        >
+                          View Payment
+                        </DropdownMenuItem>
+                      )}
+
+                    {(currentInvoiceStatus === "paid" ||
+                      currentInvoiceStatus === "refunded") &&
+                      currentInvoiceId && (
+                        <DropdownMenuItem
+                          title="Refund the client who paid this invoice"
+                          onSelect={async () => {
+                            try {
+                              const { total_refunded_cents } =
+                                await getInvoiceRefunds(currentInvoiceId);
+                              setRefundAlreadyCents(total_refunded_cents);
+                              setRefundModalOpen(true);
+                            } catch (e: any) {
+                              toast.error(
+                                e?.message ?? "Failed to load refund status",
+                              );
+                            }
+                          }}
+                        >
+                          Refund
+                        </DropdownMenuItem>
+                      )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
