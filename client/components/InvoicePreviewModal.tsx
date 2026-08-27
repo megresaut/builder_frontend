@@ -2490,6 +2490,8 @@ export default function InvoicePreviewModal({
                   <span className="whitespace-nowrap text-white font-medium text-base">
                     {derivedStatus === "refunded"
                       ? "Resend to QBO"
+                      : derivedStatus === "sent"
+                      ? "Add Fee & Update QBO"
                       : "Send to QBO"}
                   </span>
                 </button>
@@ -2664,7 +2666,11 @@ export default function InvoicePreviewModal({
                   });
               }}
             >
-              {derivedStatus === "refunded" ? "Resend to QBO" : "Send to QBO"}
+              {derivedStatus === "refunded"
+                ? "Resend to QBO"
+                : derivedStatus === "sent"
+                ? "Add Fee & Update QBO"
+                : "Send to QBO"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContentRoot>

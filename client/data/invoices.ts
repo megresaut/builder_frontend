@@ -118,16 +118,28 @@ export async function getInvoiceRefunds(
   return fetchJSON(`/invoicing/refunds?id=${invoiceID}`);
 }
 
-// refundInvoicePayment refunds the client who paid this invoice. No account
+export interface RefundAndReplaceResponse {
+  refund: InvoicePaymentRefund;
+  // 0 on a partial refund — the original invoice is left as-is and the
+  // repayment is tracked via Add Payment / Credit instead.
+  new_invoice_id: number;
+}
+
+// refundAndReplaceInvoicePayment is the standard "Refund" action. No account
 // picker: the backend derives the QBO account debited from the invoice's own
 // recorded payment, and automatically detects whether this is a bookkeeping
 // entry (payment was recorded manually) or a real QBO Payments refund (the
-// original charge was processed by QBO itself).
-export async function refundInvoicePayment(
+// original charge was processed by QBO itself). On a FULL refund it also
+// voids the original invoice and creates a replacement draft for the same
+// property/month with the original charges copied over. A brand-new QBO
+// invoice has no stale payment linked to it, so its balance/pay-link are
+// correct from the start — reopening the SAME QBO invoice never can be, since
+// the original payment stays applied no matter what the line items say.
+export async function refundAndReplaceInvoicePayment(
   invoiceID: number,
   body: { amount_cents: number; date: string; memo?: string },
-): Promise<InvoicePaymentRefund> {
-  return fetchJSON(`/invoicing/refund-payment?id=${invoiceID}`, {
+): Promise<RefundAndReplaceResponse> {
+  return fetchJSON(`/invoicing/refund-and-replace?id=${invoiceID}`, {
     method: "POST",
     body: JSON.stringify(body),
   });

@@ -4,10 +4,10 @@ import { ModalTemplate, ModalButtons } from "@/components/ui/ModalTemplate";
 import { FieldShell } from "@/components/forms/FieldShell";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { refundInvoicePayment } from "@/data/invoices";
+import { refundAndReplaceInvoicePayment } from "@/data/invoices";
 
 /**
- * RefundInvoiceModal — POST /invoicing/refund-payment?id={id}.
+ * RefundInvoiceModal — POST /invoicing/refund-and-replace?id={id}.
  *
  * Refunds the client who paid this invoice. There is no account picker: the
  * backend derives which QBO account the refund debits from the invoice's own
@@ -19,6 +19,12 @@ import { refundInvoicePayment } from "@/data/invoices";
  * entry (the operator already sent the money back some other way) or a real
  * QBO Payments refund (QBO itself processed the original charge, so this call
  * is what actually moves the money) — the user never chooses which.
+ *
+ * On a FULL refund the backend also voids this invoice and creates a
+ * replacement draft (same property/month, charges carried over) — a fresh
+ * QBO invoice is the only way its balance/pay-link end up correct, since the
+ * original payment stays linked to this one no matter what its lines say.
+ * onRefunded receives the replacement's id, or 0 on a partial refund.
  */
 
 interface RefundInvoiceModalProps {
@@ -31,7 +37,7 @@ interface RefundInvoiceModalProps {
   };
   /** Sum of refunds already recorded against this invoice; caps the amount client-side. */
   alreadyRefundedCents: number;
-  onRefunded: () => void;
+  onRefunded: (newInvoiceId: number) => void;
 }
 
 const todayISO = () => {
@@ -104,13 +110,23 @@ export default function RefundInvoiceModal({
 
     setSubmitting(true);
     try {
-      await refundInvoicePayment(invoice.id, {
-        amount_cents: amountCents,
-        date: refundDate,
-        memo: memo || undefined,
-      });
-      toast.success(`Recorded a $${dollarsFromCents(amountCents)} refund.`);
-      onRefunded();
+      const { new_invoice_id } = await refundAndReplaceInvoicePayment(
+        invoice.id,
+        {
+          amount_cents: amountCents,
+          date: refundDate,
+          memo: memo || undefined,
+        },
+      );
+      if (new_invoice_id) {
+        toast.success(`Recorded a $${dollarsFromCents(amountCents)} refund.`, {
+          description:
+            "This invoice was voided and a replacement was created with the same charges — send it like a new invoice to re-bill the client.",
+        });
+      } else {
+        toast.success(`Recorded a $${dollarsFromCents(amountCents)} refund.`);
+      }
+      onRefunded(new_invoice_id);
       onOpenChange(false);
     } catch (err: any) {
       setError(err?.message ?? String(err));

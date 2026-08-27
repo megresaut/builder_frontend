@@ -1522,6 +1522,140 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     }
   };
 
+  // Adds a processing fee to a plain SENT invoice that doesn't have one yet
+  // (not tied to a refund — see reissueInvoiceWithPdfs for that case).
+  const addProcessingFeeWithPdfs = async (
+    combined: { pdf_object_key: string; sha256_pdf: string },
+    locationPdfs: Array<{
+      location_id: number | null;
+      label: string;
+      pdf_object_key: string;
+      sha256_pdf: string;
+    }>,
+    paymentMethod?: "ach" | "card" | "none",
+  ) => {
+    const res = await authFetch(
+      `/invoicing/add-processing-fee?id=${currentInvoiceId}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pdf_object_key: combined.pdf_object_key,
+          sha256_pdf: combined.sha256_pdf,
+          location_pdfs: locationPdfs,
+          ...(paymentMethod ? { payment_method: paymentMethod } : {}),
+        }),
+      },
+    );
+    if (!res.ok) {
+      const errBody = await res.text();
+      let parsedErr = errBody;
+      try {
+        parsedErr = JSON.parse(errBody)?.error ?? errBody;
+      } catch {}
+      throw new Error(parsedErr || "Add processing fee failed");
+    }
+    return res.json();
+  };
+
+  const handleAddProcessingFee = async (
+    pdfBlob: Blob,
+    paymentMethod?: "ach" | "card" | "none",
+  ) => {
+    if (!currentInvoiceId) return;
+    const toastId = toast.loading("Adding processing fee…", {
+      description: "Updating the PDF and QuickBooks",
+    });
+    try {
+      const combined = await uploadPdf(pdfBlob, "invoice.pdf");
+      const updated = await addProcessingFeeWithPdfs(combined, [], paymentMethod);
+      if (updated?.qbo_push_status === "failed") {
+        toast.error("Fee added, but QBO sync failed", {
+          id: toastId,
+          description:
+            updated?.qbo_last_error ??
+            "Use Retry QBO Sync once the underlying issue is fixed.",
+        });
+      } else {
+        toast.success("Processing fee added", {
+          id: toastId,
+          description: "PDF and QuickBooks invoice updated.",
+        });
+      }
+      await loadInvoiceForProperty();
+      await loadInvoiceHistory();
+    } catch (err: any) {
+      console.error("Add processing fee failed:", err);
+      toast.error("Failed to add processing fee", {
+        id: toastId,
+        description: err?.message ?? "Unexpected error",
+      });
+    }
+  };
+
+  const handleAddProcessingFeeWithSplits = async (
+    combinedBlob: Blob,
+    splits: Array<{
+      key: string;
+      label: string;
+      locationId: number | null;
+      blob: Blob;
+    }>,
+    paymentMethod?: "ach" | "card" | "none",
+  ) => {
+    if (!currentInvoiceId) return;
+    const toastId = toast.loading("Adding processing fee…", {
+      description: `Updating QuickBooks and uploading ${splits.length + 1} PDFs`,
+    });
+    try {
+      const combined = await uploadPdf(combinedBlob, "invoice.pdf");
+      const uploaded: Array<{
+        location_id: number | null;
+        label: string;
+        pdf_object_key: string;
+        sha256_pdf: string;
+      }> = [];
+      for (const split of splits) {
+        const up = await uploadPdf(
+          split.blob,
+          `${sanitizeLocationFilename(split.label)}.pdf`,
+        );
+        uploaded.push({
+          location_id: split.locationId,
+          label: split.label,
+          pdf_object_key: up.pdf_object_key,
+          sha256_pdf: up.sha256_pdf,
+        });
+      }
+      const updated = await addProcessingFeeWithPdfs(
+        combined,
+        uploaded,
+        paymentMethod,
+      );
+      if (updated?.qbo_push_status === "failed") {
+        toast.error("Fee added, but QBO sync failed", {
+          id: toastId,
+          description:
+            updated?.qbo_last_error ??
+            "Use Retry QBO Sync once the underlying issue is fixed.",
+        });
+      } else {
+        toast.success("Processing fee added", {
+          id: toastId,
+          description: `${uploaded.length} per-location PDFs stored for the client email.`,
+        });
+      }
+      await loadInvoiceForProperty();
+      await loadInvoiceHistory();
+    } catch (err: any) {
+      console.error("Add processing fee with splits failed:", err);
+      toast.error("Failed to add processing fee", {
+        id: toastId,
+        description: err?.message ?? "Unexpected error",
+      });
+    }
+  };
+
   // The response is the updated invoice; qbo_push_status says whether the QBO leg
   // succeeded. Lifecycle is committed either way — a QBO failure is recoverable
   // via the Retry QBO Sync button, so it must not read as a total failure.
@@ -2772,18 +2906,23 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     </button>
                   )}
 
-                {/* Refunded: re-bill the client like a first-time send —
-                    opens the preview modal with the ACH/credit-card fee
-                    picker so the operator can associate a fresh fee before
-                    the invoice goes back out. Unlike Re-sync to QBO, this
-                    intentionally requires the modal rather than exporting
-                    silently. */}
-                {currentInvoiceStatus === "refunded" &&
+                {/* Refunded: re-bill the client like a first-time send. Sent
+                    (no refund involved): add a fee that wasn't there at the
+                    original send — e.g. after a manual correction. Either
+                    way this opens the preview modal with the ACH/credit-card
+                    fee picker; unlike Re-sync to QBO, it intentionally
+                    requires the modal rather than exporting silently. */}
+                {(currentInvoiceStatus === "refunded" ||
+                  currentInvoiceStatus === "sent") &&
                   currentInvoiceId &&
                   currentQBOPushStatus !== "failed" && (
                     <button
                       type="button"
-                      title="Add a processing fee, preview the PDF, and re-bill the client"
+                      title={
+                        currentInvoiceStatus === "refunded"
+                          ? "Add a processing fee, preview the PDF, and re-bill the client"
+                          : "Add a processing fee that wasn't included at the original send, and re-attach the updated PDF"
+                      }
                       onClick={() => {
                         openInvoicePreview({
                           lineItems: getFullInvoiceItems().map(toPreviewLineItem),
@@ -2793,7 +2932,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       }}
                       className="h-10 inline-flex items-center px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors text-white font-medium"
                     >
-                      Resend with fee
+                      {currentInvoiceStatus === "refunded"
+                        ? "Resend with fee"
+                        : "Add Processing Fee"}
                     </button>
                   )}
 
@@ -3075,12 +3216,16 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         onCommit={
           currentInvoiceStatus === "refunded"
             ? handleReissueAfterRefund
+            : currentInvoiceStatus === "sent"
+            ? handleAddProcessingFee
             : handleCommitInvoice
         }
         locationSplits={commitLocationSplits}
         onCommitSplits={
           currentInvoiceStatus === "refunded"
             ? handleReissueAfterRefundWithSplits
+            : currentInvoiceStatus === "sent"
+            ? handleAddProcessingFeeWithSplits
             : handleCommitInvoiceWithSplits
         }
         autoReExport={reExportMode}
@@ -3602,6 +3747,10 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           }}
           alreadyRefundedCents={refundAlreadyCents}
           onRefunded={async () => {
+            // Reloads the same month — GetInvoiceByMonth now prefers a live
+            // invoice over a void one, so on a full refund this naturally
+            // picks up the fresh replacement draft instead of the voided
+            // original, no extra navigation needed.
             await loadInvoiceForProperty();
             await loadInvoiceHistory();
           }}
