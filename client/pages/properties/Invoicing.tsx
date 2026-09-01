@@ -28,6 +28,8 @@ import InvoicePreviewModal, {
   type UnpaidPassthroughLine,
 } from "@/components/InvoicePreviewModal";
 import {
+  addDraftInvoiceLine,
+  addInvoiceLine,
   disputeInvoiceLine,
   editInvoiceLineItems,
   fetchInvoicePaymentDetail,
@@ -50,6 +52,7 @@ import {
 import RecordPaymentDialog from "@/components/RecordPaymentDialog";
 import InvoicePaymentDetailModal from "@/components/InvoicePaymentDetailModal";
 import RecordCreditDialog from "@/components/RecordCreditDialog";
+import AddLineItemModal from "@/components/AddLineItemModal";
 import RecordBillModal, {
   type RecordBillModalData,
   type RecordBillModalMode,
@@ -1689,6 +1692,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   };
 
   const [recordCreditOpen, setRecordCreditOpen] = useState(false);
+  const [addLineItemOpen, setAddLineItemOpen] = useState(false);
 
   // Books an owner payment received outside the platform, or a no-cash credit,
   // in QBO and on the invoice. Unlike handleCreditChange below, this keeps QBO
@@ -1726,6 +1730,53 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       },
     );
     await loadInvoiceForProperty();
+  };
+
+  // Adds a manually-typed, one-off AVMRE-billed charge to the invoice — draft
+  // goes through the plain line-edit endpoint, sent/paid re-syncs to QBO and
+  // regenerates/re-attaches the PDF (same re-export path void/dispute use).
+  const handleAddLineItem = async (input: {
+    description: string;
+    amount: number;
+    qboItemID: string;
+  }) => {
+    if (!currentInvoiceId) return;
+    const isDraftInvoice =
+      currentInvoiceStatus === "draft" || currentInvoiceStatus === "ready";
+    const isIssuedInvoice =
+      currentInvoiceStatus === "sent" ||
+      currentInvoiceStatus === "paid" ||
+      currentInvoiceStatus === "refunded";
+
+    if (isDraftInvoice) {
+      await addDraftInvoiceLine(
+        currentInvoiceId,
+        input.description,
+        input.amount,
+        input.qboItemID,
+      );
+      await loadInvoiceForProperty();
+      toast.success("Line item added");
+      return;
+    }
+    if (isIssuedInvoice) {
+      await addInvoiceLine(
+        currentInvoiceId,
+        input.description,
+        input.amount,
+        input.qboItemID,
+      );
+      await loadInvoiceForProperty();
+      setInvoicePreviewLineItems([]);
+      setReExportMode(true);
+      setShowInvoicePreview(true);
+      toast.success("Line item added", {
+        description:
+          "Invoice updated in QuickBooks; refreshing the attached PDF…",
+      });
+      return;
+    }
+    throw new Error("This invoice can't take a new line item right now.");
   };
 
   // Saves the "Edit line items" picker's selection. Does not push to QBO —
@@ -3017,6 +3068,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       {refreshing ? "Refreshing…" : "Refresh"}
                     </DropdownMenuItem>
 
+                    {currentInvoiceId && currentInvoiceStatus !== "void" && (
+                      <DropdownMenuItem
+                        title="Add a one-off AVMRE-billed charge to this invoice."
+                        onSelect={() => setAddLineItemOpen(true)}
+                      >
+                        Add Line Item
+                      </DropdownMenuItem>
+                    )}
+
                     {currentInvoiceId &&
                       currentInvoiceStatus !== "paid" &&
                       currentInvoiceStatus !== "void" && (
@@ -3707,6 +3767,15 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           invoiceId={currentInvoiceId}
           currentCreditCents={currentInvoiceRolloverPaymentCents}
           onSubmit={handleRecordCredit}
+        />
+      )}
+
+      {currentInvoiceId && (
+        <AddLineItemModal
+          open={addLineItemOpen}
+          onOpenChange={setAddLineItemOpen}
+          invoiceId={currentInvoiceId}
+          onSubmit={handleAddLineItem}
         />
       )}
 

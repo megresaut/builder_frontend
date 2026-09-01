@@ -192,6 +192,73 @@ export async function disputeInvoiceLine(
   });
 }
 
+// One QBO Item selectable as the GL Account for a manually-added invoice
+// line — every active Item with an income account configured, so a manual
+// line always books to real AVMRE income (never a passthrough/liability
+// account). Populated by the "Add Line Item" modal's GL Account dropdown.
+export interface ManualLineQBOItem {
+  qbo_item_id: string;
+  name: string;
+}
+
+export async function fetchManualLineItemOptions(): Promise<
+  ManualLineQBOItem[]
+> {
+  const res = await fetchJSON(`/invoicing/manual-line-items`);
+  return Array.isArray(res) ? res : [];
+}
+
+// addInvoiceLine appends a user-typed line ("Add Line Item") to an
+// already-issued (sent/paid) invoice and re-syncs it to QBO. Rejected on
+// draft invoices — use addDraftInvoiceLine there instead. qboItemID must be
+// one of fetchManualLineItemOptions()'s ids — the backend rejects anything
+// else rather than inserting a line QBO can never receive.
+export async function addInvoiceLine(
+  invoiceID: number,
+  description: string,
+  amount: number,
+  qboItemID: string,
+): Promise<unknown> {
+  return fetchJSON(`/invoicing/add-line`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      invoice_id: invoiceID,
+      description,
+      amount,
+      qbo_item_id: qboItemID,
+    }),
+  });
+}
+
+// addDraftInvoiceLine appends a user-typed line ("Add Line Item") to a
+// still-draft invoice. Only works while the invoice is draft — the backend
+// rejects it otherwise (use addInvoiceLine for sent/paid). Survives the next
+// /invoicing/generate regeneration (source_type='other' lines are preserved,
+// not rebuilt from bills/FTO submissions). qboItemID — see addInvoiceLine.
+export async function addDraftInvoiceLine(
+  invoiceID: number,
+  description: string,
+  amount: number,
+  qboItemID: string,
+): Promise<unknown> {
+  return fetchJSON(`/invoicing/update`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      invoice_id: invoiceID,
+      new_items: [
+        {
+          source_type: "other",
+          description,
+          amount,
+          qbo_item_id: qboItemID,
+        },
+      ],
+    }),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Per-line vendor/utility bill billing — "Edit line items" picker.
 //

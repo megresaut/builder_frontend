@@ -614,8 +614,7 @@ export default function TaskFieldTeamOrders({
               }
             : null
         }
-        onFTOCreated={async (ftoData) => {
-          // Refresh field team orders list in the background
+        onSuccess={async () => {
           if (onRefetchFieldTeamOrders) {
             try {
               await onRefetchFieldTeamOrders();
@@ -623,80 +622,6 @@ export default function TaskFieldTeamOrders({
               console.error("Error refetching field team orders:", error);
             }
           }
-          
-          // Keep the local state update for immediate UI feedback (optional, will be replaced by refetch)
-          const fieldTeamMasterData: Record<
-            string,
-            { email: string; phone: string; title: string }
-          > = {
-            "Christopher Harris": {
-              email: "christopher.harris@company.com",
-              phone: "(555) 111-2222",
-              title: "Field Lead",
-            },
-            "Cassandra Smith": {
-              email: "cassandra.smith@company.com",
-              phone: "(555) 222-3333",
-              title: "Field Technician",
-            },
-            "David Chen": {
-              email: "david.chen@company.com",
-              phone: "(555) 333-4444",
-              title: "Field Specialist",
-            },
-            "Emma Rodriguez": {
-              email: "emma.rodriguez@company.com",
-              phone: "(555) 444-5555",
-              title: "Field Technician",
-            },
-            "James Wilson": {
-              email: "james.wilson@company.com",
-              phone: "(555) 555-6666",
-              title: "Field Lead",
-            },
-          };
-
-          const newId = Math.max(...orders.map((o) => o.id), 0) + 1;
-          const fieldTeamArray = ftoData.selectedAssignees.map(
-            (assignee: any, idx: number) => {
-              const name =
-                assignee.name || assignee.label || assignee.value || "";
-              const memberInfo = fieldTeamMasterData[name];
-              return {
-                id: assignee.id || idx + 1,
-                initials:
-                  assignee.initials ||
-                  assignee.value?.substring(0, 2).toUpperCase() ||
-                  "?",
-                color: assignee.color || "bg-blue-500",
-                name: name,
-                email: memberInfo?.email || "",
-                phone: memberInfo?.phone || "",
-                title: memberInfo?.title || "Field Team Member",
-              };
-            },
-          );
-          const newFTO: FieldTeamOrder = {
-            id: newId,
-            taskId: newId,
-            property: ftoData.property,
-            unit: ftoData.unit,
-            description: ftoData.ftoName || ftoData.description,
-            dueDate:
-              ftoData.dueDate?.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              }) || "",
-            priority: ftoData.priority as "low" | "normal" | "high",
-            fieldTeam: fieldTeamArray,
-            status: "pending-approval",
-            timesheetStatus: "awaiting-submission",
-            amount: 0,
-          };
-          // Note: The refetch will update the orders, but we keep this for immediate feedback
-          // The refetch will replace this with the actual data from the server
-          onOrdersChange([newFTO, ...orders]);
         }}
       />
 
