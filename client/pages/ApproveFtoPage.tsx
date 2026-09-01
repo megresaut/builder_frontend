@@ -66,6 +66,25 @@ interface HourRow {
   assigneeId: number;
   submissionId: number;
   hourIndex?: number;
+  /** amount_cents as loaded — the backend's auto-calculated (or already-
+   *  overridden) figure, before this session's edits. buildHoursJSON diffs
+   *  the current `amount` against this to decide whether the PM has manually
+   *  corrected the line and a amount_override_cents needs to be sent;
+   *  matching them means "still the computed default," so the backend keeps
+   *  auto-calculating it (and it'll track the property's rate going
+   *  forward, same as an unedited line always has). Undefined for a
+   *  brand-new row (submissionId 0) — those go through CreateSubmission
+   *  instead of buildHoursJSON, so there's nothing to diff against. */
+  baselineAmountCents?: number;
+  /** rate_cents_at_submission as loaded, carried through unedited so a save
+   *  that doesn't touch this row doesn't drop its locked-in rate back to
+   *  "always recompute from the property's current rate." */
+  rateCentsAtSubmission?: number;
+  /** amount_override_cents as loaded, if this line already carried a manual
+   *  override — carried through unedited for the same reason as
+   *  rateCentsAtSubmission (saving one row on the page shouldn't clear a
+   *  different, untouched row's override). */
+  loadedOverrideCents?: number;
 }
 
 interface ExpenseRow {
@@ -333,6 +352,27 @@ const buildHoursJSON = (hourRows: HourRow[]) => {
       hour_index: row.hourIndex ?? index,
     };
     if (upchargeCents !== 0) out.upcharge_cents = upchargeCents;
+    // Carry through the rate locked in when this line was first submitted —
+    // dropping it on every re-save would silently revert an old FTO back to
+    // "always recompute from the property's CURRENT rate."
+    if (row.rateCentsAtSubmission != null) {
+      out.rate_cents_at_submission = row.rateCentsAtSubmission;
+    }
+    // A manual correction: sent when the PM changed Amount away from what
+    // was loaded (a fresh override, or an update to an existing one), OR
+    // carried through unchanged if this line already had an override and
+    // wasn't touched — otherwise a save triggered by editing some OTHER row
+    // on the page would silently clear it. An untouched, never-overridden
+    // row omits the key entirely and keeps auto-calculating from the
+    // property's rate, same as always.
+    if (row.baselineAmountCents != null) {
+      const currentCents = parseMoneyToCents(row.amount);
+      if (currentCents !== row.baselineAmountCents) {
+        out.amount_override_cents = currentCents;
+      } else if (row.loadedOverrideCents != null) {
+        out.amount_override_cents = row.loadedOverrideCents;
+      }
+    }
     return out;
   });
 };
@@ -1362,6 +1402,11 @@ export default function ApproveFTOPage() {
                   assigneeId: submission.FieldTeamMemberID,
                   submissionId: submission.ID,
                   hourIndex,
+                  baselineAmountCents: hourLine.amount_cents ?? 0,
+                  rateCentsAtSubmission:
+                    hourLine.rate_cents_at_submission ?? undefined,
+                  loadedOverrideCents:
+                    hourLine.amount_override_cents ?? undefined,
                 });
               });
             }
