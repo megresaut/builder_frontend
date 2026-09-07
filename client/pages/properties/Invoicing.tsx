@@ -3290,7 +3290,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         derivedStatus={currentInvoiceStatus}
         invoiceStatus={currentInvoiceStatus}
         onVoidLine={
-          (currentInvoiceStatus === "sent" ||
+          (currentInvoiceStatus === "ready" ||
+            currentInvoiceStatus === "sent" ||
             currentInvoiceStatus === "paid" ||
             currentInvoiceStatus === "refunded") &&
           currentInvoiceId
@@ -3308,6 +3309,11 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 setDisputeClientCreditDraft(null);
                 setDisputeVendorCreditDraft(null);
               }
+            : undefined
+        }
+        onAddLineItem={
+          currentInvoiceId && currentInvoiceStatus !== "void"
+            ? () => setAddLineItemOpen(true)
             : undefined
         }
         unpaidPassthroughLines={unpaidPassthroughLines}

@@ -131,13 +131,16 @@ interface InvoicePreviewModalProps {
   qboPushStatus?: string | null;
   qboLastError?: string | null;
   onRetryQBOSync?: () => void;
-  // Line-void (migration 090). When the invoice is sent/paid and onVoidLine is
-  // provided, the per-line remove control bubbles the backend
-  // invoice_line_items.id up to the parent, which runs the void-confirm dialog
-  // (base+markup preview, new total, close-out flag) instead of the draft-only
-  // client-side remove.
+  // Line-void (migration 090). When the invoice is ready/sent/paid and
+  // onVoidLine is provided, the per-line remove control bubbles the backend
+  // invoice_line_items.id up to the parent, which runs the dispute-confirm
+  // dialog (client/vendor credit preview, new total) instead of the
+  // draft-only client-side remove.
   invoiceStatus?: InvoiceLifecycleStatus;
   onVoidLine?: (lineId: number) => void;
+  // When provided, the footer's "Add Line Item" button opens the parent's
+  // backend-synced Add Line Item modal instead of splicing a blank local row.
+  onAddLineItem?: () => void;
   // Auto re-export (after a void): when true, the modal renders the updated
   // invoice, generates a fresh PDF, and hands the blob to onReExport — the
   // parent uploads + re-attaches it to the QBO invoice, then closes the modal.
@@ -183,6 +186,7 @@ export default function InvoicePreviewModal({
   onRetryQBOSync,
   invoiceStatus,
   onVoidLine,
+  onAddLineItem,
   autoReExport,
   onReExport,
   invoiceId,
@@ -333,7 +337,7 @@ export default function InvoicePreviewModal({
     return lineItems.reduce((max, item) => Math.max(max, item.id), 0) + 1;
   };
 
-  const handleAddLineItem = () => {
+  const handleAddLineItemLocal = () => {
     const nextItem: InvoiceLineItem = {
       id: getNextLineItemId(),
       vendor: "",
@@ -344,25 +348,38 @@ export default function InvoicePreviewModal({
     setLineItems((prev) => [...prev, nextItem]);
   };
 
+  // On a persisted invoice, defer to the parent's backend-synced "Add line
+  // item" modal (GL account picker, QBO re-sync) instead of splicing a blank
+  // local row that only ever makes it into the baked PDF.
+  const handleAddLineItem = () => {
+    if (typeof onAddLineItem === "function") {
+      onAddLineItem();
+      return;
+    }
+    handleAddLineItemLocal();
+  };
+
   const handleRemoveLineItem = (id: number) => {
     setLineItems(lineItems.filter((item) => item.id !== id));
   };
 
-  // On an issued (sent/paid/refunded) invoice the per-line control voids
-  // server-side rather than just dropping the row from the local PDF. The
-  // void recomputes the total and re-syncs the reduced invoice to QBO; the
-  // parent reloads.
-  const isIssuedInvoice =
+  // On a persisted (ready/sent/paid/refunded) invoice the per-line control
+  // voids server-side rather than just dropping the row from the local PDF.
+  // The void recomputes the total and re-syncs the reduced invoice to QBO;
+  // the parent reloads. Only a true draft's lines are safe to splice locally.
+  const isPersistedInvoice =
+    invoiceStatus === "ready" ||
     invoiceStatus === "sent" ||
     invoiceStatus === "paid" ||
     invoiceStatus === "refunded";
-  const canVoidLines = isIssuedInvoice && typeof onVoidLine === "function";
+  const canVoidLines = isPersistedInvoice && typeof onVoidLine === "function";
 
   const handleLineRemoveOrVoid = (id: number) => {
     if (canVoidLines) {
-      // Issued invoice: hand the backend line id to the parent, which opens the
-      // void-confirm dialog (shows base+markup, new total, close-out) and calls
-      // the void endpoint. Draft invoices fall through to the local remove.
+      // Persisted invoice: hand the backend line id to the parent, which opens
+      // the dispute-confirm dialog (shows credit/recovery amounts, new total)
+      // and calls the dispute endpoint. Draft invoices fall through to the
+      // local remove.
       onVoidLine!(id);
       return;
     }
