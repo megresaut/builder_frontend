@@ -1779,9 +1779,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     throw new Error("This invoice can't take a new line item right now.");
   };
 
-  // Saves the "Edit line items" picker's selection. Does not push to QBO —
-  // the existing Re-sync button (already visible for sent/paid invoices)
-  // covers that as a separate, explicit step.
+  // Saves the "Edit line items" picker's selection. The backend re-syncs to
+  // QBO itself when the invoice already has one — no manual follow-up step.
   const handleEditBillLineItems = async (lineIds: number[]) => {
     if (!currentInvoiceId || !editLineItemsTarget?.sourceId) return;
     await editInvoiceLineItems(
@@ -1789,10 +1788,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
       editLineItemsTarget.sourceId,
       lineIds,
     );
-    toast.success("Line items updated", {
-      description:
-        "Re-sync to QuickBooks to push this change to the QBO invoice.",
-    });
+    toast.success("Line items updated");
     await loadInvoiceForProperty();
   };
 
