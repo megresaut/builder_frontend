@@ -6,6 +6,7 @@ import { identifyRoute } from "@/lib/tabRoutes";
 import { useFavorites } from "@/hooks/FavoritesContext";
 import { usePropertyBreadcrumb } from "@/hooks/PropertyBreadcrumbContext";
 import { getDraftCount } from "@/api/aiDrafts";
+import { globalSearch, GlobalSearchResponse } from "@/api/search";
 import { useAuth } from "@/auth/useAuth";
 import NotificationPanel from "@/components/NotificationPanel";
 import NotificationBell from "@/components/NotificationBell";
@@ -58,6 +59,137 @@ export default function Header() {
     const interval = setInterval(loadPendingCount, 60000);
     return () => clearInterval(interval);
   }, [loadPendingCount]);
+
+  // ─── Global search (properties / owners / vendors) ───────────────
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<GlobalSearchResponse | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [activeResultIndex, setActiveResultIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const searchRequestIdRef = useRef(0);
+
+  type FlatSearchResult = {
+    key: string;
+    path: string;
+    primary: string;
+    secondary: string;
+    group: "Properties" | "Owners" | "Vendors";
+  };
+
+  const flatSearchResults: FlatSearchResult[] = searchResults
+    ? [
+        ...searchResults.properties.map((p) => ({
+          key: `property-${p.id}`,
+          path: `/property/${p.id}/Overview`,
+          primary: p.name || p.address_line1,
+          secondary: [p.address_line1, [p.city, p.state].filter(Boolean).join(", ")]
+            .filter(Boolean)
+            .join(" · "),
+          group: "Properties" as const,
+        })),
+        ...searchResults.owners.map((o) => ({
+          key: `owner-${o.id}`,
+          path: `/property/${o.property_id}/Owners`,
+          primary: o.name,
+          secondary: [o.property_name, o.email].filter(Boolean).join(" · "),
+          group: "Owners" as const,
+        })),
+        ...searchResults.vendors.map((v) => ({
+          key: `vendor-${v.id}`,
+          path: `/vendors/${v.id}`,
+          primary: v.name,
+          secondary: [v.category, v.primary_email || v.phone].filter(Boolean).join(" · "),
+          group: "Vendors" as const,
+        })),
+      ]
+    : [];
+
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    if (trimmed.length < 2) {
+      setSearchResults(null);
+      setSearchLoading(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    const requestId = ++searchRequestIdRef.current;
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await globalSearch(trimmed);
+        if (searchRequestIdRef.current === requestId) {
+          setSearchResults(res);
+          setActiveResultIndex(0);
+        }
+      } catch {
+        if (searchRequestIdRef.current === requestId) setSearchResults(null);
+      } finally {
+        if (searchRequestIdRef.current === requestId) setSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchQuery]);
+
+  // ⌘S / Ctrl+S focuses the search bar from anywhere (matches the badge shown next to it)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      } else if (e.key === "Escape" && document.activeElement === searchInputRef.current) {
+        setSearchOpen(false);
+        searchInputRef.current?.blur();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // Close the dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearchQuery("");
+    setSearchResults(null);
+  };
+
+  const goToSearchResult = (result: FlatSearchResult) => {
+    navigate(result.path);
+    closeSearch();
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!searchOpen || flatSearchResults.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveResultIndex((i) => (i + 1) % flatSearchResults.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveResultIndex((i) => (i - 1 + flatSearchResults.length) % flatSearchResults.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const result = flatSearchResults[activeResultIndex];
+      if (result) goToSearchResult(result);
+    }
+  };
 
   // Identity for the URL is computed by the central tabRoutes module so Header,
   // Sidebar, ShellLayout, and usePageState can't drift from each other.
@@ -1116,39 +1248,104 @@ export default function Header() {
         {!isFullscreen && (
           <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
             {/* Search Bar */}
-            <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 w-28 sm:w-40 md:w-56 lg:w-72 xl:w-96 min-w-0">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="text-gray-700 flex-shrink-0"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.34-4.34" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-500 min-w-0"
-                />
+            <div ref={searchContainerRef} className="relative w-28 sm:w-40 md:w-56 lg:w-72 xl:w-96 min-w-0 flex-shrink-0">
+              <div className="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 min-w-0">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="text-gray-700 flex-shrink-0"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.34-4.34" />
+                  </svg>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Search properties, owners, vendors..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSearchOpen(true);
+                    }}
+                    onFocus={() => setSearchOpen(true)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-500 min-w-0"
+                  />
+                </div>
+                {searchQuery ? (
+                  <button
+                    onClick={closeSearch}
+                    aria-label="Clear search"
+                    className="text-gray-400 hover:text-gray-700 flex-shrink-0"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 font-medium flex-shrink-0">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
+                    </svg>
+                    <span>S</span>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-2 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 font-medium flex-shrink-0">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
-                </svg>
-                <span>S</span>
-              </div>
+
+              {searchOpen && searchQuery.trim().length >= 2 && (
+                <div className="absolute left-0 right-0 top-full mt-1 max-h-96 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  {searchLoading && !searchResults && (
+                    <div className="px-4 py-3 text-sm text-gray-500">Searching…</div>
+                  )}
+                  {searchResults && flatSearchResults.length === 0 && !searchLoading && (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      No results for "{searchQuery.trim()}"
+                    </div>
+                  )}
+                  {(["Properties", "Owners", "Vendors"] as const).map((group) => {
+                    const items = flatSearchResults.filter((r) => r.group === group);
+                    if (items.length === 0) return null;
+                    return (
+                      <div key={group} className="py-1 first:pt-2 last:pb-2">
+                        <div className="px-4 pt-1.5 pb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                          {group}
+                        </div>
+                        {items.map((item) => {
+                          const globalIndex = flatSearchResults.indexOf(item);
+                          const isActive = globalIndex === activeResultIndex;
+                          return (
+                            <button
+                              key={item.key}
+                              onMouseEnter={() => setActiveResultIndex(globalIndex)}
+                              onClick={() => goToSearchResult(item)}
+                              className={`w-full text-left px-4 py-2 flex flex-col min-w-0 ${
+                                isActive ? "bg-gray-100" : "hover:bg-gray-50"
+                              }`}
+                            >
+                              <span className="text-sm text-gray-900 truncate">{item.primary}</span>
+                              {item.secondary && (
+                                <span className="text-xs text-gray-500 truncate">{item.secondary}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Favorites/Star Button */}

@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import TopNav from "@/components/TopNav";
 import { useTabContext } from "@/hooks/useTabContext";
+import { useNavLayoutMode } from "@/hooks/useNavLayoutMode";
 import { PropertyBreadcrumbProvider } from "@/hooks/PropertyBreadcrumbContext";
 
 const FULLSCREEN_KEY = "app-fullscreen-mode";
@@ -43,6 +45,7 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   const [isFullscreen, setIsFullscreen] = useState(getFullscreenMode());
   const [forceCollapse, setForceCollapse] = useState(isModalLikePage(location.pathname));
+  const [navMode] = useNavLayoutMode();
 
   // Listen for fullscreen mode changes
   useEffect(() => {
@@ -105,19 +108,22 @@ export default function ShellLayout({ children }: ShellLayoutProps) {
 
   return (
     <PropertyBreadcrumbProvider>
-      <div className="flex h-screen bg-gray-50 overflow-hidden">
-        <Sidebar forceCollapse={forceCollapse} />
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <Header forceCollapse={forceCollapse} />
-          <div
-            ref={mainContentRef}
-            data-testid="main-content"
-            className="flex-1 overflow-auto bg-white flex flex-col"
-            style={{ borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
-          >
-            <div className="flex-1">{children}</div>
-          </div>
-        </main>
+      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+        {navMode === "top" && <TopNav hidden={forceCollapse} />}
+        <div className="flex flex-1 overflow-hidden">
+          {navMode === "side" && <Sidebar forceCollapse={forceCollapse} />}
+          <main className="flex-1 flex flex-col overflow-hidden">
+            <Header forceCollapse={forceCollapse} />
+            <div
+              ref={mainContentRef}
+              data-testid="main-content"
+              className="flex-1 overflow-auto bg-white flex flex-col"
+              style={{ borderLeftWidth: "1px", borderLeftColor: "#d2d1cf" }}
+            >
+              <div className="flex-1">{children}</div>
+            </div>
+          </main>
+        </div>
       </div>
     </PropertyBreadcrumbProvider>
   );

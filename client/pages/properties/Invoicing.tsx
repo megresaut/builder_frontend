@@ -2453,6 +2453,26 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       Not emailed to client
                     </span>
                   ))}
+
+                {/* Sent invoices carrying a genuine partial payment — a nonzero
+                    payment_amount_cents on a still-'sent' invoice can only mean
+                    MarkPaid's own CAS UPDATE decided it didn't cover the total,
+                    so this is safe to derive client-side without a separate
+                    stored status (mirrors how 'refunded' is derived, not
+                    stored). Clickable — reuses the same payment-detail view
+                    paid/refunded invoices get via "View Payment". */}
+                {currentInvoiceStatus === "sent" &&
+                  currentInvoicePaymentCents > 0 &&
+                  currentInvoiceId && (
+                    <button
+                      type="button"
+                      onClick={() => void openPaymentDetail(currentInvoiceId)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100 transition-colors"
+                      title={`$${(currentInvoicePaymentCents / 100).toFixed(2)} of $${currentInvoiceTotalCents ? (currentInvoiceTotalCents / 100).toFixed(2) : "?"} recorded. Click to view the payment.`}
+                    >
+                      Partially paid
+                    </button>
+                  )}
               </div>
             }
             headerActions={
@@ -3088,11 +3108,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                         </DropdownMenuItem>
                       )}
 
-                    {/* Paid (or refunded, which is still stored as paid) invoices
-                        only — the endpoint answers 409 on anything else, and
-                        there is no payment to show before then. */}
+                    {/* Paid, refunded (still stored as paid), or sent-with-a-
+                        recorded-partial-payment — the endpoint answers 409 on
+                        anything else, and there is no payment to show before
+                        then. */}
                     {(currentInvoiceStatus === "paid" ||
-                      currentInvoiceStatus === "refunded") &&
+                      currentInvoiceStatus === "refunded" ||
+                      (currentInvoiceStatus === "sent" &&
+                        currentInvoicePaymentCents > 0)) &&
                       currentInvoiceId && (
                         <DropdownMenuItem
                           title="View what the platform recorded next to what QuickBooks currently says"

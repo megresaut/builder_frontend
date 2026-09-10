@@ -13,6 +13,8 @@ import {
   ChevronDownIcon,
   CloseIcon,
 } from "@/components/icons";
+import NavLayoutToggle from "@/components/NavLayoutToggle";
+import { useNavLayoutMode } from "@/hooks/useNavLayoutMode";
 
 interface SidebarItem {
   id: string;
@@ -50,6 +52,7 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
   const [userName, setUserName] = useState<string>("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [navMode, setNavMode] = useNavLayoutMode();
 
   const handleLogout = async () => {
     await logoutRequest();
@@ -1016,6 +1019,12 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
           </div>
 
           <div className="flex flex-col" style={{ gap: "16px" }}>
+            {!isFtoMode && (
+              <div className="flex items-center justify-between px-3">
+                <span className="text-sm text-gray-700">Top navigation</span>
+                <NavLayoutToggle mode={navMode} onChange={setNavMode} />
+              </div>
+            )}
             <div
               className="flex flex-col"
               style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}
@@ -1371,6 +1380,12 @@ export default function Sidebar({ forceCollapse = false, mode = "default" }: Sid
           </div>
 
           <div className="flex flex-col" style={{ gap: "16px" }}>
+            {!isFtoMode && (
+              <div className="flex items-center justify-between px-3">
+                <span className="text-sm text-gray-700">Top navigation</span>
+                <NavLayoutToggle mode={navMode} onChange={setNavMode} />
+              </div>
+            )}
             <div
               className="flex flex-col"
               style={{ paddingTop: "16px", paddingBottom: "16px", gap: "6px" }}

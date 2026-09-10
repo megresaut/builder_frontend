@@ -167,11 +167,27 @@ const prettifyImportError = (msg: string | null | undefined): string => {
   return "Scrape failed. Please try again. If you’ve already tried this twice, contact support.";
 };
 
-// Poll a utilities job until it is succeeded/failed or times out
+// The backend's own safety nets (scripts/scrape-python's in-container
+// `timeout`, and worker.go's stale-job reaper) resolve any job within ~40
+// minutes even in the worst case (a hung scrape + an API restart on top of
+// it). MAX_POLL_WAIT_MS sits comfortably above that, so this only ever fires
+// if the backend's own backstops have somehow ALSO failed — not on a merely
+// slow scrape.
+//
+// Before 2026-09-10 this loop had no bound at all: a hung backend job (see
+// scripts/scrape-python's comment) left this polling every 2s forever, on
+// every page load, for anyone who had triggered that import — "Importing…"
+// with no way to escape except manually clearing localStorage.
+const MAX_POLL_WAIT_MS = 45 * 60 * 1000;
+
+// Poll a utilities job until it is succeeded/failed, or MAX_POLL_WAIT_MS
+// elapses (in which case a synthetic "failed" status is returned so callers
+// don't need special-case handling for a third outcome).
 const pollJobStatus = async (
   jobId: number,
   intervalMs = 2000,
 ): Promise<UtilityJobStatusDTO> => {
+  const deadline = Date.now() + MAX_POLL_WAIT_MS;
   while (true) {
     const job = await fetchJSON(`/utilities/jobs/${jobId}`);
 
@@ -183,6 +199,15 @@ const pollJobStatus = async (
       job.status === "push_failed"
     ) {
       return job;
+    }
+
+    if (Date.now() >= deadline) {
+      return {
+        job_id: jobId,
+        status: "failed",
+        message:
+          "Import timed out waiting for a status update. It may still finish in the background — check back, or try again.",
+      };
     }
 
     await delay(intervalMs);
@@ -1125,6 +1150,19 @@ const handleBatchImport = async () => {
             }));
           }
         })
+        .catch(err => {
+          // Without this, a network error here leaves accountImportStatus
+          // stuck on "importing" for this account until the page is
+          // reloaded — .finally() below still clears storage, so a reload
+          // recovers, but the current view wouldn't.
+          setAccountImportStatus(prev => ({
+            ...prev,
+            [accountId]: {
+              state: "failed",
+              message: prettifyImportError(err?.message ?? null),
+            },
+          }));
+        })
         .finally(async () => {
           removeStoredJob(accountId);
           remaining -= 1;
@@ -1276,6 +1314,16 @@ useEffect(() => {
     const accountId = Number(accountIdStr);
     const jobId = info.jobId;
 
+    // A job stored well past MAX_POLL_WAIT_MS ago was abandoned on some
+    // earlier page load (e.g. the tab was closed mid-poll) — the backend has
+    // certainly already resolved it one way or another by now, so don't
+    // resume polling; just drop the stale bookkeeping and let the account's
+    // real last-import state (from the accounts fetch) speak for itself.
+    if (Date.now() - info.startedAt > MAX_POLL_WAIT_MS) {
+      removeStoredJob(accountId);
+      return;
+    }
+
     // show importing immediately
     setAccountImportStatus(prev => ({
       ...prev,
@@ -1283,22 +1331,36 @@ useEffect(() => {
     }));
 
     // poll once to resolve
-    pollJobStatus(jobId).then(job => {
-      if (job.status === "failed") {
-        const pretty = prettifyImportError(job.message);
+    pollJobStatus(jobId)
+      .then(job => {
+        if (job.status === "failed") {
+          const pretty = prettifyImportError(job.message);
+          setAccountImportStatus(prev => ({
+            ...prev,
+            [accountId]: { state: "failed", message: pretty },
+          }));
+        } else {
+          setAccountImportStatus(prev => ({
+            ...prev,
+            [accountId]: { state: "imported" },
+          }));
+        }
+      })
+      .catch(err => {
+        // A network error here must not leave the account wedged in
+        // "importing" forever on every future reload — surface it as a
+        // failure instead, same as a genuine scrape failure would be.
         setAccountImportStatus(prev => ({
           ...prev,
-          [accountId]: { state: "failed", message: pretty },
+          [accountId]: {
+            state: "failed",
+            message: prettifyImportError(err?.message ?? null),
+          },
         }));
-      } else {
-        setAccountImportStatus(prev => ({
-          ...prev,
-          [accountId]: { state: "imported" },
-        }));
-      }
-
-      removeStoredJob(accountId);
-    });
+      })
+      .finally(() => {
+        removeStoredJob(accountId);
+      });
   });
 }, []);
 

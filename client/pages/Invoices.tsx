@@ -389,7 +389,11 @@ export default function Invoices() {
         );
       case "status":
         return (
-          <StatusBadge status={inv.status} refundedCents={inv.refunded_cents} />
+          <StatusBadge
+            status={inv.status}
+            refundedCents={inv.refunded_cents}
+            paymentAmountCents={inv.payment_amount_cents}
+          />
         );
       case "qboSync":
         return <QBOStatusCell row={inv} />;
@@ -693,9 +697,11 @@ function SummaryTile({
 function StatusBadge({
   status,
   refundedCents,
+  paymentAmountCents,
 }: {
   status: InvoiceStatus;
   refundedCents?: number;
+  paymentAmountCents?: number | null;
 }) {
   // Refunded is derived, not a stored status — mirrors how 'ready' is derived
   // for drafts. A refunded invoice stays 'paid' underneath; this only changes
@@ -704,6 +710,19 @@ function StatusBadge({
     return (
       <span className="inline-block px-2 py-0.5 text-xs rounded-full border bg-violet-50 text-violet-700 border-violet-200">
         Refunded
+      </span>
+    );
+  }
+  // Partially paid is likewise derived, not stored: a nonzero
+  // payment_amount_cents on a still-'sent' invoice can only mean MarkPaid's
+  // own CAS UPDATE decided the amount (plus any credits) didn't cover the
+  // total — every other writer of payment_amount_cents either goes through
+  // that same path or clears it back to NULL, so this is safe without
+  // re-fetching credit totals here.
+  if (status === "sent" && paymentAmountCents && paymentAmountCents > 0) {
+    return (
+      <span className="inline-block px-2 py-0.5 text-xs rounded-full border bg-orange-50 text-orange-800 border-orange-200">
+        Partially paid
       </span>
     );
   }
