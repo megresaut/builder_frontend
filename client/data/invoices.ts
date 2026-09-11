@@ -192,6 +192,28 @@ export async function disputeInvoiceLine(
   });
 }
 
+// markBillCollected flags a vendor/utility line's underlying bill as already
+// collected outside the invoicing flow (the owner paid it some other way) —
+// removes the line from the invoice and permanently stops that bill from
+// rolling forward onto a future one. Unlike disputeInvoiceLine this records
+// no client credit, vendor credit, or loss; note is an optional free-text
+// explanation stored with the flag for audit purposes.
+export async function markBillCollected(
+  invoiceID: number,
+  lineID: number,
+  note?: string,
+): Promise<unknown> {
+  return fetchJSON(`/invoicing/mark-bill-collected`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      invoice_id: invoiceID,
+      line_id: lineID,
+      note: note ?? "",
+    }),
+  });
+}
+
 // One QBO Item selectable as the GL Account for a manually-added invoice
 // line — every active Item with an income account configured, so a manual
 // line always books to real AVMRE income (never a passthrough/liability

@@ -34,6 +34,7 @@ import {
   editInvoiceLineItems,
   fetchInvoicePaymentDetail,
   getInvoiceRefunds,
+  markBillCollected,
   uploadInvoicePaymentReceipt,
   type InvoicePaymentDetailProps,
 } from "@/data/invoices";
@@ -640,6 +641,14 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   // After voiding on an issued invoice, the preview modal opens in this mode to
   // regenerate + re-attach the corrected PDF to QBO, then closes itself.
   const [reExportMode, setReExportMode] = useState(false);
+  // "Mark as collected" confirm dialog: the InvoiceItem whose underlying bill
+  // the owner already paid outside the invoicing flow (null = closed). Kept
+  // fully separate from the dispute dialog's state above — no credit split to
+  // track, just an optional note.
+  const [markCollectedTargetLine, setMarkCollectedTargetLine] =
+    useState<InvoiceItem | null>(null);
+  const [markCollectedNote, setMarkCollectedNote] = useState("");
+  const [markingCollected, setMarkingCollected] = useState(false);
   // Send-to-client dialog: collects the client email, then emails the QBO
   // invoice via POST /invoicing/send.
   const [sendToOpen, setSendToOpen] = useState(false);
@@ -2630,6 +2639,42 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   item?.id === CREDIT_ROW_ID,
               },
               {
+                label: () => "Mark as collected",
+                icon: (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 6L9 17l-5-5"
+                      stroke="#059669"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ),
+                onClick: (item: any) => {
+                  setMarkCollectedNote("");
+                  setMarkCollectedTargetLine(item);
+                },
+                // The owner already paid this bill some other way — only
+                // meaningful for a bill-backed (vendor/utility) line, and only
+                // while the line is still unpaid: same as a plain void, this
+                // is rejected server-side once the invoice has actually
+                // collected payment for it (nothing left to "remove").
+                hidden: (item: any) =>
+                  !currentInvoiceId ||
+                  currentInvoiceStatus === "void" ||
+                  currentInvoiceStatus === "paid" ||
+                  currentInvoiceStatus === "refunded" ||
+                  !(item?.sourceType === "vendor" || item?.sourceType === "utility") ||
+                  item?.id === CREDIT_ROW_ID,
+              },
+              {
                 label: () => "Edit line items",
                 icon: (
                   <svg
@@ -3634,6 +3679,113 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             </AlertDialog>
           );
         })()}
+
+      {/* Mark-as-collected confirmation: distinct from the dispute dialog
+          above — no credit amounts, just "remove this line, stop the bill
+          from rolling forward, optionally note why". */}
+      {markCollectedTargetLine && (
+        <AlertDialog
+          open={!!markCollectedTargetLine}
+          onOpenChange={(open) => {
+            if (!open && !markingCollected) setMarkCollectedTargetLine(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Mark as collected</AlertDialogTitle>
+              <AlertDialogDescription>
+                The owner already paid this outside the invoicing flow. This
+                removes the line from this invoice and stops the underlying
+                bill from ever rolling forward onto a future one — it's not a
+                dispute, so no credit is recorded anywhere.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className="space-y-3 text-sm">
+              <div className="rounded-md border border-gray-200 px-3 py-2">
+                <div className="flex justify-between gap-4">
+                  <span className="text-gray-700">
+                    {markCollectedTargetLine.description ||
+                      markCollectedTargetLine.source}
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {markCollectedTargetLine.amount}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Note (optional)
+                </label>
+                <textarea
+                  value={markCollectedNote}
+                  onChange={(e) => setMarkCollectedNote(e.target.value)}
+                  rows={2}
+                  className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+                  placeholder="e.g. owner paid the vendor directly in April"
+                />
+              </div>
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={markingCollected}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={markingCollected}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  if (!currentInvoiceId || !markCollectedTargetLine) return;
+                  setMarkingCollected(true);
+                  const toastId = toast.loading("Marking as collected…");
+                  const wasIssued =
+                    currentInvoiceStatus === "ready" ||
+                    currentInvoiceStatus === "sent";
+                  try {
+                    await markBillCollected(
+                      currentInvoiceId,
+                      markCollectedTargetLine.id,
+                      markCollectedNote,
+                    );
+                    setMarkCollectedTargetLine(null);
+                    await loadInvoiceForProperty();
+                    if (wasIssued) {
+                      // Regenerate + re-attach the corrected PDF, same as the
+                      // dispute flow — the backend already re-synced QBO's
+                      // line items, but the emailed PDF is separate.
+                      setInvoicePreviewLineItems([]);
+                      setReExportMode(true);
+                      setShowInvoicePreview(true);
+                      toast.success("Marked as collected", {
+                        id: toastId,
+                        description:
+                          "Invoice updated in QuickBooks; refreshing the attached PDF…",
+                      });
+                    } else {
+                      setShowInvoicePreview(false);
+                      toast.success("Marked as collected", {
+                        id: toastId,
+                        description:
+                          "Removed from this invoice — it won't roll forward again.",
+                      });
+                    }
+                  } catch (err: any) {
+                    toast.error("Failed to mark as collected", {
+                      id: toastId,
+                      description: err?.message ?? "Unexpected error",
+                    });
+                  } finally {
+                    setMarkingCollected(false);
+                  }
+                }}
+              >
+                {markingCollected ? "Marking…" : "Mark as collected"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       {/* Send-to-client: compose the email (subject/body prefilled from the
           server preview, PDF + pay link attached server-side), or fall back
