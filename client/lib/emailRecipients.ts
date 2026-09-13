@@ -8,6 +8,12 @@
 // accepts is a list the server accepts.
 const ADDRESS_PATTERN = /^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/;
 
+// Shared with EmailChipsInput, which flags an unfinished/malformed chip
+// inline rather than waiting for the parseRecipients error on submit.
+export function isValidEmailAddress(address: string): boolean {
+  return ADDRESS_PATTERN.test(address);
+}
+
 export type ParsedRecipients =
   | { addresses: string[]; error?: undefined }
   | { addresses?: undefined; error: string };

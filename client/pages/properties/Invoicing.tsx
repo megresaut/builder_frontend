@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Plus, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useEffect } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
+import EmailChipsInput from "@/components/EmailChipsInput";
 import { useSortingTable } from "@/hooks/useSortingTable";
 import { useColumnManagement } from "@/hooks/useColumnManagement";
 import ColumnFilterModal from "@/components/ColumnFilterModal";
@@ -3825,41 +3826,28 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="block text-xs font-medium text-gray-600">
-                  To <span className="text-gray-400">(comma-separated)</span>
+                  To <span className="text-gray-400">(press Enter after each address)</span>
                 </label>
-                {/* type="text", not "email": the browser's own email
-                    validation rejects a comma-separated list, which this field
-                    accepts. parseRecipients does the validating. */}
-                <input
-                  type="text"
+                <EmailChipsInput
                   autoFocus
                   value={sendToEmail}
-                  onChange={(e) => setSendToEmail(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (
-                      e.key === "Enter" &&
-                      !sendingInvoice &&
-                      !emailPreviewLoading &&
-                      !emailPreviewError
-                    ) {
-                      e.preventDefault();
+                  onChange={setSendToEmail}
+                  onEnterWithNoDraft={() => {
+                    if (!sendingInvoice && !emailPreviewLoading && !emailPreviewError) {
                       void handleSendToClient();
                     }
                   }}
-                  placeholder="client@example.com, second@example.com"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764]"
+                  placeholder="client@example.com"
                 />
               </div>
               <div className="space-y-1">
                 <label className="block text-xs font-medium text-gray-600">
                   Cc <span className="text-gray-400">(optional)</span>
                 </label>
-                <input
-                  type="text"
+                <EmailChipsInput
                   value={sendToCc}
-                  onChange={(e) => setSendToCc(e.target.value)}
-                  placeholder="comma-separated"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#013764]"
+                  onChange={setSendToCc}
+                  placeholder="cc@example.com"
                 />
               </div>
             </div>

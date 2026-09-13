@@ -104,6 +104,7 @@ import { deriveProjectProgress, progressSubtitle } from "@/lib/projectProgress";
 import { plainTextToHtml } from "@/lib/plainTextToHtml";
 import { parseRecipients, activeOwnerEmailsToString } from "@/lib/emailRecipients";
 import { fetchOwnersByProperty } from "@/data/owners";
+import EmailChipsInput from "@/components/EmailChipsInput";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { VendorPicker } from "@/components/VendorPicker";
 import PersonAvatars from "@/components/PersonAvatars";
@@ -4086,45 +4087,32 @@ export function ProjectInvoiceDetailModal({
             )}
 
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <label className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                  To <span className="normal-case text-gray-400">(comma-separated)</span>
+                  To <span className="normal-case text-gray-400">(press Enter after each address)</span>
                 </span>
-                {/* type="text", not "email": the browser's own email validation
-                    rejects a comma-separated list, which this field accepts.
-                    parseRecipients does the validating. */}
-                <input
-                  type="text"
+                <EmailChipsInput
                   autoFocus
                   value={emailTo}
-                  onChange={(e) => setEmailTo(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (
-                      e.key === "Enter" &&
-                      !sendingInvoiceEmail &&
-                      !emailPreviewLoading &&
-                      !emailPreviewError
-                    ) {
-                      e.preventDefault();
+                  onChange={setEmailTo}
+                  onEnterWithNoDraft={() => {
+                    if (!sendingInvoiceEmail && !emailPreviewLoading && !emailPreviewError) {
                       void handleSendPlatformEmail();
                     }
                   }}
-                  placeholder="client@example.com, second@example.com"
-                  className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900"
+                  placeholder="client@example.com"
                 />
-              </label>
-              <label className="flex flex-col gap-1">
+              </div>
+              <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
                   Cc <span className="normal-case text-gray-400">(optional)</span>
                 </span>
-                <input
-                  type="text"
+                <EmailChipsInput
                   value={emailCc}
-                  onChange={(e) => setEmailCc(e.target.value)}
-                  placeholder="comma-separated"
-                  className="h-9 rounded-lg border border-[#DADADA] bg-white px-3 text-sm text-gray-900"
+                  onChange={setEmailCc}
+                  placeholder="cc@example.com"
                 />
-              </label>
+              </div>
             </div>
 
             <label className="mt-3 flex flex-col gap-1">
