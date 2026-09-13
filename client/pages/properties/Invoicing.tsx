@@ -63,7 +63,7 @@ import { toast } from "sonner";
 import { openAuthPdf } from "@/api/openAuthPdf";
 import { UNIT_EMPTY_DISPLAY } from "@/utils/unitLabel";
 import { plainTextToHtml } from "@/lib/plainTextToHtml";
-import { parseRecipients } from "@/lib/emailRecipients";
+import { parseRecipients, activeOwnerEmailsToString } from "@/lib/emailRecipients";
 import { approveRouteForSubmission } from "@/lib/ftoRoute";
 
 import glAccounts from "@/data/gl_accounts.json";  
@@ -691,6 +691,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [paymentDetailError, setPaymentDetailError] = useState<string | null>(null);
   const [loadingInvoice, setLoadingInvoice] = useState(false);
   const [propertyOwnerName, setPropertyOwnerName] = useState<string>("");
+  // Comma-joined emails of this property's active owners, used to autofill
+  // (not lock) the "Send to client" To field.
+  const [ownerEmailsForInvoice, setOwnerEmailsForInvoice] = useState<string>("");
   const [fetchedPropertyLocation, setFetchedPropertyLocation] = useState<string>("");
   const [locationGroups, setLocationGroups] = useState<LocationGroupsResponse | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string>("");
@@ -959,6 +962,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
             [firstOwner.first_name, firstOwner.last_name].filter(Boolean).join(" ");
           if (name) setPropertyOwnerName(name);
         }
+        setOwnerEmailsForInvoice(activeOwnerEmailsToString(ownerList));
 
         // Extract city, state, zip for property location
         const zip = property.zip || property.zipcode || property.zip_code ||
@@ -2942,7 +2946,9 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        setSendToEmail("");
+                        // Autofill from this property's active owners; still
+                        // freely editable before sending.
+                        setSendToEmail(ownerEmailsForInvoice);
                         setSendToCc("");
                         setEmailSubject("");
                         setEmailBody("");

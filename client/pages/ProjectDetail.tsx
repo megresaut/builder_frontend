@@ -102,7 +102,8 @@ import {
 } from "@/components/projects/ProjectEditors";
 import { deriveProjectProgress, progressSubtitle } from "@/lib/projectProgress";
 import { plainTextToHtml } from "@/lib/plainTextToHtml";
-import { parseRecipients } from "@/lib/emailRecipients";
+import { parseRecipients, activeOwnerEmailsToString } from "@/lib/emailRecipients";
+import { fetchOwnersByProperty } from "@/data/owners";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { VendorPicker } from "@/components/VendorPicker";
 import PersonAvatars from "@/components/PersonAvatars";
@@ -2932,6 +2933,7 @@ function FinancialsTab({
       {detail && (
         <ProjectInvoiceDetailModal
           invoice={detail}
+          propertyId={summary.project.property_id}
           onSend={(paymentMethod) =>
             doSend(detail.id, { skipConfirm: true, paymentMethod })
           }
@@ -3601,6 +3603,7 @@ export function ProjectInvoiceBuilderModal({
 /** Exported for render tests (ProjectInvoiceDetailModal.editDelete.test.tsx). */
 export function ProjectInvoiceDetailModal({
   invoice,
+  propertyId,
   onSend,
   onMarkSent,
   onEmail,
@@ -3613,6 +3616,7 @@ export function ProjectInvoiceDetailModal({
   onClose,
 }: {
   invoice: ProjectInvoice;
+  propertyId: number;
   // paymentMethod ("ach"/"card") adds a one-time ACH/credit-card processing-fee
   // line before booking A/R; undefined (the "No fee" choice in the confirm
   // panel) adds none. There's no local payment history to auto-detect from —
@@ -3671,10 +3675,23 @@ export function ProjectInvoiceDetailModal({
     "none",
   );
   // Compose box for the platform email rail (sent from billing@avmre.com).
-  // "To" starts blank on every open — there is no reliable recipient
-  // source of truth (mirrors the monthly-invoice compose box's decision, see
-  // client/pages/properties/Invoicing.tsx).
+  // "To" is autofilled from the project's property's active owner emails on
+  // open (mirrors the monthly-invoice compose box, see
+  // client/pages/properties/Invoicing.tsx) but stays freely editable.
   const [emailTo, setEmailTo] = useState("");
+  const [ownerEmailsForInvoice, setOwnerEmailsForInvoice] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchOwnersByProperty(propertyId)
+      .then((owners) => {
+        if (!cancelled) setOwnerEmailsForInvoice(activeOwnerEmailsToString(owners));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [propertyId]);
   const [emailCc, setEmailCc] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
@@ -3728,7 +3745,7 @@ export function ProjectInvoiceDetailModal({
   };
 
   const openEmailPanel = () => {
-    setEmailTo("");
+    setEmailTo(ownerEmailsForInvoice);
     setEmailCc("");
     setEmailSubject("");
     setEmailBody("");

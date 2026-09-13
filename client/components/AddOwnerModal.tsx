@@ -243,7 +243,9 @@ export default function AddOwnerModal({
           tax_id: taxId.trim(),
         });
         ownerId = created.id;
-        await linkOwnerToUnit(ownerId, unitId);
+        if (unitId) {
+          await linkOwnerToUnit(ownerId, unitId);
+        }
         toast.success("Owner added");
       }
 

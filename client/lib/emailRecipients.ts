@@ -33,3 +33,25 @@ export function parseRecipients(input: string): ParsedRecipients {
   }
   return { addresses };
 }
+
+// Builds the autofill value for an invoice email modal's "To" field from a
+// property's owners: active owners only, deduped case-insensitively (first
+// spelling kept), comma-joined so it round-trips straight through
+// parseRecipients. Owners with no email on file are skipped rather than
+// producing an empty address.
+export function activeOwnerEmailsToString(
+  owners: { email: string | null; status: string }[],
+): string {
+  const seen = new Set<string>();
+  const addresses: string[] = [];
+  for (const o of owners) {
+    if (o.status !== "active" || !o.email) continue;
+    const address = o.email.trim();
+    if (!address) continue;
+    const key = address.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    addresses.push(address);
+  }
+  return addresses.join(", ");
+}
