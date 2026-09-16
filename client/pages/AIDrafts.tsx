@@ -1622,7 +1622,7 @@ export default function AIDrafts() {
             open={showFTOModal}
             onOpenChange={(open) => { if (!open) closeModal(); }}
             {...(parentTaskName ? { lockedTaskLabel: parentTaskName } : {})}
-            onApprove={async () => { const ok = await handleApprove(editingDraft); if (ok) closeModal(); }}
+            onApprove={async (overrides) => { const ok = await handleApprove(editingDraft, false, overrides); if (ok) closeModal(); }}
             onReject={async () => { await handleReject(editingDraft); closeModal(); }}
             editingFTO={{
               id: 0,
@@ -1634,6 +1634,7 @@ export default function AIDrafts() {
               event_start_at: editingDraft.extracted_data?.event_start_at || null,
               event_end_at: editingDraft.extracted_data?.event_end_at || null,
               property_id: editingDraft.extracted_data?.property_id,
+              location_id: editingDraft.extracted_data?.location_id ?? null,
               field_team_member_ids: editingDraft.extracted_data?.field_team_member_ids || [],
               pm_assignee_ids: [],
             }}

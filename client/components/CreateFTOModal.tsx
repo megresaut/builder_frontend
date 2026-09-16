@@ -89,7 +89,7 @@ interface CreateFTOModalProps {
   lockedTaskId?: number;
   lockedTaskLabel?: string;
   /** Draft review mode — shows Approve/Reject instead of Update/Cancel */
-  onApprove?: () => void;
+  onApprove?: (overrides: Record<string, any>) => void | Promise<void>;
   onReject?: () => void;
   onSuccess?: () => void;
 }
@@ -472,6 +472,27 @@ export default function CreateFTOModal({
   };
   
 
+  // Build overrides from current form state and approve — lets a PM correct a
+  // bad AI draft (e.g. a hallucinated/mismatched location) in this modal before
+  // approving, instead of the edit being silently discarded on Approve.
+  const handleApproveClick = async () => {
+    if (!validateForm() || !onApprove) return;
+    const overrides: Record<string, any> = {
+      name: ftoName.trim(),
+      description: description.trim(),
+      priority,
+      due_date: dueDate!.toISOString(),
+      property_id: selectedPropertyId,
+      field_team_member_ids: fieldTeamMemberIds,
+      pm_assignee_ids: pmAssigneeIds,
+    };
+    overrides.unit_id = selectedUnitId !== null ? selectedUnitId : null;
+    overrides.location_id = selectedLocationId !== null ? selectedLocationId : null;
+    if (eventStartAt) overrides.event_start_at = new Date(eventStartAt).toISOString();
+    if (eventEndAt) overrides.event_end_at = new Date(eventEndAt).toISOString();
+    await onApprove(overrides);
+  };
+
   // Determine if in edit mode
   const isEditing = !!editingFTO;
   const isPropertyLocked = lockedPropertyId != null;
@@ -634,7 +655,7 @@ export default function CreateFTOModal({
             </button>
             <button
               type="button"
-              onClick={onApprove}
+              onClick={handleApproveClick}
               className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
             >
               Approve
