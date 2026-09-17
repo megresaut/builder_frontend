@@ -40,19 +40,31 @@ export function buildAddressLines(inspection: BackendInspection | null | undefin
   return lines;
 }
 
+// Cap the canvas at this many pixels on the long edge. Modern phone cameras
+// shoot 12MP+ (4032x3024) — drawing and re-encoding that at full resolution
+// on the main thread is what was hanging/crashing mobile WebViews with no
+// catchable error, silently dropping every photo before upload ever started.
+const MAX_DIMENSION = 2048;
+
+// If decoding/canvas work stalls (img.onload/onerror never fire, which does
+// happen on some mobile WebViews under memory pressure), don't hang the
+// upload forever — fall back to the original, unstamped file.
+const STAMP_TIMEOUT_MS = 8000;
+
 /**
  * Burns a timestamp + address stamp into the top-right corner of a photo,
  * matching the style used by property inspection camera apps.
  *
  * Entirely client-side (Canvas API) — works offline.
- * Falls back to the original file if canvas processing fails.
+ * Falls back to the original file if canvas processing fails, stalls, or
+ * takes too long.
  */
 export async function stampPhoto(
   file: File,
   capturedAt: Date,
   addressLines: string[]
 ): Promise<File> {
-  return new Promise((resolve) => {
+  const stamped = new Promise<File>((resolve) => {
     const img = new Image();
     const objectUrl = URL.createObjectURL(file);
 
@@ -60,20 +72,27 @@ export async function stampPhoto(
       URL.revokeObjectURL(objectUrl);
 
       try {
+        const scale = Math.min(
+          1,
+          MAX_DIMENSION / Math.max(img.naturalWidth, img.naturalHeight)
+        );
+        const width = Math.round(img.naturalWidth * scale);
+        const height = Math.round(img.naturalHeight * scale);
+
         const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext("2d");
         if (!ctx) {
           resolve(file);
           return;
         }
 
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, width, height);
 
-        // Scale font size relative to image width so it looks the same
-        // regardless of whether the photo is 12MP or a compressed thumbnail.
-        const fontSize = Math.max(20, Math.round(img.naturalWidth / 50));
+        // Scale font size relative to the (possibly downscaled) image width
+        // so it looks the same regardless of source resolution.
+        const fontSize = Math.max(20, Math.round(width / 50));
         const lineHeight = Math.round(fontSize * 1.45);
         const padding = Math.round(fontSize * 0.9);
 
@@ -84,7 +103,7 @@ export async function stampPhoto(
         const lines = [formatTimestamp(capturedAt), ...addressLines];
 
         lines.forEach((line, i) => {
-          const x = img.naturalWidth - padding;
+          const x = width - padding;
           const y = padding + i * lineHeight;
 
           // Dark shadow for visibility on both light and dark backgrounds
@@ -123,4 +142,10 @@ export async function stampPhoto(
 
     img.src = objectUrl;
   });
+
+  const timeout = new Promise<File>((resolve) => {
+    setTimeout(() => resolve(file), STAMP_TIMEOUT_MS);
+  });
+
+  return Promise.race([stamped, timeout]);
 }

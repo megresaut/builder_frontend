@@ -72,17 +72,30 @@ async function decodeToImageBitmap(file: File): Promise<ImageBitmap> {
    (fixes webp/gif/etc corrupt PDFs)
 ----------------------------- */
 
+// Final PDF page is a fixed 612x792pt (US Letter), so encoding at full
+// camera resolution (12-48MP on modern phones) only makes the canvas work
+// slower and more likely to stall/hang on mobile Safari, for zero visible
+// gain. Cap the longest edge before encoding.
+const MAX_ENCODE_DIMENSION = 2000;
+
 async function reencodeBitmapToJpegBytes(
   bitmap: ImageBitmap,
   quality = 0.95
 ): Promise<Uint8Array> {
+  const scale = Math.min(
+    1,
+    MAX_ENCODE_DIMENSION / Math.max(bitmap.width, bitmap.height)
+  );
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+
   const canvas = document.createElement("canvas");
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
+  canvas.width = width;
+  canvas.height = height;
 
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not get 2D context");
-  ctx.drawImage(bitmap, 0, 0);
+  ctx.drawImage(bitmap, 0, 0, width, height);
 
   const blob: Blob = await new Promise((resolve, reject) => {
     canvas.toBlob(
@@ -156,11 +169,34 @@ async function getEmbedBytesAndType(file: File): Promise<{
    Convert image → PDF (Letter)
 ----------------------------- */
 
+// createImageBitmap/canvas.toBlob are known to silently hang on iOS Safari
+// (e.g. the tab loses focus while the user is still in the Camera/Photos
+// picker) — they never resolve *or* reject. Without a hard ceiling here, a
+// stuck conversion blocks the attachment forever with no error surfaced.
+const CONVERSION_TIMEOUT_MS = 20_000;
+
 export async function convertFiletoPdf(input?: File): Promise<File> {
   if (!input) throw new Error("No file provided");
   if (isPdf(input)) return input;
   if (!isImage(input)) throw new Error("Unsupported file type");
 
+  return await Promise.race([
+    convertImageToPdf(input),
+    new Promise<File>((_, reject) =>
+      setTimeout(
+        () =>
+          reject(
+            new Error(
+              "Converting this photo took too long. Try a smaller photo or a different browser."
+            )
+          ),
+        CONVERSION_TIMEOUT_MS
+      )
+    ),
+  ]);
+}
+
+async function convertImageToPdf(input: File): Promise<File> {
   // Get safe-to-embed bytes
   const { embedType, bytes, normalizedName } = await getEmbedBytesAndType(input);
 

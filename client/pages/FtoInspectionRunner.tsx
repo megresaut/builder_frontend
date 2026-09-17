@@ -343,9 +343,13 @@ export default function FtoInspectionRunner() {
     // and burn it + the property address into the image pixels before upload.
     const capturedAt = new Date();
     const addressLines = buildAddressLines(inspectionData?.inspection ?? null);
-    const stampedFiles = await Promise.all(
-      files.map((f) => stampPhoto(f, capturedAt, addressLines))
-    );
+    // Stamp one photo at a time — running full-resolution canvas decodes for
+    // several camera photos in parallel is what was exhausting memory on
+    // mobile WebViews and silently dropping every selected photo.
+    const stampedFiles: File[] = [];
+    for (const f of files) {
+      stampedFiles.push(await stampPhoto(f, capturedAt, addressLines));
+    }
 
     setNewPhotoFiles(stampedFiles);
     setNewPhotoPreviews(stampedFiles.map((f) => URL.createObjectURL(f)));

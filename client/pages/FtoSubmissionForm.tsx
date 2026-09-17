@@ -3170,7 +3170,15 @@ export default function FtoSubmissionForm() {
                                   };
                                 } catch (err) {
                                   console.error("Upload error:", err);
-                                  return { ...item, error: "Upload failed" };
+                                  const message =
+                                    err instanceof Error
+                                      ? err.message
+                                      : "Upload failed";
+                                  return {
+                                    ...item,
+                                    uploading: false,
+                                    error: message,
+                                  };
                                 }
                               })
                             );
