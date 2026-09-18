@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, ReactNode } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Plus, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useEffect } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -205,6 +205,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
 }) => {
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -705,8 +706,56 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     date.setMonth(date.getMonth() - 1);
     return date;
   };
-  
-  const [selectedInvoiceMonth, setSelectedInvoiceMonth] = useState<Date>(getDefaultInvoiceMonth());
+
+  // Selected month is mirrored into the `month` URL param (e.g. "2026-06") so
+  // that the shared per-tab back button (useTabNavigation.goBack, which
+  // replays saved pathname+search strings) actually restores it. Without this,
+  // going back from "View Bill" remounts this component and it silently resets
+  // to the default (previous-from-today) month.
+  const getInvoiceMonthFromUrl = (): Date | null => {
+    const monthParam = searchParams.get("month");
+    if (!monthParam) return null;
+    const parsed = new Date(`${monthParam}-01T00:00:00`);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const [selectedInvoiceMonth, setSelectedInvoiceMonthState] = useState<Date>(
+    () => getInvoiceMonthFromUrl() ?? getDefaultInvoiceMonth(),
+  );
+
+  const setSelectedInvoiceMonth = (date: Date) => {
+    setSelectedInvoiceMonthState(date);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const next = new URLSearchParams(searchParams);
+    next.set("month", monthKey);
+    setSearchParams(next, { replace: true });
+  };
+
+  // Keep state in sync if the URL's month param changes out from under us
+  // (e.g. the tab-navigation back button restoring an earlier URL).
+  useEffect(() => {
+    const urlMonth = getInvoiceMonthFromUrl();
+    if (
+      urlMonth &&
+      (urlMonth.getFullYear() !== selectedInvoiceMonth.getFullYear() ||
+        urlMonth.getMonth() !== selectedInvoiceMonth.getMonth())
+    ) {
+      setSelectedInvoiceMonthState(urlMonth);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Canonicalize the URL on first mount so a later "back" navigation has a
+  // month to restore even if the user never touched the prev/next controls.
+  useEffect(() => {
+    if (!searchParams.get("month")) {
+      const monthKey = `${selectedInvoiceMonth.getFullYear()}-${String(selectedInvoiceMonth.getMonth() + 1).padStart(2, "0")}`;
+      const next = new URLSearchParams(searchParams);
+      next.set("month", monthKey);
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadInvoiceForProperty = async () => {
     if (!propertyId) return;
