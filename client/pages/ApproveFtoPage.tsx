@@ -3709,7 +3709,8 @@ export default function ApproveFTOPage() {
                 isApproving ||
                 (canExportToBuildium &&
                   expenseRows.length > 0 &&
-                  expenseRows.every((r) => r.exportedToBuildium))
+                  expenseRows.every((r) => r.exportedToBuildium) &&
+                  loadedFto?.form_submission_status === "complete")
               }
             >
               {isApproving
@@ -3718,7 +3719,8 @@ export default function ApproveFTOPage() {
                   : "Exporting…"
                 : canExportToBuildium &&
                     expenseRows.length > 0 &&
-                    expenseRows.every((r) => r.exportedToBuildium)
+                    expenseRows.every((r) => r.exportedToBuildium) &&
+                    loadedFto?.form_submission_status === "complete"
                   ? "Already exported"
                   : isMiscMode
                     ? "Approve Expense"
