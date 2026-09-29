@@ -311,12 +311,18 @@ export default function AddPropertyModal({
       postal_code: zipCode,
       property_type: UIPropertyTypeToBackend[propertyType] || propertyType,
       active: status === "active",
-      management_fee_cents: managementFee > 0 ? Math.round(managementFee * 100) : null,
-      hourly_rate_cents: hourlyRate > 0 ? Math.round(hourlyRate * 100) : null,
-      emergency_hourly_rate_cents:
-        emergencyHourlyRate > 0
-          ? Math.round(emergencyHourlyRate * 100)
-          : null,
+      // Rates only on create (they seed the starting rate history). Edits go
+      // through the Rates card; the backend ignores them on PATCH.
+      ...(editData
+        ? {}
+        : {
+            management_fee_cents: managementFee > 0 ? Math.round(managementFee * 100) : null,
+            hourly_rate_cents: hourlyRate > 0 ? Math.round(hourlyRate * 100) : null,
+            emergency_hourly_rate_cents:
+              emergencyHourlyRate > 0
+                ? Math.round(emergencyHourlyRate * 100)
+                : null,
+          }),
       manager_ids: selectedManagerIds,
       rental_owners: rentalOwners,
     };
@@ -486,8 +492,18 @@ export default function AddPropertyModal({
           />
         </FormSection>
 
-        {/* Rates Section */}
-        <FormSection title="Rates">
+        {/* Rates Section. Starting rates are set here on create; after that
+            rates are effective-dated and change only from the property's
+            Rates card, which records the month each change takes effect. */}
+        <FormSection title={editData ? "Status" : "Rates"}>
+          {editData ? (
+            <p className="text-xs text-[#737373]">
+              To change rates, use Edit on the property's Rates card — changes
+              there take effect from a chosen month and are kept in the rate
+              history.
+            </p>
+          ) : (
+          <>
           <FieldRow columns={2}>
             <FieldRowItem>
               <CurrencyField
@@ -507,7 +523,11 @@ export default function AddPropertyModal({
             </FieldRowItem>
           </FieldRow>
 
+          </>
+          )}
+
           <FieldRow columns={2}>
+            {!editData && (
             <FieldRowItem>
               <CurrencyField
                 label="Management Fee"
@@ -516,6 +536,7 @@ export default function AddPropertyModal({
                 placeholder="0.00"
               />
             </FieldRowItem>
+            )}
             <FieldRowItem>
               <SelectField
                 label="Status"
