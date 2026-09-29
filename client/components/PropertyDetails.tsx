@@ -27,6 +27,18 @@ import { useParams } from "react-router-dom";
 
 import type { RecentNote } from "@/hooks/usePropertyDetailsState";
 import AddNoteModal from "./AddNoteModal";
+import RateHistoryModal from "@/components/property-rates/RateHistoryModal";
+import RateImpactNotice from "@/components/property-rates/RateImpactNotice";
+import {
+  currentMonthKey,
+  diffRates,
+  fetchRateHistory,
+  formatMonthLabel,
+  recordRateChange,
+  type PropertyRates,
+  type RateHistoryEntry,
+  type RatesResponse,
+} from "@/data/propertyRates";
 
 
 
@@ -217,6 +229,25 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const [lateFeeFlat, setLateFeeFlat] = useState("");
   const [lateFeeGraceDays, setLateFeeGraceDays] = useState("");
   const [lateFeeError, setLateFeeError] = useState<string | null>(null);
+
+  // Rates are effective-dated: each save records a change effective from a
+  // month, and invoices bill the rate in effect for the month they cover.
+  const [rateEffectiveMonth, setRateEffectiveMonth] = useState(currentMonthKey());
+  const [rateNote, setRateNote] = useState("");
+  const [upcomingRateChange, setUpcomingRateChange] =
+    useState<RateHistoryEntry | null>(null);
+  const [showRateHistory, setShowRateHistory] = useState(false);
+  // The form values when the Edit Rates modal opened. Only fields the user
+  // actually changed are sent, so saving an unrelated change can never
+  // overwrite a different change already scheduled for a later month.
+  const [ratesFormAtOpen, setRatesFormAtOpen] = useState<{
+    monthly: number;
+    hourly: number;
+    emergency: number;
+    lateFeePct: string;
+    lateFeeFlat: string;
+    lateFeeGraceDays: string;
+  } | null>(null);
   const isValidPropertyId = Number.isFinite(propertyId) && propertyId > 0;
 
   // Fetch property data
@@ -253,6 +284,14 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     };
   
     fetchPropertyData();
+  }, [propertyId, isValidPropertyId]);
+
+  // Next scheduled rate change, for the "from <month>" line on the Rates card.
+  useEffect(() => {
+    if (!isValidPropertyId) return;
+    fetchRateHistory(propertyId)
+      .then((res) => setUpcomingRateChange(res.upcoming_rate_change ?? null))
+      .catch((error) => console.error("Failed to fetch rate history:", error));
   }, [propertyId, isValidPropertyId]);
 
   // Fetch notes
@@ -323,27 +362,63 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
       );
       return;
     }
+    if (!/^\d{4}-\d{2}$/.test(rateEffectiveMonth)) {
+      setLateFeeError("Pick the month this change takes effect.");
+      return;
+    }
     setLateFeeError(null);
 
+    // Only send what changed since the modal opened; the backend fills the
+    // rest from the rates in effect for the chosen month.
+    const initial = ratesFormAtOpen;
+    const monthly = parseMoneyString(monthlyRate);
+    const hourly = parseMoneyString(defaultRate);
+    const emergency = parseMoneyString(emergencyRate);
+    const lateFeeChanged =
+      !initial ||
+      initial.lateFeePct !== lateFeePct ||
+      initial.lateFeeFlat !== lateFeeFlat ||
+      initial.lateFeeGraceDays !== lateFeeGraceDays;
     const payload = {
-      management_fee: parseMoneyString(monthlyRate),
-      hourly_rate: parseMoneyString(defaultRate),
-      emergency_hourly_rate: parseMoneyString(emergencyRate),
-      late_fee_set: true,
-      late_fee_pct: pct,
-      late_fee_flat: flat,
-      late_fee_grace_days: grace === null ? null : Math.round(grace),
+      ...(!initial || initial.monthly !== monthly ? { management_fee: monthly } : {}),
+      ...(!initial || initial.hourly !== hourly ? { hourly_rate: hourly } : {}),
+      ...(!initial || initial.emergency !== emergency
+        ? { emergency_hourly_rate: emergency }
+        : {}),
+      ...(lateFeeChanged
+        ? {
+            late_fee_set: true,
+            late_fee_pct: pct,
+            late_fee_flat: flat,
+            late_fee_grace_days: grace === null ? null : Math.round(grace),
+          }
+        : {}),
     };
+    if (Object.keys(payload).length === 0) {
+      setShowEditRatesModal(false);
+      return;
+    }
 
     try {
-      const updatedRates = await fetchJSON(
-        `/properties/patch-rates/${propertyId}/rates`,
-        {
-          method: "PATCH",
-          body: JSON.stringify(payload),
-        }
+      const updatedRates = await recordRateChange(propertyId, {
+        ...payload,
+        effective_month: rateEffectiveMonth,
+        note: rateNote,
+      });
+      applyRates(updatedRates);
+      setShowEditRatesModal(false);
+    } catch (error) {
+      console.error("Failed to update rates:", error);
+      setLateFeeError(
+        error instanceof Error ? error.message : "Failed to update rates."
       );
-  
+    }
+  };
+
+  // Show the rates in effect today (and the next scheduled change) on the
+  // Rates card. Used after every rate write, including history edits.
+  const applyRates = (updatedRates: RatesResponse) => {
+      setUpcomingRateChange(updatedRates.upcoming_rate_change ?? null);
       // Update local property data (source of truth)
       setPropertyData((prev) =>
         prev
@@ -381,15 +456,70 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           ? ""
           : String(updatedRates.late_fee_grace_days)
       );
-
-      setShowEditRatesModal(false);
-    } catch (error) {
-      console.error("Failed to update rates:", error);
-      setLateFeeError(
-        error instanceof Error ? error.message : "Failed to update rates."
-      );
-    }
   };
+
+  // Reset the form from the SAVED rates every time the modal opens, so values
+  // typed and then cancelled can't leak into the next edit (or into the
+  // "what changed" comparison below).
+  const openEditRates = () => {
+    const monthly = formatCentsToMonthly(propertyData?.management_fee_cents);
+    const hourly = formatCentsToHourly(propertyData?.hourly_rate_cents);
+    const emergency = formatCentsToHourly(propertyData?.emergency_hourly_rate_cents);
+    const pct =
+      propertyData?.late_fee_pct == null ? "" : String(propertyData.late_fee_pct);
+    const flat =
+      propertyData?.late_fee_flat_cents == null
+        ? ""
+        : (propertyData.late_fee_flat_cents / 100).toFixed(2);
+    const grace =
+      propertyData?.late_fee_grace_days == null
+        ? ""
+        : String(propertyData.late_fee_grace_days);
+
+    setMonthlyRate(monthly);
+    setDefaultRate(hourly);
+    setEmergencyRate(emergency);
+    setLateFeePct(pct);
+    setLateFeeFlat(flat);
+    setLateFeeGraceDays(grace);
+    setRateEffectiveMonth(currentMonthKey());
+    setRateNote("");
+    setLateFeeError(null);
+    setRatesFormAtOpen({
+      monthly: parseMoneyString(monthly),
+      hourly: parseMoneyString(hourly),
+      emergency: parseMoneyString(emergency),
+      lateFeePct: pct,
+      lateFeeFlat: flat,
+      lateFeeGraceDays: grace,
+    });
+    setShowEditRatesModal(true);
+  };
+
+  // The Rates card always shows SAVED rates (in effect today), never the
+  // Edit Rates form's in-progress values.
+  const savedLateFeePct = propertyData?.late_fee_pct;
+  const savedLateFeeFlat = propertyData?.late_fee_flat_cents;
+  const savedLateFeeGrace = propertyData?.late_fee_grace_days;
+
+  // "From November 2026: Monthly rate $600.00" for the next scheduled change.
+  const upcomingSummary = (() => {
+    if (!upcomingRateChange || !propertyData) return null;
+    const current: PropertyRates = {
+      management_fee_cents: propertyData.management_fee_cents ?? null,
+      hourly_rate_cents: propertyData.hourly_rate_cents ?? null,
+      emergency_hourly_rate_cents: propertyData.emergency_hourly_rate_cents ?? null,
+      late_fee_pct: propertyData.late_fee_pct ?? null,
+      late_fee_flat_cents: propertyData.late_fee_flat_cents ?? null,
+      late_fee_grace_days: propertyData.late_fee_grace_days ?? null,
+    };
+    const changes = diffRates(current, upcomingRateChange);
+    return `From ${formatMonthLabel(upcomingRateChange.effective_month)}: ${
+      changes.length
+        ? changes.map((c) => `${c.label} ${c.to}`).join(", ")
+        : "no rate changes"
+    }`;
+  })();
   
 
   // Derived display values
@@ -750,8 +880,15 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 <div className="text-[#303030] text-xl leading-[1.1]">
                   Rates
                 </div>
+                <div className="flex items-center gap-4">
                 <button
-                  onClick={() => setShowEditRatesModal(true)}
+                  onClick={() => setShowRateHistory(true)}
+                  className="rounded-lg text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
+                >
+                  View history
+                </button>
+                <button
+                  onClick={openEditRates}
                   className="rounded-lg flex items-center gap-1 text-sm text-[#2463EB] tracking-[-0.28px] leading-[1.4]"
                 >
                   <img
@@ -762,7 +899,14 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   />
                   <span>Edit</span>
                 </button>
+                </div>
               </div>
+
+              {upcomingSummary && (
+                <div className="mt-2 rounded-lg bg-[#EFF6FF] px-3 py-2 text-xs text-[#1E40AF]">
+                  Scheduled — {upcomingSummary}
+                </div>
+              )}
 
               <div className="flex mt-3 w-full flex-col">
                 <div className="flex flex-col w-full">
@@ -772,7 +916,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
                     <div className="flex flex-col">
                       <div>MONTHLY RATE</div>
-                      <div>{monthlyRate}</div>
+                      <div>{formatCentsToMonthly(propertyData?.management_fee_cents)}</div>
                     </div>
                   </div>
                 </div>
@@ -784,11 +928,11 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
                     <div className="flex flex-col">
                       <div>DEFAULT RATE</div>
-                      <div>{defaultRate}</div>
+                      <div>{formatCentsToHourly(propertyData?.hourly_rate_cents)}</div>
                     </div>
                     <div className="flex flex-col">
                       <div>EMERGENCY RATE</div>
-                      <div>{emergencyRate}</div>
+                      <div>{formatCentsToHourly(propertyData?.emergency_hourly_rate_cents)}</div>
                     </div>
                   </div>
                 </div>
@@ -800,16 +944,18 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <div className="self-start flex mt-3 items-start gap-14 text-xs text-[#71717A] leading-[1.33]">
                     <div className="flex flex-col">
                       <div>PERCENTAGE</div>
-                      <div>{lateFeePct ? `${lateFeePct}%` : "N/A"}</div>
+                      <div>{savedLateFeePct ? `${savedLateFeePct}%` : "N/A"}</div>
                     </div>
                     <div className="flex flex-col">
                       <div>FLAT</div>
-                      <div>{lateFeeFlat ? `$${lateFeeFlat}` : "N/A"}</div>
+                      <div>
+                        {savedLateFeeFlat ? `$${(savedLateFeeFlat / 100).toFixed(2)}` : "N/A"}
+                      </div>
                     </div>
                     <div className="flex flex-col">
                       <div>GRACE</div>
                       <div>
-                        {lateFeeGraceDays ? `${lateFeeGraceDays} days` : "N/A"}
+                        {savedLateFeeGrace ? `${savedLateFeeGrace} days` : "N/A"}
                       </div>
                     </div>
                   </div>
@@ -1489,6 +1635,40 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                         />
                       </div>
                     </div>
+                    <div className="pt-1 border-t border-[#E5E5E5]" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="grid gap-2">
+                        <label className="text-sm font-medium text-[#303030]">
+                          Effective from
+                        </label>
+                        <input
+                          type="month"
+                          value={rateEffectiveMonth}
+                          onChange={(e) => setRateEffectiveMonth(e.target.value)}
+                          className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <label className="text-sm font-medium text-[#303030]">
+                          Note (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={rateNote}
+                          onChange={(e) => setRateNote(e.target.value)}
+                          placeholder="e.g. scope reduced"
+                          className="w-full rounded-lg border border-[#DADADA] px-3 py-2 text-sm text-[#303030] focus:outline-none focus:ring-2 focus:ring-[#013764]"
+                        />
+                      </div>
+                    </div>
+                    <p className="-mt-2 text-xs text-[#737373]">
+                      Invoices for {rateEffectiveMonth ? formatMonthLabel(rateEffectiveMonth) : "that month"} onward
+                      bill the new rates; earlier months keep the rates they had.
+                    </p>
+                    <RateImpactNotice
+                      propertyId={propertyId}
+                      effectiveMonth={rateEffectiveMonth}
+                    />
                     {lateFeeError && (
                       <div className="text-sm text-[#B42318]">
                         {lateFeeError}
@@ -1517,6 +1697,14 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               </div>,
               document.body,
             )}
+
+          {/* Rate History Modal */}
+          <RateHistoryModal
+            propertyId={propertyId}
+            open={showRateHistory}
+            onClose={() => setShowRateHistory(false)}
+            onRatesChanged={applyRates}
+          />
 
           {/* Add Note Modal */}
           <AddNoteModal
