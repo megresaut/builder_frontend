@@ -2489,8 +2489,8 @@ export default function InvoicePreviewModal({
                   className="h-9 shrink-0 rounded-lg border border-white bg-[#002D5A] px-2.5 text-sm font-medium text-white shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] disabled:opacity-50"
                 >
                   <option value="auto">Fee: Auto-detect</option>
-                  <option value="ach">Fee: ACH (+1%)</option>
-                  <option value="card">Fee: Credit card (+3%)</option>
+                  <option value="ach">Fee: ACH (~1%)</option>
+                  <option value="card">Fee: Credit card (~3%)</option>
                   <option value="none">Fee: None</option>
                 </select>
                 <button
@@ -2564,8 +2564,8 @@ export default function InvoicePreviewModal({
               className="h-8 rounded-md border border-[#DADADA] bg-white px-2 text-sm"
             >
               <option value="auto">Auto-detect from payment history</option>
-              <option value="ach">ACH (+1%)</option>
-              <option value="card">Credit card (+3%)</option>
+              <option value="ach">ACH (~1%)</option>
+              <option value="card">Credit card (~3%)</option>
               <option value="none">None</option>
             </select>
           </div>

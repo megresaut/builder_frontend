@@ -3997,8 +3997,8 @@ export function ProjectInvoiceDetailModal({
                 className="h-8 rounded-md border border-[#DADADA] bg-white px-2 text-sm"
               >
                 <option value="none">None</option>
-                <option value="ach">ACH (+1%)</option>
-                <option value="card">Credit card (+3%)</option>
+                <option value="ach">ACH (~1%)</option>
+                <option value="card">Credit card (~3%)</option>
               </select>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
