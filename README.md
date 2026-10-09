@@ -1,6 +1,6 @@
 # RA AVM: Web & Field App
 
-The web app and field-team mobile app for **RA AVM**, a property-management operations platform built by Reasonable Automations. The Go API, workers, and scrapers behind it are in [`avm-backend`](https://github.com/megresaut/avm-backend).
+The web app and field-team mobile app for **RA AVM**, a property-management operations platform built by Reasonable Automations. This repo is the frontend. The API, background workers, and scrapers run in a separate private service, described under [Platform architecture](#platform-architecture).
 
 One React codebase ships in two forms:
 - **The web app**, used by property managers and admins in the office.
@@ -47,6 +47,7 @@ The platform supports three property types with different billing behavior: **Co
 - Automated bill capture from **16 utility provider portals** on a schedule.
 - Manual PDF upload as a fallback.
 - AI extracts amounts, service periods, and due dates from each bill.
+- See [Utility bill scrapers](#utility-bill-scrapers) below for how capture works.
 
 **Accounting**
 - Bills and bill drafts, vendor credits, card refunds, check printing, and employee reimbursements.
@@ -59,6 +60,46 @@ The platform supports three property types with different billing behavior: **Co
 - Calendar (Outlook sync), reminders, and to-dos.
 - A "My Day" dashboard showing open maintenance, recent bills, and expiring leases and insurance.
 - In-app bug reporting.
+
+---
+
+## What RA AVM automates
+
+Most of the platform's value is work that happens without anyone typing it in.
+
+### AI intake → review queue
+- **Texts.** Owners, tenants, and staff text a Twilio number. AI reads the conversation, photos included, and drafts the right tickets.
+- **Calendar.** Events on the firm's Outlook calendar are synced and classified the same way.
+- **Project intake.** Paste meeting notes, and AI drafts a project: scope, budget lines, and milestones.
+
+For texts and calendar events, AI decides whether each request is a task, a vendor work order, an internal field-team order, or a pair. It matches the request to the right property and records the reasoning behind its suggestion. All drafts go into the **AI Drafts** queue. Staff approve them (with edits if needed) or reject them, and their feedback is used to improve later suggestions.
+
+### Utility bill scrapers
+Utility bills for managed properties arrive without anyone logging in anywhere.
+- **One scraper per provider portal.** A headless-browser (Python + Playwright) scraper exists for each of 16 providers:
+
+  | Category | Providers |
+  |---|---|
+  | Electric | Eversource, United Illuminating, Third Taxing District |
+  | Gas | Southern CT Gas, Connecticut Natural Gas |
+  | Water / sewer | Aquarion, Regional Water, First District Water, SNEW, WPCA |
+  | Internet | Verizon Fios, Optimum, Frontier, Starlink |
+  | Waste | WinWaste, Santaguida Sanitation |
+
+  Each scraper logs into the provider's site with the account's saved credentials and downloads the latest statement PDF.
+- **Scheduled jobs.** Scrapes are queued per utility account and run on a schedule. Each run is recorded with its status, so failed logins and missing statements show up instead of slipping by.
+- **AI bill parsing.** Each PDF goes to an AI parser that returns a structured statement: account number, amount due, statement and due dates, service period, and line items. The bill is then attached to the right property. A manually uploaded PDF goes through the same parser.
+- **Straight into accounting.** Parsed bills become bill drafts, which are checked for duplicates and then posted as bills and passed through to the owner's invoice. Nobody keys in a utility bill by hand.
+
+### Document AI
+- **Insurance policies.** Upload a policy PDF and AI fills in the carrier, policy number, coverage, and dates. Expirations then appear on the dashboard automatically.
+- **Vendor compliance.** Uploaded vendor documents (certificates of insurance, W-9s, 1099s, business licenses) are classified and read by AI. The compliance dashboard flags vendors with missing or expired paperwork.
+- **Inspection checklists.** Imported from a Word document instead of rebuilt by hand.
+
+### Accounting automation
+- **QuickBooks Online and Buildium sync.** Bills, payments, vendors, and the chart of accounts flow both ways. Incoming webhooks are logged with a health monitor and can be replayed, so a broken integration gets noticed instead of failing silently.
+- **Monthly client invoicing.** Each property's bills, field-team labor, and fees are rolled up using its billing model (pass-through, markup, or standard) and the rates in effect on each service date. The platform generates the PDFs, split per location when needed, and emails them.
+- **Credit-card reconciliation.** Upload the card statement and AI matches every charge to a booked expense across QuickBooks and Buildium. Staff only review the exceptions, and the platform produces a signed reconciliation report.
 
 ---
 
@@ -102,6 +143,23 @@ ios/          Capacitor iOS project (RA Field)
 
 ---
 
+## Platform architecture
+
+```
+ Web app / RA Field (this repo) ──▶ RA AVM API (Go) ──▶ PostgreSQL
+                                      │
+                                      ├── scraper service (Python + Playwright, 16 providers)
+                                      ├── AI services (Anthropic, OpenRouter)
+                                      └── integrations: QuickBooks Online, Buildium,
+                                          Outlook (Microsoft Graph), Twilio
+```
+
+- **API:** Go with PostgreSQL. It's organized into feature modules (properties, maintenance, projects, invoicing, accounting, reconciliation, utilities, inspections, insurance, vendor compliance, AI, SMS, and others). Money is stored as integer cents, and totals are derived when read rather than stored.
+- **Background work:** scrape jobs, calendar sync, recurring tasks, and integration webhooks run on the server.
+- The backend source is private.
+
+---
+
 ## Running locally
 
 ```bash
@@ -111,4 +169,4 @@ npm test           # Vitest
 npm run typecheck
 ```
 
-The [`avm-backend`](https://github.com/megresaut/avm-backend) API needs to be running on `:8080`.
+The frontend expects the RA AVM API at `localhost:8080`; it is not included in this repo.
