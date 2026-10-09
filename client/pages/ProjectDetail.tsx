@@ -2112,11 +2112,22 @@ function AllocatePaymentModal({
   const rowKey = (l: ProjectCostLine) =>
     l.kind === "fto_labor" ? `fto_labor:${l.submission_id}` : `bill:${l.bill_id}`;
 
-  // A line stops being offered once it's fully covered (by any payment) — there's
-  // nothing left to allocate to it.
+  // This payment's saved allocations, rowKey -> cents (null until loaded).
+  const [existingByKey, setExistingByKey] = useState<Record<string, number> | null>(null);
+
+  // A line stops being offered once it's fully covered — UNLESS this payment is
+  // what covers it. Those rows must stay visible so a saved allocation can be
+  // edited or removed; hiding them made an applied allocation impossible to undo
+  // (and the replace-set PUT would silently drop it on the next save).
   const targets = useMemo(
-    () => costLines.filter((l) => l.allocatable && l.covered_cents < l.booked_cents),
-    [costLines],
+    () =>
+      costLines.filter(
+        (l) =>
+          l.allocatable &&
+          (l.covered_cents < l.booked_cents || (existingByKey?.[rowKey(l)] ?? 0) > 0),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [costLines, existingByKey],
   );
 
   // rowKey -> dollar string
@@ -2132,29 +2143,52 @@ function AllocatePaymentModal({
     let alive = true;
     (async () => {
       try {
-        const existing = await getPaymentAllocations(projectId, payment.id);
+        const [existing, invoice] = await Promise.all([
+          getPaymentAllocations(projectId, payment.id),
+          payment.project_invoice_id
+            ? getProjectInvoice(projectId, payment.project_invoice_id)
+            : Promise.resolve(null),
+        ]);
         if (!alive) return;
-        const existingByKey: Record<string, number> = {};
+        const byKey: Record<string, number> = {};
         existing.forEach((a: PaymentAllocation) => {
           const key =
             a.target_kind === "fto_labor" ? `fto_labor:${a.fto_submission_id}` : `bill:${a.bill_id}`;
-          existingByKey[key] = a.amount_cents;
+          byKey[key] = a.amount_cents;
         });
+        setExistingByKey(byKey);
 
-        // Auto-default top-to-bottom: walk the visible lines in display order and
-        // fill each one's outstanding balance (booked − covered, adding back this
-        // payment's own existing allocation so it isn't double-subtracted) until
-        // the payment runs out. The line where it runs out gets whatever's left —
-        // a partial allocation falls out naturally, no special-casing needed.
+        // Already allocated: show exactly what was saved so it can be edited.
+        if (existing.length > 0) {
+          const seed: Record<string, string> = {};
+          for (const [k, cents] of Object.entries(byKey)) seed[k] = centsToInput(cents);
+          setAmounts(seed);
+          setAutoFilled(new Set());
+          return;
+        }
+
+        // First allocation: pre-fill ONLY the costs the client was actually billed
+        // for on the invoice this payment settles, at the billed amount, in display
+        // order until the payment runs out. Never touch costs that haven't been
+        // invoiced yet. A payment with no linked invoice gets no auto-fill.
+        const billedByKey: Record<string, number> = {};
+        for (const li of invoice?.lines ?? []) {
+          if (!li.source_id || li.amount_cents <= 0) continue;
+          const key =
+            li.source_type === "cost_reimbursement"
+              ? `bill:${li.source_id}`
+              : li.source_type === "fto_labor"
+                ? `fto_labor:${li.source_id}`
+                : null;
+          if (key) billedByKey[key] = (billedByKey[key] ?? 0) + li.amount_cents;
+        }
         let remaining = payment.amount_cents;
         const seed: Record<string, string> = {};
-        for (const l of targets) {
+        for (const l of costLines) {
+          // Same offer rule as `targets` (nothing saved yet for this payment).
+          if (!l.allocatable || l.covered_cents >= l.booked_cents) continue;
           const key = rowKey(l);
-          const already = existingByKey[key] ?? 0;
-          // Defensive against a null/undefined booked_cents or covered_cents from
-          // the API turning this into NaN and silently skipping the row.
-          const outstanding = (l.booked_cents ?? 0) - (l.covered_cents ?? 0) + already;
-          const take = Number.isFinite(outstanding) ? Math.max(0, Math.min(outstanding, remaining)) : 0;
+          const take = Math.max(0, Math.min(billedByKey[key] ?? 0, remaining));
           if (take > 0) {
             seed[key] = centsToInput(take);
             remaining -= take;
@@ -2172,9 +2206,10 @@ function AllocatePaymentModal({
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, payment.id, targets]);
+  }, [projectId, payment.id, payment.project_invoice_id, costLines]);
 
-  const allocatedCents = Object.values(amounts).reduce((s, v) => s + dollarsToCents(v), 0);
+  // Sum only rows actually on screen — save() sends exactly these.
+  const allocatedCents = targets.reduce((s, l) => s + dollarsToCents(amounts[rowKey(l)] ?? ""), 0);
   const remainingCents = payment.amount_cents - allocatedCents;
   const over = remainingCents < 0;
 
@@ -2246,7 +2281,14 @@ function AllocatePaymentModal({
         </div>
         {autoFilled.size > 0 && (
           <div className="-mt-2 text-xs text-gray-400">
-            Rows marked <span className="font-medium text-blue-600">auto</span> were pre-filled top-to-bottom to use up the full payment — clear or edit them before allocating manually to a specific row.
+            Rows marked <span className="font-medium text-blue-600">auto</span> were pre-filled with what the client was billed for them on the invoice this payment settles — edit or clear them as needed.
+          </div>
+        )}
+        {!loading && autoFilled.size === 0 && Object.keys(existingByKey ?? {}).length === 0 && (
+          <div className="-mt-2 text-xs text-gray-400">
+            {payment.project_invoice_id
+              ? "None of the costs billed on this payment's invoice are open to allocate — enter amounts manually."
+              : "This payment isn't linked to a project invoice, so nothing was pre-filled — enter amounts manually."}
           </div>
         )}
 

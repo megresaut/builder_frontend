@@ -155,6 +155,7 @@ export interface ProjectPayment {
   receipt_object_key: string | null; // proof attachment (served at /files/<key>)
   receipt_mime: string | null;
   receipt_filename: string | null;
+  project_invoice_id: number | null; // invoice this payment settles (null for a standalone payment)
   allocated_cents: number; // Σ of this payment's allocations to bills (≤ amount_cents)
   created_by_user_id: number | null;
   created_at: string;

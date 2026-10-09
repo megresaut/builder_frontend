@@ -16,11 +16,20 @@ import {
 } from "@/components/ui/DrawerTemplate";
 import { fetchJSON } from "@/api/fetchJSON";
 
+interface HoursSummaryMember {
+  field_team_member_id: number;
+  name: string;
+  total_hours: number;
+  approved_hours: number;
+  pending_hours: number;
+}
+
 interface HoursSummaryResponse {
   total_hours: number;
   approved_hours: number;
   pending_hours: number;
-}    
+  members?: HoursSummaryMember[];
+}
 
 interface FieldTeamOrder {
   id: number;
@@ -104,15 +113,28 @@ export default function HoursSummaryDrawer({
     async function loadFieldTeamMembers() {
       try {
         setLoadingFieldTeam(true);
-        const data = await fetchJSON("/users/field-team");
-        
+        // Same assignee pool as CreateFTOModal: property managers can be put
+        // on FTOs too, so they must be selectable here or their hours vanish.
+        const [fieldTeam, propertyManagers] = await Promise.all([
+          fetchJSON("/users/field-team").catch(() => []),
+          fetchJSON("/users/property-managers").catch(() => []),
+        ]);
+
         if (!cancelled) {
-          const members: IdentityOption[] = data.map((u: any) => ({
-            id: String(u.id),
-            label: u.name || u.email,
-            initials: getInitials(u.name || u.email),
-            avatarColor: "bg-white border border-blue-500 !text-blue-500",
-          }));
+          const seen = new Set<string>();
+          const members: IdentityOption[] = [];
+          for (const u of [...fieldTeam, ...propertyManagers]) {
+            const id = String(u.id);
+            if (seen.has(id)) continue;
+            seen.add(id);
+            members.push({
+              id,
+              label: u.name || u.email,
+              initials: getInitials(u.name || u.email),
+              avatarColor: "bg-white border border-blue-500 !text-blue-500",
+            });
+          }
+          members.sort((a, b) => a.label.localeCompare(b.label));
           setFieldTeamMembers(members);
         }
       } catch (err) {
@@ -181,8 +203,8 @@ export default function HoursSummaryDrawer({
       return;
     }
 
-    // If we have field managers, fetch the summary
-    if (hasFieldManagers) {
+    // No managers selected means everyone (backend treats missing IDs as all)
+    {
       let cancelled = false;
 
       async function loadHoursSummary() {
@@ -193,9 +215,9 @@ export default function HoursSummaryDrawer({
           // Build query parameters
           const params = new URLSearchParams();
           
-          // Add field team member IDs (required)
-          const fieldTeamMemberIds = selectedManagers.map(Number);
-          params.append("field_team_member_ids", fieldTeamMemberIds.join(","));
+          if (hasFieldManagers) {
+            params.append("field_team_member_ids", selectedManagers.join(","));
+          }
 
           // Add date range if provided (optional)
           if (dateRangeStart) {
@@ -239,9 +261,6 @@ export default function HoursSummaryDrawer({
         cancelled = true;
         clearTimeout(timeoutId);
       };
-    } else {
-      setHoursSummary(null);
-      setSummaryError(null);
     }
   }, [isOpen, selectedManagers, dateRangeStart, dateRangeEnd, selectedProperties]);
 
@@ -310,7 +329,7 @@ export default function HoursSummaryDrawer({
                 className="text-sm font-medium mb-2 block"
                 style={{ color: "var(--color-text-primary)" }}
               >
-                Due Date Range
+                Work Date Range
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <DateField
@@ -427,6 +446,56 @@ export default function HoursSummaryDrawer({
                 </span>
               </div>
             </div>
+          </DrawerSection>
+
+          <DrawerSection>
+            <DrawerSubheader>By Team Member</DrawerSubheader>
+            {hoursSummary.members && hoursSummary.members.length > 0 ? (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ color: "var(--color-text-secondary)" }}>
+                    <th className="py-2 text-left font-normal">Name</th>
+                    <th className="py-2 text-right font-normal">Total</th>
+                    <th className="py-2 text-right font-normal">Approved</th>
+                    <th className="py-2 text-right font-normal">Pending</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hoursSummary.members.map((m) => (
+                    <tr
+                      key={m.field_team_member_id}
+                      style={{ borderTop: "1px solid var(--color-border-light)" }}
+                    >
+                      <td
+                        className="py-2 pr-2"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
+                        {m.name || `User #${m.field_team_member_id}`}
+                      </td>
+                      <td
+                        className="py-2 text-right font-medium"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
+                        {m.total_hours.toFixed(1)}
+                      </td>
+                      <td className="py-2 text-right" style={{ color: "#059669" }}>
+                        {m.approved_hours.toFixed(1)}
+                      </td>
+                      <td className="py-2 text-right" style={{ color: "#d97706" }}>
+                        {m.pending_hours.toFixed(1)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p
+                className="py-4 text-center text-sm"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                No hours logged for these filters
+              </p>
+            )}
           </DrawerSection>
         </>
       ) : null}
