@@ -254,7 +254,14 @@ export default function EditPaymentModal({
             <AlertDialogFooter>
               <AlertDialogCancel disabled={voiding}>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => handleVoid(false)}
+                onClick={(e) => {
+                  // Radix closes the dialog on Action click by default, which
+                  // hid the "void the whole batch?" step the 409 switches to —
+                  // the void looked like it silently did nothing. handleVoid
+                  // closes the dialog itself once the outcome is known.
+                  e.preventDefault();
+                  handleVoid(false);
+                }}
                 disabled={voiding}
                 className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               >
@@ -286,7 +293,10 @@ export default function EditPaymentModal({
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => handleVoid(true)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleVoid(true);
+                }}
                 disabled={voiding}
                 className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               >
