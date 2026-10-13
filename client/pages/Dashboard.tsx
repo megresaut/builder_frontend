@@ -283,6 +283,8 @@ const activityColors: Record<ActivityEventType, string> = {
   insurance_policy_added:      "bg-emerald-100 text-emerald-600",
   invoice_issued:              "bg-indigo-100 text-indigo-600",
   vendor_compliance_uploaded:  "bg-amber-100 text-amber-600",
+  client_payment_received:     "bg-green-600 text-white",
+  bill_paid:                   "bg-green-600 text-white",
 };
 
 // bg / border / text for calendar event blocks
@@ -302,6 +304,8 @@ const _iconUser      = <svg width="14" height="14" viewBox="0 0 24 24" fill="non
 const _iconShield    = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
 const _iconDoc       = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>;
 
+const _iconDollar    = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
+
 const activityIcons: Record<ActivityEventType, React.ReactNode> = {
   maintenance_submitted:       _iconWrench,
   work_order_created:          _iconClipboard,
@@ -317,6 +321,8 @@ const activityIcons: Record<ActivityEventType, React.ReactNode> = {
   insurance_policy_added:      _iconShield,
   invoice_issued:              _iconDoc,
   vendor_compliance_uploaded:  _iconDoc,
+  client_payment_received:     _iconDollar,
+  bill_paid:                   _iconDollar,
 };
 
 // ─── Card Shell (drag wrapper) ────────────────────────────────────────────────
@@ -446,7 +452,11 @@ function RecentActivityCard() {
         }
         break;
       case "invoice":
-        navigate(`/invoicing`); break;
+        navigate(`/accounting/invoices`); break;
+      case "project_payment":
+        navigate(item.parent_id ? `/projects/${item.parent_id}` : `/projects`); break;
+      case "bill_payment":
+        navigate(item.parent_id ? `/bills/view?billId=${item.parent_id}` : `/bills`); break;
       case "insurance_policy":
       case "renters_insurance":
         if (item.property_id) {

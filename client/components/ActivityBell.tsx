@@ -74,6 +74,10 @@ const activityColors: Record<ActivityEventType, string> = {
   insurance_policy_added: "bg-emerald-100 text-emerald-600",
   invoice_issued: "bg-indigo-100 text-indigo-600",
   vendor_compliance_uploaded: "bg-amber-100 text-amber-600",
+  // Payments use a solid green chip (plus a row tint below) so they stand out
+  // from the pale-green tenant events.
+  client_payment_received: "bg-green-600 text-white",
+  bill_paid: "bg-green-600 text-white",
 };
 
 const iconWrench = (
@@ -121,6 +125,15 @@ const iconDoc = (
   </svg>
 );
 
+const iconDollar = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="1" x2="12" y2="23" />
+    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+  </svg>
+);
+
+const PAYMENT_EVENTS = new Set<ActivityEventType>(["client_payment_received", "bill_paid"]);
+
 const activityIcons: Record<ActivityEventType, React.ReactNode> = {
   maintenance_submitted: iconWrench,
   work_order_created: iconClipboard,
@@ -136,6 +149,8 @@ const activityIcons: Record<ActivityEventType, React.ReactNode> = {
   insurance_policy_added: iconShield,
   invoice_issued: iconDoc,
   vendor_compliance_uploaded: iconDoc,
+  client_payment_received: iconDollar,
+  bill_paid: iconDollar,
 };
 
 export default function ActivityBell() {
@@ -298,7 +313,13 @@ export default function ActivityBell() {
         }
         break;
       case "invoice":
-        navigate(`/invoicing`);
+        navigate(`/accounting/invoices`);
+        break;
+      case "project_payment":
+        navigate(item.parent_id ? `/projects/${item.parent_id}` : `/projects`);
+        break;
+      case "bill_payment":
+        navigate(item.parent_id ? `/bills/view?billId=${item.parent_id}` : `/bills`);
         break;
       case "insurance_policy":
       case "renters_insurance":
@@ -409,7 +430,9 @@ export default function ActivityBell() {
                 ref={(el) => setItemRef(item.id, el)}
                 data-activity-id={item.id}
                 onClick={() => handleActivityClick(item)}
-                className="px-4 py-3 flex items-start gap-3 border-b border-gray-50 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer"
+                className={`px-4 py-3 flex items-start gap-3 border-b border-gray-50 last:border-b-0 transition-colors cursor-pointer ${
+                  PAYMENT_EVENTS.has(item.event_type) ? "bg-green-50 hover:bg-green-100" : "hover:bg-gray-50"
+                }`}
               >
                 <div
                   className={`${activityColors[item.event_type] ?? "bg-gray-100 text-gray-600"} rounded-lg p-1.5 flex-shrink-0 mt-0.5`}

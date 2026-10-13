@@ -14,7 +14,9 @@ export type ActivityEventType =
   | "renters_insurance_uploaded"
   | "insurance_policy_added"
   | "invoice_issued"
-  | "vendor_compliance_uploaded";
+  | "vendor_compliance_uploaded"
+  | "client_payment_received"
+  | "bill_paid";
 
 export interface ActivityEvent {
   id: string;
