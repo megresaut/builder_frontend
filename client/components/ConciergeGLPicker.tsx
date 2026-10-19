@@ -5,7 +5,7 @@
 // 61 QBO passthrough Items pre-grouped under Utilities / Vendor / Materials.
 // Selecting an option writes the QBO Item id; the backend resolves the
 // matching Buildium GL via concierge_buildium_mapping at dual-push time.
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 
 import {
@@ -31,19 +31,34 @@ interface PassthroughGroup {
 
 interface PassthroughResponse {
   groups: PassthroughGroup[];
+  source?: "live" | "cache" | "db";
+  // true when QBO was unavailable and the backend served its saved copy.
+  stale?: boolean;
+  as_of?: string;
+}
+
+interface PassthroughResult {
+  groups: PassthroughGroup[];
+  staleAsOf: string | null;
 }
 
 // Module-level cache — passthrough items never change during a session.
+// Only fresh (non-stale) lists are cached, so a fallback list served while
+// QBO was throttled gets replaced on the next dropdown open.
 let cachedGroups: PassthroughGroup[] | null = null;
-let inflight: Promise<PassthroughGroup[]> | null = null;
+let inflight: Promise<PassthroughResult> | null = null;
 
-async function loadPassthroughItems(): Promise<PassthroughGroup[]> {
-  if (cachedGroups) return cachedGroups;
+async function loadPassthroughItems(): Promise<PassthroughResult> {
+  if (cachedGroups) return { groups: cachedGroups, staleAsOf: null };
   if (inflight) return inflight;
   inflight = fetchJSON("/concierge/passthrough-items")
     .then((resp: PassthroughResponse) => {
-      cachedGroups = resp.groups || [];
-      return cachedGroups;
+      const groups = resp.groups || [];
+      if (resp.stale) {
+        return { groups, staleAsOf: resp.as_of ?? null };
+      }
+      cachedGroups = groups;
+      return { groups, staleAsOf: null };
     })
     .finally(() => {
       inflight = null;
@@ -65,30 +80,37 @@ export function ConciergeGLPicker({ value, disabled, onChange }: Props) {
   const [loading, setLoading] = useState<boolean>(!cachedGroups);
   const [search, setSearch] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [staleAsOf, setStaleAsOf] = useState<string | null>(null);
+  const mounted = useRef(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    if (cachedGroups) {
-      setLoading(false);
-      return;
-    }
+  const load = useCallback(() => {
     loadPassthroughItems()
-      .then((g) => {
-        if (!cancelled) {
-          setGroups(g);
-          setLoading(false);
-        }
+      .then((res) => {
+        if (!mounted.current) return;
+        // Keep a previously loaded list if a retry comes back empty.
+        setGroups((prev) => (res.groups.length > 0 || prev.length === 0 ? res.groups : prev));
+        setStaleAsOf(res.staleAsOf);
+        setLoadError(null);
+        setLoading(false);
       })
       .catch((err: unknown) => {
-        if (!cancelled) {
-          setLoadError(err instanceof Error ? err.message : String(err));
-          setLoading(false);
-        }
+        if (!mounted.current) return;
+        setLoadError(err instanceof Error ? err.message : String(err));
+        setLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
   }, []);
+
+  useEffect(() => {
+    mounted.current = true;
+    if (cachedGroups) {
+      setLoading(false);
+    } else {
+      load();
+    }
+    return () => {
+      mounted.current = false;
+    };
+  }, [load]);
 
   const term = search.trim().toLowerCase();
   const filtered: PassthroughGroup[] = term
@@ -123,6 +145,8 @@ export function ConciergeGLPicker({ value, disabled, onChange }: Props) {
       }}
       onOpenChange={(open) => {
         if (!open) setSearch("");
+        // Retry on open after a failure or a stale fallback list.
+        if (open && !cachedGroups && (loadError || staleAsOf)) load();
       }}
     >
       <SelectTrigger className="w-full h-auto px-0 py-0 text-[13px] border-0 bg-transparent">
@@ -168,13 +192,25 @@ export function ConciergeGLPicker({ value, disabled, onChange }: Props) {
         </div>
 
         <div className="max-h-[320px] overflow-y-auto">
-          {loadError && (
+          {loadError && groups.length === 0 && (
             <div className="px-3 py-2 text-sm text-red-500">
               Failed to load items: {loadError}
             </div>
           )}
 
-          {!loadError && filtered.length === 0 && (
+          {staleAsOf && (
+            <div className="px-3 py-1.5 text-[11px] text-gray-500 bg-gray-50 border-b border-[#E5E7EB]">
+              QuickBooks is busy — showing items as of{" "}
+              {new Date(staleAsOf).toLocaleString([], {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </div>
+          )}
+
+          {!(loadError && groups.length === 0) && filtered.length === 0 && (
             <div className="px-3 py-2 text-sm text-gray-400">
               {loading
                 ? "Loading…"
