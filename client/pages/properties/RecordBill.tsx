@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useTabNavigation } from "@/hooks/useTabContext";
+import { useTabContext, useTabNavigation } from "@/hooks/useTabContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -448,7 +448,77 @@ const middleTruncate = (
 };
 
 
+/**
+ * In-progress Record Bill forms, kept across RA tab switches.
+ *
+ * RA tabs share one router: switching tabs navigates to the other tab's route,
+ * which unmounts this page and used to wipe everything the user had typed.
+ * When the page unmounts *because the user switched tabs*, we stash the form
+ * here keyed by (tab id, route) and restore it when they come back. Any other
+ * unmount (Cancel, Save, Approve, in-tab navigation) discards the stash, so a
+ * fresh Record Bill still opens blank.
+ *
+ * Module-level (in-memory) on purpose: the form holds File objects and Dates,
+ * which the sessionStorage-backed tab pageState would mangle. Drafts therefore
+ * survive tab switches but not a browser refresh.
+ */
+interface RecordBillFormSnapshot {
+  routeState: any;
+  editing: boolean;
+  selectedFile: File | null;
+  selectedVendor: Vendor | null;
+  referenceNumber: string;
+  invoiceDate: Date | null;
+  dueDate: Date | null;
+  invoiceDateInput: string;
+  dueDateInput: string;
+  memo: string;
+  lineItems: LineItem[];
+  uploadedFiles: Array<{ name: string; size: number; file: File }>;
+  uploadedPdfMeta: { pdf_object_key: string; sha256_pdf: string } | null;
+  unitsByProperty: Record<string, PropertyUnit[]>;
+  workOrdersByProperty: { [propertyName: string]: { id: number; number: string }[] };
+}
+
+export const recordBillFormDrafts = new Map<string, RecordBillFormSnapshot>();
+
+/**
+ * Keyed by the selected tab so two tabs that both sit on Record Bill get
+ * separate component instances (and separate forms) instead of sharing one.
+ */
 export const RecordBill = () => {
+  const { selectedTab, openTabs } = useTabContext();
+  // Live view of the selected tab, read by RecordBillForm's unmount cleanup to
+  // tell "user switched tabs" apart from "user navigated within this tab".
+  const selectedTabRef = useRef(selectedTab);
+  selectedTabRef.current = selectedTab;
+
+  // Drop stashed forms belonging to tabs that have since been closed.
+  useEffect(() => {
+    for (const key of recordBillFormDrafts.keys()) {
+      const tabId = key.slice(0, key.indexOf("::"));
+      if (tabId !== selectedTab && !openTabs.has(tabId)) {
+        recordBillFormDrafts.delete(key);
+      }
+    }
+  }, [selectedTab, openTabs]);
+
+  return (
+    <RecordBillForm
+      key={selectedTab}
+      tabId={selectedTab}
+      selectedTabRef={selectedTabRef}
+    />
+  );
+};
+
+const RecordBillForm = ({
+  tabId,
+  selectedTabRef,
+}: {
+  tabId: string;
+  selectedTabRef: React.MutableRefObject<string>;
+}) => {
   const [searchParams] = useSearchParams();
   // When opened from a property's Bills tab (/property/:propertyId/bills/record),
   // prefill the first line item's property with that property.
@@ -460,6 +530,14 @@ export const RecordBill = () => {
   // walks browser history (shared across all tabs and clobbered by tab switching).
   const returnToReferrer = () => goBack({ fallback: "/bills" });
   const location = useLocation();
+  // Form stashed when this tab was left mid-entry (see recordBillFormDrafts).
+  const draftKey = `${tabId}::${location.pathname}${location.search}`;
+  const [restored] = useState<RecordBillFormSnapshot | null>(
+    () => recordBillFormDrafts.get(draftKey) ?? null,
+  );
+  // Router state (the bill being edited, reconciliation context) is not part of
+  // a tab's saved route, so fall back to the copy kept in the stash.
+  const routeState = location.state ?? restored?.routeState;
   const isReadOnly = searchParams.get("readOnly") === "true";
   // Edit-in-place toggle. When isReadOnly + editing is true, the form fields
   // become editable and the footer swaps "Exported to Buildium" for
@@ -467,7 +545,7 @@ export const RecordBill = () => {
   // effect doesn't re-run (which would clobber unsaved edits). Initial value
   // honors ?edit=true so we can deep-link straight into edit mode.
   const [editing, setEditing] = useState<boolean>(
-    searchParams.get("edit") === "true",
+    restored ? restored.editing : searchParams.get("edit") === "true",
   );
   const formDisabled = isReadOnly && !editing;
   const [savingEdit, setSavingEdit] = useState(false);
@@ -490,13 +568,13 @@ export const RecordBill = () => {
   // editing draft ONLY if we have a real billId
   const isEditingDraft = billId !== null;
 
-  const stateBill = location.state?.bill;
+  const stateBill = routeState?.bill;
 
   // Reconciliation return context: when this page was opened from the CC
   // reconciliation workspace to book a bill for an unmatched statement row, we
   // carry the statement row through so that on successful create we hand the new
   // bill id back to the workspace, which auto-pays it from the card + pairs it.
-  const reconcileContext = location.state?.reconcile as
+  const reconcileContext = routeState?.reconcile as
     | { statementRow: unknown }
     | undefined;
 
@@ -508,28 +586,31 @@ export const RecordBill = () => {
   const editableBill =
     !formDisabled && stateBill ? buildEditableBillFromState(stateBill) : null;
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(
+    restored ? restored.selectedFile : null,
+  );
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(
-    isReadOnly
+    restored ? restored.selectedVendor : isReadOnly
       ? (readOnlyBill?.vendor ?? placeholderBill.vendor)
       : (editableBill?.vendor ?? null),
   );
   const [referenceNumber, setReferenceNumber] = useState<string>(
-    isReadOnly
+    restored ? restored.referenceNumber : isReadOnly
       ? (readOnlyBill?.referenceNumber ?? placeholderBill.referenceNumber)
       : (editableBill?.referenceNumber ?? ""),
   );
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(
-    isReadOnly
+    restored ? restored.invoiceDate : isReadOnly
       ? (readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate)
       : (editableBill?.invoiceDate ?? null),
   );
   const [dueDate, setDueDate] = useState<Date | null>(
-    isReadOnly
+    restored ? restored.dueDate : isReadOnly
       ? (readOnlyBill?.dueDate ?? placeholderBill.dueDate)
       : (editableBill?.dueDate ?? null),
   );
   const [invoiceDateInput, setInvoiceDateInput] = useState<string>(() => {
+    if (restored) return restored.invoiceDateInput;
     const date =
       (isReadOnly
         ? (readOnlyBill?.invoiceDate ?? placeholderBill.invoiceDate)
@@ -537,6 +618,7 @@ export const RecordBill = () => {
     return date ? format(date, "MM/dd/yyyy") : "";
   });
   const [dueDateInput, setDueDateInput] = useState<string>(() => {
+    if (restored) return restored.dueDateInput;
     const date =
       (isReadOnly
         ? (readOnlyBill?.dueDate ?? placeholderBill.dueDate)
@@ -544,7 +626,7 @@ export const RecordBill = () => {
     return date ? format(date, "MM/dd/yyyy") : "";
   });
   const [memo, setMemo] = useState<string>(
-    isReadOnly
+    restored ? restored.memo : isReadOnly
       ? (readOnlyBill?.memo ?? placeholderBill.memo)
       : (editableBill?.memo ?? ""),
   );
@@ -567,10 +649,10 @@ export const RecordBill = () => {
   const [formErrors, setFormErrors] = useState<Set<string>>(new Set());
   const [workOrdersByProperty, setWorkOrdersByProperty] = useState<{
     [propertyName: string]: { id: number; number: string }[];
-  }>({});
+  }>(restored?.workOrdersByProperty ?? {});
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ name: string; size: number; file: File }>
-  >([]);
+  >(restored?.uploadedFiles ?? []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Tracks which File object the auto-open effect has already handled, so
   // closing the preview doesn't immediately reopen it on the next render.
@@ -617,7 +699,7 @@ export const RecordBill = () => {
     checkPrintStatus: stateBill?.checkPrintStatus,
   });
   const [lineItems, setLineItems] = useState<LineItem[]>(
-    isReadOnly
+    restored ? restored.lineItems : isReadOnly
       ? (readOnlyBill?.lineItems ?? placeholderBill.lineItems)
       : (editableBill?.lineItems ?? [
           {
@@ -669,7 +751,9 @@ export const RecordBill = () => {
 
   const [propertySearch, setPropertySearch] = useState("");
   const [glSearch, setGlSearch] = useState("");
-  const [unitsByProperty, setUnitsByProperty] = useState<Record<string, PropertyUnit[]>>({});
+  const [unitsByProperty, setUnitsByProperty] = useState<Record<string, PropertyUnit[]>>(
+    restored?.unitsByProperty ?? {},
+  );
   // Sort alphabetically so the dropdown isn't dominated by one type. The
   // backend returns properties ordered by id; with the first ~60 active ids
   // being Concierge, the unsorted dropdown visually looks like a Concierge-
@@ -993,6 +1077,9 @@ export const RecordBill = () => {
 
   useEffect(() => {
     if (!draft) return;
+    // A restored in-progress form already holds the user's edits; don't let the
+    // server copy of the draft/bill overwrite them.
+    if (restored) return;
   
     const bill = draft.ApprovedBill;
     const vendorId = bill?.vendor_id ?? draft.VendorID;
@@ -1036,6 +1123,7 @@ export const RecordBill = () => {
   
   useEffect(() => {
     if (!draft) return;
+    if (restored) return; // see the vendor effect above
   
     // -----------------------------------
     // Approved bill normalization
@@ -1813,7 +1901,44 @@ export const RecordBill = () => {
   const [uploadedPdfMeta, setUploadedPdfMeta] = useState<{
     pdf_object_key: string;
     sha256_pdf: string;
-  } | null>(null);
+  } | null>(restored?.uploadedPdfMeta ?? null);
+
+  // Stash the form when the user switches to another RA tab; discard it on
+  // any other unmount. The cleanup runs while the old route is still current
+  // (Header commits selectedTab before navigating), so draftKey is this tab's.
+  const formSnapshotRef = useRef<RecordBillFormSnapshot | null>(null);
+  formSnapshotRef.current = formDisabled
+    ? null
+    : {
+        routeState,
+        editing,
+        selectedFile,
+        selectedVendor,
+        referenceNumber,
+        invoiceDate,
+        dueDate,
+        invoiceDateInput,
+        dueDateInput,
+        memo,
+        lineItems,
+        uploadedFiles,
+        uploadedPdfMeta,
+        unitsByProperty,
+        workOrdersByProperty,
+      };
+  const draftKeyRef = useRef(draftKey);
+  draftKeyRef.current = draftKey;
+  useEffect(() => {
+    return () => {
+      const key = draftKeyRef.current;
+      const snapshot = formSnapshotRef.current;
+      if (selectedTabRef.current !== tabId && snapshot) {
+        recordBillFormDrafts.set(key, snapshot);
+      } else {
+        recordBillFormDrafts.delete(key);
+      }
+    };
+  }, [tabId, selectedTabRef]);
   const [isDragActive, setIsDragActive] = useState(false);
   // True while POST /vendors/bills/parse-pdf is in flight. Drives the
   // small "Parsing bill…" indicator next to the file row.

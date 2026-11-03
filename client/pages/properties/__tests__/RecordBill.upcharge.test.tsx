@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { RecordBill } from "../RecordBill";
+import { StaticTabProvider } from "./tabTestContext";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -70,7 +71,9 @@ if (typeof URL.createObjectURL !== "function") {
 function renderRecordBill() {
   return render(
     <MemoryRouter initialEntries={["/properties/record-bill"]}>
-      <RecordBill />
+      <StaticTabProvider>
+        <RecordBill />
+      </StaticTabProvider>
     </MemoryRouter>,
   );
 }

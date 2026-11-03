@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { RecordBill } from "../RecordBill";
+import { StaticTabProvider } from "./tabTestContext";
 
 // ---------------------------------------------------------------------------
 // Bug #10 regression: the Pay Bill / View Payment modals used to render the
@@ -131,7 +132,9 @@ function renderReadOnlyBill(stateBill: Record<string, unknown>) {
         },
       ]}
     >
-      <RecordBill />
+      <StaticTabProvider>
+        <RecordBill />
+      </StaticTabProvider>
     </MemoryRouter>,
   );
 }
