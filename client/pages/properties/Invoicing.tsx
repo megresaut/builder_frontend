@@ -512,7 +512,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     status: InvoiceItemStatus;
     statusColor: string;
     statusBg: string;
-    // backend payment_status: paid | unpaid | billed_by_invoice | unknown | not_booked
+    // backend payment_status: paid | paid_buildium | unpaid | billed_by_invoice | unknown | not_booked
     paymentStatus: string;
     billDate?: string | null;
     billInvoiceNumber?: string | null;
@@ -2795,6 +2795,19 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   const ps = item.paymentStatus;
                   if (ps === "paid") return <StatusBadge status="Paid" />;
                   if (ps === "unpaid") return <StatusBadge status="Pending" />;
+                  if (ps === "paid_buildium") {
+                    // Vendor paid in Buildium; the Buildium→QuickBooks payment
+                    // mirror hasn't landed yet (it retries automatically).
+                    return (
+                      <div
+                        title="Paid in Buildium. The payment hasn't reached QuickBooks yet; it syncs automatically."
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap w-fit"
+                        style={{ color: "#15803D", backgroundColor: "#DCFCE7" }}
+                      >
+                        Paid · Buildium
+                      </div>
+                    );
+                  }
                   if (ps === "not_booked") {
                     // FTO expense with no converted bill. Approved + not booked
                     // means the bill export silently failed at approval — flag
