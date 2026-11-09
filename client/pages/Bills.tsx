@@ -232,6 +232,19 @@ interface Bill {
   parseConfidence?: number;
 }
 
+// A bill is paid when QBO says so (concierge bills) OR nothing is owed and a
+// payment was actually recorded. The second branch covers Buildium-only bills
+// (COMM/R/HOA/no property) which never get a qbo_paid_at. The recorded-payment
+// check keeps drafts and $0 bills (amountDueCents defaults to 0) from reading
+// as paid. Matches the backend's ?tab=paid filter.
+export function isBillPaid(
+  b: Pick<Bill, "qboPaidAt" | "amountDueCents" | "paidOn" | "buildiumBillPaymentId">,
+): boolean {
+  if (b.qboPaidAt) return true;
+  if (b.amountDueCents == null || b.amountDueCents > 0) return false;
+  return !!(b.paidOn || b.buildiumBillPaymentId);
+}
+
 function generateVendorColor(name: string) {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -1834,7 +1847,7 @@ export default function Bills() {
               }
               if (columnKey === "exportedAt") {
                 const ts = bill.exportedAt ?? bill.importedAt;
-                const isPaid = !!bill.qboPaidAt;
+                const isPaid = isBillPaid(bill);
                 const checkQueued = bill.checkPrintStatus === "queued";
                 const checkPrinted = bill.checkPrintStatus === "printed";
                 return (
@@ -2106,7 +2119,7 @@ export default function Bills() {
                     {
                       label: "View Payment",
                       // Mirror of Pay Bill: visible exactly when the bill is paid.
-                      hidden: (bill: Bill) => !bill.qboPaidAt,
+                      hidden: (bill: Bill) => !isBillPaid(bill),
                       icon: (
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M1.5 9C1.5 9 4.5 3.75 9 3.75C13.5 3.75 16.5 9 16.5 9C16.5 9 13.5 14.25 9 14.25C4.5 14.25 1.5 9 1.5 9Z"
@@ -2361,7 +2374,7 @@ export default function Bills() {
                 `Buildium has no delete API, so Buildium bill #${deleteBillTarget.buildiumBillId} must be deleted manually.`,
               );
             }
-            if (deleteBillTarget.qboPaidAt || deleteBillTarget.buildiumBillPaymentId) {
+            if (isBillPaid(deleteBillTarget) || deleteBillTarget.buildiumBillPaymentId) {
               parts.push(
                 "This bill is paid — its recorded payment will be removed too (manually in Buildium where applicable).",
               );
