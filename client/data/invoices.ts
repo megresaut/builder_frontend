@@ -109,6 +109,16 @@ export interface InvoiceRefundsResponse {
   total_refunded_cents: number;
 }
 
+// reverseInvoicePayment undoes a payment recorded by mistake: the backend
+// deletes the QBO Payment and returns the invoice to 'sent' with the payment
+// cleared. Not a refund — no money moves. The backend refuses refunded
+// invoices and real QBO Payments (card/ACH) charges, which need Refund.
+export async function reverseInvoicePayment(invoiceID: number): Promise<unknown> {
+  return fetchJSON(`/invoicing/reverse-payment?id=${invoiceID}`, {
+    method: "POST",
+  });
+}
+
 // getInvoiceRefunds lists every refund already recorded against an invoice
 // plus the running total — used to cap the amount before opening the refund
 // modal (mirrors the bill-side card refund's "remaining refundable" check).

@@ -36,6 +36,7 @@ import {
   fetchInvoicePaymentDetail,
   getInvoiceRefunds,
   markBillCollected,
+  reverseInvoicePayment,
   uploadInvoicePaymentReceipt,
   type InvoicePaymentDetailProps,
 } from "@/data/invoices";
@@ -617,6 +618,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   const [currentInvoiceRolloverPaymentCents, setCurrentInvoiceRolloverPaymentCents] = useState(0);
   const [currentInvoiceDisputeCreditCents, setCurrentInvoiceDisputeCreditCents] = useState(0);
   const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [reversePaymentOpen, setReversePaymentOpen] = useState(false);
+  const [reversingPayment, setReversingPayment] = useState(false);
   const [refundAlreadyCents, setRefundAlreadyCents] = useState(0);
   // Dispute-confirm dialog: the InvoiceItem being disputed (null = closed).
   const [voidTargetLine, setVoidTargetLine] = useState<InvoiceItem | null>(null);
@@ -3260,6 +3263,20 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                           Refund
                         </DropdownMenuItem>
                       )}
+
+                    {/* Undo for a payment recorded by mistake. Not offered on
+                        refunded invoices — the backend refuses those too. */}
+                    {(currentInvoiceStatus === "paid" ||
+                      (currentInvoiceStatus === "sent" &&
+                        currentInvoicePaymentCents > 0)) &&
+                      currentInvoiceId && (
+                        <DropdownMenuItem
+                          title="Undo a payment that was recorded by mistake. Removes it from QuickBooks and marks the invoice unpaid. No money moves."
+                          onSelect={() => setReversePaymentOpen(true)}
+                        >
+                          Reverse Payment
+                        </DropdownMenuItem>
+                      )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -4037,6 +4054,50 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         loading={paymentDetailLoading}
         error={paymentDetailError}
       />
+
+      <AlertDialog
+        open={reversePaymentOpen}
+        onOpenChange={(open) => {
+          if (!reversingPayment) setReversePaymentOpen(open);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reverse payment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Use this when a payment was recorded by mistake. The{" "}
+              {`$${(currentInvoicePaymentCents / 100).toFixed(2)}`} payment is
+              deleted from QuickBooks and this invoice goes back to unpaid. No
+              money is sent to the client. To return money the client actually
+              paid, use Refund instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={reversingPayment}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={reversingPayment || !currentInvoiceId}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!currentInvoiceId) return;
+                setReversingPayment(true);
+                try {
+                  await reverseInvoicePayment(currentInvoiceId);
+                  toast.success("Payment reversed — the invoice is unpaid again.");
+                  setReversePaymentOpen(false);
+                  await loadInvoiceForProperty();
+                  await loadInvoiceHistory();
+                } catch (err: any) {
+                  toast.error(err?.message ?? "Failed to reverse payment");
+                } finally {
+                  setReversingPayment(false);
+                }
+              }}
+            >
+              {reversingPayment ? "Reversing…" : "Reverse Payment"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {currentInvoiceId && (
         <RefundInvoiceModal
