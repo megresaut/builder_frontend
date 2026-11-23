@@ -1103,6 +1103,27 @@ export const Invoicing: React.FC<InvoicingProps> = ({
   // never collide with a real invoice_line_items.id, and so any code that
   // accidentally treats it as a line id fails loudly rather than hitting a row.
   const CREDIT_ROW_ID = -1;
+  const PAYMENT_ROW_ID = -2;
+
+  // Money the owner has already paid against a still-open invoice (partial
+  // payments recorded via Record Payment, or arriving from QBO). Net of
+  // refunds: an invoice re-opened after a full refund still carries the
+  // refunded payment in payment_amount_cents. Only while 'sent' — a paid
+  // invoice's PDF keeps showing its charges, as it always has.
+  const paymentsReceivedCents =
+    currentInvoiceStatus === "sent"
+      ? Math.max(0, currentInvoicePaymentCents - refundAlreadyCents)
+      : 0;
+  // What the owner still owes: total, less credits, less payments received.
+  // Pre-fills Record Payment so a second instalment isn't entered as the full
+  // total (which would overpay QBO).
+  const amountStillOwedCents = Math.max(
+    0,
+    currentInvoiceTotalCents -
+      currentInvoiceRolloverPaymentCents -
+      currentInvoiceDisputeCreditCents -
+      paymentsReceivedCents,
+  );
 
   // Rows for the on-screen table only: the real line items plus a trailing
   // summary row for any applied payment/credit, so an operator sees it without
@@ -1117,9 +1138,28 @@ export const Invoicing: React.FC<InvoicingProps> = ({
     const rows = getDisplayedInvoiceItems();
     const creditCents =
       currentInvoiceRolloverPaymentCents + currentInvoiceDisputeCreditCents;
-    if (creditCents <= 0) return rows;
+    const extra: typeof rows = [];
+    if (paymentsReceivedCents > 0) {
+      extra.push({
+        id: PAYMENT_ROW_ID,
+        vendor: "Payment received",
+        vendorIcon: VENDOR_PRESETS.manual.vendorIcon,
+        vendorBg: "#DCFCE7",
+        vendorBorder: "rgba(22, 163, 74, 0.22)",
+        glAccount: "—",
+        description: "Partial payment from the owner — the balance is still due",
+        amount: `-$${(paymentsReceivedCents / 100).toFixed(2)}`,
+        source: "Payment",
+        status: "Approved" as InvoiceItemStatus,
+        statusColor: "#059669",
+        statusBg: "#D1FAE5",
+        paymentStatus: "unknown",
+      } as (typeof rows)[number]);
+    }
+    if (creditCents <= 0) return [...rows, ...extra];
     return [
       ...rows,
+      ...extra,
       {
         id: CREDIT_ROW_ID,
         vendor: "Payment / Credit",
@@ -2653,7 +2693,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 // Hide action for Management Fee items
                 hidden: (item: any) =>
                   item?.source === "Management Fee" ||
-                  item?.id === CREDIT_ROW_ID,
+                  (item?.id === CREDIT_ROW_ID || item?.id === PAYMENT_ROW_ID),
               },
               {
                 label: () => "Dispute line item",
@@ -2693,7 +2733,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 hidden: (item: any) =>
                   !currentInvoiceId ||
                   currentInvoiceStatus === "void" ||
-                  item?.id === CREDIT_ROW_ID,
+                  (item?.id === CREDIT_ROW_ID || item?.id === PAYMENT_ROW_ID),
               },
               {
                 label: () => "Mark as collected",
@@ -2729,7 +2769,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   currentInvoiceStatus === "paid" ||
                   currentInvoiceStatus === "refunded" ||
                   !(item?.sourceType === "vendor" || item?.sourceType === "utility") ||
-                  item?.id === CREDIT_ROW_ID,
+                  (item?.id === CREDIT_ROW_ID || item?.id === PAYMENT_ROW_ID),
               },
               {
                 label: () => "Edit line items",
@@ -2764,7 +2804,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                   currentInvoiceStatus === "refunded" ||
                   !(item?.sourceType === "vendor" || item?.sourceType === "utility") ||
                   !item?.hasBillableLines ||
-                  item?.id === CREDIT_ROW_ID,
+                  (item?.id === CREDIT_ROW_ID || item?.id === PAYMENT_ROW_ID),
               },
             ]}
 
@@ -2904,7 +2944,8 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                 }, 0);
                 const creditCents =
                   currentInvoiceRolloverPaymentCents +
-                  currentInvoiceDisputeCreditCents;
+                  currentInvoiceDisputeCreditCents +
+                  paymentsReceivedCents;
                 // Uncredited invoices keep the original single-line footer; the
                 // credit and net total only appear once there's something to
                 // show, so the operator can see an applied credit without
@@ -3129,7 +3170,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
                       type="button"
                       onClick={() => {
                         setRecordPaymentInvoiceId(currentInvoiceId);
-                        setRecordPaymentDefaultCents(currentInvoiceTotalCents);
+                        setRecordPaymentDefaultCents(amountStillOwedCents);
                         setRecordPaymentOpen(true);
                       }}
                       className="h-10 inline-flex items-center px-4 rounded-lg border border-white bg-[#013764] shadow-[0_0_0_1px_#002D5A,0_0_10px_-5px_rgba(0,0,0,0.2)] hover:bg-[#003a73] transition-colors text-white font-medium"
@@ -3409,6 +3450,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
         invoiceId={currentInvoiceId}
         rolloverPaymentCents={currentInvoiceRolloverPaymentCents}
         disputeCreditCents={currentInvoiceDisputeCreditCents}
+        paymentsReceivedCents={paymentsReceivedCents}
         onCreditChange={
           currentInvoiceStatus === "paid" ||
           currentInvoiceStatus === "refunded" ||
@@ -3479,7 +3521,7 @@ export const Invoicing: React.FC<InvoicingProps> = ({
           currentQBOPushStatus !== "failed"
             ? () => {
                 setRecordPaymentInvoiceId(currentInvoiceId);
-                setRecordPaymentDefaultCents(currentInvoiceTotalCents);
+                setRecordPaymentDefaultCents(amountStillOwedCents);
                 setRecordPaymentOpen(true);
                 setShowInvoicePreview(false);
               }

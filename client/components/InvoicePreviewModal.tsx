@@ -154,6 +154,9 @@ interface InvoicePreviewModalProps {
   // Dispute credit rolled over from a previous invoice and applied to this
   // one (cents). Renders a CREDITS row and reduces TOTAL.
   disputeCreditCents?: number | null;
+  // Partial payments already received on a still-open invoice (cents). Folded
+  // into the PAYMENTS/CREDITS row and reduces TOTAL, like the credits above.
+  paymentsReceivedCents?: number | null;
   // When provided, the PAYMENTS/CREDITS figure becomes editable and commits the
   // typed amount (cents) on blur — for credit that is real but absent from QBO,
   // e.g. a prior-month overpayment settled outside the platform. The parent
@@ -192,6 +195,7 @@ export default function InvoicePreviewModal({
   invoiceId,
   rolloverPaymentCents,
   disputeCreditCents,
+  paymentsReceivedCents,
   onCreditChange,
 }: InvoicePreviewModalProps) {
   const invoiceRef = useRef<HTMLDivElement | null>(null);
@@ -1119,7 +1123,9 @@ export default function InvoicePreviewModal({
     // silently reporting the un-credited figure as the total.
     const subtotal = calculateTotal();
     const creditCentsExport =
-      (creditOverride ?? rolloverPaymentCents ?? 0) + (disputeCreditCents ?? 0);
+      (creditOverride ?? rolloverPaymentCents ?? 0) +
+      (disputeCreditCents ?? 0) +
+      (paymentsReceivedCents ?? 0);
     let summaryRow = emptyRow + 1;
     if (creditCentsExport > 0) {
       for (const [label, value] of [
@@ -2105,14 +2111,18 @@ export default function InvoicePreviewModal({
                     // matching the reference template. Sums the overpayment
                     // rollover and dispute credit into one figure.
                     const disputeCents = disputeCreditCents ?? 0;
+                    const paidCents = paymentsReceivedCents ?? 0;
                     const creditCents =
                       (creditOverride ?? rolloverPaymentCents ?? 0) +
-                      disputeCents;
+                      disputeCents +
+                      paidCents;
                     const creditDisplay = `${creditCents > 0 ? "-" : ""}${formatCurrency(creditCents / 100)}`;
                     // Only the rollover half is writable, so a non-zero dispute
                     // credit locks the row rather than risk double-counting it.
+                    // Same for payments received: they're part of the figure
+                    // but not the editable rollover half.
                     const creditEditable =
-                      !!onCreditChange && disputeCents === 0;
+                      !!onCreditChange && disputeCents === 0 && paidCents === 0;
                     return (
                       <div
                         style={{
@@ -2209,7 +2219,8 @@ export default function InvoicePreviewModal({
                       {formatCurrency(
                         calculateTotal() -
                           (creditOverride ?? rolloverPaymentCents ?? 0) / 100 -
-                          (disputeCreditCents ?? 0) / 100,
+                          (disputeCreditCents ?? 0) / 100 -
+                          (paymentsReceivedCents ?? 0) / 100,
                       )}
                     </span>
                   </div>
